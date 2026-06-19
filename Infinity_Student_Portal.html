@@ -798,26 +798,61 @@ var QUIZ_BANK = {
   k26:{ q:'Para dar una opinión con pensamiento crítico, ¿qué deberías agregar?', options:['Solo "I think..."','"I think... because... for example... although some people might say..."','Nada más, es suficiente decir "yes" o "no"','Repetir la pregunta'], answer:1, explain:'Opinión + justificación + ejemplo + matiz/contraargumento muestra pensamiento crítico real.' }
 };
 
-function generateQuizForStudent(s){
-  var tbKpis = (s.trainingBook||[]).map(function(ex){ var m=(ex.kpi||'').match(/k(\d+)/); return m?('k'+m[1]):null; }).filter(Boolean);
-  var pool = tbKpis.filter(function(k,i){ return QUIZ_BANK[k] && tbKpis.indexOf(k)===i; });
+// Quiz session rotation: avoid repeating the same questions back-to-back
+window._quizUsedKeys = [];
+
+function generateQuizForStudent(s, allowRepeat){
   var allKeys = Object.keys(QUIZ_BANK);
+
+  // Identify weak KPIs from recent quiz history (< 70% in last 10 quizzes)
+  var kpiRecord = {};
+  (s.quizzes||[]).slice(-10).forEach(function(q){
+    (q.kpiResults||[]).forEach(function(r){
+      if(!kpiRecord[r.kpi]) kpiRecord[r.kpi] = {ok:0,fail:0};
+      r.correct ? kpiRecord[r.kpi].ok++ : kpiRecord[r.kpi].fail++;
+    });
+  });
+  var weakKpis = Object.keys(kpiRecord).filter(function(k){
+    var rec = kpiRecord[k];
+    return rec.fail > rec.ok; // more failures than successes
+  });
+
+  // Assigned exercise KPIs
+  var tbKpis = (s.trainingBook||[]).map(function(ex){
+    var m=(ex.kpi||'').match(/k(\d+)/); return m?('k'+m[1]):null;
+  }).filter(Boolean);
+
+  var exclude = allowRepeat ? [] : window._quizUsedKeys;
+  var pool = [];
+
+  // Priority 1: weak KPIs not recently used
+  weakKpis.forEach(function(k){ if(QUIZ_BANK[k] && pool.indexOf(k)===-1 && exclude.indexOf(k)===-1) pool.push(k); });
+  // Priority 2: assigned KPIs not recently used
+  tbKpis.forEach(function(k){ if(QUIZ_BANK[k] && pool.indexOf(k)===-1 && exclude.indexOf(k)===-1) pool.push(k); });
+  // Fill remainder randomly from unused
   var tries=0;
-  while(pool.length<8 && pool.length<allKeys.length && tries<100){
-    var r = allKeys[Math.floor(Math.random()*allKeys.length)];
-    if(pool.indexOf(r)===-1) pool.push(r);
+  while(pool.length<8 && tries<300){
+    var r=allKeys[Math.floor(Math.random()*allKeys.length)];
+    if(pool.indexOf(r)===-1 && exclude.indexOf(r)===-1) pool.push(r);
     tries++;
   }
+  // If bank is exhausted, allow repeats
+  if(pool.length<8){
+    tries=0;
+    while(pool.length<8 && pool.length<allKeys.length && tries<100){
+      var r2=allKeys[Math.floor(Math.random()*allKeys.length)];
+      if(pool.indexOf(r2)===-1) pool.push(r2);
+      tries++;
+    }
+  }
+
   pool = pool.slice(0,8);
-  return pool.map(function(k){ var item=Object.assign({kpi:k}, QUIZ_BANK[k]); return item; });
+  window._quizUsedKeys = pool.slice(); // remember for next rotation
+  return pool.map(function(k){ return Object.assign({kpi:k}, QUIZ_BANK[k]); });
 }
 
-function renderQuizWidget(containerId){
-  var s = CURRENT_STUDENT;
-  var quiz = generateQuizForStudent(s);
-  window._currentQuiz = quiz;
-  var c = document.getElementById(containerId);
-  c.innerHTML = '<div class="ib ib-navy">Quiz de práctica — '+quiz.length+' preguntas basadas en tus ejercicios asignados. <strong>No afecta tus KPIs</strong>, es solo para practicar.</div>'
+function _buildQuizHTML(quiz, containerId){
+  return '<div class="ib ib-navy" style="margin-bottom:8px;">Quiz de práctica — '+quiz.length+' preguntas. <strong>No afecta tus KPIs</strong>, es solo para practicar.</div>'
     + quiz.map(function(item,i){
         return '<div class="card" style="margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">'+(i+1)+'. '+item.q+'</div>'
           + item.options.map(function(opt,j){
@@ -825,32 +860,78 @@ function renderQuizWidget(containerId){
             }).join('')
           + '</div>';
       }).join('')
-    + '<div style="display:flex;justify-content:flex-end;"><button class="btn btn-navy" onclick="submitQuiz(\''+containerId+'\')"><i class="ti ti-check"></i>Enviar respuestas</button></div>'
+    + '<div style="display:flex;justify-content:flex-end;">'
+    +   '<button class="btn btn-navy" onclick="submitQuiz(\''+containerId+'\')"><i class="ti ti-check"></i>Enviar respuestas</button>'
+    + '</div>'
     + '<div id="'+containerId+'-result" style="margin-top:10px;"></div>';
+}
+
+function renderQuizWidget(containerId){
+  var s = CURRENT_STUDENT;
+  var quiz = generateQuizForStudent(s, false);
+  window._currentQuiz = quiz;
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = _buildQuizHTML(quiz, containerId);
+}
+
+function repeatQuiz(containerId){
+  var quiz = window._currentQuiz||[];
+  if(!quiz.length){ renderQuizWidget(containerId); return; }
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = _buildQuizHTML(quiz, containerId);
 }
 
 async function submitQuiz(containerId){
   var quiz = window._currentQuiz||[];
   var correct=0;
+  var kpiResults=[];
   var detailHtml = quiz.map(function(item,i){
     var sel = document.querySelector('input[name="quiz-q'+i+'"]:checked');
     var selVal = sel ? parseInt(sel.value) : -1;
     var isCorrect = selVal===item.answer;
     if(isCorrect) correct++;
+    kpiResults.push({ kpi:item.kpi, correct:isCorrect });
     return '<div style="background:'+(isCorrect?'var(--gb)':'var(--rb)')+';border-radius:var(--r);padding:8px 10px;margin-bottom:6px;font-size:12px;">'
-      +'<strong>'+(i+1)+'. '+(isCorrect?'✓ Correcto':'✗ '+(selVal===-1?'Sin responder':'Incorrecto'))+'</strong>'
+      +'<strong>'+(i+1)+'. '+(isCorrect?'✓ Correcto':'✗ '+(selVal===-1?'Sin responder':'Incorrecto'))+'</strong> — '
+      +'<em>'+item.options[item.answer]+'</em>'
       +'<div style="margin-top:4px;color:var(--text);">'+item.explain+'</div></div>';
   }).join('');
 
   var score = Math.round((correct/quiz.length)*100);
-  document.getElementById(containerId+'-result').innerHTML = '<div class="card">'
-    +'<div style="text-align:center;font-size:28px;font-weight:800;color:var(--navy);">'+correct+'/'+quiz.length+' <span style="font-size:14px;color:var(--t3);">('+score+'%)</span></div>'
-    +'<div style="font-size:11px;color:var(--t3);text-align:center;margin-bottom:8px;">Evaluación de práctica — no influye en tus KPIs de aprovechamiento.</div>'
-    + detailHtml + '</div>';
+  var missedKpis = kpiResults.filter(function(r){return !r.correct;}).map(function(r){return r.kpi;});
+  var medal = score===100?'🏆':score>=75?'⭐':score>=50?'📈':'💪';
+  var msg = score===100?'¡Perfecto! Dominás estos temas.'
+    :score>=75?'¡Muy bien! Repasá los que fallaste.'
+    :score>=50?'Vas progresando. El nuevo quiz priorizará los temas débiles.'
+    :'Estos temas necesitan más práctica — Jill los va a reforzar.';
 
+  document.getElementById(containerId+'-result').innerHTML =
+    '<div class="card">'
+    +'<div style="text-align:center;font-size:36px;margin-bottom:4px;">'+medal+'</div>'
+    +'<div style="text-align:center;font-size:28px;font-weight:800;color:var(--navy);">'+correct+'/'+quiz.length+' <span style="font-size:16px;color:var(--t3);">('+score+'%)</span></div>'
+    +'<div style="font-size:12px;color:var(--t2);text-align:center;margin-bottom:12px;">'+msg+'</div>'
+    + detailHtml
+    +'<div style="display:flex;gap:8px;margin-top:14px;justify-content:center;">'
+    +'<button class="btn" style="background:#e5e7eb;color:#374151;" onclick="repeatQuiz(\''+containerId+'\')"><i class="ti ti-refresh"></i> Repetir este quiz</button>'
+    +'<button class="btn btn-navy" onclick="renderQuizWidget(\''+containerId+'\')"><i class="ti ti-arrows-shuffle"></i> Nuevo quiz</button>'
+    +'</div>'
+    +'</div>';
+
+  // Save to student record with per-KPI breakdown so Jill/Alice can target weak areas
   var s = CURRENT_STUDENT;
   if(!s.quizzes) s.quizzes=[];
-  s.quizzes.push({ date:new Date().toISOString(), correct, total:quiz.length, score, kpis:quiz.map(function(q){return q.kpi;}) });
+  s.quizzes.push({ date:new Date().toISOString(), correct, total:quiz.length, score, kpiResults, kpis:quiz.map(function(q){return q.kpi;}) });
+  // Keep a rolling summary of weak KPIs for Jill to read on session start
+  var kpiAccum = {};
+  (s.quizzes||[]).slice(-10).forEach(function(q){
+    (q.kpiResults||[]).forEach(function(r){
+      if(!kpiAccum[r.kpi]) kpiAccum[r.kpi]={ok:0,fail:0};
+      r.correct ? kpiAccum[r.kpi].ok++ : kpiAccum[r.kpi].fail++;
+    });
+  });
+  s.quizWeakKpis = Object.keys(kpiAccum).filter(function(k){ return kpiAccum[k].fail > kpiAccum[k].ok; });
   await dbSet('infinity_students', s.id, s);
 }
 // ── ALICE — Tutora de inglés con voz ─────────────────────
@@ -2133,7 +2214,7 @@ async function startJillSession(s){
   try {
     var r = await fetch(INFINITY_API+'/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: s, history:[], mode:'start_session' })
+      body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: s.quizWeakKpis||[] })
     });
     var data = await r.json();
     if(statusEl) statusEl.textContent = '';
