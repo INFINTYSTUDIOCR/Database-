@@ -2014,7 +2014,7 @@ async function sendJillMsg(){
   if(!text) return;
   inp.value = '';
   jillAddMsg(text, 'student', 'text');
-  _jillState.history.push({role:'user', content: text});
+  // history does NOT include current message yet — backend appends it via message field
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill está respondiendo...';
   try {
@@ -2025,6 +2025,8 @@ async function sendJillMsg(){
     });
     var data = await r.json();
     if(statusEl) statusEl.textContent = '';
+    // Push to history only after successful response
+    _jillState.history.push({role:'user', content: text});
     jillAddMsg(data.reply||'', 'jill', data.contentType||'text');
     jillSpeak(data.reply||'');
     _jillState.history.push({role:'assistant', content: data.reply||''});
