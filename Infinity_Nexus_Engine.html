@@ -1212,6 +1212,7 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(192,132,252,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'
+    +'<button data-sid="'+id+'" class="btn btn-sm" id="btn-sysmode" style="background:'+(s.system_mode==='alice'?'rgba(14,165,233,0.2)':'rgba(61,220,151,0.15)')+';border:1px solid '+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';color:'+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';font-weight:700;" onclick="requestModeChange(\''+id+'\')" title="Próxima sesión"><i class="ti ti-toggle-'+(s.system_mode==='alice'?'right':'left')+'"></i> '+(s.system_mode==='alice'?'Alice Mode':'Jill Mode')+'</button>'
 
     +'<div class="profile-header">'
     +'<div><div class="ph-name">'+((s.info&&s.info.name)||'—')+'</div>'
@@ -3975,6 +3976,38 @@ async function saveKPITracker(){
 // Combina los KPIs más débiles del último KPI Tracker con KPIs al azar
 // del catálogo completo, para evitar predictibilidad/gaming del estudiante.
 // ── NEXORA — activación individual por estudiante ──────────
+// ── SYSTEM MODE — Jill ↔ Alice ──────────────────────────────────
+// Trainer-only control. Persistent. Applies next session.
+function requestModeChange(sid){
+  var s = DB[sid]; if(!s) return;
+  var currentMode = s.system_mode || 'jill';
+  var targetMode  = currentMode === 'jill' ? 'alice' : 'jill';
+  var name = (s.info&&s.info.name)||'este estudiante';
+  var label = targetMode === 'alice' ? 'Alice Mode' : 'Jill Mode';
+  var icon  = targetMode === 'alice' ? '🔵' : '🟢';
+
+  confirmAction(
+    icon+' Cambiar a '+label,
+    '¿Confirmar cambio de modo para '+name+'?\n\nActual: '+(currentMode==='alice'?'Alice Mode':'Jill Mode')+' → Nuevo: '+label+'\n\nEl cambio aplica a partir de la próxima sesión.',
+    async function(){
+      s.system_mode = targetMode;
+      if(!s.notes) s.notes=[];
+      s.notes.push({
+        date: new Date().toISOString(),
+        trainer: SESSION.name,
+        text: 'Modo cambiado a '+label+' (activo próxima sesión)',
+        phase: parseInt((s.info&&s.info.phase))||1
+      });
+      await dbSet('infinity_students', sid, s);
+      DB[sid] = s;
+      await logAction('Cambió system_mode a '+targetMode, name);
+      showToast('✓ Modo actualizado a '+label+' — activo en próxima sesión');
+      openStudent(sid);
+    },
+    'Sí, aplicar cambio'
+  );
+}
+
 function toggleStudentNexora(sid){
   var s = DB[sid]; if(!s) return;
   if(s.nexoraEnabled){
