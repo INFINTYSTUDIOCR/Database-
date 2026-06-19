@@ -254,6 +254,7 @@ async function doLogin(){
 function switchPortalTab(tab){
   // Detener Alice si se cambia de tab
   if(tab !== 'alice') stopAlice();
+  if(tab !== 'jill' && _jillState.audio){ _jillState.audio.pause(); _jillState.audio = null; }
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
   var pane = document.getElementById('tp-'+tab);
   if(pane) pane.classList.add('active');
@@ -261,6 +262,7 @@ function switchPortalTab(tab){
     item.classList.toggle('active', item.dataset.tab===tab);
   });
   if(tab==='alice') renderAlice();
+  if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
 }
 
 function logout(){
@@ -1923,6 +1925,10 @@ async function loadNexoraConfig(s){
     if(s&&s.nexoraEnabled&&s.nexoraConfig){window._nexoraConfig=s.nexoraConfig;}else{window._nexoraConfig=null;}
     window._currentStudent=s;
     window._portalStudent=s;
+    // Reset Jill state so each new session starts fresh
+    _jillState.history = [];
+    _jillState.active = false;
+    if(_jillState.audio){ _jillState.audio.pause(); _jillState.audio = null; }
   }catch(e){}
 }
 
