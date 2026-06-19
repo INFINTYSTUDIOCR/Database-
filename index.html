@@ -614,7 +614,7 @@ select.form-input{cursor:pointer;}
       <button class="chat-close" onclick="toggleChat()">×</button>
     </div>
     <div class="chat-msgs" id="claire-msgs">
-      <div class="c-msg claire">¡Hola! Soy Claire. ¿Te interesa saber más sobre el método Nexus o nuestros programas? Preguntame lo que quieras. 👋</div>
+      <div class="c-msg claire typing" id="claire-greeting">...</div>
     </div>
     <div class="chat-input-row">
       <input id="claire-input" placeholder="Escribí tu pregunta..." onkeydown="if(event.key==='Enter')sendClaire()">
@@ -707,11 +707,32 @@ function submitAssessment(){
 // ── Claire chat ──────────────────────────────────────────────
 var chatOpen = false;
 var claireHistory = [];
+var claireGreeted = false;
 var CLAIRE_API = 'https://alice-by-infinity.onrender.com/claire';
+
+async function loadClaireGreeting(){
+  try {
+    var r = await fetch(CLAIRE_API, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({mode:'start', history:[], message:''})
+    });
+    var data = await r.json();
+    var el = document.getElementById('claire-greeting');
+    if(el && data.reply){
+      el.classList.remove('typing');
+      el.innerHTML = data.reply.replace(/\n/g,'<br>');
+      claireHistory.push({role:'assistant', content:data.reply});
+    }
+  } catch(e) {
+    var el = document.getElementById('claire-greeting');
+    if(el){ el.classList.remove('typing'); el.innerHTML = '¡Hola! Soy Claire, de Studio Infinity. ¿En qué te puedo ayudar hoy?'; }
+  }
+}
 
 function toggleChat(){
   chatOpen = !chatOpen;
   document.getElementById('chat-box').classList.toggle('open', chatOpen);
+  if(chatOpen && !claireGreeted){ claireGreeted=true; loadClaireGreeting(); }
 }
 
 async function sendClaire(){
@@ -752,13 +773,16 @@ function removeTyping(){
   if(t) t.remove();
 }
 
-// Open chat after 8 seconds if not already opened
+// Warm up Claire greeting in background immediately
+setTimeout(loadClaireGreeting, 1000);
+
+// Auto-open chat after 12 seconds
 setTimeout(function(){
   if(!chatOpen && !sessionStorage.getItem('chat-dismissed')){
     toggleChat();
     sessionStorage.setItem('chat-dismissed','1');
   }
-}, 8000);
+}, 12000);
 
 // ── Smooth nav scroll ───────────────────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
