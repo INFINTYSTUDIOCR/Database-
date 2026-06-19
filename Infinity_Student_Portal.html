@@ -1966,17 +1966,19 @@ function renderJillTab(s){
   _jillState.active = true;
 
   root.innerHTML =
-    '<div style="background:linear-gradient(160deg,#0B1437,#0d2a1a);border-radius:20px;padding:1.25rem;color:white;margin-bottom:1rem;">'
-    +'<div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-bottom:4px;">STUDIO INFINITY CR · FOUNDATIONS</div>'
-    +'<div style="font-size:26px;font-weight:900;color:#3DDC97;letter-spacing:0.04em;">JILL</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,0.5);">Tu tutora de Foundations · Presión cero · Avance garantizado</div>'
+    '<div style="background:linear-gradient(135deg,#0a5c3c,#0e7a50);border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:12px;">'
+    +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌿</div>'
+    +'<div>'
+    +'<div style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:0.02em;">Jill</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.85);">Tutora de Foundations · Presión cero · Avance garantizado</div>'
     +'</div>'
-    +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;min-height:200px;max-height:420px;overflow-y:auto;padding:4px 0;"></div>'
+    +'</div>'
+    +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;min-height:200px;max-height:400px;overflow-y:auto;padding:2px 0;"></div>'
     +'<div style="display:flex;gap:8px;align-items:flex-end;">'
-    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o pregunta aquí..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;resize:none;"></textarea>'
-    +'<button onclick="sendJillMsg()" style="padding:10px 16px;background:linear-gradient(135deg,#3DDC97,#0F6E56);border:none;color:white;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;"><i class="ti ti-send"></i></button>'
+    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o pregunta aquí..." style="flex:1;background:#ffffff;border:2px solid #d1d5db;color:#111827;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;resize:none;outline:none;"></textarea>'
+    +'<button onclick="sendJillMsg()" style="padding:10px 18px;background:#0a5c3c;border:none;color:#ffffff;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;height:52px;"><i class="ti ti-send"></i></button>'
     +'</div>'
-    +'<div id="jill-status" style="font-size:11px;color:rgba(61,220,151,0.6);margin-top:6px;min-height:16px;"></div>';
+    +'<div id="jill-status" style="font-size:12px;color:#0a5c3c;font-weight:600;margin-top:6px;min-height:18px;"></div>';
 
   // Add enter key handler
   var inp = document.getElementById('jill-input');
@@ -2035,16 +2037,17 @@ function jillAddMsg(text, sender, contentType){
   var msgs = document.getElementById('jill-messages');
   if(!msgs || !text) return;
   var isJill = sender==='jill';
-  var bg = isJill
-    ? 'background:rgba(61,220,151,0.1);border:1px solid rgba(61,220,151,0.2);'
-    : 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);';
+  // Jill messages: white card with green left border
+  // Student messages: light green-gray bubble, right aligned
+  var bubbleStyle = isJill
+    ? 'background:#ffffff;border:1px solid #d1d5db;border-left:4px solid #0a5c3c;color:#111827;'
+    : 'background:#e8f5ee;border:1px solid #a7d4b8;color:#0a3d22;';
   var align = isJill ? 'align-items:flex-start' : 'align-items:flex-end';
 
-  // Icon for content type
   var ctIcon = '';
-  if(contentType==='exercise') ctIcon = '<span style="font-size:10px;font-weight:700;color:#3DDC97;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-dumbbell"></i> EJERCICIO</span>';
-  else if(contentType==='example') ctIcon = '<span style="font-size:10px;font-weight:700;color:#F5A623;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-bulb"></i> EJEMPLO</span>';
-  else if(contentType==='whiteboard') ctIcon = '<span style="font-size:10px;font-weight:700;color:#7DD3F8;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-layout-board"></i> PIZARRÓN</span>';
+  if(contentType==='exercise') ctIcon = '<span style="font-size:11px;font-weight:700;color:#0a5c3c;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-dumbbell"></i> EJERCICIO</span>';
+  else if(contentType==='example') ctIcon = '<span style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-bulb"></i> EJEMPLO</span>';
+  else if(contentType==='whiteboard') ctIcon = '<span style="font-size:11px;font-weight:700;color:#1e40af;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-layout-board"></i> PIZARRÓN</span>';
 
   var formatted = text
     .replace(/\n/g,'<br>')
@@ -2053,9 +2056,9 @@ function jillAddMsg(text, sender, contentType){
   var div = document.createElement('div');
   div.style.cssText = 'display:flex;flex-direction:column;'+align+';';
   div.innerHTML =
-    '<div style="max-width:88%;'+bg+'border-radius:14px;padding:10px 14px;font-size:13px;line-height:1.65;color:rgba(255,255,255,0.9);">'
+    '<div style="max-width:88%;'+bubbleStyle+'border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.7;">'
     + ctIcon + formatted
-    + (isJill ? '<button onclick="jillSpeak(this.dataset.text)" data-text="'+text.replace(/"/g,"'")+'" style="margin-top:8px;background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.25);color:#3DDC97;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>' : '')
+    + (isJill ? '<button onclick="jillSpeak(this.dataset.text)" data-text="'+text.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#ffffff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>' : '')
     + '</div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
