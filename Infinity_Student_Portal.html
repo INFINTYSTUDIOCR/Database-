@@ -1177,35 +1177,76 @@ async function sendAliceMessage(){
   var input = document.getElementById('alice-input');
   var text = (input?input.value:'').trim();
   if(!text) return;
-  // Stop audio immediately when student sends a message
   if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
+  _aliceTTSQueue=[]; _aliceTTSBusy=false;
   _aliceState.listening = false;
   input.value = '';
   _aliceState.history.push({ role:'user', content:text });
   renderAlice();
   scrollAliceMessages();
-  if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Alice está respondiendo...';
-  try{
-    var r = await fetch(ALICE_BACKEND, {
+  var statusEl = document.getElementById('alice-status');
+  if(statusEl) statusEl.textContent='';
+
+  // ── Streaming path ────────────────────────────────────────
+  // Inject a placeholder assistant message that we'll update live
+  var streamIdx = _aliceState.history.length;
+  _aliceState.history.push({ role:'assistant', content:'▋' });
+  renderAlice();
+  scrollAliceMessages();
+
+  var fullText = '';
+  var pending = '';
+
+  try {
+    var resp = await fetch(INFINITY_API+'/alice/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        mode:'chat', student:getAliceStudentPayload(),
-        scenario:_aliceState.scenario, history:_aliceState.history.slice(-14),
+        student:getAliceStudentPayload(), scenario:_aliceState.scenario,
+        history:_aliceState.history.slice(0, streamIdx).slice(-10),
         message:text, secret:ALICE_SECRET
       })
     });
-    var data = await r.json();
-    var reply = data.reply || 'I did not get that — could you try again?';
-    _aliceState.history.push({ role:'assistant', content:reply });
-    var ttsText = reply.split('\nALICE:')[0].trim() || reply;
-    aliceSpeak(ttsText);
-    if(data.limitReached) _aliceState.sessionActive = false;
+    var reader = resp.body.getReader();
+    var dec = new TextDecoder();
+    var lineBuf = '';
+
+    while(true){
+      var chunk = await reader.read();
+      if(chunk.done) break;
+      lineBuf += dec.decode(chunk.value, {stream:true});
+      var lines = lineBuf.split('\n');
+      lineBuf = lines.pop()||'';
+      for(var i=0;i<lines.length;i++){
+        var line = lines[i];
+        if(!line.startsWith('data: ')) continue;
+        var raw = line.slice(6).trim();
+        if(raw==='[DONE]') break;
+        try {
+          var evt = JSON.parse(raw);
+          if(evt.t){
+            fullText += evt.t;
+            pending += evt.t;
+            _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
+            renderAlice();
+            scrollAliceMessages();
+            // Sentence-by-sentence TTS
+            var m = pending.match(/^([\s\S]+?[.!?])\s+/);
+            if(m && m[1].length > 8){ aliceQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
+          }
+        } catch(e){}
+      }
+    }
+
+    // Finalize
+    _aliceState.history[streamIdx] = { role:'assistant', content: fullText || 'I did not get that — could you try again?' };
+    if(pending.trim().length > 2) aliceQueueSpeak(pending.split('\nALICE:')[0]);
     renderAlice();
     scrollAliceMessages();
-    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
-  }catch(e){
-    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Error conectando con Alice.';
+
+  } catch(e){
+    _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
+    renderAlice();
   }
 }
 
@@ -2083,6 +2124,74 @@ function applySystemMode(s){
   }
 }
 
+// ── KEEP RENDER ALIVE (ping every 8 min to prevent cold starts) ──
+setInterval(function(){ fetch(INFINITY_API+'/').catch(function(){}); }, 8*60*1000);
+
+// ── JILL TTS QUEUE (sentence-by-sentence for instant playback) ──
+var _jillTTSQueue = [];
+var _jillTTSBusy = false;
+
+function _jillTTSFlush(){
+  if(_jillTTSBusy || _jillTTSQueue.length===0) return;
+  _jillTTSBusy = true;
+  _jillState.speaking = true;
+  var text = _jillTTSQueue.shift();
+  var clean = text.replace(/JILL:|ALICE:|CLAIRE:/gi,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
+  if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
+  fetch(INFINITY_API+'/jill-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){
+    if(!b){ _jillTTSBusy=false; _jillTTSFlush(); return; }
+    jillStopAudio();
+    var url = URL.createObjectURL(b);
+    _jillState.audio = new Audio(url);
+    _jillState.audio.onended = function(){
+      URL.revokeObjectURL(url);
+      _jillState.audio = null;
+      _jillTTSBusy = false;
+      _jillState.speaking = _jillTTSQueue.length > 0;
+      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, 700);
+      _jillTTSFlush();
+    };
+    _jillState.audio.play();
+  }).catch(function(){ _jillTTSBusy=false; _jillState.speaking=false; _jillTTSFlush(); });
+}
+
+function jillQueueSpeak(text){ if(!text||text.trim().length<2) return; _jillTTSQueue.push(text); _jillTTSFlush(); }
+
+// ── ALICE TTS QUEUE ──────────────────────────────────────────
+var _aliceTTSQueue = [];
+var _aliceTTSBusy = false;
+
+function _aliceTTSFlush(){
+  if(_aliceTTSBusy || _aliceTTSQueue.length===0 || !_aliceSpeakEnabled) return;
+  _aliceTTSBusy = true;
+  _aliceState.speaking = true;
+  var speakId = ++_aliceSpeakId;
+  var text = _aliceTTSQueue.shift();
+  var clean = text.replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/\s+/g,' ').trim();
+  if(clean.length < 3){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
+  fetch(INFINITY_API+'/alice-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){
+    if(!b || !_aliceSpeakEnabled || speakId !== _aliceSpeakId){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
+    if(window._aliceAudio){window._aliceAudio.pause();}
+    var url = URL.createObjectURL(b);
+    window._aliceAudio = new Audio(url);
+    window._aliceAudio.onended = function(){
+      URL.revokeObjectURL(url);
+      window._aliceAudio = null;
+      _aliceTTSBusy = false;
+      _aliceState.speaking = _aliceTTSQueue.length > 0;
+      if(!_aliceState.speaking && _aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, 700);
+      _aliceTTSFlush();
+    };
+    window._aliceAudio.play();
+  }).catch(function(){ _aliceTTSBusy=false; _aliceState.speaking=false; _aliceTTSFlush(); });
+}
+
+function aliceQueueSpeak(text){ if(!text||text.trim().length<2||!_aliceSpeakEnabled) return; _aliceTTSQueue.push(text); _aliceTTSFlush(); }
+
 // ── JILL UI ────────────────────────────────────────────────────
 var _jillState = {
   history: [],
@@ -2231,27 +2340,79 @@ async function sendJillMsg(){
   var inp = document.getElementById('jill-input');
   var text = inp ? inp.value.trim() : '';
   if(!text) return;
-  jillStopAll(); // stop audio + mic immediately when student sends
+  jillStopAll();
+  _jillTTSQueue = []; _jillTTSBusy = false;
   inp.value = '';
   jillAddMsg(text, 'student', 'text');
-  // history does NOT include current message yet — backend appends it via message field
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Jill está respondiendo...';
+  var s = window._currentStudent || window._portalStudent;
+
+  // ── Streaming path ────────────────────────────────────────
+  var msgs = document.getElementById('jill-messages');
+  var bubble = document.createElement('div');
+  bubble.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;';
+  var bubbleId = 'jb'+Date.now();
+  bubble.innerHTML = '<div id="'+bubbleId+'" style="max-width:88%;background:#ffffff;border:1px solid #d1d5db;border-left:4px solid #0a5c3c;color:#111827;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.7;min-height:24px;">▋</div>';
+  msgs.appendChild(bubble);
+  msgs.scrollTop = msgs.scrollHeight;
+  var el = document.getElementById(bubbleId);
+
+  var fullText = '';
+  var pending = ''; // accumulates text until sentence boundary for TTS
+
   try {
-    var s = window._currentStudent || window._portalStudent;
-    var r = await fetch(INFINITY_API+'/jill', {
+    var resp = await fetch(INFINITY_API+'/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:s, history:_jillState.history.slice(-12), message:text })
+      body: JSON.stringify({ student:s, history:_jillState.history.slice(-10), message:text, weakKpis:s.quizWeakKpis||[] })
     });
-    var data = await r.json();
+    var reader = resp.body.getReader();
+    var dec = new TextDecoder();
+    var lineBuf = '';
+
+    while(true){
+      var chunk = await reader.read();
+      if(chunk.done) break;
+      lineBuf += dec.decode(chunk.value, {stream:true});
+      var lines = lineBuf.split('\n');
+      lineBuf = lines.pop()||'';
+      for(var i=0;i<lines.length;i++){
+        var line = lines[i];
+        if(!line.startsWith('data: ')) continue;
+        var raw = line.slice(6).trim();
+        if(raw==='[DONE]') break;
+        try {
+          var evt = JSON.parse(raw);
+          if(evt.t){
+            fullText += evt.t;
+            pending += evt.t;
+            if(el){
+              el.innerHTML = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'▋';
+              msgs.scrollTop = msgs.scrollHeight;
+            }
+            // Fire TTS when a sentence is complete (. ! ? followed by space or end)
+            var m = pending.match(/^([\s\S]+?[.!?¿¡])\s+/);
+            if(m && m[1].length > 10){ jillQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
+          }
+        } catch(e){}
+      }
+    }
+
+    // Finalize bubble
+    if(el){
+      var formatted = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      el.innerHTML = formatted
+        +'<button onclick="jillQueueSpeak(this.dataset.text)" data-text="'+fullText.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>';
+    }
+    // Speak any remaining text
+    if(pending.trim().length > 2) jillQueueSpeak(pending);
+
+    _jillState.history.push({role:'user', content:text});
+    _jillState.history.push({role:'assistant', content:fullText});
     if(statusEl) statusEl.textContent = '';
-    // Push to history only after successful response
-    _jillState.history.push({role:'user', content: text});
-    jillAddMsg(data.reply||'', 'jill', data.contentType||'text');
-    jillSpeak(data.reply||'');
-    _jillState.history.push({role:'assistant', content: data.reply||''});
+
   } catch(e){
-    if(statusEl) statusEl.textContent = 'Error de conexión. Intentá de nuevo.';
+    if(el) el.innerHTML = 'Error de conexión. Intentá de nuevo.';
+    if(statusEl) statusEl.textContent = '';
   }
 }
 
