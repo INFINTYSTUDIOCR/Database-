@@ -140,7 +140,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="portal-nav-item" data-tab="trainingbook" onclick="switchPortalTab('trainingbook')"><i class="ti ti-dumbbell"></i>Training Book</div>
   <div class="portal-nav-item" data-tab="recursos" onclick="switchPortalTab('recursos')"><i class="ti ti-folder"></i>Recursos</div>
   <div class="portal-nav-item" data-tab="notas" onclick="switchPortalTab('notas')"><i class="ti ti-notes"></i>Notas</div>
-  <div class="portal-nav-item" data-tab="alice" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
+  <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill');setTimeout(function(){ renderJillTab(window._currentStudent); },100);"><i class="ti ti-message-circle"></i>Jill</div>
+  <div class="portal-nav-item" data-tab="alice" id="nav-alice" style="display:none;" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
   <div class="portal-nav-item" data-tab="nexora" id="nav-nexora" style="display:none;" onclick="switchPortalTab('nexora');setTimeout(function(){ renderNexoraTab(window._currentStudent); },100);"><i class="ti ti-sparkles"></i>Nexora</div>
 </div>
 
@@ -370,6 +371,7 @@ function showPortal(s){
     +'<div class="tab-pane" id="tp-trainingbook">'+trainingBookHtml+'</div>'
     +'<div class="tab-pane" id="tp-recursos">'+recursosHtml+'</div>'
     +'<div class="tab-pane" id="tp-notas">'+notasHtml+'</div>'
+    +'<div class="tab-pane" id="tp-jill"><div id="jill-root"></div></div>'
     +'<div class="tab-pane" id="tp-alice"><div id="alice-root"></div></div>'
     +'<div class="tab-pane" id="tp-nexora"><div id="nexora-root">'
     +'<div style="background:linear-gradient(160deg,#0B1437,#1a0533,#2d1060);border-radius:20px;padding:1.5rem;color:white;">'
@@ -389,6 +391,7 @@ function showPortal(s){
   // Verificar si el trainer habilitó Nexora
   checkNexoraAccess(s);
   loadNexoraConfig(s);
+  applySystemMode(s);
 
   if(cals.length>=2){
     setTimeout(function(){
@@ -570,6 +573,9 @@ function renderTypingTestWidget(containerId, onComplete, wordBank){
 async function checkNexoraAccess(s){
   var nexoraNav = document.getElementById('nav-nexora');
   if(!nexoraNav) return;
+  // Nexora is only available in Alice Mode
+  var mode = (s && s.system_mode) ? s.system_mode : 'jill';
+  if(mode !== 'alice'){ nexoraNav.style.display='none'; return; }
   // Acceso individual directo en el file del estudiante
   if(s.nexoraEnabled){ nexoraNav.style.display='flex'; return; }
   // Buscar en el roster del trainer
@@ -848,6 +854,7 @@ async function submitQuiz(containerId){
 }
 // ── ALICE — Tutora de inglés con voz ─────────────────────
 var ALICE_BACKEND = 'https://alice-by-infinity.onrender.com/alice';
+var INFINITY_API = 'https://alice-by-infinity.onrender.com';
 var ALICE_SECRET = 'otro-secreto-distinto-2026';
 
 // Acentos disponibles para práctica de listening
@@ -1123,7 +1130,7 @@ function openNexoraLab(){
   if(nxConfig) localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
   localStorage.setItem('nexora_agent', (student&&student.info&&student.info.name)||'Student');
   localStorage.setItem('nexora_student_id', (student&&student.id)||'');
-  window.open('nexora.html','_blank');
+  window.open('../nexora/nexora.html','_blank');
 }
 
 
@@ -1307,6 +1314,70 @@ var NEXORA_SERVICES = [
 var NEXORA_STREETS = ['Oak St','Maple Ave','Cedar Ln','Pine Rd','Elm Blvd'];
 var NEXORA_CITIES = ['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO'];
 
+var NEXORA_VOICES_MALE = [
+  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
+  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
+  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'}
+];
+var NEXORA_VOICES_FEMALE = [
+  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
+  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
+  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'}
+];
+
+var NEXORA_ENGINE_TYPE_MAP = {
+  customer_service:'customer_service',
+  mock_interview:'interview',
+  team_meeting:'meeting',
+  problem_solving:'customer_service',
+  presentation:'corporate',
+  negotiation:'negotiation',
+  stakeholder:'stakeholder'
+};
+
+function pickNexoraScenarioFromConfig(nxConfig, prevId){
+  if(!nxConfig || !nxConfig.type){
+    var pool = NEXORA_CS_SCENARIOS.filter(function(s){ return s.id !== prevId; });
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  var targetType = NEXORA_ENGINE_TYPE_MAP[nxConfig.type] || nxConfig.type;
+  var difficulty = parseInt(nxConfig.difficulty, 10) || 3;
+  var candidates = NEXORA_CS_SCENARIOS.filter(function(s){
+    if(s.id === prevId) return false;
+    var st = s.type || 'customer_service';
+    if(targetType === 'customer_service') return !s.type;
+    return st === targetType;
+  }).filter(function(s){
+    var d = s.difficulty || s.diff || 2;
+    return Math.abs(d - difficulty) <= 1;
+  });
+  if(!candidates.length){
+    candidates = NEXORA_CS_SCENARIOS.filter(function(s){
+      if(s.id === prevId) return false;
+      var st = s.type || 'customer_service';
+      if(targetType === 'customer_service') return !s.type;
+      return st === targetType;
+    });
+  }
+  if(!candidates.length){
+    candidates = NEXORA_CS_SCENARIOS.filter(function(s){ return s.id !== prevId; });
+  }
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+function nexoraBuildAccountContext(profile){
+  if(!profile) return null;
+  return {
+    name: profile.name,
+    account: profile.account,
+    services: (profile.services || []).map(function(s){ return s.name + ' ' + s.price; }),
+    billingAlerts: profile.billingNotes || [],
+    disputeAmount: profile.disputeAmount || null,
+    lateFee: profile.lateFee || null,
+    refundAmount: profile.refundAmount || null
+  };
+}
+
 function nexoraGenerateProfile(scenario){
   var isFemale = Math.random() > 0.5;
   var fn = isFemale ? NEXORA_NAMES_F[Math.floor(Math.random()*NEXORA_NAMES_F.length)] : NEXORA_NAMES_M[Math.floor(Math.random()*NEXORA_NAMES_M.length)];
@@ -1319,10 +1390,40 @@ function nexoraGenerateProfile(scenario){
   var dob = year+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-'+String(1+Math.floor(Math.random()*28)).padStart(2,'0');
   var memberYear = 2017+Math.floor(Math.random()*7);
   var memberDate = memberYear+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-01';
-  var numSvc = 1+Math.floor(Math.random()*2);
   var shuffled = NEXORA_SERVICES.slice().sort(function(){return Math.random()-0.5;});
-  var services = shuffled.slice(0,numSvc);
-  return { name:fn+' '+ln, firstName:fn, lastName:ln, gender:isFemale?'female':'male', phone:phone, account:acct, ssn4:ssn, email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com', address:addr, dob:dob, memberSince:memberDate, status:'Active', services:services, scenario:scenario, generatedAt:new Date().toISOString() };
+  var services = shuffled.slice(0, 1+Math.floor(Math.random()*2));
+  var billingNotes = [];
+  var disputeAmount = null;
+  var lateFee = null;
+  var refundAmount = null;
+  if(scenario){
+    if(scenario.id==='cs1'||scenario.id==='cs5'||scenario.id==='cs10'){
+      disputeAmount = '$'+(15+Math.floor(Math.random()*85))+'.00';
+      billingNotes.push({type:'charge',label:'Unexpected charge',amount:disputeAmount,date:new Date(Date.now()-3*86400000).toLocaleDateString('en-US'),note:'Not authorized by client'});
+    }
+    if(scenario.id==='cs7'){
+      lateFee = '$'+(25+Math.floor(Math.random()*15))+'.00';
+      billingNotes.push({type:'fee',label:'Late payment fee',amount:lateFee,date:new Date(Date.now()-7*86400000).toLocaleDateString('en-US'),note:'Client disputes — claims payment was on time'});
+    }
+    if(scenario.id==='cs4'){
+      refundAmount = (services[0] ? parseFloat(services[0].price.replace(/[^0-9.]/g,'')) : 29).toFixed(2);
+      billingNotes.push({type:'refund',label:'Refund requested',amount:'$'+refundAmount,date:new Date(Date.now()-5*86400000).toLocaleDateString('en-US'),note:'Client says service did not work'});
+    }
+    if(scenario.id==='cs2'){
+      billingNotes.push({type:'cancel',label:'Cancellation requested',amount:'',date:new Date().toLocaleDateString('en-US'),note:'Client initiated cancellation request'});
+    }
+  }
+  var voicePool = isFemale ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
+  var voice = voicePool[Math.floor(Math.random()*voicePool.length)];
+  return {
+    name:fn+' '+ln, firstName:fn, lastName:ln, gender:isFemale?'female':'male',
+    phone:phone, account:acct, ssn4:ssn,
+    email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com', address:addr, dob:dob,
+    memberSince:memberDate, status:'Active', services:services,
+    billingNotes:billingNotes, disputeAmount:disputeAmount, lateFee:lateFee, refundAmount:refundAmount,
+    voiceId:voice.id, voiceAccent:voice.accent,
+    scenario:scenario, generatedAt:new Date().toISOString()
+  };
 }
 
 // ── NEXORA STATE ──────────────────────────────────────────────
@@ -1346,12 +1447,13 @@ function renderNexoraTab(s){
     root.innerHTML = '<div style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:1rem;color:rgba(255,255,255,0.7);font-size:13px;text-align:center;margin-top:1rem;">Tu trainer todavía no configuró Nexora para hoy.<br>Volvé más tarde.</div>';
     return;
   }
-  var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
+  var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service Call',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Sales Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
+  var sessionLabel = (typeLabels[nxConfig.type] || 'Nexora Simulation').toUpperCase();
   root.innerHTML = '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.3);border-radius:14px;padding:1.25rem;margin-top:1rem;">'
-    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · CUSTOMER SERVICE</div>'
-    +'<div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Customer Service Simulation')+'</div>'
+    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
-    +'<p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:1.25rem;">Alice va a llamar como cliente. Tu trabajo es manejar la llamada profesionalmente en inglés. Alice ajustará su comportamiento según cómo respondás.</p>'
+    +'<p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
     +'<button onclick="openNexoraLab()" style="width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:white;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
@@ -1363,8 +1465,9 @@ function nexoraAutoIn(){
   if(btn){ btn.textContent='Waiting for call...'; btn.style.background='rgba(255,255,255,0.1)'; btn.disabled=true; }
   
   // Generar nuevo cliente
-  var scenarios = NEXORA_CS_SCENARIOS;
-  var sc = scenarios[Math.floor(Math.random()*scenarios.length)];
+  var nxConfig = window._nexoraConfig;
+  var prevId = _nxState.scenario ? _nxState.scenario.id : null;
+  var sc = pickNexoraScenarioFromConfig(nxConfig, prevId);
   _nxState.scenario = sc;
   _nxState.profile = nexoraGenerateProfile(sc);
   _nxState.profiles.push(_nxState.profile);
@@ -1418,8 +1521,11 @@ function nexoraShowCRM(){
     +svcHtml
     +'<div style="margin-top:12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:10px;">'
     +'<div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:2px;">REASON FOR CALL</div>'
-    +'<div style="font-size:13px;color:#78350F;">'+sc.title+' — '+sc.desc+'</div>'
-    +'</div>'
+    +'<div style="font-size:13px;color:#78350F;">'+sc.title+' — '+sc.desc
+    +(p.disputeAmount?' · Disputed: '+p.disputeAmount:'')
+    +(p.lateFee?' · Late fee: '+p.lateFee:'')
+    +(p.refundAmount?' · Refund: $'+p.refundAmount:'')
+    +'</div></div>'
     +'</div>'
     // RIGHT — CALL CONTROLS + CHAT
     +'<div style="display:flex;flex-direction:column;background:#1E2761;height:100%;max-height:580px;">'
@@ -1475,35 +1581,36 @@ async function nexoraAnswerCall(){
   // Mostrar botones de llamada
   // buttons always visible
 
-  // Alice entra como cliente
-  var aliceStatus = document.getElementById('nx-alice-status');
-  if(aliceStatus) aliceStatus.textContent = 'Alice is connecting...';
+  // Client connects on answer
+  var clientStatus = document.getElementById('nx-alice-status');
+  if(clientStatus) clientStatus.textContent = p.firstName+' is connecting...';
 
   try {
     var student = window._currentStudent || window._portalStudent || {};
     var sc = _nxState.scenario;
-    var p = _nxState.profile;
+    var accountContext = nexoraBuildAccountContext(p);
 
-    var r = await fetch('https://alice-by-infinity.onrender.com/nexora', {
+    var r = await fetch(INFINITY_API+'/nexora', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         message: 'START_CALL',
         history: [],
         profile: p,
         scenario: sc,
+        accountContext: accountContext,
         agentName: (student.info&&student.info.name)||'Agent'
       })
     });
     var data = await r.json();
     var reply = (data.reply||'Hello, is this customer service?').split('\nALICE:')[0].trim();
-    if(aliceStatus) aliceStatus.textContent = '';
-    nexoraAddMsg(reply, 'alice');
+    if(clientStatus) clientStatus.textContent = '';
+    nexoraAddMsg(reply, 'client');
     nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
   } catch(e){
-    if(aliceStatus) aliceStatus.textContent = '';
-    nexoraAddMsg('Hello, is this customer service?', 'alice');
+    if(clientStatus) clientStatus.textContent = '';
+    nexoraAddMsg('Hello, is this customer service?', 'client');
   }
 }
 
@@ -1583,6 +1690,7 @@ async function sendNexoraMsgVoice(text){
 async function nexoraSendToAlice(text){
   var p = _nxState.profile;
   var sc = _nxState.scenario;
+  var accountContext = nexoraBuildAccountContext(p);
   nexoraAddMsg(text, 'agent');
   _nxState.history.push({role:'user',content:text});
   _nxState.transcript.push('AGENT: '+text);
@@ -1590,20 +1698,21 @@ async function nexoraSendToAlice(text){
   if(statusEl) statusEl.textContent = p.firstName+' is responding...';
   try {
     var student = window._currentStudent || window._portalStudent || {};
-    var r = await fetch('https://alice-by-infinity.onrender.com/nexora',{
+    var r = await fetch(INFINITY_API+'/nexora',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         message: text,
         history: _nxState.history.slice(-14),
         profile: p,
         scenario: sc,
+        accountContext: accountContext,
         agentName: (student.info&&student.info.name)||'Agent'
       })
     });
     var data = await r.json();
     var reply = (data.reply||'').split('\nALICE:')[0].trim();
     if(statusEl) statusEl.textContent='';
-    nexoraAddMsg(reply,'alice');
+    nexoraAddMsg(reply,'client');
     nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
@@ -1793,14 +1902,15 @@ function nexoraAddMsg(text, from){
 function nexoraSpeak(text){
   if(!text) return;
   var clean=text
-    .replace(/ALICE:|CLAIRE:/g,'')
+    .replace(/ALICE:|CLAIRE:|JILL:/g,'')
     .replace(/[*_#<>\[\]{}|~`^]/g,' ')
     .replace(/\.{2,}/g,'.')
     .replace(/,/g,' ')
     .replace(/;/g,' ')
     .replace(/\s+/g,' ')
     .trim().slice(0,500);
-  fetch('https://alice-by-infinity.onrender.com/alice-tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean})})
+  var voiceId = (_nxState.profile && _nxState.profile.voiceId) ? _nxState.profile.voiceId : null;
+  fetch(INFINITY_API+'/nexora-tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
   .catch(function(){});
@@ -1814,6 +1924,157 @@ async function loadNexoraConfig(s){
     window._currentStudent=s;
     window._portalStudent=s;
   }catch(e){}
+}
+
+// ── SYSTEM MODE ────────────────────────────────────────────────
+// Enforces single active controller: Jill Mode or Alice Mode.
+// Set by trainer in Nexus Engine. Persistent per student.
+// Default: jill (Foundations)
+
+function applySystemMode(s){
+  var mode = (s && s.system_mode) ? s.system_mode : 'jill';
+  window._systemMode = mode;
+
+  var navJill   = document.getElementById('nav-jill');
+  var navAlice  = document.getElementById('nav-alice');
+  var navNexora = document.getElementById('nav-nexora');
+
+  if(mode === 'alice'){
+    // Alice Mode: Alice active, Nexora available if enabled, Jill hidden
+    if(navJill)  navJill.style.display  = 'none';
+    if(navAlice) navAlice.style.display = 'flex';
+    // Nexora visibility is handled separately by checkNexoraAccess
+  } else {
+    // Jill Mode (default): Jill active, Alice and Nexora hidden
+    if(navJill)   navJill.style.display   = 'flex';
+    if(navAlice)  navAlice.style.display  = 'none';
+    if(navNexora) navNexora.style.display = 'none';
+  }
+}
+
+// ── JILL UI ────────────────────────────────────────────────────
+var _jillState = {
+  history: [],
+  active: false,
+  audio: null
+};
+
+function renderJillTab(s){
+  var root = document.getElementById('jill-root');
+  if(!root) return;
+  if(_jillState.active){ return; } // already initialized
+  _jillState.active = true;
+
+  root.innerHTML =
+    '<div style="background:linear-gradient(160deg,#0B1437,#0d2a1a);border-radius:20px;padding:1.25rem;color:white;margin-bottom:1rem;">'
+    +'<div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-bottom:4px;">STUDIO INFINITY CR · FOUNDATIONS</div>'
+    +'<div style="font-size:26px;font-weight:900;color:#3DDC97;letter-spacing:0.04em;">JILL</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.5);">Tu tutora de Foundations · Presión cero · Avance garantizado</div>'
+    +'</div>'
+    +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;min-height:200px;max-height:420px;overflow-y:auto;padding:4px 0;"></div>'
+    +'<div style="display:flex;gap:8px;align-items:flex-end;">'
+    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o pregunta aquí..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;resize:none;"></textarea>'
+    +'<button onclick="sendJillMsg()" style="padding:10px 16px;background:linear-gradient(135deg,#3DDC97,#0F6E56);border:none;color:white;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;"><i class="ti ti-send"></i></button>'
+    +'</div>'
+    +'<div id="jill-status" style="font-size:11px;color:rgba(61,220,151,0.6);margin-top:6px;min-height:16px;"></div>';
+
+  // Add enter key handler
+  var inp = document.getElementById('jill-input');
+  if(inp) inp.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendJillMsg(); }
+  });
+
+  startJillSession(s);
+}
+
+async function startJillSession(s){
+  var statusEl = document.getElementById('jill-status');
+  if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
+  try {
+    var r = await fetch(INFINITY_API+'/jill', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ student: s, history:[], mode:'start_session' })
+    });
+    var data = await r.json();
+    if(statusEl) statusEl.textContent = '';
+    jillAddMsg(data.reply||'¡Hola! Bienvenido a tu sesión de Foundations.', 'jill', data.contentType);
+    jillSpeak(data.reply||'');
+    _jillState.history.push({role:'assistant', content: data.reply||''});
+  } catch(e){
+    if(statusEl) statusEl.textContent = '';
+    jillAddMsg('¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?', 'jill', 'text');
+  }
+}
+
+async function sendJillMsg(){
+  var inp = document.getElementById('jill-input');
+  var text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  inp.value = '';
+  jillAddMsg(text, 'student', 'text');
+  _jillState.history.push({role:'user', content: text});
+  var statusEl = document.getElementById('jill-status');
+  if(statusEl) statusEl.textContent = 'Jill está respondiendo...';
+  try {
+    var s = window._currentStudent || window._portalStudent;
+    var r = await fetch(INFINITY_API+'/jill', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ student:s, history:_jillState.history.slice(-12), message:text })
+    });
+    var data = await r.json();
+    if(statusEl) statusEl.textContent = '';
+    jillAddMsg(data.reply||'', 'jill', data.contentType||'text');
+    jillSpeak(data.reply||'');
+    _jillState.history.push({role:'assistant', content: data.reply||''});
+  } catch(e){
+    if(statusEl) statusEl.textContent = 'Error de conexión. Intentá de nuevo.';
+  }
+}
+
+function jillAddMsg(text, sender, contentType){
+  var msgs = document.getElementById('jill-messages');
+  if(!msgs || !text) return;
+  var isJill = sender==='jill';
+  var bg = isJill
+    ? 'background:rgba(61,220,151,0.1);border:1px solid rgba(61,220,151,0.2);'
+    : 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);';
+  var align = isJill ? 'align-items:flex-start' : 'align-items:flex-end';
+
+  // Icon for content type
+  var ctIcon = '';
+  if(contentType==='exercise') ctIcon = '<span style="font-size:10px;font-weight:700;color:#3DDC97;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-dumbbell"></i> EJERCICIO</span>';
+  else if(contentType==='example') ctIcon = '<span style="font-size:10px;font-weight:700;color:#F5A623;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-bulb"></i> EJEMPLO</span>';
+  else if(contentType==='whiteboard') ctIcon = '<span style="font-size:10px;font-weight:700;color:#7DD3F8;letter-spacing:0.1em;display:block;margin-bottom:4px;"><i class="ti ti-layout-board"></i> PIZARRÓN</span>';
+
+  var formatted = text
+    .replace(/\n/g,'<br>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;flex-direction:column;'+align+';';
+  div.innerHTML =
+    '<div style="max-width:88%;'+bg+'border-radius:14px;padding:10px 14px;font-size:13px;line-height:1.65;color:rgba(255,255,255,0.9);">'
+    + ctIcon + formatted
+    + (isJill ? '<button onclick="jillSpeak(this.dataset.text)" data-text="'+text.replace(/"/g,"'")+'" style="margin-top:8px;background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.25);color:#3DDC97;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>' : '')
+    + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function jillSpeak(text){
+  if(!text) return;
+  var clean = text
+    .replace(/JILL:|ALICE:|CLAIRE:/gi,'')
+    .replace(/[*_#<>\[\]{}|~`^]/g,' ')
+    .replace(/\s+/g,' ').trim().slice(0,500);
+  fetch(INFINITY_API+'/jill-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){
+    if(!b) return;
+    if(_jillState.audio) _jillState.audio.pause();
+    _jillState.audio = new Audio(URL.createObjectURL(b));
+    _jillState.audio.play();
+  }).catch(function(){});
 }
 
 </script>
