@@ -270,6 +270,7 @@ select.form-input{cursor:pointer;}
       <a href="#method">Método</a>
       <a href="#pricing">Precios</a>
       <a href="#proof">Resultados</a>
+      <a href="https://www.youtube.com/@thelabcr" target="_blank" style="display:inline-flex;align-items:center;gap:5px;"><i class="ti ti-brand-youtube" style="font-size:15px;color:var(--orange);"></i> YouTube</a>
       <a href="#" class="nav-cta" onclick="openAssessment();return false;">Evaluación Gratis</a>
     </div>
     <div class="hamburger" id="hamburger" onclick="toggleMobile()">
@@ -488,6 +489,7 @@ select.form-input{cursor:pointer;}
         <h4>Municipalidad de Goicoechea, 2021</h4>
         <p>Lideramos una iniciativa de capacitación laboral para residentes del cantón, preparándolos para empleo directo en operaciones de call center — con contrataciones reales y documentadas.</p>
         <a href="https://www.facebook.com/watch/?v=263792665317206&ref=sharing" target="_blank" class="case-link">Ver los resultados → <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+        <a href="https://www.youtube.com/@thelabcr" target="_blank" class="case-link" style="margin-top:10px;display:inline-flex;color:var(--orange);"><i class="ti ti-brand-youtube" style="font-size:15px;"></i> The Lab CR en YouTube</a>
       </div>
     </div>
   </div>
@@ -563,7 +565,7 @@ select.form-input{cursor:pointer;}
     <p class="sec-intro reveal">La Evaluación de Preparación Operacional en Inglés — el mismo diagnóstico que nuestros trainers usan para construir tu ruta personalizada. Gratis. Sin compromiso.</p>
     <div class="final-ctas reveal">
       <button class="btn-primary" onclick="openAssessment()">Agendá tu evaluación gratuita →</button>
-      <a href="https://wa.me/50688888888?text=Hola%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20Infinity%20Studio" target="_blank" class="btn-wa"><i class="ti ti-brand-whatsapp"></i> WhatsApp</a>
+      <a href="https://wa.me/50660060981?text=Hola%2C%20me%20interesa%20saber%20m%C3%A1s%20sobre%20Infinity%20Studio" target="_blank" class="btn-wa"><i class="ti ti-brand-whatsapp"></i> WhatsApp</a>
     </div>
   </div>
 </section>
@@ -592,13 +594,14 @@ select.form-input{cursor:pointer;}
       <div class="footer-col">
         <h5>Contacto</h5>
         <a href="#" onclick="openAssessment();return false;">Evaluación Gratis</a>
-        <a href="https://wa.me/50688888888" target="_blank">WhatsApp</a>
-        <a href="#proof">Resultados</a>
+        <a href="https://wa.me/50660060981" target="_blank">WhatsApp · 6006-0981</a>
+        <a href="mailto:info@studioinfinitycr.com">info@studioinfinitycr.com</a>
+        <a href="https://www.youtube.com/@thelabcr" target="_blank">YouTube — The Lab CR</a>
       </div>
     </div>
     <div class="footer-bottom">
       <span>© 2026 Infinity Studio CR — Beyond the language.</span>
-      <span>San José, Costa Rica</span>
+      <span>San José, Costa Rica · <a href="mailto:info@studioinfinitycr.com" style="color:inherit;">info@studioinfinitycr.com</a></span>
     </div>
   </div>
 </footer>
@@ -698,7 +701,7 @@ function submitAssessment(){
   var msg = encodeURIComponent('Hola, me contacto desde el sitio web de Infinity Studio.\n\nNombre: '+name+'\nSituación: '+(situation||'No especificado')+'\nContacto preferido: '+contact+'\n\nMe interesa la evaluación gratuita. 🙌');
   document.getElementById('form-feedback').style.display='block';
   document.getElementById('form-feedback').textContent='✓ Redirigiendo a WhatsApp...';
-  setTimeout(function(){ window.open('https://wa.me/50688888888?text='+msg,'_blank'); closeAssessment(); }, 800);
+  setTimeout(function(){ window.open('https://wa.me/50660060981?text='+msg,'_blank'); closeAssessment(); }, 800);
 }
 
 // ── Claire chat ──────────────────────────────────────────────
