@@ -23,7 +23,7 @@
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;color:var(--text);min-height:100vh;}
 
 /* TOPBAR */
-.topbar{background:var(--navy);padding:0 1.25rem;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.topbar{background:var(--navy);padding:0 1.25rem;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(30,39,97,0.2);}
 .tb-logo{height:34px;object-fit:contain;display:none;}
 .tb-brand{font-size:13px;font-weight:800;color:white;letter-spacing:0.01em;}
 .tb-divider{width:1px;height:26px;background:rgba(255,255,255,0.2);}
@@ -263,16 +263,13 @@ body.embed-mode .main-wrap{height:calc(100vh - 52px);}
   </div>
 </div>
 
-<!-- SELECTOR SCREEN -->
-<div class="selector-screen" id="selector-screen">
-  <div class="sel-card">
+<!-- ACCESS GATE (no public dropdown — login via Portal only) -->
+<div class="selector-screen" id="selector-screen" style="display:none;">
+  <div class="sel-card" id="sel-card">
     <img class="sel-logo" src="assets/logos/training-book.png" alt="Training Book" onerror="this.style.display='none'">
-    <div class="sel-title">Infinity Studio Training Book</div>
-    <div class="sel-sub">Seleccioná tu nombre para acceder a tu Training Book personalizado con tus ejercicios, material de apoyo y plan de sesiones basado en tu perfil.</div>
-    <select class="sel-input" id="student-select" onchange="selectStudent()">
-      <option value="">— Seleccioná tu nombre —</option>
-    </select>
-    <div id="sel-loading" style="font-size:13px;color:var(--t3);margin-top:0.5rem;display:none;"><i class="ti ti-loader" style="animation:spin 1s linear infinite;display:inline-block;margin-right:4px;"></i>Cargando tu perfil...</div>
+    <div class="sel-title">Acceso requerido</div>
+    <div class="sel-sub" id="sel-sub">Ingresá al Portal del Estudiante con tu usuario y contraseña para ver tu Training Book.</div>
+    <a class="sel-btn" id="sel-portal-btn" href="Infinity_Student_Portal.html" style="text-decoration:none;"><i class="ti ti-login"></i> Ir al Portal del Estudiante</a>
   </div>
 </div>
 
@@ -485,55 +482,62 @@ var EXERCISES = {
 };
 
 // ── INIT ──────────────────────────────────────────────────
+function showLoginRequired(msg){
+  document.getElementById('main-wrap').classList.remove('show');
+  document.getElementById('selector-screen').style.display='block';
+  var sub = document.getElementById('sel-sub');
+  if(sub) sub.textContent = msg || 'Ingresá al Portal del Estudiante con tu usuario y contraseña para ver tu Training Book.';
+}
+
+function resolveEmbedStudent(){
+  if(EMBED_STUDENT_ID && ALL_STUDENTS[EMBED_STUDENT_ID]) return EMBED_STUDENT_ID;
+  if(EMBED_PORTAL_USER){
+    var byUser = Object.keys(ALL_STUDENTS).find(function(k){
+      return String(ALL_STUDENTS[k].portalUser||'').trim().toLowerCase() === EMBED_PORTAL_USER;
+    });
+    if(byUser) return byUser;
+  }
+  var snap = null;
+  try{ snap = JSON.parse(sessionStorage.getItem('portal_student_snapshot')||'null'); }catch(e){}
+  if(snap && snap.id && ALL_STUDENTS[snap.id]) return snap.id;
+  if(snap && snap.portalUser){
+    var mid = Object.keys(ALL_STUDENTS).find(function(k){
+      return String(ALL_STUDENTS[k].portalUser||'').trim().toLowerCase() === String(snap.portalUser).trim().toLowerCase();
+    });
+    if(mid) return mid;
+  }
+  if(snap && snap.name){
+    var nid = Object.keys(ALL_STUDENTS).find(function(k){
+      return String(ALL_STUDENTS[k].info&&ALL_STUDENTS[k].info.name||'').trim().toLowerCase() === String(snap.name).trim().toLowerCase();
+    });
+    if(nid) return nid;
+  }
+  return null;
+}
+
 (async function(){
   try{
-    if(EMBED_MODE) document.body.classList.add('embed-mode');
+    document.body.classList.add('embed-mode');
     var rows = await dbGetAll('infinity_students');
     rows.forEach(function(r){ ALL_STUDENTS[r.id]=r.data; ALL_STUDENTS[r.id].id=r.id; });
     var videos = await dbGetAll('infinity_videos');
     videos.forEach(function(r){ ALL_VIDEOS[r.id]=r.data; });
-    if(!EMBED_MODE) buildStudentSelect();
     document.getElementById('nb-videos').textContent = Object.keys(ALL_VIDEOS).length;
-    if(EMBED_MODE){
-      document.getElementById('selector-screen').style.display='none';
-      if(EMBED_FROM_PORTAL){
-        var bl = document.getElementById('embed-back-link');
-        if(bl) bl.style.display='inline-flex';
-      }
-      setupEmbedNavLinks();
-      var loaded = false;
-      if(EMBED_STUDENT_ID && ALL_STUDENTS[EMBED_STUDENT_ID]){ loadStudentById(EMBED_STUDENT_ID); loaded = true; }
-      if(!loaded && EMBED_PORTAL_USER){
-        var matchId = Object.keys(ALL_STUDENTS).find(function(k){
-          return String(ALL_STUDENTS[k].portalUser||'').trim().toLowerCase() === EMBED_PORTAL_USER;
-        });
-        if(matchId){ loadStudentById(matchId); loaded = true; }
-      }
-      if(!loaded){
-        var snap = null;
-        try{ snap = JSON.parse(sessionStorage.getItem('portal_student_snapshot')||'null'); }catch(e){}
-        if(snap && snap.id && ALL_STUDENTS[snap.id]){ loadStudentById(snap.id); loaded = true; }
-        if(!loaded && snap && snap.portalUser){
-          var mid = Object.keys(ALL_STUDENTS).find(function(k){
-            return String(ALL_STUDENTS[k].portalUser||'').trim().toLowerCase() === String(snap.portalUser).trim().toLowerCase();
-          });
-          if(mid){ loadStudentById(mid); loaded = true; }
-        }
-        if(!loaded && snap && snap.name){
-          var nid = Object.keys(ALL_STUDENTS).find(function(k){
-            return String(ALL_STUDENTS[k].info&&ALL_STUDENTS[k].info.name||'').trim().toLowerCase() === String(snap.name).trim().toLowerCase();
-          });
-          if(nid){ loadStudentById(nid); loaded = true; }
-        }
-      }
-      if(!CURRENT){
-        document.getElementById('main-wrap').classList.remove('show');
-        document.getElementById('selector-screen').style.display='block';
-        document.querySelector('.sel-sub').textContent = 'No pudimos cargar tu perfil automáticamente. Seleccioná tu nombre abajo.';
-        buildStudentSelect();
-      }
+
+    document.getElementById('selector-screen').style.display='none';
+    if(EMBED_FROM_PORTAL){
+      var bl = document.getElementById('embed-back-link');
+      if(bl) bl.style.display='inline-flex';
     }
-  }catch(e){ showToast('Connection error','err'); }
+    setupEmbedNavLinks();
+
+    var studentId = resolveEmbedStudent();
+    if(studentId){
+      loadStudentById(studentId);
+    } else {
+      showLoginRequired('Tu sesión expiró o no es válida. Volvé al Portal e ingresá con tu usuario y contraseña.');
+    }
+  }catch(e){ showLoginRequired('Error de conexión. Volvé al Portal del Estudiante e intentá de nuevo.'); }
 })();
 
 function setupEmbedNavLinks(){
@@ -559,23 +563,9 @@ function openPortalTab(tab){
   }
 }
 
-function buildStudentSelect(){
-  var sel = document.getElementById('student-select');
-  var ids = Object.keys(ALL_STUDENTS).sort(function(a,b){
-    return (ALL_STUDENTS[a].info&&ALL_STUDENTS[a].info.name||'').localeCompare(ALL_STUDENTS[b].info&&ALL_STUDENTS[b].info.name||'');
-  });
-  ids.forEach(function(id){
-    var s = ALL_STUDENTS[id];
-    var o = document.createElement('option');
-    o.value = id;
-    o.textContent = (s.info&&s.info.name||id) + (s.info&&s.info.level?' — '+s.info.level:'');
-    sel.appendChild(o);
-  });
-}
-
 function loadStudentById(id){
   CURRENT = ALL_STUDENTS[id];
-  if(!CURRENT){ showToast('Perfil no encontrado','err'); return; }
+  if(!CURRENT){ showLoginRequired('No encontramos tu perfil. Ingresá de nuevo desde el Portal del Estudiante.'); return; }
   document.getElementById('selector-screen').style.display='none';
   document.getElementById('main-wrap').classList.add('show');
   if(!EMBED_MODE){
@@ -589,23 +579,10 @@ function loadStudentById(id){
   document.getElementById('nb-exercises').textContent = ex.length;
 }
 
-function selectStudent(){
-  var id = document.getElementById('student-select').value;
-  if(!id) return;
-  document.getElementById('sel-loading').style.display='block';
-  setTimeout(function(){
-    document.getElementById('sel-loading').style.display='none';
-    loadStudentById(id);
-  },300);
-}
-
 function logout(){
   CURRENT = null;
-  document.getElementById('main-wrap').classList.remove('show');
-  document.getElementById('selector-screen').style.display='block';
-  document.getElementById('tb-student-name').style.display='none';
-  document.getElementById('student-select').value='';
-  document.getElementById('sel-loading').style.display='none';
+  try{ sessionStorage.removeItem('portal_student_snapshot'); }catch(e){}
+  window.location.href = 'Infinity_Student_Portal.html';
 }
 
 function buildSidebarProfile(){
