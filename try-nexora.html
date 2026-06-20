@@ -23,7 +23,7 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="try-demo.html">Demos</a> <span>/</span> Nexora</div>
     <h1 class="page-title">Nexora Mini Simulation</h1>
-    <p class="page-lead">Pick one scenario — clear <strong>American English</strong> voices. Speak or type your answers.</p>
+    <p class="page-lead">Pick one scenario — voices come from <strong>your ElevenLabs account</strong> (English), not random presets.</p>
   </div>
 </header>
 
@@ -98,10 +98,16 @@
   function refreshVoiceHint() {
     voiceProfile = DemoVoice.setProfile(demoVoiceProfile('nexora', scenario));
     var hint = document.getElementById('voice-hint');
-    if (hint && voiceProfile && voiceProfile.label) {
-      hint.innerHTML = '<i class="ti ti-volume"></i> American voice: <strong>' + voiceProfile.label + '</strong> — tap mic or type below.';
+    if (hint && voiceProfile) {
+      var note = voiceProfile.needsMaleVoice
+        ? ' — <span style="opacity:.85">Configura NEXORA_DEMO_MALE_VOICE_ID en Render (voz English en ElevenLabs)</span>'
+        : '';
+      hint.innerHTML = '<i class="ti ti-volume"></i> ElevenLabs: <strong>' + (voiceProfile.label || 'Voice') + '</strong>' + note + ' — tap mic or type below.';
     }
   }
+
+  refreshVoiceHint();
+  syncDemoVoicesFromServer().then(refreshVoiceHint);
 
   document.querySelectorAll('.demo-scenario-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -138,6 +144,8 @@
       var d = await demoStart('nexora', scenario, 'Guest');
       sessionId = d.sessionId;
       maxSteps = d.maxSteps || 3;
+      if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
+      else refreshVoiceHint();
       panel.style.display = 'block';
       document.getElementById('btn-start').style.display = 'none';
       document.getElementById('voice-hint').style.display = 'flex';

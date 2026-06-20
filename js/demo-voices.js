@@ -1,42 +1,49 @@
-/** Stable ElevenLabs voice IDs for public demos (must match backend allowlist) */
+/**
+ * Demo voices — ONLY from your ElevenLabs account (config/voices.json + Render env).
+ * Never hardcode premade Josh/Rachel IDs from the internet.
+ */
 window.DEMO_VOICES = {
   alice: {
     voiceId: 'r1KmysJdVYZjJCm4mL3b',
+    label: 'Alice',
     gender: 'female',
-    accent: 'american',
-    browserHints: ['microsoft zira', 'google us english', 'samantha', 'aria', 'jenny']
+    source: 'elevenlabs-account'
   },
   nexora_star: {
-    /* Josh — ElevenLabs premade, neutral American male */
-    voiceId: 'TxGEqnHWrfWFTfGW9XjX',
+    voiceId: 'r1KmysJdVYZjJCm4mL3b',
+    label: 'Interviewer',
     gender: 'male',
-    accent: 'american',
-    label: 'American Interviewer',
-    browserHints: ['microsoft david', 'google us english', 'mark', 'guy', 'david']
+    source: 'alice-fallback',
+    needsMaleVoice: true
   },
   nexora_cs: {
-    /* Rachel — ElevenLabs premade, clear American female */
-    voiceId: '21m00Tcm4TlvDq8ikWAM',
-    gender: 'female',
-    accent: 'american',
+    voiceId: 'NoOVOzCQFLOvtsMoNcdT',
     label: 'Maria Santos',
-    browserHints: ['microsoft zira', 'google us english', 'samantha', 'aria', 'jenny']
+    gender: 'female',
+    source: 'jill-voices.json'
   }
 };
 
-window.DEMO_VOICE_ALLOWLIST = [
-  'r1KmysJdVYZjJCm4mL3b',
-  'TxGEqnHWrfWFTfGW9XjX',
-  '21m00Tcm4TlvDq8ikWAM',
-  'pNInz6obpgDQGcFmaJgB',
-  '8WqHCYyrnUqoK70Px5EJ',
-  'NyZqLdjqUb8SpOUKIlWT'
-];
+async function syncDemoVoicesFromServer() {
+  var base = typeof DEMO_BACKEND !== 'undefined' ? DEMO_BACKEND : 'https://alice-by-infinity.onrender.com';
+  try {
+    var r = await fetch(base + '/demo/voices');
+    var parsed = await (typeof demoParseResponse === 'function'
+      ? demoParseResponse(r)
+      : r.json().then(function (d) { return { ok: r.ok, data: d }; }));
+    if (parsed.ok && parsed.data) {
+      window.DEMO_VOICES = parsed.data;
+    } else if (parsed.data && !parsed.ok && parsed.data.alice) {
+      window.DEMO_VOICES = parsed.data;
+    }
+  } catch (e) { /* keep local fallback */ }
+}
 
 function demoVoiceProfile(product, scenario) {
-  if (product === 'alice') return window.DEMO_VOICES.alice;
+  var v = window.DEMO_VOICES || {};
+  if (product === 'alice') return v.alice || window.DEMO_VOICES.alice;
   if (product === 'nexora') {
-    return scenario === 'customer_service' ? window.DEMO_VOICES.nexora_cs : window.DEMO_VOICES.nexora_star;
+    return scenario === 'customer_service' ? v.nexora_cs : v.nexora_star;
   }
-  return window.DEMO_VOICES.alice;
+  return v.alice;
 }

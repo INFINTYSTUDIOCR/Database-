@@ -71,6 +71,9 @@
   var busy = false;
   var done = false;
   var voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
+  syncDemoVoicesFromServer().then(function () {
+    voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
+  });
 
   var panel = document.getElementById('panel');
   var pre = document.getElementById('pre-start');
@@ -95,6 +98,7 @@
       var d = await demoStart('alice', 'default', 'Guest');
       sessionId = d.sessionId;
       maxSteps = d.maxSteps || 4;
+      if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
       pre.style.display = 'none';
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';

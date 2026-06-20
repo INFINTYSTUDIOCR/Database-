@@ -1,0 +1,27 @@
+{
+  "jill": {
+    "voiceId": "NoOVOzCQFLOvtsMoNcdT",
+    "label": "Jill — Foundations Tutor",
+    "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=NoOVOzCQFLOvtsMoNcdT"
+  },
+  "alice": {
+    "voiceId": "r1KmysJdVYZjJCm4mL3b",
+    "label": "Alice — Coaching Tutor"
+  },
+  "claire": {
+    "voiceId": "FGLJyeekUzxl8M3CTG9M",
+    "label": "Claire — Off The Clock assistant"
+  },
+  "nexora_demo": {
+    "star_interviewer": {
+      "voiceId": "",
+      "label": "Interviewer (American English)",
+      "notes": "Paste voice ID from ElevenLabs (Voices → English → your male voice) into Render env NEXORA_DEMO_MALE_VOICE_ID"
+    },
+    "cs_client": {
+      "voiceId": "NoOVOzCQFLOvtsMoNcdT",
+      "label": "Maria Santos",
+      "notes": "Uses Jill voice from your ElevenLabs account, or set NEXORA_DEMO_FEMALE_VOICE_ID"
+    }
+  }
+}

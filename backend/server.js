@@ -294,6 +294,73 @@ try {
   console.warn('demo-buffer.json not loaded:', e.message);
 }
 
+const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
+const ALICE_VOICE_ID = process.env.ALICE_VOICE_ID || 'r1KmysJdVYZjJCm4mL3b';
+const JILL_VOICE_ID = process.env.JILL_VOICE_ID || 'NoOVOzCQFLOvtsMoNcdT';
+const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
+
+function loadVoicesConfig() {
+  const candidates = [
+    path.join(__dirname, '../config/voices.json'),
+    path.join(__dirname, 'config/voices.json')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch (e) { /* next path */ }
+  }
+  return {};
+}
+
+function getDemoVoiceProfiles() {
+  const cfg = loadVoicesConfig();
+  const nd = cfg.nexora_demo || {};
+  const starFromEnv = (process.env.NEXORA_DEMO_MALE_VOICE_ID || '').trim();
+  const csFromEnv = (process.env.NEXORA_DEMO_FEMALE_VOICE_ID || '').trim();
+  const starFromFile = (nd.star_interviewer?.voiceId || '').trim();
+  const csFromFile = (nd.cs_client?.voiceId || JILL_VOICE_ID).trim();
+  const starId = starFromEnv || starFromFile || ALICE_VOICE_ID;
+  const csId = csFromEnv || csFromFile;
+  return {
+    alice: {
+      voiceId: ALICE_VOICE_ID,
+      label: cfg.alice?.label || 'Alice',
+      gender: 'female',
+      source: 'elevenlabs-account'
+    },
+    nexora_star: {
+      voiceId: starId,
+      label: nd.star_interviewer?.label || 'Interviewer',
+      gender: 'male',
+      source: starFromEnv ? 'NEXORA_DEMO_MALE_VOICE_ID' : (starFromFile ? 'voices.json' : 'alice-fallback'),
+      needsMaleVoice: !starFromEnv && !starFromFile
+    },
+    nexora_cs: {
+      voiceId: csId,
+      label: nd.cs_client?.label || 'Maria Santos',
+      gender: 'female',
+      source: csFromEnv ? 'NEXORA_DEMO_FEMALE_VOICE_ID' : 'jill-voices.json'
+    }
+  };
+}
+
+function getDemoTtsAllowlist() {
+  const p = getDemoVoiceProfiles();
+  return new Set([
+    ALICE_VOICE_ID, JILL_VOICE_ID, CLAIRE_VOICE_ID,
+    p.nexora_star.voiceId, p.nexora_cs.voiceId
+  ].filter(Boolean));
+}
+
+function getDemoVoiceProfileFor(service, scenario) {
+  const profiles = getDemoVoiceProfiles();
+  if (service === 'alice') return profiles.alice;
+  if (service === 'nexora') {
+    return scenario === 'customer_service' ? profiles.nexora_cs : profiles.nexora_star;
+  }
+  return profiles.alice;
+}
+
 function getClientIp(req) {
   const xff = req.headers['x-forwarded-for'];
   if (xff) return String(xff).split(',')[0].trim();
@@ -484,7 +551,8 @@ app.post('/demo/start', async (req, res) => {
       step: 0,
       maxSteps: service === 'alice' ? DEMO_LIMITS.alice.maxSteps : DEMO_LIMITS.nexora.maxSteps,
       buffered: true,
-      sessionsLeft: ipLimit.sessionsLeft
+      sessionsLeft: ipLimit.sessionsLeft,
+      voiceProfile: getDemoVoiceProfileFor(service, scenario || (service === 'nexora' ? 'star' : 'default'))
     });
   } catch (err) {
     console.error('Demo start error:', err.message);
@@ -573,39 +641,30 @@ app.get('/demo/status', async (req, res) => {
   }
 });
 
+app.get('/demo/voices', (req, res) => {
+  try {
+    return res.json(getDemoVoiceProfiles());
+  } catch (err) {
+    return res.status(500).json({ error: 'Voices unavailable' });
+  }
+});
+
 app.post('/demo/tts', async (req, res) => {
   try {
-    const { text, voice, voiceId: bodyVoiceId } = req.body || {};
+    const { text, voiceId: bodyVoiceId } = req.body || {};
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
     if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
 
-    const DEMO_TTS_VOICES = new Set([
-      ALICE_VOICE_ID,
-      JILL_VOICE_ID,
-      CLAIRE_VOICE_ID,
-      'TxGEqnHWrfWFTfGW9XjX',
-      '21m00Tcm4TlvDq8ikWAM',
-      'pNInz6obpgDQGcFmaJgB',
-      '8WqHCYyrnUqoK70Px5EJ',
-      'NIkIuJZ8oQMuKZqwKtnm',
-      'b4XCIIupgo5eH7TxhBNk',
-      '1a0nAYA3FcNQcMMfbddY',
-      'ztyYYqlYMny7nllhThgo',
-      'NyZqLdjqUb8SpOUKIlWT'
-    ]);
-
-    let voiceId = ALICE_VOICE_ID;
-    if (bodyVoiceId && DEMO_TTS_VOICES.has(bodyVoiceId)) {
-      voiceId = bodyVoiceId;
-    } else if (voice === 'nexora') {
-      voiceId = process.env.NEXORA_DEMO_MALE_VOICE || 'TxGEqnHWrfWFTfGW9XjX';
+    const allowlist = getDemoTtsAllowlist();
+    if (!bodyVoiceId || !allowlist.has(bodyVoiceId)) {
+      return res.status(400).json({ error: 'Voice not allowed for demo. Use voiceId from GET /demo/voices (your ElevenLabs account only).' });
     }
 
-    const label = voiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
-    return await synthesizeSpeech(req, res, { text, voiceId, label });
+    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
+    return await synthesizeSpeech(req, res, { text, voiceId: bodyVoiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
@@ -630,11 +689,6 @@ function cacheTTS(key, buffer){
   }
   ttsCache.set(key, buffer);
 }
-
-const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
-const ALICE_VOICE_ID = process.env.ALICE_VOICE_ID || 'r1KmysJdVYZjJCm4mL3b';
-const JILL_VOICE_ID = process.env.JILL_VOICE_ID || 'NoOVOzCQFLOvtsMoNcdT';
-const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
 
 function cleanTtsText(text) {
   return (text || '')

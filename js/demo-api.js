@@ -118,7 +118,8 @@ function demoStartLocal(service, scenario, name) {
     maxSteps: DEMO_LIMITS[service].maxSteps,
     buffered: true,
     local: true,
-    sessionsLeft: limit.sessionsLeft
+    sessionsLeft: limit.sessionsLeft,
+    voiceProfile: typeof demoVoiceProfile === 'function' ? demoVoiceProfile(service, scenario) : null
   };
 }
 

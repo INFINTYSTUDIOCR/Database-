@@ -124,7 +124,11 @@ var DemoVoice = (function () {
         throw new Error('not_audio');
       })
       .then(function (blob) { playBlob(blob); })
-      .catch(function () { browserSpeak(cleanText, p); });
+      .catch(function () {
+        if (p.source === 'elevenlabs-account' || p.source === 'jill-voices.json' || p.source === 'NEXORA_DEMO_MALE_VOICE_ID' || p.source === 'NEXORA_DEMO_FEMALE_VOICE_ID' || p.source === 'voices.json') {
+          browserSpeak(cleanText, p);
+        }
+      });
   }
 
   function setMicUi(on, btn, statusEl) {
