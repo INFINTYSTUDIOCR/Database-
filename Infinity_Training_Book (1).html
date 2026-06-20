@@ -46,8 +46,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 /* MAIN LAYOUT */
 .main-wrap{display:none;height:calc(100vh - 56px);}
 .main-wrap.show{display:flex;}
-.sidebar{width:220px;flex-shrink:0;background:white;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar{width:260px;flex-shrink:0;background:white;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
 .content{flex:1;overflow-y:auto;padding:16px;background:#F0F4FA;}
+.tab-view{display:block;}
 
 /* SIDEBAR */
 .student-card{padding:1rem 1rem 0.875rem;border-bottom:1px solid var(--border);background:white;}
@@ -111,9 +112,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;}
 .info-val{font-size:13px;font-weight:600;color:var(--text);}
 
-/* CARDS */
-.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
-.card-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+/* CARDS — inside each tab */
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:14px;}
+.card-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.tab-head{margin-bottom:14px;}
 .sect-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
 
 /* PHASE BANNER */
@@ -176,7 +178,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .highlight-row td{font-weight:700;color:var(--navy);}
 
 /* VIDEO CARDS */
-.video-card{background:white;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:0.75rem;}
+.video-card{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
 .vc-header{background:var(--rm);padding:0.875rem 1.25rem;display:flex;align-items:center;gap:10px;}
 .vc-title{font-size:13px;font-weight:700;color:white;}
 .vc-meta{font-size:11px;color:rgba(255,255,255,0.75);}
@@ -210,7 +212,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .drill-result{font-size:10px;margin-top:4px;font-weight:700;min-height:14px;}
 
 /* SESSION LOG */
-.session-log-item{background:white;border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:0.5rem;}
+.session-log-item{background:white;border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:10px;}
 .sli-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
 .sli-date{font-size:11px;color:var(--t3);}
 .sli-trainer{font-size:11px;font-weight:600;color:var(--nm);}
@@ -231,12 +233,15 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .btn-outline{background:white;color:var(--t2);border:1px solid var(--border);}
 .btn-green{background:var(--gm);color:white;}
 
-@media(max-width:700px){
-  .sidebar{display:flex;flex-wrap:wrap;padding:8px;border-bottom:1px solid var(--border);}
-  .student-card{width:100%;}
+@media(max-width:900px){
+  .main-wrap.show{flex-direction:column;height:auto;min-height:calc(100vh - 52px);}
+  .sidebar{width:100%;max-height:none;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border);padding-bottom:4px;}
+  .student-card{display:none;}
   .nav-section{display:none;}
-  .nav-item{flex:1 1 auto;border-left:none;border-radius:8px;font-size:11px;padding:8px;}
-  .main-wrap.show{flex-direction:column;}
+  .nav-item{flex:0 0 auto;border-left:none;border-radius:8px;padding:10px 12px;font-size:11px;white-space:nowrap;}
+  .nav-item.active{border-left:none;background:var(--nl);}
+  .nav-demo{display:none;}
+  .content{min-height:60vh;}
 }
 </style>
 </head>
@@ -276,7 +281,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
 
     <div class="nav-section">Training Book</div>
-    <div class="nav-item active" onclick="showSection('overview',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+    <div class="nav-item active" onclick="showSection('overview',this)"><i class="ti ti-layout-dashboard"></i>Mi perfil</div>
     <div class="nav-item" onclick="showSection('exercises',this)"><i class="ti ti-list-check"></i>Mis ejercicios<span class="nav-badge nb-red" id="nb-exercises">—</span></div>
     <div class="nav-item" onclick="showSection('plan',this)"><i class="ti ti-calendar"></i>Plan de sesiones</div>
     <div class="nav-item" onclick="showSection('drills',this)"><i class="ti ti-bolt"></i>Speed Drills</div>
@@ -558,9 +563,10 @@ function getPhase(){
 
 function showSection(id, btn){
   currentSection = id;
-  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.sidebar .nav-item:not(.nav-link)').forEach(function(n){n.classList.remove('active');});
+  if(btn && !btn.classList.contains('nav-link')) btn.classList.add('active');
   var area = document.getElementById('content-area');
+  area.scrollTop = 0;
 
   if(id==='overview') renderOverview(area);
   else if(id==='exercises') renderExercises(area);
@@ -574,6 +580,13 @@ function showSection(id, btn){
 }
 
 // ── SECTION RENDERERS ─────────────────────────────────────
+function tabHead(title, sub, icon){
+  return '<div class="portal-section tab-head">'
+    +'<div class="section-title"><i class="ti ti-'+(icon||'layout-dashboard')+'"></i> '+title+'</div>'
+    +(sub?'<div class="section-sub" style="margin-bottom:0;">'+sub+'</div>':'')
+    +'</div>';
+}
+
 function buildRadarChart(kpis){
   var keys = ['IG','ST','RA','PS','R'];
   var short = {IG:'Idea Gen',ST:'Structure',RA:'Recovery',PS:'Problem Sol',R:'Response'};
@@ -620,19 +633,21 @@ function renderOverview(area){
   var phaseDesc = {1:'Pronouns, 16 irregular verbs, WILL vs WOULD, response under 1 second.',2:'Linkers mandatory, Idea → Linker → Idea, written anecdote.',3:'Natural expressions, phrasal verbs, reformulation under pressure.'};
 
   var exercises = getExercises();
-  var topEx = exercises.slice(0,4).map(function(ex){
+  var topEx = exercises.slice(0,2).map(function(ex){
     var badgeCls = ex.priority==='CRITICAL'?'status-critical':'status-pending';
     return '<div class="ex-card-v2" onclick="goToExercises()">'
       +'<div class="ex-card-head"><span class="ex-type">'+ex.type+' · '+ex.kpi+'</span>'
       +'<span class="status-badge '+badgeCls+'">'+ex.priority+'</span></div>'
       +'<div class="ex-card-title">'+ex.title+'</div>'
-      +'<div class="ex-card-meta">'+ex.nexus+' · Assigned by trainer</div></div>';
+      +'<div class="ex-card-meta">'+ex.nexus+' · Ver detalle en Mis ejercicios</div></div>';
   }).join('');
 
   var notes = (CURRENT.notes||[]).slice(-1)[0];
 
-  area.innerHTML =
-    '<div class="portal-section">'
+  area.innerHTML = '<div class="tab-view">'
+    + tabHead('Mi perfil', 'Resumen de fase, KPIs y accesos rápidos — usa el menú lateral para cada sección.', 'layout-dashboard')
+
+    +'<div class="portal-section">'
     +'<div class="phase-banner-sm"><small>Nexus — Current Phase</small><strong>'+(phaseNames[phase]||'—')+' · Score '+total+'/25 · '+level+'</strong></div>'
     +'<p class="section-sub" style="margin-bottom:0;">'+(phaseDesc[phase]||'')+'</p>'
     +'</div>'
@@ -644,43 +659,32 @@ function renderOverview(area){
     +'</div>'
 
     +'<div class="portal-section">'
-    +'<div class="section-title"><i class="ti ti-list-check"></i> Assigned Exercises</div>'
-    +'<div class="section-sub">Personalized by your trainer and Infinity Engine</div>'
+    +'<div class="section-title"><i class="ti ti-list-check"></i> Ejercicios prioritarios</div>'
+    +'<div class="section-sub">Vista rápida — el detalle completo está en la pestaña Mis ejercicios</div>'
     +(topEx||'<p style="font-size:13px;color:var(--t3);">No exercises assigned yet.</p>')
-    +'<div style="margin-top:10px;"><button class="btn btn-navy" onclick="goToExercises()" style="width:100%;justify-content:center;"><i class="ti ti-arrow-right"></i> View all exercises</button></div>'
+    +'<div style="margin-top:10px;"><button class="btn btn-navy" onclick="goToExercises()" style="width:100%;justify-content:center;"><i class="ti ti-arrow-right"></i> Ir a Mis ejercicios</button></div>'
     +'</div>'
 
-    +'<div class="portal-section" style="padding:0;border:none;background:transparent;">'
-    +'<div class="tool-cards">'
-    +'<a href="try-alice.html" target="_blank" rel="noopener" class="tool-card">'
-    +'<img src="assets/logos/alice.png" alt="" class="tool-logo" onerror="this.style.display=\'none\'">'
-    +'<div><div class="tool-name">Alice — 24/7 Coach</div><div class="tool-desc">Live coaching aligned to your KPIs and exercises.</div><span class="tool-cta">Open Alice demo →</span></div></a>'
-    +'<a href="try-nexora.html" target="_blank" rel="noopener" class="tool-card">'
-    +'<img src="assets/logos/nexora.png" alt="" class="tool-logo" onerror="this.style.display=\'none\'">'
-    +'<div><div class="tool-name">Nexora — Simulations</div><div class="tool-desc">STAR interview &amp; customer service with voice + mic.</div><span class="tool-cta">Open Nexora demo →</span></div></a>'
-    +'</div></div>'
-
     +(notes?'<div class="portal-section">'
-    +'<div class="section-title"><i class="ti ti-notes"></i> Last Session Note</div>'
+    +'<div class="section-title"><i class="ti ti-notes"></i> Última nota de sesión</div>'
     +'<div class="section-sub">'+notes.date+' · '+notes.trainer+'</div>'
-    +'<div style="font-size:13px;color:var(--text);line-height:1.65;">'+notes.text.split('\n').join('<br>').substring(0,280)+'...</div></div>':'')
+    +'<div style="font-size:13px;color:var(--text);line-height:1.65;">'+notes.text.split('\n').join('<br>').substring(0,280)+'...</div>'
+    +'<button class="btn btn-outline" style="margin-top:10px;" onclick="goToSessions()"><i class="ti ti-notes"></i> Ver historial completo</button></div>':'')
 
     +'<div class="portal-section">'
-    +'<div class="section-title"><i class="ti ti-info-circle"></i> Student Information</div>'
+    +'<div class="section-title"><i class="ti ti-info-circle"></i> Información del estudiante</div>'
     +'<div class="info-grid">'
     +[['Trainer',info.trainer||'—'],['Program',info.program||'—'],['Start date',info.start||'—'],['Phase',phaseNames[phase]||'—'],['Sessions',((CURRENT.compliance||{}).attended||0)+' attended'],['Fee','CRC '+parseInt(info.fee||0).toLocaleString()+'/mo']].map(function(item){
       return '<div class="info-cell"><div class="info-label">'+item[0]+'</div><div class="info-val">'+item[1]+'</div></div>';
     }).join('')
-    +'</div></div>';
+    +'</div></div></div>';
 }
 
 function renderExercises(area){
   var exercises = getExercises();
-  if(!exercises.length){area.innerHTML='<div class="portal-section"><div class="loading"><i class="ti ti-dumbbell"></i><span>No exercises assigned.</span></div></div>';return;}
+  if(!exercises.length){area.innerHTML='<div class="tab-view">'+tabHead('Mis ejercicios','Protocolos completos asignados a tu perfil','list-check')+'<div class="portal-section"><div class="loading"><i class="ti ti-dumbbell"></i><span>No exercises assigned.</span></div></div></div>';return;}
 
-  area.innerHTML = '<div class="portal-section" style="margin-bottom:14px;">'
-    +'<div class="section-title"><i class="ti ti-list-check"></i> Your Exercises</div>'
-    +'<div class="section-sub">Prioritized by KPI gap — tap any card for full protocol</div></div>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Mis ejercicios','Protocolos completos priorizados por brecha de KPI','list-check')
     + exercises.map(function(ex){
       var typeTag = {writing:'tag-w writing',debate:'tag-d debate',simulation:'tag-s simulation',roleplay:'tag-r roleplay',drill:'tag-dr drill'}[ex.type]||'tag-w';
       var prioCls = {CRITICAL:'prio-c',HIGH:'prio-h',ADVANCED:'prio-a',MEDIUM:'prio-m'}[ex.priority]||'prio-m';
@@ -701,13 +705,12 @@ function renderExercises(area){
         +(ex.grading?'<div class="ex-grading"><strong>Grading:</strong> '+ex.grading+'</div>':'')
         +(ex.flags&&ex.flags.length?'<div class="ex-redflags"><div class="rf-label">⚑ Red flags</div>'+ex.flags.map(function(f){return '<div class="rf-item">• '+f+'</div>';}).join('')+'</div>':'')
         +'</div></div>';
-    }).join('');
+    }).join('')+'</div>';
 }
 
 function renderDrills(area){
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;">Speed Drills</h2>'
-    +'<p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;">Trainer fires each item. Student responds in under 1 second. Mark pass or fail.</p>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Pronoun + Tense — 12 items</div>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Speed Drills','Trainer dispara cada ítem — respondé en menos de 1 segundo','bolt')
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-bolt"></i>Pronoun + Tense — 12 items</div>'
     +'<div class="drill-grid">'
     +SPEED_DRILLS.map(function(d,i){
       return '<div class="drill-item" id="drill-'+i+'">'
@@ -721,10 +724,10 @@ function renderDrills(area){
         +'</div>';
     }).join('')
     +'</div></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>16 Irregular Verbs</div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-list"></i>16 Irregular Verbs</div>'
     +'<table class="ref-table"><thead><tr><th>Presente</th><th>Pasado Simple</th><th>Participio</th></tr></thead><tbody>'
     +IRREGULAR_VERBS.map(function(v,i){return '<tr class="'+(i%2===0?'':'')+'"><td><strong>'+v.inf+'</strong></td><td style="color:var(--nm);">'+v.past+'</td><td style="color:var(--purple);">'+v.part+'</td></tr>';}).join('')
-    +'</tbody></table></div>';
+    +'</tbody></table></div></div>';
 }
 
 function setDrill(i, pass){
@@ -744,6 +747,7 @@ function renderPlan(area){
   var primary = KPI_NAMES[sorted[0]]||'—';
   var secondary = KPI_NAMES[sorted[1]]||'—';
 
+  var C_NAVY = '1E2761';
   var weeks = [
     {week:'Week 1',focus:'Foundation — '+primary+' priority',note:'All sessions begin with Rapid Fire warm-up (5 min). No exceptions.',color:C_NAVY,sessions:[
       {num:'S1',title:'Assessment debrief + foundation install',content:'Review KPI profile. Establish 4-week targets. Introduce Idea+Linker+Idea. Assign daily homework: 10 connected sentences.',kpi:primary,type:'writing'},
@@ -763,10 +767,9 @@ function renderPlan(area){
     ]},
   ];
 
-  var C_NAVY = '1E2761';
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">4-Week Session Plan — personalized for your KPI profile</h2>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Plan de sesiones','Plan de 4 semanas personalizado según tu perfil KPI','calendar')
     +weeks.map(function(w){
-      return '<div style="border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:0.875rem;">'
+      return '<div class="portal-section" style="padding:0;overflow:hidden;">'
         +'<div style="background:#'+w.color+';color:white;padding:0.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
         +'<div style="font-size:13px;font-weight:700;color:var(--gold);">'+w.week+'</div>'
         +'<div style="font-size:12px;color:rgba(255,255,255,0.8);">'+w.focus+'</div>'
@@ -784,13 +787,13 @@ function renderPlan(area){
             +'</div>';
         }).join('')
         +'</div>';
-    }).join('');
+    }).join('')+'</div>';
 }
 
 function renderPhase1(area){
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Phase 1 — Arquitectura</h2>'
-    +'<div class="info-box ib-red"><strong>REGLA DE ORO:</strong> La respuesta debe llegar en menos de 1 segundo. Si el estudiante tarda mas, el area debe trabajarse aunque eso signifique repetirlo 500 veces en un dia.</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Tabla de pronombres</div>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Fase 1 — Arquitectura','Pronombres, tiempos verbales y respuesta bajo 1 segundo','building')
+    +'<div class="portal-section"><div class="info-box ib-red"><strong>REGLA DE ORO:</strong> La respuesta debe llegar en menos de 1 segundo. Si el estudiante tarda mas, el area debe trabajarse aunque eso signifique repetirlo 500 veces en un dia.</div></div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-users"></i>Tabla de pronombres</div>'
     +'<table class="ref-table"><thead><tr><th>Español</th><th>Personal</th><th>Indicativo</th><th>Reflexivo</th><th>Posesivo adj.</th></tr></thead><tbody>'
     +[['Yo','I','to/for me','myself','my'],['Tu, usted','you','to/for you','yourself','your'],['El','he','to/for him','himself','his'],
       ['Ella','she','to/for her','herself','her'],['Eso/esa','it','to/for it','itself','its'],['Nosotros','we','to/for us','ourselves','our'],
@@ -798,7 +801,7 @@ function renderPhase1(area){
     ].map(function(r,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+r[0]+'</strong></td>'+r.slice(1).map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')
     +'</tbody></table></div>'
 
-    +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>WILL vs WOULD — Los interruptores</div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-bolt"></i>WILL vs WOULD — Los interruptores</div>'
     +'<div class="info-box ib-navy"><strong>REGLA:</strong> -re en español = WILL (futuro real) · -ria en español = WOULD (hipotetico). Esta distincion debe automatizarse.</div>'
     +'<table class="ref-table"><thead><tr><th>Espanol</th><th>Termination</th><th>Ingles</th><th>Formula</th><th>Tipo</th></tr></thead><tbody>'
     +[['Correre','-re','I will run','will + verb','Futuro real'],['Comere','-re','I will eat','will + verb','Decision real'],
@@ -806,13 +809,13 @@ function renderPhase1(area){
     ].map(function(r,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+r[0]+'</strong></td>'+r.slice(1).map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')
     +'</tbody></table></div>'
 
-    +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>ING vs TO — Hoja rapida</div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-list"></i>ING vs TO — Hoja rapida</div>'
     +'<table class="ref-table"><thead><tr><th>Disparador</th><th>Usa</th><th>Ejemplo</th><th>Regla</th></tr></thead><tbody>'
     +[['Intencion','TO','I want to work','TO = direccion'],['Necesidad','TO','I need to go','NEED → TO'],
       ['Disfrute','ING','I enjoy working','Enjoy → ING'],['Actividad general','ING','I like working','ING = actividad'],
       ['Despues de prep','ING','After working','Prep → ING'],['Accion en proceso','ING','I am working','BE activa ING'],
     ].map(function(r,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+r[0]+'</strong></td>'+r.slice(1).map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')
-    +'</tbody></table></div>';
+    +'</tbody></table></div></div>';
 }
 
 function renderPhase2(area){
@@ -821,11 +824,11 @@ function renderPhase2(area){
     return '<tr><td><strong>'+names[k]+'</strong></td><td>'+LINKERS[k].join(', ')+'</td></tr>';
   });
 
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Phase 2 — Expansion</h2>'
-    +'<div class="info-box ib-amber"><strong>ESTRUCTURA OBLIGATORIA:</strong> Idea → Linker → Idea → Linker → Idea<br><br>"I worked yesterday" — Esto NO es conversacion.<br>"I worked yesterday because I had an important meeting, however, it did not go as expected." — CORRECTO.</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-network"></i>Linkers por categoria</div>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Fase 2 — Expansión','Linkers obligatorios, estructura Idea → Linker → Idea','network')
+    +'<div class="portal-section"><div class="info-box ib-amber"><strong>ESTRUCTURA OBLIGATORIA:</strong> Idea → Linker → Idea → Linker → Idea<br><br>"I worked yesterday" — Esto NO es conversacion.<br>"I worked yesterday because I had an important meeting, however, it did not go as expected." — CORRECTO.</div></div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-network"></i>Linkers por categoria</div>'
     +'<table class="ref-table"><thead><tr><th>Categoria</th><th>Conectores</th></tr></thead><tbody>'+linkerRows.join('')+'</tbody></table></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-pencil"></i>Estructura de la anecdota — 15 minutos</div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-pencil"></i>Estructura de la anecdota — 15 minutos</div>'
     +'<div class="info-box ib-navy"><strong>REQUISITOS OBLIGATORIOS:</strong><br>✓ Minimo 5 conectores (categorias diferentes)<br>✓ Minimo 5 expresiones naturales<br>✓ Minimo 12 lineas<br>✓ Coherencia temporal correcta<br>✓ Sin frases sueltas</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">'
     +[['① Contexto inicial','¿Cuando? ¿Donde? ¿Quienes?'],['② Evento principal','¿Que paso?'],['③ Problema','¿Que complicacion hubo?'],['④ Resultado','¿Como termino?'],['⑤ Reflexion','¿Que aprendiste?']].map(function(i){
@@ -833,17 +836,17 @@ function renderPhase2(area){
         +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+i[0]+'</div>'
         +'<div style="font-size:12px;color:var(--t2);">'+i[1]+'</div></div>';
     }).join('')
-    +'</div></div>';
+    +'</div></div></div>';
 }
 
 function renderPhase3(area){
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Phase 3 — Naturalidad</h2>'
-    +'<div class="info-box ib-green">El estudiante ya ubica tiempos, conecta ideas y usa linkers. Ahora debe sonar natural, reformular, anadir matices y expandir discurso sin pensar en gramatica.</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-message"></i>Expresiones naturales — equivalencias</div>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Fase 3 — Naturalidad','Expresiones naturales, prefijos/sufijos y reformulación bajo presión','flame')
+    +'<div class="portal-section"><div class="info-box ib-green">El estudiante ya ubica tiempos, conecta ideas y usa linkers. Ahora debe sonar natural, reformular, anadir matices y expandir discurso sin pensar en gramatica.</div></div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-message"></i>Expresiones naturales — equivalencias</div>'
     +'<table class="ref-table"><thead><tr><th>Espanol</th><th>Ingles Natural</th></tr></thead><tbody>'
     +NATURAL_EXPRESSIONS.map(function(e,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td>'+e.es+'</td><td><strong>'+e.en+'</strong></td></tr>';}).join('')
     +'</tbody></table></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-puzzle"></i>Prefijos y Sufijos</div>'
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-puzzle"></i>Prefijos y Sufijos</div>'
     +'<div class="info-box ib-navy"><strong>REGLA:</strong> Prefijo → cambia el significado · Sufijo → cambia la funcion gramatical</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">'
     +'<div><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;">Prefijos</div>'
@@ -853,16 +856,17 @@ function renderPhase3(area){
     +'<div><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;">Sufijos</div>'
     +'<table class="ref-table"><thead><tr><th>Sufijo</th><th>Base</th><th>Resultado</th></tr></thead><tbody>'
     +[['-ness','happy','happiness'],['-ment','develop','development'],['-ful','stress','stressful'],['-less','hope','hopeless'],['-able','manage','manageable'],['-ly','quick','quickly']].map(function(r,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td style="color:var(--nm);">'+r[2]+'</td></tr>';}).join('')
-    +'</tbody></table></div></div></div>';
+    +'</tbody></table></div></div></div></div>';
 }
 
 function renderVideos(area){
   var videos = Object.values(ALL_VIDEOS);
   if(!videos.length){
-    area.innerHTML='<div class="loading"><i class="ti ti-player-play"></i><span style="font-size:14px;margin-top:0.5rem;">No hay videos en la audioteca todavia.</span><p style="font-size:12px;margin-top:0.5rem;max-width:260px;text-align:center;">El trainer agrega videos desde el Video Simulation Lab.</p></div>';
+    area.innerHTML='<div class="tab-view">'+tabHead('Videos y simulaciones','Material de la audioteca asignado por tu trainer','player-play')
+      +'<div class="portal-section"><div class="loading"><i class="ti ti-player-play"></i><span style="font-size:14px;margin-top:0.5rem;">No hay videos en la audioteca todavia.</span><p style="font-size:12px;margin-top:0.5rem;max-width:320px;text-align:center;">El trainer agrega videos desde el Video Simulation Lab.</p></div></div></div>';
     return;
   }
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Audioteca — Video Simulation Lab</h2>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Videos y simulaciones','Audioteca — Video Simulation Lab','player-play')
     +videos.map(function(v){
       var qs = (v.questions||[]).map(function(q,i){return '<div class="vc-q"><strong>'+( i+1)+'.</strong> '+q.q+'</div>';}).join('');
       return '<div class="video-card">'
@@ -874,17 +878,18 @@ function renderVideos(area){
         +(v.description?'<p style="font-size:13px;color:var(--t2);margin-bottom:0.75rem;line-height:1.6;">'+v.description+'</p>':'')
         +(qs?'<div class="vc-questions"><div class="sect-label">Comprehension questions</div>'+qs+'</div>':'')
         +'</div></div>';
-    }).join('');
+    }).join('')+'</div>';
 }
 
 function renderSessions(area){
   var notes = (CURRENT.notes||[]).slice().reverse();
   if(!notes.length){
-    area.innerHTML='<div class="loading"><i class="ti ti-notes"></i><span>No session notes yet.</span></div>';
+    area.innerHTML='<div class="tab-view">'+tabHead('Notas de sesiones','Historial de feedback de tu trainer','notes')
+      +'<div class="portal-section"><div class="loading"><i class="ti ti-notes"></i><span>No session notes yet.</span></div></div></div>';
     return;
   }
   var phaseNames = {1:'Phase 1',2:'Phase 2',3:'Phase 3',4:'Assessment Center'};
-  area.innerHTML = '<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Session notes</h2>'
+  area.innerHTML = '<div class="tab-view">'+tabHead('Notas de sesiones','Historial completo de sesiones y feedback','notes')
     +notes.map(function(n){
       var phColor = {1:'var(--nm)',2:'var(--purple)',3:'var(--gm)',4:'var(--amber)'}[n.phase]||'var(--t3)';
       return '<div class="session-log-item">'
@@ -896,12 +901,16 @@ function renderSessions(area){
         +'<div class="sli-text">'+n.text.split('\n').join('<br>')+'</div>'
 
         +'</div>';
-    }).join('');
+    }).join('')+'</div>';
 }
 
 function goToExercises(){
   var items = document.querySelectorAll('.sidebar .nav-item:not(.nav-link)');
   showSection('exercises', items[1]);
+}
+function goToSessions(){
+  var items = document.querySelectorAll('.sidebar .nav-item:not(.nav-link)');
+  showSection('sessions', items[items.length - 1]);
 }
 function showToast(msg,type){
   var t=document.getElementById('toast');
