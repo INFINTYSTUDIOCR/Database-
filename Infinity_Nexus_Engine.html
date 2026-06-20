@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="js/site-urls.js"></script>
 <title>Infinity Nexus Engine</title>
 <meta name="theme-color" content="#1E2761">
 <meta name="mobile-web-app-capable" content="yes">
@@ -11,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Nexus Engine">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%231E2761' width='32' height='32' rx='6'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23F5A623' font-size='16' font-family='system-ui,sans-serif' font-weight='700'%3E%E2%88%9E%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest-engine.json">
-<link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1369,7 +1370,7 @@ function switchTab(id, btn){
   if(pane) pane.classList.add('active');
 }
 
-var STUDENT_PORTAL_URL = 'https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html';
+var STUDENT_PORTAL_URL = 'https://studioinfinitycr.com/Infinity_Student_Portal.html';
 
 function copyStudentLink(id){
   var s=DB[id]; if(!s) return;
@@ -5673,7 +5674,7 @@ function showToast(msg,type){
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/Database-/sw.js').catch(function(){});
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
   });
 }
 
