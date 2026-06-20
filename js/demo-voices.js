@@ -10,11 +10,11 @@ window.DEMO_VOICES = {
     source: 'elevenlabs-account'
   },
   nexora_star: {
-    voiceId: 'r1KmysJdVYZjJCm4mL3b',
-    label: 'Interviewer',
+    voiceId: 'bfGb7JTLUnZebZRiFYyq',
+    label: 'Interviewer (American English)',
     gender: 'male',
-    source: 'alice-fallback',
-    needsMaleVoice: true
+    source: 'voices.json',
+    needsMaleVoice: false
   },
   nexora_cs: {
     voiceId: 'NoOVOzCQFLOvtsMoNcdT',

@@ -14,9 +14,10 @@
   },
   "nexora_demo": {
     "star_interviewer": {
-      "voiceId": "",
+      "voiceId": "bfGb7JTLUnZebZRiFYyq",
       "label": "Interviewer (American English)",
-      "notes": "Paste voice ID from ElevenLabs (Voices → English → your male voice) into Render env NEXORA_DEMO_MALE_VOICE_ID"
+      "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=bfGb7JTLUnZebZRiFYyq",
+      "notes": "Override with Render env NEXORA_DEMO_MALE_VOICE_ID if needed"
     },
     "cs_client": {
       "voiceId": "NoOVOzCQFLOvtsMoNcdT",

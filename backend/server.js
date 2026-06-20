@@ -346,9 +346,13 @@ function getDemoVoiceProfiles() {
 
 function getDemoTtsAllowlist() {
   const p = getDemoVoiceProfiles();
+  const cfg = loadVoicesConfig();
+  const nd = cfg.nexora_demo || {};
   return new Set([
     ALICE_VOICE_ID, JILL_VOICE_ID, CLAIRE_VOICE_ID,
-    p.nexora_star.voiceId, p.nexora_cs.voiceId
+    p.nexora_star.voiceId, p.nexora_cs.voiceId,
+    nd.star_interviewer?.voiceId,
+    nd.cs_client?.voiceId
   ].filter(Boolean));
 }
 
