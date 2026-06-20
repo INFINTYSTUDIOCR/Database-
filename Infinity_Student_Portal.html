@@ -142,7 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="portal-nav" id="portal-nav" style="display:none;">
   <div class="portal-nav-item active" data-tab="progreso" onclick="switchPortalTab('progreso')"><i class="ti ti-chart-radar"></i>Progreso</div>
-  <div class="portal-nav-item" data-tab="trainingbook" onclick="switchPortalTab('trainingbook')"><i class="ti ti-dumbbell"></i>Training Book</div>
+  <div class="portal-nav-item" data-tab="trainingbook" onclick="openTrainingBook()"><i class="ti ti-dumbbell"></i>Training Book</div>
   <div class="portal-nav-item" data-tab="recursos" onclick="switchPortalTab('recursos')"><i class="ti ti-folder"></i>Recursos</div>
   <div class="portal-nav-item" data-tab="notas" onclick="switchPortalTab('notas')"><i class="ti ti-notes"></i>Notas</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill');setTimeout(function(){ renderJillTab(window._currentStudent); },100);"><i class="ti ti-message-circle"></i>Jill</div>
@@ -233,6 +233,7 @@ async function doLogin(){
 
   var auth = null;
   var student = null;
+  var legacyResult = null;
   try {
     auth = await infinityLoginIfAvailable(user, pass, 'student');
   } catch (e) {
@@ -258,16 +259,16 @@ async function doLogin(){
       return;
     }
   } else {
-    var legacy = await tryLegacyStudentLogin(user, pass);
-    if(!legacy || legacy.error === 'suspended'){
-      err.textContent = legacy && legacy.error === 'suspended'
+    legacyResult = await tryLegacyStudentLogin(user, pass);
+    if(!legacyResult || legacyResult.error === 'suspended'){
+      err.textContent = legacyResult && legacyResult.error === 'suspended'
         ? 'Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.'
         : 'Usuario o contraseña incorrectos.';
       err.style.display='block';
       btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
-    student = legacy.student;
+    student = legacyResult.student;
   }
 
   if(student.status==='suspended'){
@@ -279,22 +280,46 @@ async function doLogin(){
   }
 
   CURRENT_STUDENT = student;
+  if(auth && auth.studentId) CURRENT_STUDENT.id = auth.studentId;
+  else if(legacyResult && legacyResult.studentId) CURRENT_STUDENT.id = legacyResult.studentId;
+  window._currentStudent = CURRENT_STUDENT;
+  window._portalStudent = CURRENT_STUDENT;
 
-    // cargar calendario
-    var cRows = await dbGet('infinity_sessions');
-    cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
+  // cargar calendario
+  var cRows = await dbGet('infinity_sessions');
+  cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
 
-    // log de acceso
-    var logId = 'LOG-'+Date.now()+'-'+Math.floor(Math.random()*1000);
-    await dbSet('infinity_sessions', logId, { id:logId, ts:new Date().toISOString(), user:(student.info&&student.info.name)||student.portalUser, role:'student', action:'Acceso al Portal del Estudiante', details:student.portalUser });
+  // log de acceso
+  var logId = 'LOG-'+Date.now()+'-'+Math.floor(Math.random()*1000);
+  await dbSet('infinity_sessions', logId, { id:logId, ts:new Date().toISOString(), user:(student.info&&student.info.name)||student.portalUser, role:'student', action:'Acceso al Portal del Estudiante', details:student.portalUser });
 
-    // log de asistencia (acceso al portal hoy)
-    var today = new Date().toISOString().split('T')[0];
-    var paId = 'PORTALACCESS-'+student.id+'_'+today;
-    await dbSet('infinity_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
+  // log de asistencia (acceso al portal hoy)
+  var today = new Date().toISOString().split('T')[0];
+  var paId = 'PORTALACCESS-'+student.id+'_'+today;
+  await dbSet('infinity_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
 
-    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-    showPortal(student);
+  btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+  showPortal(student);
+}
+
+function openTrainingBook(){
+  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  if(!s){
+    var err = document.getElementById('login-err');
+    if(err){ err.textContent='Iniciá sesión primero.'; err.style.display='block'; }
+    return;
+  }
+  try{
+    sessionStorage.setItem('portal_student_snapshot', JSON.stringify({
+      id: s.id || '',
+      portalUser: s.portalUser || '',
+      name: (s.info && s.info.name) || ''
+    }));
+  }catch(e){}
+  var q = ['embed=1','from=portal'];
+  if(s.id) q.push('studentId='+encodeURIComponent(s.id));
+  if(s.portalUser) q.push('portalUser='+encodeURIComponent(String(s.portalUser).trim().toLowerCase()));
+  window.location.href = 'Infinity_Training_Book.html?' + q.join('&');
 }
 
 function switchPortalTab(tab){
@@ -328,6 +353,8 @@ function logout(){
 }
 
 function showPortal(s){
+  window._currentStudent = s;
+  window._portalStudent = s;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -371,12 +398,8 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK (iframe — diseño nuevo con tabs) ─────
-  var tbStudentId = s.id || '';
-  var tbUrl = 'Infinity_Training_Book%20(1).html?embed=1&studentId=' + encodeURIComponent(tbStudentId);
-  var trainingBookHtml = '<div class="tb-iframe-wrap">'
-    +'<iframe class="tb-iframe" id="portal-tb-frame" title="Training Book" src="'+tbUrl+'" loading="lazy"></iframe>'
-    +'</div>';
+  // Training Book abre pagina completa via openTrainingBook()
+  var trainingBookHtml = '<div class="card" style="text-align:center;padding:2rem;"><div style="font-size:48px;margin-bottom:12px;color:var(--navy);"><i class="ti ti-dumbbell"></i></div><div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:8px;">Tu Training Book personalizado</div><div style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;">KPIs, ejercicios, plan de sesiones, speed drills y material Nexus — en una sola vista con tabs.</div><button class="btn btn-navy" onclick="openTrainingBook()"><i class="ti ti-arrow-right"></i> Abrir Training Book</button></div>';
 
   // ── RECURSOS ──────────────────────────────────────────
   var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
