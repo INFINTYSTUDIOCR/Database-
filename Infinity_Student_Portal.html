@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="infinity-auth.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -209,19 +210,25 @@ async function doLogin(){
   document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
 
   try{
+    var auth = await infinityLogin(user, pass, 'student');
     var rows = await dbGet('infinity_students');
     var student = null;
     rows.forEach(function(r){
-      if(r.data){ ALL_STUDENTS[r.id]=r.data; if(r.data.portalUser===user && r.data.portalPass===pass) student=r.data; }
+      if(r.data){
+        ALL_STUDENTS[r.id]=r.data;
+        if(r.id === auth.studentId) student = r.data;
+      }
     });
 
     if(!student){
-      err.textContent='Usuario o contraseña incorrectos.';
+      clearAuthToken();
+      err.textContent='Usuario no encontrado después de autenticación.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
     if(student.status==='suspended'){
+      clearAuthToken();
       err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
@@ -245,7 +252,8 @@ async function doLogin(){
 
     showPortal(student);
   }catch(e){
-    err.textContent='Error de conexión. Intentá de nuevo.';
+    clearAuthToken();
+    err.textContent=(e&&e.data&&e.data.error)||(e&&e.message)||'Usuario o contraseña incorrectos.';
     err.style.display='block';
     document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
   }
@@ -265,6 +273,7 @@ function switchPortalTab(tab){
 }
 
 function logout(){
+  clearAuthToken();
   CURRENT_STUDENT=null;
   document.getElementById('student-portal').style.display='none';
   document.getElementById('login-screen').style.display='block';
@@ -1115,7 +1124,7 @@ async function startAliceSession(){
   renderAlice();
   document.getElementById('alice-status').textContent = 'Alice está preparando tu escenario...';
   try{
-    var r = await fetch(ALICE_BACKEND, {
+    var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mode:'start_session', student:getAliceStudentPayload(), secret:ALICE_SECRET })
     });
@@ -1199,7 +1208,7 @@ async function sendAliceMessage(){
   var pending = '';
 
   try {
-    var resp = await fetch(INFINITY_API+'/alice/stream', {
+    var resp = await infinityFetch('/alice/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         student:getAliceStudentPayload(), scenario:_aliceState.scenario,
@@ -1325,7 +1334,7 @@ async function endAliceSession(){
   stopAlice();
   if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Alice está evaluando tu sesión...';
   try{
-    var r = await fetch(ALICE_BACKEND, {
+    var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mode:'evaluate', student:getAliceStudentPayload(), scenario:_aliceState.scenario, history:_aliceState.history, secret:ALICE_SECRET })
     });
@@ -1359,7 +1368,7 @@ function aliceSpeak(text){
   _aliceState.listening = false;
   _aliceState.speaking = true;
   var speakId = ++_aliceSpeakId;
-  fetch('https://alice-by-infinity.onrender.com/alice-tts',{
+  infinityFetch('/alice-tts',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({text:clean})
   }).then(function(r){return r.ok?r.blob():null;})
@@ -1750,7 +1759,7 @@ async function nexoraAnswerCall(){
     var sc = _nxState.scenario;
     var accountContext = nexoraBuildAccountContext(p);
 
-    var r = await fetch(INFINITY_API+'/nexora', {
+    var r = await infinityFetch('/nexora', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         message: 'START_CALL',
@@ -1858,7 +1867,7 @@ async function nexoraSendToAlice(text){
   if(statusEl) statusEl.textContent = p.firstName+' is responding...';
   try {
     var student = window._currentStudent || window._portalStudent || {};
-    var r = await fetch(INFINITY_API+'/nexora',{
+    var r = await infinityFetch('/nexora',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         message: text,
@@ -1900,7 +1909,7 @@ async function nexoraGenerateQA(isTransfer){
     +'</div>';
 
   try {
-    var r = await fetch('https://alice-by-infinity.onrender.com/nexora-eval',{
+    var r = await infinityFetch('/nexora-eval',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         transcript: _nxState.transcript.join('\n'),
@@ -2070,7 +2079,7 @@ function nexoraSpeak(text){
     .replace(/\s+/g,' ')
     .trim().slice(0,500);
   var voiceId = (_nxState.profile && _nxState.profile.voiceId) ? _nxState.profile.voiceId : null;
-  fetch(INFINITY_API+'/nexora-tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})})
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
   .catch(function(){});
@@ -2138,7 +2147,7 @@ function _jillTTSFlush(){
   var text = _jillTTSQueue.shift();
   var clean = text.replace(/JILL:|ALICE:|CLAIRE:/gi,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
   if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
-  fetch(INFINITY_API+'/jill-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
     if(!b){ _jillTTSBusy=false; _jillTTSFlush(); return; }
@@ -2171,7 +2180,7 @@ function _aliceTTSFlush(){
   var text = _aliceTTSQueue.shift();
   var clean = text.replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/\s+/g,' ').trim();
   if(clean.length < 3){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
-  fetch(INFINITY_API+'/alice-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
     if(!b || !_aliceSpeakEnabled || speakId !== _aliceSpeakId){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
@@ -2321,7 +2330,7 @@ async function startJillSession(s){
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
   try {
-    var r = await fetch(INFINITY_API+'/jill', {
+    var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: s.quizWeakKpis||[] })
     });
@@ -2361,7 +2370,7 @@ async function sendJillMsg(){
   var pending = ''; // accumulates text until sentence boundary for TTS
 
   try {
-    var resp = await fetch(INFINITY_API+'/jill/stream', {
+    var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ student:s, history:_jillState.history.slice(-10), message:text, weakKpis:s.quizWeakKpis||[] })
     });
@@ -2456,7 +2465,7 @@ function jillSpeak(text){
   if(clean.length < 3) return;
   jillStopMic(); // stop mic so it doesn't hear the AI
   _jillState.speaking = true;
-  fetch(INFINITY_API+'/jill-tts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})})
+  infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
     if(!b){ _jillState.speaking = false; return; }

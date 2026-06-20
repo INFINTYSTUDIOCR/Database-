@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nexora — Operational Simulation Lab</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="infinity-auth.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -599,6 +600,58 @@ var CITIES=['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO','Phoen
 
 var ALICE_BACKEND='https://alice-by-infinity.onrender.com';
 
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof getAuthToken === 'function' && !getAuthToken()){
+    var gate = document.createElement('div');
+    gate.style.cssText = 'position:fixed;inset:0;background:#1E2761;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
+    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
+    document.body.appendChild(gate);
+  }
+});
+
+var ENGINE_TYPE_MAP={
+  customer_service:'customer_service',
+  mock_interview:'interview',
+  team_meeting:'meeting',
+  problem_solving:'customer_service',
+  presentation:'corporate',
+  negotiation:'negotiation',
+  stakeholder:'stakeholder'
+};
+
+function loadNexoraEngineConfig(){
+  try{return JSON.parse(localStorage.getItem('nexora_scenario')||'null');}catch(e){return null;}
+}
+
+function pickScenarioFromConfig(nxConfig,prevId){
+  if(!nxConfig||!nxConfig.type){
+    var pool=SCENARIOS.filter(function(s){return s.id!==prevId;});
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  var targetType=ENGINE_TYPE_MAP[nxConfig.type]||nxConfig.type;
+  var difficulty=parseInt(nxConfig.difficulty,10)||3;
+  function matchesType(s){
+    var st=s.type||'customer_service';
+    if(targetType==='customer_service') return !s.type;
+    return st===targetType;
+  }
+  function matchesDiff(s){
+    var d=s.diff||s.difficulty||2;
+    return Math.abs(d-difficulty)<=1;
+  }
+  var candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s)&&matchesDiff(s);});
+  if(!candidates.length) candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s);});
+  if(!candidates.length) candidates=SCENARIOS.filter(function(s){return s.id!==prevId;});
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+function applyScenarioToUI(sc){
+  var titleEl=document.getElementById('sp-title');
+  var descEl=document.getElementById('sp-desc');
+  if(titleEl) titleEl.textContent=sc.title;
+  if(descEl) descEl.textContent=sc.desc;
+}
+
 // ── STATE ─────────────────────────────────────────────────────
 var _nx={
   agent:'',scenario:null,profile:null,profiles:[],
@@ -611,12 +664,10 @@ var _nx={
 window.onload=function(){
   var savedAgent=localStorage.getItem('nexora_agent');
   if(savedAgent){_nx.agent=savedAgent;document.getElementById('agent-inp').value=savedAgent;}
-  // Always random scenario — never repeat from localStorage
+  var nxConfig=loadNexoraEngineConfig();
   var prev=_nx.scenario?_nx.scenario.id:null;
-  var candidates=SCENARIOS.filter(function(s){return s.id!==prev;});
-  _nx.scenario=candidates[Math.floor(Math.random()*candidates.length)];
-  
-  
+  _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
+  applyScenarioToUI(_nx.scenario);
   document.getElementById('autoin-screen').style.display='flex';
 };
 
@@ -1015,7 +1066,7 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
   var st=document.getElementById(statusId);
   if(st) st.textContent='Connecting...';
   try{
-    var r=await fetch(ALICE_BACKEND+'/nexora',{
+    var r=await infinityFetch('/nexora',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         message:startMsg,history:[],
@@ -1473,7 +1524,7 @@ async function aliceEnter(){
   if(st) st.textContent='Alice is connecting as client...';
   try{
     var p=_nx.profile;var sc=_nx.scenario;
-    var r=await fetch(ALICE_BACKEND+'/nexora',{
+    var r=await infinityFetch('/nexora',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         message: 'START_CALL',
@@ -1517,7 +1568,7 @@ async function sendToAlice(text){
   var st=document.getElementById('co-status-text');
   if(st) st.textContent=p.firstName+' is responding...';
   try{
-    var r=await fetch(ALICE_BACKEND+'/nexora',{
+    var r=await infinityFetch('/nexora',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({message:text,history:_nx.history.slice(-14),profile:p,scenario:sc,agentName:_nx.agent||'Agent',context:{billingAlerts:p.billingNotes,services:p.services.map(function(s){return s.name+' '+s.price;})}})
     });
@@ -1539,7 +1590,7 @@ function speak(text){
   if(!clean) return;
   // Use client's assigned voice for immersion
   var voiceId = _nx.profile && _nx.profile.voiceId ? _nx.profile.voiceId : 'r1KmysJdVYZjJCm4mL3b';
-  fetch(ALICE_BACKEND+'/nexora-tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean, voiceId:voiceId})})
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean, voiceId:voiceId})})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
   .catch(function(){});
@@ -1588,7 +1639,7 @@ async function generateQA(isTransfer){
   document.getElementById('qa-body').innerHTML='<div style="text-align:center;padding:2rem;color:var(--t3);">Alice is preparing your evaluation...</div>';
 
   try{
-    var r=await fetch(ALICE_BACKEND+'/nexora-eval',{
+    var r=await infinityFetch('/nexora-eval',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         transcript:_nx.transcript.join('\n'),
@@ -1679,12 +1730,10 @@ function renderQA(ev,talkTime,isTransfer){
 
 function nextCall(){
   document.getElementById('qa-screen').style.display='none';
-  // Pick new scenario
+  var nxConfig=loadNexoraEngineConfig();
   var prev=_nx.scenario?_nx.scenario.id:null;
-  var candidates=SCENARIOS.filter(function(s){return s.id!==prev;});
-  _nx.scenario=candidates[Math.floor(Math.random()*candidates.length)];
-  document.getElementById('sp-title').textContent=_nx.scenario.title;
-  document.getElementById('sp-desc').textContent=_nx.scenario.desc;
+  _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
+  applyScenarioToUI(_nx.scenario);
   document.getElementById('autoin-screen').style.display='flex';
   document.getElementById('crm-main').style.display='none';
   document.getElementById('empty-state').style.display='flex';

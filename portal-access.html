@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Portal Access — Off The Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">Off The <span>Clock</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Back to site</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="page-hero-inner" style="max-width:900px;margin:0 auto;">
+    <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> Portal Access</div>
+    <h1 class="page-title">Portal Access</h1>
+    <p class="page-lead">For enrolled students and authorized trainers only. Select your portal below.</p>
+  </div>
+</header>
+
+<p class="portal-private-note">This page is not linked from the public site navigation. If you are not a student or trainer, use <a href="index.html#contact" style="color:var(--purple);font-weight:600;">Contact</a> to request access.</p>
+
+<div class="portal-access-grid">
+  <a href="https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html" target="_blank" rel="noopener noreferrer" class="portal-gate student">
+    <div class="portal-gate-art">
+      <img src="assets/portal-student.png" alt="Student Portal">
+    </div>
+    <h2>Student Portal</h2>
+    <p>Training Book, progress, Alice coaching and your assigned exercises.</p>
+    <span class="portal-gate-cta"><i class="ti ti-arrow-right"></i> Enter as student</span>
+  </a>
+
+  <a href="https://infintystudiocr.github.io/Database-/Infinity_Nexus_Engine.html" target="_blank" rel="noopener noreferrer" class="portal-gate trainer">
+    <div class="portal-gate-art">
+      <img src="assets/portal-trainer.png" alt="Trainer Platform">
+    </div>
+    <h2>Infinity Engine</h2>
+    <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting.</p>
+    <span class="portal-gate-cta"><i class="ti ti-arrow-right"></i> Enter as trainer</span>
+  </a>
+</div>
+
+<footer class="page-footer">
+  Off The Clock · Authorized access only · <a href="index.html">Return home</a>
+</footer>
+
+<script>
+document.querySelectorAll('.portal-gate-art img').forEach(function(img){
+  img.addEventListener('error', function(){
+    var icon = img.alt.indexOf('Student') >= 0 ? 'school' : 'dashboard';
+    img.parentElement.innerHTML = '<i class="ti ti-' + icon + '"></i>';
+    img.parentElement.style.display = 'flex';
+    img.parentElement.style.alignItems = 'center';
+    img.parentElement.style.justifyContent = 'center';
+  });
+  if (!img.complete || img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
+});
+</script>
+</body>
+</html>

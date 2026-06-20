@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try Alice — Off The Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/demo.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">Off The <span>Clock</span></a>
+  <div class="nav-links">
+    <a href="try-demo.html">← All demos</a>
+  </div>
+</nav>
+
+<div class="demo-session" id="app">
+  <div class="consent-box" style="padding:0 0 16px;" id="pre-start">
+    <label class="consent-label">
+      <input type="checkbox" id="demo-consent" checked>
+      <span>Anonymized demo data may be used to improve Alice and Jill coaching.</span>
+    </label>
+    <button type="button" class="btn-primary" style="margin-top:14px;max-width:280px;" id="btn-start">Start Alice demo</button>
+  </div>
+
+  <div class="demo-panel" id="panel" style="display:none;">
+    <div class="demo-panel-head">
+      <div>
+        <h1>Alice — Mini coaching</h1>
+        <div class="meta" id="step-meta">Step 0 · Buffered session</div>
+      </div>
+      <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
+    </div>
+    <div class="demo-msgs" id="msgs"></div>
+    <div class="demo-status" id="typing" style="display:none;font-style:italic;">Alice is typing…</div>
+    <div class="demo-input-row" id="input-row">
+      <input class="demo-input" id="inp" placeholder="Type in English…" autocomplete="off">
+      <button type="button" class="demo-send" id="btn-send" title="Send"><i class="ti ti-send"></i></button>
+    </div>
+    <div id="eval-wrap"></div>
+  </div>
+
+  <div class="demo-limit" id="limit-view" style="display:none;">
+    <i class="ti ti-clock-pause"></i>
+    <p><strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.</p>
+    <a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20mi%20evaluaci%C3%B3n%20gratuita" target="_blank" rel="noopener">WhatsApp — evaluación gratis</a>
+  </div>
+</div>
+
+<footer class="page-footer">
+  <a href="try-demo.html">Other demos</a> · <a href="index.html">Home</a>
+</footer>
+
+<script src="js/demo-api.js"></script>
+<script>
+(function () {
+  var sessionId = null;
+  var step = 0;
+  var maxSteps = 4;
+  var busy = false;
+  var done = false;
+
+  var panel = document.getElementById('panel');
+  var pre = document.getElementById('pre-start');
+  var msgs = document.getElementById('msgs');
+  var inp = document.getElementById('inp');
+  var limitView = document.getElementById('limit-view');
+
+  function setBusy(v) {
+    busy = v;
+    document.getElementById('btn-send').disabled = v || done;
+    document.getElementById('typing').style.display = v ? 'block' : 'none';
+  }
+
+  async function start() {
+    if (!document.getElementById('demo-consent').checked) {
+      alert('Please accept consent to start.');
+      return;
+    }
+    setBusy(true);
+    demoTrack('demo_alice_start', 'try-alice');
+    try {
+      var d = await demoStart('alice', 'default', 'Guest');
+      sessionId = d.sessionId;
+      maxSteps = d.maxSteps || 4;
+      pre.style.display = 'none';
+      panel.style.display = 'block';
+      document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
+      demoAddMsg(msgs, d.reply, 'assistant', 'ALICE');
+      step = d.step;
+      updateMeta();
+    } catch (e) {
+      if (e.error === 'limit') {
+        pre.style.display = 'none';
+        limitView.style.display = 'block';
+      } else {
+        alert(e.message || 'Demo unavailable. Try again later.');
+      }
+    }
+    setBusy(false);
+  }
+
+  function updateMeta() {
+    document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered (no extra API cost)';
+  }
+
+  async function send() {
+    if (busy || done || !sessionId) return;
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    demoAddMsg(msgs, text, 'user', 'YOU');
+    setBusy(true);
+    demoTrack('demo_alice_message', 'step_' + (step + 1));
+    try {
+      var d = await demoSend(sessionId, text);
+      demoAddMsg(msgs, d.reply, 'assistant', d.done ? 'ALICE' : 'ALICE');
+      step = d.step;
+      updateMeta();
+      if (d.done) {
+        done = true;
+        document.getElementById('input-row').style.display = 'none';
+        demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Alice');
+        demoTrack('demo_alice_complete', 'evaluation');
+      }
+    } catch (e) {
+      if (e.error === 'limit') {
+        done = true;
+        document.getElementById('input-row').style.display = 'none';
+        demoAddMsg(msgs, 'Daily limit reached for this connection.', 'assistant', 'SYSTEM');
+      } else {
+        demoAddMsg(msgs, 'Connection issue — try again or contact us on WhatsApp.', 'assistant', 'SYSTEM');
+      }
+    }
+    setBusy(false);
+  }
+
+  document.getElementById('btn-start').onclick = start;
+  document.getElementById('btn-send').onclick = send;
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); send(); }
+  });
+})();
+</script>
+</body>
+</html>

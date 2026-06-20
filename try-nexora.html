@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try Nexora — Off The Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/demo.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">Off The <span>Clock</span></a>
+  <div class="nav-links">
+    <a href="try-demo.html">← All demos</a>
+  </div>
+</nav>
+
+<header class="page-hero" style="padding-bottom:32px;">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="try-demo.html">Demos</a> <span>/</span> Nexora</div>
+    <h1 class="page-title">Nexora Mini Simulation</h1>
+    <p class="page-lead">Pick one scenario — buffered client/interviewer responses, IP-limited, built for a quick taste of ORT pressure.</p>
+  </div>
+</header>
+
+<div class="consent-box">
+  <label class="consent-label">
+    <input type="checkbox" id="demo-consent" checked>
+    <span>Anonymized demo data may be used to improve Nexora scenarios and coaching KB.</span>
+  </label>
+</div>
+
+<div class="demo-scenario-pick" id="scenario-pick">
+  <button type="button" class="demo-scenario-btn active" data-scenario="star"><i class="ti ti-star"></i> STAR Interview</button>
+  <button type="button" class="demo-scenario-btn" data-scenario="customer_service"><i class="ti ti-headset"></i> Customer Service Call</button>
+</div>
+
+<div class="demo-session" id="app">
+  <div style="text-align:center;margin-bottom:16px;">
+    <button type="button" class="btn-primary" style="max-width:280px;margin:0 auto;" id="btn-start">Start simulation</button>
+  </div>
+
+  <div class="demo-panel" id="panel" style="display:none;">
+    <div class="demo-panel-head gold">
+      <div>
+        <h1 id="sim-title">Nexora — STAR Interview</h1>
+        <div class="meta" id="step-meta">Step 0</div>
+      </div>
+      <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
+    </div>
+    <div class="demo-msgs" id="msgs"></div>
+    <div class="demo-status" id="typing" style="display:none;font-style:italic;">Simulation running…</div>
+    <div class="demo-input-row" id="input-row">
+      <input class="demo-input" id="inp" placeholder="Your response in English…" autocomplete="off">
+      <button type="button" class="demo-send" id="btn-send"><i class="ti ti-send"></i></button>
+    </div>
+    <div id="eval-wrap"></div>
+  </div>
+
+  <div class="demo-limit" id="limit-view" style="display:none;">
+    <i class="ti ti-clock-pause"></i>
+    <p><strong>Daily demo limit reached.</strong> Book a full assessment to unlock complete Nexora simulations.</p>
+    <a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20probar%20Nexora%20completo" target="_blank" rel="noopener">WhatsApp</a>
+  </div>
+</div>
+
+<footer class="page-footer">
+  <a href="try-demo.html">Other demos</a> · <a href="index.html">Home</a>
+</footer>
+
+<script src="js/demo-api.js"></script>
+<script>
+(function () {
+  var scenario = 'star';
+  var sessionId = null;
+  var step = 0;
+  var maxSteps = 3;
+  var busy = false;
+  var done = false;
+
+  var panel = document.getElementById('panel');
+  var msgs = document.getElementById('msgs');
+  var inp = document.getElementById('inp');
+  var limitView = document.getElementById('limit-view');
+  var pick = document.getElementById('scenario-pick');
+
+  document.querySelectorAll('.demo-scenario-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (sessionId) return;
+      document.querySelectorAll('.demo-scenario-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      scenario = btn.getAttribute('data-scenario');
+      document.getElementById('sim-title').textContent =
+        scenario === 'customer_service' ? 'Nexora — Customer Service' : 'Nexora — STAR Interview';
+    });
+  });
+
+  function roleLabel() {
+    return scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER';
+  }
+
+  function setBusy(v) {
+    busy = v;
+    document.getElementById('btn-send').disabled = v || done;
+    document.getElementById('typing').style.display = v ? 'block' : 'none';
+  }
+
+  async function start() {
+    if (!document.getElementById('demo-consent').checked) {
+      alert('Please accept consent to start.');
+      return;
+    }
+    setBusy(true);
+    pick.style.display = 'none';
+    demoTrack('demo_nexora_start', scenario);
+    try {
+      var d = await demoStart('nexora', scenario, 'Guest');
+      sessionId = d.sessionId;
+      maxSteps = d.maxSteps || 3;
+      panel.style.display = 'block';
+      document.getElementById('btn-start').style.display = 'none';
+      document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
+      demoAddMsg(msgs, d.reply, 'assistant', roleLabel());
+      step = d.step;
+      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
+    } catch (e) {
+      pick.style.display = 'flex';
+      if (e.error === 'limit') {
+        document.getElementById('btn-start').style.display = 'none';
+        limitView.style.display = 'block';
+      } else {
+        alert(e.message || 'Demo unavailable.');
+      }
+    }
+    setBusy(false);
+  }
+
+  async function send() {
+    if (busy || done || !sessionId) return;
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    demoAddMsg(msgs, text, 'user', 'YOU');
+    setBusy(true);
+    demoTrack('demo_nexora_message', scenario + '_step_' + (step + 1));
+    try {
+      var d = await demoSend(sessionId, text);
+      demoAddMsg(msgs, d.reply, 'assistant', d.done ? roleLabel() : roleLabel());
+      step = d.step;
+      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
+      if (d.done) {
+        done = true;
+        document.getElementById('input-row').style.display = 'none';
+        demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Nexora');
+        demoTrack('demo_nexora_complete', scenario);
+      }
+    } catch (e) {
+      if (e.error === 'limit') {
+        done = true;
+        document.getElementById('input-row').style.display = 'none';
+      } else {
+        demoAddMsg(msgs, 'Connection issue — try again later.', 'assistant', 'SYSTEM');
+      }
+    }
+    setBusy(false);
+  }
+
+  document.getElementById('btn-start').onclick = start;
+  document.getElementById('btn-send').onclick = send;
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); send(); }
+  });
+
+  if (location.hash === '#cs') {
+    scenario = 'customer_service';
+    document.querySelectorAll('.demo-scenario-btn').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-scenario') === 'customer_service');
+    });
+    document.getElementById('sim-title').textContent = 'Nexora — Customer Service';
+  }
+})();
+</script>
+</body>
+</html>

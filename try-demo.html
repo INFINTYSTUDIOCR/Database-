@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try a Demo — Off The Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/demo.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">Off The <span>Clock</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Back to site</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> Live Demos</div>
+    <h1 class="page-title">Try Before You Commit</h1>
+    <p class="page-lead">Free mini sessions — Alice coaching or Nexora simulation. No login. Limited uses per day to keep quality high.</p>
+  </div>
+</header>
+
+<p class="demo-note">Sessions are buffered for speed and cost control. With your consent, anonymized patterns may improve Alice, Jill and our knowledge base.</p>
+
+<div class="consent-box">
+  <label class="consent-label">
+    <input type="checkbox" id="demo-consent" checked>
+    <span>I agree that my demo may be used in anonymized form to improve coaching and simulations. No personal data is sold or shared.</span>
+  </label>
+</div>
+
+<div class="demo-grid">
+  <a href="try-alice.html" class="demo-gate alice" id="gate-alice">
+    <div class="demo-gate-art"><i class="ti ti-robot"></i></div>
+    <h2>Try Alice</h2>
+    <p>5-minute coaching mini session — operational English, connectors, and real-time feedback like enrolled students get 24/7.</p>
+    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Alice demo</span>
+    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-alice"></div>
+  </a>
+
+  <a href="try-nexora.html" class="demo-gate nexora" id="gate-nexora">
+    <div class="demo-gate-art"><i class="ti ti-headset"></i></div>
+    <h2>Try Nexora</h2>
+    <p>STAR interview or customer service call — practice under pressure with a simulated interviewer or client.</p>
+    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Nexora demo</span>
+    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-nexora"></div>
+  </a>
+</div>
+
+<footer class="page-footer">
+  Off The Clock · Demo limits apply per connection · <a href="index.html#contact">Contact</a>
+</footer>
+
+<script src="js/demo-api.js"></script>
+<script>
+document.querySelectorAll('.demo-gate').forEach(function (gate) {
+  gate.addEventListener('click', function (e) {
+    if (!demoGetConsent()) {
+      e.preventDefault();
+      alert('Please accept the consent checkbox to start a demo.');
+    }
+  });
+});
+
+Promise.all([demoFetchStatus('alice'), demoFetchStatus('nexora')]).then(function (arr) {
+  var a = document.getElementById('status-alice');
+  var n = document.getElementById('status-nexora');
+  if (a) a.textContent = arr[0].sessionsLeft + ' demo(s) left today';
+  if (n) n.textContent = arr[1].sessionsLeft + ' demo(s) left today';
+});
+</script>
+</body>
+</html>

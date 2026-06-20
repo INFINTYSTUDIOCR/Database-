@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="infinity-auth.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -864,25 +865,33 @@ async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
   var pass = document.getElementById('l-pass').value;
   var err = document.getElementById('login-err');
+  err.style.display = 'none';
 
-  // Fallback master hardcodeado — siempre funciona
-  var MASTER_FALLBACK = { email:'trainer@infinity.cr', pass:'nexus2025', name:'Johnny Ramirez', role:'superadmin' };
-  if(user === MASTER_FALLBACK.email && pass === MASTER_FALLBACK.pass){
-    SESSION = { user, name: MASTER_FALLBACK.name, role: MASTER_FALLBACK.role };
+  try {
+    var auth = await infinityLogin(user, pass, 'trainer');
+  } catch (e) {
+    err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
+    err.style.display = 'block';
+    return;
+  }
+
+  await loadUsers();
+  if (auth.role === 'superadmin') {
+    SESSION = { user, name: auth.name || 'Master Trainer', role: 'superadmin' };
     await loadData();
     SESSION.code = getTrainerCode(user);
     startApp();
     return;
   }
-
-  await loadUsers();
   var trainer = TRAINERS[user];
-  if(!trainer || trainer.pass !== pass){
-    err.textContent = 'Usuario o contraseña incorrectos.';
+  if(!trainer){
+    clearAuthToken();
+    err.textContent = 'Perfil de trainer no encontrado.';
     err.style.display = 'block';
     return;
   }
   if(trainer.status === 'suspended'){
+    clearAuthToken();
     err.textContent = 'Tu acceso ha sido suspendido. Contactá al Master Trainer.';
     err.style.display = 'block';
     return;
@@ -932,6 +941,7 @@ function startApp(){
 }
 
 function logout(){
+  clearAuthToken();
   SESSION=null; DB={}; RESOURCES={};
   document.getElementById('app-wrap').classList.remove('show');
   document.getElementById('login-screen').style.display='block';
