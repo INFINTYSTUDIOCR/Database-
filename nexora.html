@@ -3,11 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="js/site-urls.js"></script>
 <title>Nexora — Operational Simulation Lab</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="infinity-auth.js"></script>
-<script src="js/nexora-voice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -463,7 +461,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <script>
 // ── NEXORA DATA ────────────────────────────────────────────────
 
-// Voice pools live in js/nexora-voice.js (verified ElevenLabs IDs + fallback)
+// ── NEXORA VOICE POOL ─────────────────────────────────────────
+// ElevenLabs voice IDs — different accents for realism
+var NEXORA_VOICES_MALE = [
+  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
+  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
+  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'},
+];
+var NEXORA_VOICES_FEMALE = [
+  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
+  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
+  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'},
+];
 
 var SCENARIOS = [
   {id:'cs1',industry:'Banking',title:'Billing Dispute',desc:'Client received an unexpected charge and wants it reversed immediately.',mood:'frustrated',diff:2},
@@ -592,10 +601,10 @@ var CITIES=['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO','Phoen
 var ALICE_BACKEND='https://alice-by-infinity.onrender.com';
 
 document.addEventListener('DOMContentLoaded', function(){
-  if(typeof hasPortalSession === 'function' && !hasPortalSession()){
+  if(typeof getAuthToken === 'function' && !getAuthToken()){
     var gate = document.createElement('div');
     gate.style.cssText = 'position:fixed;inset:0;background:#1E2761;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
-    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;margin:0 auto 1.25rem;">Ingresá al Portal del Estudiante primero. Desde ahí abrí Nexora con tu sesión activa.</p><a href="Infinity_Student_Portal.html" style="display:inline-flex;align-items:center;gap:8px;background:#5B21B6;color:#fff;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;"><i class="ti ti-login"></i> Ir al Portal del Estudiante</a></div>';
+    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
     document.body.appendChild(gate);
   }
 });
@@ -1574,7 +1583,17 @@ async function sendToAlice(text){
 
 // ── SPEAK ─────────────────────────────────────────────────────
 function speak(text){
-  nexoraSpeak(text, _nx.profile);
+  if(!text) return;
+  var clean=text.replace(/ALICE:/gi,'').replace(/CLAIRE:/gi,'')
+    .replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ')
+    .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,500);
+  if(!clean) return;
+  // Use client's assigned voice for immersion
+  var voiceId = _nx.profile && _nx.profile.voiceId ? _nx.profile.voiceId : 'r1KmysJdVYZjJCm4mL3b';
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean, voiceId:voiceId})})
+  .then(function(r){return r.ok?r.blob():null;})
+  .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
+  .catch(function(){});
 }
 
 // ── MIC ───────────────────────────────────────────────────────
