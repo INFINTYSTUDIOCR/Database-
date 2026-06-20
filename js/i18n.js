@@ -99,8 +99,6 @@
     { s: '#panel-infinity-engine .engine-stat:nth-child(1) .engine-stat-label', en: 'KPIs tracked weekly', es: 'KPIs medidos semanalmente' },
     { s: '#panel-infinity-engine .engine-stat:nth-child(2) .engine-stat-label', en: 'AI + human sync', es: 'Sincronía IA + humano' },
     { s: '#panel-infinity-engine .engine-stat:nth-child(3) .engine-stat-label', en: 'Adaptive learning loops', es: 'Ciclos adaptativos de aprendizaje' },
-    { s: '#panel-infinity-engine .deliverable-actions .btn-secondary', en: 'Preview Infinity Engine', es: 'Vista previa del Engine' },
-    { s: '#panel-infinity-engine .deliverable-actions .btn-primary', en: 'Request a live walkthrough', es: 'Solicitar demo en vivo' },
     { s: '#diff .section-tag', en: 'Why We\'re Different', es: 'Por Qué Somos Diferentes' },
     { s: '#diff .section-title', html: true, en: 'What Makes Us <span style="color:var(--gold)">Impossible</span> To Replicate', es: 'Lo Que Nos Hace <span style="color:var(--gold)">Imposibles</span> de Replicar' },
     { s: '#diff .section-sub', en: 'Not features. The result of 26 years building operational systems from the inside out.', es: 'No son funciones. Son 26 años construyendo sistemas operacionales desde adentro.' },
