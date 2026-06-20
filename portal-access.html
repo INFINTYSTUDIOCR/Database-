@@ -30,18 +30,18 @@
 <p class="portal-private-note">This page is not linked from the public site navigation. If you are not a student or trainer, use <a href="index.html#contact" style="color:var(--purple);font-weight:600;">Contact</a> to request access.</p>
 
 <div class="portal-access-grid">
-  <a href="https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html" target="_blank" rel="noopener noreferrer" class="portal-gate student">
+  <a href="Infinity_Student_Portal.html" class="portal-gate student">
     <div class="portal-gate-art">
-      <img src="assets/portal-student.png" alt="Student Portal">
+      <i class="ti ti-school"></i>
     </div>
     <h2>Student Portal</h2>
     <p>Training Book, progress, Alice coaching and your assigned exercises.</p>
     <span class="portal-gate-cta"><i class="ti ti-arrow-right"></i> Enter as student</span>
   </a>
 
-  <a href="https://infintystudiocr.github.io/Database-/Infinity_Nexus_Engine.html" target="_blank" rel="noopener noreferrer" class="portal-gate trainer">
+  <a href="Infinity_Nexus_Engine.html" class="portal-gate trainer">
     <div class="portal-gate-art">
-      <img src="assets/portal-trainer.png" alt="Trainer Platform">
+      <i class="ti ti-dashboard"></i>
     </div>
     <h2>Infinity Engine</h2>
     <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting.</p>
@@ -53,18 +53,6 @@
   Off The Clock · Authorized access only · <a href="index.html">Return home</a>
 </footer>
 
-<script>
-document.querySelectorAll('.portal-gate-art img').forEach(function(img){
-  img.addEventListener('error', function(){
-    var icon = img.alt.indexOf('Student') >= 0 ? 'school' : 'dashboard';
-    img.parentElement.innerHTML = '<i class="ti ti-' + icon + '"></i>';
-    img.parentElement.style.display = 'flex';
-    img.parentElement.style.alignItems = 'center';
-    img.parentElement.style.justifyContent = 'center';
-  });
-  if (!img.complete || img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
-});
-</script>
 <script src="js/i18n.js"></script>
 </body>
 </html>
