@@ -1526,9 +1526,11 @@ CRITICAL RULES:
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
     }
 
-    const msgs = history && history.length > 0
-      ? [...history.slice(-14), { role: 'user', content: message }]
-      : [{ role: 'user', content: message }];
+    const hist = (history || []).slice(-14);
+    const last = hist[hist.length - 1];
+    const msgs = (last && last.role === 'user' && last.content === message)
+      ? hist
+      : [...hist, { role: 'user', content: message }];
 
     const resp = await claudeCall({
       model: 'claude-sonnet-4-6',

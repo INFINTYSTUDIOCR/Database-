@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
+<script src="js/nexora-voice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -276,6 +277,16 @@ async function doLogin(){
       return;
     }
     student = legacyResult.student;
+    try {
+      auth = await infinityLogin(user, pass, 'student');
+    } catch (jwtErr) {
+      if (jwtErr.status === 401 || jwtErr.status === 403) {
+        err.textContent = 'Usuario o contraseña incorrectos.';
+        err.style.display = 'block';
+        btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+        return;
+      }
+    }
   }
 
   if(student.status==='suspended'){
@@ -1580,17 +1591,7 @@ var NEXORA_SERVICES = [
 ];
 var NEXORA_STREETS = ['Oak St','Maple Ave','Cedar Ln','Pine Rd','Elm Blvd'];
 var NEXORA_CITIES = ['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO'];
-
-var NEXORA_VOICES_MALE = [
-  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
-  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
-  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'}
-];
-var NEXORA_VOICES_FEMALE = [
-  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
-  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
-  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'}
-];
+// Voice pools in js/nexora-voice.js
 
 var NEXORA_ENGINE_TYPE_MAP = {
   customer_service:'customer_service',
@@ -1873,7 +1874,7 @@ async function nexoraAnswerCall(){
     var reply = (data.reply||'Hello, is this customer service?').split('\nALICE:')[0].trim();
     if(clientStatus) clientStatus.textContent = '';
     nexoraAddMsg(reply, 'client');
-    nexoraSpeak(reply);
+    nexoraSpeak(reply, _nxState.profile);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
   } catch(e){
@@ -1981,7 +1982,7 @@ async function nexoraSendToAlice(text){
     var reply = (data.reply||'').split('\nALICE:')[0].trim();
     if(statusEl) statusEl.textContent='';
     nexoraAddMsg(reply,'client');
-    nexoraSpeak(reply);
+    nexoraSpeak(reply, _nxState.profile);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
   }catch(e){
@@ -2164,24 +2165,6 @@ function nexoraAddMsg(text, from){
   }
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;
-}
-
-// ── SPEAK ──────────────────────────────────────────────────────
-function nexoraSpeak(text){
-  if(!text) return;
-  var clean=text
-    .replace(/ALICE:|CLAIRE:|JILL:/g,'')
-    .replace(/[*_#<>\[\]{}|~`^]/g,' ')
-    .replace(/\.{2,}/g,'.')
-    .replace(/,/g,' ')
-    .replace(/;/g,' ')
-    .replace(/\s+/g,' ')
-    .trim().slice(0,500);
-  var voiceId = (_nxState.profile && _nxState.profile.voiceId) ? _nxState.profile.voiceId : null;
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
-  .then(function(r){return r.ok?r.blob():null;})
-  .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
-  .catch(function(){});
 }
 
 window.addEventListener('beforeunload',function(){

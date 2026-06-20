@@ -7,6 +7,7 @@
 <title>Nexora — Operational Simulation Lab</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="infinity-auth.js"></script>
+<script src="js/nexora-voice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -462,18 +463,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <script>
 // ── NEXORA DATA ────────────────────────────────────────────────
 
-// ── NEXORA VOICE POOL ─────────────────────────────────────────
-// ElevenLabs voice IDs — different accents for realism
-var NEXORA_VOICES_MALE = [
-  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
-  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
-  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'},
-];
-var NEXORA_VOICES_FEMALE = [
-  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
-  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
-  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'},
-];
+// Voice pools live in js/nexora-voice.js (verified ElevenLabs IDs + fallback)
 
 var SCENARIOS = [
   {id:'cs1',industry:'Banking',title:'Billing Dispute',desc:'Client received an unexpected charge and wants it reversed immediately.',mood:'frustrated',diff:2},
@@ -1584,17 +1574,7 @@ async function sendToAlice(text){
 
 // ── SPEAK ─────────────────────────────────────────────────────
 function speak(text){
-  if(!text) return;
-  var clean=text.replace(/ALICE:/gi,'').replace(/CLAIRE:/gi,'')
-    .replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ')
-    .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,500);
-  if(!clean) return;
-  // Use client's assigned voice for immersion
-  var voiceId = _nx.profile && _nx.profile.voiceId ? _nx.profile.voiceId : 'r1KmysJdVYZjJCm4mL3b';
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean, voiceId:voiceId})})
-  .then(function(r){return r.ok?r.blob():null;})
-  .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
-  .catch(function(){});
+  nexoraSpeak(text, _nx.profile);
 }
 
 // ── MIC ───────────────────────────────────────────────────────
