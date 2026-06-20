@@ -3,29 +3,33 @@ window.DEMO_VOICES = {
   alice: {
     voiceId: 'r1KmysJdVYZjJCm4mL3b',
     gender: 'female',
-    browserHints: ['samantha', 'zira', 'jenny', 'aria']
+    accent: 'american',
+    browserHints: ['microsoft zira', 'google us english', 'samantha', 'aria', 'jenny']
   },
   nexora_star: {
-    voiceId: '8WqHCYyrnUqoK70Px5EJ',
+    /* Josh — ElevenLabs premade, neutral American male */
+    voiceId: 'TxGEqnHWrfWFTfGW9XjX',
     gender: 'male',
-    label: 'Interviewer',
-    browserHints: ['david', 'guy', 'mark', 'microsoft david', 'google uk english male']
+    accent: 'american',
+    label: 'American Interviewer',
+    browserHints: ['microsoft david', 'google us english', 'mark', 'guy', 'david']
   },
   nexora_cs: {
-    voiceId: 'NyZqLdjqUb8SpOUKIlWT',
+    /* Rachel — ElevenLabs premade, clear American female */
+    voiceId: '21m00Tcm4TlvDq8ikWAM',
     gender: 'female',
+    accent: 'american',
     label: 'Maria Santos',
-    browserHints: ['zira', 'samantha', 'jenny', 'aria', 'hazel']
+    browserHints: ['microsoft zira', 'google us english', 'samantha', 'aria', 'jenny']
   }
 };
 
 window.DEMO_VOICE_ALLOWLIST = [
   'r1KmysJdVYZjJCm4mL3b',
+  'TxGEqnHWrfWFTfGW9XjX',
+  '21m00Tcm4TlvDq8ikWAM',
+  'pNInz6obpgDQGcFmaJgB',
   '8WqHCYyrnUqoK70Px5EJ',
-  'NIkIuJZ8oQMuKZqwKtnm',
-  'b4XCIIupgo5eH7TxhBNk',
-  '1a0nAYA3FcNQcMMfbddY',
-  'ztyYYqlYMny7nllhThgo',
   'NyZqLdjqUb8SpOUKIlWT'
 ];
 

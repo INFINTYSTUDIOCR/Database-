@@ -23,7 +23,7 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="try-demo.html">Demos</a> <span>/</span> Nexora</div>
     <h1 class="page-title">Nexora Mini Simulation</h1>
-    <p class="page-lead">Pick one scenario — speak or type in English. One stable voice per role (interviewer or client).</p>
+    <p class="page-lead">Pick one scenario — clear <strong>American English</strong> voices. Speak or type your answers.</p>
   </div>
 </header>
 
@@ -99,7 +99,7 @@
     voiceProfile = DemoVoice.setProfile(demoVoiceProfile('nexora', scenario));
     var hint = document.getElementById('voice-hint');
     if (hint && voiceProfile && voiceProfile.label) {
-      hint.innerHTML = '<i class="ti ti-volume"></i> Voice locked: <strong>' + voiceProfile.label + '</strong> — tap mic or type below.';
+      hint.innerHTML = '<i class="ti ti-volume"></i> American voice: <strong>' + voiceProfile.label + '</strong> — tap mic or type below.';
     }
   }
 

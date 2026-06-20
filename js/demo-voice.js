@@ -68,18 +68,24 @@ var DemoVoice = (function () {
 
     if (!pick && profile.gender === 'female') {
       pick = voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en') === 0 && /zira|samantha|jenny|aria|female|hazel/i.test(v.name);
+        return v.lang && v.lang.indexOf('en-US') === 0 && /zira|samantha|jenny|aria|female/i.test(v.name);
+      }) || voices.find(function (v) {
+        return v.lang && v.lang.indexOf('en') === 0 && !/hazel|uk|british|india|australian/i.test(v.name) && /zira|samantha|jenny|aria|female/i.test(v.name);
       });
     }
 
     if (!pick && profile.gender === 'male') {
       pick = voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en') === 0 && /david|guy|mark|male|ryan|christopher/i.test(v.name);
+        return v.lang && v.lang.indexOf('en-US') === 0 && /david|guy|mark|male|ryan|christopher/i.test(v.name);
+      }) || voices.find(function (v) {
+        return v.lang && v.lang.indexOf('en') === 0 && !/hazel|uk|british|india|australian/i.test(v.name) && /david|guy|mark|male|ryan|christopher/i.test(v.name);
       });
     }
 
     if (!pick) {
-      pick = voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; });
+      pick = voices.find(function (v) {
+        return v.lang && v.lang.indexOf('en-US') === 0;
+      });
     }
 
     _browserVoiceCache[key] = pick || null;
@@ -91,7 +97,7 @@ var DemoVoice = (function () {
     stopAudio();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    u.rate = profile.gender === 'male' ? 0.93 : 0.96;
+    u.rate = profile.gender === 'male' ? 0.94 : 0.97;
     u.pitch = profile.gender === 'male' ? 0.95 : 1.02;
     var voice = getBrowserVoice(profile);
     if (voice) u.voice = voice;

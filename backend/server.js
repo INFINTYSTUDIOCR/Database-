@@ -586,6 +586,9 @@ app.post('/demo/tts', async (req, res) => {
       ALICE_VOICE_ID,
       JILL_VOICE_ID,
       CLAIRE_VOICE_ID,
+      'TxGEqnHWrfWFTfGW9XjX',
+      '21m00Tcm4TlvDq8ikWAM',
+      'pNInz6obpgDQGcFmaJgB',
       '8WqHCYyrnUqoK70Px5EJ',
       'NIkIuJZ8oQMuKZqwKtnm',
       'b4XCIIupgo5eH7TxhBNk',
@@ -598,7 +601,7 @@ app.post('/demo/tts', async (req, res) => {
     if (bodyVoiceId && DEMO_TTS_VOICES.has(bodyVoiceId)) {
       voiceId = bodyVoiceId;
     } else if (voice === 'nexora') {
-      voiceId = process.env.NEXORA_DEMO_MALE_VOICE || '8WqHCYyrnUqoK70Px5EJ';
+      voiceId = process.env.NEXORA_DEMO_MALE_VOICE || 'TxGEqnHWrfWFTfGW9XjX';
     }
 
     const label = voiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
