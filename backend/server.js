@@ -575,14 +575,33 @@ app.get('/demo/status', async (req, res) => {
 
 app.post('/demo/tts', async (req, res) => {
   try {
-    const { text, voice } = req.body || {};
+    const { text, voice, voiceId: bodyVoiceId } = req.body || {};
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
     if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
-    const voiceId = voice === 'nexora' ? (process.env.JILL_VOICE_ID || JILL_VOICE_ID) : ALICE_VOICE_ID;
-    const label = voice === 'nexora' ? 'Nexora demo' : 'Alice demo';
+
+    const DEMO_TTS_VOICES = new Set([
+      ALICE_VOICE_ID,
+      JILL_VOICE_ID,
+      CLAIRE_VOICE_ID,
+      '8WqHCYyrnUqoK70Px5EJ',
+      'NIkIuJZ8oQMuKZqwKtnm',
+      'b4XCIIupgo5eH7TxhBNk',
+      '1a0nAYA3FcNQcMMfbddY',
+      'ztyYYqlYMny7nllhThgo',
+      'NyZqLdjqUb8SpOUKIlWT'
+    ]);
+
+    let voiceId = ALICE_VOICE_ID;
+    if (bodyVoiceId && DEMO_TTS_VOICES.has(bodyVoiceId)) {
+      voiceId = bodyVoiceId;
+    } else if (voice === 'nexora') {
+      voiceId = process.env.NEXORA_DEMO_MALE_VOICE || '8WqHCYyrnUqoK70Px5EJ';
+    }
+
+    const label = voiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
     return await synthesizeSpeech(req, res, { text, voiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);

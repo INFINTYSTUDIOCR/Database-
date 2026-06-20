@@ -61,6 +61,7 @@
 
 <script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
+<script src="js/demo-voices.js"></script>
 <script src="js/demo-voice.js"></script>
 <script>
 (function () {
@@ -69,6 +70,7 @@
   var maxSteps = 4;
   var busy = false;
   var done = false;
+  var voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
 
   var panel = document.getElementById('panel');
   var pre = document.getElementById('pre-start');
@@ -98,7 +100,7 @@
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
       demoAddMsg(msgs, d.reply, 'assistant', 'ALICE');
-      DemoVoice.speak(d.reply, 'alice');
+      DemoVoice.speak(d.reply, voiceProfile);
       step = d.step;
       updateMeta();
     } catch (e) {
@@ -127,7 +129,7 @@
     try {
       var d = await demoSend(sessionId, text);
       demoAddMsg(msgs, d.reply, 'assistant', d.done ? 'ALICE' : 'ALICE');
-      DemoVoice.speak(d.reply, 'alice');
+      DemoVoice.speak(d.reply, voiceProfile);
       step = d.step;
       updateMeta();
       if (d.done) {

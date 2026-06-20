@@ -1,6 +1,5 @@
 /**
- * Demo voice — mic input + TTS for Alice / Nexora mini sessions
- * Uses ElevenLabs via /demo/tts when live; browser speech as fallback.
+ * Demo voice — mic input + stable TTS for Alice / Nexora mini sessions
  */
 var DemoVoice = (function () {
   'use strict';
@@ -9,10 +8,27 @@ var DemoVoice = (function () {
   var _audio = null;
   var _mic = null;
   var _micOn = false;
+  var _browserVoiceCache = {};
+  var _activeProfile = null;
+
+  function normalizeProfile(profile) {
+    if (!profile) return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female' };
+    if (typeof profile === 'string') {
+      if (profile === 'nexora') return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('nexora', 'star') : null;
+      return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female' };
+    }
+    return profile;
+  }
+
+  function setProfile(profile) {
+    _activeProfile = normalizeProfile(profile);
+    return _activeProfile;
+  }
 
   function clean(text) {
     return String(text || '')
-      .replace(/ALICE:|CLAIRE:|JILL:|INTERVIEWER:|CLIENT:/gi, '')
+      .replace(/ALICE:|CLAIRE:|JILL:|INTERVIEWER:|CLIENT:|MARIA:/gi, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/[*_#<>]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
@@ -33,29 +49,67 @@ var DemoVoice = (function () {
     _audio.play().catch(function () {});
   }
 
+  function getBrowserVoice(profile) {
+    if (!window.speechSynthesis) return null;
+    var key = profile.voiceId || profile.gender || 'default';
+    if (_browserVoiceCache[key]) return _browserVoiceCache[key];
+
+    var voices = window.speechSynthesis.getVoices();
+    var hints = profile.browserHints || [];
+    var pick = null;
+    var i;
+
+    for (i = 0; i < hints.length; i++) {
+      pick = voices.find(function (v) {
+        return v.name && v.name.toLowerCase().indexOf(hints[i].toLowerCase()) >= 0 && v.lang && v.lang.indexOf('en') === 0;
+      });
+      if (pick) break;
+    }
+
+    if (!pick && profile.gender === 'female') {
+      pick = voices.find(function (v) {
+        return v.lang && v.lang.indexOf('en') === 0 && /zira|samantha|jenny|aria|female|hazel/i.test(v.name);
+      });
+    }
+
+    if (!pick && profile.gender === 'male') {
+      pick = voices.find(function (v) {
+        return v.lang && v.lang.indexOf('en') === 0 && /david|guy|mark|male|ryan|christopher/i.test(v.name);
+      });
+    }
+
+    if (!pick) {
+      pick = voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; });
+    }
+
+    _browserVoiceCache[key] = pick || null;
+    return _browserVoiceCache[key];
+  }
+
   function browserSpeak(text, profile) {
     if (!window.speechSynthesis || !text) return;
     stopAudio();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    u.rate = profile === 'nexora' ? 0.92 : 0.95;
-    u.pitch = profile === 'nexora' ? 1 : 1.05;
-    var voices = window.speechSynthesis.getVoices();
-    var pick = voices.find(function (v) {
-      return v.lang && v.lang.indexOf('en') === 0 && (profile === 'alice' ? /female|samantha|zira|jenny/i.test(v.name) : true);
-    }) || voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; });
-    if (pick) u.voice = pick;
+    u.rate = profile.gender === 'male' ? 0.93 : 0.96;
+    u.pitch = profile.gender === 'male' ? 0.95 : 1.02;
+    var voice = getBrowserVoice(profile);
+    if (voice) u.voice = voice;
     window.speechSynthesis.speak(u);
   }
 
   function speak(text, profile) {
+    var p = normalizeProfile(profile || _activeProfile);
+    if (!p) return;
+    _activeProfile = p;
+
     var cleanText = clean(text);
     if (cleanText.length < 4) return;
 
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: cleanText, voice: profile || 'alice' })
+      body: JSON.stringify({ text: cleanText, voiceId: p.voiceId, voice: p.voiceId ? undefined : 'alice' })
     })
       .then(function (r) {
         if (!r.ok) throw new Error('tts_fail');
@@ -64,7 +118,7 @@ var DemoVoice = (function () {
         throw new Error('not_audio');
       })
       .then(function (blob) { playBlob(blob); })
-      .catch(function () { browserSpeak(cleanText, profile); });
+      .catch(function () { browserSpeak(cleanText, p); });
   }
 
   function setMicUi(on, btn, statusEl) {
@@ -128,5 +182,13 @@ var DemoVoice = (function () {
     });
   }
 
-  return { speak: speak, bindMic: bindMic, stop: stopAudio };
+  return {
+    speak: speak,
+    bindMic: bindMic,
+    stop: stopAudio,
+    setProfile: setProfile,
+    nexoraProfile: function (scenario) {
+      return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('nexora', scenario) : null;
+    }
+  };
 })();
