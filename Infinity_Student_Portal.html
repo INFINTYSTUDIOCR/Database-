@@ -233,7 +233,7 @@ async function doLogin(){
       return;
     }
 
-    try { await infinityLogin(user, pass, 'student'); } catch(e) { /* portal sigue; Jill/Alice necesitan JWT */ }
+    try { await infinityLogin(user, pass, 'student', { silent: true }); } catch(e) {}
 
     CURRENT_STUDENT = student;
 
