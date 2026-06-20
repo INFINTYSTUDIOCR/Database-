@@ -17,9 +17,29 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTabs);
-  } else {
+  function initTrainingBookMock() {
+    var btn = document.getElementById('btn-open-tb-mock');
+    var mock = document.getElementById('tb-student-mock');
+    if (!btn || !mock) return;
+
+    btn.addEventListener('click', function () {
+      var open = mock.hidden;
+      mock.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        mock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }
+
+  function init() {
     initTabs();
+    initTrainingBookMock();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();

@@ -448,62 +448,141 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         </div>
       </div>
 
-      <div class="tb-preview-grid">
-        <div class="tb-preview">
-          <div class="tb-preview-label">KPI Dashboard</div>
-          <div class="tb-preview-frame">
-            <div class="tb-mock-topbar"><span>Training Book · Performance</span></div>
-            <div class="tb-mock-body">
-              <div class="tb-kpi-row"><span class="tb-kpi-label">Idea Gen.</span><div class="tb-kpi-bar"><div class="tb-kpi-fill" style="width:72%"></div></div><span class="tb-kpi-val">72</span></div>
-              <div class="tb-kpi-row"><span class="tb-kpi-label">Structure</span><div class="tb-kpi-bar"><div class="tb-kpi-fill" style="width:58%"></div></div><span class="tb-kpi-val">58</span></div>
-              <div class="tb-kpi-row"><span class="tb-kpi-label">Recovery</span><div class="tb-kpi-bar"><div class="tb-kpi-fill" style="width:81%"></div></div><span class="tb-kpi-val">81</span></div>
-              <div class="tb-kpi-row"><span class="tb-kpi-label">Problem Sol.</span><div class="tb-kpi-bar"><div class="tb-kpi-fill" style="width:65%"></div></div><span class="tb-kpi-val">65</span></div>
-              <div class="tb-kpi-row"><span class="tb-kpi-label">Response</span><div class="tb-kpi-bar"><div class="tb-kpi-fill" style="width:77%"></div></div><span class="tb-kpi-val">77</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="tb-preview">
-          <div class="tb-preview-label">Assigned Exercises</div>
-          <div class="tb-preview-frame">
-            <div class="tb-mock-topbar"><span>Training Book · Exercises</span></div>
-            <div class="tb-mock-body">
-              <div class="tb-phase"><small>Phase 2 · Structural Thinking</small><strong>Connector Mastery</strong></div>
-              <div class="tb-exercise">
-                <div class="tb-exercise-title">STAR Response — Client Escalation</div>
-                <div class="tb-exercise-meta">Due this week · Trainer assigned</div>
-                <span class="tb-badge pending">In progress</span>
-              </div>
-              <div class="tb-exercise">
-                <div class="tb-exercise-title">Recovery Drill — Lost vocabulary</div>
-                <div class="tb-exercise-meta">Alice follow-up · 15 min</div>
-                <span class="tb-badge done">Completed</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="tb-preview">
-          <div class="tb-preview-label">Alice In Platform</div>
-          <div class="tb-preview-frame">
-            <div class="tb-mock-topbar"><span>Student Portal · Alice Live</span></div>
-            <div class="tb-mock-body">
-              <div class="tb-chat-alice">
-                <div class="tb-chat-msg alice"><strong>ALICE</strong><br>Use "however" when you pivot. Tell me: Situation → Action → Result.</div>
-                <div class="tb-chat-msg student">The client was upset. However, I explained the policy clearly.</div>
-                <div class="tb-chat-msg alice"><strong>ALICE</strong><br>Good pivot! Now expand the Result — what changed?</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="deliverable-actions">
-        <a href="https://infintystudiocr.github.io/Database-/Infinity_Training_Book%20(1).html" target="_blank" rel="noopener" class="btn-secondary"><i class="ti ti-external-link"></i>Open live Training Book</a>
-        <a href="https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html" target="_blank" rel="noopener" class="btn-secondary"><i class="ti ti-layout-dashboard"></i>Student Portal preview</a>
+        <button type="button" class="btn-secondary" id="btn-open-tb-mock" aria-expanded="false" aria-controls="tb-student-mock"><i class="ti ti-book-2"></i><span class="btn-open-tb-label">Open Training Book</span></button>
       </div>
 
-      <div class="tb-approve-banner">
-        <p>Review your sample Training Book layout, exercises and Alice integration — then tell us if this is the system you want for your team or institution.</p>
-        <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20revisar%20y%20aprobar%20mi%20Training%20Book%20con%20Infinity" target="_blank" rel="noopener" class="btn-primary"><i class="ti ti-brand-whatsapp"></i>Approve from here</a>
+      <div class="tb-student-mock" id="tb-student-mock" hidden>
+        <div class="tb-mock-hint"><i class="ti ti-hand-move"></i> <span class="tb-mock-hint-text">Scroll to explore the student view — preview only, not functional.</span></div>
+        <div class="tb-portal-shell">
+          <div class="tb-portal-topbar">
+            <span class="tb-portal-brand">∞ Infinity · Training Book</span>
+            <span class="tb-portal-student">María G. · Phase 2</span>
+          </div>
+          <div class="tb-portal-layout">
+            <aside class="tb-portal-sidebar">
+              <div class="tb-portal-nav-label">Navigation</div>
+              <div class="tb-portal-nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+              <div class="tb-portal-nav-item"><i class="ti ti-list-check"></i> My Exercises <span class="tb-nav-badge">4</span></div>
+              <a href="try-alice.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-robot"></i> Alice Coach <span class="tb-link-arrow">Demo →</span></a>
+              <a href="try-nexora.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-headset"></i> Nexora Sims <span class="tb-link-arrow">Demo →</span></a>
+              <div class="tb-portal-nav-item"><i class="ti ti-chart-radar"></i> KPI History</div>
+              <div class="tb-portal-nav-item"><i class="ti ti-notes"></i> Session Notes</div>
+            </aside>
+            <div class="tb-portal-main">
+              <section class="tb-portal-section">
+                <h4 class="tb-section-title">Operational KPI Radar</h4>
+                <p class="tb-section-sub">Weekly snapshot — your 5 performance dimensions</p>
+                <div class="tb-radar-wrap">
+                  <svg class="tb-radar-chart" viewBox="0 0 320 280" aria-hidden="true">
+                    <polygon points="160,40 268,100 228,220 92,220 52,100" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+                    <polygon points="160,70 238,115 210,195 110,195 82,115" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+                    <polygon points="160,100 208,130 192,170 128,170 112,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+                    <line x1="160" y1="130" x2="160" y2="40" stroke="#e2e8f0"/>
+                    <line x1="160" y1="130" x2="268" y2="100" stroke="#e2e8f0"/>
+                    <line x1="160" y1="130" x2="228" y2="220" stroke="#e2e8f0"/>
+                    <line x1="160" y1="130" x2="92" y2="220" stroke="#e2e8f0"/>
+                    <line x1="160" y1="130" x2="52" y2="100" stroke="#e2e8f0"/>
+                    <polygon points="160,55 248,108 215,205 105,205 72,108" fill="rgba(91,33,182,0.25)" stroke="#5B21B6" stroke-width="2"/>
+                    <circle cx="160" cy="55" r="4" fill="#5B21B6"/>
+                    <circle cx="248" cy="108" r="4" fill="#5B21B6"/>
+                    <circle cx="215" cy="205" r="4" fill="#5B21B6"/>
+                    <circle cx="105" cy="205" r="4" fill="#5B21B6"/>
+                    <circle cx="72" cy="108" r="4" fill="#5B21B6"/>
+                    <text x="160" y="28" text-anchor="middle" font-size="9" fill="#64748b" font-weight="700">Idea Gen · 72</text>
+                    <text x="278" y="104" text-anchor="start" font-size="9" fill="#64748b" font-weight="700">Structure · 58</text>
+                    <text x="238" y="238" text-anchor="middle" font-size="9" fill="#64748b" font-weight="700">Recovery · 81</text>
+                    <text x="82" y="238" text-anchor="middle" font-size="9" fill="#64748b" font-weight="700">Problem Sol · 65</text>
+                    <text x="38" y="104" text-anchor="end" font-size="9" fill="#64748b" font-weight="700">Response · 77</text>
+                    <text x="160" y="145" text-anchor="middle" font-size="11" fill="#5B21B6" font-weight="800">Score 70.6</text>
+                  </svg>
+                  <div class="tb-radar-legend">
+                    <div><span class="tb-legend-dot strong"></span> Strong</div>
+                    <div><span class="tb-legend-dot dev"></span> Developing</div>
+                    <div><span class="tb-legend-dot focus"></span> Focus area</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="tb-portal-section">
+                <h4 class="tb-section-title">Assigned Exercises</h4>
+                <p class="tb-section-sub">Personalized by your trainer and Infinity Engine</p>
+                <div class="tb-phase-banner"><small>Phase 2 · Structural Thinking</small><strong>Connector Mastery Week</strong></div>
+                <div class="tb-ex-card">
+                  <div class="tb-ex-card-head"><span class="tb-ex-type">Speaking · STAR</span><span class="tb-badge pending">In progress</span></div>
+                  <div class="tb-ex-card-title">Client Escalation — Situation → Action → Result</div>
+                  <div class="tb-ex-card-meta">Due Friday · Trainer: Jill · KPI: Structural Thinking</div>
+                </div>
+                <div class="tb-ex-card">
+                  <div class="tb-ex-card-head"><span class="tb-ex-type">Recovery Drill</span><span class="tb-badge done">Completed</span></div>
+                  <div class="tb-ex-card-title">Reformulate when you lose a word — 10 prompts</div>
+                  <div class="tb-ex-card-meta">Score 84 · KPI: Recovery Ability</div>
+                </div>
+                <div class="tb-ex-card">
+                  <div class="tb-ex-card-head"><span class="tb-ex-type">Writing · Connectors</span><span class="tb-badge pending">Pending</span></div>
+                  <div class="tb-ex-card-title">Use however / therefore / meanwhile in 5 scenarios</div>
+                  <div class="tb-ex-card-meta">Assigned today · KPI: Idea Generation</div>
+                </div>
+                <div class="tb-ex-card">
+                  <div class="tb-ex-card-head"><span class="tb-ex-type">Listening · BPO</span><span class="tb-badge pending">Pending</span></div>
+                  <div class="tb-ex-card-title">Follow-up call simulation — note-taking under pressure</div>
+                  <div class="tb-ex-card-meta">Unlocks after Nexora session · KPI: Responsiveness</div>
+                </div>
+              </section>
+
+              <section class="tb-portal-section tb-portal-cards-row">
+                <a href="try-alice.html" class="tb-tool-card alice">
+                  <img src="assets/logos/alice.png" alt="" class="tb-tool-logo">
+                  <div>
+                    <div class="tb-tool-name">Alice — 24/7 Coach</div>
+                    <div class="tb-tool-desc">Live coaching aligned to your KPIs and exercises. Tap to try the demo.</div>
+                    <span class="tb-tool-cta">Open Alice demo <i class="ti ti-arrow-right"></i></span>
+                  </div>
+                </a>
+                <a href="try-nexora.html" class="tb-tool-card nexora">
+                  <img src="assets/logos/nexora.png" alt="" class="tb-tool-logo">
+                  <div>
+                    <div class="tb-tool-name">Nexora — Simulations</div>
+                    <div class="tb-tool-desc">STAR interview &amp; customer service scenarios with voice + mic.</div>
+                    <span class="tb-tool-cta">Open Nexora demo <i class="ti ti-arrow-right"></i></span>
+                  </div>
+                </a>
+              </section>
+
+              <section class="tb-portal-section">
+                <h4 class="tb-section-title">Alice — Recent Session</h4>
+                <p class="tb-section-sub">Preview of coaching inside your Training Book</p>
+                <div class="tb-alice-thread">
+                  <div class="tb-alice-msg bot"><strong>ALICE</strong> Tell me about a challenge at work. Use <em>however</em> when you pivot ideas.</div>
+                  <div class="tb-alice-msg user">The client was upset about the delay. However, I walked them through the timeline.</div>
+                  <div class="tb-alice-msg bot"><strong>ALICE</strong> Strong pivot! Now give me the Result — what changed after your explanation?</div>
+                  <div class="tb-alice-kpi"><i class="ti ti-chart-dots"></i> Updating KPI: Structural Thinking · +3 pts</div>
+                </div>
+                <a href="try-alice.html" class="tb-inline-demo"><i class="ti ti-player-play"></i> Try Alice — 5 min demo</a>
+              </section>
+
+              <section class="tb-portal-section">
+                <h4 class="tb-section-title">Nexora — Upcoming Simulation</h4>
+                <p class="tb-section-sub">Assigned scenario based on your readiness profile</p>
+                <div class="tb-nexora-card">
+                  <div class="tb-nexora-tag">STAR Interview · Mock</div>
+                  <div class="tb-nexora-title">Tell me about a time you handled a difficult customer</div>
+                  <div class="tb-nexora-meta"><i class="ti ti-microphone"></i> Voice + mic · ~8 min · Evaluated in real time</div>
+                  <a href="try-nexora.html" class="tb-inline-demo gold"><i class="ti ti-headset"></i> Try Nexora demo</a>
+                </div>
+              </section>
+
+              <section class="tb-portal-section tb-portal-section-last">
+                <h4 class="tb-section-title">Weekly Progress</h4>
+                <div class="tb-progress-bars">
+                  <div class="tb-prog-row"><span>Exercises completed</span><div class="tb-prog-bar"><div style="width:62%"></div></div><span>62%</span></div>
+                  <div class="tb-prog-row"><span>Sessions with Alice</span><div class="tb-prog-bar"><div style="width:78%"></div></div><span>78%</span></div>
+                  <div class="tb-prog-row"><span>Nexora simulations</span><div class="tb-prog-bar"><div style="width:45%"></div></div><span>45%</span></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
