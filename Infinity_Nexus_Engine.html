@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nexus Engine">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%231E2761' width='32' height='32' rx='6'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23F5A623' font-size='16' font-family='system-ui,sans-serif' font-weight='700'%3E%E2%88%9E%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest-engine.json">
 <link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -779,7 +780,7 @@ async function loadUsers(){
   }catch(e){ console.error('loadUsers error',e); }
 }
 
-/** Fallback when Render has not deployed /auth/login yet — validates against Supabase */
+/** Supabase login when Render JWT auth is not deployed */
 async function tryLegacyTrainerLogin(user, pass){
   await loadUsers();
   var trainer = TRAINERS[user];
@@ -787,13 +788,6 @@ async function tryLegacyTrainerLogin(user, pass){
     if(trainer.status === 'suspended') return { error:'suspended' };
     var role = trainer.role || 'trainer';
     return { role: role === 'superadmin' ? 'superadmin' : role, name: trainer.name || user, legacy: true };
-  }
-  // First master bootstrap (empty DB, Render auth unavailable)
-  if(user === 'trainer@infinity.cr' && pass.length >= 8 && !Object.keys(TRAINERS).length){
-    var master = { id:'USR-MASTER-001', email:user, pass:pass, name:'Master Trainer', role:'superadmin', department:'admin', status:'active' };
-    await dbSet('infinity_users','USR-MASTER-001', master);
-    TRAINERS[user] = master;
-    return { role:'superadmin', name: master.name, legacy: true, bootstrapped: true };
   }
   return null;
 }
@@ -841,18 +835,6 @@ async function dbSet(table,id,data){
 }
 async function dbDel(table,id){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbDel '+table+' failed: '+r.status+' '+t); showToast('Error eliminando: '+r.status,'err'); return false; } return true; }
 
-/** One-time recovery: syncMasterPass('tu-contraseña') in DevTools console */
-window.syncMasterPass = async function(pass){
-  if(!pass || String(pass).length < 8){ console.error('syncMasterPass: mínimo 8 caracteres'); return false; }
-  var ok = await dbSet('infinity_users','USR-MASTER-001',{
-    id:'USR-MASTER-001', email:'trainer@infinity.cr', pass:String(pass),
-    name:'Master Trainer', role:'superadmin', department:'admin', status:'active'
-  });
-  if(ok){ await loadUsers(); console.log('Master actualizado. Ingresá con trainer@infinity.cr y tu contraseña.'); }
-  return ok;
-};
-console.info('[Infinity Engine] Login falló? Consola: syncMasterPass("tu-contraseña")');
-
 // ── INIT ──────────────────────────────────────────────────
 window.addEventListener('error', function(e){
   console.error('Global error:', e.error||e.message);
@@ -892,33 +874,28 @@ async function doLogin(){
   var pass = document.getElementById('l-pass').value;
   var err = document.getElementById('login-err');
   var btn = document.getElementById('login-screen').querySelector('.btn-navy');
+  if(!user || !pass){ err.textContent='Ingresá usuario y contraseña.'; err.style.display='block'; return; }
   err.style.display = 'none';
   btn.innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
 
   var auth = null;
   try {
-    auth = await infinityLogin(user, pass, 'trainer');
+    auth = await infinityLoginIfAvailable(user, pass, 'trainer');
   } catch (e) {
-    if(e && (e.authRouteMissing || e.authNotConfigured || e.status === 503)){
-      var legacy = await tryLegacyTrainerLogin(user, pass);
-      if(legacy && legacy.error === 'suspended'){
-        err.textContent = 'Tu acceso ha sido suspendido. Contactá al Master Trainer.';
-        err.style.display = 'block';
-        btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-        return;
-      }
-      if(legacy) auth = legacy;
-    }
-    if(!auth){
-      if(e && e.authRouteMissing){
-        err.innerHTML = 'Backend sin auth (404). Modo Supabase activo.<br>Si la contraseña falla, consola (F12): <code style="font-size:11px;background:#f4f6fb;padding:2px 6px;border-radius:4px;">syncMasterPass("tu-contraseña")</code>';
-      } else {
-        err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
-      }
-      err.style.display = 'block';
-      btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-      return;
-    }
+    err.textContent = 'Usuario o contraseña incorrectos.';
+    err.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+    return;
+  }
+  if(!auth) auth = await tryLegacyTrainerLogin(user, pass);
+
+  if(!auth || auth.error === 'suspended'){
+    err.textContent = auth && auth.error === 'suspended'
+      ? 'Tu acceso ha sido suspendido. Contactá al Master Trainer.'
+      : 'Usuario o contraseña incorrectos.';
+    err.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+    return;
   }
 
   await loadUsers();

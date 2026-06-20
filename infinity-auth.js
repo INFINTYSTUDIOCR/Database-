@@ -1,10 +1,11 @@
 /**
  * Infinity API auth — JWT for Student Portal, Engine, Nexora.
- * Token in sessionStorage + localStorage (popup windows).
+ * Falls back to Supabase when Render has not deployed /auth/* yet.
  */
 var INFINITY_API = 'https://alice-by-infinity.onrender.com';
 var AUTH_TOKEN_KEY = 'infinity_auth_token';
 var AUTH_EXP_KEY = 'infinity_auth_exp';
+var _authApiOk = null;
 
 function getAuthToken() {
   var t = sessionStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);
@@ -39,6 +40,23 @@ function authHeaders(extra) {
   return h;
 }
 
+/** Check once per page load if Render has JWT auth deployed */
+async function isAuthApiAvailable() {
+  if (_authApiOk !== null) return _authApiOk;
+  try {
+    var r = await fetch(INFINITY_API + '/auth/status', { method: 'GET' });
+    if (r.ok) {
+      var d = await r.json();
+      _authApiOk = !!(d && d.authLogin);
+    } else {
+      _authApiOk = false;
+    }
+  } catch (e) {
+    _authApiOk = false;
+  }
+  return _authApiOk;
+}
+
 async function infinityLogin(user, password, role) {
   var r = await fetch(INFINITY_API + '/auth/login', {
     method: 'POST',
@@ -58,6 +76,17 @@ async function infinityLogin(user, password, role) {
   }
   setAuthToken(d.token, d.expiresIn);
   return d;
+}
+
+/** Try JWT login only when Render auth is live — avoids 404 noise in console */
+async function infinityLoginIfAvailable(user, password, role) {
+  if (!(await isAuthApiAvailable())) return null;
+  try {
+    return await infinityLogin(user, password, role);
+  } catch (e) {
+    if (e.status === 401) throw e;
+    return null;
+  }
 }
 
 async function infinityFetch(path, options) {
