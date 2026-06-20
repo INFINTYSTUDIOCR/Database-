@@ -38,7 +38,9 @@
   ];
 
   var INDEX = [
-    { s: '.hero-sub', html: true, en: 'We don\'t teach English.<br><strong>We develop operational capacity you can measure and see in real time.</strong>', es: 'No enseñamos inglés.<br><strong>Desarrollamos capacidad operacional que podés medir y ver en tiempo real.</strong>' },
+    { s: '.hero-headline', en: 'More Than English.', es: 'Más que inglés.' },
+    { s: '.hero-sub', html: true, en: 'We develop operational capacity through <strong>AI, simulations and real-time metrics.</strong>', es: 'Desarrollamos capacidad operacional mediante <strong>IA, simulaciones y métricas en tiempo real.</strong>' },
+    { s: '.hero-lead', en: 'Track your progress, measure your performance and accelerate your growth from a platform built for the real world — all in the palm of your hand.', es: 'Seguí tu progreso, medí tu desempeño y acelerá tu crecimiento desde una plataforma diseñada para el mundo real, todo en la palma de tu mano.' },
     { s: '.hero-pills .pill:nth-child(1)', en: 'AI-Powered', es: 'Con IA' },
     { s: '.hero-pills .pill:nth-child(2)', en: 'KPI Tracking', es: 'Seguimiento KPI' },
     { s: '.hero-pills .pill:nth-child(3)', en: '26 Years Experience', es: '26 Años de Experiencia' },
