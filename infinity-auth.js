@@ -45,7 +45,13 @@ async function infinityLogin(user, password, role) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: user, password: password, role: role })
   });
-  var d = await r.json();
+  var text = await r.text();
+  var d;
+  try { d = JSON.parse(text); } catch (e) {
+    var err = new Error('El servidor de acceso no respondió correctamente. Esperá unos segundos e intentá de nuevo.');
+    err.status = r.status;
+    throw err;
+  }
   if (!r.ok) {
     var err = new Error(d.error || 'Login failed');
     err.status = r.status;
