@@ -1,0 +1,18 @@
+{
+  "name": "Infinity Student Portal",
+  "short_name": "SI Portal",
+  "description": "Student portal — Studio Infinity CR",
+  "start_url": "./Infinity_Student_Portal.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B1F2A",
+  "theme_color": "#0B1F2A",
+  "icons": [
+    {
+      "src": "https://infintystudiocr.github.io/Database-/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

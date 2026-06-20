@@ -841,6 +841,18 @@ async function dbSet(table,id,data){
 }
 async function dbDel(table,id){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbDel '+table+' failed: '+r.status+' '+t); showToast('Error eliminando: '+r.status,'err'); return false; } return true; }
 
+/** One-time recovery: syncMasterPass('tu-contraseña') in DevTools console */
+window.syncMasterPass = async function(pass){
+  if(!pass || String(pass).length < 8){ console.error('syncMasterPass: mínimo 8 caracteres'); return false; }
+  var ok = await dbSet('infinity_users','USR-MASTER-001',{
+    id:'USR-MASTER-001', email:'trainer@infinity.cr', pass:String(pass),
+    name:'Master Trainer', role:'superadmin', department:'admin', status:'active'
+  });
+  if(ok){ await loadUsers(); console.log('Master actualizado. Ingresá con trainer@infinity.cr y tu contraseña.'); }
+  return ok;
+};
+console.info('[Infinity Engine] Login falló? Consola: syncMasterPass("tu-contraseña")');
+
 // ── INIT ──────────────────────────────────────────────────
 window.addEventListener('error', function(e){
   console.error('Global error:', e.error||e.message);
@@ -898,7 +910,11 @@ async function doLogin(){
       if(legacy) auth = legacy;
     }
     if(!auth){
-      err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
+      if(e && e.authRouteMissing){
+        err.innerHTML = 'Backend sin auth (404). Modo Supabase activo.<br>Si la contraseña falla, consola (F12): <code style="font-size:11px;background:#f4f6fb;padding:2px 6px;border-radius:4px;">syncMasterPass("tu-contraseña")</code>';
+      } else {
+        err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
+      }
       err.style.display = 'block';
       btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
