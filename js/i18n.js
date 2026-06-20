@@ -33,8 +33,8 @@
     { s: 'a[href="#about"]', en: 'About', es: 'Nosotros' },
     { s: 'a[href="#contact"]', en: 'Contact', es: 'Contacto' },
     { s: '.nav-cta', en: 'Book Assessment', es: 'Agendar Evaluación' },
-    { s: 'a[href="/#ecosystem"]', en: 'What You Get', es: '¿Qué Recibes?' },
-    { s: 'a[href="/#contact"].nav-cta', en: 'Book Assessment', es: 'Agendar Evaluación' }
+    { s: 'a[href="index.html#ecosystem"]', en: 'What You Get', es: '¿Qué Recibes?' },
+    { s: 'a[href="index.html#contact"].nav-cta', en: 'Book Assessment', es: 'Agendar Evaluación' }
   ];
 
   var INDEX = [
