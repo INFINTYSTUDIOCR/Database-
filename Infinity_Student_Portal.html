@@ -3,57 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="js/site-urls.js"></script>
 <title>Infinity Portal del Estudiante</title>
-<meta name="theme-color" content="#1E2761">
+<meta name="theme-color" content="#0B1F2A">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SI Portal">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%230B1F2A' width='32' height='32' rx='6'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23F5A623' font-size='16' font-family='system-ui,sans-serif' font-weight='700'%3E%E2%88%9E%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest-portal.json">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
-<script src="js/nexora-voice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#1E2761;--nl:#E8ECF4;--nm:#1E2761;--nd:#1E2761;
+  --navy:#1E2761;--nl:#E6F1FB;--nm:#185FA5;--nd:#0C447C;
   --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
   --amber:#BA7517;--ab:#FAEEDA;--ad:#633806;
   --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
-  --purple:#5B21B6;--pb:#EEEDFE;--pm:#534AB7;
+  --purple:#3C3489;--pb:#EEEDFE;--pm:#534AB7;
   --gold:#F5A623;--gray:#F4F6FB;--border:#E2E8F0;
   --text:#1E293B;--t2:#64748B;--t3:#94A3B8;
   --r:8px;--rl:12px;
 }
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;color:var(--text);min-height:100vh;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;color:var(--text);min-height:100vh;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade{animation:fadeIn 0.2s ease;}
 
-.topbar{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(30,39,97,0.25);}
+.topbar{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
 .tb-logo{height:36px;object-fit:contain;}
 .tb-div{width:1px;height:26px;background:rgba(255,255,255,0.2);}
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.tb-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);color:white;border-radius:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;padding:0;font-family:inherit;transition:background 0.15s,border-color 0.15s;flex-shrink:0;}
-.tb-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);}
-.tb-btn:disabled{opacity:0.45;cursor:default;}
-.tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(245,166,35,0.15);color:#F5A623;border:1px solid rgba(245,166,35,0.35);}
+.tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(15,110,86,0.3);color:#6EE7C0;border:1px solid rgba(110,231,192,0.3);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
 .login-wrap{max-width:420px;margin:5rem auto;padding:1.5rem;}
-.login-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;box-shadow:0 12px 40px rgba(30,39,97,0.08);}
+.login-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
 .login-logo{height:60px;object-fit:contain;margin-bottom:1rem;}
 .login-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
 .inp{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;margin-bottom:0.75rem;}
-.inp:focus{outline:none;border-color:var(--purple);}
+.inp:focus{outline:none;border-color:var(--nm);}
 
 .btn{padding:10px 16px;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:opacity 0.15s;}
 .btn-navy{background:var(--navy);color:white;}
@@ -61,8 +54,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .btn-block{width:100%;justify-content:center;}
 .btn:hover{opacity:0.9;}
 
-.card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 4px 16px rgba(30,39,97,0.04);}
-.card-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
+.card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
 
 .badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;display:inline-block;}
 .b-advanced{background:var(--gb);color:var(--gm);}
@@ -84,14 +77,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .ib-navy{background:var(--nl);border-left:4px solid var(--nm);color:var(--nd);}
 .ib-amber{background:var(--ab);border-left:4px solid var(--amber);color:var(--ad);}
 
-.chart-wrap{position:relative;height:220px;margin-bottom:1rem;background:var(--gray);border-radius:10px;padding:12px;border:1px solid var(--border);}
+.chart-wrap{position:relative;height:220px;margin-bottom:1rem;}
 
 .portal-wrap{max-width:700px;margin:0 auto;padding:1.25rem;padding-left:96px;}
-.portal-wrap--tb{max-width:none;padding:0 0 0 80px;margin:0;}
-.tb-iframe-wrap{height:calc(100vh - 54px);min-height:560px;background:#F0F4FA;}
-.tb-iframe{width:100%;height:100%;border:none;display:block;}
-.portal-header{background:var(--navy);border-radius:12px;padding:1.5rem;margin-bottom:14px;text-align:center;box-shadow:0 8px 24px rgba(30,39,97,0.2);}
-.portal-nav{position:fixed;top:0;left:0;bottom:0;width:80px;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding-top:90px;gap:6px;z-index:60;box-shadow:2px 0 12px rgba(30,39,97,0.15);}
+.portal-header{background:var(--navy);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem;text-align:center;}
+.portal-nav{position:fixed;top:0;left:0;bottom:0;width:80px;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding-top:90px;gap:6px;z-index:60;}
 .portal-nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:rgba(255,255,255,0.55);font-size:10px;font-weight:600;padding:10px 4px;cursor:pointer;border-radius:10px;width:88%;text-align:center;transition:background 0.15s;}
 .portal-nav-item i{font-size:20px;}
 .portal-nav-item.active{background:rgba(245,166,35,0.18);color:#F5A623;}
@@ -125,11 +115,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
   </div>
   <div class="tb-right">
-    <button type="button" class="tb-btn" id="tb-back" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i></button>
-    <button type="button" class="tb-btn" id="tb-refresh" onclick="portalRefresh()" title="Actualizar"><i class="ti ti-refresh"></i></button>
     <span class="tb-user" id="tb-user"></span>
     <span class="tb-role">Estudiante</span>
-    <button type="button" class="tb-btn" onclick="logout()" title="Salir"><i class="ti ti-logout"></i></button>
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);padding:5px 10px;font-size:11px;" onclick="logout()"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 
@@ -150,7 +138,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div class="portal-nav" id="portal-nav" style="display:none;">
   <div class="portal-nav-item active" data-tab="progreso" onclick="switchPortalTab('progreso')"><i class="ti ti-chart-radar"></i>Progreso</div>
-  <div class="portal-nav-item" data-tab="trainingbook" onclick="openTrainingBook()"><i class="ti ti-dumbbell"></i>Training Book</div>
+  <div class="portal-nav-item" data-tab="trainingbook" onclick="switchPortalTab('trainingbook')"><i class="ti ti-dumbbell"></i>Training Book</div>
   <div class="portal-nav-item" data-tab="recursos" onclick="switchPortalTab('recursos')"><i class="ti ti-folder"></i>Recursos</div>
   <div class="portal-nav-item" data-tab="notas" onclick="switchPortalTab('notas')"><i class="ti ti-notes"></i>Notas</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill');setTimeout(function(){ renderJillTab(window._currentStudent); },100);"><i class="ti ti-message-circle"></i>Jill</div>
@@ -212,139 +200,66 @@ var CURRENT_STUDENT = null;
 var ALL_STUDENTS = {};
 var CALENDAR_EVENTS = {};
 
-async function tryLegacyStudentLogin(user, pass){
-  var rows = await dbGet('infinity_students');
-  var student = null, studentId = null;
-  rows.forEach(function(r){
-    if(!r.data) return;
-    ALL_STUDENTS[r.id] = r.data;
-    if(String(r.data.portalUser||'').trim().toLowerCase() === user && r.data.portalPass === pass){
-      student = r.data;
-      studentId = r.id;
-      student.id = r.id;
-    }
-  });
-  if(!student) return null;
-  if(student.status === 'suspended') return { error:'suspended' };
-  return { studentId: studentId, role:'student', name: (student.info&&student.info.name)||user, legacy: true, student: student };
-}
-
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
   var pass = document.getElementById('l-pass').value;
   var err = document.getElementById('login-err');
-  var btn = document.getElementById('login-screen').querySelector('.btn-navy');
   if(!user || !pass){ err.textContent='Ingresá tu usuario y contraseña.'; err.style.display='block'; return; }
 
   err.style.display='none';
-  btn.innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
+  document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
 
-  var auth = null;
-  var student = null;
-  var legacyResult = null;
-  try {
-    auth = await infinityLoginIfAvailable(user, pass, 'student');
-  } catch (e) {
-    err.textContent = 'Usuario o contraseña incorrectos.';
-    err.style.display = 'block';
-    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-    return;
-  }
-
-  if(auth){
+  try{
+    var auth = await infinityLogin(user, pass, 'student');
     var rows = await dbGet('infinity_students');
+    var student = null;
     rows.forEach(function(r){
       if(r.data){
         ALL_STUDENTS[r.id]=r.data;
-        if(r.id === auth.studentId){ student = r.data; student.id = r.id; }
+        if(r.id === auth.studentId) student = r.data;
       }
     });
+
     if(!student){
       clearAuthToken();
       err.textContent='Usuario no encontrado después de autenticación.';
       err.style.display='block';
-      btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
-  } else {
-    legacyResult = await tryLegacyStudentLogin(user, pass);
-    if(!legacyResult || legacyResult.error === 'suspended'){
-      err.textContent = legacyResult && legacyResult.error === 'suspended'
-        ? 'Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.'
-        : 'Usuario o contraseña incorrectos.';
+    if(student.status==='suspended'){
+      clearAuthToken();
+      err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
       err.style.display='block';
-      btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
-    student = legacyResult.student;
-    try {
-      auth = await infinityLogin(user, pass, 'student');
-    } catch (jwtErr) {
-      if (jwtErr.status === 401 || jwtErr.status === 403) {
-        err.textContent = 'Usuario o contraseña incorrectos.';
-        err.style.display = 'block';
-        btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-        return;
-      }
-    }
-  }
 
-  if(student.status==='suspended'){
+    CURRENT_STUDENT = student;
+
+    // cargar calendario
+    var cRows = await dbGet('infinity_sessions');
+    cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
+
+    // log de acceso
+    var logId = 'LOG-'+Date.now()+'-'+Math.floor(Math.random()*1000);
+    await dbSet('infinity_sessions', logId, { id:logId, ts:new Date().toISOString(), user:(student.info&&student.info.name)||student.portalUser, role:'student', action:'Acceso al Portal del Estudiante', details:student.portalUser });
+
+    // log de asistencia (acceso al portal hoy)
+    var today = new Date().toISOString().split('T')[0];
+    var paId = 'PORTALACCESS-'+student.id+'_'+today;
+    await dbSet('infinity_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
+
+    showPortal(student);
+  }catch(e){
     clearAuthToken();
-    err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
+    err.textContent=(e&&e.data&&e.data.error)||(e&&e.message)||'Usuario o contraseña incorrectos.';
     err.style.display='block';
-    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-    return;
+    document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
   }
-
-  CURRENT_STUDENT = student;
-  if(auth && auth.studentId) CURRENT_STUDENT.id = auth.studentId;
-  else if(legacyResult && legacyResult.studentId) CURRENT_STUDENT.id = legacyResult.studentId;
-  window._currentStudent = CURRENT_STUDENT;
-  window._portalStudent = CURRENT_STUDENT;
-  setPortalSession(CURRENT_STUDENT.id, (student.info&&student.info.name)||'', student.portalUser||user);
-
-  // cargar calendario
-  var cRows = await dbGet('infinity_sessions');
-  cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
-
-  // log de acceso
-  var logId = 'LOG-'+Date.now()+'-'+Math.floor(Math.random()*1000);
-  await dbSet('infinity_sessions', logId, { id:logId, ts:new Date().toISOString(), user:(student.info&&student.info.name)||student.portalUser, role:'student', action:'Acceso al Portal del Estudiante', details:student.portalUser });
-
-  // log de asistencia (acceso al portal hoy)
-  var today = new Date().toISOString().split('T')[0];
-  var paId = 'PORTALACCESS-'+student.id+'_'+today;
-  await dbSet('infinity_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
-
-  btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
-  showPortal(student);
-}
-
-function openTrainingBook(){
-  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
-  if(!s){
-    var err = document.getElementById('login-err');
-    if(err){ err.textContent='Iniciá sesión primero.'; err.style.display='block'; }
-    return;
-  }
-  try{
-    sessionStorage.setItem('portal_student_snapshot', JSON.stringify({
-      id: s.id || '',
-      portalUser: s.portalUser || '',
-      name: (s.info && s.info.name) || ''
-    }));
-  }catch(e){}
-  var q = ['embed=1','from=portal'];
-  if(s.id) q.push('studentId='+encodeURIComponent(s.id));
-  if(s.portalUser) q.push('portalUser='+encodeURIComponent(String(s.portalUser).trim().toLowerCase()));
-  window.location.href = 'Infinity_Training_Book%20(1).html?' + q.join('&');
 }
 
 function switchPortalTab(tab){
-  var prev = window._portalTab;
-  if(tab !== prev && prev) window._portalPrevTab = prev;
-  window._portalTab = tab;
   if(tab !== 'alice') stopAlice();
   if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
@@ -353,46 +268,8 @@ function switchPortalTab(tab){
   document.querySelectorAll('.portal-nav-item').forEach(function(item){
     item.classList.toggle('active', item.dataset.tab===tab);
   });
-  var wrap = document.getElementById('portal-content');
-  if(wrap) wrap.classList.toggle('portal-wrap--tb', tab === 'trainingbook');
-  var ph = document.querySelector('.portal-header');
-  if(ph) ph.style.display = tab === 'trainingbook' ? 'none' : '';
   if(tab==='alice') renderAlice();
   if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
-  if(tab==='nexora') renderNexoraTab(window._currentStudent || window._portalStudent);
-}
-
-function portalGoBack(){
-  var target = window._portalPrevTab || 'progreso';
-  if(target === window._portalTab) target = 'progreso';
-  switchPortalTab(target);
-}
-
-async function portalRefresh(){
-  var tab = window._portalTab || 'progreso';
-  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
-  var btn = document.getElementById('tb-refresh');
-  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader spin"></i>'; }
-  try{
-    if(s && s.id){
-      var rows = await dbGet('infinity_students');
-      rows.forEach(function(r){ if(r.data) ALL_STUDENTS[r.id] = r.data; });
-      var fresh = ALL_STUDENTS[s.id];
-      if(fresh){
-        fresh.id = s.id;
-        CURRENT_STUDENT = fresh;
-        showPortal(fresh, { tab: tab });
-        if(tab === 'nexora') await loadNexoraConfig(fresh);
-        showToast('Portal actualizado');
-        return;
-      }
-    }
-    location.reload();
-  }catch(e){
-    showToast('No se pudo actualizar','err');
-  }finally{
-    if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-refresh"></i>'; }
-  }
 }
 
 function logout(){
@@ -408,10 +285,7 @@ function logout(){
   document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
 }
 
-function showPortal(s, opts){
-  opts = opts || {};
-  window._currentStudent = s;
-  window._portalStudent = s;
+function showPortal(s){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -455,8 +329,25 @@ function showPortal(s, opts){
         +'</div>';
     })();
 
-  // Training Book abre pagina completa via openTrainingBook()
-  var trainingBookHtml = '<div class="card" style="text-align:center;padding:2rem;"><div style="font-size:48px;margin-bottom:12px;color:var(--navy);"><i class="ti ti-dumbbell"></i></div><div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:8px;">Tu Training Book personalizado</div><div style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;">KPIs, ejercicios, plan de sesiones, speed drills y material Nexus — en una sola vista con tabs.</div><button class="btn btn-navy" onclick="openTrainingBook()"><i class="ti ti-arrow-right"></i> Abrir Training Book</button></div>';
+  // ── TRAINING BOOK ─────────────────────────────────────
+  var trainingBookHtml = '<div class="card"><div class="card-title"><i class="ti ti-dumbbell"></i>Mi Training Book</div>'
+    +(tb.length ? tb.map(function(ex){
+        return '<div style="border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;">'
+          +'<div style="background:var(--navy);padding:8px 12px;display:flex;align-items:center;gap:8px;">'
+          +(ex.kpi?'<span class="badge" style="background:rgba(255,255,255,0.2);color:white;">'+ex.kpi+'</span>':'')
+          +'<span style="font-size:13px;font-weight:700;color:white;flex:1;">'+ex.title+'</span>'
+          +'</div>'
+          +'<div style="padding:10px 12px;">'
+          +'<div style="font-size:13px;color:var(--text);line-height:1.7;">'+(ex.studentTask || 'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div>'
+          +(ex.freq?'<div style="font-size:11px;color:var(--t3);margin-top:6px;"><i class="ti ti-repeat"></i> '+ex.freq+'</div>':'')
+          +'</div></div>';
+      }).join('')
+      : (exercises.length?exercises.map(function(ex){ return '<div style="background:var(--gray);border-radius:var(--r);padding:1rem;margin-bottom:8px;">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+ex.title+'</div>'
+          +'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;">'+ex.kpi+'</div>'
+          +'<div style="font-size:12px;color:var(--text);line-height:1.6;">'+((ex.steps&&ex.steps.length)?ex.steps.slice(0,2).join(' '):'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div></div>'; }).join('')
+        :'<div style="font-size:13px;color:var(--t3);">Tu trainer todavía no asignó ejercicios.</div>'))
+    +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
   var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
@@ -493,8 +384,8 @@ function showPortal(s, opts){
     +'<div class="tab-pane" id="tp-jill"><div id="jill-root"></div></div>'
     +'<div class="tab-pane" id="tp-alice"><div id="alice-root"></div></div>'
     +'<div class="tab-pane" id="tp-nexora"><div id="nexora-root">'
-    +'<div style="background:linear-gradient(135deg,#0a0a0f,#1a1a28);border-radius:12px;padding:1.5rem;color:white;border:1px solid rgba(245,166,35,0.2);">'
-    +'<div style="font-size:10px;letter-spacing:0.2em;color:#F5A623;margin-bottom:4px;font-weight:800;">STUDIO INFINITY CR</div>'
+    +'<div style="background:linear-gradient(160deg,#0B1437,#1a0533,#2d1060);border-radius:20px;padding:1.5rem;color:white;">'
+    +'<div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-bottom:4px;">STUDIO INFINITY CR</div>'
     +'<div style="font-size:28px;font-weight:900;color:#C084FC;letter-spacing:0.05em;">NEXORA</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Operational English Simulation Lab</div>'
     +'</div>'
@@ -503,7 +394,7 @@ function showPortal(s, opts){
     +'</div>';
 
   document.getElementById('portal-content').innerHTML = html;
-  switchPortalTab(opts.tab || 'progreso');
+  switchPortalTab('progreso');
   renderTypingPersonaPicker('portal-persona-container');
   checkMonthlySurvey(s);
 
@@ -515,7 +406,7 @@ function showPortal(s, opts){
   if(cals.length>=2){
     setTimeout(function(){
       var ctx=document.getElementById('portal-chart'); if(!ctx) return;
-      new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#1E2761','#0F6E56','#BA7517','#A32D2D','#5B21B6']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:4, pointBackgroundColor:colors[i] }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ x:{grid:{color:'#E2E8F0'},ticks:{color:'#64748B',font:{size:11}}}, y:{min:0,max:5,ticks:{stepSize:1,color:'#64748B',font:{size:11}},grid:{color:'#E2E8F0'}} }, plugins:{legend:{position:'bottom',labels:{color:'#64748B',font:{size:11,weight:'600'},boxWidth:12}} } } });
+      new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#1E2761','#0F6E56','#BA7517','#A32D2D','#534AB7']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ y:{min:0,max:5,ticks:{stepSize:1}} }, plugins:{legend:{position:'bottom'}} } });
     },100);
   }
 }
@@ -680,7 +571,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank){
           el.style.background='var(--rb)'; el.style.color='var(--rm)'; el.style.borderBottom='2px solid var(--rm)';
         }
       } else if(i===typed.length){
-        el.style.background='rgba(91,33,182,0.2)'; el.style.color='var(--navy)'; el.style.borderBottom='2px solid var(--nm)';
+        el.style.background='rgba(56,189,248,0.2)'; el.style.color='var(--navy)'; el.style.borderBottom='2px solid var(--nm)';
       } else {
         el.style.background=''; el.style.color=''; el.style.borderBottom='';
       }
@@ -803,7 +694,7 @@ function buildVerticalBarsSVG(areaAverages){
     var x = gap + i*(barW+gap);
     var barH = (h-30)*(a.pct/100);
     var y = (h-20) - barH;
-    var col = a.pct>=80?'#0F6E56':a.pct>=60?'#F5A623':'#BA7517';
+    var col = a.pct>=80?'#3DDC97':a.pct>=60?'#F5A623':'#FF5C5C';
     return '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" rx="4" fill="'+col+'" opacity="0.9"/>'
       + '<text x="'+(x+barW/2)+'" y="'+(y-6)+'" font-size="11" font-weight="800" fill="white" text-anchor="middle">'+a.pct+'%</text>'
       + '<text x="'+(x+barW/2)+'" y="'+(h-6)+'" font-size="10" font-weight="700" fill="rgba(255,255,255,0.6)" text-anchor="middle">'+a.id+'</text>';
@@ -817,7 +708,7 @@ function renderProgressBlock(s){
   var prev = hist.length>1 ? hist[hist.length-2] : null;
 
   if(!last){
-    return '<div style="background:#1E2761;border-radius:12px;padding:1.25rem;margin-bottom:14px;color:white;border:1px solid rgba(255,255,255,0.08);">'
+    return '<div style="background:linear-gradient(160deg,#0E3A5C,#1A6B9A,#0D2E4A);border-radius:16px;padding:1.25rem;margin-bottom:1rem;color:white;">'
       +'<div style="font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:8px;">NEXUS PROGRESS</div>'
       +'<div style="font-size:13px;color:rgba(255,255,255,0.8);">Todavía no hay evaluaciones de progreso. Tu trainer va a registrar tu primera evaluación en sesión.</div>'
       +'</div>';
@@ -834,13 +725,13 @@ function renderProgressBlock(s){
   });
   while(tips.length<3){ tips.push('Seguí reforzando el patrón Idea + Linker + Idea + Linker en cada sesión.'); }
 
-  return '<div style="background:#1E2761;border-radius:12px;padding:1.25rem;margin-bottom:14px;color:white;box-shadow:0 12px 40px rgba(30,39,97,0.2);border:1px solid rgba(255,255,255,0.08);">'
+  return '<div style="background:linear-gradient(160deg,#0E3A5C,#1A6B9A,#0D2E4A);border-radius:16px;padding:1.25rem;margin-bottom:1rem;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.25);">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">'
     +'<div><div style="font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);font-weight:700;">NEXUS PROGRESS</div>'
     +'<div style="font-size:11px;color:rgba(255,255,255,0.5);">Última evaluación: '+fmtDate(last.date)+'</div></div>'
     +'<div style="text-align:right;">'
     +'<div style="font-size:34px;font-weight:900;line-height:1;color:#F5A623;">'+last.overall+'</div>'
-    +'<div style="font-size:10px;color:rgba(255,255,255,0.5);">/100'+(delta!=null?(' <span style="color:'+(delta>=0?'#0F6E56':'#A32D2D')+';font-weight:700;">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div>'
+    +'<div style="font-size:10px;color:rgba(255,255,255,0.5);">/100'+(delta!=null?(' <span style="color:'+(delta>=0?'#3DDC97':'#FF5C5C')+';font-weight:700;">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div>'
     +'</div></div>'
 
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;">'
@@ -849,7 +740,7 @@ function renderProgressBlock(s){
     +'</div>'
 
     +'<div style="margin-bottom:0.75rem;">'
-    +(strengths.length? strengths.map(function(a){return '<span style="display:inline-block;background:rgba(15,110,86,0.15);color:#6EE7C0;border:1px solid rgba(15,110,86,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:2px;">✓ '+a.id+' '+a.name+'</span>';}).join('')
+    +(strengths.length? strengths.map(function(a){return '<span style="display:inline-block;background:rgba(61,220,151,0.15);color:#3DDC97;border:1px solid rgba(61,220,151,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:2px;">✓ '+a.id+' '+a.name+'</span>';}).join('')
       :'<span style="font-size:11px;color:rgba(255,255,255,0.4);">Todavía sin áreas sobre el 70%.</span>')
     +(improvements.length? improvements.map(function(a){return '<span style="display:inline-block;background:rgba(255,92,92,0.12);color:#FF8A8A;border:1px solid rgba(255,92,92,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:2px;">▴ '+a.id+' '+a.name+'</span>';}).join('')
       :'')
@@ -1122,16 +1013,16 @@ function renderAlice(){
   var accentOptions = Object.keys(ALICE_ACCENTS).map(function(k){
     return '<option value="'+k+'"'+(k===_aliceState.accent?' selected':'')+'>'+ALICE_ACCENTS[k].label+'</option>';
   }).join('');
-  root.innerHTML = '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;box-shadow:0 8px 24px rgba(91,33,182,0.08);">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">'
+  root.innerHTML = '<div style="background:linear-gradient(160deg,#0E3A5C,#1A6B9A,#0D2E4A);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(14,58,92,0.4);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'
-    +'<div style="font-size:10px;letter-spacing:0.25em;color:var(--t3);font-weight:700;">STUDIO INFINITY CR</div>'
-    +'<div style="font-size:28px;font-weight:900;color:#5B21B6;letter-spacing:0.05em;">ALICE</div>'
-    +'<div style="font-size:11px;color:var(--t2);">Nexus 2.5 — Tu tutora de inglés</div>'
+    +'<div style="font-size:10px;letter-spacing:0.25em;color:rgba(255,255,255,0.4);font-weight:700;">STUDIO INFINITY CR</div>'
+    +'<div style="font-size:28px;font-weight:900;color:#7DD3F8;letter-spacing:0.05em;text-shadow:0 0 24px rgba(125,211,248,0.4);">ALICE</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.5);">Nexus 2.5 — Tu tutora de inglés</div>'
     +'</div>'
     +'<div style="text-align:right;">'
-    +'<div style="font-size:10px;color:var(--t3);margin-bottom:4px;">Acento para practicar</div>'
-    +'<select onchange="_aliceState.accent=this.value" style="background:white;border:1px solid rgba(91,33,182,0.25);color:var(--text);border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select>'
+    +'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:4px;">Acento para practicar</div>'
+    +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba(56,189,248,0.3);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select>'
     +'</div>'
     +'</div>'
     +(!_aliceState.sessionActive ? renderAliceStart() : renderAliceSession())
@@ -1141,12 +1032,12 @@ function renderAlice(){
 function renderAliceStart(){
   var hasSaved = !!_aliceState.savedSession;
   return '<div style="text-align:center;">'
-    +'<div style="background:#f8f8ff;border:1px solid rgba(91,33,182,0.12);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:var(--t2);line-height:1.8;">'
+    +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(125,211,248,0.15);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
     +'Alice practica inglés contigo usando tu Training Book como guía. Cada sesión refuerza tus ejercicios asignados. Podés hablar o escribir.'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:#5B21B6;border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:12px;cursor:pointer;box-shadow:0 4px 16px rgba(91,33,182,0.25);width:100%;justify-content:center;" onclick="startAliceSession()"><i class="ti ti-player-play"></i> Iniciar nueva sesión</button>'
-    +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba(91,33,182,0.08);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#38BDF8,#0EA5E9);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(56,189,248,0.4);width:100%;justify-content:center;" onclick="startAliceSession()"><i class="ti ti-player-play"></i> Iniciar nueva sesión</button>'
+    +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:#7DD3F8;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
     +'</div>';
@@ -1161,42 +1052,42 @@ function renderAliceSession(){
     var tipSplit = raw.match(/([\s\S]*?)\nALICE:\s*([\s\S]*)/);
     if(tipSplit && isAlice){ clientPart = tipSplit[1].trim(); aliceTip = tipSplit[2].trim(); }
     var clean = clientPart
-      .replace(/GOOD: ([^\n]*)/g,'<em style="color:#0F6E56;font-size:11px;display:block;margin-top:6px;font-weight:700;font-style:normal;">✓ $1</em>')
-      .replace(/TIP: ([^\n]*)/g,'<em style="color:#5B21B6;font-size:11px;display:block;margin-top:6px;font-weight:600;font-style:normal;">💡 $1</em>');
+      .replace(/GOOD: ([^\n]*)/g,'<em style="color:#86EFAC;font-size:11px;display:block;margin-top:6px;font-weight:700;font-style:normal;">✓ $1</em>')
+      .replace(/TIP: ([^\n]*)/g,'<em style="color:#7DD3F8;font-size:11px;display:block;margin-top:6px;font-weight:600;font-style:normal;">💡 $1</em>');
     return '<div style="display:flex;flex-direction:column;align-items:'+(isAlice?'flex-start':'flex-end')+';margin-bottom:14px;">'
       +(isAlice
-        ?'<div style="font-size:10px;color:#5B21B6;font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">ALICE</div>'
-        :'<div style="font-size:10px;color:var(--t3);font-weight:600;margin-bottom:4px;">VOS</div>')
-      +'<div style="max-width:88%;background:'+(isAlice?'white':'#5B21B6')
-      +';border:1px solid '+(isAlice?'rgba(91,33,182,0.15)':'transparent')
+        ?'<div style="font-size:10px;color:#7DD3F8;font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">ALICE</div>'
+        :'<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;margin-bottom:4px;">VOS</div>')
+      +'<div style="max-width:88%;background:'+(isAlice?'rgba(56,189,248,0.1)':'rgba(255,255,255,0.08)')
+      +';border:1px solid '+(isAlice?'rgba(56,189,248,0.25)':'rgba(255,255,255,0.12)')
       +';border-radius:'+(isAlice?'4px 14px 14px 14px':'14px 4px 14px 14px')
-      +';padding:10px 14px;font-size:13px;line-height:1.6;color:'+(isAlice?'var(--text)':'white')+';">'
+      +';padding:10px 14px;font-size:13px;line-height:1.6;color:white;">'
       +clean
-      +(aliceTip?'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(91,33,182,0.12);font-size:11px;color:#5B21B6;">💬 <strong>Alice:</strong> '+aliceTip+'</div>':'')
+      +(aliceTip?'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(56,189,248,0.2);font-size:11px;color:#7DD3F8;">💬 <strong>Alice:</strong> '+aliceTip+'</div>':'')
       +'</div></div>';
   }).join('');
 
   var scn = _aliceState.scenario;
   return '<div>'
     +(scn
-      ?'<div style="background:rgba(91,33,182,0.06);border:1px solid rgba(91,33,182,0.12);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:var(--t2);display:flex;gap:16px;flex-wrap:wrap;">'
-        +'<span style="font-weight:700;color:var(--text);"><i class="ti ti-building"></i> '+scn.department.replace(/_/g,' ').toUpperCase()+'</span>'
+      ?'<div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.55);display:flex;gap:16px;flex-wrap:wrap;">'
+        +'<span style="font-weight:700;"><i class="ti ti-building"></i> '+scn.department.replace(/_/g,' ').toUpperCase()+'</span>'
         +'<span><i class="ti ti-user"></i> '+scn.customer_personality+'</span>'
-        +'<span><i class="ti ti-flame" style="color:#BA7517;"></i> Dificultad '+scn.difficulty+'/10</span>'
+        +'<span><i class="ti ti-flame" style="color:#FB923C;"></i> Dificultad '+scn.difficulty+'/10</span>'
         +'</div>'
-      :'<div style="background:rgba(91,33,182,0.06);border:1px solid rgba(91,33,182,0.12);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#5B21B6;font-weight:600;">🎓 Sesión de práctica · Método Nexus · Idea + Linker + Idea</div>'
+      :'<div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(125,211,248,0.8);font-weight:600;">🎓 Sesión de práctica · Método Nexus · Idea + Linker + Idea</div>'
     )
-    +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding:12px;background:#f8f8ff;border-radius:10px;border:1px solid rgba(91,33,182,0.08);">'+msgs+'</div>'
-    +'<div id="alice-status" style="font-size:12px;color:#5B21B6;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
+    +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
+    +'<div id="alice-status" style="font-size:12px;color:#7DD3F8;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o usá el micrófono..." style="flex:1;background:white;border:1px solid rgba(91,33,182,0.2);color:var(--text);border-radius:12px;padding:10px 14px;" onfocus="if(window._aliceAudio){_aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;}" onkeydown="if(event.key!==\'Enter\' && window._aliceAudio){window._aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;} if(event.key===\'Enter\')sendAliceMessage();">'
-    +'<button id="alice-mic-btn" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(91,33,182,0.06);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;border-radius:12px;cursor:pointer;font-size:18px;" onclick="toggleAliceMic()"><i class="ti ti-microphone"></i></button>'
-    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:#5B21B6;border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
+    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o usá el micrófono..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(56,189,248,0.25);color:white;border-radius:12px;padding:10px 14px;" onfocus="if(window._aliceAudio){_aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;}" onkeydown="if(event.key!==\'Enter\' && window._aliceAudio){window._aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;} if(event.key===\'Enter\')sendAliceMessage();">'
+    +'<button id="alice-mic-btn" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#7DD3F8;border-radius:12px;cursor:pointer;font-size:18px;" onclick="toggleAliceMic()"><i class="ti ti-microphone"></i></button>'
+    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#38BDF8,#0EA5E9);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--gb);border:1px solid rgba(15,110,86,0.2);color:var(--gm);font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endAliceSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
-    +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(91,33,182,0.06);border:1px solid rgba(91,33,182,0.15);color:#5B21B6;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="saveAliceSession()"><i class="ti ti-device-floppy"></i>Guardar y continuar después</button>'
-    +'<button style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:white;border:1px solid var(--border);color:var(--t2);font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="cancelAliceSession()"><i class="ti ti-x"></i>Cancelar</button>'
+    +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(134,239,172,0.1);border:1px solid rgba(134,239,172,0.25);color:#86EFAC;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endAliceSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
+    +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);color:#7DD3F8;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="saveAliceSession()"><i class="ti ti-device-floppy"></i>Guardar y continuar después</button>'
+    +'<button style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="cancelAliceSession()"><i class="ti ti-x"></i>Cancelar</button>'
     +'</div>'
     +'</div>';
 }
@@ -1204,21 +1095,21 @@ function renderAliceSession(){
 function renderAliceEvaluation(){
   var ev = _aliceState.evaluation;
   if(!ev) return '';
-  var col = ev.overall_score>=80?'#0F6E56':ev.overall_score>=60?'#BA7517':'#A32D2D';
-  return '<div style="background:#f8f8ff;border:1px solid rgba(91,33,182,0.12);border-radius:12px;padding:1.25rem;text-align:left;">'
+  var col = ev.overall_score>=80?'#86EFAC':ev.overall_score>=60?'#FCD34D':'#FCA5A5';
+  return '<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(56,189,248,0.15);border-radius:14px;padding:1.25rem;text-align:left;">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-    +'<span style="font-size:13px;font-weight:700;color:var(--text);">Resultado de la sesión</span>'
-    +'<span style="font-size:32px;font-weight:900;color:'+col+';line-height:1;">'+ev.overall_score+'<span style="font-size:13px;color:var(--t3);">/100</span></span>'
+    +'<span style="font-size:13px;font-weight:700;color:white;">Resultado de la sesión</span>'
+    +'<span style="font-size:32px;font-weight:900;color:'+col+';line-height:1;">'+ev.overall_score+'<span style="font-size:13px;color:rgba(255,255,255,0.35);">/100</span></span>'
     +'</div>'
-    +(ev.alice_message?'<div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;background:white;border-left:3px solid #5B21B6;padding:10px 12px;border-radius:0 10px 10px 0;">'+ev.alice_message+'</div>':'')
-    +(ev.best_moment?'<div style="font-size:12px;color:#0F6E56;margin-bottom:6px;">✓ '+ev.best_moment+'</div>':'')
-    +(ev.main_improvement?'<div style="font-size:12px;color:#A32D2D;margin-bottom:10px;">▴ '+ev.main_improvement+'</div>':'')
-    +(ev.connectors_used&&ev.connectors_used.length?'<div style="margin-bottom:8px;"><div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">CONECTORES USADOS</div>'
-      +ev.connectors_used.map(function(c){return '<span style="display:inline-block;background:var(--gb);color:var(--gm);border:1px solid rgba(15,110,86,0.2);border-radius:20px;padding:3px 10px;margin:2px;font-size:11px;font-weight:600;">'+c+'</span>';}).join('')+'</div>':'')
-    +(ev.connectors_missed&&ev.connectors_missed.length?'<div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">PARA LA PRÓXIMA</div>'
-      +ev.connectors_missed.map(function(c){return '<span style="display:inline-block;background:rgba(91,33,182,0.08);color:#5B21B6;border:1px solid rgba(91,33,182,0.15);border-radius:20px;padding:3px 10px;margin:2px;font-size:11px;font-weight:600;">'+c+'</span>';}).join('')+'</div>':'')
+    +(ev.alice_message?'<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:12px;background:rgba(56,189,248,0.08);border-left:3px solid #38BDF8;padding:10px 12px;border-radius:0 10px 10px 0;">'+ev.alice_message+'</div>':'')
+    +(ev.best_moment?'<div style="font-size:12px;color:#86EFAC;margin-bottom:6px;">✓ '+ev.best_moment+'</div>':'')
+    +(ev.main_improvement?'<div style="font-size:12px;color:#FCA5A5;margin-bottom:10px;">▴ '+ev.main_improvement+'</div>':'')
+    +(ev.connectors_used&&ev.connectors_used.length?'<div style="margin-bottom:8px;"><div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">CONECTORES USADOS</div>'
+      +ev.connectors_used.map(function(c){return '<span style="display:inline-block;background:rgba(134,239,172,0.12);color:#86EFAC;border:1px solid rgba(134,239,172,0.25);border-radius:20px;padding:3px 10px;margin:2px;font-size:11px;font-weight:600;">'+c+'</span>';}).join('')+'</div>':'')
+    +(ev.connectors_missed&&ev.connectors_missed.length?'<div style="margin-bottom:12px;"><div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">PARA LA PRÓXIMA</div>'
+      +ev.connectors_missed.map(function(c){return '<span style="display:inline-block;background:rgba(125,211,248,0.1);color:#7DD3F8;border:1px solid rgba(125,211,248,0.2);border-radius:20px;padding:3px 10px;margin:2px;font-size:11px;font-weight:600;">'+c+'</span>';}).join('')+'</div>':'')
     +'<div style="text-align:center;margin-top:1rem;">'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:#5B21B6;border:none;color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;" onclick="startAliceSession()"><i class="ti ti-refresh"></i>Nueva sesión</button>'
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#38BDF8,#0EA5E9);border:none;color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;" onclick="startAliceSession()"><i class="ti ti-refresh"></i>Nueva sesión</button>'
     +'</div>'
     +'</div>';
 }
@@ -1520,7 +1411,7 @@ function aliceAutoMic(){
   rec.onend = function(){
     _aliceState.listening=false;
     _aliceState.recognition=null;
-    if(btn){ btn.style.background='rgba(91,33,182,0.1)'; btn.style.borderColor='rgba(91,33,182,0.3)'; btn.style.color='#5B21B6'; }
+    if(btn){ btn.style.background='rgba(56,189,248,0.1)'; btn.style.borderColor='rgba(56,189,248,0.3)'; btn.style.color='#7DD3F8'; }
     if(statusEl) statusEl.textContent='';
     var inp=document.getElementById('alice-input');
     if(inp && inp.value.trim()){
@@ -1534,7 +1425,7 @@ function aliceAutoMic(){
   rec.onerror = function(e){
     _aliceState.listening=false;
     _aliceState.recognition=null;
-    if(btn){ btn.style.background='rgba(91,33,182,0.1)'; btn.style.borderColor='rgba(91,33,182,0.3)'; btn.style.color='#5B21B6'; }
+    if(btn){ btn.style.background='rgba(56,189,248,0.1)'; btn.style.borderColor='rgba(56,189,248,0.3)'; btn.style.color='#7DD3F8'; }
     if(statusEl) statusEl.textContent='';
     if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking && e.error==='no-speech'){
       setTimeout(aliceAutoMic, 400);
@@ -1553,7 +1444,7 @@ function toggleAliceMic(){
     if(_aliceState.recognition) try{_aliceState.recognition.stop();}catch(e){}
     _aliceState.listening = false;
     var btn = document.getElementById('alice-mic-btn');
-    if(btn){ btn.style.background='rgba(91,33,182,0.1)'; btn.style.borderColor='rgba(91,33,182,0.3)'; btn.style.color='#5B21B6'; }
+    if(btn){ btn.style.background='rgba(56,189,248,0.1)'; btn.style.borderColor='rgba(56,189,248,0.3)'; btn.style.color='#7DD3F8'; }
     if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
     return;
   }
@@ -1591,7 +1482,17 @@ var NEXORA_SERVICES = [
 ];
 var NEXORA_STREETS = ['Oak St','Maple Ave','Cedar Ln','Pine Rd','Elm Blvd'];
 var NEXORA_CITIES = ['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO'];
-// Voice pools in js/nexora-voice.js
+
+var NEXORA_VOICES_MALE = [
+  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
+  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
+  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'}
+];
+var NEXORA_VOICES_FEMALE = [
+  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
+  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
+  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'}
+];
 
 var NEXORA_ENGINE_TYPE_MAP = {
   customer_service:'customer_service',
@@ -1712,18 +1613,17 @@ function renderNexoraTab(s){
   if(!root) return;
   var nxConfig = window._nexoraConfig;
   if(!nxConfig){
-    root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.2);text-align:center;">'
-      +'<div style="font-size:13px;color:#FFFFFF;line-height:1.7;">Tu trainer todavía no configuró Nexora para hoy.<br>Volvé más tarde.</div></div>';
+    root.innerHTML = '<div style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:1rem;color:rgba(255,255,255,0.7);font-size:13px;text-align:center;margin-top:1rem;">Tu trainer todavía no configuró Nexora para hoy.<br>Volvé más tarde.</div>';
     return;
   }
   var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service Call',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Sales Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
   var sessionLabel = (typeLabels[nxConfig.type] || 'Nexora Simulation').toUpperCase();
-  root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.25);">'
-    +'<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
-    +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,0.88);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
-    +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
+  root.innerHTML = '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.3);border-radius:14px;padding:1.25rem;margin-top:1rem;">'
+    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
+    +'<p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:white;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
 }
@@ -1811,7 +1711,7 @@ function nexoraShowCRM(){
     // Input
     +'<div style="padding:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:6px;">'
     +'<input id="nx-input" placeholder="Respond to the client..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:10px;padding:7px 12px;font-size:12px;font-family:inherit;" disabled>'
-    +'<button id="nx-mic-btn" onclick="toggleNexoraMic()" style="width:34px;height:34px;background:rgba(91,33,182,0.1);border:1px solid rgba(91,33,182,0.3);color:#5B21B6;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;" disabled><i class="ti ti-microphone"></i></button>'
+    +'<button id="nx-mic-btn" onclick="toggleNexoraMic()" style="width:34px;height:34px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#7DD3F8;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;" disabled><i class="ti ti-microphone"></i></button>'
     +'<button onclick="sendNexoraMsg()" style="width:34px;height:34px;background:var(--purple);border:none;color:white;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;" disabled id="nx-send-btn"><i class="ti ti-send"></i></button>'
     +'</div>'
     // Call buttons
@@ -1874,7 +1774,7 @@ async function nexoraAnswerCall(){
     var reply = (data.reply||'Hello, is this customer service?').split('\nALICE:')[0].trim();
     if(clientStatus) clientStatus.textContent = '';
     nexoraAddMsg(reply, 'client');
-    nexoraSpeak(reply, _nxState.profile);
+    nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
   } catch(e){
@@ -1982,7 +1882,7 @@ async function nexoraSendToAlice(text){
     var reply = (data.reply||'').split('\nALICE:')[0].trim();
     if(statusEl) statusEl.textContent='';
     nexoraAddMsg(reply,'client');
-    nexoraSpeak(reply, _nxState.profile);
+    nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
   }catch(e){
@@ -2145,7 +2045,7 @@ function stopNexoraMic(){
   if(_nxState.recognition) try{_nxState.recognition.stop();}catch(e){}
   _nxState.micListening=false;
   var btn=document.getElementById('nx-mic-btn');
-  if(btn){btn.style.background='rgba(91,33,182,0.1)';btn.style.borderColor='rgba(91,33,182,0.3)';btn.style.color='#5B21B6';}
+  if(btn){btn.style.background='rgba(56,189,248,0.1)';btn.style.borderColor='rgba(56,189,248,0.3)';btn.style.color='#7DD3F8';}
 }
 
 // ── ADD MSG ────────────────────────────────────────────────────
@@ -2160,11 +2060,29 @@ function nexoraAddMsg(text, from){
     div.textContent=text;
   } else {
     div.style.cssText='display:flex;flex-direction:column;align-items:'+(isAlice?'flex-start':'flex-end')+';';
-    div.innerHTML=(isAlice?'<div style="font-size:9px;font-weight:700;color:rgba(192,132,252,0.7);margin-bottom:2px;">CLIENT</div>':'<div style="font-size:9px;font-weight:700;color:rgba(91,33,182,0.7);margin-bottom:2px;">YOU</div>')
+    div.innerHTML=(isAlice?'<div style="font-size:9px;font-weight:700;color:rgba(192,132,252,0.7);margin-bottom:2px;">CLIENT</div>':'<div style="font-size:9px;font-weight:700;color:rgba(56,189,248,0.7);margin-bottom:2px;">YOU</div>')
       +'<div style="max-width:90%;background:'+(isAlice?'rgba(255,255,255,0.07)':'rgba(192,132,252,0.2)')+';color:white;border-radius:'+(isAlice?'4px 12px 12px 12px':'12px 4px 12px 12px')+';padding:7px 11px;font-size:12px;line-height:1.6;">'+text+'</div>';
   }
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── SPEAK ──────────────────────────────────────────────────────
+function nexoraSpeak(text){
+  if(!text) return;
+  var clean=text
+    .replace(/ALICE:|CLAIRE:|JILL:/g,'')
+    .replace(/[*_#<>\[\]{}|~`^]/g,' ')
+    .replace(/\.{2,}/g,'.')
+    .replace(/,/g,' ')
+    .replace(/;/g,' ')
+    .replace(/\s+/g,' ')
+    .trim().slice(0,500);
+  var voiceId = (_nxState.profile && _nxState.profile.voiceId) ? _nxState.profile.voiceId : null;
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
+  .then(function(r){return r.ok?r.blob():null;})
+  .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
+  .catch(function(){});
 }
 
 window.addEventListener('beforeunload',function(){
@@ -2303,15 +2221,7 @@ function jillStopMic(){
   if(_jillState.recognition){ try{_jillState.recognition.stop();}catch(e){} _jillState.recognition = null; }
   _jillState.micRunning = false;
   var btn = document.getElementById('jill-mic-btn');
-  if(btn){
-    if(_jillState.autoMic){
-      btn.style.background = 'rgba(91,33,182,0.12)'; btn.style.borderColor = 'rgba(91,33,182,0.3)'; btn.style.color = '#5B21B6';
-      btn.innerHTML = '<i class="ti ti-microphone"></i>';
-    } else {
-      btn.style.background = 'rgba(91,33,182,0.06)'; btn.style.borderColor = 'rgba(91,33,182,0.2)'; btn.style.color = '#5B21B6';
-      btn.innerHTML = '<i class="ti ti-microphone-off"></i>';
-    }
-  }
+  if(btn) btn.style.background = _jillState.autoMic ? '#16a34a' : '#6b7280';
 }
 
 function jillStopAll(){
@@ -2333,7 +2243,7 @@ function jillStartAutoMic(){
 
   var btn = document.getElementById('jill-mic-btn');
   var statusEl = document.getElementById('jill-status');
-  if(btn){ btn.style.background = '#dc2626'; btn.style.borderColor = '#dc2626'; btn.style.color = '#fff'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
+  if(btn){ btn.style.background = '#dc2626'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
   if(statusEl) statusEl.textContent = '🎤 Escuchando...';
 
   rec.onresult = function(e){
@@ -2344,7 +2254,7 @@ function jillStartAutoMic(){
   rec.onend = function(){
     _jillState.micRunning = false;
     _jillState.recognition = null;
-    if(btn){ btn.style.background = 'rgba(91,33,182,0.12)'; btn.style.borderColor = 'rgba(91,33,182,0.3)'; btn.style.color = '#5B21B6'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
+    if(btn){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
     if(statusEl) statusEl.textContent = '';
     var inp = document.getElementById('jill-input');
     if(inp && inp.value.trim()){
@@ -2357,7 +2267,7 @@ function jillStartAutoMic(){
   rec.onerror = function(e){
     _jillState.micRunning = false;
     _jillState.recognition = null;
-    if(btn){ btn.style.background = 'rgba(91,33,182,0.12)'; btn.style.borderColor = 'rgba(91,33,182,0.3)'; btn.style.color = '#5B21B6'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
+    if(btn){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
     if(statusEl) statusEl.textContent = '';
     if(_jillState.autoMic && !_jillState.speaking && e.error === 'no-speech'){
       setTimeout(jillStartAutoMic, 400);
@@ -2371,7 +2281,7 @@ function toggleJillMic(){
     _jillState.autoMic = false;
     jillStopMic();
     var btn = document.getElementById('jill-mic-btn');
-    if(btn){ btn.style.background = '#6b7280'; btn.style.borderColor = 'transparent'; btn.style.color = '#fff'; btn.innerHTML = '<i class="ti ti-microphone-off"></i>'; }
+    if(btn){ btn.style.background = '#6b7280'; btn.innerHTML = '<i class="ti ti-microphone-off"></i>'; }
     var statusEl = document.getElementById('jill-status');
     if(statusEl) statusEl.textContent = '';
   } else {
@@ -2388,23 +2298,20 @@ function renderJillTab(s){
   _jillState.active = true;
 
   root.innerHTML =
-    '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem;box-shadow:0 8px 24px rgba(91,33,182,0.08);">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">'
-    +'<div>'
-    +'<div style="font-size:10px;letter-spacing:0.25em;color:var(--t3);font-weight:700;">STUDIO INFINITY CR</div>'
-    +'<div style="font-size:28px;font-weight:900;color:#5B21B6;letter-spacing:0.05em;">JILL</div>'
-    +'<div style="font-size:11px;color:var(--t2);">Foundations · Presión cero · Avance garantizado</div>'
+    '<div style="background:linear-gradient(135deg,#0a5c3c,#0e7a50);border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:12px;">'
+    +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌿</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:0.02em;">Jill</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.85);">Tutora de Foundations · Presión cero · Avance garantizado</div>'
     +'</div>'
-    +'<button id="jill-mic-btn" onclick="toggleJillMic()" title="Activar/desactivar micrófono automático" style="width:44px;height:44px;border-radius:12px;border:1px solid rgba(91,33,182,0.2);background:rgba(91,33,182,0.06);color:#5B21B6;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-microphone-off"></i></button>'
+    +'<button id="jill-mic-btn" onclick="toggleJillMic()" title="Activar/desactivar micrófono automático" style="width:40px;height:40px;border-radius:50%;border:none;background:#6b7280;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-microphone-off"></i></button>'
     +'</div>'
-    +'<div style="background:rgba(91,33,182,0.06);border:1px solid rgba(91,33,182,0.12);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#5B21B6;font-weight:600;">🎓 Tutora de Foundations · Sesión guiada · Método Nexus</div>'
-    +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;min-height:200px;max-height:360px;overflow-y:auto;padding:12px;background:#f8f8ff;border-radius:10px;border:1px solid rgba(91,33,182,0.08);"></div>'
-    +'<div id="jill-status" style="font-size:12px;color:#5B21B6;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
-    +'<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:0;">'
-    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o presioná el 🎤 para hablar..." style="flex:1;background:white;border:1px solid rgba(91,33,182,0.2);color:var(--text);border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;resize:none;outline:none;"></textarea>'
-    +'<button onclick="sendJillMsg()" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:#5B21B6;border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;flex-shrink:0;"><i class="ti ti-send"></i></button>'
+    +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;min-height:200px;max-height:400px;overflow-y:auto;padding:2px 0;"></div>'
+    +'<div style="display:flex;gap:8px;align-items:flex-end;">'
+    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o presioná el 🎤 para hablar..." style="flex:1;background:#ffffff;border:2px solid #d1d5db;color:#111827;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;resize:none;outline:none;"></textarea>'
+    +'<button onclick="sendJillMsg()" style="padding:10px 18px;background:#0a5c3c;border:none;color:#ffffff;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;height:52px;"><i class="ti ti-send"></i></button>'
     +'</div>'
-    +'</div>';
+    +'<div id="jill-status" style="font-size:12px;color:#0a5c3c;font-weight:600;margin-top:6px;min-height:18px;"></div>';
 
   // Stop audio on typing/focus; send on Enter
   var inp = document.getElementById('jill-input');
@@ -2454,7 +2361,7 @@ async function sendJillMsg(){
   var bubble = document.createElement('div');
   bubble.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;';
   var bubbleId = 'jb'+Date.now();
-  bubble.innerHTML = '<div style="font-size:10px;color:#5B21B6;font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">JILL</div><div id="'+bubbleId+'" style="max-width:88%;background:white;border:1px solid rgba(91,33,182,0.15);color:var(--text);border-radius:4px 14px 14px 14px;padding:10px 14px;font-size:13px;line-height:1.7;min-height:24px;">▋</div>';
+  bubble.innerHTML = '<div id="'+bubbleId+'" style="max-width:88%;background:#ffffff;border:1px solid #d1d5db;border-left:4px solid #0a5c3c;color:#111827;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.7;min-height:24px;">▋</div>';
   msgs.appendChild(bubble);
   msgs.scrollTop = msgs.scrollHeight;
   var el = document.getElementById(bubbleId);
@@ -2503,7 +2410,7 @@ async function sendJillMsg(){
     if(el){
       var formatted = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
       el.innerHTML = formatted
-        +'<button onclick="jillQueueSpeak(this.dataset.text)" data-text="'+fullText.replace(/"/g,"'")+'" style="margin-top:8px;background:rgba(91,33,182,0.08);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>';
+        +'<button onclick="jillQueueSpeak(this.dataset.text)" data-text="'+fullText.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>';
     }
     // Speak any remaining text
     if(pending.trim().length > 2) jillQueueSpeak(pending);
@@ -2522,18 +2429,17 @@ function jillAddMsg(text, sender, contentType){
   var msgs = document.getElementById('jill-messages');
   if(!msgs || !text) return;
   var isJill = sender==='jill';
+  // Jill messages: white card with green left border
+  // Student messages: light green-gray bubble, right aligned
   var bubbleStyle = isJill
-    ? 'background:white;border:1px solid rgba(91,33,182,0.15);color:var(--text);border-radius:4px 14px 14px 14px;'
-    : 'background:#5B21B6;border:1px solid transparent;color:white;border-radius:14px 4px 14px 14px;';
+    ? 'background:#ffffff;border:1px solid #d1d5db;border-left:4px solid #0a5c3c;color:#111827;'
+    : 'background:#e8f5ee;border:1px solid #a7d4b8;color:#0a3d22;';
   var align = isJill ? 'align-items:flex-start' : 'align-items:flex-end';
-  var label = isJill
-    ? '<div style="font-size:10px;color:#5B21B6;font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">JILL</div>'
-    : '<div style="font-size:10px;color:var(--t3);font-weight:600;margin-bottom:4px;">VOS</div>';
 
   var ctIcon = '';
-  if(contentType==='exercise') ctIcon = '<span style="font-size:11px;font-weight:700;color:#5B21B6;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-dumbbell"></i> EJERCICIO</span>';
-  else if(contentType==='example') ctIcon = '<span style="font-size:11px;font-weight:700;color:#BA7517;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-bulb"></i> EJEMPLO</span>';
-  else if(contentType==='whiteboard') ctIcon = '<span style="font-size:11px;font-weight:700;color:var(--nm);letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-layout-board"></i> PIZARRÓN</span>';
+  if(contentType==='exercise') ctIcon = '<span style="font-size:11px;font-weight:700;color:#0a5c3c;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-dumbbell"></i> EJERCICIO</span>';
+  else if(contentType==='example') ctIcon = '<span style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-bulb"></i> EJEMPLO</span>';
+  else if(contentType==='whiteboard') ctIcon = '<span style="font-size:11px;font-weight:700;color:#1e40af;letter-spacing:0.08em;display:block;margin-bottom:6px;"><i class="ti ti-layout-board"></i> PIZARRÓN</span>';
 
   var formatted = text
     .replace(/\n/g,'<br>')
@@ -2541,10 +2447,10 @@ function jillAddMsg(text, sender, contentType){
 
   var div = document.createElement('div');
   div.style.cssText = 'display:flex;flex-direction:column;'+align+';';
-  div.innerHTML = label
-    +'<div style="max-width:88%;'+bubbleStyle+'padding:10px 14px;font-size:13px;line-height:1.7;">'
+  div.innerHTML =
+    '<div style="max-width:88%;'+bubbleStyle+'border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.7;">'
     + ctIcon + formatted
-    + (isJill ? '<button onclick="jillSpeak(this.dataset.text)" data-text="'+text.replace(/"/g,"'")+'" style="margin-top:8px;background:rgba(91,33,182,0.08);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>' : '')
+    + (isJill ? '<button onclick="jillSpeak(this.dataset.text)" data-text="'+text.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#ffffff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>' : '')
     + '</div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
