@@ -31,6 +31,40 @@ function clearAuthToken() {
   sessionStorage.removeItem(AUTH_EXP_KEY);
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_EXP_KEY);
+  clearPortalSession();
+}
+
+function setPortalSession(studentId, name, portalUser) {
+  try {
+    localStorage.setItem('infinity_portal_student_id', studentId || '');
+    sessionStorage.setItem('portal_student_snapshot', JSON.stringify({
+      id: studentId || '',
+      portalUser: portalUser || '',
+      name: name || ''
+    }));
+  } catch (e) {}
+}
+
+function clearPortalSession() {
+  try {
+    localStorage.removeItem('infinity_portal_student_id');
+    localStorage.removeItem('nexora_scenario');
+    localStorage.removeItem('nexora_agent');
+    localStorage.removeItem('nexora_student_id');
+    sessionStorage.removeItem('portal_student_snapshot');
+  } catch (e) {}
+}
+
+/** JWT (Render) or sesión del Portal del Estudiante (login Supabase legacy) */
+function hasPortalSession() {
+  if (getAuthToken()) return true;
+  try {
+    if (localStorage.getItem('infinity_portal_student_id')) return true;
+    if (localStorage.getItem('nexora_student_id')) return true;
+    var snap = JSON.parse(sessionStorage.getItem('portal_student_snapshot') || 'null');
+    if (snap && snap.id) return true;
+  } catch (e) {}
+  return false;
 }
 
 function authHeaders(extra) {
@@ -104,7 +138,7 @@ async function infinityFetch(path, options) {
 }
 
 function requireAuthOrRedirect(loginPath) {
-  if (!getAuthToken()) {
+  if (!hasPortalSession()) {
     if (loginPath) window.location.href = loginPath;
     return false;
   }

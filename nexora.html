@@ -601,10 +601,10 @@ var CITIES=['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO','Phoen
 var ALICE_BACKEND='https://alice-by-infinity.onrender.com';
 
 document.addEventListener('DOMContentLoaded', function(){
-  if(typeof getAuthToken === 'function' && !getAuthToken()){
+  if(typeof hasPortalSession === 'function' && !hasPortalSession()){
     var gate = document.createElement('div');
     gate.style.cssText = 'position:fixed;inset:0;background:#1E2761;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
-    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
+    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;margin:0 auto 1.25rem;">Ingresá al Portal del Estudiante primero. Desde ahí abrí Nexora con tu sesión activa.</p><a href="Infinity_Student_Portal.html" style="display:inline-flex;align-items:center;gap:8px;background:#5B21B6;color:#fff;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;"><i class="ti ti-login"></i> Ir al Portal del Estudiante</a></div>';
     document.body.appendChild(gate);
   }
 });

@@ -286,6 +286,7 @@ async function doLogin(){
   else if(legacyResult && legacyResult.studentId) CURRENT_STUDENT.id = legacyResult.studentId;
   window._currentStudent = CURRENT_STUDENT;
   window._portalStudent = CURRENT_STUDENT;
+  setPortalSession(CURRENT_STUDENT.id, (student.info&&student.info.name)||'', student.portalUser||user);
 
   // cargar calendario
   var cRows = await dbGet('infinity_sessions');
