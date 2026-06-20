@@ -81,6 +81,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .chart-wrap{position:relative;height:220px;margin-bottom:1rem;}
 
 .portal-wrap{max-width:700px;margin:0 auto;padding:1.25rem;padding-left:96px;}
+.portal-wrap--tb{max-width:none;padding:0 0 0 80px;margin:0;}
+.tb-iframe-wrap{height:calc(100vh - 54px);min-height:560px;background:#F0F4FA;}
+.tb-iframe{width:100%;height:100%;border:none;display:block;}
 .portal-header{background:var(--navy);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem;text-align:center;}
 .portal-nav{position:fixed;top:0;left:0;bottom:0;width:80px;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding-top:90px;gap:6px;z-index:60;}
 .portal-nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:rgba(255,255,255,0.55);font-size:10px;font-weight:600;padding:10px 4px;cursor:pointer;border-radius:10px;width:88%;text-align:center;transition:background 0.15s;}
@@ -303,6 +306,10 @@ function switchPortalTab(tab){
   document.querySelectorAll('.portal-nav-item').forEach(function(item){
     item.classList.toggle('active', item.dataset.tab===tab);
   });
+  var wrap = document.getElementById('portal-content');
+  if(wrap) wrap.classList.toggle('portal-wrap--tb', tab === 'trainingbook');
+  var ph = document.querySelector('.portal-header');
+  if(ph) ph.style.display = tab === 'trainingbook' ? 'none' : '';
   if(tab==='alice') renderAlice();
   if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
 }
@@ -364,24 +371,11 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK ─────────────────────────────────────
-  var trainingBookHtml = '<div class="card"><div class="card-title"><i class="ti ti-dumbbell"></i>Mi Training Book</div>'
-    +(tb.length ? tb.map(function(ex){
-        return '<div style="border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;">'
-          +'<div style="background:var(--navy);padding:8px 12px;display:flex;align-items:center;gap:8px;">'
-          +(ex.kpi?'<span class="badge" style="background:rgba(255,255,255,0.2);color:white;">'+ex.kpi+'</span>':'')
-          +'<span style="font-size:13px;font-weight:700;color:white;flex:1;">'+ex.title+'</span>'
-          +'</div>'
-          +'<div style="padding:10px 12px;">'
-          +'<div style="font-size:13px;color:var(--text);line-height:1.7;">'+(ex.studentTask || 'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div>'
-          +(ex.freq?'<div style="font-size:11px;color:var(--t3);margin-top:6px;"><i class="ti ti-repeat"></i> '+ex.freq+'</div>':'')
-          +'</div></div>';
-      }).join('')
-      : (exercises.length?exercises.map(function(ex){ return '<div style="background:var(--gray);border-radius:var(--r);padding:1rem;margin-bottom:8px;">'
-          +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+ex.title+'</div>'
-          +'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;">'+ex.kpi+'</div>'
-          +'<div style="font-size:12px;color:var(--text);line-height:1.6;">'+((ex.steps&&ex.steps.length)?ex.steps.slice(0,2).join(' '):'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div></div>'; }).join('')
-        :'<div style="font-size:13px;color:var(--t3);">Tu trainer todavía no asignó ejercicios.</div>'))
+  // ── TRAINING BOOK (iframe — diseño nuevo con tabs) ─────
+  var tbStudentId = s.id || '';
+  var tbUrl = 'Infinity_Training_Book%20(1).html?embed=1&studentId=' + encodeURIComponent(tbStudentId);
+  var trainingBookHtml = '<div class="tb-iframe-wrap">'
+    +'<iframe class="tb-iframe" id="portal-tb-frame" title="Training Book" src="'+tbUrl+'" loading="lazy"></iframe>'
     +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────

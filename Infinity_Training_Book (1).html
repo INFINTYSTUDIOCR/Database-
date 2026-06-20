@@ -243,6 +243,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .nav-demo{display:none;}
   .content{min-height:60vh;}
 }
+body.embed-mode .topbar{display:none;}
+body.embed-mode .selector-screen{display:none;}
+body.embed-mode .main-wrap.show{height:100vh;}
+body.embed-mode .main-wrap{height:100vh;}
 </style>
 </head>
 <body>
@@ -287,8 +291,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="showSection('drills',this)"><i class="ti ti-bolt"></i>Speed Drills</div>
 
     <div class="nav-section">Plataforma</div>
-    <a href="try-alice.html" class="nav-item nav-link" target="_blank" rel="noopener"><i class="ti ti-robot"></i>Alice Coach<span class="nav-demo">Demo →</span></a>
-    <a href="try-nexora.html" class="nav-item nav-link" target="_blank" rel="noopener"><i class="ti ti-headset"></i>Nexora Sims<span class="nav-demo">Demo →</span></a>
+    <a href="try-alice.html" class="nav-item nav-link" id="nav-alice-link" target="_blank" rel="noopener"><i class="ti ti-robot"></i>Alice Coach<span class="nav-demo" id="nav-alice-demo">Demo →</span></a>
+    <a href="try-nexora.html" class="nav-item nav-link" id="nav-nexora-link" target="_blank" rel="noopener"><i class="ti ti-headset"></i>Nexora Sims<span class="nav-demo" id="nav-nexora-demo">Demo →</span></a>
 
     <div class="nav-section">Referencia Nexus</div>
     <div class="nav-item" onclick="showSection('phase1',this)"><i class="ti ti-building"></i>Fase 1 — Arquitectura</div>
@@ -335,6 +339,8 @@ var ALL_VIDEOS = {};
 var CURRENT = null;
 var DRILL_RESULTS = {};
 var currentSection = 'overview';
+var EMBED_MODE = /[?&]embed=1(?:&|$)/.test(location.search);
+var EMBED_STUDENT_ID = new URLSearchParams(location.search).get('studentId') || '';
 
 // ── NEXUS DATA ────────────────────────────────────────────
 var KPI_NAMES = {IG:'Idea Generation',ST:'Structural Thinking',RA:'Recovery Ability',PS:'Problem Solving',R:'Responsiveness'};
@@ -476,43 +482,81 @@ var EXERCISES = {
 // ── INIT ──────────────────────────────────────────────────
 (async function(){
   try{
+    if(EMBED_MODE) document.body.classList.add('embed-mode');
     var rows = await dbGetAll('infinity_students');
-    rows.forEach(function(r){ ALL_STUDENTS[r.id]=r.data; });
+    rows.forEach(function(r){ ALL_STUDENTS[r.id]=r.data; ALL_STUDENTS[r.id].id=r.id; });
     var videos = await dbGetAll('infinity_videos');
     videos.forEach(function(r){ ALL_VIDEOS[r.id]=r.data; });
-    buildStudentSelect();
+    if(!EMBED_MODE) buildStudentSelect();
     document.getElementById('nb-videos').textContent = Object.keys(ALL_VIDEOS).length;
+    if(EMBED_MODE){
+      setupEmbedNavLinks();
+      if(EMBED_STUDENT_ID) loadStudentById(EMBED_STUDENT_ID);
+    }
   }catch(e){ showToast('Connection error','err'); }
 })();
 
+function setupEmbedNavLinks(){
+  var alice = document.getElementById('nav-alice-link');
+  var nexora = document.getElementById('nav-nexora-link');
+  if(alice){
+    alice.href = '#';
+    alice.removeAttribute('target');
+    alice.onclick = function(e){ e.preventDefault(); openPortalTab('alice'); };
+    var ad = document.getElementById('nav-alice-demo'); if(ad) ad.textContent = 'Portal →';
+  }
+  if(nexora){
+    nexora.href = '#';
+    nexora.removeAttribute('target');
+    nexora.onclick = function(e){ e.preventDefault(); openPortalTab('nexora'); };
+    var nd = document.getElementById('nav-nexora-demo'); if(nd) nd.textContent = 'Portal →';
+  }
+}
+
+function openPortalTab(tab){
+  if(window.parent && window.parent !== window && typeof window.parent.switchPortalTab === 'function'){
+    window.parent.switchPortalTab(tab);
+  }
+}
+
 function buildStudentSelect(){
   var sel = document.getElementById('student-select');
-  var students = Object.values(ALL_STUDENTS).sort(function(a,b){return (a.info.name||'').localeCompare(b.info.name||'');});
-  students.forEach(function(s){
+  var ids = Object.keys(ALL_STUDENTS).sort(function(a,b){
+    return (ALL_STUDENTS[a].info&&ALL_STUDENTS[a].info.name||'').localeCompare(ALL_STUDENTS[b].info&&ALL_STUDENTS[b].info.name||'');
+  });
+  ids.forEach(function(id){
+    var s = ALL_STUDENTS[id];
     var o = document.createElement('option');
-    o.value = s.id;
-    o.textContent = s.info.name + (s.info.level?' — '+s.info.level:'');
+    o.value = id;
+    o.textContent = (s.info&&s.info.name||id) + (s.info&&s.info.level?' — '+s.info.level:'');
     sel.appendChild(o);
   });
+}
+
+function loadStudentById(id){
+  CURRENT = ALL_STUDENTS[id];
+  if(!CURRENT){ showToast('Perfil no encontrado','err'); return; }
+  document.getElementById('selector-screen').style.display='none';
+  document.getElementById('main-wrap').classList.add('show');
+  if(!EMBED_MODE){
+    document.getElementById('tb-student-name').textContent = (CURRENT.info&&CURRENT.info.name||'') + (CURRENT.info&&CURRENT.info.phase ? ' · Phase ' + CURRENT.info.phase : '');
+    document.getElementById('tb-student-name').style.display='inline-block';
+    document.getElementById('logout-btn').style.display='flex';
+  }
+  buildSidebarProfile();
+  showSection('overview', document.querySelector('.sidebar .nav-item'));
+  var ex = getExercises();
+  document.getElementById('nb-exercises').textContent = ex.length;
 }
 
 function selectStudent(){
   var id = document.getElementById('student-select').value;
   if(!id) return;
   document.getElementById('sel-loading').style.display='block';
-  CURRENT = ALL_STUDENTS[id];
-  if(!CURRENT){ showToast('Student not found','err'); return; }
   setTimeout(function(){
-    document.getElementById('selector-screen').style.display='none';
-    document.getElementById('main-wrap').classList.add('show');
-    document.getElementById('tb-student-name').textContent = CURRENT.info.name + (CURRENT.info.phase ? ' · Phase ' + CURRENT.info.phase : '');
-    document.getElementById('tb-student-name').style.display='inline-block';
-    document.getElementById('logout-btn').style.display='flex';
-    buildSidebarProfile();
-    showSection('overview', document.querySelector('.nav-item'));
-    var ex = getExercises();
-    document.getElementById('nb-exercises').textContent = ex.length;
-  },400);
+    document.getElementById('sel-loading').style.display='none';
+    loadStudentById(id);
+  },300);
 }
 
 function logout(){
