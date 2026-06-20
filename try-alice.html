@@ -38,10 +38,13 @@
     </div>
     <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status" id="typing" style="display:none;font-style:italic;">Alice is typing…</div>
+    <div class="demo-voice-hint" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Alice speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.</div>
     <div class="demo-input-row" id="input-row">
-      <input class="demo-input" id="inp" placeholder="Type in English…" autocomplete="off">
+      <button type="button" class="demo-mic" id="btn-mic" title="Speak to Alice" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
+      <input class="demo-input" id="inp" placeholder="Speak or type in English…" autocomplete="off">
       <button type="button" class="demo-send" id="btn-send" title="Send"><i class="ti ti-send"></i></button>
     </div>
+    <div class="demo-status" id="mic-status" style="display:none;"></div>
     <div id="eval-wrap"></div>
   </div>
 
@@ -58,6 +61,7 @@
 
 <script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
+<script src="js/demo-voice.js"></script>
 <script>
 (function () {
   var sessionId = null;
@@ -91,8 +95,10 @@
       maxSteps = d.maxSteps || 4;
       pre.style.display = 'none';
       panel.style.display = 'block';
+      document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
       demoAddMsg(msgs, d.reply, 'assistant', 'ALICE');
+      DemoVoice.speak(d.reply, 'alice');
       step = d.step;
       updateMeta();
     } catch (e) {
@@ -121,6 +127,7 @@
     try {
       var d = await demoSend(sessionId, text);
       demoAddMsg(msgs, d.reply, 'assistant', d.done ? 'ALICE' : 'ALICE');
+      DemoVoice.speak(d.reply, 'alice');
       step = d.step;
       updateMeta();
       if (d.done) {
@@ -143,6 +150,7 @@
 
   document.getElementById('btn-start').onclick = start;
   document.getElementById('btn-send').onclick = send;
+  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'en-US', onSend: send });
   inp.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); send(); }
   });

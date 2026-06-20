@@ -32,10 +32,16 @@
 .demo-bubble{max-width:88%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.65;}
 .demo-msg.user .demo-bubble{background:var(--purple);color:white;border-radius:14px 4px 14px 14px;}
 .demo-msg.assistant .demo-bubble{background:white;border:1px solid var(--line);color:var(--text);border-radius:4px 14px 14px 14px;}
-.demo-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:white;}
-.demo-input{flex:1;border:1.5px solid var(--line);border-radius:50px;padding:10px 16px;font-size:14px;font-family:inherit;outline:none;}
+.demo-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:white;align-items:center;}
+.demo-input{flex:1;border:1.5px solid var(--line);border-radius:50px;padding:10px 16px;font-size:14px;font-family:inherit;outline:none;min-width:0;}
 .demo-input:focus{border-color:var(--purple);}
-.demo-send{width:42px;height:42px;border:none;border-radius:50%;background:var(--purple);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.demo-mic{width:42px;height:42px;border:2px solid rgba(91,33,182,0.2);border-radius:50%;background:rgba(91,33,182,0.06);color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.demo-mic:hover{background:rgba(91,33,182,0.12);}
+.demo-mic.recording{background:rgba(239,68,68,0.15);border-color:#EF4444;color:#DC2626;animation:demo-mic-pulse 1s ease-in-out infinite;}
+@keyframes demo-mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.35);}50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}}
+.demo-voice-hint{font-size:12px;color:var(--purple);background:var(--lavender);border:1px solid rgba(91,33,182,0.12);border-radius:var(--r);padding:10px 14px;margin:0 0 12px;display:flex;align-items:center;gap:8px;line-height:1.5;}
+.demo-voice-hint.gold{color:var(--gold-dark);background:rgba(245,166,35,0.12);border-color:rgba(245,166,35,0.25);}
+.demo-send{width:42px;height:42px;border:none;border-radius:50%;background:var(--purple);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .demo-send:disabled{opacity:.45;cursor:not-allowed;}
 .demo-status{font-size:11px;text-align:center;padding:8px;color:var(--t3);min-height:28px;}
 .demo-scenario-pick{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:24px 2rem 8px;}

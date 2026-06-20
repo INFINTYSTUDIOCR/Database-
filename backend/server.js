@@ -269,7 +269,8 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 const DEMO_LIMITS = {
   alice:  { sessionsPerDay: 5, maxSteps: 4 },
   nexora: { sessionsPerDay: 5, maxSteps: 3 },
-  claire: { sessionsPerDay: 8, messagesPerDay: 30 }
+  claire: { sessionsPerDay: 8, messagesPerDay: 30 },
+  tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
 const IP_DAY_MS = 24 * 60 * 60 * 1000;
 const demoResponseCache = new Map();
@@ -330,7 +331,7 @@ async function checkDemoIpLimit(ip, service, { action } = {}) {
   const { id, data } = await getIpRecord(ip);
   const day = todayKey();
   const bucket = data[service] || { day, sessions: 0, messages: 0 };
-  if (bucket.day !== day) { bucket.day = day; bucket.sessions = 0; bucket.messages = 0; }
+  if (bucket.day !== day) { bucket.day = day; bucket.sessions = 0; bucket.messages = 0; bucket.tts = 0; }
 
   if (action === 'session') {
     if (bucket.sessions >= limits.sessionsPerDay) {
@@ -345,6 +346,16 @@ async function checkDemoIpLimit(ip, service, { action } = {}) {
       data[service] = bucket;
       await saveIpRecord(id, data);
       return { ok: false, reason: 'messages', wait: '24 horas', sessionsLeft: 0 };
+    }
+  }
+
+  if (action === 'tts') {
+    bucket.tts = (bucket.tts || 0) + 1;
+    const ttsCap = limits.ttsPerDay || limits.messagesPerDay || 40;
+    if (bucket.tts > ttsCap) {
+      data[service] = bucket;
+      await saveIpRecord(id, data);
+      return { ok: false, reason: 'tts', wait: '24 horas', sessionsLeft: 0 };
     }
   }
 
@@ -559,6 +570,23 @@ app.get('/demo/status', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Status unavailable' });
+  }
+});
+
+app.post('/demo/tts', async (req, res) => {
+  try {
+    const { text, voice } = req.body || {};
+    const ip = getClientIp(req);
+    const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
+    if (!ipLimit.ok) {
+      return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
+    }
+    const voiceId = voice === 'nexora' ? (process.env.JILL_VOICE_ID || JILL_VOICE_ID) : ALICE_VOICE_ID;
+    const label = voice === 'nexora' ? 'Nexora demo' : 'Alice demo';
+    return await synthesizeSpeech(req, res, { text, voiceId, label });
+  } catch (err) {
+    console.error('Demo TTS error:', err.message);
+    return res.status(500).json({ error: 'TTS unavailable' });
   }
 });
 

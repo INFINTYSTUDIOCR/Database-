@@ -23,7 +23,7 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="try-demo.html">Demos</a> <span>/</span> Nexora</div>
     <h1 class="page-title">Nexora Mini Simulation</h1>
-    <p class="page-lead">Pick one scenario — buffered client/interviewer responses, IP-limited, built for a quick taste of ORT pressure.</p>
+    <p class="page-lead">Pick one scenario — speak or type in English. Alice/Nexora respond with voice (mic + headphones recommended).</p>
   </div>
 </header>
 
@@ -54,10 +54,13 @@
     </div>
     <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status" id="typing" style="display:none;font-style:italic;">Simulation running…</div>
+    <div class="demo-voice-hint gold" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Voice on — tap <strong>mic</strong> to speak or type below. Use Chrome for best results.</div>
     <div class="demo-input-row" id="input-row">
-      <input class="demo-input" id="inp" placeholder="Your response in English…" autocomplete="off">
+      <button type="button" class="demo-mic" id="btn-mic" title="Speak your answer" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
+      <input class="demo-input" id="inp" placeholder="Speak or type in English…" autocomplete="off">
       <button type="button" class="demo-send" id="btn-send"><i class="ti ti-send"></i></button>
     </div>
+    <div class="demo-status" id="mic-status" style="display:none;"></div>
     <div id="eval-wrap"></div>
   </div>
 
@@ -74,6 +77,7 @@
 
 <script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
+<script src="js/demo-voice.js"></script>
 <script>
 (function () {
   var scenario = 'star';
@@ -124,8 +128,10 @@
       maxSteps = d.maxSteps || 3;
       panel.style.display = 'block';
       document.getElementById('btn-start').style.display = 'none';
+      document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
       demoAddMsg(msgs, d.reply, 'assistant', roleLabel());
+      DemoVoice.speak(d.reply, 'nexora');
       step = d.step;
       document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
     } catch (e) {
@@ -151,6 +157,7 @@
     try {
       var d = await demoSend(sessionId, text);
       demoAddMsg(msgs, d.reply, 'assistant', d.done ? roleLabel() : roleLabel());
+      DemoVoice.speak(d.reply, 'nexora');
       step = d.step;
       document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
       if (d.done) {
@@ -172,6 +179,7 @@
 
   document.getElementById('btn-start').onclick = start;
   document.getElementById('btn-send').onclick = send;
+  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'en-US', onSend: send });
   inp.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); send(); }
   });
