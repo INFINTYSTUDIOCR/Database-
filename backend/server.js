@@ -87,6 +87,15 @@ async function sbSet(table, id, data) {
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Alice & Claire by Studio Infinity CR — OK'));
 
+app.get('/auth/status', (req, res) => {
+  res.json({
+    ok: true,
+    authLogin: true,
+    jwtConfigured: !!JWT_SECRET,
+    masterEmail: (process.env.MASTER_TRAINER_EMAIL || 'trainer@infinity.cr').toLowerCase()
+  });
+});
+
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
   const k = process.env.ANTHROPIC_API_KEY || '';

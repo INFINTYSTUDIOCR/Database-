@@ -45,11 +45,15 @@ async function infinityLogin(user, password, role) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: user, password: password, role: role })
   });
-  var d = await r.json();
+  var text = await r.text();
+  var d = {};
+  try { d = text ? JSON.parse(text) : {}; } catch (e) { d = {}; }
   if (!r.ok) {
-    var err = new Error(d.error || 'Login failed');
+    var err = new Error(d.error || (r.status === 404 ? 'Auth route missing on server' : 'Login failed'));
     err.status = r.status;
     err.data = d;
+    err.authRouteMissing = r.status === 404 || text.indexOf('Cannot POST') >= 0;
+    err.authNotConfigured = r.status === 503 && (d.error || '').indexOf('not configured') >= 0;
     throw err;
   }
   setAuthToken(d.token, d.expiresIn);

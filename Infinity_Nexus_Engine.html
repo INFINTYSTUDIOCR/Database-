@@ -776,13 +776,26 @@ async function loadUsers(){
     var rows = await dbGet('infinity_users');
     TRAINERS = {};
     rows.forEach(function(r){ if(r.data) TRAINERS[r.data.email]=r.data; });
-    // Seed master if empty
-    if(!Object.keys(TRAINERS).length){
-      var master = {id:'USR-MASTER-001',email:'trainer@infinity.cr',pass:'nexus2025',name:'Johnny Ramirez',role:'superadmin',department:'admin',status:'active'};
-      await dbSet('infinity_users','USR-MASTER-001',master);
-      TRAINERS['trainer@infinity.cr']=master;
-    }
   }catch(e){ console.error('loadUsers error',e); }
+}
+
+/** Fallback when Render has not deployed /auth/login yet — validates against Supabase */
+async function tryLegacyTrainerLogin(user, pass){
+  await loadUsers();
+  var trainer = TRAINERS[user];
+  if(trainer && trainer.pass === pass){
+    if(trainer.status === 'suspended') return { error:'suspended' };
+    var role = trainer.role || 'trainer';
+    return { role: role === 'superadmin' ? 'superadmin' : role, name: trainer.name || user, legacy: true };
+  }
+  // First master bootstrap (empty DB, Render auth unavailable)
+  if(user === 'trainer@infinity.cr' && pass.length >= 8 && !Object.keys(TRAINERS).length){
+    var master = { id:'USR-MASTER-001', email:user, pass:pass, name:'Master Trainer', role:'superadmin', department:'admin', status:'active' };
+    await dbSet('infinity_users','USR-MASTER-001', master);
+    TRAINERS[user] = master;
+    return { role:'superadmin', name: master.name, legacy: true, bootstrapped: true };
+  }
+  return null;
 }
 
 // ── STATE ─────────────────────────────────────────────────
@@ -840,6 +853,7 @@ window.addEventListener('unhandledrejection', function(e){
 
 document.getElementById('tb-logo').src = 'data:image/png;base64,'+LOGO;
 document.getElementById('login-logo').src = 'data:image/png;base64,'+LOGO;
+loadUsers().catch(function(){});
 
 async function loadData(){
   await loadUsers();
@@ -865,14 +879,30 @@ async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
   var pass = document.getElementById('l-pass').value;
   var err = document.getElementById('login-err');
+  var btn = document.getElementById('login-screen').querySelector('.btn-navy');
   err.style.display = 'none';
+  btn.innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
 
+  var auth = null;
   try {
-    var auth = await infinityLogin(user, pass, 'trainer');
+    auth = await infinityLogin(user, pass, 'trainer');
   } catch (e) {
-    err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
-    err.style.display = 'block';
-    return;
+    if(e && (e.authRouteMissing || e.authNotConfigured || e.status === 503)){
+      var legacy = await tryLegacyTrainerLogin(user, pass);
+      if(legacy && legacy.error === 'suspended'){
+        err.textContent = 'Tu acceso ha sido suspendido. Contactá al Master Trainer.';
+        err.style.display = 'block';
+        btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+        return;
+      }
+      if(legacy) auth = legacy;
+    }
+    if(!auth){
+      err.textContent = (e && e.data && e.data.error) || 'Usuario o contraseña incorrectos.';
+      err.style.display = 'block';
+      btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      return;
+    }
   }
 
   await loadUsers();
@@ -880,6 +910,7 @@ async function doLogin(){
     SESSION = { user, name: auth.name || 'Master Trainer', role: 'superadmin' };
     await loadData();
     SESSION.code = getTrainerCode(user);
+    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
     startApp();
     return;
   }
@@ -888,18 +919,21 @@ async function doLogin(){
     clearAuthToken();
     err.textContent = 'Perfil de trainer no encontrado.';
     err.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
     return;
   }
   if(trainer.status === 'suspended'){
     clearAuthToken();
     err.textContent = 'Tu acceso ha sido suspendido. Contactá al Master Trainer.';
     err.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
     return;
   }
   SESSION = { user, name: trainer.name, role: trainer.role, department: trainer.department };
   await loadData();
   SESSION.code = getTrainerCode(user);
   await logAction('Inicio de sesión', trainer.email);
+  btn.innerHTML = '<i class="ti ti-login"></i>Ingresar';
   startApp();
 }
 
