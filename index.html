@@ -20,7 +20,7 @@
   --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;--gray-light:#E2E8F0;
   --r:8px;--rl:16px;--rxl:24px;
 }
-html{scroll-behavior:smooth;scroll-padding-top:80px;}
+html{scroll-behavior:smooth;}
 body{font-family:'Inter',sans-serif;background:var(--white);color:var(--text);overflow-x:hidden;}
 
 nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.1);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
@@ -937,23 +937,19 @@ function toggleClaire() {
 async function startClaire() {
   _started = true;
   showTyping(true);
-  var ctrl = new AbortController();
-  var timer = setTimeout(function(){ ctrl.abort(); }, 20000);
   try {
     var r = await fetch(CLAIRE_BACKEND + '/claire', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({mode:'start'}),
-      signal: ctrl.signal
+      body: JSON.stringify({mode:'start'})
     });
-    clearTimeout(timer);
     var d = await r.json();
-    if(d && d.reply){ addMsg(d.reply, 'c'); speak(d.reply); _ch.push({role:'assistant', content:d.reply}); }
-    else { addMsg('¡Hola! Soy Claire de Off The Clock. ¿En qué puedo ayudarte? 😊', 'c'); }
-  } catch(e) {
-    addMsg('¡Hola! Soy Claire de Off The Clock. ¿En qué puedo ayudarte? 😊', 'c');
-  } finally {
-    clearTimeout(timer);
     showTyping(false);
+    addMsg(d.reply, 'c');
+    speak(d.reply);
+    _ch.push({role:'assistant', content:d.reply});
+  } catch(e) {
+    showTyping(false);
+    addMsg('¡Hola! Soy Claire de Off The Clock. ¿En qué puedo ayudarte? 😊', 'c');
   }
 }
 
@@ -987,25 +983,19 @@ async function sendClaire() {
   if (_count === 17) setTimeout(function(){ addMsg('💡 Nos quedan pocos mensajes — si querés continuar, agendá tu evaluación gratuita cuando quieras.', 'c'); }, 300);
   if (_count >= _LIMIT) { setTimeout(showLimit, 600); return; }
   showTyping(true);
-  var ctrl2 = new AbortController();
-  var timer2 = setTimeout(function(){ ctrl2.abort(); }, 22000);
   try {
     var r = await fetch(CLAIRE_BACKEND + '/claire', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({mode:'chat', message:txt, history:_ch.slice(-12)}),
-      signal: ctrl2.signal
+      body: JSON.stringify({mode:'chat', message:txt, history:_ch.slice(-12)})
     });
     var d = await r.json();
-    var reply = (d && d.reply) ? d.reply : 'Disculpá, no pude procesar eso. Intentá de nuevo.';
-    addMsg(reply, 'c');
-    speak(reply);
-    _ch.push({role:'assistant', content:reply});
-  } catch(e) {
-    addMsg('Disculpá, hubo un problema. Escribinos al WhatsApp: +506 6006 0981', 'c');
-  } finally {
-    clearTimeout(timer2);
     showTyping(false);
-    _sending = false;
+    addMsg(d.reply, 'c');
+    speak(d.reply);
+    _ch.push({role:'assistant', content:d.reply});
+  } catch(e) {
+    showTyping(false);
+    addMsg('Disculpá, hubo un problema. Escribinos al WhatsApp: +506 6006 0981', 'c');
   }
 }
 
