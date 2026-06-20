@@ -55,18 +55,29 @@ function nexoraBrowserSpeak(text, gender) {
   return true;
 }
 
-function nexoraFetchTTS(text, voiceId) {
-  var fetchFn = typeof infinityFetch === 'function' ? infinityFetch : fetch;
-  var url = typeof INFINITY_API !== 'undefined' ? INFINITY_API + '/nexora-tts' : '/nexora-tts';
-  var opts = {
-    method: 'POST',
-    headers: typeof authHeaders === 'function' ? authHeaders() : { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: text, voiceId: voiceId || NEXORA_DEFAULT_VOICE })
-  };
-  if (fetchFn === fetch) {
-    return fetch(url, opts);
+function nexoraFetchTTS(text, voiceId, useDemo) {
+  var vid = voiceId || NEXORA_DEFAULT_VOICE;
+  if (useDemo) {
+    var api = typeof INFINITY_API !== 'undefined' ? INFINITY_API : 'https://alice-by-infinity.onrender.com';
+    return fetch(api + '/demo/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text, voiceId: vid })
+    });
   }
-  return fetchFn('/nexora-tts', opts);
+  if (typeof infinityFetch === 'function') {
+    return infinityFetch('/nexora-tts', {
+      method: 'POST',
+      headers: typeof authHeaders === 'function' ? authHeaders() : { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text, voiceId: vid })
+    });
+  }
+  var apiRoot = typeof INFINITY_API !== 'undefined' ? INFINITY_API : 'https://alice-by-infinity.onrender.com';
+  return fetch(apiRoot + '/nexora-tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: text, voiceId: vid })
+  });
 }
 
 function nexoraPlayBlob(blob, onDone) {
@@ -101,13 +112,19 @@ function nexoraSpeak(text, profile) {
   var gender = (profile && profile.gender) || 'female';
   var fallbacks = [primary];
   if (fallbacks.indexOf(NEXORA_DEFAULT_VOICE) === -1) fallbacks.push(NEXORA_DEFAULT_VOICE);
+  if (fallbacks.indexOf(NEXORA_INTERVIEWER_VOICE) === -1) fallbacks.push(NEXORA_INTERVIEWER_VOICE);
+  if (fallbacks.indexOf(NEXORA_CLIENT_VOICE) === -1) fallbacks.push(NEXORA_CLIENT_VOICE);
 
-  function tryVoice(idx) {
+  function tryVoice(idx, useDemo) {
     if (idx >= fallbacks.length) {
+      if (!useDemo) {
+        tryVoice(0, true);
+        return;
+      }
       nexoraBrowserSpeak(clean, gender);
       return;
     }
-    nexoraFetchTTS(clean, fallbacks[idx])
+    nexoraFetchTTS(clean, fallbacks[idx], useDemo)
       .then(function (r) {
         if (!r.ok) throw new Error('tts_' + r.status);
         var ct = (r.headers.get('content-type') || '').toLowerCase();
@@ -116,11 +133,11 @@ function nexoraSpeak(text, profile) {
       })
       .then(function (blob) {
         nexoraPlayBlob(blob, function (ok) {
-          if (!ok) tryVoice(idx + 1);
+          if (!ok) tryVoice(idx + 1, useDemo);
         });
       })
-      .catch(function () { tryVoice(idx + 1); });
+      .catch(function () { tryVoice(idx + 1, useDemo); });
   }
 
-  tryVoice(0);
+  tryVoice(0, false);
 }

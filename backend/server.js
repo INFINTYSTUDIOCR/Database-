@@ -86,6 +86,7 @@ async function sbSet(table, id, data) {
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Alice & Claire by Studio Infinity CR — OK'));
+app.get('/health', (req, res) => res.json({ ok: true, version: '8ee2381-nexora-voice' }));
 
 app.get('/auth/status', (req, res) => {
   res.json({
