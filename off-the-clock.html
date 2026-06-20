@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/lang-toggle.css">
+<link rel="stylesheet" href="css/program-vignettes.css">
 </head>
 <body>
 <nav>
@@ -34,6 +36,7 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <a href="index.html#community-programs">Community</a> <span>/</span> Off The Clock</div>
     <span class="category-pill community"><i class="ti ti-microphone-2"></i> Community Program</span>
+    <div class="page-hero-logo" data-vignette="off-the-clock" aria-label="Off The Clock logo"></div>
     <h1 class="page-title">Off The Clock</h1>
     <p class="page-lead">Infinity Studio's live talk show — a relaxed space for students, trainers and guests to connect beyond the classroom.</p>
     <div class="key-message">"Learn who we are beyond the classroom."</div>
@@ -81,7 +84,7 @@
     <a href="index.html#community-programs" class="btn-secondary"><i class="ti ti-arrow-left"></i> All community programs</a>
   </div>
   <aside class="visual-card">
-    <div class="visual-banner rose"><i class="ti ti-microphone-2"></i></div>
+    <div class="visual-banner rose vignette-slot" data-vignette="off-the-clock" aria-label="Off The Clock logo"></div>
     <div class="visual-body">
       <div class="visual-tag">Community · Talk Show</div>
       <ul class="visual-meta">
@@ -97,5 +100,7 @@
 <footer class="page-footer">Infinity Studio · <a href="index.html">Home</a> · <a href="https://wa.me/50660060981">+506 6006 0981</a></footer>
 <script src="js/enroll.js"></script>
 <script src="js/claire.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/program-vignettes.js"></script>
 </body>
 </html>

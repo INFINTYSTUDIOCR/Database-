@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 // ── CORS (allowed origins only) ──────────────────────────────
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://infintystudiocr.github.io,https://studioinfinitycr.com,http://localhost:8765,http://127.0.0.1:5500,http://localhost:5500'
+  'https://infintystudiocr.github.io,https://studioinfinitycr.com,https://www.studioinfinitycr.com,http://localhost:8765,http://127.0.0.1:5500,http://localhost:5500'
 ).split(',').map(s => s.trim()).filter(Boolean);
 
 app.use(cors({
@@ -277,8 +277,18 @@ const DEMO_CACHE_MAX = 300;
 
 let DEMO_BUFFER = {};
 try {
-  const bufPath = path.join(__dirname, '../config/demo-buffer.json');
-  DEMO_BUFFER = JSON.parse(fs.readFileSync(bufPath, 'utf8'));
+  const bufCandidates = [
+    path.join(__dirname, '../config/demo-buffer.json'),
+    path.join(__dirname, 'config/demo-buffer.json')
+  ];
+  for (const bufPath of bufCandidates) {
+    if (fs.existsSync(bufPath)) {
+      DEMO_BUFFER = JSON.parse(fs.readFileSync(bufPath, 'utf8'));
+      console.log('demo-buffer loaded:', bufPath);
+      break;
+    }
+  }
+  if (!Object.keys(DEMO_BUFFER).length) console.warn('demo-buffer.json not found in config paths');
 } catch (e) {
   console.warn('demo-buffer.json not loaded:', e.message);
 }

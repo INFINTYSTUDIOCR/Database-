@@ -1,0 +1,55 @@
+/** Client-side demo buffer — used when Render /demo/* is unavailable */
+window.DEMO_BUFFER = {
+  alice: {
+    start: "Hi! I'm Alice — your English performance coach at Off The Clock. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
+    steps: [
+      "Good start! Now let's push a little. Describe a challenge you faced recently at work. Try to use the connector **however** when you switch ideas.",
+      "Nice effort! I noticed your structure — let me coach you. Remember: **Idea + Linker + Idea**. For example: \"We had a deadline, **however** the client changed the scope, **so** we reprioritized.\" Can you try one more sentence using **on top of that** or **even though**?",
+      "You're doing exactly what our students practice — speaking under light pressure with immediate feedback. One more: how would you explain your role to an international manager in 30 seconds?"
+    ],
+    finish: {
+      reply: "Great mini session! You showed willingness to speak, and that's the hardest part. In the full program, Alice tracks your KPIs, connectors, and recovery techniques 24/7.\n\nALICE: ¡Excelente primer paso! En el programa completo trabajamos conectores, estructura oral y fluidez bajo presión real.",
+      evaluation: {
+        overall_score: 72,
+        highlights: ["You completed the demo session", "You attempted extended responses in English"],
+        improvements: ["Practice Idea + Linker + Idea structure", "Use connectors: however, on top of that, even though"],
+        connectors_found: [],
+        connectors_suggested: ["however", "on top of that", "even though", "therefore"]
+      }
+    }
+  },
+  nexora_star: {
+    start: "Thanks for joining. I'm conducting a brief STAR behavioral interview. First question: **Tell me about a time you had to handle a difficult situation at work.** Focus on Situation, Task, Action, and Result — and be specific about YOUR actions.",
+    steps: [
+      "Thank you. You've described the situation — **what specific actions did YOU take**, and what was the measurable result?",
+      "Good. One more: **Tell me about a time you had to meet a tight deadline while quality still mattered.** Use STAR format again."
+    ],
+    finish: {
+      reply: "That concludes our mini STAR interview. You handled the pressure of a structured interview — that's exactly what Nexora trains.",
+      evaluation: {
+        overall_score: 70,
+        structure_score: 65,
+        wins: ["You completed the STAR demo", "You attempted structured answers under interview pressure"],
+        improvements: ["Name YOUR specific action in each story", "End with a measurable Result", "Use connectors to link ideas smoothly"],
+        verdict: "Solid demo effort! In the full ORT program, Nexora runs longer scenarios with live scoring on clarity, connectors, and confidence."
+      }
+    }
+  },
+  nexora_cs: {
+    start: "Hello, this is **Maria Santos** calling about my account. I've been charged **$49.99** that I don't recognize, and honestly I'm quite frustrated. Can you help me with this?",
+    steps: [
+      "I've been a customer for two years and this has never happened before. **What exactly are you going to do about it?**",
+      "Okay... I'm listening. But I need you to be clear — **will this charge be removed**, and how long will it take?"
+    ],
+    finish: {
+      reply: "Alright, I'll wait for the confirmation email. Thank you for handling this.",
+      evaluation: {
+        overall_score: 68,
+        client_satisfaction: 7,
+        wins: ["You stayed in the call", "You attempted to address the client's concern"],
+        improvements: ["Acknowledge emotion first before explaining policy", "Use empathy phrases: \"I understand how frustrating this is\"", "Offer a clear next step with a timeline"],
+        verdict: "Good demo! Full Nexora CS simulations add hold management, escalation paths, and connector scoring under real call pressure."
+      }
+    }
+  }
+};

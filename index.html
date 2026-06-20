@@ -7,6 +7,8 @@
 <meta name="description" content="We don't teach English. We develop operational capacity.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="css/lang-toggle.css">
+<link rel="stylesheet" href="css/program-vignettes.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -393,7 +395,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <div class="eco-grid">
       <a href="foundations.html" class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-users"></i></div><div class="eco-name">Foundations</div><div class="eco-title">Communication Core</div><div class="eco-desc">Communication, participation, interaction, collaboration — the operational English base.</div></a>
       <a href="ort.html" class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-flame"></i></div><div class="eco-name">ORT</div><div class="eco-title">Operational Readiness Training</div><div class="eco-desc">Pressure-based training that forces execution under real conditions. No comfort zones.</div></a>
-      <a href="try-nexora.html" class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-rocket"></i></div><div class="eco-name">Nexora</div><div class="eco-title">Business Simulation Lab</div><div class="eco-desc">Immersive simulations: mock interviews, customer service, negotiations, crisis management.</div></a>
+      <a href="try-nexora.html" class="eco-card fade-up"><div class="program-vignette eco-vignette-wide" data-vignette="nexora" aria-label="Nexora animation"></div><div class="eco-name">Nexora</div><div class="eco-title">Business Simulation Lab</div><div class="eco-desc">Immersive simulations: mock interviews, customer service, negotiations, crisis management.</div></a>
       <a href="try-alice.html" class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-robot"></i></div><div class="eco-name">Alice</div><div class="eco-title">24/7 AI Coach</div><div class="eco-desc">Your personal AI tutor — always available, always coaching, always pushing performance.</div></a>
       <div class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-dashboard"></i></div><div class="eco-name">Infinity Engine</div><div class="eco-title">Performance Platform</div><div class="eco-desc">Real-time KPI tracking, diagnostics, reporting, and training book management.</div></div>
       <div class="eco-card fade-up"><div class="eco-icon"><i class="ti ti-book"></i></div><div class="eco-name">Training Book</div><div class="eco-title">Personal Development Plan</div><div class="eco-desc">Personalized exercises designed specifically for your operational weaknesses.</div></div>
@@ -504,14 +506,14 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;">
         <a href="foundations.html" class="program-card fade-up purple core">
           <span class="program-badge core">Core · Training</span>
-          <div class="program-icon"><i class="ti ti-users" style="font-size:40px;color:var(--purple-light);"></i></div>
+          <div class="program-vignette" data-vignette="foundations" aria-label="Foundations animation"></div>
           <h3>Foundations</h3>
           <p>Communication Core — participation, interaction and collaboration. The operational English base of the Infinity methodology.</p>
           <span class="card-cta"><i class="ti ti-arrow-right"></i> View program</span>
         </a>
         <a href="ort.html" class="program-card fade-up gold core">
           <span class="program-badge core">Core · Training</span>
-          <div class="program-icon gold"><i class="ti ti-flame" style="font-size:40px;color:var(--gold);"></i></div>
+          <div class="program-vignette" data-vignette="ort" aria-label="ORT animation"></div>
           <h3>ORT</h3>
           <p>Operational Readiness Training — pressure-based execution under real conditions. No comfort zones.</p>
           <span class="card-cta"><i class="ti ti-arrow-right"></i> View program</span>
@@ -529,7 +531,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
       <a href="off-the-clock.html" class="program-card fade-up rose">
         <span class="program-badge satellite">Community · Talk Show</span>
-        <div class="program-icon" style="background:rgba(236,72,153,0.15);"><i class="ti ti-microphone-2" style="font-size:40px;color:#EC4899;"></i></div>
+        <div class="program-vignette" data-vignette="off-the-clock" aria-label="Off The Clock logo"></div>
         <h3>Off The Clock</h3>
         <p>Infinity Studio's live talk show — conversation, entertainment and relationship building beyond the classroom.</p>
         <span class="card-cta"><i class="ti ti-arrow-right"></i> Learn more</span>
@@ -545,7 +547,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
       <a href="job-finder.html" class="program-card fade-up gold program-card-img">
         <span class="program-badge satellite">Employability</span>
-        <div class="program-art right"><img src="assets/programs-duo.png" alt="Job Finder"></div>
+        <div class="program-vignette" data-vignette="job-finder" aria-label="Job Finder animation"></div>
         <h3>Job Finder</h3>
         <p>Career development with recruiters and industry professionals — real hiring expectations and market insights.</p>
         <span class="card-cta"><i class="ti ti-arrow-right"></i> Learn more</span>
@@ -630,6 +632,8 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="footer-copy">© 2026 Off The Clock by ∞ Infinity · All rights reserved · studioinfinitycr.com</div>
 </footer>
 
+<script src="js/i18n.js"></script>
+<script src="js/program-vignettes.js"></script>
 <script>
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
   a.addEventListener('click',function(e){
@@ -646,13 +650,24 @@ function submitContact(){
   var phone = (document.getElementById('cf-phone')||{}).value || '';
   var program = (document.getElementById('cf-program')||{}).value || '';
   var goal = (document.getElementById('cf-goal')||{}).value || '';
-  if(!name.trim() || !phone.trim()){ alert('Please enter your name and WhatsApp number.'); return; }
-  var msg = 'Hello! I want to book a free assessment at Off The Clock.\n\n'
-    + 'Name: '+name.trim()+'\n'
-    + 'Email: '+(email.trim()||'—')+'\n'
-    + 'WhatsApp: '+phone.trim()+'\n'
-    + 'Program: '+program+'\n'
-    + 'Goal: '+(goal.trim()||'—');
+  var lang = (window.InfinityI18n && InfinityI18n.getLang()) || 'en';
+  if(!name.trim() || !phone.trim()){
+    alert(lang === 'es' ? 'Por favor ingresa tu nombre y número de WhatsApp.' : 'Please enter your name and WhatsApp number.');
+    return;
+  }
+  var msg = lang === 'es'
+    ? '¡Hola! Quiero agendar una evaluación gratuita en Off The Clock.\n\n'
+      + 'Nombre: '+name.trim()+'\n'
+      + 'Correo: '+(email.trim()||'—')+'\n'
+      + 'WhatsApp: '+phone.trim()+'\n'
+      + 'Programa: '+program+'\n'
+      + 'Objetivo: '+(goal.trim()||'—')
+    : 'Hello! I want to book a free assessment at Off The Clock.\n\n'
+      + 'Name: '+name.trim()+'\n'
+      + 'Email: '+(email.trim()||'—')+'\n'
+      + 'WhatsApp: '+phone.trim()+'\n'
+      + 'Program: '+program+'\n'
+      + 'Goal: '+(goal.trim()||'—');
   window.open('https://wa.me/50660060981?text='+encodeURIComponent(msg), '_blank');
 }
 </script>

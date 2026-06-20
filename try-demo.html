@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/lang-toggle.css">
 <link rel="stylesheet" href="css/demo.css">
 </head>
 <body>
@@ -57,6 +58,7 @@
   Off The Clock · Demo limits apply per connection · <a href="index.html#contact">Contact</a>
 </footer>
 
+<script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
 <script>
 document.querySelectorAll('.demo-gate').forEach(function (gate) {
@@ -75,5 +77,6 @@ Promise.all([demoFetchStatus('alice'), demoFetchStatus('nexora')]).then(function
   if (n) n.textContent = arr[1].sessionsLeft + ' demo(s) left today';
 });
 </script>
+<script src="js/i18n.js"></script>
 </body>
 </html>
