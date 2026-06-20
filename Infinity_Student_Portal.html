@@ -319,7 +319,7 @@ function openTrainingBook(){
   var q = ['embed=1','from=portal'];
   if(s.id) q.push('studentId='+encodeURIComponent(s.id));
   if(s.portalUser) q.push('portalUser='+encodeURIComponent(String(s.portalUser).trim().toLowerCase()));
-  window.location.href = 'Infinity_Training_Book.html?' + q.join('&');
+  window.location.href = 'Infinity_Training_Book%20(1).html?' + q.join('&');
 }
 
 function switchPortalTab(tab){

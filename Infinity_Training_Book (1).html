@@ -512,13 +512,25 @@ var EXERCISES = {
       if(!loaded){
         var snap = null;
         try{ snap = JSON.parse(sessionStorage.getItem('portal_student_snapshot')||'null'); }catch(e){}
-        if(snap && snap.id && ALL_STUDENTS[snap.id]) loadStudentById(snap.id);
-        else if(snap && snap.portalUser){
+        if(snap && snap.id && ALL_STUDENTS[snap.id]){ loadStudentById(snap.id); loaded = true; }
+        if(!loaded && snap && snap.portalUser){
           var mid = Object.keys(ALL_STUDENTS).find(function(k){
             return String(ALL_STUDENTS[k].portalUser||'').trim().toLowerCase() === String(snap.portalUser).trim().toLowerCase();
           });
-          if(mid) loadStudentById(mid);
+          if(mid){ loadStudentById(mid); loaded = true; }
         }
+        if(!loaded && snap && snap.name){
+          var nid = Object.keys(ALL_STUDENTS).find(function(k){
+            return String(ALL_STUDENTS[k].info&&ALL_STUDENTS[k].info.name||'').trim().toLowerCase() === String(snap.name).trim().toLowerCase();
+          });
+          if(nid){ loadStudentById(nid); loaded = true; }
+        }
+      }
+      if(!CURRENT){
+        document.getElementById('main-wrap').classList.remove('show');
+        document.getElementById('selector-screen').style.display='block';
+        document.querySelector('.sel-sub').textContent = 'No pudimos cargar tu perfil automáticamente. Seleccioná tu nombre abajo.';
+        buildStudentSelect();
       }
     }
   }catch(e){ showToast('Connection error','err'); }
