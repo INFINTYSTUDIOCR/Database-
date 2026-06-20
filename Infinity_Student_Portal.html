@@ -40,6 +40,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tb-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);color:white;border-radius:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;padding:0;font-family:inherit;transition:background 0.15s,border-color 0.15s;flex-shrink:0;}
+.tb-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);}
+.tb-btn:disabled{opacity:0.45;cursor:default;}
 .tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(245,166,35,0.15);color:#F5A623;border:1px solid rgba(245,166,35,0.35);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
@@ -121,9 +124,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
   </div>
   <div class="tb-right">
+    <button type="button" class="tb-btn" id="tb-back" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i></button>
+    <button type="button" class="tb-btn" id="tb-refresh" onclick="portalRefresh()" title="Actualizar"><i class="ti ti-refresh"></i></button>
     <span class="tb-user" id="tb-user"></span>
     <span class="tb-role">Estudiante</span>
-    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);padding:5px 10px;font-size:11px;" onclick="logout()"><i class="ti ti-logout"></i></button>
+    <button type="button" class="tb-btn" onclick="logout()" title="Salir"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 
@@ -326,6 +331,9 @@ function openTrainingBook(){
 }
 
 function switchPortalTab(tab){
+  var prev = window._portalTab;
+  if(tab !== prev && prev) window._portalPrevTab = prev;
+  window._portalTab = tab;
   if(tab !== 'alice') stopAlice();
   if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
@@ -340,6 +348,40 @@ function switchPortalTab(tab){
   if(ph) ph.style.display = tab === 'trainingbook' ? 'none' : '';
   if(tab==='alice') renderAlice();
   if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
+  if(tab==='nexora') renderNexoraTab(window._currentStudent || window._portalStudent);
+}
+
+function portalGoBack(){
+  var target = window._portalPrevTab || 'progreso';
+  if(target === window._portalTab) target = 'progreso';
+  switchPortalTab(target);
+}
+
+async function portalRefresh(){
+  var tab = window._portalTab || 'progreso';
+  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  var btn = document.getElementById('tb-refresh');
+  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader spin"></i>'; }
+  try{
+    if(s && s.id){
+      var rows = await dbGet('infinity_students');
+      rows.forEach(function(r){ if(r.data) ALL_STUDENTS[r.id] = r.data; });
+      var fresh = ALL_STUDENTS[s.id];
+      if(fresh){
+        fresh.id = s.id;
+        CURRENT_STUDENT = fresh;
+        showPortal(fresh, { tab: tab });
+        if(tab === 'nexora') await loadNexoraConfig(fresh);
+        showToast('Portal actualizado');
+        return;
+      }
+    }
+    location.reload();
+  }catch(e){
+    showToast('No se pudo actualizar','err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-refresh"></i>'; }
+  }
 }
 
 function logout(){
@@ -355,7 +397,8 @@ function logout(){
   document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
 }
 
-function showPortal(s){
+function showPortal(s, opts){
+  opts = opts || {};
   window._currentStudent = s;
   window._portalStudent = s;
   document.getElementById('login-screen').style.display='none';
@@ -449,7 +492,7 @@ function showPortal(s){
     +'</div>';
 
   document.getElementById('portal-content').innerHTML = html;
-  switchPortalTab('progreso');
+  switchPortalTab(opts.tab || 'progreso');
   renderTypingPersonaPicker('portal-persona-container');
   checkMonthlySurvey(s);
 
@@ -1668,17 +1711,18 @@ function renderNexoraTab(s){
   if(!root) return;
   var nxConfig = window._nexoraConfig;
   if(!nxConfig){
-    root.innerHTML = '<div style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:1rem;color:rgba(255,255,255,0.7);font-size:13px;text-align:center;margin-top:1rem;">Tu trainer todavía no configuró Nexora para hoy.<br>Volvé más tarde.</div>';
+    root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.2);text-align:center;">'
+      +'<div style="font-size:13px;color:#FFFFFF;line-height:1.7;">Tu trainer todavía no configuró Nexora para hoy.<br>Volvé más tarde.</div></div>';
     return;
   }
   var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service Call',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Sales Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
   var sessionLabel = (typeLabels[nxConfig.type] || 'Nexora Simulation').toUpperCase();
-  root.innerHTML = '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.3);border-radius:14px;padding:1.25rem;margin-top:1rem;">'
-    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
-    +'<div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
-    +'<p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:white;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
+  root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.25);">'
+    +'<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.88);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
+    +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
 }
