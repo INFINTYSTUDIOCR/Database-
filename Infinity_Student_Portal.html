@@ -1646,10 +1646,8 @@ function nexoraAutoIn(){
   _nxState.onHold = false;
   _nxState.paused = false;
 
-  // Mostrar CRM después de 3 segundos (teléfono "suena")
-  setTimeout(function(){
-    nexoraShowCRM();
-  }, 3000);
+  // Mostrar CRM de inmediato
+  nexoraShowCRM();
 }
 
 // ── MOSTRAR CRM ────────────────────────────────────────────────
@@ -1723,17 +1721,35 @@ function nexoraShowCRM(){
     +'</div>'
     +'</div>';
 
-  // Empezar timer de ring → 5 segundos → Alice entra
+  // Contestar de inmediato — sin espera artificial
   _nxState.callStart = Date.now();
   startNexoraTimer();
-  
-  setTimeout(function(){
-    nexoraAnswerCall();
-  }, 5000);
+  nexoraAnswerCall();
 }
 
 // ── ANSWER CALL ────────────────────────────────────────────────
+function sanitizeNexoraReply(reply, profile){
+  if(!reply || !profile || !profile.name) return reply;
+  var first = profile.firstName || profile.name.split(' ')[0];
+  var full = profile.name;
+  var notNames = {calling:1,looking:1,trying:1,wondering:1,sorry:1,just:1,not:1,here:1,going:1,having:1,getting:1,checking:1,waiting:1,following:1,writing:1,working:1,thinking:1,sure:1,afraid:1,glad:1,happy:1,really:1,very:1,also:1,still:1,actually:1,about:1,from:1,with:1,because:1};
+  function fixName(match, name){
+    var n = String(name).trim();
+    if(!n) return match;
+    var head = n.split(' ')[0].toLowerCase();
+    if(notNames[head]) return match;
+    if(n.toLowerCase() === first.toLowerCase() || n.toLowerCase() === full.toLowerCase()) return match;
+    return match.replace(name, first);
+  }
+  return reply
+    .replace(/\b[Mm]y name is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName)
+    .replace(/\b[Tt]his is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName)
+    .replace(/\bI'm\s+([A-Z][a-z]+)\b/g, fixName)
+    .replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
+}
+
 async function nexoraAnswerCall(){
+  var p = _nxState.profile;
   var statusEl = document.getElementById('nx-call-status');
   if(statusEl) statusEl.textContent = 'Call active';
   _nxState.active = true;
@@ -1770,7 +1786,7 @@ async function nexoraAnswerCall(){
       })
     });
     var data = await r.json();
-    var reply = (data.reply||'Hello, is this customer service?').split('\nALICE:')[0].trim();
+    var reply = sanitizeNexoraReply((data.reply||'Hello, is this customer service?').split('\nALICE:')[0].trim(), p);
     if(clientStatus) clientStatus.textContent = '';
     nexoraAddMsg(reply, 'client');
     nexoraSpeak(reply);
@@ -1878,7 +1894,7 @@ async function nexoraSendToAlice(text){
       })
     });
     var data = await r.json();
-    var reply = (data.reply||'').split('\nALICE:')[0].trim();
+    var reply = sanitizeNexoraReply((data.reply||'').split('\nALICE:')[0].trim(), p);
     if(statusEl) statusEl.textContent='';
     nexoraAddMsg(reply,'client');
     nexoraSpeak(reply);
@@ -2051,16 +2067,16 @@ function stopNexoraMic(){
 function nexoraAddMsg(text, from){
   var msgs=document.getElementById('nx-msgs');
   if(!msgs) return;
-  var isAlice=from==='alice';
+  var isClient=from==='alice'||from==='client';
   var isSystem=from==='system';
   var div=document.createElement('div');
   if(isSystem){
     div.style.cssText='text-align:center;font-size:10px;color:rgba(255,255,255,0.3);padding:3px 0;font-style:italic;';
     div.textContent=text;
   } else {
-    div.style.cssText='display:flex;flex-direction:column;align-items:'+(isAlice?'flex-start':'flex-end')+';';
-    div.innerHTML=(isAlice?'<div style="font-size:9px;font-weight:700;color:rgba(192,132,252,0.7);margin-bottom:2px;">CLIENT</div>':'<div style="font-size:9px;font-weight:700;color:rgba(56,189,248,0.7);margin-bottom:2px;">YOU</div>')
-      +'<div style="max-width:90%;background:'+(isAlice?'rgba(255,255,255,0.07)':'rgba(192,132,252,0.2)')+';color:white;border-radius:'+(isAlice?'4px 12px 12px 12px':'12px 4px 12px 12px')+';padding:7px 11px;font-size:12px;line-height:1.6;">'+text+'</div>';
+    div.style.cssText='display:flex;flex-direction:column;align-items:'+(isClient?'flex-start':'flex-end')+';';
+    div.innerHTML=(isClient?'<div style="font-size:9px;font-weight:700;color:rgba(192,132,252,0.7);margin-bottom:2px;">CLIENT</div>':'<div style="font-size:9px;font-weight:700;color:rgba(56,189,248,0.7);margin-bottom:2px;">YOU</div>')
+      +'<div style="max-width:90%;background:'+(isClient?'rgba(255,255,255,0.07)':'rgba(192,132,252,0.2)')+';color:white;border-radius:'+(isClient?'4px 12px 12px 12px':'12px 4px 12px 12px')+';padding:7px 11px;font-size:12px;line-height:1.6;">'+text+'</div>';
   }
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;

@@ -738,24 +738,24 @@ function nexoraAutoIn(){
   
   var scType = sc.type || 'customer_service';
   if(scType === 'star_interview'){
-    setTimeout(function(){ showStarInterviewDisplay(sc); }, 2000);
+    showStarInterviewDisplay(sc);
   } else if(scType === 'interview'){
-    setTimeout(function(){ showInterviewDisplay(sc); }, 2000);
+    showInterviewDisplay(sc);
   } else if(scType === 'negotiation'){
-    setTimeout(function(){ showNegotiationDisplay(sc); }, 2000);
+    showNegotiationDisplay(sc);
   } else if(scType === 'corporate'){
-    setTimeout(function(){ showCorporateDisplay(sc); }, 2000);
+    showCorporateDisplay(sc);
   } else if(scType === 'stakeholder'){
-    setTimeout(function(){ showStakeholderDisplay(sc); }, 2000);
+    showStakeholderDisplay(sc);
   } else if(scType === 'meeting'){
-    setTimeout(function(){ showMeetingDisplay(sc); }, 2000);
+    showMeetingDisplay(sc);
   } else if(scType === 'medical'){
-    setTimeout(function(){ showIncomingCall(); }, 2000);
+    showIncomingCall();
   } else {
     // Default: CRM / customer service
     document.getElementById('empty-state').style.display='flex';
     document.getElementById('crm-main').style.display='none';
-    setTimeout(showIncomingCall, 2000);
+    showIncomingCall();
   }
 }
 
@@ -1519,6 +1519,26 @@ function getVoiceByName(name){
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function sanitizeNexoraReply(reply, profile){
+  if(!reply || !profile || !profile.name) return reply;
+  var first = profile.firstName || profile.name.split(' ')[0];
+  var full = profile.name;
+  var notNames = {calling:1,looking:1,trying:1,wondering:1,sorry:1,just:1,not:1,here:1,going:1,having:1,getting:1,checking:1,waiting:1,following:1,writing:1,working:1,thinking:1,sure:1,afraid:1,glad:1,happy:1,really:1,very:1,also:1,still:1,actually:1,about:1,from:1,with:1,because:1};
+  function fixName(match, name){
+    var n = String(name).trim();
+    if(!n) return match;
+    var head = n.split(' ')[0].toLowerCase();
+    if(notNames[head]) return match;
+    if(n.toLowerCase() === first.toLowerCase() || n.toLowerCase() === full.toLowerCase()) return match;
+    return match.replace(name, first);
+  }
+  return reply
+    .replace(/\b[Mm]y name is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName)
+    .replace(/\b[Tt]his is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName)
+    .replace(/\bI'm\s+([A-Z][a-z]+)\b/g, fixName)
+    .replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
+}
+
 async function aliceEnter(){
   var st=document.getElementById('co-status-text');
   if(st) st.textContent='Alice is connecting as client...';
@@ -1545,7 +1565,7 @@ async function aliceEnter(){
       })
     });
     var d=await r.json();
-    var reply=(d.reply||'Hello is this customer service?');
+    var reply=sanitizeNexoraReply(d.reply||'Hello is this customer service?', p);
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);
@@ -1560,7 +1580,7 @@ var _nxSending=false;
 async function sendToAlice(text){
   if(!text||!_nx.active||_nxSending) return;
   _nxSending=true;
-  setTimeout(function(){_nxSending=false;},2000);
+  setTimeout(function(){_nxSending=false;},400);
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
@@ -1570,10 +1590,25 @@ async function sendToAlice(text){
   try{
     var r=await infinityFetch('/nexora',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:text,history:_nx.history.slice(-14),profile:p,scenario:sc,agentName:_nx.agent||'Agent',context:{billingAlerts:p.billingNotes,services:p.services.map(function(s){return s.name+' '+s.price;})}})
+      body:JSON.stringify({
+        message:text,
+        history:_nx.history.slice(-14),
+        profile:p,
+        scenario:sc,
+        agentName:_nx.agent||'Agent',
+        accountContext:{
+          name:p.name,
+          account:p.account,
+          services:p.services.map(function(s){return s.name+' '+s.price;}),
+          billingAlerts:p.billingNotes||[],
+          disputeAmount:p.disputeAmount||null,
+          lateFee:p.lateFee||null,
+          refundAmount:p.refundAmount||null
+        }
+      })
     });
     var d=await r.json();
-    var reply=(d.reply||'');
+    var reply=sanitizeNexoraReply(d.reply||'', p);
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);

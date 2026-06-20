@@ -1340,6 +1340,28 @@ app.post('/nexora-tts', requireProductAuth, async (req, res) => {
   }
 });
 
+function enforceNexoraClientName(reply, profile) {
+  if (!reply || !profile?.name) return reply;
+  const full = String(profile.name).trim();
+  const first = String(profile.firstName || full.split(' ')[0] || '').trim();
+  if (!first) return reply;
+  const notNames = new Set(['calling','looking','trying','wondering','sorry','just','not','here','going','having','getting','checking','waiting','following','writing','working','thinking','sure','afraid','glad','happy','really','very','also','still','actually','about','from','with','because']);
+  const fixName = (match, name) => {
+    const n = String(name).trim();
+    if (!n) return match;
+    const head = n.split(' ')[0].toLowerCase();
+    if (notNames.has(head)) return match;
+    if (n.toLowerCase() === first.toLowerCase() || n.toLowerCase() === full.toLowerCase()) return match;
+    return match.replace(name, first);
+  };
+  let fixed = reply;
+  fixed = fixed.replace(/\b[Mm]y name is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName);
+  fixed = fixed.replace(/\b[Tt]his is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName);
+  fixed = fixed.replace(/\bI'm\s+([A-Z][a-z]+)\b/g, fixName);
+  fixed = fixed.replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
+  return fixed;
+}
+
 // ── NEXORA CALL SIMULATION ────────────────────────────────────
 app.post('/nexora', requireProductAuth, async (req, res) => {
   try {
@@ -1510,14 +1532,16 @@ YOUR ROLE:
 
     } else {
       // Default: customer service
-      systemPrompt = `You are ${p.name || 'a customer'}, account ${p.account || 'unknown'}, calling customer service.
+      const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'the client');
+      systemPrompt = `You are ${p.name || 'a customer'} (first name: ${clientFirst}), account ${p.account || 'unknown'}, calling customer service.
 
 YOUR ISSUE: ${sc.title} — ${sc.desc}
 YOUR MOOD: ${mood}
 ${accountDetails}
 
 CRITICAL RULES:
-- Your name is ${p.name}. NEVER change your name or introduce yourself with a different name under any circumstances.
+- Your name is ${p.name}. Your first name is ${clientFirst}. NEVER use any other name — not Sarah, Patricia, Linda, or any other name.
+- Do NOT introduce yourself unless the agent asks. Jump straight into your issue.
 - You are 100% the CLIENT. NEVER break character. NEVER mention English, learning, or AI.
 - ONLY reference the exact account details provided above. Do NOT invent charges, fees, or amounts that are not listed.
 - React naturally to the agent ${agentName || ''}.
@@ -1541,7 +1565,11 @@ CRITICAL RULES:
     });
 
     const reply = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return res.json({ reply });
+    let fixedReply = reply;
+    if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
+      fixedReply = enforceNexoraClientName(reply, p);
+    }
+    return res.json({ reply: fixedReply });
 
   } catch(err) {
     console.error('Nexora error:', err.message);
