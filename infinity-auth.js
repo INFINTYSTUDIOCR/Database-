@@ -39,7 +39,8 @@ function authHeaders(extra) {
   return h;
 }
 
-async function infinityLogin(user, password, role) {
+async function infinityLogin(user, password, role, opts) {
+  opts = opts || {};
   var r = await fetch(INFINITY_API + '/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -48,11 +49,13 @@ async function infinityLogin(user, password, role) {
   var text = await r.text();
   var d;
   try { d = JSON.parse(text); } catch (e) {
+    if (opts.silent) return null;
     var err = new Error('El servidor de acceso no respondió correctamente. Esperá unos segundos e intentá de nuevo.');
     err.status = r.status;
     throw err;
   }
   if (!r.ok) {
+    if (opts.silent) return null;
     var err = new Error(d.error || 'Login failed');
     err.status = r.status;
     err.data = d;
