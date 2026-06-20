@@ -210,30 +210,30 @@ async function doLogin(){
   document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
 
   try{
-    var auth = await infinityLogin(user, pass, 'student');
     var rows = await dbGet('infinity_students');
     var student = null;
     rows.forEach(function(r){
       if(r.data){
         ALL_STUDENTS[r.id]=r.data;
-        if(r.id === auth.studentId) student = r.data;
+        var u = String(r.data.portalUser||'').trim().toLowerCase();
+        if(u === user && r.data.portalPass === pass) student = r.data;
       }
     });
 
     if(!student){
-      clearAuthToken();
-      err.textContent='Usuario no encontrado después de autenticación.';
+      err.textContent='Usuario o contraseña incorrectos.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
     if(student.status==='suspended'){
-      clearAuthToken();
       err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
+
+    try { await infinityLogin(user, pass, 'student'); } catch(e) { /* portal sigue; Jill/Alice necesitan JWT */ }
 
     CURRENT_STUDENT = student;
 
@@ -252,8 +252,7 @@ async function doLogin(){
 
     showPortal(student);
   }catch(e){
-    clearAuthToken();
-    err.textContent=(e&&e.data&&e.data.error)||(e&&e.message)||'Usuario o contraseña incorrectos.';
+    err.textContent='Error de conexión. Intentá de nuevo.';
     err.style.display='block';
     document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
   }
