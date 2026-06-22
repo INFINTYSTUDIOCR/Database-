@@ -84,6 +84,64 @@ async function sbSet(table, id, data) {
   return r.ok;
 }
 
+// ── OPENING ROTATION LOG (Alice / Jill / Nexora session starts) ──
+const OPENING_LOG_MAX = 8;
+
+function resolveActorKey({ student, req, profile }) {
+  if (student?.id) return String(student.id);
+  if (req?.auth?.studentId) return String(req.auth.studentId);
+  if (req?.auth?.sub) return String(req.auth.sub);
+  if (profile?.account) return 'acct-' + String(profile.account).replace(/\W/g, '');
+  return 'anon';
+}
+
+function openingLogId(actorKey, product) {
+  const safe = String(actorKey || 'anonymous').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+  return `OPENING-${product}-${safe}`;
+}
+
+async function getRecentOpenings(actorKey, product) {
+  if (!actorKey) return [];
+  try {
+    const rows = await sbGet('infinity_sessions');
+    const row = rows.find(r => r.id === openingLogId(actorKey, product));
+    return (row?.data?.openings || []).slice(-OPENING_LOG_MAX);
+  } catch (e) {
+    return [];
+  }
+}
+
+async function recordOpening(actorKey, product, text, meta = {}) {
+  if (!actorKey || !text) return;
+  const snippet = String(text).replace(/\s+/g, ' ').trim().slice(0, 280);
+  if (snippet.length < 8) return;
+  try {
+    const id = openingLogId(actorKey, product);
+    const rows = await sbGet('infinity_sessions');
+    const existing = rows.find(r => r.id === id);
+    const data = existing?.data || { product, actorKey, openings: [] };
+    data.openings = [...(data.openings || []), { text: snippet, ts: new Date().toISOString(), ...meta }].slice(-OPENING_LOG_MAX);
+    await sbSet('infinity_sessions', id, data);
+  } catch (e) {
+    console.error('recordOpening:', e.message);
+  }
+}
+
+function buildOpeningVariationNote(recent, lang) {
+  if (!recent.length) return '';
+  const lines = recent.map((o, i) => `${i + 1}. "${o.text}"`).join('\n');
+  if (lang === 'es') {
+    return `\n\nAPERTURAS RECIENTES DE ESTE ESTUDIANTE (NO repetir la misma pregunta ni un parafraseo cercano):\n${lines}\nInventá un saludo y UNA pregunta nuevos, con ángulo distinto (tema, tono o situación).`;
+  }
+  return `\n\nRECENT OPENINGS FOR THIS STUDENT (do NOT repeat the same opening question or a close paraphrase):\n${lines}\nInvent a fresh greeting and ONE new opening question with a different angle (topic, tone, or situation).`;
+}
+
+function extractOpeningSnippet(text) {
+  const t = String(text || '').trim();
+  const q = t.match(/[^.!?]*\?/);
+  return (q ? q[0] : t.split(/[.!]/)[0] || t).trim().slice(0, 280);
+}
+
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Alice & Claire by Studio Infinity CR — OK'));
 app.get('/health', (req, res) => res.json({ ok: true, version: '8ee2381-nexora-voice' }));
@@ -775,12 +833,17 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     if (mode === 'start_session') {
       const tb = (student?.trainingBook || []).slice(0,4)
         .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
+      const actorKey = resolveActorKey({ student, req });
+      const recent = await getRecentOpenings(actorKey, 'alice');
+      const variation = buildOpeningVariationNote(recent, 'en');
 
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name (2-3 sentences max). Tell them you'll practice English together and ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name (2-3 sentences max). Tell them you'll practice English together and ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
-      return res.json({ opening: resp.content.filter(b=>b.type==='text').map(b=>b.text).join('') });
+      const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+      recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
+      return res.json({ opening });
     }
 
     // EVALUATE
@@ -943,17 +1006,22 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : '';
 
     if (mode === 'start_session') {
+      const actorKey = resolveActorKey({ student, req });
+      const recent = await getRecentOpenings(actorKey, 'jill');
+      const variation = buildOpeningVariationNote(recent, 'es');
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 350,
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-      return res.json(parseJillResponse(raw));
+      const parsed = parseJillResponse(raw);
+      recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
+      return res.json(parsed);
     }
 
     if (!message) return res.status(400).json({ error: 'Missing message' });
@@ -1551,6 +1619,16 @@ CRITICAL RULES:
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
     }
 
+    const msgStr = String(message || '');
+    const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
+    const actorKey = resolveActorKey({ student: req.body?.student, req, profile: p });
+    const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
+    if (isOpening) {
+      const recent = await getRecentOpenings(actorKey, openingProduct);
+      const variation = buildOpeningVariationNote(recent, 'en');
+      systemPrompt += variation + '\nThis is the FIRST line of the call — open with a NEW greeting and reason for calling. Do not reuse phrasing from recent openings.';
+    }
+
     const hist = (history || []).slice(-14);
     const last = hist[hist.length - 1];
     const msgs = (last && last.role === 'user' && last.content === message)
@@ -1568,6 +1646,9 @@ CRITICAL RULES:
     let fixedReply = reply;
     if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
       fixedReply = enforceNexoraClientName(reply, p);
+    }
+    if (isOpening) {
+      recordOpening(actorKey, openingProduct, extractOpeningSnippet(fixedReply), { scenarioId: sc.id || null }).catch(() => {});
     }
     return res.json({ reply: fixedReply });
 
