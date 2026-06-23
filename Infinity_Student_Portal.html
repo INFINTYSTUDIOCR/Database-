@@ -273,8 +273,10 @@ async function doLogin(){
       return;
     }
 
-    var authResult = await infinityLogin(user, pass, 'student');
-    if(!authResult || !getAuthToken()){
+    try {
+      var authResult = await infinityLogin(user, pass, 'student');
+      if(!authResult || !getAuthToken()) throw new Error('no_token');
+    } catch(authErr) {
       err.textContent='No se pudo conectar con el servidor AI. Intentá de nuevo en unos segundos.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
