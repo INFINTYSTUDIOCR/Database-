@@ -288,7 +288,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:2rem;padding:2rem;" id="iv-participants">
   </div>
   <div style="background:#0f0f23;padding:1rem 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
-    <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="iv-status-text">Alice is connecting...</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="iv-status-text">Connecting...</div>
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button class="co-mic-btn" id="iv-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
       <button onclick="endInterview()" style="background:#EF4444;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">End Interview</button>
@@ -329,7 +329,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   </div>
   <div style="flex:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:20px;padding:2rem;" id="corp-participants"></div>
   <div id="corp-pdf-section" style="display:none;background:rgba(255,255,255,0.05);margin:0 1.5rem;border-radius:12px;padding:12px;margin-bottom:8px;">
-    <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;"><i class="ti ti-file-upload"></i> Upload your presentation (PDF/TXT) for Alice to review:</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;"><i class="ti ti-file-upload"></i> Upload your presentation (PDF/TXT) for the simulation to review:</div>
     <input type="file" accept=".pdf,.txt,.md" onchange="uploadPDFForNexora(this)" style="font-size:12px;color:rgba(255,255,255,0.7);">
     <div id="corp-pdf-status" style="font-size:11px;margin-top:4px;color:rgba(255,255,255,0.5);"></div>
   </div>
@@ -381,7 +381,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div class="co-status-text" id="co-status-text"></div>
   <div class="co-mic-row">
     <button class="co-mic-btn" id="co-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
-    <div class="co-voice-note">🎙 Use mic to respond — Alice is listening</div>
+    <div class="co-voice-note">🎙 Use mic to respond — Nexora is listening</div>
   </div>
   <div class="co-buttons">
     <button class="co-btn co-btn-hold" id="co-hold-btn" onclick="toggleHold()"><i class="ti ti-player-pause"></i>Hold</button>
@@ -417,12 +417,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
         <button id="neg-role-initiator" onclick="setNegRole('initiator')"
           style="flex:1;padding:10px;border-radius:8px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">
           <div style="font-size:18px;margin-bottom:4px;">🤝</div>
-          I'm making the offer<br><span style="font-size:10px;opacity:0.6;">You initiate — Alice responds</span>
+          I'm making the offer<br><span style="font-size:10px;opacity:0.6;">You initiate — counterpart responds</span>
         </button>
         <button id="neg-role-receiver" onclick="setNegRole('receiver')"
           style="flex:1;padding:10px;border-radius:8px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">
           <div style="font-size:18px;margin-bottom:4px;">📩</div>
-          I'm receiving an offer<br><span style="font-size:10px;opacity:0.6;">Alice initiates — You respond</span>
+          I'm receiving an offer<br><span style="font-size:10px;opacity:0.6;">Counterpart initiates — You respond</span>
         </button>
       </div>
     </div>
@@ -738,9 +738,28 @@ function genProfile(sc){
     gender:id.gender,ethnicity:id.ethnicity,voiceId:id.voiceId,voiceAccent:id.voiceAccent};
 }
 
+function personalizeStarInterviewer(sc){
+  if(!sc||sc.type!=='star_interview') return sc;
+  var id=pickRandomNexoraIdentity();
+  var roles=['Senior HR Manager','Talent Acquisition Lead','Hiring Manager','Regional HR Director','People Operations Manager'];
+  var copy=Object.assign({},sc);
+  copy.interviewer=id.name;
+  copy.role=roles[Math.floor(Math.random()*roles.length)];
+  return copy;
+}
+
+function nexoraReadyHint(){
+  var st=nexoraStatusEl();
+  if(st&&_nx.active) st.textContent='Your turn — tap mic to respond';
+}
+
 // ── AUTO-IN ────────────────────────────────────────────────────
 function nexoraAutoIn(){
   var sc = _nx.scenario;
+  if((sc.type||'')==='star_interview'){
+    sc=personalizeStarInterviewer(sc);
+    _nx.scenario=sc;
+  }
   _nx.profile=genProfile(sc);
   _nx.profiles.push(_nx.profile);
   _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.talkSecs=0;_nx.onHold=false;
@@ -1081,7 +1100,7 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
         _nx.history.push({role:'assistant',content:reply});
         _nx.transcript.push(personName.toUpperCase()+': '+reply);
       }
-      if(!fullRaw&&reply) speak(reply);
+      if(reply) speak(reply);
       return;
     }
     var r=await infinityFetch('/nexora',{
@@ -1624,19 +1643,14 @@ async function nexoraPostReply(payload){
 }
 
 async function nexoraDemoStreamReply(payload, onPartial){
-  var fullText='', pending='';
+  var fullText='';
   var url=ALICE_BACKEND+'/demo/nexora-lab/stream';
   var body=Object.assign({},payload,{demoSessionId:getNexoraDemoSessionId()});
   var resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!resp.ok){
     var errText=''; try{errText=await resp.text();}catch(e){}
     if(isNexoraStreamUnavailable(errText,resp.status)){
-      var fbReply=await nexoraDemoMessageFallback(payload);
-      if(fbReply){
-        if(onPartial) onPartial(fbReply);
-        speak(fbReply);
-      }
-      return fbReply;
+      return await nexoraDemoMessageFallback(payload);
     }
     throw new Error(errText||('stream_'+resp.status));
   }
@@ -1651,19 +1665,17 @@ async function nexoraDemoStreamReply(payload, onPartial){
       try{
         var evt=JSON.parse(raw);
         if(evt.t){
-          fullText+=evt.t; pending+=evt.t;
+          fullText+=evt.t;
           if(onPartial) onPartial(fullText);
-          pending=flushLiveSpeechChunk(pending, queueSpeak);
         }
       }catch(e){}
     }
   }
-  if(pending.trim().length>2) queueSpeak(pending.split('\nALICE:')[0]);
   return fullText.trim();
 }
 
 async function nexoraAuthStreamReply(payload, onPartial){
-  var fullText='', pending='';
+  var fullText='';
   var resp=await infinityFetch('/nexora/stream',{
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
@@ -1680,26 +1692,13 @@ async function nexoraAuthStreamReply(payload, onPartial){
       try{
         var evt=JSON.parse(raw);
         if(evt.t){
-          fullText+=evt.t; pending+=evt.t;
+          fullText+=evt.t;
           if(onPartial) onPartial(fullText);
-          pending=flushLiveSpeechChunk(pending, queueSpeak);
         }
       }catch(e){}
     }
   }
-  if(pending.trim().length>2) queueSpeak(pending.split('\nALICE:')[0]);
   return fullText.trim();
-}
-
-function flushLiveSpeechChunk(pending, speakFn){
-  if(!pending) return pending;
-  var m=pending.match(/^([\s\S]+?[.!?])\s+/);
-  if(m&&m[1].length>2){ speakFn(m[1]); return pending.slice(m[0].length); }
-  if(pending.length>=8){
-    var sp=pending.indexOf(' ',5);
-    if(sp>4){ speakFn(pending.slice(0,sp).trim()); return pending.slice(sp+1); }
-  }
-  return pending;
 }
 
 async function nexoraGetReply(payload, onPartial){
@@ -1726,7 +1725,7 @@ function buildNexoraPayload(message, history, p, sc){
 
 async function aliceEnter(){
   var st=document.getElementById('co-status-text');
-  if(st) st.textContent='Alice is connecting as client...';
+  if(st) st.textContent='Client is connecting...';
   try{
     var p=_nx.profile;var sc=_nx.scenario;
     var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc),null);
@@ -1734,7 +1733,7 @@ async function aliceEnter(){
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-    if(!fullRaw&&reply&&!isNexoraPublicDemo()) speak(reply);
+    if(reply) speak(reply);
   }catch(e){
     if(st) st.textContent='';
     showToast('Could not connect AI client — try speaking again.');
@@ -1761,7 +1760,7 @@ async function sendToAlice(text){
       _nx.history.push({role:'assistant',content:reply});
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
-    if(!fullRaw&&reply&&!isNexoraPublicDemo()) speak(reply);
+    if(reply) speak(reply);
   }catch(e){
     if(st) st.textContent='';
     showToast('AI did not respond — check login and try again.');
@@ -1796,7 +1795,12 @@ function _nxTTSFlush(){
   }).catch(function(){ _nxTTSBusy=false; _nxTTSFlush(); });
 }
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
-function speak(text){ _nxTTSQueue=[]; _nxTTSBusy=false; queueSpeak(text); }
+function speak(text){
+  _nxTTSQueue=[];
+  _nxTTSBusy=false;
+  _nxSpeakId++;
+  queueSpeak(text);
+}
 
 // ── MIC ───────────────────────────────────────────────────────
 var TURN_SILENCE_MS = 850;

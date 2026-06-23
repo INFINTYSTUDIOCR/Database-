@@ -1,5 +1,5 @@
 /**
- * Demo voice — mic input + stable TTS for Alice / Nexora mini sessions
+ * Demo voice — mic input + stable TTS for Alice / Jill / Nexora mini sessions
  */
 var DemoVoice = (function () {
   'use strict';
@@ -8,16 +8,24 @@ var DemoVoice = (function () {
   var _audio = null;
   var _mic = null;
   var _micOn = false;
+  var _silenceTimer = null;
   var _browserVoiceCache = {};
   var _activeProfile = null;
+  var DEFAULT_SILENCE_MS = 2000;
 
   function normalizeProfile(profile) {
-    if (!profile) return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female' };
+    if (!profile) return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female', lang: 'en-US' };
     if (typeof profile === 'string') {
+      if (profile === 'jill') return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('jill') : null;
       if (profile === 'nexora') return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('nexora', 'star') : null;
-      return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female' };
+      return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female', lang: 'en-US' };
     }
     return profile;
+  }
+
+  function profileLang(profile) {
+    var p = normalizeProfile(profile || _activeProfile);
+    return (p && p.lang) || 'en-US';
   }
 
   function setProfile(profile) {
@@ -43,64 +51,77 @@ var DemoVoice = (function () {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
-  function playBlob(blob) {
+  function clearSilenceTimer() {
+    if (_silenceTimer) {
+      clearTimeout(_silenceTimer);
+      _silenceTimer = null;
+    }
+  }
+
+  function playBlob(blob, onEnd) {
     stopAudio();
     _audio = new Audio(URL.createObjectURL(blob));
-    _audio.play().catch(function () {});
+    _audio.onended = function () { if (typeof onEnd === 'function') onEnd(); };
+    _audio.play().catch(function () { if (typeof onEnd === 'function') onEnd(); });
   }
 
   function getBrowserVoice(profile) {
     if (!window.speechSynthesis) return null;
-    var key = profile.voiceId || profile.gender || 'default';
+    var p = normalizeProfile(profile);
+    var lang = profileLang(p);
+    var langPrefix = lang.split('-')[0];
+    var key = (p.voiceId || p.gender || 'default') + ':' + lang;
     if (_browserVoiceCache[key]) return _browserVoiceCache[key];
 
     var voices = window.speechSynthesis.getVoices();
-    var hints = profile.browserHints || [];
+    var hints = p.browserHints || [];
     var pick = null;
     var i;
 
     for (i = 0; i < hints.length; i++) {
       pick = voices.find(function (v) {
-        return v.name && v.name.toLowerCase().indexOf(hints[i].toLowerCase()) >= 0 && v.lang && v.lang.indexOf('en') === 0;
+        return v.name && v.name.toLowerCase().indexOf(hints[i].toLowerCase()) >= 0 && v.lang && v.lang.indexOf(langPrefix) === 0;
       });
       if (pick) break;
     }
 
-    if (!pick && profile.gender === 'female') {
+    if (!pick && p.gender === 'female') {
       pick = voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en-US') === 0 && /zira|samantha|jenny|aria|female/i.test(v.name);
+        return v.lang && v.lang.indexOf(lang) === 0 && /zira|samantha|jenny|aria|female|helena|sabina|paulina|monica|lucia/i.test(v.name);
       }) || voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en') === 0 && !/hazel|uk|british|india|australian/i.test(v.name) && /zira|samantha|jenny|aria|female/i.test(v.name);
+        return v.lang && v.lang.indexOf(langPrefix) === 0 && /female|zira|samantha|helena|paulina/i.test(v.name);
       });
     }
 
-    if (!pick && profile.gender === 'male') {
+    if (!pick && p.gender === 'male') {
       pick = voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en-US') === 0 && /david|guy|mark|male|ryan|christopher/i.test(v.name);
-      }) || voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en') === 0 && !/hazel|uk|british|india|australian/i.test(v.name) && /david|guy|mark|male|ryan|christopher/i.test(v.name);
+        return v.lang && v.lang.indexOf(langPrefix) === 0 && /david|guy|mark|male|ryan|christopher|jorge|carlos|pablo/i.test(v.name);
       });
     }
 
     if (!pick) {
-      pick = voices.find(function (v) {
-        return v.lang && v.lang.indexOf('en-US') === 0;
-      });
+      pick = voices.find(function (v) { return v.lang && v.lang.indexOf(lang) === 0; })
+        || voices.find(function (v) { return v.lang && v.lang.indexOf(langPrefix) === 0; });
     }
 
     _browserVoiceCache[key] = pick || null;
     return _browserVoiceCache[key];
   }
 
-  function browserSpeak(text, profile) {
-    if (!window.speechSynthesis || !text) return;
+  function browserSpeak(text, profile, onEnd) {
+    if (!window.speechSynthesis || !text) {
+      if (typeof onEnd === 'function') onEnd();
+      return;
+    }
     stopAudio();
+    var p = normalizeProfile(profile);
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = profile.gender === 'male' ? 0.94 : 0.97;
-    u.pitch = profile.gender === 'male' ? 0.95 : 1.02;
-    var voice = getBrowserVoice(profile);
+    u.lang = profileLang(p);
+    u.rate = p.gender === 'male' ? 0.94 : 0.97;
+    u.pitch = p.gender === 'male' ? 0.95 : 1.02;
+    var voice = getBrowserVoice(p);
     if (voice) u.voice = voice;
+    u.onend = function () { if (typeof onEnd === 'function') onEnd(); };
     window.speechSynthesis.speak(u);
   }
 
@@ -126,31 +147,10 @@ var DemoVoice = (function () {
         if (ct.indexOf('audio') >= 0) return r.blob();
         throw new Error('not_audio');
       })
-      .then(function (blob) {
-        stopAudio();
-        _audio = new Audio(URL.createObjectURL(blob));
-        _audio.onended = function () {
-          if (typeof onEnd === 'function') onEnd();
-        };
-        _audio.play().catch(function () {
-          if (typeof onEnd === 'function') onEnd();
-        });
-      })
+      .then(function (blob) { playBlob(blob, onEnd); })
       .catch(function () {
         if (p.source === 'elevenlabs-account' || p.source === 'jill-voices.json' || p.source === 'NEXORA_DEMO_MALE_VOICE_ID' || p.source === 'NEXORA_DEMO_FEMALE_VOICE_ID' || p.source === 'voices.json') {
-          stopAudio();
-          if (!window.speechSynthesis || !cleanText) {
-            if (typeof onEnd === 'function') onEnd();
-            return;
-          }
-          var u = new SpeechSynthesisUtterance(cleanText);
-          u.lang = 'en-US';
-          u.rate = p.gender === 'male' ? 0.94 : 0.97;
-          u.pitch = p.gender === 'male' ? 0.95 : 1.02;
-          var voice = getBrowserVoice(p);
-          if (voice) u.voice = voice;
-          u.onend = function () { if (typeof onEnd === 'function') onEnd(); };
-          window.speechSynthesis.speak(u);
+          browserSpeak(cleanText, p, onEnd);
         } else if (typeof onEnd === 'function') {
           onEnd();
         }
@@ -181,15 +181,33 @@ var DemoVoice = (function () {
     stopAudio();
   }
 
-  function setMicUi(on, btn, statusEl) {
+  function micStatusText(profile, on) {
+    if (!on) return '';
+    var lang = profileLang(profile);
+    if (lang.indexOf('es') === 0) return '🎙 Escuchando… hablá tranquilo, espero a que termines';
+    return '🎙 Listening… take your time, I wait until you finish';
+  }
+
+  function setMicUi(on, btn, statusEl, profile) {
     if (btn) {
       btn.classList.toggle('recording', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     if (statusEl) {
       statusEl.style.display = on ? 'block' : 'none';
-      statusEl.textContent = on ? '🎙 Listening… speak in English' : '';
+      statusEl.textContent = micStatusText(profile, on);
     }
+  }
+
+  function scheduleMicSend(input, btn, statusEl, opts) {
+    clearSilenceTimer();
+    _silenceTimer = setTimeout(function () {
+      _silenceTimer = null;
+      if (!_micOn) return;
+      var text = input.value.trim();
+      stopMic(btn, statusEl, opts.profile);
+      if (text.length >= 2 && typeof opts.onSend === 'function') opts.onSend();
+    }, opts.silenceMs || DEFAULT_SILENCE_MS);
   }
 
   function bindMic(opts) {
@@ -200,7 +218,10 @@ var DemoVoice = (function () {
 
     btn.addEventListener('click', function () {
       if (_micOn) {
-        stopMic(btn, statusEl);
+        clearSilenceTimer();
+        var hadText = input.value.trim().length > 0;
+        stopMic(btn, statusEl, opts.profile);
+        if (hadText && typeof opts.onSend === 'function') opts.onSend();
         return;
       }
       var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -209,30 +230,39 @@ var DemoVoice = (function () {
         return;
       }
       stopAudio();
+      clearQueue();
       _mic = new SR();
-      _mic.lang = opts.lang || 'en-US';
+      _mic.lang = opts.lang || profileLang(opts.profile || _activeProfile);
       _mic.interimResults = true;
-      _mic.continuous = false;
+      _mic.continuous = true;
       _micOn = true;
-      setMicUi(true, btn, statusEl);
+      setMicUi(true, btn, statusEl, opts.profile || _activeProfile);
 
       _mic.onresult = function (e) {
-        input.value = Array.from(e.results).map(function (r) { return r[0].transcript; }).join('');
+        var transcript = '';
+        for (var i = 0; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        input.value = transcript;
+        var last = e.results[e.results.length - 1];
+        if (last && last.isFinal && transcript.trim()) {
+          scheduleMicSend(input, btn, statusEl, opts);
+        }
       };
       _mic.onend = function () {
-        var hadText = input.value.trim().length > 0;
-        stopMic(btn, statusEl);
-        if (hadText && typeof opts.onSend === 'function') opts.onSend();
+        if (!_micOn) return;
+        try { _mic.start(); } catch (e) { stopMic(btn, statusEl, opts.profile); }
       };
-      _mic.onerror = function () { stopMic(btn, statusEl); };
-      _mic.start();
+      _mic.onerror = function () { clearSilenceTimer(); stopMic(btn, statusEl, opts.profile); };
+      try { _mic.start(); } catch (e) { stopMic(btn, statusEl, opts.profile); }
     });
   }
 
-  function stopMic(btn, statusEl) {
+  function stopMic(btn, statusEl, profile) {
+    clearSilenceTimer();
     if (_mic) { try { _mic.stop(); } catch (e) {} _mic = null; }
     _micOn = false;
-    setMicUi(false, btn, statusEl);
+    setMicUi(false, btn, statusEl, profile);
   }
 
   if (window.speechSynthesis) {

@@ -13,6 +13,7 @@ window.DEMO_VOICES = {
     voiceId: 'NoOVOzCQFLOvtsMoNcdT',
     label: 'Jill',
     gender: 'female',
+    lang: 'es-CR',
     source: 'elevenlabs-account'
   },
   nexora_star: {

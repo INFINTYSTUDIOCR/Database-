@@ -282,14 +282,32 @@
     { s: '.visual-tag', en: 'Core · Communication', es: 'Core · Comunicación' }
   ];
 
-  var DEMO_PAGE = [
+  var DEMO_COMMON = [
     { s: 'a[href="try-demo.html"]', en: '← All demos', es: '← Todos los demos' },
+    { s: '.demo-limit p', html: true, en: '<strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.', es: '<strong>Límite diario de demo alcanzado</strong> desde esta conexión. Volvé mañana o agendá tu evaluación gratuita ahora.' }
+  ];
+
+  var DEMO_ALICE = DEMO_COMMON.concat([
     { s: '#btn-start', en: 'Start Alice demo', es: 'Iniciar demo Alice' },
     { s: '#inp', attr: 'placeholder', en: 'Speak or type in English…', es: 'Hablá o escribí en inglés…' },
     { s: '#typing', en: 'Alice is typing…', es: 'Alice está escribiendo…' },
-    { s: '#voice-hint', html: true, en: '<i class="ti ti-volume"></i> Alice speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.', es: '<i class="ti ti-volume"></i> Alice habla — tocá <strong>mic</strong> para responder por voz o escribí abajo. Chrome recomendado.' },
-    { s: '.demo-limit p', html: true, en: '<strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.', es: '<strong>Límite diario de demo alcanzado</strong> desde esta conexión. Volvé mañana o agendá tu evaluación gratuita ahora.' }
-  ];
+    { s: '#voice-hint', html: true, en: '<i class="ti ti-volume"></i> Alice speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.', es: '<i class="ti ti-volume"></i> Alice habla — tocá <strong>mic</strong> para responder por voz o escribí abajo. Chrome recomendado.' }
+  ]);
+
+  var DEMO_NEXORA = DEMO_COMMON.concat([
+    { s: '.demo-hero-compact h1', en: 'Nexora — Business Simulation Lab', es: 'Nexora — Laboratorio de simulación empresarial' },
+    { s: '.demo-hero-compact p', en: 'Same lab students use in the portal: interview room or incoming call + CRM, voice, mic and live AI — one free try per day.', es: 'El mismo lab del portal: sala de entrevista o llamada entrante + CRM, voz, micrófono e IA en vivo — una prueba gratis por día.' },
+    { s: '#btn-start', html: true, en: '<i class="ti ti-external-link"></i> Open Nexora Lab', es: '<i class="ti ti-external-link"></i> Abrir Nexora Lab' },
+    { s: '#pre-start .consent-label span', en: 'Anonymized demo data may be used to improve Nexora scenarios and coaching.', es: 'Los datos anonimizados del demo pueden usarse para mejorar escenarios y coaching de Nexora.' },
+    { s: '#pre-start p:nth-of-type(1)', en: 'Opens the full Nexora simulation — not a chat widget. Allow pop-ups for this site.', es: 'Abre la simulación completa de Nexora — no es un chat. Permití ventanas emergentes para este sitio.' }
+  ]);
+
+  var DEMO_JILL = DEMO_COMMON.concat([
+    { s: '#btn-start', en: 'Start Jill demo — 5 min', es: 'Iniciar demo Jill — 5 min' },
+    { s: '#inp', attr: 'placeholder', en: 'Speak or type in English…', es: 'Hablá o escribí en inglés…' },
+    { s: '#typing', en: 'Jill is typing…', es: 'Jill está escribiendo…' },
+    { s: '#voice-hint', html: true, en: '<i class="ti ti-volume"></i> Jill speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.', es: '<i class="ti ti-volume"></i> Jill habla — tocá <strong>mic</strong> para responder por voz o escribí abajo. Chrome recomendado.' }
+  ]);
 
   function applyDataI18nAttributes(lang) {
     document.querySelectorAll('[data-i18n-en]').forEach(function (node) {
@@ -304,7 +322,10 @@
   function pageEntries() {
     var page = (location.pathname.split('/').pop() || 'index.html').replace(/^$/, 'index.html');
     if (page === 'index.html') return NAV.concat(INDEX).concat(INDEX_MORE);
-    if (/^try-/.test(page) || page === 'try-demo.html') return NAV.concat(DEMO_PAGE);
+    if (page === 'try-alice.html') return NAV.concat(DEMO_ALICE);
+    if (page === 'try-nexora.html') return NAV.concat(DEMO_NEXORA);
+    if (page === 'try-jill.html') return NAV.concat(DEMO_JILL);
+    if (page === 'try-demo.html') return NAV.concat(DEMO_COMMON);
     if (page === 'foundations.html') return NAV.concat(SUBPAGE);
     return NAV;
   }

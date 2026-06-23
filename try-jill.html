@@ -44,10 +44,10 @@
     </div>
     <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status" id="typing" style="display:none;font-style:italic;">Jill is typing…</div>
-    <div class="demo-voice-hint jill" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Jill speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.</div>
+    <div class="demo-voice-hint jill" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Jill te habla en español — tocá el <strong>micrófono</strong> para responder cuando termines de hablar, o escribí abajo. Chrome recomendado.</div>
     <div class="demo-input-row" id="input-row">
       <button type="button" class="demo-mic" id="btn-mic" title="Speak to Jill" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
-      <input class="demo-input" id="inp" placeholder="Speak or type in English…" autocomplete="off">
+      <input class="demo-input" id="inp" placeholder="Escribí o hablá en español…" autocomplete="off">
       <button type="button" class="demo-send" id="btn-send" title="Send"><i class="ti ti-send"></i></button>
     </div>
     <div class="demo-status" id="mic-status" style="display:none;"></div>
@@ -153,7 +153,7 @@
 
   document.getElementById('btn-start').onclick = start;
   document.getElementById('btn-send').onclick = send;
-  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'en-US', onSend: send });
+  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'es-CR', profile: voiceProfile, silenceMs: 2200, onSend: send });
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); send(); } });
 })();
 </script>

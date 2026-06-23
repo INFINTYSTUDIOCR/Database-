@@ -19,18 +19,18 @@ window.DEMO_BUFFER = {
     }
   },
   jill: {
-    start: "Hi! I'm Jill — your Foundations tutor at Off The Clock. I help you build the structure behind English: chunks, verb tenses, and your first linkers. Ready? Tell me one thing you want to improve in English this week.",
+    start: "¡Hola! Soy Jill, tu tutora de Foundations en Off The Clock. Acá empezamos sin presión: estructura, chunks y tus primeros linkers. ¿Qué te gustaría mejorar en inglés esta semana?",
     steps: [
-      "Good! In Foundations we don't memorize lists — we build **Idea + chunk + Idea**. Try this: say 'I want to improve' and add ONE reason using **because**.",
-      "Nice try! Now let's use a time tense. Tell me what you **did yesterday** — one short sentence. Use a simple past verb.",
-      "You're building the base Alice will coach later. Last one: complete this chunk — 'However, I think…' and finish with your own idea."
+      "¡Muy bien! En Foundations no memorizamos listas — construimos **Idea + chunk + Idea**. Probá decir 'I want to improve' y agregá UNA razón con **because**.",
+      "Buen intento. Ahora un tiempo verbal: contame qué **hiciste ayer** — una oración corta en pasado simple.",
+      "Estás armando la base que Alice va a pulir después. Última: completá este chunk — 'However, I think…' y terminá con tu propia idea."
     ],
     finish: {
-      reply: "Great Foundations mini session! You practiced structure, tense, and a linker — that's exactly how Jill builds your base before Alice and Nexora.\n\nJILL: ¡Muy bien! En el programa completo Jill te guía paso a paso desde chunking hasta linkers reales.",
+      reply: "¡Excelente mini sesión de Foundations! Practicaste estructura, tiempo verbal y un linker — así construye Jill tu base antes de Alice y Nexora.\n\nJILL: En el programa completo te guío paso a paso desde chunking hasta linkers reales.",
       evaluation: {
         overall_score: 70,
-        highlights: ["You completed the Jill demo", "You attempted structured responses"],
-        improvements: ["Practice because/however in every answer", "Keep answers to Idea + Linker + Idea"],
+        highlights: ["Completaste el demo de Jill", "Intentaste respuestas estructuradas"],
+        improvements: ["Practicá because/however en cada respuesta", "Mantené Idea + Linker + Idea"],
         connectors_found: [],
         connectors_suggested: ["because", "however", "on top of that"]
       }
