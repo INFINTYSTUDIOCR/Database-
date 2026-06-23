@@ -16,6 +16,7 @@
 <script src="infinity-auth.js"></script>
 <script src="nexora-profile.js"></script>
 <script src="nexus-unified-portal.js"></script>
+<script src="nexus-quiz-practice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -310,9 +311,11 @@ function showPortal(s){
   var tb=(s.trainingBook||[]).slice().reverse();
 
   // ── PROGRESO ──────────────────────────────────────────
-  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
+  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderJourneyPath(s) : '')
+    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderMacroTrends(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
+    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderNextMilestone(s) : '')
     + renderProgressBlock(s)
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiBars+'</div>'
     +(cals.length>=2?'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Mi progreso (diagnóstico)</div>'

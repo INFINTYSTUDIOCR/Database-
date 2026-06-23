@@ -225,6 +225,60 @@
     }
   }
 
+  function renderJourneyPath(s) {
+    ensureFields(s);
+    var track = (s.track && s.track.current) || 'jill';
+    var steps = ['jill', 'alice', 'nexora'];
+    var labels = { jill: 'Jill', alice: 'Alice', nexora: 'Nexora' };
+    var idx = steps.indexOf(track);
+    var pathHtml = steps.map(function (t, i) {
+      var done = (s.track.graduated && s.track.graduated[t]) || i < idx;
+      var active = t === track;
+      return (i ? '━━━━' : '') + '<span style="color:' + (active ? 'var(--pm)' : (done ? 'var(--gm)' : 'var(--t3)') ) + ';font-weight:' + (active ? '700' : '400') + ';">' + (done && !active ? '✓' : (active ? '●' : '○')) + ' ' + labels[t] + '</span>';
+    }).join('');
+
+    var start = (s.info && s.info.start) || (s.diagnosticReport && s.diagnosticReport.date) || '';
+    var weeks = start ? Math.max(1, Math.floor((Date.now() - new Date(start)) / (7 * 86400000))) : 1;
+    var target = track === 'jill' ? 14 : (track === 'alice' ? 10 : 8);
+
+    return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-route"></i>Tu camino</div>'
+      + '<div style="font-size:12px;line-height:1.8;margin-bottom:8px;">' + pathHtml + '</div>'
+      + '<div style="font-size:11px;color:var(--t2);">Estás en <strong>' + labels[track] + '</strong> · Semana ~' + weeks + ' de ~' + target + '</div></div>';
+  }
+
+  function renderMacroTrends(s) {
+    var kpis = (s.kpis && s.kpis.phase1) || {};
+    var cals = (s.calibrations || []);
+    var prev = cals.length >= 2 ? cals[cals.length - 2].kpis : null;
+    var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
+    return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-chart-bar"></i>KPIs (macro) · tendencia</div>'
+      + keys.map(function (k) {
+        var v = parseInt(kpis[k]) || 0;
+        var pv = prev ? (parseInt(prev[k]) || v) : v;
+        var arrow = v > pv ? '▲' : (v < pv ? '▼' : '→');
+        var col = v >= 4 ? 'var(--gm)' : (v >= 3 ? 'var(--nm)' : 'var(--rm)');
+        return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">'
+          + '<span style="width:100px;">' + (typeof KPI_NAMES !== 'undefined' ? KPI_NAMES[k].split(' ')[0] : k) + '</span>'
+          + '<div style="flex:1;background:var(--gray);border-radius:4px;height:8px;"><div style="width:' + (v / 5 * 100) + '%;background:' + col + ';height:8px;border-radius:4px;"></div></div>'
+          + '<span style="width:48px;text-align:right;">' + v + '/5 ' + arrow + '</span></div>';
+      }).join('')
+      + '</div>';
+  }
+
+  function renderNextMilestone(s) {
+    var score = 0;
+    var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
+    keys.forEach(function (k) { score += parseInt((s.kpis && s.kpis.phase1 && s.kpis.phase1[k]) || 0); });
+    var target = 16;
+    var level = score >= 16 ? 'Functional' : (score >= 21 ? 'Advanced' : 'Functional (16/25)');
+    var weak = keys.filter(function (k) { return (parseInt((s.kpis && s.kpis.phase1 && s.kpis.phase1[k]) || 0) < 3); }).slice(0, 2);
+    return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-flag"></i>Próximo hito</div>'
+      + '<div style="font-size:13px;">Meta: <strong>' + level + '</strong> (' + target + '/25)</div>'
+      + '<div style="font-size:12px;color:var(--t2);margin-top:6px;">Score actual: ' + score + '/25'
+      + (weak.length ? ' · Te faltan refuerzo en: ' + weak.join(', ') : '')
+      + '</div></div>';
+  }
+
   function renderWeeklyPulseStudent(s) {
     ensureFields(s);
     var wk = weekIdFromDate();
@@ -235,8 +289,8 @@
     var typingDone = wc && wc.typingDone;
 
     return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-heartbeat"></i>Weekly Pulse — Semana ' + wk + '</div>'
-      + '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Tu trainer registra Assessment + Tracker. Vos completás Nemesis y typing.</div>'
-      + checklistRow('Trainer Assessment + Tracker', trainerDone)
+      + '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Las métricas se actualizan solas. Tu trainer confirma el pulso; vos completás práctica y Nemesis.</div>'
+      + checklistRow('Trainer confirmó pulso semanal', trainerDone)
       + checklistRow('Nemesis Quiz (impacta KPI)', nemesisDone)
       + checklistRow('Typing Test (opcional)', typingDone)
       + '</div>';
@@ -257,14 +311,17 @@
 
   function renderStudentFocus(s) {
     var kpis = (s.kpis && s.kpis.phase1) || {};
+    var weakK = (s.quizWeakKpis || []).slice(0, 3);
     var sorted = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES).sort(function (a, b) {
       return (parseInt(kpis[a]) || 0) - (parseInt(kpis[b]) || 0);
     }) : [];
-    var weak = sorted.slice(0, 3);
-    return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-focus-2"></i>3 focos esta semana</div>'
-      + (weak.length ? weak.map(function (k) {
-        return '<div style="font-size:13px;padding:4px 0;">' + (typeof KPI_NAMES !== 'undefined' ? KPI_NAMES[k] : k) + ': ' + (kpis[k] || '—') + '/5</div>';
-      }).join('') : '<div style="font-size:12px;color:var(--t3);">Sin datos aún</div>')
+    var macroWeak = sorted.slice(0, 2);
+    return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-focus-2"></i>Foco esta semana (auto)</div>'
+      + (weakK.length ? weakK.map(function (k) {
+        return '<div style="font-size:13px;padding:4px 0;">· ' + k + '</div>';
+      }).join('') : macroWeak.map(function (k) {
+        return '<div style="font-size:13px;padding:4px 0;">· ' + (typeof KPI_NAMES !== 'undefined' ? KPI_NAMES[k] : k) + '</div>';
+      }).join(''))
       + '</div>';
   }
 
@@ -313,6 +370,9 @@
     submitNemesis: submitNemesis,
     renderWeeklyPulseStudent: renderWeeklyPulseStudent,
     renderTrackBadge: renderTrackBadge,
+    renderJourneyPath: renderJourneyPath,
+    renderMacroTrends: renderMacroTrends,
+    renderNextMilestone: renderNextMilestone,
     renderStudentFocus: renderStudentFocus,
     getJillContext: getJillContext,
     collectFailedKpis: collectFailedKpis
