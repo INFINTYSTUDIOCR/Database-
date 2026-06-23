@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SI Portal">
 <link rel="manifest" href="manifest-portal.json">
-<link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
@@ -55,6 +55,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-outline{background:white;color:var(--t2);border:1px solid var(--border);}
 .btn-block{width:100%;justify-content:center;}
 .btn:hover{opacity:0.9;}
+.btn-login.is-loading{pointer-events:none;cursor:wait;opacity:0.95;animation:loginPulse 1.1s ease-in-out infinite;}
+.btn-login.is-loading:disabled{opacity:0.95;}
+.inp:disabled{background:#F3F0FF;color:var(--t3);}
+@keyframes loginPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,33,182,0.35)}50%{box-shadow:0 0 0 8px rgba(91,33,182,0)}}
 
 .card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
 .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
@@ -131,7 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="login-sub">Studio Infinity CR · Tu Training Book, KPIs, horario y progreso, sincronizados en tiempo real.</div>
       <input class="inp" id="l-user" placeholder="Usuario" autocomplete="username">
       <input class="inp" id="l-pass" placeholder="Contraseña" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="btn btn-navy btn-block" onclick="doLogin()"><i class="ti ti-login"></i>Ingresar</button>
+      <button type="button" class="btn btn-navy btn-block btn-login" id="btn-login" onclick="doLogin()"><i class="ti ti-login"></i>Ingresar</button>
       <div id="login-err" style="font-size:12px;color:var(--rm);margin-top:0.75rem;display:none;"></div>
       <div style="font-size:11px;color:var(--t3);margin-top:1rem;">¿No tenés credenciales? Pedíselas a tu trainer.</div>
     </div>
@@ -191,8 +195,17 @@ var EXERCISES = {
   R_developing:{ title:'Natural Pace Training', kpi:'R', priority:'HIGH', nexus:'Phase 2', objective:'Entrenar al estudiante a igualar la velocidad natural del inglés sin pedir acomodaciones.', script:'Trainer habla a velocidad NATURAL completa. Estudiante no puede pedir que hablen más despacio.', steps:['Enseñar técnicas de stalling:','"Just to make sure I understood..." (gana 3 segundos)','"That is a great point. Let me address that..." (gana 5 segundos)','Conversación de 5 minutos a velocidad natural'], good:'Estudiante usa técnica de stalling y continúa sin romper el flujo.', freq:'2x por semana — 5 a 10 minutos.' },
 };
 
-async function dbGet(table){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); return await r.json(); }
-async function dbSet(table,id,data){ await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})}); }
+async function dbGet(table){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  if(!r.ok){ console.error('dbGet '+table+' failed: '+r.status); return []; }
+  const data = await r.json();
+  return Array.isArray(data) ? data : [];
+}
+async function dbSet(table,id,data){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})});
+  if(!r.ok){ console.error('dbSet '+table+' failed: '+r.status); return false; }
+  return true;
+}
 
 function getLevelBadge(level){ return '<span class="badge b-'+((level||'').toLowerCase())+'">'+level+'</span>'; }
 function getPhaseBadge(p){ return '<span class="badge b-p'+p+'">'+( PHASE_NAMES[p]||'—')+'</span>'; }
@@ -213,6 +226,19 @@ document.getElementById('login-logo').src = 'data:image/png;base64,'+LOGO;
 var CURRENT_STUDENT = null;
 var ALL_STUDENTS = {};
 var CALENDAR_EVENTS = {};
+var LOGIN_BTN_HTML = '<i class="ti ti-login"></i>Ingresar';
+
+function setLoginLoading(on){
+  var btn = document.getElementById('btn-login');
+  if(!btn) return;
+  btn.disabled = !!on;
+  btn.classList.toggle('is-loading', !!on);
+  btn.innerHTML = on ? '<i class="ti ti-loader spin"></i> Verificando acceso…' : LOGIN_BTN_HTML;
+  var u = document.getElementById('l-user');
+  var p = document.getElementById('l-pass');
+  if(u) u.disabled = !!on;
+  if(p) p.disabled = !!on;
+}
 
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
@@ -221,7 +247,7 @@ async function doLogin(){
   if(!user || !pass){ err.textContent='Ingresá tu usuario y contraseña.'; err.style.display='block'; return; }
 
   err.style.display='none';
-  document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
+  setLoginLoading(true);
 
   try{
     var rows = await dbGet('infinity_students');
@@ -237,13 +263,13 @@ async function doLogin(){
     if(!student){
       err.textContent='Usuario o contraseña incorrectos.';
       err.style.display='block';
-      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      setLoginLoading(false);
       return;
     }
     if(student.status==='suspended' || student.infinityTermsAccepted === false){
       err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
       err.style.display='block';
-      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      setLoginLoading(false);
       return;
     }
 
@@ -270,7 +296,7 @@ async function doLogin(){
   }catch(e){
     err.textContent='Error de conexión. Intentá de nuevo.';
     err.style.display='block';
-    document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+    setLoginLoading(false);
   }
 }
 
@@ -297,7 +323,7 @@ function logout(){
   document.getElementById('l-user').value='';
   document.getElementById('l-pass').value='';
   document.getElementById('login-err').style.display='none';
-  document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+  setLoginLoading(false);
 }
 
 function getPortalInfinityNewsHtml(){
@@ -479,7 +505,7 @@ function showPortal(s){
   if(cals.length>=2){
     setTimeout(function(){
       var ctx=document.getElementById('portal-chart'); if(!ctx) return;
-      new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#1E2761','#0F6E56','#BA7517','#A32D2D','#534AB7']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ y:{min:0,max:5,ticks:{stepSize:1}} }, plugins:{legend:{position:'bottom'}} } });
+      new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ y:{min:0,max:5,ticks:{stepSize:1}} }, plugins:{legend:{position:'bottom'}} } });
     },100);
   }
 }
@@ -1774,7 +1800,7 @@ function nexoraShowCRM(){
     return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #E2E8F0;">'
       +'<div style="width:36px;height:36px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-coin" style="color:#4F46E5;font-size:16px;"></i></div>'
       +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;">'+s.name+'</div><div style="font-size:11px;color:#94A3B8;">'+s.desc+'</div></div>'
-      +'<span style="font-size:13px;font-weight:700;color:#1E2761;">'+s.price+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:#5B21B6;">'+s.price+'</span>'
       +'<span style="background:#DCFCE7;color:#16A34A;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">Active</span>'
       +'</div>';
   }).join('');
@@ -1783,7 +1809,7 @@ function nexoraShowCRM(){
     // LEFT — CRM
     +'<div style="padding:1.5rem;border-right:1px solid #E2E8F0;overflow-y:auto;">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:8px;height:8px;background:#F5A623;border-radius:50%;animation:pd 1s infinite;"></div><span style="font-size:11px;font-weight:700;color:#F5A623;">INCOMING CALL</span></div>'
-    +'<div style="font-size:20px;font-weight:900;color:#1E2761;margin-bottom:2px;">'+p.name+'</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#5B21B6;margin-bottom:2px;">'+p.name+'</div>'
     +'<div style="font-size:12px;color:#94A3B8;margin-bottom:12px;">Account '+p.account+' · Member since '+p.memberSince+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:12px;">'
     +'<div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;">Phone</div><div style="font-weight:600;">'+p.phone+'</div></div>'
@@ -1793,7 +1819,7 @@ function nexoraShowCRM(){
     +'</div>'
     +'<div style="background:#F8F9FC;border-radius:10px;padding:10px;margin-bottom:12px;">'
     +'<div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Identity Verification — Last 4 SSN</div>'
-    +'<div style="font-size:18px;font-weight:900;color:#1E2761;letter-spacing:0.15em;" id="nx-ssn-display" onclick="this.textContent=this.textContent===\'XXXX\'?\''+p.ssn4+'\':\'XXXX\'" style="cursor:pointer;">XXXX</div>'
+    +'<div style="font-size:18px;font-weight:900;color:#5B21B6;letter-spacing:0.15em;" id="nx-ssn-display" onclick="this.textContent=this.textContent===\'XXXX\'?\''+p.ssn4+'\':\'XXXX\'" style="cursor:pointer;">XXXX</div>'
     +'</div>'
     +'<div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:8px;">Services</div>'
     +svcHtml
@@ -1806,7 +1832,7 @@ function nexoraShowCRM(){
     +'</div></div>'
     +'</div>'
     // RIGHT — CALL CONTROLS + CHAT
-    +'<div style="display:flex;flex-direction:column;background:#1E2761;height:100%;max-height:580px;">'
+    +'<div style="display:flex;flex-direction:column;background:#5B21B6;height:100%;max-height:580px;">'
     +'<div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">'
     +'<div style="width:40px;height:40px;background:rgba(192,132,252,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">🤖</div>'
     +'<div><div style="font-size:13px;font-weight:700;color:white;">'+p.name+'</div><div style="font-size:10px;color:rgba(255,255,255,0.4);" id="nx-call-status">Ringing...</div></div>'

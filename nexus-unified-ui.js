@@ -120,7 +120,7 @@
           type: 'radar',
           data: {
             labels: labels.map(function (l) { return l.split(' ')[0]; }),
-            datasets: [{ data: keys.map(function (k) { return parseInt(kpis[k]) || 0; }), borderColor: '#1E2761', backgroundColor: 'rgba(30,39,97,0.12)', pointRadius: 2 }]
+            datasets: [{ data: keys.map(function (k) { return parseInt(kpis[k]) || 0; }), borderColor: '#5B21B6', backgroundColor: 'rgba(91,33,182,0.12)', pointRadius: 2 }]
           },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { min: 0, max: 5, ticks: { display: false } } } }
         });

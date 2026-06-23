@@ -5,11 +5,11 @@
   "start_url": "./Infinity_Nexus_Engine.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#1E2761",
-  "theme_color": "#1E2761",
+  "background_color": "#5B21B6",
+  "theme_color": "#5B21B6",
   "icons": [
     {
-      "src": "https://studioinfinitycr.com/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"

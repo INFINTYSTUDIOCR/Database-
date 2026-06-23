@@ -10,10 +10,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#1E2761;--nm:#185FA5;--nl:#EEF2FF;
+  --navy:#5B21B6;--nm:#7C3AED;--nl:#EDE9FE;
   --green:#22C55E;--red:#EF4444;--orange:#F97316;--purple:#5B21B6;--gold:#F5A623;
-  --white:#fff;--off:#F8F9FC;--gl:#E2E8F0;
-  --text:#1E293B;--t2:#475569;--t3:#94A3B8;
+  --white:#fff;--off:#F8F8FF;--gl:#E2E8F0;
+  --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;
   --r:8px;--rl:12px;
 }
 body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if(isNexoraPublicDemo()) return;
   if(typeof getAuthToken === 'function' && !getAuthToken()){
     var gate = document.createElement('div');
-    gate.style.cssText = 'position:fixed;inset:0;background:#1E2761;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
+    gate.style.cssText = 'position:fixed;inset:0;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
     gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
     document.body.appendChild(gate);
   }
