@@ -680,6 +680,7 @@ window.onload=function(){
   var prev=_nx.scenario?_nx.scenario.id:null;
   _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
   applyScenarioToUI(_nx.scenario);
+  if(restoreNexoraLabRuntime()) return;
   document.getElementById('autoin-screen').style.display='flex';
 };
 
@@ -751,6 +752,79 @@ function nexoraReadyHint(){
   if(st&&_nx.active) st.textContent='Your turn — tap mic to respond';
 }
 
+function detectNexoraLabScreen(){
+  if(document.getElementById('call-overlay')&&document.getElementById('call-overlay').style.display==='block') return 'call';
+  if(document.getElementById('interview-screen')&&document.getElementById('interview-screen').style.display==='flex') return 'interview';
+  if(document.getElementById('meeting-screen')&&document.getElementById('meeting-screen').style.display==='flex') return 'meeting';
+  return 'call';
+}
+
+function saveNexoraLabRuntime(){
+  if(!_nx.active||!_nx.profile){
+    try{ sessionStorage.removeItem('nexora_lab_runtime'); }catch(e){}
+    return;
+  }
+  try{
+    sessionStorage.setItem('nexora_lab_runtime', JSON.stringify({
+      active:_nx.active, onHold:_nx.onHold, profile:_nx.profile, scenario:_nx.scenario,
+      history:_nx.history, transcript:_nx.transcript, talkSecs:_nx.talkSecs,
+      holdEvents:_nx.holdEvents, agent:_nx.agent, screen:detectNexoraLabScreen()
+    }));
+  }catch(e){}
+}
+
+function restoreNexoraLabRuntime(){
+  try{
+    var raw=sessionStorage.getItem('nexora_lab_runtime');
+    if(!raw) return false;
+    var s=JSON.parse(raw);
+    if(!s.active||!s.profile||!s.scenario) return false;
+    _nx.profile=s.profile; _nx.scenario=s.scenario;
+    _nx.history=s.history||[]; _nx.transcript=s.transcript||[];
+    _nx.talkSecs=s.talkSecs||0; _nx.holdEvents=s.holdEvents||[];
+    _nx.onHold=!!s.onHold; _nx.active=true;
+    if(s.agent){ _nx.agent=s.agent; document.getElementById('agent-inp').value=s.agent; }
+    _nx.callStart=Date.now()-(_nx.talkSecs*1000);
+    applyScenarioToUI(_nx.scenario);
+    document.getElementById('autoin-screen').style.display='none';
+    if(s.screen==='call'||!s.screen){
+      document.getElementById('incoming-overlay').style.display='none';
+      loadCRM(_nx.profile);
+      document.getElementById('empty-state').style.display='none';
+      document.getElementById('crm-main').style.display='grid';
+      document.getElementById('call-badge').style.display='flex';
+      document.getElementById('timer-display').style.display='block';
+      document.getElementById('call-controls').style.display='flex';
+      document.getElementById('call-overlay').style.display='block';
+      document.getElementById('co-name').textContent=_nx.profile.name;
+      document.getElementById('co-status').textContent='Call active';
+      startTimer();
+      nexoraReadyHint();
+      showToast('Sesión restaurada — continuá donde quedaste');
+      return true;
+    }
+    return false;
+  }catch(e){ return false; }
+}
+
+function pauseNexoraLab(){
+  if(!_nx.active&&!_nx.profile) return;
+  _nxSending=false;
+  _nxSpeakId++;
+  _nxTTSQueue=[]; _nxTTSBusy=false;
+  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+  stopMic();
+  if(_nx.callTimer){ clearInterval(_nx.callTimer); _nx.callTimer=null; }
+  saveNexoraLabRuntime();
+}
+
+function resumeNexoraLab(){
+  if(!_nx.active) return;
+  _nxSending=false;
+  if(!_nx.callTimer) startTimer();
+  nexoraReadyHint();
+}
+
 // ── AUTO-IN ────────────────────────────────────────────────────
 function nexoraAutoIn(){
   var sc = _nx.scenario;
@@ -814,6 +888,7 @@ function answerCall(){
   _nx.callStart=Date.now();
   _nx.active=true;
   startTimer();
+  saveNexoraLabRuntime();
   // Alice enters as client
   aliceEnter();
 }
@@ -983,6 +1058,7 @@ function transferCall(){
 function endCall(isTransfer){
   clearInterval(_nx.callTimer);
   _nx.active=false;
+  try{ sessionStorage.removeItem('nexora_lab_runtime'); }catch(e){}
   document.getElementById('call-overlay').style.display='none';
   document.getElementById('call-badge').style.display='none';
   document.getElementById('hold-badge').style.display='none';
@@ -1036,6 +1112,7 @@ function showInterviewDisplay(sc){
 
 function endInterview(){
   clearInterval(_nx.callTimer); _nx.active=false;
+  try{ sessionStorage.removeItem('nexora_lab_runtime'); }catch(e){}
   document.getElementById('interview-screen').style.display='none';
   if(window._nxAudio){ window._nxAudio.pause(); window._nxAudio.src=''; window._nxAudio=null; }
   stopMic(); generateQA(false);
@@ -1748,6 +1825,7 @@ async function sendToAlice(text){
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
   _nx.transcript.push('AGENT: '+text);
+  saveNexoraLabRuntime();
   var st=nexoraStatusEl();
   if(st) st.textContent=(p.firstName||'Client')+' is responding...';
   try{
@@ -1759,6 +1837,7 @@ async function sendToAlice(text){
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
     if(reply) speak(reply);
+    saveNexoraLabRuntime();
   }catch(e){
     if(st) st.textContent='';
     showToast('AI did not respond — check login and try again.');
@@ -2040,7 +2119,16 @@ function showToast(msg){
   t._to=setTimeout(function(){t.remove();},2500);
 }
 
-window.addEventListener('beforeunload',function(){if(window._nxAudio)window._nxAudio.pause();clearInterval(_nx.callTimer);});
+window.addEventListener('beforeunload',function(){
+  pauseNexoraLab();
+});
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) pauseNexoraLab();
+  else if(_nx.active) resumeNexoraLab();
+});
+window.addEventListener('pageshow', function(){
+  if(_nx.active) resumeNexoraLab();
+});
 </script>
 </body>
 </html>

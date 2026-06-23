@@ -161,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="portal-nav-item" data-tab="news" onclick="switchPortalTab('news')"><i class="ti ti-news"></i>News</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill');setTimeout(function(){ renderJillTab(window._currentStudent); },100);"><i class="ti ti-message-circle"></i>Jill</div>
   <div class="portal-nav-item" data-tab="alice" id="nav-alice" style="display:none;" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
-  <div class="portal-nav-item" data-tab="nexora" id="nav-nexora" style="display:none;" onclick="switchPortalTab('nexora');setTimeout(function(){ renderNexoraTab(window._currentStudent); },100);"><i class="ti ti-sparkles"></i>Nexora</div>
+  <div class="portal-nav-item" data-tab="nexora" id="nav-nexora" style="display:none;" onclick="switchPortalTab('nexora');setTimeout(function(){ ensureNexoraTab(window._currentStudent); },100);"><i class="ti ti-sparkles"></i>Nexora</div>
 </div>
 
 <div id="student-portal" style="display:none;">
@@ -301,8 +301,15 @@ async function doLogin(){
 }
 
 function switchPortalTab(tab){
-  if(tab !== 'alice') stopAlice();
+  var prevTab = window._activePortalTab || 'progreso';
+  if(tab !== 'alice' && prevTab === 'alice') pauseAliceMedia();
+  if(tab === 'alice'){
+    if(restoreAliceRuntimeStorage() || _aliceState.sessionActive) resumeAliceRuntime();
+  }
+  if(tab !== 'nexora' && prevTab === 'nexora') pauseNexoraMedia();
+  if(tab === 'nexora') resumeNexoraRuntime();
   if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
+  window._activePortalTab = tab;
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
   var pane = document.getElementById('tp-'+tab);
   if(pane) pane.classList.add('active');
@@ -501,6 +508,7 @@ function showPortal(s){
   checkNexoraAccess(s);
   loadNexoraConfig(s);
   applySystemMode(s);
+  restoreAliceRuntimeStorage();
 
   if(cals.length>=2){
     setTimeout(function(){
@@ -1070,20 +1078,65 @@ var _aliceState = {
   savedSession: null  // sesión guardada para retomar
 };
 
-// ── DETENER ALICE al cambiar de tab ───────────────────────
-function stopAlice(){
-  // Kill any in-flight TTS fetch
+// ── ALICE: pausa vs stop completo ─────────────────────────
+function pauseAliceMedia(){
+  if(_aliceState.sessionActive) _aliceState._paused = true;
   _aliceSpeakEnabled = false;
   _aliceSpeakId++;
-  // Stop audio immediately
   if(window._aliceAudio){
     window._aliceAudio.pause();
     window._aliceAudio.src = '';
     window._aliceAudio = null;
   }
-  if(_aliceState.recognition){ try{ _aliceState.recognition.stop(); }catch(e){} }
+  if(_aliceState.recognition){ try{ _aliceState.recognition.stop(); }catch(e){} _aliceState.recognition = null; }
   _aliceState.listening = false;
   _aliceState.speaking = false;
+  _aliceTTSQueue = [];
+  _aliceTTSBusy = false;
+  saveAliceRuntimeStorage();
+}
+
+function stopAlice(){
+  _aliceSpeakEnabled = false;
+  pauseAliceMedia();
+  try{ sessionStorage.removeItem('portal_alice_runtime'); }catch(e){}
+}
+
+function resumeAliceRuntime(){
+  if(!_aliceState.sessionActive) return;
+  _aliceState._paused = false;
+  _aliceSpeakEnabled = true;
+  saveAliceRuntimeStorage();
+}
+
+function saveAliceRuntimeStorage(){
+  if(!_aliceState.sessionActive){
+    try{ sessionStorage.removeItem('portal_alice_runtime'); }catch(e){}
+    return;
+  }
+  try{
+    sessionStorage.setItem('portal_alice_runtime', JSON.stringify({
+      history: _aliceState.history,
+      scenario: _aliceState.scenario,
+      accent: _aliceState.accent,
+      sessionActive: true
+    }));
+  }catch(e){}
+}
+
+function restoreAliceRuntimeStorage(){
+  try{
+    var raw = sessionStorage.getItem('portal_alice_runtime');
+    if(!raw) return false;
+    var s = JSON.parse(raw);
+    if(!s.sessionActive) return false;
+    _aliceState.history = s.history || [];
+    _aliceState.scenario = s.scenario || null;
+    if(s.accent) _aliceState.accent = s.accent;
+    _aliceState.sessionActive = true;
+    _aliceState.evaluation = null;
+    return true;
+  }catch(e){ return false; }
 }
 
 // ── PAYLOAD DEL ESTUDIANTE con Training Book ───────────────
@@ -1126,6 +1179,10 @@ function renderAlice(){
     +'</div>'
     +(!_aliceState.sessionActive ? renderAliceStart() : renderAliceSession())
     +'</div>';
+  if(_aliceState.sessionActive){
+    _aliceSpeakEnabled = true;
+    scrollAliceMessages();
+  }
 }
 
 function renderAliceStart(){
@@ -1243,6 +1300,7 @@ async function startAliceSession(){
     }
     renderAlice();
     scrollAliceMessages();
+    saveAliceRuntimeStorage();
     if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
   }catch(e){
     if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Error conectando con Alice — verificá la conexión.';
@@ -1258,6 +1316,7 @@ function resumeAliceSession(){
   renderAlice();
   scrollAliceMessages();
   _aliceSpeakEnabled = true;
+  saveAliceRuntimeStorage();
   aliceSpeak('Welcome back! Let\'s continue where we left off.');
 }
 
@@ -1278,6 +1337,7 @@ function cancelAliceSession(){
   _aliceState.sessionActive = false;
   _aliceState.history = [];
   _aliceState.scenario = null;
+  try{ sessionStorage.removeItem('portal_alice_runtime'); }catch(e){}
   renderAlice();
 }
 
@@ -1354,6 +1414,7 @@ async function sendAliceMessage(micText){
     if(pending.trim().length > 2) aliceQueueSpeak(pending.split('\nALICE:')[0]);
     renderAlice();
     scrollAliceMessages();
+    saveAliceRuntimeStorage();
 
   } catch(e){
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
@@ -1741,10 +1802,108 @@ var _nxState = {
   ringTimeout: null
 };
 
+var _nxSending = false;
+
+function pauseNexoraMedia(){
+  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+  stopNexoraMic();
+  _nxSending = false;
+  _nxState.paused = true;
+  if(_nxState.callTimer){ clearInterval(_nxState.callTimer); _nxState.callTimer = null; }
+  saveNexoraRuntimeStorage();
+}
+
+function resumeNexoraRuntime(){
+  if(!_nxState.active) return;
+  _nxState.paused = false;
+  _nxSending = false;
+  var modal = document.getElementById('nx-crm-modal');
+  if(modal && _nxState.profile) modal.style.display = 'flex';
+  if(!_nxState.callTimer && _nxState.callStart) startNexoraTimer();
+  ['nx-input','nx-mic-btn','nx-send-btn'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && _nxState.active) el.disabled = false;
+  });
+}
+
+function saveNexoraRuntimeStorage(){
+  if(!_nxState.active || !_nxState.profile){
+    try{ sessionStorage.removeItem('portal_nexora_runtime'); }catch(e){}
+    return;
+  }
+  try{
+    sessionStorage.setItem('portal_nexora_runtime', JSON.stringify({
+      active: _nxState.active,
+      onHold: _nxState.onHold,
+      profile: _nxState.profile,
+      scenario: _nxState.scenario,
+      history: _nxState.history,
+      transcript: _nxState.transcript,
+      talkSeconds: _nxState.talkSeconds,
+      holdEvents: _nxState.holdEvents,
+      callStart: _nxState.callStart
+    }));
+  }catch(e){}
+}
+
+function restoreNexoraRuntimeStorage(){
+  try{
+    var raw = sessionStorage.getItem('portal_nexora_runtime');
+    if(!raw) return false;
+    var s = JSON.parse(raw);
+    if(!s.active || !s.profile) return false;
+    _nxState.active = true;
+    _nxState.onHold = !!s.onHold;
+    _nxState.profile = s.profile;
+    _nxState.scenario = s.scenario;
+    _nxState.history = s.history || [];
+    _nxState.transcript = s.transcript || [];
+    _nxState.talkSeconds = s.talkSeconds || 0;
+    _nxState.holdEvents = s.holdEvents || [];
+    _nxState.callStart = s.callStart || (Date.now() - (_nxState.talkSeconds * 1000));
+    return true;
+  }catch(e){ return false; }
+}
+
+function nexoraRestoreMessagesFromHistory(){
+  var msgs = document.getElementById('nx-msgs');
+  if(!msgs) return;
+  msgs.innerHTML = '';
+  (_nxState.history || []).forEach(function(h){
+    if(h.role === 'user') nexoraAddMsg(h.content, 'agent');
+    else if(h.role === 'assistant') nexoraAddMsg(h.content, 'client');
+  });
+}
+
+function ensureNexoraTab(s){
+  if(_nxState.active && _nxState.profile){
+    if(!document.getElementById('nx-crm-modal')) renderNexoraTab(s, true);
+    if(!document.getElementById('nx-msgs')) nexoraShowCRM(true);
+    else resumeNexoraRuntime();
+    return;
+  }
+  if(restoreNexoraRuntimeStorage()){
+    if(!document.getElementById('nx-crm-modal')) renderNexoraTab(s, true);
+    nexoraShowCRM(true);
+    resumeNexoraRuntime();
+    return;
+  }
+  var root = document.getElementById('nexora-scenario-display');
+  if(!root || !root.querySelector('[data-nx-init]')) renderNexoraTab(s);
+}
+
 // ── NEXORA INIT ───────────────────────────────────────────────
-function renderNexoraTab(s){
+function renderNexoraTab(s, force){
   var root = document.getElementById('nexora-scenario-display');
   if(!root) return;
+  if(!force && (_nxState.active && _nxState.profile)){
+    ensureNexoraTab(s);
+    return;
+  }
+  if(!force && restoreNexoraRuntimeStorage()){
+    ensureNexoraTab(s);
+    return;
+  }
   var nxConfig = window._nexoraConfig;
   if(!nxConfig){
     root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.2);text-align:center;">'
@@ -1763,6 +1922,7 @@ function renderNexoraTab(s){
     +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
+  root.setAttribute('data-nx-init', '1');
 }
 
 // ── AUTO-IN ────────────────────────────────────────────────────
@@ -1789,7 +1949,7 @@ function nexoraAutoIn(){
 }
 
 // ── MOSTRAR CRM ────────────────────────────────────────────────
-function nexoraShowCRM(){
+function nexoraShowCRM(restoring){
   var p = _nxState.profile;
   var sc = _nxState.scenario;
   var modal = document.getElementById('nx-crm-modal');
@@ -1859,10 +2019,33 @@ function nexoraShowCRM(){
     +'</div>'
     +'</div>';
 
-  // Contestar de inmediato — sin espera artificial
-  _nxState.callStart = Date.now();
-  startNexoraTimer();
-  nexoraAnswerCall();
+  if(restoring){
+    _nxState.active = true;
+    if(!_nxState.callStart) _nxState.callStart = Date.now() - ((_nxState.talkSeconds || 0) * 1000);
+    startNexoraTimer();
+    nexoraRestoreMessagesFromHistory();
+    var statusEl = document.getElementById('nx-call-status');
+    if(statusEl) statusEl.textContent = 'Call active';
+    var inp = document.getElementById('nx-input');
+    var micBtn = document.getElementById('nx-mic-btn');
+    var sendBtn = document.getElementById('nx-send-btn');
+    if(inp) inp.disabled = false;
+    if(micBtn) micBtn.disabled = false;
+    if(sendBtn) sendBtn.disabled = false;
+    if(_nxState.onHold){
+      var holdBtn = document.getElementById('nx-hold-btn');
+      var resumeBtn = document.getElementById('nx-resume-btn');
+      var holdBadge = document.getElementById('nx-hold-badge');
+      if(holdBtn) holdBtn.style.display = 'none';
+      if(resumeBtn) resumeBtn.style.display = 'flex';
+      if(holdBadge) holdBadge.style.display = 'block';
+    }
+    saveNexoraRuntimeStorage();
+  } else {
+    _nxState.callStart = Date.now();
+    startNexoraTimer();
+    nexoraAnswerCall();
+  }
 }
 
 // ── ANSWER CALL ────────────────────────────────────────────────
@@ -1957,6 +2140,7 @@ function nexoraTransfer(){
 function nexoraEndCall(isTransfer){
   clearInterval(_nxState.callTimer);
   _nxState.active = false;
+  try{ sessionStorage.removeItem('portal_nexora_runtime'); }catch(e){}
   _nxState.talkSeconds = Math.floor((Date.now()-_nxState.callStart)/1000);
   
   // Disable controls
@@ -1999,12 +2183,15 @@ async function sendNexoraMsgVoice(text){
 }
 
 function nexoraSendToAlice(text){
+  if(_nxSending) return;
+  _nxSending = true;
   var p = _nxState.profile;
   var sc = _nxState.scenario;
   var accountContext = nexoraBuildAccountContext(p);
   nexoraAddMsg(text, 'agent');
   _nxState.history.push({role:'user',content:text});
   _nxState.transcript.push('AGENT: '+text);
+  saveNexoraRuntimeStorage();
   var statusEl = document.getElementById('nx-alice-status');
   if(statusEl) statusEl.textContent = p.firstName+' is responding...';
   var student = window._currentStudent || window._portalStudent || {};
@@ -2026,8 +2213,11 @@ function nexoraSendToAlice(text){
     nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
+    saveNexoraRuntimeStorage();
   }).catch(function(){
     if(statusEl) statusEl.textContent='';
+  }).finally(function(){
+    _nxSending = false;
   });
 }
 
@@ -2129,6 +2319,7 @@ function nexoraRenderQA(ev, isTransfer, talkTime){
 function nexoraCloseCRM(){
   clearInterval(_nxState.callTimer);
   _nxState.active=false;
+  try{ sessionStorage.removeItem('portal_nexora_runtime'); }catch(e){}
   var modal=document.getElementById('nx-crm-modal');
   if(modal) modal.style.display='none';
   var btn=document.getElementById('nx-autoin-btn');
@@ -2240,10 +2431,18 @@ window.addEventListener('beforeunload',function(){
   if(window._nxAudio) window._nxAudio.pause();
   clearInterval(_nxState.callTimer);
   jillStopAll();
-  stopAlice();
+  pauseAliceMedia();
+  pauseNexoraMedia();
 });
 document.addEventListener('visibilitychange', function(){
-  if(document.hidden){ jillStopAll(); stopAlice(); }
+  if(document.hidden){
+    jillStopAll();
+    pauseAliceMedia();
+    pauseNexoraMedia();
+  } else {
+    if(window._activePortalTab === 'alice' && _aliceState.sessionActive) resumeAliceRuntime();
+    if(window._activePortalTab === 'nexora' && _nxState.active) resumeNexoraRuntime();
+  }
 });
 
 async function loadNexoraConfig(s){

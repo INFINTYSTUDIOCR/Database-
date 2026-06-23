@@ -5682,7 +5682,7 @@ function sendVisualReportWA(sid){
 var _netInterval = null;
 var _netData = {
   pageviews: [], claireClicks: [], uploads: [], imports: [],
-  history: { labels:[], pv:[], cv:[] }
+  history: { labels:[], pv:[], cv:[], nx:[], alice:[] }
 };
 
 async function renderNetworkTraffic(m){
@@ -5695,7 +5695,7 @@ async function renderNetworkTraffic(m){
 
     // ── KPI Cards ──
     +'<div class="grid4" style="margin-bottom:1rem;">'
-    +'<div class="stat"><div class="stat-label"><i class="ti ti-eye"></i> Page Views (sesión)</div><div class="stat-val" id="nt-pv" style="color:var(--nm);">—</div><div class="stat-sub" id="nt-pv-sub">Cargando...</div></div>'
+    +'<div class="stat"><div class="stat-label"><i class="ti ti-eye"></i> Page Views (sesión)</div><div class="stat-val" id="nt-pv" style="color:var(--gold);">—</div><div class="stat-sub" id="nt-pv-sub">Cargando...</div></div>'
     +'<div class="stat"><div class="stat-label"><i class="ti ti-message-chatbot"></i> Clicks a Claire</div><div class="stat-val" id="nt-cv" style="color:#7C3AED;">—</div><div class="stat-sub" id="nt-cv-sub">—</div></div>'
     +'<div class="stat"><div class="stat-label"><i class="ti ti-cloud-upload"></i> KB Subidos</div><div class="stat-val" id="nt-kb" style="color:var(--gm);">—</div><div class="stat-sub" id="nt-kb-sub">—</div></div>'
     +'<div class="stat"><div class="stat-label"><i class="ti ti-table-import"></i> Excel Imports</div><div class="stat-val" id="nt-xl" style="color:var(--amber);">—</div><div class="stat-sub" id="nt-xl-sub">—</div></div>'
@@ -5723,8 +5723,10 @@ async function renderNetworkTraffic(m){
     data:{
       labels:[],
       datasets:[
-        {label:'Page Views',data:[],borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:true,pointRadius:3},
-        {label:'Clicks Claire',data:[],borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:true,pointRadius:3}
+        {label:'Page Views',data:[],borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,0.12)',tension:0.4,fill:true,pointRadius:3},
+        {label:'Clicks Claire',data:[],borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:false,pointRadius:3},
+        {label:'Nexora demo usage',data:[],borderColor:'#0F6E56',backgroundColor:'rgba(15,110,86,0.08)',tension:0.4,fill:false,pointRadius:3},
+        {label:'Alice usage',data:[],borderColor:'#A32D2D',backgroundColor:'rgba(163,45,45,0.08)',tension:0.4,fill:false,pointRadius:3}
       ]
     },
     options:{
@@ -5759,9 +5761,21 @@ async function renderNetworkTraffic(m){
       // Page views estimados: entradas de login de hoy
       var loginRows = todayRows.filter(function(e){ return (e.action||'').indexOf('sesión')>=0; });
 
+      var nxDemo = 0, aliceDemo = 0;
+      rows.forEach(function(r){
+        if(!r.id || r.id.indexOf('TRACK-')!==0 || !r.data) return;
+        (r.data.events||[]).forEach(function(e){
+          var ev = String(e.event||'').toLowerCase();
+          if(ev.indexOf('nexora')>=0) nxDemo++;
+          if(ev.indexOf('alice')>=0 && ev.indexOf('claire')<0) aliceDemo++;
+        });
+      });
+
       var d = {
         pageviews: { today: loginRows.length * 4 + Math.floor(Math.random()*3), live: Math.floor(Math.random()*6)+1 },
         claire: { total_opened: claireRows.length + (window._claireClickCount||0), last_click: claireRows.length?claireRows[claireRows.length-1].ts:null },
+        nexora_demo: { today: nxDemo, live: nxDemo },
+        alice_demo: { today: aliceDemo, live: aliceDemo },
         uploads: { total_kb: uploadRows.reduce(function(a){ return a + Math.random()*200+50; },0)|0, count: uploadRows.length, items: uploadRows.slice(-5).map(function(e){ return {name:(e.details||'archivo'), kb:Math.floor(Math.random()*300+50), ts:e.ts}; }) },
         imports: { count: importRows.length, items: importRows.slice(-5).map(function(e){ return {name:(e.details||'import.xlsx'), rows:Math.floor(Math.random()*50+5), ts:e.ts}; }) },
         _fallback: true
@@ -5773,15 +5787,35 @@ async function renderNetworkTraffic(m){
     }
   }
 
+  function netMetricVal(block){
+    if(!block) return 0;
+    if(block.live!=null) return block.live;
+    if(block.today!=null) return block.today;
+    if(block.total_sessions!=null) return block.total_sessions;
+    if(block.total_opened!=null) return block.total_opened;
+    if(block.total!=null) return block.total;
+    return 0;
+  }
+
   function pushChartPoint(chart, d){
     var now = new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if(_netData.history.labels.length>=12){ _netData.history.labels.shift(); _netData.history.pv.shift(); _netData.history.cv.shift(); }
+    if(_netData.history.labels.length>=12){
+      _netData.history.labels.shift();
+      _netData.history.pv.shift();
+      _netData.history.cv.shift();
+      _netData.history.nx.shift();
+      _netData.history.alice.shift();
+    }
     _netData.history.labels.push(now);
-    _netData.history.pv.push(d.pageviews?d.pageviews.live||d.pageviews.today||0:0);
-    _netData.history.cv.push(d.claire?d.claire.total_opened||0:0);
+    _netData.history.pv.push(netMetricVal(d.pageviews));
+    _netData.history.cv.push(netMetricVal(d.claire));
+    _netData.history.nx.push(netMetricVal(d.nexora_demo || d.nexora));
+    _netData.history.alice.push(netMetricVal(d.alice_demo || d.alice));
     chart.data.labels = _netData.history.labels.slice();
     chart.data.datasets[0].data = _netData.history.pv.slice();
     chart.data.datasets[1].data = _netData.history.cv.slice();
+    chart.data.datasets[2].data = _netData.history.nx.slice();
+    chart.data.datasets[3].data = _netData.history.alice.slice();
     chart.update('none');
   }
 
