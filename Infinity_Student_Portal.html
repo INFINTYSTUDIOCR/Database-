@@ -40,6 +40,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tb-tool-btn{background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:5px 10px;font-size:11px;border-radius:var(--r);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;font-weight:600;line-height:1;}
+.tb-tool-btn:hover{background:rgba(255,255,255,0.1);}
+.tb-tool-btn i{font-size:14px;}
 .tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(15,110,86,0.3);color:#6EE7C0;border:1px solid rgba(110,231,192,0.3);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
@@ -118,9 +121,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
   </div>
   <div class="tb-right">
+    <button type="button" class="tb-tool-btn" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i> Volver</button>
+    <button type="button" class="tb-tool-btn" onclick="portalRefresh()" title="Actualizar"><i class="ti ti-refresh"></i> Actualizar</button>
     <span class="tb-user" id="tb-user"></span>
     <span class="tb-role">Estudiante</span>
-    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);padding:5px 10px;font-size:11px;" onclick="logout()"><i class="ti ti-logout"></i></button>
+    <button type="button" class="tb-tool-btn" onclick="logout()" title="Salir"><i class="ti ti-logout"></i> Salir</button>
   </div>
 </div>
 
@@ -202,6 +207,38 @@ document.getElementById('login-logo').src = 'data:image/png;base64,'+LOGO;
 var CURRENT_STUDENT = null;
 var ALL_STUDENTS = {};
 var CALENDAR_EVENTS = {};
+var _portalTabStack = ['progreso'];
+
+async function portalRefresh(){
+  if(!CURRENT_STUDENT || !CURRENT_STUDENT.id) return;
+  try{
+    showToast('Actualizando portal…');
+    var rows = await dbGet('infinity_students');
+    var fresh = null;
+    rows.forEach(function(r){
+      if(r.id === CURRENT_STUDENT.id && r.data) fresh = r.data;
+    });
+    if(fresh){
+      CURRENT_STUDENT = fresh;
+      ALL_STUDENTS[fresh.id] = fresh;
+      showPortal(fresh);
+      showToast('Portal actualizado');
+    } else {
+      showToast('No se pudo actualizar', 'err');
+    }
+  }catch(e){
+    showToast('Error al actualizar', 'err');
+  }
+}
+
+function portalGoBack(){
+  if(_portalTabStack.length > 1){
+    _portalTabStack.pop();
+    switchPortalTab(_portalTabStack[_portalTabStack.length - 1], true);
+    return;
+  }
+  switchPortalTab('progreso', true);
+}
 
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
@@ -261,7 +298,11 @@ async function doLogin(){
   }
 }
 
-function switchPortalTab(tab){
+function switchPortalTab(tab, fromBack){
+  if(!fromBack){
+    var last = _portalTabStack[_portalTabStack.length - 1];
+    if(last !== tab) _portalTabStack.push(tab);
+  }
   if(tab !== 'alice') stopAlice();
   if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
@@ -288,6 +329,9 @@ function logout(){
 }
 
 function showPortal(s){
+  window._currentStudent = s;
+  window._portalStudent = s;
+  _portalTabStack = ['progreso'];
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -1617,13 +1661,22 @@ function renderNexoraTab(s){
     return;
   }
   var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service Call',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Sales Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
+  var descByType = {
+    mock_interview: 'Entrás a una entrevista laboral en vivo (formato STAR). El panel hará preguntas conductuales — respondé en inglés con situación, acción y resultado concreto.',
+    customer_service: 'Recibirás una llamada de cliente. Buscá el número en el CRM, revisá las pestañas y resolvé el caso profesionalmente — todo en inglés.',
+    team_meeting: 'Te unís a una reunión de equipo en vivo. Participá con claridad, conectores y estructura profesional.',
+    problem_solving: 'Escenario de resolución de problemas bajo presión. Explicá tu razonamiento paso a paso en inglés.',
+    presentation: 'Presentación corporativa en vivo. Estructurá tus ideas con apertura, desarrollo y cierre.',
+    negotiation: 'Simulación de negociación. Defendé tu posición con profesionalismo y claridad.',
+    stakeholder: 'Conversación con stakeholder. Comunicá impacto, riesgos y próximos pasos en inglés operacional.'
+  };
   var sessionLabel = (typeLabels[nxConfig.type] || 'Nexora Simulation').toUpperCase();
-  root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.25);">'
-    +'<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
-    +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
-    +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
+  root.innerHTML = '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.35);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(91,33,182,0.12);">'
+    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
+    +'<div style="font-size:12px;color:var(--t2);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
+    +'<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:1.25rem;">'+(descByType[nxConfig.type]||'Nexora simula el escenario configurado por tu trainer. Respondé en inglés con profesionalismo.')+'</p>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:white;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(34,197,94,0.25);"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
 }

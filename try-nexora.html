@@ -21,14 +21,14 @@
 
 <div class="demo-hero-compact">
   <div class="demo-hero-logo-wrap"><img src="assets/logos/nexora.png" alt="Nexora" class="demo-hero-logo"></div>
-  <h1>Nexora — Business Simulation Lab</h1>
-  <p>Live-pressure scenarios before real life hits: STAR interviews and customer service calls — voice, mic and instant feedback.</p>
+  <h1>Nexora Mini Simulation</h1>
+  <p>Pick one scenario — voices come from <strong>your ElevenLabs account</strong> (English), not random presets.</p>
 </div>
 
 <div class="consent-box">
   <label class="consent-label consent-light">
     <input type="checkbox" id="demo-consent" checked>
-    <span>Anonymized demo data may be used to improve Nexora scenarios and coaching.</span>
+    <span>Anonymized demo data may be used to improve Nexora scenarios and coaching KB.</span>
   </label>
 </div>
 
@@ -39,7 +39,7 @@
 
 <div class="demo-session" id="app">
   <div style="text-align:center;margin-bottom:16px;">
-    <button type="button" class="btn-demo-gold" style="max-width:280px;margin:0 auto;" id="btn-start">Start simulation — 5 min</button>
+    <button type="button" class="btn-demo-gold" style="max-width:280px;margin:0 auto;" id="btn-start">Start simulation</button>
   </div>
 
   <div class="demo-panel" id="panel" style="display:none;">
@@ -50,7 +50,7 @@
       </div>
       <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
     </div>
-    <div class="demo-msgs demo-msgs-dark" id="msgs"></div>
+    <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status demo-status-light" id="typing" style="display:none;font-style:italic;">Simulation running…</div>
     <div class="demo-voice-hint nexora" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Voice on — tap <strong>mic</strong> to speak or type below. Use Chrome for best results.</div>
     <div class="demo-input-row" id="input-row">
@@ -80,8 +80,13 @@
 <script>
 (function () {
   var scenario = 'star';
-  var sessionId = null, step = 0, maxSteps = 3, busy = false, done = false;
+  var sessionId = null;
+  var step = 0;
+  var maxSteps = 3;
+  var busy = false;
+  var done = false;
   var voiceProfile = null;
+
   var panel = document.getElementById('panel');
   var msgs = document.getElementById('msgs');
   var inp = document.getElementById('inp');
@@ -92,9 +97,13 @@
     voiceProfile = DemoVoice.setProfile(demoVoiceProfile('nexora', scenario));
     var hint = document.getElementById('voice-hint');
     if (hint && voiceProfile) {
-      hint.innerHTML = '<i class="ti ti-volume"></i> <strong>' + (voiceProfile.label || 'Client') + '</strong> speaks — tap mic or type below.';
+      var note = voiceProfile.needsMaleVoice
+        ? ' — <span style="opacity:.85">Configura NEXORA_DEMO_MALE_VOICE_ID en Render (voz English en ElevenLabs)</span>'
+        : '';
+      hint.innerHTML = '<i class="ti ti-volume"></i> ElevenLabs: <strong>' + (voiceProfile.label || 'Voice') + '</strong>' + note + ' — tap mic or type below.';
     }
   }
+
   refreshVoiceHint();
   syncDemoVoicesFromServer().then(refreshVoiceHint);
 
@@ -104,12 +113,15 @@
       document.querySelectorAll('.demo-scenario-btn').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
       scenario = btn.getAttribute('data-scenario');
-      document.getElementById('sim-title').textContent = scenario === 'customer_service' ? 'Nexora — Customer Service' : 'Nexora — STAR Interview';
+      document.getElementById('sim-title').textContent =
+        scenario === 'customer_service' ? 'Nexora — Customer Service' : 'Nexora — STAR Interview';
       refreshVoiceHint();
     });
   });
 
-  function roleLabel() { return scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER'; }
+  function roleLabel() {
+    return scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER';
+  }
 
   function setBusy(v) {
     busy = v;
@@ -118,7 +130,10 @@
   }
 
   async function start() {
-    if (!document.getElementById('demo-consent').checked) { alert('Please accept consent to start.'); return; }
+    if (!document.getElementById('demo-consent').checked) {
+      alert('Please accept consent to start.');
+      return;
+    }
     setBusy(true);
     pick.style.display = 'none';
     demoTrack('demo_nexora_start', scenario);
@@ -142,7 +157,9 @@
       if (e.error === 'limit') {
         document.getElementById('btn-start').style.display = 'none';
         limitView.style.display = 'block';
-      } else alert(e.message || 'Demo unavailable.');
+      } else {
+        alert(e.message || 'Demo unavailable.');
+      }
     }
     setBusy(false);
   }
@@ -154,9 +171,10 @@
     inp.value = '';
     demoAddMsg(msgs, text, 'user', 'YOU');
     setBusy(true);
+    demoTrack('demo_nexora_message', scenario + '_step_' + (step + 1));
     try {
       var d = await demoSend(sessionId, text);
-      demoAddMsg(msgs, d.reply, 'assistant', roleLabel());
+      demoAddMsg(msgs, d.reply, 'assistant', d.done ? roleLabel() : roleLabel());
       DemoVoice.speak(d.reply, voiceProfile);
       step = d.step;
       document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
@@ -164,10 +182,15 @@
         done = true;
         document.getElementById('input-row').style.display = 'none';
         demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Nexora');
+        demoTrack('demo_nexora_complete', scenario);
       }
     } catch (e) {
-      if (e.error === 'limit') { done = true; document.getElementById('input-row').style.display = 'none'; }
-      else demoAddMsg(msgs, 'Connection issue — try again later.', 'assistant', 'SYSTEM');
+      if (e.error === 'limit') {
+        done = true;
+        document.getElementById('input-row').style.display = 'none';
+      } else {
+        demoAddMsg(msgs, 'Connection issue — try again later.', 'assistant', 'SYSTEM');
+      }
     }
     setBusy(false);
   }
@@ -175,13 +198,18 @@
   document.getElementById('btn-start').onclick = start;
   document.getElementById('btn-send').onclick = send;
   DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'en-US', onSend: send });
-  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); send(); }
+  });
+
   if (location.hash === '#cs') {
     scenario = 'customer_service';
     document.querySelectorAll('.demo-scenario-btn').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-scenario') === 'customer_service');
     });
     document.getElementById('sim-title').textContent = 'Nexora — Customer Service';
+    refreshVoiceHint();
+  } else {
     refreshVoiceHint();
   }
 })();

@@ -18,6 +18,24 @@ window.DEMO_BUFFER = {
       }
     }
   },
+  jill: {
+    start: "Hi! I'm Jill — your Foundations tutor at Off The Clock. I help you build the structure behind English: chunks, verb tenses, and your first linkers. Ready? Tell me one thing you want to improve in English this week.",
+    steps: [
+      "Good! In Foundations we don't memorize lists — we build **Idea + chunk + Idea**. Try this: say 'I want to improve' and add ONE reason using **because**.",
+      "Nice try! Now let's use a time tense. Tell me what you **did yesterday** — one short sentence. Use a simple past verb.",
+      "You're building the base Alice will coach later. Last one: complete this chunk — 'However, I think…' and finish with your own idea."
+    ],
+    finish: {
+      reply: "Great Foundations mini session! You practiced structure, tense, and a linker — that's exactly how Jill builds your base before Alice and Nexora.\n\nJILL: ¡Muy bien! En el programa completo Jill te guía paso a paso desde chunking hasta linkers reales.",
+      evaluation: {
+        overall_score: 70,
+        highlights: ["You completed the Jill demo", "You attempted structured responses"],
+        improvements: ["Practice because/however in every answer", "Keep answers to Idea + Linker + Idea"],
+        connectors_found: [],
+        connectors_suggested: ["because", "however", "on top of that"]
+      }
+    }
+  },
   nexora_star: {
     start: "Thanks for joining. I'm conducting a brief STAR behavioral interview. First question: **Tell me about a time you had to handle a difficult situation at work.** Focus on Situation, Task, Action, and Result — and be specific about YOUR actions.",
     steps: [
