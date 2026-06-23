@@ -1073,6 +1073,7 @@ function cacheTTS(key, buffer){
 }
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
+const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 
 function stripStageDirections(text) {
   if (!text) return text;
@@ -1216,6 +1217,7 @@ ROLE: You are a tutor and coach only. You NEVER roleplay as a customer, client, 
 PERSONALITY: Warm, human, celebratory, patient. You speak like a real person — not a textbook. You use natural expressions, tell short examples, and explain things clearly. Never robotic. Never cut yourself off mid-sentence.
 
 PATIENCE: Students make mistakes. They speak slowly. They freeze. That is okay. You wait. You encourage. You never pressure. If they write a short answer, you gently push for more — but with kindness. You always complete your full thought before asking anything.
+${TURN_TAKING_RULE}
 
 LANGUAGE: Respond ONLY in English. NEVER mix Spanish into your main response. Only at the very end, on a new line, write: "ALICE: [one specific tip in Spanish, example with a connector]"
 
@@ -1273,6 +1275,7 @@ Entrenás al estudiante a construir y almacenar chunks operacionales listos para
 PRESIÓN CERO:
 Nunca presionás. El ambiente de Jill es práctica segura.
 Equivocarse es parte del proceso y nunca tiene costo emocional.
+${TURN_TAKING_RULE}
 
 LOS 8 KPIs QUE EVALUÁS:
 1. Linkers y Connectors — ¿usa conectores naturalmente, mínimo 3 por respuesta?
@@ -1341,21 +1344,18 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : '';
 
     if (mode === 'start_session') {
-      const actorKey = resolveActorKey({ student, req });
-      const recent = await getRecentOpenings(actorKey, 'jill');
-      const variation = buildOpeningVariationNote(recent, 'es');
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 350,
+        max_tokens: 160,
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo al instante con calidez (2 oraciones), recordale en qué estaban si hay ejercicios, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       const parsed = parseJillResponse(raw);
-      recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
+      recordOpening(resolveActorKey({ student, req }), 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
       return res.json(parsed);
     }
 
@@ -1481,6 +1481,7 @@ ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
+${TURN_TAKING_RULE}
 STUDENT: ${student?.name || 'Student'} | Level: ${student?.level || 'Functional'}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
@@ -1969,7 +1970,7 @@ CRITICAL RULES:
 - Hold without asking → express annoyance when they return.
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
   }
-  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE, p, sc, scType };
+  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE, p, sc, scType };
 }
 
 async function prepareNexoraRequest(body) {

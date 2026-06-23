@@ -1808,28 +1808,58 @@ function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.p
 function speak(text){ _nxTTSQueue=[]; _nxTTSBusy=false; queueSpeak(text); }
 
 // ── MIC ───────────────────────────────────────────────────────
+var TURN_SILENCE_MS = 850;
+
+function clearSilenceTurn(rec){
+  if(rec && rec._silenceTimer){ clearTimeout(rec._silenceTimer); rec._silenceTimer = null; }
+}
+
+function armSilenceTurn(rec, getText, onSend){
+  clearSilenceTurn(rec);
+  rec._silenceTimer = setTimeout(function(){
+    var text = String(getText() || '').trim();
+    if(!text) return;
+    clearSilenceTurn(rec);
+    try{ rec.stop(); }catch(e){}
+    onSend(text);
+  }, TURN_SILENCE_MS);
+}
+
 function toggleMic(){
   if(_nx.micOn){stopMic();return;}
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){showToast('Use Chrome for microphone');return;}
   if(window._nxAudio) window._nxAudio.pause();
-  _nx.mic=new SR();_nx.mic.lang='en-US';_nx.mic.interimResults=false;_nx.mic.continuous=false;
+  _nx.mic=new SR();_nx.mic.lang='en-US';_nx.mic.interimResults=true;_nx.mic.continuous=true;
   _nx.micOn=true;
   var btn=document.getElementById('co-mic-btn');
   if(btn) btn.classList.add('listening');
   var stEl=document.getElementById('co-status-text')||document.getElementById('iv-status-text')||document.getElementById('mt-status-text');
   if(stEl) stEl.textContent='Listening...';
-  _nx.mic.onresult=function(e){window._nxVoice=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');};
+  _nx.mic.onresult=function(e){
+    window._nxVoice=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
+    armSilenceTurn(_nx.mic, function(){ return window._nxVoice; }, function(text){
+      window._nxVoice = text;
+      stopMic();
+      sendToAlice(text);
+      window._nxVoice = '';
+    });
+  };
   _nx.mic.onend=function(){
+    clearSilenceTurn(_nx.mic);
+    var voice = (window._nxVoice || '').trim();
     stopMic();
-    if(window._nxVoice&&window._nxVoice.trim()){var t=window._nxVoice.trim();window._nxVoice='';sendToAlice(t);}
+    if(voice){ sendToAlice(voice); window._nxVoice=''; }
   };
   _nx.mic.onerror=function(){stopMic();};
   _nx.mic.start();
 }
 
 function stopMic(){
-  if(_nx.mic) try{_nx.mic.stop();}catch(e){}
+  if(_nx.mic){
+    clearSilenceTurn(_nx.mic);
+    try{_nx.mic.stop();}catch(e){}
+  }
   _nx.micOn=false;
   var btn=document.getElementById('co-mic-btn');
   if(btn) btn.classList.remove('listening');
