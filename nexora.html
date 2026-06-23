@@ -1662,12 +1662,7 @@ async function nexoraDemoStreamReply(payload, onPartial){
         if(evt.t){
           fullText+=evt.t; pending+=evt.t;
           if(onPartial) onPartial(fullText);
-          var m=pending.match(/^([\s\S]+?[.!?])\s+/);
-          if(m&&m[1].length>3){ queueSpeak(m[1]); pending=pending.slice(m[0].length); }
-          else if(pending.length>=18&&/[,;]/.test(pending)){
-            var cm=pending.match(/^([\s\S]{10,}?[,;])\s+/);
-            if(cm){ queueSpeak(cm[1]); pending=pending.slice(cm[0].length); }
-          }
+          pending=flushLiveSpeechChunk(pending, queueSpeak);
         }
       }catch(e){}
     }
@@ -1676,14 +1671,49 @@ async function nexoraDemoStreamReply(payload, onPartial){
   return fullText.trim();
 }
 
+async function nexoraAuthStreamReply(payload, onPartial){
+  var fullText='', pending='';
+  var resp=await infinityFetch('/nexora/stream',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  });
+  if(!resp.ok) throw new Error('stream_'+resp.status);
+  var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
+  while(true){
+    var chunk=await reader.read(); if(chunk.done) break;
+    lineBuf+=dec.decode(chunk.value,{stream:true});
+    var lines=lineBuf.split('\n'); lineBuf=lines.pop()||'';
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i]; if(!line.startsWith('data: ')) continue;
+      var raw=line.slice(6).trim(); if(raw==='[DONE]') break;
+      try{
+        var evt=JSON.parse(raw);
+        if(evt.t){
+          fullText+=evt.t; pending+=evt.t;
+          if(onPartial) onPartial(fullText);
+          pending=flushLiveSpeechChunk(pending, queueSpeak);
+        }
+      }catch(e){}
+    }
+  }
+  if(pending.trim().length>2) queueSpeak(pending.split('\nALICE:')[0]);
+  return fullText.trim();
+}
+
+function flushLiveSpeechChunk(pending, speakFn){
+  if(!pending) return pending;
+  var m=pending.match(/^([\s\S]+?[.!?])\s+/);
+  if(m&&m[1].length>2){ speakFn(m[1]); return pending.slice(m[0].length); }
+  if(pending.length>=8){
+    var sp=pending.indexOf(' ',5);
+    if(sp>4){ speakFn(pending.slice(0,sp).trim()); return pending.slice(sp+1); }
+  }
+  return pending;
+}
+
 async function nexoraGetReply(payload, onPartial){
   if(isNexoraPublicDemo()) return await nexoraDemoStreamReply(payload, onPartial);
-  var reply=await nexoraPostReply(payload);
-  if(reply){
-    if(onPartial) onPartial(reply);
-    speak(reply);
-  }
-  return reply;
+  return await nexoraAuthStreamReply(payload, onPartial);
 }
 
 function buildNexoraPayload(message, history, p, sc){

@@ -890,7 +890,7 @@ app.post('/demo/nexora-lab/stream', async (req, res) => {
     const ctx = await prepareNexoraRequest(body);
     await streamAnthropicSSE(req, res, {
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 120,
+      max_tokens: 90,
       system: ctx.systemPrompt,
       messages: ctx.msgs
     });
@@ -1162,16 +1162,13 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     if (mode === 'start_session') {
       const tb = (student?.trainingBook || []).slice(0,4)
         .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
-      const actorKey = resolveActorKey({ student, req });
-      const recent = await getRecentOpenings(actorKey, 'alice');
-      const variation = buildOpeningVariationNote(recent, 'en');
 
       const resp = await claudeCall({
-        model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name (2-3 sentences max). Tell them you'll practice English together and ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+        model: 'claude-haiku-4-5-20251001', max_tokens: 140,
+        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name in 2 sentences max — open immediately, no filler. Ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-      recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
+      recordOpening(resolveActorKey({ student, req }), 'alice', extractOpeningSnippet(opening)).catch(() => {});
       return res.json({ opening });
     }
 
@@ -1487,7 +1484,7 @@ RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. Ask ONE foll
 STUDENT: ${student?.name || 'Student'} | Level: ${student?.level || 'Functional'}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    await streamAnthropicSSE(req, res, { max_tokens: 280, system, messages: msgs });
+    await streamAnthropicSSE(req, res, { max_tokens: 160, system, messages: msgs });
   } catch (err) {
     console.error('Alice stream error:', err.message);
     if (!res.headersSent) res.status(500).end(); else res.end();
@@ -1984,9 +1981,7 @@ async function prepareNexoraRequest(body) {
   const actorKey = resolveActorKey({ student, profile: p });
   const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
   if (isOpening) {
-    const recent = await getRecentOpenings(actorKey, openingProduct);
-    const variation = buildOpeningVariationNote(recent, 'en');
-    prompt += variation + '\nThis is the FIRST line of the call — open with a NEW greeting and reason for calling. Do not reuse phrasing from recent openings.';
+    prompt += '\nThis is the FIRST line of the call — open immediately with a direct greeting and reason. No filler.';
   }
   const hist = (history || []).slice(-14);
   const last = hist[hist.length - 1];
@@ -2260,7 +2255,7 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
     const ctx = await prepareNexoraRequest(req.body);
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 120,
+      max_tokens: 90,
       system: ctx.systemPrompt,
       messages: ctx.msgs
     });
@@ -2281,7 +2276,7 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
     const ctx = await prepareNexoraRequest(req.body);
     await streamAnthropicSSE(req, res, {
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 120,
+      max_tokens: 90,
       system: ctx.systemPrompt,
       messages: ctx.msgs
     });

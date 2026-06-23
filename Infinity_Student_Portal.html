@@ -1301,13 +1301,7 @@ async function sendAliceMessage(){
             _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
             renderAlice();
             scrollAliceMessages();
-            // Sentence-by-sentence TTS
-            var m = pending.match(/^([\s\S]+?[.!?])\s+/);
-            if(m && m[1].length > 3){ aliceQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
-            else if(pending.length >= 22 && /[,;]/.test(pending)){
-              var cm = pending.match(/^([\s\S]{12,}?[,;])\s+/);
-              if(cm) { aliceQueueSpeak(cm[1]); pending = pending.slice(cm[0].length); }
-            }
+            pending = flushLiveSpeechChunk(pending, aliceQueueSpeak);
           }
         } catch(e){}
       }
@@ -1827,6 +1821,17 @@ function sanitizeNexoraReply(reply, profile){
     .replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
 }
 
+function flushLiveSpeechChunk(pending, speakFn){
+  if(!pending) return pending;
+  var m = pending.match(/^([\s\S]+?[.!?])\s+/);
+  if(m && m[1].length > 2){ speakFn(m[1]); return pending.slice(m[0].length); }
+  if(pending.length >= 8){
+    var sp = pending.indexOf(' ', 5);
+    if(sp > 4){ speakFn(pending.slice(0, sp).trim()); return pending.slice(sp + 1); }
+  }
+  return pending;
+}
+
 async function nexoraStreamReply(payload, onPartial){
   var fullText = '';
   var pending = '';
@@ -1854,12 +1859,7 @@ async function nexoraStreamReply(payload, onPartial){
           fullText += evt.t;
           pending += evt.t;
           if(onPartial) onPartial(fullText);
-          var m = pending.match(/^([\s\S]+?[.!?])\s+/);
-          if(m && m[1].length > 3){ nexoraQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
-          else if(pending.length >= 18 && /[,;]/.test(pending)){
-            var cm = pending.match(/^([\s\S]{10,}?[,;])\s+/);
-            if(cm){ nexoraQueueSpeak(cm[1]); pending = pending.slice(cm[0].length); }
-          }
+          pending = flushLiveSpeechChunk(pending, nexoraQueueSpeak);
         }
       } catch(e){}
     }
