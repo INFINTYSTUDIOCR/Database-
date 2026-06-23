@@ -592,8 +592,17 @@ var ALICE_BACKEND='https://alice-by-infinity.onrender.com';
 
 function isNexoraPublicDemo(){
   try{
+    if(typeof getAuthToken==='function'&&getAuthToken()) return false;
     return localStorage.getItem('nexora_public_demo')==='1'&&!!localStorage.getItem('nexora_demo_session');
   }catch(e){return false;}
+}
+
+function clearNexoraDemoFlagsIfPortal(){
+  try{
+    if(typeof getAuthToken!=='function'||!getAuthToken()) return;
+    localStorage.removeItem('nexora_public_demo');
+    localStorage.removeItem('nexora_demo_session');
+  }catch(e){}
 }
 
 function getNexoraDemoSessionId(){
@@ -601,6 +610,7 @@ function getNexoraDemoSessionId(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+  clearNexoraDemoFlagsIfPortal();
   if(isNexoraPublicDemo()) return;
   if(typeof getAuthToken === 'function' && !getAuthToken()){
     var gate = document.createElement('div');
@@ -663,6 +673,7 @@ var _nx={
 
 // ── INIT ──────────────────────────────────────────────────────
 window.onload=function(){
+  clearNexoraDemoFlagsIfPortal();
   var savedAgent=localStorage.getItem('nexora_agent');
   if(savedAgent){_nx.agent=savedAgent;document.getElementById('agent-inp').value=savedAgent;}
   var nxConfig=loadNexoraEngineConfig();
@@ -1606,6 +1617,21 @@ async function nexoraDemoMessageFallback(payload){
   return String(data.reply||'').trim();
 }
 
+async function nexoraPostReply(payload){
+  var r=await infinityFetch('/nexora',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok){
+    var errText=''; try{errText=await r.text();}catch(e){}
+    throw new Error(errText||('nexora_'+r.status));
+  }
+  var d=await r.json();
+  if(d.error) throw new Error(d.error);
+  return String(d.reply||'').trim();
+}
+
 async function nexoraStreamReply(payload, onPartial){
   var fullText='', pending='';
   var isDemo=isNexoraPublicDemo();
@@ -1626,10 +1652,19 @@ async function nexoraStreamReply(payload, onPartial){
       throw new Error(errText||('stream_'+resp.status));
     }
   } else {
-    var resp=await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!resp.ok){
-      var errText2=''; try{errText2=await resp.text();}catch(e){}
-      throw new Error(errText2||('stream_'+resp.status));
+    try{
+      var resp=await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!resp.ok){
+        var errText2=''; try{errText2=await resp.text();}catch(e){}
+        throw new Error(errText2||('stream_'+resp.status));
+      }
+    }catch(streamErr){
+      var postReply=await nexoraPostReply(payload);
+      if(postReply){
+        if(onPartial) onPartial(postReply);
+        speak(postReply);
+      }
+      return postReply;
     }
   }
   var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
@@ -1707,7 +1742,20 @@ async function sendToAlice(text){
     if(!fullRaw && reply) speak(reply);
   }catch(e){
     if(st) st.textContent='';
-    if(isNexoraPublicDemo()) showToast('AI did not respond — try again.');
+    try{
+      var fb=await nexoraPostReply({
+        message:text, history:_nx.history.slice(-14), profile:p, scenario:sc, agentName:_nx.agent||'Agent',
+        accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null},
+        negRole:(sc&&sc.type==='negotiation')?_nx_negRole:null
+      });
+      if(fb){
+        _nx.history.push({role:'assistant',content:fb});
+        _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+fb);
+        speak(fb);
+      }
+    }catch(e2){
+      showToast('AI did not respond — check login and try again.');
+    }
   }
   _nxSending=false;
 }
