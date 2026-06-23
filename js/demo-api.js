@@ -165,7 +165,7 @@ async function demoFetchMyIp() {
     if (parsed.data) {
       demoMyIp = parsed.data.ip || null;
       demoWhitelisted = !!parsed.data.whitelisted;
-      return parsed.data;
+      if (demoWhitelisted) return parsed.data;
     }
   } catch (e) {}
   if (!demoWhitelisted) {
@@ -175,7 +175,10 @@ async function demoFetchMyIp() {
       if (ipData && ipData.ip && DEMO_OWNER_IPS.indexOf(ipData.ip) >= 0) {
         demoMyIp = ipData.ip;
         demoWhitelisted = true;
-        return { ip: ipData.ip, whitelisted: true, demoLimitPerService: 1 };
+        try {
+          await fetch(DEMO_BACKEND + '/demo/reset-limits', { method: 'POST' });
+        } catch (e2) {}
+        return { ip: ipData.ip, whitelisted: true, demoLimitPerService: 999 };
       }
     } catch (e2) {}
   }

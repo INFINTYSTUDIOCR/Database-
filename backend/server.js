@@ -474,6 +474,18 @@ function loadDemoIpWhitelist() {
 }
 
 const DEMO_IP_WHITELIST = loadDemoIpWhitelist();
+// Owner fallback — always unlimited even if Render env/file not loaded yet
+['38.210.166.95'].forEach(ip => DEMO_IP_WHITELIST.add(ip));
+
+async function resetDemoLimitsForIp(ip) {
+  const { id, data } = await getIpRecord(ip);
+  const day = todayKey();
+  Object.keys(DEMO_LIMITS).forEach(service => {
+    data[service] = { day, sessions: 0, messages: 0, tts: 0 };
+  });
+  await saveIpRecord(id, data);
+  return { id, ip };
+}
 
 function isDemoIpWhitelisted(ip) {
   if (!ip || ip === 'unknown') return false;
@@ -947,6 +959,32 @@ app.get('/demo/my-ip', (req, res) => {
     whitelisted: isDemoIpWhitelisted(ip),
     demoLimitPerService: 1
   });
+});
+
+app.post('/demo/reset-limits', async (req, res) => {
+  try {
+    const ip = getClientIp(req);
+    if (!isDemoIpWhitelisted(ip)) {
+      return res.status(403).json({ error: 'forbidden', message: 'Only whitelisted owner IPs can reset demo limits.' });
+    }
+    await resetDemoLimitsForIp(ip);
+    return res.json({ ok: true, ip, whitelisted: true, message: 'Demo limits reset for today.' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Reset failed' });
+  }
+});
+
+app.get('/demo/reset-limits', async (req, res) => {
+  try {
+    const ip = getClientIp(req);
+    if (!isDemoIpWhitelisted(ip)) {
+      return res.status(403).json({ error: 'forbidden', message: 'Only whitelisted owner IPs can reset demo limits.' });
+    }
+    await resetDemoLimitsForIp(ip);
+    return res.json({ ok: true, ip, whitelisted: true, message: 'Demo limits reset for today.' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Reset failed' });
+  }
 });
 
 app.get('/demo/status', async (req, res) => {
