@@ -335,9 +335,9 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  alice:  { sessionsPerDay: 5, maxSteps: 4 },
-  jill:   { sessionsPerDay: 5, maxSteps: 4 },
-  nexora: { sessionsPerDay: 5, maxSteps: 3 },
+  alice:  { sessionsPerDay: 1, maxSteps: 4 },
+  jill:   { sessionsPerDay: 1, maxSteps: 4 },
+  nexora: { sessionsPerDay: 1, maxSteps: 3 },
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
@@ -451,6 +451,35 @@ function ipStorageKey(ip) {
   return 'DEMO-IP-' + crypto.createHash('sha256').update(ip).digest('hex').slice(0, 24);
 }
 
+function loadDemoIpWhitelist() {
+  const fromEnv = (process.env.DEMO_IP_WHITELIST || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  let fromFile = [];
+  const candidates = [
+    path.join(__dirname, '../config/demo-ip-whitelist.json'),
+    path.join(__dirname, 'config/demo-ip-whitelist.json')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+        fromFile = (j.ips || []).map(String);
+        break;
+      }
+    } catch (e) { /* next */ }
+  }
+  return new Set([...fromEnv, ...fromFile]);
+}
+
+const DEMO_IP_WHITELIST = loadDemoIpWhitelist();
+
+function isDemoIpWhitelisted(ip) {
+  if (!ip || ip === 'unknown') return false;
+  return DEMO_IP_WHITELIST.has(ip.trim());
+}
+
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -471,7 +500,10 @@ async function saveIpRecord(id, data) {
 }
 
 async function checkDemoIpLimit(ip, service, { action } = {}) {
-  if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 5 };
+  if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 1 };
+  if (isDemoIpWhitelisted(ip)) {
+    return { ok: true, sessionsLeft: 999, whitelisted: true };
+  }
   const limits = DEMO_LIMITS[service];
   if (!limits) return { ok: true };
 
@@ -633,6 +665,7 @@ app.post('/demo/start', async (req, res) => {
       maxSteps: (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
       buffered: true,
       sessionsLeft: ipLimit.sessionsLeft,
+      whitelisted: !!ipLimit.whitelisted,
       voiceProfile: getDemoVoiceProfileFor(service, scenario || (service === 'nexora' ? 'star' : 'default'))
     });
   } catch (err) {
@@ -702,10 +735,29 @@ app.post('/demo/message', async (req, res) => {
   }
 });
 
+app.get('/demo/my-ip', (req, res) => {
+  const ip = getClientIp(req);
+  return res.json({
+    ip,
+    whitelisted: isDemoIpWhitelisted(ip),
+    demoLimitPerService: 1
+  });
+});
+
 app.get('/demo/status', async (req, res) => {
   try {
     const ip = getClientIp(req);
     const service = req.query.service || 'alice';
+    if (isDemoIpWhitelisted(ip)) {
+      const limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
+      return res.json({
+        service,
+        sessionsUsed: 0,
+        sessionsLeft: 999,
+        maxSteps: limits.maxSteps || 4,
+        whitelisted: true
+      });
+    }
     const { data } = await getIpRecord(ip);
     const day = todayKey();
     const bucket = data[service] || { day, sessions: 0, messages: 0 };
@@ -735,7 +787,7 @@ app.post('/demo/tts', async (req, res) => {
     const { text, voiceId: bodyVoiceId } = req.body || {};
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
-    if (!ipLimit.ok) {
+    if (!ipLimit.ok && !ipLimit.whitelisted) {
       return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
 

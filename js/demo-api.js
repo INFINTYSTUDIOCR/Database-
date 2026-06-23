@@ -1,8 +1,9 @@
 var DEMO_BACKEND = 'https://alice-by-infinity.onrender.com';
 
 var DEMO_LIMITS = {
-  alice: { sessionsPerDay: 5, maxSteps: 4 },
-  nexora: { sessionsPerDay: 5, maxSteps: 3 }
+  alice: { sessionsPerDay: 1, maxSteps: 4 },
+  jill: { sessionsPerDay: 1, maxSteps: 4 },
+  nexora: { sessionsPerDay: 1, maxSteps: 3 }
 };
 
 var localDemoSessions = {};
@@ -31,6 +32,7 @@ function stripMd(text) {
 function getLocalBuffer(service, scenario) {
   var buf = window.DEMO_BUFFER || {};
   if (service === 'alice') return buf.alice;
+  if (service === 'jill') return buf.jill;
   if (service === 'nexora') {
     return scenario === 'customer_service' ? buf.nexora_cs : buf.nexora_star;
   }
