@@ -504,28 +504,28 @@ var SCENARIOS = [
    counterpart:'Vendor Representative'},
   // CORPORATE
   {id:'cp1', title:'Board Presentation', type:'corporate', industry:'Corporate',
-   desc:'Present your proposal to the board. Alice plays a skeptical board director evaluating ROI and strategic fit.',
+   desc:'Present your proposal to the board. A skeptical board director evaluates ROI and strategic fit.',
    mood:'demanding', diff:5, role:'Board Director', company:'Meridian Holdings',
-   participants:['You','Sarah Chen — CFO','Robert Walsh — CEO','Alice — Board Director'],
+   participants:['You','Sarah Chen — CFO','Robert Walsh — CEO','Eleanor Webb — Board Director'],
    allowPDF:true, pdfPrompt:'Review the uploaded presentation and challenge the presenter on weak points, ROI assumptions, and strategic alignment.'},
 
   {id:'cp2', title:'Executive Strategy Meeting', type:'corporate', industry:'Corporate',
-   desc:'Align on quarterly strategy with C-suite. Alice plays the COO who pushes back on execution plans.',
+   desc:'Align on quarterly strategy with C-suite. The COO pushes back on execution plans.',
    mood:'firm', diff:4, role:'COO', company:'Apex Group',
-   participants:['You','Alice — COO','Marcus Lee — CMO','Diana Ross — CTO'],
+   participants:['You','Victoria Hale — COO','Marcus Lee — CMO','Diana Ross — CTO'],
    allowPDF:false},
 
   {id:'cp3', title:'Investor Pitch', type:'corporate', industry:'Corporate',
-   desc:'Pitch your business to a VC firm. Alice plays a sharp investor asking hard questions about traction and financials.',
+   desc:'Pitch your business to a VC firm. A sharp investor asks hard questions about traction and financials.',
    mood:'skeptical', diff:5, role:'Lead Investor', company:'Venture Capital Partners',
-   participants:['You','Alice — Lead Investor','James Park — Associate'],
+   participants:['You','Robert Chen — Lead Investor','James Park — Associate'],
    allowPDF:true, pdfPrompt:'You are a VC investor reviewing this pitch deck. Ask tough questions about unit economics, market size, and competitive moat.'},
 
   // STAKEHOLDER
   {id:'sh1', title:'Multi-Stakeholder Alignment', type:'stakeholder', industry:'Corporate',
    desc:'Align multiple departments on a new process change. Each stakeholder has different priorities.',
    mood:'mixed', diff:4, role:'Department Head',
-   participants:['You — Project Lead','Alice — IT Director (resistant)','Mark — Finance (budget-focused)','Sandra — HR (people-first)'],
+   participants:['You — Project Lead','Patricia Kim — IT Director (resistant)','Mark — Finance (budget-focused)','Sandra — HR (people-first)'],
    stakes:['IT: concerned about implementation timeline','Finance: focused on cost reduction','HR: worried about team impact']},
 
   {id:'sh2', title:'Client Escalation — Stakeholder Call', type:'stakeholder', industry:'Corporate',
@@ -740,11 +740,9 @@ function genProfile(sc){
 
 function personalizeStarInterviewer(sc){
   if(!sc||sc.type!=='star_interview') return sc;
-  var id=pickRandomNexoraIdentity();
-  var roles=['Senior HR Manager','Talent Acquisition Lead','Hiring Manager','Regional HR Director','People Operations Manager'];
   var copy=Object.assign({},sc);
-  copy.interviewer=id.name;
-  copy.role=roles[Math.floor(Math.random()*roles.length)];
+  if(!copy.interviewer) copy.interviewer='Alex Morgan';
+  if(!copy.role) copy.role='Senior HR Manager';
   return copy;
 }
 
