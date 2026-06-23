@@ -142,11 +142,16 @@ function extractOpeningSnippet(text) {
   return (q ? q[0] : t.split(/[.!]/)[0] || t).trim().slice(0, 280);
 }
 
+const BACKEND_BUILD = process.env.RENDER_GIT_COMMIT || process.env.BACKEND_BUILD || 'local-dev';
+
 // ── HEALTHCHECK ──────────────────────────────────────────────
-app.get('/', (req, res) => res.send('Alice & Claire by Studio Infinity CR — OK'));
+app.get('/', (req, res) => {
+  res.send(`Alice & Claire by Studio Infinity CR — OK (build ${String(BACKEND_BUILD).slice(0, 7)}, nexora-lab-fix)`);
+});
 app.get('/health', (req, res) => res.json({
   ok: true,
-  version: '3720a0b-live-demo',
+  build: BACKEND_BUILD,
+  version: 'nexora-lab-fix-20260622',
   demo: { jill: true, liveAi: true, nexoraLab: true, whitelist: true }
 }));
 
@@ -2403,4 +2408,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server on port ${PORT} | build ${BACKEND_BUILD} | nexora-lab-fix-20260622`);
+});

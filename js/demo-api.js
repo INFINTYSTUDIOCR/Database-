@@ -186,10 +186,17 @@ async function demoFetchMyIp() {
 }
 
 async function demoFetchStatus(service) {
+  if (demoWhitelisted) {
+    var wl = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
+    return { service: service, sessionsUsed: 0, sessionsLeft: 999, maxSteps: wl.maxSteps, whitelisted: true };
+  }
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/status?service=' + encodeURIComponent(service));
     var parsed = await demoParseResponse(r);
-    if (parsed.data && parsed.ok) return parsed.data;
+    if (parsed.data && parsed.ok) {
+      if (parsed.data.whitelisted) demoWhitelisted = true;
+      return parsed.data;
+    }
   } catch (e) {}
   var limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
   var bucket = getLocalIpBucket(service);
@@ -215,7 +222,21 @@ async function demoStart(service, scenario, name) {
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;
       if (parsed.data && !parsed.ok) {
-      if (parsed.data.error === 'limit' || parsed.status === 429) throw parsed.data;
+      if (parsed.data.error === 'limit' || parsed.status === 429) {
+        if (demoWhitelisted) {
+          try {
+            await fetch(DEMO_BACKEND + '/demo/reset-limits', { method: 'POST' });
+            var r2 = await fetch(DEMO_BACKEND + '/demo/start', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ service: service, scenario: scenario, consent: true, name: name || 'Guest' })
+            });
+            var parsed2 = await demoParseResponse(r2);
+            if (parsed2.data && parsed2.ok) return parsed2.data;
+          } catch (e2) {}
+        }
+        throw parsed.data;
+      }
       if (parsed.data.error === 'Invalid service') {
         throw { message: 'Backend desactualizado en Render — Jill aún no está desplegado. Redeploy manual en Render (alice-by-infinity) y probá de nuevo.' };
       }

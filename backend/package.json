@@ -1,6 +1,6 @@
 {
   "name": "infinity-backend",
-  "version": "1.1.0-live-demo",
+  "version": "1.1.1-nexora-lab-fix",
   "private": true,
   "main": "server.js",
   "scripts": {
