@@ -884,7 +884,7 @@ app.post('/demo/nexora-lab/stream', async (req, res) => {
     }
 
     const ctx = await prepareNexoraRequest(body);
-    await streamAnthropicSSE(res, {
+    await streamAnthropicSSE(req, res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 120,
       system: ctx.systemPrompt,
@@ -1381,14 +1381,20 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 });
 
 // ── STREAMING HELPER ─────────────────────────────────────────
-async function streamAnthropicSSE(res, { model, max_tokens, system, messages }) {
-  res.set({
+async function streamAnthropicSSE(req, res, { model, max_tokens, system, messages }) {
+  const streamHeaders = {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     'X-Accel-Buffering': 'no',
-    'Access-Control-Allow-Origin': '*'
-  });
+  };
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith(o.replace(/\/$/, '')))) {
+    streamHeaders['Access-Control-Allow-Origin'] = origin;
+    streamHeaders['Vary'] = 'Origin';
+    streamHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+  }
+  res.set(streamHeaders);
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -1447,7 +1453,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    await streamAnthropicSSE(res, {
+    await streamAnthropicSSE(req, res, {
       max_tokens: 400,
       system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
       messages: msgs
@@ -1477,7 +1483,7 @@ RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. Ask ONE foll
 STUDENT: ${student?.name || 'Student'} | Level: ${student?.level || 'Functional'}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    await streamAnthropicSSE(res, { max_tokens: 280, system, messages: msgs });
+    await streamAnthropicSSE(req, res, { max_tokens: 280, system, messages: msgs });
   } catch (err) {
     console.error('Alice stream error:', err.message);
     if (!res.headersSent) res.status(500).end(); else res.end();
@@ -2269,7 +2275,7 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
 app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
     const ctx = await prepareNexoraRequest(req.body);
-    await streamAnthropicSSE(res, {
+    await streamAnthropicSSE(req, res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 120,
       system: ctx.systemPrompt,

@@ -256,7 +256,7 @@ async function doLogin(){
       if(r.data){
         ALL_STUDENTS[r.id]=r.data;
         var u = String(r.data.portalUser||'').trim().toLowerCase();
-        if(u === user && r.data.portalPass === pass) student = r.data;
+        if(u === user && r.data.portalPass === pass){ student = r.data; student.id = r.id; }
       }
     });
 
@@ -273,7 +273,13 @@ async function doLogin(){
       return;
     }
 
-    try { await infinityLogin(user, pass, 'student', { silent: true }); } catch(e) {}
+    var authResult = await infinityLogin(user, pass, 'student');
+    if(!authResult || !getAuthToken()){
+      err.textContent='No se pudo conectar con el servidor AI. Intentá de nuevo en unos segundos.';
+      err.style.display='block';
+      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+      return;
+    }
 
     CURRENT_STUDENT = student;
 
