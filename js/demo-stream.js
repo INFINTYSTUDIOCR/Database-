@@ -73,12 +73,6 @@ async function demoStreamSend(sessionId, message, opts) {
             if (m && m[1].length > 3) {
               opts.onSentence(m[1]);
               pending = pending.slice(m[0].length);
-            } else if (pending.length >= 28 && /[,;]/.test(pending)) {
-              var cm = pending.match(/^([\s\S]{14,}?[,;])\s+/);
-              if (cm) {
-                opts.onSentence(cm[1]);
-                pending = pending.slice(cm[0].length);
-              }
             }
           }
         }

@@ -1190,14 +1190,17 @@ function cancelAliceSession(){
   renderAlice();
 }
 
-async function sendAliceMessage(){
+var _aliceMicText = '';
+
+async function sendAliceMessage(micText){
   var input = document.getElementById('alice-input');
-  var text = (input?input.value:'').trim();
+  var text = (micText || (input ? input.value : '') || '').trim();
   if(!text) return;
   if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
   _aliceTTSQueue=[]; _aliceTTSBusy=false;
   _aliceState.listening = false;
+  _aliceMicText = '';
   input.value = '';
   _aliceState.history.push({ role:'user', content:text });
   renderAlice();
@@ -1413,19 +1416,19 @@ function aliceAutoMic(){
   if(statusEl) statusEl.textContent='🎤 Escuchando...';
   rec.onresult = function(e){
     var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
-    var inp=document.getElementById('alice-input');
-    if(inp) inp.value=t;
+    _aliceMicText = t;
   };
   rec.onend = function(){
     _aliceState.listening=false;
     _aliceState.recognition=null;
     if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
     if(statusEl) statusEl.textContent='';
-    var inp=document.getElementById('alice-input');
-    if(inp && inp.value.trim()){
+    var spoken = _aliceMicText.trim();
+    _aliceMicText = '';
+    if(spoken){
       if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; }
       _aliceState.speaking=false;
-      sendAliceMessage();
+      sendAliceMessage(spoken);
     } else if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking){
       setTimeout(aliceAutoMic, 400);
     }
@@ -2278,6 +2281,7 @@ function jillStopMic(){
   jillClearSilenceTimer();
   if(_jillState.recognition){ try{_jillState.recognition.stop();}catch(e){} _jillState.recognition = null; }
   _jillState.micRunning = false;
+  _jillMicText = '';
   var btn = document.getElementById('jill-mic-btn');
   if(btn) btn.style.background = _jillState.autoMic ? '#16a34a' : '#6b7280';
 }
@@ -2289,6 +2293,7 @@ function jillStopAll(){
 
 var _jillSilenceTimer = null;
 var JILL_SILENCE_MS = 2200;
+var _jillMicText = '';
 
 function jillClearSilenceTimer(){
   if(_jillSilenceTimer){ clearTimeout(_jillSilenceTimer); _jillSilenceTimer = null; }
@@ -2299,10 +2304,13 @@ function jillScheduleSend(){
   _jillSilenceTimer = setTimeout(function(){
     _jillSilenceTimer = null;
     if(_jillState.speaking || !_jillState.autoMic) return;
+    var text = _jillMicText.trim();
+    if(!text) return;
+    _jillMicText = '';
     var inp = document.getElementById('jill-input');
-    if(!inp || !inp.value.trim()) return;
+    if(inp) inp.value = '';
     jillStopMic();
-    sendJillMsg();
+    sendJillMsg(text);
   }, JILL_SILENCE_MS);
 }
 
@@ -2325,8 +2333,7 @@ function jillStartAutoMic(){
 
   rec.onresult = function(e){
     var t = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
-    var inp = document.getElementById('jill-input');
-    if(inp) inp.value = t;
+    _jillMicText = t;
     var last = e.results[e.results.length - 1];
     if(last && last.isFinal && t.trim()) jillScheduleSend();
   };
@@ -2423,13 +2430,14 @@ async function startJillSession(s){
   }
 }
 
-async function sendJillMsg(){
+async function sendJillMsg(micText){
   var inp = document.getElementById('jill-input');
-  var text = inp ? inp.value.trim() : '';
+  var text = (micText || (inp ? inp.value : '') || '').trim();
   if(!text) return;
   jillStopAll();
+  _jillMicText = '';
   _jillTTSQueue = []; _jillTTSBusy = false;
-  inp.value = '';
+  if(inp) inp.value = '';
   jillAddMsg(text, 'student', 'text');
   var statusEl = document.getElementById('jill-status');
   var s = window._currentStudent || window._portalStudent;

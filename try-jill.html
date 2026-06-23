@@ -113,9 +113,9 @@
     setBusy(false);
   }
 
-  async function send() {
+  async function send(micText) {
     if (busy || done || !sessionId) return;
-    var text = inp.value.trim();
+    var text = (micText || inp.value || '').trim();
     if (!text) return;
     inp.value = '';
     demoAddMsg(msgs, text, 'user', 'YOU');

@@ -199,14 +199,18 @@ var DemoVoice = (function () {
     }
   }
 
+  var _micTranscript = '';
+
   function scheduleMicSend(input, btn, statusEl, opts) {
     clearSilenceTimer();
     _silenceTimer = setTimeout(function () {
       _silenceTimer = null;
       if (!_micOn) return;
-      var text = input.value.trim();
+      var text = _micTranscript.trim();
+      _micTranscript = '';
+      if (input) input.value = '';
       stopMic(btn, statusEl, opts.profile);
-      if (text.length >= 2 && typeof opts.onSend === 'function') opts.onSend();
+      if (text.length >= 2 && typeof opts.onSend === 'function') opts.onSend(text);
     }, opts.silenceMs || DEFAULT_SILENCE_MS);
   }
 
@@ -219,9 +223,12 @@ var DemoVoice = (function () {
     btn.addEventListener('click', function () {
       if (_micOn) {
         clearSilenceTimer();
-        var hadText = input.value.trim().length > 0;
+        var hadText = _micTranscript.trim().length > 0;
+        var text = _micTranscript.trim();
+        _micTranscript = '';
+        if (input) input.value = '';
         stopMic(btn, statusEl, opts.profile);
-        if (hadText && typeof opts.onSend === 'function') opts.onSend();
+        if (hadText && typeof opts.onSend === 'function') opts.onSend(text);
         return;
       }
       var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -231,6 +238,8 @@ var DemoVoice = (function () {
       }
       stopAudio();
       clearQueue();
+      _micTranscript = '';
+      if (input) input.value = '';
       _mic = new SR();
       _mic.lang = opts.lang || profileLang(opts.profile || _activeProfile);
       _mic.interimResults = true;
@@ -243,7 +252,7 @@ var DemoVoice = (function () {
         for (var i = 0; i < e.results.length; i++) {
           transcript += e.results[i][0].transcript;
         }
-        input.value = transcript;
+        _micTranscript = transcript;
         var last = e.results[e.results.length - 1];
         if (last && last.isFinal && transcript.trim()) {
           scheduleMicSend(input, btn, statusEl, opts);
@@ -260,6 +269,7 @@ var DemoVoice = (function () {
 
   function stopMic(btn, statusEl, profile) {
     clearSilenceTimer();
+    _micTranscript = '';
     if (_mic) { try { _mic.stop(); } catch (e) {} _mic = null; }
     _micOn = false;
     setMicUi(false, btn, statusEl, profile);
