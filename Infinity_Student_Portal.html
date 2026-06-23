@@ -138,11 +138,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<div class="modal-bg" id="portal-terms-gate" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.85);z-index:99999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:white;border-radius:16px;max-width:720px;width:100%;max-height:90vh;display:flex;flex-direction:column;padding:1.25rem;">
+    <div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:10px;"><i class="ti ti-news"></i> Bienvenido a Infinity</div>
+    <div id="portal-terms-body" style="overflow-y:auto;flex:1;font-size:13px;line-height:1.65;color:var(--text);"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-shrink:0;">
+      <button class="btn btn-outline" onclick="respondPortalTerms(false)">I do not agree</button>
+      <button class="btn btn-navy" onclick="respondPortalTerms(true)">I agree</button>
+    </div>
+  </div>
+</div>
+
 <div class="portal-nav" id="portal-nav" style="display:none;">
   <div class="portal-nav-item active" data-tab="progreso" onclick="switchPortalTab('progreso')"><i class="ti ti-chart-radar"></i>Progreso</div>
   <div class="portal-nav-item" data-tab="trainingbook" onclick="switchPortalTab('trainingbook')"><i class="ti ti-dumbbell"></i>Training Book</div>
   <div class="portal-nav-item" data-tab="recursos" onclick="switchPortalTab('recursos')"><i class="ti ti-folder"></i>Recursos</div>
   <div class="portal-nav-item" data-tab="notas" onclick="switchPortalTab('notas')"><i class="ti ti-notes"></i>Notas</div>
+  <div class="portal-nav-item" data-tab="news" onclick="switchPortalTab('news')"><i class="ti ti-news"></i>News</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill');setTimeout(function(){ renderJillTab(window._currentStudent); },100);"><i class="ti ti-message-circle"></i>Jill</div>
   <div class="portal-nav-item" data-tab="alice" id="nav-alice" style="display:none;" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
   <div class="portal-nav-item" data-tab="nexora" id="nav-nexora" style="display:none;" onclick="switchPortalTab('nexora');setTimeout(function(){ renderNexoraTab(window._currentStudent); },100);"><i class="ti ti-sparkles"></i>Nexora</div>
@@ -218,7 +230,7 @@ async function doLogin(){
       if(r.data){
         ALL_STUDENTS[r.id]=r.data;
         var u = String(r.data.portalUser||'').trim().toLowerCase();
-        if(u === user && r.data.portalPass === pass) student = r.data;
+        if(u === user && r.data.portalPass === pass){ student = r.data; student.id = r.id; }
       }
     });
 
@@ -228,7 +240,7 @@ async function doLogin(){
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
       return;
     }
-    if(student.status==='suspended'){
+    if(student.status==='suspended' || student.infinityTermsAccepted === false){
       err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
       err.style.display='block';
       document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
@@ -254,6 +266,7 @@ async function doLogin(){
     await dbSet('infinity_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
 
     showPortal(student);
+    maybeShowPortalTermsGate(student);
   }catch(e){
     err.textContent='Error de conexión. Intentá de nuevo.';
     err.style.display='block';
@@ -285,6 +298,54 @@ function logout(){
   document.getElementById('l-pass').value='';
   document.getElementById('login-err').style.display='none';
   document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
+}
+
+function getPortalInfinityNewsHtml(){
+  return '<p style="font-weight:800;font-size:15px;color:var(--navy);">BIENVENIDO A INFINITY</p>'
+    +'<p><strong>MÁS QUE INGLÉS.</strong><br>ENTRENAMIENTO OPERACIONAL PARA EL MUNDO REAL.</p>'
+    +'<p>No creemos en memorizar reglas.<br>No creemos en acumular certificados.<br>No creemos que entender inglés sea suficiente.</p>'
+    +'<p>Creemos en desarrollar capacidad real: comunicarte, reaccionar, operar bajo presión y obtener resultados.</p>'
+    +'<p><strong>NUESTRA MISIÓN</strong><br>Desarrollar profesionales capaces de utilizar el inglés de forma efectiva en situaciones reales mediante entrenamiento estructurado, simulaciones, inteligencia artificial y métricas medibles.</p>'
+    +'<p><strong>NUESTRA VISIÓN</strong><br>Convertirnos en el ecosistema de entrenamiento lingüístico y operacional más innovador de Latinoamérica.</p>'
+    +'<p><strong>¿QUÉ ESPERAMOS DE VOS?</strong></p><ul><li>Compromiso</li><li>Participación activa</li><li>Puntualidad</li><li>Mentalidad de mejora continua</li><li>Disposición para salir de tu zona de confort</li></ul>'
+    +'<p>No necesitás ser perfecto. Necesitás entrenar.</p>'
+    +'<p><strong>¿CÓMO TE IMAGINAMOS AL FINAL DEL PROCESO?</strong></p><ul><li>Hablando con seguridad</li><li>Respondiendo entrevistas sin bloquearte</li><li>Comunicándote con clientes y compañeros</li><li>Participando en reuniones</li><li>Expresando ideas complejas con claridad</li><li>Operando en inglés con confianza</li></ul>'
+    +'<p>Nuestro objetivo no es que estudies inglés. Nuestro objetivo es que lo uses.</p>'
+    +'<p><strong>POLÍTICA DE ASISTENCIA Y REPOSICIÓN</strong></p><ul><li>Hasta 3 reposiciones por mes</li><li>Las reposiciones deben coordinarse previamente</li><li>Cancelaciones tardías podrán considerarse como clase impartida</li><li>Los feriados no garantizan reposición automática</li></ul>'
+    +'<p><strong>POLÍTICA DE ABANDONO</strong><br>La constancia es parte del entrenamiento. El abandono voluntario no genera devoluciones. Tu espacio y recursos son reservados exclusivamente para vos.</p>'
+    +'<p><strong>CONFIDENCIALIDAD Y USO COMERCIAL</strong><br>Todo el contenido de Infinity está protegido. Participación, métricas y prácticas pueden usarse con fines educativos, informativos y promocionales.</p>'
+    +'<p><strong>PROMOCIONES Y PRECIOS</strong><br>Las promociones son temporales. Los precios pueden variar para nuevas matrículas sin afectar acuerdos previos.</p>'
+    +'<p><strong>USO RESPONSABLE DE LA PLATAFORMA</strong><br>Tu cuenta es personal e intransferible. No compartas usuarios, contraseñas, accesos ni material exclusivo.</p>'
+    +'<p><strong>PROPIEDAD INTELECTUAL</strong><br>Reproducir contenidos sin autorización escrita está prohibido.</p>'
+    +'<p><strong>RECORDÁ</strong><br>No medimos cuánto inglés sabés. Medimos lo que sos capaz de hacer con él.</p>';
+}
+
+function maybeShowPortalTermsGate(s){
+  if(s.infinityTermsAccepted === true || s.infinityTermsAccepted === false) return;
+  document.getElementById('portal-terms-body').innerHTML = getPortalInfinityNewsHtml();
+  document.getElementById('portal-terms-gate').style.display = 'flex';
+}
+
+async function respondPortalTerms(agreed){
+  var s = CURRENT_STUDENT;
+  if(!s || !s.id) return;
+  s.infinityTermsAccepted = !!agreed;
+  s.infinityTermsAt = new Date().toISOString();
+  if(!agreed){
+    s.status = 'suspended';
+    await dbSet('infinity_students', s.id, s);
+    document.getElementById('portal-terms-gate').style.display = 'none';
+    logout();
+    var err = document.getElementById('login-err');
+    err.textContent = 'Acceso desactivado. Contactá a Studio Infinity CR (WhatsApp) para reactivar tu cuenta.';
+    err.style.display = 'block';
+    return;
+  }
+  await dbSet('infinity_students', s.id, s);
+  CURRENT_STUDENT = s;
+  ALL_STUDENTS[s.id] = s;
+  document.getElementById('portal-terms-gate').style.display = 'none';
+  switchPortalTab('news');
 }
 
 function showPortal(s){
@@ -377,6 +438,9 @@ function showPortal(s){
       :'<div style="font-size:13px;color:var(--t3);">Todavía no hay notas de sesión.</div>')
     +'</div>';
 
+  var newsHtml = '<div class="card"><div class="card-title"><i class="ti ti-news"></i>News — Infinity</div>'
+    +'<div style="font-size:13px;line-height:1.7;">'+getPortalInfinityNewsHtml()+'</div></div>';
+
   var html = '<div class="fade">'
     +'<div class="portal-header">'
     +'<div class="portal-name">'+((s.info&&s.info.name)||'—')+'</div>'
@@ -389,6 +453,7 @@ function showPortal(s){
     +'<div class="tab-pane" id="tp-trainingbook">'+trainingBookHtml+'</div>'
     +'<div class="tab-pane" id="tp-recursos">'+recursosHtml+'</div>'
     +'<div class="tab-pane" id="tp-notas">'+notasHtml+'</div>'
+    +'<div class="tab-pane" id="tp-news">'+newsHtml+'</div>'
     +'<div class="tab-pane" id="tp-jill"><div id="jill-root"></div></div>'
     +'<div class="tab-pane" id="tp-alice"><div id="alice-root"></div></div>'
     +'<div class="tab-pane" id="tp-nexora"><div id="nexora-root">'
@@ -2319,6 +2384,9 @@ function jillStartAutoMic(){
   if(_jillState.micRunning || _jillState.speaking) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return;
+  _jillMicText = '';
+  var inp = document.getElementById('jill-input');
+  if(inp) inp.value = '';
   var rec = new SR();
   rec.lang = 'es-CR';
   rec.interimResults = true;

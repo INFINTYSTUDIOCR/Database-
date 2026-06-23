@@ -436,6 +436,19 @@ textarea.inp{resize:vertical;min-height:80px;}
 </div>
 
 
+<!-- MODAL TÉRMINOS INFINITY (primera vez) -->
+<div class="modal-bg" id="modal-infinity-terms" style="z-index:9999;">
+  <div class="modal" style="max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="modal-title"><i class="ti ti-news"></i>Bienvenido a Infinity</div>
+    <div id="infinity-terms-body" style="overflow-y:auto;flex:1;font-size:13px;line-height:1.65;color:var(--text);padding-right:4px;"></div>
+    <div class="modal-footer" style="flex-shrink:0;margin-top:12px;">
+      <button class="btn btn-outline" onclick="respondInfinityTerms(false)"><i class="ti ti-x"></i>I do not agree</button>
+      <button class="btn btn-navy" onclick="respondInfinityTerms(true)"><i class="ti ti-check"></i>I agree</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- MODAL NUEVO LEAD -->
 <div class="modal-bg" id="modal-new-lead">
   <div class="modal">
@@ -884,7 +897,7 @@ async function doLogin(){
     err.style.display = 'block';
     return;
   }
-  if(trainer.status === 'suspended'){
+  if(trainer.status === 'suspended' || trainer.infinityTermsAccepted === false){
     err.textContent = 'Tu acceso ha sido suspendido. Contactá al Master Trainer.';
     err.style.display = 'block';
     return;
@@ -931,6 +944,7 @@ function startApp(){
   if(!hasMasterAccess() && myDept!=='training') document.getElementById('nav-dept-training').style.display='none';
   if(!hasMasterAccess() && myDept!=='marketing') document.getElementById('nav-dept-marketing').style.display='none';
   showView('dashboard', document.querySelector('.sb-item'));
+  maybeShowEngineTermsGate();
 }
 
 function logout(){
@@ -1140,7 +1154,7 @@ function buildStudentsTable(students){
         +'<td>'+getPhaseBadge(parseInt((s.info||{}).phase)||1)+'</td>'
         +'<td>'+(wk?'<span class="badge" style="background:var(--rb);color:var(--rm);">'+wk+':'+((kpis[wk])||'?')+'</span>':'<span style="color:var(--t3);font-size:11px;">—</span>')+'</td>'
         +'<td onclick="event.stopPropagation();">'+trainerCell+'</td>'
-        +'<td>'+statusBadge+(isMaster&&(s.info&&s.info.paymentStatus)==='delayed'?' <span class="badge" style="background:var(--rb);color:var(--rm);">DELAYED</span>':'')+'</td>'
+        +'<td>'+statusBadge+(isMasterRow?(' '+paymentFlagBadgeHtml(s.info)):'')+'</td>'
         +'<td onclick="event.stopPropagation();" style="display:flex;gap:4px;">'
         +'<button data-sid="'+s.id+'" class="btn btn-navy btn-sm" onclick="openStudent(this.dataset.sid)"><i class="ti ti-eye"></i></button>'
         +'<button data-sid="'+s.id+'" class="btn btn-green btn-sm" onclick="openCalibrate(this.dataset.sid)"><i class="ti ti-refresh"></i></button>'
@@ -1222,6 +1236,7 @@ function openStudent(id){
     +'<div><div class="ph-name">'+((s.info&&s.info.name)||'—')+'</div>'
     +'<div class="ph-meta">'+((s.info&&s.info.email)||'—')+' · '+((s.info&&s.info.program)||'—')+'</div>'
     +'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+getLevelBadge(level)+' '+getPhaseBadge(phase)
+    +(isMaster?paymentFlagBadgeHtml(s.info):'')
     +'<span class="ph-code">'+((s.code)||'—')+'</span></div></div>'
     +'<div style="text-align:right;"><div class="ph-score">'+score+'</div><div class="ph-score-label">score / 25</div></div>'
     +'</div>'
@@ -1231,6 +1246,7 @@ function openStudent(id){
     +'<div class="tab" onclick="switchTab(\'progress\',this)">Progreso</div>'
     +'<div class="tab" onclick="switchTab(\'sessions\',this)">Notas de sesión</div>'
     +'<div class="tab" onclick="switchTab(\'info\',this)">Información</div>'
+    +'<div class="tab" onclick="switchTab(\'news\',this)">News</div>'
     +(isMaster?'<div class="tab" onclick="switchTab(\'pagos\',this)">Pagos</div>':'')
     +'</div>'
 
@@ -1311,6 +1327,10 @@ function openStudent(id){
         +'<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:var(--t3);">Ver respuesta completa</summary><div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin-top:6px;">'+s.aiAnalysis.text+'</div></details>'
         +'</div>' : '')
     +renderPortalAccessCard(s, id, isMaster)
+    +renderTermsStatusCard(s, 'student', id)
+    +'</div>'
+    +'<div class="tab-pane" id="pane-news">'+renderInfinityNewsSection()
+    +(isMaster?('<div style="margin-top:10px;">'+paymentWaReminderBtn((s.info&&s.info.name)||'Estudiante', s.info)+'</div>'):'')
     +'</div>'
     +renderPagosTab(s, id, isMaster)
     +'</div>';
@@ -1864,6 +1884,7 @@ function renderRoster(m){
         +'<span style="font-size:11px;color:var(--t3);">Nexora global para sus estudiantes</span>'
         +'<button data-uid="'+u.id+'" style="display:inline-flex;align-items:center;gap:5px;background:'+(nexOn?'rgba(192,132,252,0.15)':'rgba(255,255,255,0.05)')+';border:1px solid '+(nexOn?'rgba(192,132,252,0.4)':'rgba(255,255,255,0.2)')+';color:'+(nexOn?'#C084FC':'rgba(255,255,255,0.4)')+';border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;" onclick="toggleTrainerNexora(this.dataset.uid)"><i class="ti ti-sparkles"></i>'+(nexOn?'ON':'OFF')+'</button>'
         +'</div>';
+      card += '<div style="padding-top:8px;">'+paymentWaReminderBtn(profile.name||u.name, profile)+'</div>';
     }
     card += '</div>';
     return card;
@@ -2199,6 +2220,8 @@ function renderMyProfile(m){
         }).join('')
         +'</div>';
     })()
+    +renderInfinityNewsSection()
+    +'<div style="margin-top:10px;">'+paymentWaReminderBtn(profile.name||SESSION.name, profile)+'</div>'
     +'</div>'
     +'</div>';
 }
@@ -2504,6 +2527,8 @@ function renderPagosTab(s, id, isMaster){
   if(!isMaster) return '';
   var payments = (s.payments||[]).slice().reverse();
   var info = s.info||{};
+  syncPaymentStatusFromCalendar(info);
+  var calFlag = paymentFlagBadgeHtml(info);
   var status = info.paymentStatus || 'current';
   var statusBadge = status==='delayed'
     ? '<span class="badge" style="background:var(--rb);color:var(--rm);">DELAYED</span>'
@@ -2511,11 +2536,13 @@ function renderPagosTab(s, id, isMaster){
   var totalPaid = payments.reduce(function(a,p){ return a+(parseFloat(p.amount)||0); },0);
 
   var html = '<div class="tab-pane" id="pane-pagos">';
-  html += '<div class="card"><div class="card-title" style="display:flex;align-items:center;justify-content:space-between;"><span><i class="ti ti-cash"></i>Información de pago</span>'
-    +'<button data-sid="'+id+'" class="btn btn-navy btn-sm" onclick="openPaymentModal(this.dataset.sid)"><i class="ti ti-plus"></i>Registrar pago</button></div>';
+  html += '<div class="card"><div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><span><i class="ti ti-cash"></i>Información de pago</span>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+paymentWaReminderBtn((info.name)||'Estudiante', info)
+    +'<button data-sid="'+id+'" class="btn btn-navy btn-sm" onclick="openPaymentModal(this.dataset.sid)"><i class="ti ti-plus"></i>Registrar pago</button></div></div>';
 
   html += '<div class="grid2">';
-  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado de pago</div><div style="font-size:13px;font-weight:600;">'+statusBadge+'</div></div>';
+  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado (calendario)</div><div style="font-size:13px;font-weight:600;">'+calFlag+'</div></div>';
+  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado manual</div><div style="font-size:13px;font-weight:600;">'+statusBadge+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Fee mensual</div><div style="font-size:13px;font-weight:600;">CRC '+parseInt(info.fee||0).toLocaleString()+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Próximo vencimiento</div><div style="font-size:13px;font-weight:600;">'+(info.nextDue?fmtDate(info.nextDue):'—')+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Total pagado</div><div style="font-size:13px;font-weight:600;">CRC '+totalPaid.toLocaleString()+'</div></div>';
@@ -2563,6 +2590,7 @@ async function savePayment(){
   s.info = s.info||{};
   s.info.paymentStatus = status;
   s.info.nextDue = nextDue;
+  syncPaymentStatusFromCalendar(s.info);
 
   await dbSet('infinity_students', sid, s);
   DB[sid]=s;
@@ -2877,6 +2905,146 @@ var PIPELINE_COLORS = { active:'c-green', prospecto:'c-amber', needs_plan:'c-cor
 function allStudents(){ return Object.values(DB).filter(function(s){ return !s.isLead; }); }
 function hasMasterAccess(){ return SESSION && (SESSION.role==='master' || SESSION.role==='superadmin'); }
 function roleLabel(role){ return role==='superadmin'?'Super Admin':role==='master'?'Master Trainer':'Trainer'; }
+
+var PAYMENT_WARN_DAYS = 7;
+var INFINITY_SINPE = '60950981';
+var INFINITY_PAYPAL = 'johnnramirez@gmail.com';
+var INFINITY_WA = '50660060981';
+
+function parseDateOnly(str){
+  if(!str) return null;
+  var p = String(str).split('T')[0].split('-');
+  if(p.length<3) return null;
+  return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+}
+
+function getPaymentCalendarFlag(info){
+  var due = parseDateOnly(info&&info.nextDue);
+  if(!due) return { level:'gray', label:'Sin fecha', days:null };
+  var today = new Date(); today.setHours(0,0,0,0);
+  var days = Math.round((due.getTime()-today.getTime())/86400000);
+  if(days < 0) return { level:'red', label:'Vencido', days:days };
+  if(days <= PAYMENT_WARN_DAYS) return { level:'yellow', label:'Próximo vencimiento', days:days };
+  return { level:'green', label:'Al día', days:days };
+}
+
+function paymentFlagBadgeHtml(info){
+  var f = getPaymentCalendarFlag(info||{});
+  var style = { red:'background:#FEE2E2;color:#B91C1C', yellow:'background:#FEF3C7;color:#92400E', green:'background:#DCFCE7;color:#166534', gray:'background:var(--gray);color:var(--t3)' };
+  var extra = f.days!==null && f.level!=='green' ? ' · '+Math.abs(f.days)+'d' : '';
+  return '<span class="badge" style="'+style[f.level]+'">'+f.label+extra+'</span>';
+}
+
+function isForeignPayer(info){
+  if(!info) return false;
+  if(info.foreign === true || info.isForeign === true) return true;
+  var ph = String(info.phone||'').replace(/\s/g,'');
+  if(ph && ph.length>6 && !/^(\+?506|506)/.test(ph)) return true;
+  return false;
+}
+
+function buildPaymentReminderWaUrl(name, info){
+  var foreign = isForeignPayer(info||{});
+  var msg = foreign
+    ? 'Hola '+(name||'').trim()+', recordatorio de pago Studio Infinity CR. PayPal: '+INFINITY_PAYPAL
+    : 'Hola '+(name||'').trim()+', recordatorio de pago Studio Infinity CR. SINPE Móvil: '+INFINITY_SINPE;
+  return 'https://wa.me/'+INFINITY_WA+'?text='+encodeURIComponent(msg);
+}
+
+function paymentWaReminderBtn(name, info){
+  return '<a href="'+buildPaymentReminderWaUrl(name,info)+'" target="_blank" rel="noopener" class="btn btn-green btn-sm" onclick="event.stopPropagation();"><i class="ti ti-brand-whatsapp"></i> Recordatorio pago</a>';
+}
+
+function syncPaymentStatusFromCalendar(info){
+  if(!info) return;
+  var f = getPaymentCalendarFlag(info);
+  info.paymentStatus = f.level==='red' ? 'delayed' : 'current';
+}
+
+function renderInfinityNewsSection(){
+  return '<div class="card"><div class="card-title"><i class="ti ti-news"></i>News — Infinity</div>'
+    +'<div style="font-size:13px;line-height:1.7;color:var(--text);max-height:480px;overflow-y:auto;padding-right:6px;">'+getInfinityNewsHtml()+'</div></div>';
+}
+
+function getInfinityNewsHtml(){
+  return '<p style="font-weight:800;font-size:15px;color:var(--navy);">BIENVENIDO A INFINITY</p>'
+    +'<p><strong>MÁS QUE INGLÉS.</strong><br>ENTRENAMIENTO OPERACIONAL PARA EL MUNDO REAL.</p>'
+    +'<p>No creemos en memorizar reglas.<br>No creemos en acumular certificados.<br>No creemos que entender inglés sea suficiente.</p>'
+    +'<p>Creemos en desarrollar capacidad real: comunicarte, reaccionar, operar bajo presión y obtener resultados.</p>'
+    +'<p><strong>NUESTRA MISIÓN</strong><br>Desarrollar profesionales capaces de utilizar el inglés de forma efectiva en situaciones reales mediante entrenamiento estructurado, simulaciones, inteligencia artificial y métricas medibles.</p>'
+    +'<p><strong>NUESTRA VISIÓN</strong><br>Convertirnos en el ecosistema de entrenamiento lingüístico y operacional más innovador de Latinoamérica.</p>'
+    +'<p><strong>¿QUÉ ESPERAMOS DE VOS?</strong></p><ul><li>Compromiso</li><li>Participación activa</li><li>Puntualidad</li><li>Mentalidad de mejora continua</li><li>Disposición para salir de tu zona de confort</li></ul>'
+    +'<p>No necesitás ser perfecto. Necesitás entrenar.</p>'
+    +'<p><strong>¿CÓMO TE IMAGINAMOS AL FINAL DEL PROCESO?</strong></p><ul><li>Hablando con seguridad</li><li>Respondiendo entrevistas sin bloquearte</li><li>Comunicándote con clientes y compañeros</li><li>Participando en reuniones</li><li>Expresando ideas complejas con claridad</li><li>Operando en inglés con confianza</li></ul>'
+    +'<p>Nuestro objetivo no es que estudies inglés. Nuestro objetivo es que lo uses.</p>'
+    +'<p><strong>POLÍTICA DE ASISTENCIA Y REPOSICIÓN</strong></p><ul><li>Hasta 3 reposiciones por mes</li><li>Las reposiciones deben coordinarse previamente</li><li>Cancelaciones tardías podrán considerarse como clase impartida</li><li>Los feriados no garantizan reposición automática</li></ul>'
+    +'<p><strong>POLÍTICA DE ABANDONO</strong><br>La constancia es parte del entrenamiento. El abandono voluntario no genera devoluciones. Tu espacio y recursos son reservados exclusivamente para vos.</p>'
+    +'<p><strong>CONFIDENCIALIDAD Y USO COMERCIAL</strong><br>Todo el contenido de Infinity está protegido. Participación, métricas y prácticas pueden usarse con fines educativos, informativos y promocionales (metodología, simulaciones, materiales, evaluaciones, plataformas). Distribución comercial sin autorización está prohibida.</p>'
+    +'<p><strong>PROMOCIONES Y PRECIOS</strong><br>Las promociones son temporales. Los precios pueden variar para nuevas matrículas sin afectar acuerdos previos.</p>'
+    +'<p><strong>USO RESPONSABLE DE LA PLATAFORMA</strong><br>Tu cuenta es personal e intransferible. No compartas usuarios, contraseñas, accesos ni material exclusivo. El uso indebido puede suspender el acceso.</p>'
+    +'<p><strong>PROPIEDAD INTELECTUAL</strong><br>Reproducir contenidos, metodología o recursos sin autorización escrita está prohibido.</p>'
+    +'<p><strong>RECORDÁ</strong><br>No medimos cuánto inglés sabés. Medimos lo que sos capaz de hacer con él. Todo lo que hacés aquí deja evidencia de tu progreso.</p>';
+}
+
+function renderTermsStatusCard(record, kind, id){
+  if(!hasMasterAccess()) return '';
+  var accepted = record.infinityTermsAccepted;
+  var badge = accepted===true ? '<span class="badge" style="background:var(--gb);color:var(--gm);">Términos aceptados</span>'
+    : accepted===false ? '<span class="badge" style="background:var(--rb);color:var(--rm);">Términos rechazados — acceso off</span>'
+    : '<span class="badge" style="background:var(--ab);color:var(--ad);">Pendiente primera aceptación</span>';
+  var btn = (accepted===false && kind==='student')
+    ? '<button data-sid="'+id+'" class="btn btn-navy btn-sm" style="margin-top:8px;" onclick="reactivateStudentTerms(this.dataset.sid)"><i class="ti ti-check"></i>Reactivar cuenta</button>'
+    : (accepted===false && kind==='trainer')
+    ? '<button data-uid="'+id+'" class="btn btn-navy btn-sm" style="margin-top:8px;" onclick="reactivateTrainerTerms(this.dataset.uid)"><i class="ti ti-check"></i>Reactivar cuenta</button>'
+    : '';
+  return '<div class="card"><div class="card-title"><i class="ti ti-file-check"></i>Aceptación Infinity News</div><div>'+badge+(record.infinityTermsAt?('<div style="font-size:11px;color:var(--t3);margin-top:6px;">'+fmtDate(record.infinityTermsAt)+'</div>'):'')+btn+'</div></div>';
+}
+
+var _termsTarget = null;
+
+function maybeShowEngineTermsGate(){
+  var u = Object.values(TRAINERS).find(function(t){ return t.email===SESSION.user; });
+  if(!u || u.infinityTermsAccepted === true || u.infinityTermsAccepted === false) return;
+  _termsTarget = { kind:'trainer', id:u.id, email:u.email };
+  document.getElementById('infinity-terms-body').innerHTML = getInfinityNewsHtml();
+  showModal('modal-infinity-terms');
+}
+
+async function respondInfinityTerms(agreed){
+  if(!_termsTarget) return;
+  if(_termsTarget.kind==='trainer'){
+    var u = Object.values(TRAINERS).find(function(t){ return t.id===_termsTarget.id; });
+    if(!u) return;
+    u.infinityTermsAccepted = !!agreed;
+    u.infinityTermsAt = new Date().toISOString();
+    if(!agreed){ u.status = 'suspended'; closeModal('modal-infinity-terms'); showToast('Acceso desactivado. Contactá al Master Trainer.','err'); await dbSet('infinity_users', u.id, u); TRAINERS[u.email]=u; logout(); return; }
+    await dbSet('infinity_users', u.id, u); TRAINERS[u.email]=u;
+    closeModal('modal-infinity-terms');
+    showToast('¡Bienvenido a Infinity!');
+    return;
+  }
+}
+
+async function reactivateStudentTerms(sid){
+  var s = DB[sid]; if(!s) return;
+  s.infinityTermsAccepted = true;
+  s.infinityTermsAt = new Date().toISOString();
+  s.status = 'active';
+  await dbSet('infinity_students', sid, s); DB[sid]=s;
+  await logAction('Reactivó cuenta (términos)', (s.info&&s.info.name)||sid);
+  showToast('Cuenta reactivada'); openStudent(sid);
+}
+
+async function reactivateTrainerTerms(uid){
+  var u = Object.values(TRAINERS).find(function(t){ return t.id===uid; });
+  if(!u) return;
+  u.infinityTermsAccepted = true;
+  u.infinityTermsAt = new Date().toISOString();
+  u.status = 'active';
+  await dbSet('infinity_users', uid, u); TRAINERS[u.email]=u;
+  await logAction('Reactivó trainer (términos)', u.name||uid);
+  showToast('Trainer reactivado'); renderUsers(document.getElementById('main-content'));
+}
 
 function getLeads(){
   return Object.values(DB).filter(function(s){ return s.isLead; });
