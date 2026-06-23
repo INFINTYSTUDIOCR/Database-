@@ -160,8 +160,8 @@ function extractOpeningSnippet(text) {
 }
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
-app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-23-op-fix)'));
-app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-23-op-fix', services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream'] }));
+app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-23-fase2)'));
+app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-23-fase2', services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream'] }));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
