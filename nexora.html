@@ -1013,11 +1013,7 @@ function showInterviewDisplay(sc){
   },1000);
   // Determine interviewer gender by name
   var ivName = sc.interviewer || 'Interviewer';
-  var ivVoice = getVoiceByName(ivName);
-  _nx.profile = _nx.profile || {};
-  _nx.profile.voiceId = ivVoice.id;
-  _nx.profile.voiceAccent = ivVoice.accent;
-  _nx.profile.gender = isFemaleByName(ivName) ? 'female' : 'male';
+  _nx.profile = applyNexoraIdentityFromName(_nx.profile, ivName);
   aliceEnterMode(sc,'iv-status-text',ivName,'START_INTERVIEW',{interviewerName:sc.interviewer,role:sc.role,company:sc.company,panelists:sc.panelists||[]});
 }
 
@@ -1056,12 +1052,8 @@ function showMeetingDisplay(sc){
     if(el) el.textContent=Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
   },1000);
   var mtName = (sc.participants&&sc.participants[1]) ? sc.participants[1].replace(/—.*/,'').trim() : 'Colleague';
-  var mtVoice = getVoiceByName(mtName);
-  _nx.profile = _nx.profile || {};
-  _nx.profile.voiceId = mtVoice.id;
-  _nx.profile.voiceAccent = mtVoice.accent;
-  _nx.profile.gender = isFemaleByName(mtName) ? 'female' : 'male';
-  aliceEnterMode(sc,'mt-status-text',firstName,'START_MEETING',{meetingTitle:sc.title,participants:sc.participants||[]});
+  _nx.profile = applyNexoraIdentityFromName(_nx.profile, mtName);
+  aliceEnterMode(sc,'mt-status-text',mtName,'START_MEETING',{meetingTitle:sc.title,participants:sc.participants||[]});
 }
 
 function endMeeting(){
@@ -1152,10 +1144,8 @@ function showCorporateDisplay(sc){
       if(!sc.participants[pi].toLowerCase().startsWith('you')){ corpName=sc.participants[pi].replace(/—.*/,'').trim(); break; }
     }
   }
-  var corpVoice = getVoiceByName(corpName || sc.role || 'Director');
-  _nx.profile = _nx.profile || {};
-  _nx.profile.voiceId = corpVoice.id;
-  _nx.profile.voiceAccent = corpVoice.accent;
+  corpName = corpName || sc.role || 'Director';
+  _nx.profile = applyNexoraIdentityFromName(_nx.profile, corpName);
 
   _nx.callStart = Date.now(); _nx.active = true;
   _nx.callTimer = setInterval(function(){
@@ -1166,7 +1156,7 @@ function showCorporateDisplay(sc){
   }, 1000);
 
   setTimeout(function(){
-    var personName = sc.role || 'Director';
+    var personName = corpName;
     aliceEnterMode(sc, 'corp-status', personName, 'START_CORPORATE', {
       role: sc.role,
       company: sc.company,
@@ -1239,8 +1229,9 @@ function showStakeholderDisplay(sc){
   }, 1000);
 
   setTimeout(function(){
-    var firstName = sc.participants && sc.participants[1] ? sc.participants[1].replace(/—.*/,'').trim().split(' ')[1]||'Alice' : 'Alice';
-    aliceEnterMode(sc, 'sh-status', firstName, 'START_STAKEHOLDER', {
+    var personName = sc.participants && sc.participants[1] ? sc.participants[1].replace(/—.*/,'').trim() : 'Alice';
+    _nx.profile = applyNexoraIdentityFromName(_nx.profile, personName);
+    aliceEnterMode(sc, 'sh-status', personName, 'START_STAKEHOLDER', {
       stakes: sc.stakes || [],
       participants: sc.participants,
       role: sc.role
@@ -1304,7 +1295,10 @@ function showStarInterviewDisplay(sc){
     if(el) el.textContent=Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
   },1000);
 
-  aliceEnterMode(sc,'iv-status-text',sc.interviewer||'Interviewer','START_STAR_INTERVIEW',{
+  var ivName = sc.interviewer || 'Interviewer';
+  _nx.profile = applyNexoraIdentityFromName(_nx.profile, ivName);
+
+  aliceEnterMode(sc,'iv-status-text',ivName,'START_STAR_INTERVIEW',{
     interviewerName:sc.interviewer,role:sc.role,company:sc.company,
     starFocus:sc.starFocus||[]
   });
@@ -1514,10 +1508,7 @@ function showNegotiationDisplay(sc){
     if(el) el.textContent=Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
   },1000);
 
-  var negVoice = getVoiceByName(sc.counterpart || 'Counterpart');
-  _nx.profile = _nx.profile || {};
-  _nx.profile.voiceId = negVoice.id;
-  _nx.profile.voiceAccent = negVoice.accent;
+  _nx.profile = applyNexoraIdentityFromName(_nx.profile, sc.counterpart || 'Counterpart');
 
   aliceEnterMode(sc,'iv-status-text',sc.counterpart||'Counterpart','START_CALL',{
     negRole: _nx_negRole,

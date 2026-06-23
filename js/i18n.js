@@ -143,6 +143,178 @@
     { s: '.footer-copy', en: '© 2026 Off The Clock by ∞ Infinity · All rights reserved · studioinfinitycr.com', es: '© 2026 Off The Clock by ∞ Infinity · Todos los derechos reservados · studioinfinitycr.com' }
   ];
 
+  var INDEX_MORE = [
+    { s: '.comp-card.trad .comp-title', html: true, en: '<i class="ti ti-x" style="color:#EF4444"></i>Traditional English', es: '<i class="ti ti-x" style="color:#EF4444"></i>Inglés Tradicional' },
+    { s: '.comp-card.trad .comp-item:nth-child(2)', en: 'Grammar memorization', es: 'Memorización de gramática' },
+    { s: '.comp-card.trad .comp-item:nth-child(3)', en: 'Homework assignments', es: 'Tareas para la casa' },
+    { s: '.comp-card.trad .comp-item:nth-child(4)', en: 'Levels A1, A2, B1...', es: 'Niveles A1, A2, B1...' },
+    { s: '.comp-card.trad .comp-item:nth-child(5)', en: 'One-size-fits-all tests', es: 'Exámenes genéricos para todos' },
+    { s: '.comp-card.trad .comp-item:nth-child(6)', en: 'Participation certificates', es: 'Certificados por asistir' },
+    { s: '.comp-card.trad .comp-item:nth-child(7)', en: 'Academic fluency only', es: 'Solo fluidez académica' },
+    { s: '.comp-card.otc .comp-title', html: true, en: '<i class="ti ti-rocket"></i>Off The Clock System', es: '<i class="ti ti-rocket"></i>Sistema Off The Clock' },
+    { s: '.comp-card.otc .comp-item:nth-child(2)', en: 'Real-time interaction', es: 'Interacción en tiempo real' },
+    { s: '.comp-card.otc .comp-item:nth-child(3)', en: 'Personalized Training Book', es: 'Training Book personalizado' },
+    { s: '.comp-card.otc .comp-item:nth-child(4)', en: '5 Operational KPIs', es: '5 KPIs operacionales' },
+    { s: '.comp-card.otc .comp-item:nth-child(5)', en: 'Weekly performance tracking', es: 'Seguimiento semanal de desempeño' },
+    { s: '.comp-card.otc .comp-item:nth-child(6)', en: 'AI coaching 24/7', es: 'Coaching con IA 24/7' },
+    { s: '.comp-card.otc .comp-item:nth-child(7)', en: 'Operational readiness', es: 'Preparación operacional' },
+    { s: '.deliverables-tab[data-tab="nexora"]', en: 'Nexora', es: 'Nexora' },
+    { s: '.deliverables-tab[data-tab="jill"]', en: 'Jill', es: 'Jill' },
+    { s: '.deliverables-tab[data-tab="alice"]', en: 'Alice', es: 'Alice' },
+    { s: '#panel-jill .deliverable-intro h3', en: 'Jill — Foundations Tutor', es: 'Jill — Tutora de Foundations' },
+    { s: '#panel-jill .deliverable-intro p', en: 'Your entry point into operational English: chunking, verb tenses, linkers and structure — guided step by step before Alice coaches fluency and Nexora adds pressure.', es: 'Tu punto de entrada al inglés operacional: chunks, tiempos verbales, conectores y estructura — guiado paso a paso antes de que Alice entrene fluidez y Nexora agregue presión.' },
+    { s: '#panel-jill .deliverable-feat:nth-child(1) span', en: 'Foundations track — async tutor', es: 'Track Foundations — tutora async' },
+    { s: '#panel-jill .deliverable-feat:nth-child(2) span', en: 'Voice + text — Jill listens', es: 'Voz + texto — Jill escucha' },
+    { s: '#panel-jill .deliverable-feat:nth-child(3) span', en: 'Idea + Linker + Idea from day one', es: 'Idea + Conector + Idea desde el día uno' },
+    { s: '#panel-jill .btn-primary', html: true, en: '<i class="ti ti-player-play"></i>Try Jill — 5 min demo', es: '<i class="ti ti-player-play"></i>Probar Jill — demo 5 min' },
+    { s: '#panel-jill .btn-secondary', html: true, en: '<i class="ti ti-book"></i>Foundations program', es: '<i class="ti ti-book"></i>Programa Foundations' },
+    { s: '#diff .diff-card:nth-child(1) .diff-title', en: 'Real-Time Correction', es: 'Corrección en Tiempo Real' },
+    { s: '#diff .diff-card:nth-child(1) .diff-desc', en: 'Mistakes caught and corrected in the moment — not reviewed two weeks later.', es: 'Errores detectados y corregidos al instante — no revisados dos semanas después.' },
+    { s: '#diff .diff-card:nth-child(2) .diff-title', en: 'AI-Integrated Learning', es: 'Aprendizaje Integrado con IA' },
+    { s: '#diff .diff-card:nth-child(2) .diff-desc', en: 'Alice coaches based on your specific KPI profile and Training Book — not a generic script.', es: 'Alice entrena según tu perfil KPI y Training Book — no un guion genérico.' },
+    { s: '#diff .diff-card:nth-child(3) .diff-title', en: 'Weekly KPI Tracking', es: 'Seguimiento KPI Semanal' },
+    { s: '#diff .diff-card:nth-child(3) .diff-desc', en: '5 operational KPIs measured every session. Progress is visible, specific, and real.', es: '5 KPIs operacionales medidos cada sesión. El progreso es visible, específico y real.' },
+    { s: '#diff .diff-card:nth-child(4) .diff-title', en: 'Personalized Training Book', es: 'Training Book Personalizado' },
+    { s: '#diff .diff-card:nth-child(4) .diff-desc', en: 'No two students have the same exercises. Your weaknesses define your program.', es: 'Ningún estudiante tiene los mismos ejercicios. Tus debilidades definen tu programa.' },
+    { s: '#diff .diff-card:nth-child(5) .diff-title', en: 'Operational Simulations', es: 'Simulaciones Operacionales' },
+    { s: '#diff .diff-card:nth-child(5) .diff-desc', en: 'Nexora puts you in real business scenarios before you ever face them in real life.', es: 'Nexora te pone en escenarios empresariales reales antes de enfrentarlos en la vida real.' },
+    { s: '#diff .diff-card:nth-child(6) .diff-title', en: 'Industry-Built Methodology', es: 'Metodología Construida en la Industria' },
+    { s: '#diff .diff-card:nth-child(6) .diff-desc', en: 'Built from 26 years inside Multinacionales, BPO, leadership, and instructional design.', es: 'Construida desde 26 años dentro de Multinacionales, BPO, liderazgo y diseño instruccional.' },
+    { s: '.jill-badge', html: true, en: '<i class="ti ti-message-circle"></i>Foundations · Step 1', es: '<i class="ti ti-message-circle"></i>Foundations · Paso 1' },
+    { s: '.jill-title', en: 'Meet Jill — Your Foundations Tutor', es: 'Conoce a Jill — Tu Tutora de Foundations' },
+    { s: '.jill-sub', en: 'Jill builds the structure behind English before you need to perform under pressure. Chunks, tenses, linkers and recovery — aligned to your KPIs from day one.', es: 'Jill construye la estructura detrás del inglés antes de que necesites rendir bajo presión. Chunks, tiempos, conectores y recuperación — alineados a tus KPIs desde el día uno.' },
+    { s: '#jill .alice-cap:nth-child(1)', html: true, en: '<i class="ti ti-check"></i>Chunking & verb tenses', es: '<i class="ti ti-check"></i>Chunking y tiempos verbales' },
+    { s: '#jill .alice-cap:nth-child(2)', html: true, en: '<i class="ti ti-check"></i>First Nexus linkers', es: '<i class="ti ti-check"></i>Primeros conectores Nexus' },
+    { s: '#jill .alice-cap:nth-child(3)', html: true, en: '<i class="ti ti-check"></i>Voice & text', es: '<i class="ti ti-check"></i>Voz y texto' },
+    { s: '#jill .alice-cap:nth-child(4)', html: true, en: '<i class="ti ti-check"></i>Foundations track', es: '<i class="ti ti-check"></i>Track Foundations' },
+    { s: '#jill a[href="try-jill.html"]', html: true, en: '<i class="ti ti-player-play"></i>Try Jill — 5 min', es: '<i class="ti ti-player-play"></i>Probar Jill — 5 min' },
+    { s: '#jill a[href="foundations.html"]', html: true, en: '<i class="ti ti-book"></i>Foundations program', es: '<i class="ti ti-book"></i>Programa Foundations' },
+    { s: '#alice .alice-cap:nth-child(1)', html: true, en: '<i class="ti ti-check"></i>Real-time correction', es: '<i class="ti ti-check"></i>Corrección en tiempo real' },
+    { s: '#alice .alice-cap:nth-child(2)', html: true, en: '<i class="ti ti-check"></i>Nexus Method coaching', es: '<i class="ti ti-check"></i>Coaching Método Nexus' },
+    { s: '#alice .alice-cap:nth-child(3)', html: true, en: '<i class="ti ti-check"></i>Nexora simulations', es: '<i class="ti ti-check"></i>Simulaciones Nexora' },
+    { s: '#alice .alice-cap:nth-child(4)', html: true, en: '<i class="ti ti-check"></i>Voice & text', es: '<i class="ti ti-check"></i>Voz y texto' },
+    { s: '#alice .alice-cap:nth-child(5)', html: true, en: '<i class="ti ti-check"></i>Progress tracking', es: '<i class="ti ti-check"></i>Seguimiento de progreso' },
+    { s: '#alice .alice-cap:nth-child(6)', html: true, en: '<i class="ti ti-check"></i>24/7 availability', es: '<i class="ti ti-check"></i>Disponible 24/7' },
+    { s: '#kpis .kpi-card:nth-child(1) .kpi-name', en: 'Idea Generation', es: 'Generación de Ideas' },
+    { s: '#kpis .kpi-card:nth-child(1) .kpi-desc', en: 'Can you produce ideas spontaneously in English without freezing?', es: '¿Podés generar ideas en inglés sin paralizarte?' },
+    { s: '#kpis .kpi-card:nth-child(2) .kpi-name', en: 'Structural Thinking', es: 'Pensamiento Estructural' },
+    { s: '#kpis .kpi-card:nth-child(2) .kpi-desc', en: 'Do your ideas have logic, order, and connectors?', es: '¿Tus ideas tienen lógica, orden y conectores?' },
+    { s: '#kpis .kpi-card:nth-child(3) .kpi-name', en: 'Recovery Ability', es: 'Capacidad de Recuperación' },
+    { s: '#kpis .kpi-card:nth-child(3) .kpi-desc', en: 'When you lose a word, can you reformulate and keep going?', es: 'Cuando perdés una palabra, ¿podés reformular y seguir?' },
+    { s: '#kpis .kpi-card:nth-child(4) .kpi-name', en: 'Problem Solving', es: 'Resolución de Problemas' },
+    { s: '#kpis .kpi-card:nth-child(4) .kpi-desc', en: 'Can you analyze and propose solutions under pressure in English?', es: '¿Podés analizar y proponer soluciones bajo presión en inglés?' },
+    { s: '#kpis .kpi-card:nth-child(5) .kpi-name', en: 'Responsiveness', es: 'Capacidad de Respuesta' },
+    { s: '#kpis .kpi-card:nth-child(5) .kpi-desc', en: 'How fast can you respond? Can you sustain a real conversation?', es: '¿Qué tan rápido respondés? ¿Podés sostener una conversación real?' },
+    { s: '#about .tl-item:nth-child(1) .tl-text', en: 'Multinacionales & BPO Operations', es: 'Operaciones en Multinacionales y BPO' },
+    { s: '#about .tl-item:nth-child(1) .tl-sub', en: 'Where operational English is not optional', es: 'Donde el inglés operacional no es opcional' },
+    { s: '#about .tl-item:nth-child(2) .tl-text', en: 'Leadership & Training', es: 'Liderazgo y Entrenamiento' },
+    { s: '#about .tl-item:nth-child(2) .tl-sub', en: 'Building teams that perform under pressure', es: 'Construir equipos que rinden bajo presión' },
+    { s: '#about .tl-item:nth-child(3) .tl-text', en: 'Instructional Design', es: 'Diseño Instruccional' },
+    { s: '#about .tl-item:nth-child(3) .tl-sub', en: 'Converting experience into repeatable systems', es: 'Convertir experiencia en sistemas repetibles' },
+    { s: '#about .tl-item:nth-child(4) .tl-text', en: 'AI Integration', es: 'Integración con IA' },
+    { s: '#about .tl-item:nth-child(4) .tl-sub', en: 'The only operational English system powered by AI in CR', es: 'El único sistema de inglés operacional con IA en CR' },
+    { s: '.exp-label', en: 'Years of Industry Experience', es: 'Años de Experiencia en la Industria' },
+    { s: '.exp-tags .exp-tag:nth-child(1)', en: 'Multinacionales', es: 'Multinacionales' },
+    { s: '.exp-tags .exp-tag:nth-child(2)', en: 'BPO', es: 'BPO' },
+    { s: '.exp-tags .exp-tag:nth-child(3)', en: 'Leadership', es: 'Liderazgo' },
+    { s: '.exp-tags .exp-tag:nth-child(4)', en: 'Training', es: 'Entrenamiento' },
+    { s: '.exp-tags .exp-tag:nth-child(5)', en: 'Instructional Design', es: 'Diseño Instruccional' },
+    { s: '.exp-tags .exp-tag:nth-child(6)', en: 'Quality', es: 'Calidad' },
+    { s: '.exp-tags .exp-tag:nth-child(7)', en: 'Project Management', es: 'Gestión de Proyectos' },
+    { s: '.exp-tags .exp-tag:nth-child(8)', en: 'AI Integration', es: 'Integración IA' },
+    { s: '#core-programs a.program-card:nth-of-type(1) .program-badge', en: 'Core · Training', es: 'Core · Entrenamiento' },
+    { s: '#core-programs a.program-card:nth-of-type(1) h3', en: 'Foundations', es: 'Foundations' },
+    { s: '#core-programs a.program-card:nth-of-type(1) p', en: 'Communication Core — participation, interaction and collaboration. The operational English base of the Infinity methodology.', es: 'Núcleo comunicativo — participación, interacción y colaboración. La base de inglés operacional de la metodología Infinity.' },
+    { s: '#core-programs a.program-card:nth-of-type(1) .card-cta', html: true, en: '<i class="ti ti-arrow-right"></i> View program', es: '<i class="ti ti-arrow-right"></i> Ver programa' },
+    { s: '#core-programs a.program-card:nth-of-type(2) .program-badge', en: 'Core · Training', es: 'Core · Entrenamiento' },
+    { s: '#core-programs a.program-card:nth-of-type(2) h3', en: 'ORT', es: 'ORT' },
+    { s: '#core-programs a.program-card:nth-of-type(2) p', en: 'Operational Readiness Training — pressure-based execution under real conditions. No comfort zones.', es: 'Operational Readiness Training — ejecución bajo presión en condiciones reales. Sin zonas de confort.' },
+    { s: '#core-programs a.program-card:nth-of-type(2) .card-cta', html: true, en: '<i class="ti ti-arrow-right"></i> View program', es: '<i class="ti ti-arrow-right"></i> Ver programa' },
+    { s: '#community-programs a.program-card:nth-of-type(1) .program-badge', en: 'Community · Talk Show', es: 'Comunidad · Talk Show' },
+    { s: '#community-programs a.program-card:nth-of-type(1) h3', en: 'Off The Clock', es: 'Off The Clock' },
+    { s: '#community-programs a.program-card:nth-of-type(1) p', en: 'Infinity Studio\'s live talk show — conversation, entertainment and relationship building beyond the classroom.', es: 'El talk show en vivo de Infinity Studio — conversación, entretenimiento y relaciones más allá del aula.' },
+    { s: '#community-programs a.program-card:nth-of-type(1) .card-cta', html: true, en: '<i class="ti ti-arrow-right"></i> Learn more', es: '<i class="ti ti-arrow-right"></i> Saber más' },
+    { s: '#community-programs a.program-card:nth-of-type(2) .program-badge', en: 'Live Practice', es: 'Práctica en Vivo' },
+    { s: '#community-programs a.program-card:nth-of-type(2) h3', en: 'The Conversatory', es: 'El Conversatorio' },
+    { s: '#community-programs a.program-card:nth-of-type(2) p', en: 'Invitation-only live communication experience — authentic conversations broadcast on social media.', es: 'Experiencia de comunicación en vivo solo por invitación — conversaciones auténticas en redes sociales.' },
+    { s: '#community-programs a.program-card:nth-of-type(2) .card-cta', html: true, en: '<i class="ti ti-arrow-right"></i> Learn more', es: '<i class="ti ti-arrow-right"></i> Saber más' },
+    { s: '#community-programs a.program-card:nth-of-type(3) .program-badge', en: 'Employability', es: 'Empleabilidad' },
+    { s: '#community-programs a.program-card:nth-of-type(3) h3', en: 'Job Finder', es: 'Job Finder' },
+    { s: '#community-programs a.program-card:nth-of-type(3) p', en: 'Career development with recruiters and industry professionals — real hiring expectations and market insights.', es: 'Desarrollo profesional con reclutadores y expertos — expectativas reales de contratación e insights del mercado.' },
+    { s: '#community-programs a.program-card:nth-of-type(3) .card-cta', html: true, en: '<i class="ti ti-arrow-right"></i> Learn more', es: '<i class="ti ti-arrow-right"></i> Saber más' },
+    { s: '.nav-drop-menu a[href="foundations.html"]', en: 'Foundations', es: 'Foundations' },
+    { s: '.nav-drop-menu a[href="ort.html"]', en: 'ORT', es: 'ORT' },
+    { s: '.nav-drop-menu a[href="off-the-clock.html"]', en: 'Off The Clock', es: 'Off The Clock' },
+    { s: '.nav-drop-menu a[href="conversatorio.html"]', en: 'The Conversatory', es: 'El Conversatorio' },
+    { s: '.nav-drop-menu a[href="job-finder.html"]', en: 'Job Finder', es: 'Job Finder' },
+    { s: 'a.hero-portal-lock', attr: 'title', en: 'Portal Access', es: 'Acceso al Portal' },
+    { s: 'a.hero-portal-lock', attr: 'aria-label', en: 'Portal Access', es: 'Acceso al Portal' },
+    { s: '.contact-cards .cc:nth-child(5) .cc-label', en: 'Website', es: 'Sitio Web' },
+    { s: '.contact-cards .cc:nth-child(6) .cc-label', en: 'Location', es: 'Ubicación' },
+    { s: '.contact-cards .cc:nth-child(6) .cc-value', en: 'Costa Rica', es: 'Costa Rica' },
+    { s: '.tb-section-title', en: 'Operational KPI Radar', es: 'Radar KPI Operacional' },
+    { s: '.tb-section-sub', en: 'Weekly snapshot — your 5 performance dimensions', es: 'Instantánea semanal — tus 5 dimensiones de desempeño' },
+    { s: '#panel-training-book .tb-section-title:nth-of-type(2)', en: 'Assigned Exercises', es: 'Ejercicios Asignados' },
+    { s: '#panel-training-book .tb-section-sub:nth-of-type(2)', en: 'Personalized by your trainer and Infinity Engine', es: 'Personalizados por tu trainer e Infinity Engine' },
+    { s: '#panel-training-book .tb-section-title:nth-of-type(3)', en: 'Alice — Recent Session', es: 'Alice — Sesión Reciente' },
+    { s: '#panel-training-book .tb-section-sub:nth-of-type(3)', en: 'Preview of coaching inside your Training Book', es: 'Vista previa del coaching en tu Training Book' },
+    { s: '#panel-training-book .tb-section-title:nth-of-type(4)', en: 'Nexora — Upcoming Simulation', es: 'Nexora — Próxima Simulación' },
+    { s: '#panel-training-book .tb-section-sub:nth-of-type(4)', en: 'Assigned scenario based on your readiness profile', es: 'Escenario asignado según tu perfil de preparación' },
+    { s: '#panel-training-book .tb-section-title:nth-of-type(5)', en: 'Weekly Progress', es: 'Progreso Semanal' },
+    { s: '#ci', attr: 'placeholder', en: 'Type your message…', es: 'Escribí tu mensaje…' },
+    { s: '#ct', en: 'Claire is typing...', es: 'Claire está escribiendo...' }
+  ];
+
+  var SUBPAGE = [
+    { s: 'a[href="index.html#ecosystem"]', en: 'Ecosystem', es: 'Ecosistema' },
+    { s: '.page-title', en: 'Foundations', es: 'Foundations' },
+    { s: '.page-lead', en: 'Communication Core — the operational English base. Communication, participation, interaction and collaboration built for real workplace execution.', es: 'Núcleo comunicativo — la base de inglés operacional. Comunicación, participación, interacción y colaboración para ejecución real en el trabajo.' },
+    { s: '.content-block:nth-child(1) h2', en: 'What it is', es: 'Qué es' },
+    { s: '.content-block:nth-child(1) p', en: 'Foundations is the core communication program of the Infinity methodology. It is structured training — not a community event. Students develop the operational language skills required to participate, interact and collaborate in professional environments.', es: 'Foundations es el programa de comunicación core de la metodología Infinity. Es entrenamiento estructurado — no un evento comunitario. Los estudiantes desarrollan habilidades de lenguaje operacional para participar, interactuar y colaborar en entornos profesionales.' },
+    { s: '.content-block:nth-child(2) h2', en: 'What you develop', es: 'Qué desarrollás' },
+    { s: '.feature-chip:nth-child(1)', html: true, en: '<i class="ti ti-message"></i> Communication', es: '<i class="ti ti-message"></i> Comunicación' },
+    { s: '.feature-chip:nth-child(2)', html: true, en: '<i class="ti ti-hand-stop"></i> Participation', es: '<i class="ti ti-hand-stop"></i> Participación' },
+    { s: '.feature-chip:nth-child(3)', html: true, en: '<i class="ti ti-arrows-exchange"></i> Interaction', es: '<i class="ti ti-arrows-exchange"></i> Interacción' },
+    { s: '.feature-chip:nth-child(4)', html: true, en: '<i class="ti ti-users-group"></i> Collaboration', es: '<i class="ti ti-users-group"></i> Colaboración' },
+    { s: '.content-block:nth-child(3) h2', en: 'Pathway', es: 'Ruta' },
+    { s: '.content-block:nth-child(3) p', en: 'Foundations leads into ORT (Operational Readiness Training) for pressure-based execution. Community programs such as Off The Clock, The Conversatory and Job Finder support the ecosystem but are separate from this core track.', es: 'Foundations conduce a ORT (Operational Readiness Training) para ejecución bajo presión. Programas comunitarios como Off The Clock, El Conversatorio y Job Finder apoyan el ecosistema pero son independientes de este track core.' },
+    { s: '.page-main .btn-primary', html: true, en: '<i class="ti ti-calendar"></i> Book your assessment', es: '<i class="ti ti-calendar"></i> Agenda tu evaluación' },
+    { s: '.visual-tag', en: 'Core · Communication', es: 'Core · Comunicación' }
+  ];
+
+  var DEMO_PAGE = [
+    { s: 'a[href="try-demo.html"]', en: '← All demos', es: '← Todos los demos' },
+    { s: '#btn-start', en: 'Start Alice demo', es: 'Iniciar demo Alice' },
+    { s: '#inp', attr: 'placeholder', en: 'Speak or type in English…', es: 'Hablá o escribí en inglés…' },
+    { s: '#typing', en: 'Alice is typing…', es: 'Alice está escribiendo…' },
+    { s: '#voice-hint', html: true, en: '<i class="ti ti-volume"></i> Alice speaks — tap <strong>mic</strong> to answer by voice or type below. Chrome recommended.', es: '<i class="ti ti-volume"></i> Alice habla — tocá <strong>mic</strong> para responder por voz o escribí abajo. Chrome recomendado.' },
+    { s: '.demo-limit p', html: true, en: '<strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.', es: '<strong>Límite diario de demo alcanzado</strong> desde esta conexión. Volvé mañana o agendá tu evaluación gratuita ahora.' }
+  ];
+
+  function applyDataI18nAttributes(lang) {
+    document.querySelectorAll('[data-i18n-en]').forEach(function (node) {
+      var val = lang === 'es' ? (node.getAttribute('data-i18n-es') || node.getAttribute('data-i18n-en')) : node.getAttribute('data-i18n-en');
+      if (val == null) return;
+      if (node.getAttribute('data-i18n-html') === '1') node.innerHTML = val;
+      else if (node.getAttribute('data-i18n-attr')) node.setAttribute(node.getAttribute('data-i18n-attr'), val);
+      else node.textContent = val;
+    });
+  }
+
+  function pageEntries() {
+    var page = (location.pathname.split('/').pop() || 'index.html').replace(/^$/, 'index.html');
+    if (page === 'index.html') return NAV.concat(INDEX).concat(INDEX_MORE);
+    if (/^try-/.test(page) || page === 'try-demo.html') return NAV.concat(DEMO_PAGE);
+    if (page === 'foundations.html') return NAV.concat(SUBPAGE);
+    return NAV;
+  }
+
+  function applyClaireWidget(lang) {
+    var online = document.querySelector('#claire-widget [style*="Off The Clock"]');
+    if (online) online.innerHTML = '<span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>' + (lang === 'es' ? 'Off The Clock · En línea' : 'Off The Clock · Online');
+    var vi = document.getElementById('cvi');
+    if (vi && vi.style.display !== 'none') vi.textContent = lang === 'es' ? '🎙 Escuchando' : '🎙 Listening';
+  }
   function detectLang() {
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'en' || saved === 'es') return saved;
@@ -237,10 +409,12 @@
     localStorage.setItem(STORAGE_KEY, lang);
     document.documentElement.lang = lang;
 
-    NAV.concat(INDEX).forEach(function (entry) {
+    pageEntries().forEach(function (entry) {
       applyEntry(entry, lang);
     });
     applyProgramSelect(lang);
+    applyDataI18nAttributes(lang);
+    applyClaireWidget(lang);
     updateToggleUI(lang);
 
     document.dispatchEvent(new CustomEvent('infinity:lang', { detail: { lang: lang } }));

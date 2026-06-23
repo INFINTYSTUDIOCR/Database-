@@ -1,6 +1,6 @@
 // Nexora — random multicultural names + accent-locked ElevenLabs voice per call
 (function (global) {
-  var NEXORA_ETHNICITIES = ['american', 'british', 'indian', 'german', 'russian', 'chinese', 'latino'];
+  var NEXORA_ETHNICITIES = ['american', 'british', 'indian', 'german', 'russian', 'chinese', 'latino', 'filipino'];
 
   var NEXORA_FIRST_NAMES = {
     american: {
@@ -38,8 +38,34 @@
     'Clarke', 'Davies', 'Wright', 'Morgan', 'Evans', 'Patel', 'Sharma', 'Singh', 'Nair', 'Gupta', 'Reddy',
     'Mueller', 'Schmidt', 'Weber', 'Fischer', 'Becker', 'Hoffmann', 'Petrov', 'Ivanov', 'Smirnov', 'Kuznetsov',
     'Volkov', 'Chen', 'Wang', 'Liu', 'Zhang', 'Huang', 'Li', 'Torres', 'Rodriguez', 'Martinez', 'Hernandez',
-    'Garcia', 'Lopez', 'Mendoza', 'Silva', 'Ramirez', 'Castillo', 'Okafor', 'Mitchell', 'Foster', 'Mejia'
+    'Garcia', 'Lopez', 'Mendoza', 'Silva', 'Ramirez', 'Castillo', 'Okafor', 'Mitchell', 'Foster', 'Mejia',
+    'Santos', 'Reyes', 'Cruz', 'Ramos', 'Bautista', 'Aquino'
   ];
+
+  var NEXORA_LAST_NAMES_BY_ETH = {
+    american: ['Thompson', 'Johnson', 'Williams', 'Brown', 'Davis', 'Wilson', 'Anderson', 'Taylor', 'Moore', 'Clark', 'Mitchell', 'Foster', 'Okafor'],
+    british: ['Clarke', 'Davies', 'Wright', 'Morgan', 'Evans'],
+    indian: ['Patel', 'Sharma', 'Singh', 'Nair', 'Gupta', 'Reddy'],
+    german: ['Mueller', 'Schmidt', 'Weber', 'Fischer', 'Becker', 'Hoffmann'],
+    russian: ['Petrov', 'Ivanov', 'Smirnov', 'Kuznetsov', 'Volkov'],
+    chinese: ['Chen', 'Wang', 'Liu', 'Zhang', 'Huang', 'Li'],
+    latino: ['Torres', 'Rodriguez', 'Martinez', 'Hernandez', 'Garcia', 'Lopez', 'Mendoza', 'Silva', 'Ramirez', 'Castillo', 'Mejia'],
+    filipino: ['Santos', 'Reyes', 'Cruz', 'Ramos', 'Bautista', 'Aquino', 'Garcia', 'Torres']
+  };
+
+  var NEXORA_LAST_NAME_ETHNICITY = {
+    Torres: 'latino', Rodriguez: 'latino', Martinez: 'latino', Hernandez: 'latino', Garcia: 'latino',
+    Lopez: 'latino', Mendoza: 'latino', Silva: 'latino', Ramirez: 'latino', Castillo: 'latino', Mejia: 'latino',
+    Santos: 'filipino', Reyes: 'filipino', Cruz: 'filipino', Ramos: 'filipino', Bautista: 'filipino', Aquino: 'filipino',
+    Patel: 'indian', Sharma: 'indian', Singh: 'indian', Nair: 'indian', Gupta: 'indian', Reddy: 'indian',
+    Mueller: 'german', Schmidt: 'german', Weber: 'german', Fischer: 'german', Becker: 'german', Hoffmann: 'german',
+    Petrov: 'russian', Ivanov: 'russian', Smirnov: 'russian', Kuznetsov: 'russian', Volkov: 'russian',
+    Chen: 'chinese', Wang: 'chinese', Liu: 'chinese', Zhang: 'chinese', Huang: 'chinese', Li: 'chinese',
+    Clarke: 'british', Davies: 'british', Wright: 'british', Morgan: 'british', Evans: 'british',
+    Thompson: 'american', Johnson: 'american', Williams: 'american', Brown: 'american', Davis: 'american',
+    Wilson: 'american', Anderson: 'american', Taylor: 'american', Moore: 'american', Clark: 'american',
+    Mitchell: 'american', Foster: 'american', Okafor: 'american'
+  };
 
   var NEXORA_ETHNICITY_ACCENT = {
     american: { male: 'American Male', female: 'American Female' },
@@ -76,8 +102,10 @@
 
   var NEXORA_NAME_ETHNICITY = {
     Linda: 'latino', Carlos: 'latino', Miguel: 'latino', Diego: 'latino', Luis: 'latino', Marco: 'latino',
-    Rafael: 'latino', Jorge: 'latino', Sofia: 'latino', Maria: 'latino', Elena: 'latino', Camila: 'latino',
-    Lucia: 'latino', Valentina: 'latino', Gabriela: 'latino', Carmen: 'latino', Torres: 'latino',
+    Rafael: 'latino', Jorge: 'latino', Andres: 'latino', Pablo: 'latino', Mateo: 'latino',
+    Sofia: 'latino', Maria: 'latino', Elena: 'latino', Camila: 'latino', Lucia: 'latino',
+    Valentina: 'latino', Gabriela: 'latino', Carmen: 'latino', Daniela: 'latino', Isabella: 'latino',
+    Jose: 'latino', Juan: 'latino', Pedro: 'latino', Rosa: 'latino', Ana: 'latino',
     Raj: 'indian', Arjun: 'indian', Vikram: 'indian', Priya: 'indian', Ananya: 'indian', Patel: 'indian',
     Dmitri: 'russian', Ivan: 'russian', Natasha: 'russian', Olga: 'russian', Irina: 'russian',
     Wei: 'chinese', Mei: 'chinese', Chen: 'chinese', Wang: 'chinese', Liu: 'chinese',
@@ -115,14 +143,81 @@
     return NEXORA_NAME_ETHNICITY[first] || 'american';
   }
 
+  function parseNexoraFullName(name) {
+    var clean = String(name || '').replace(/—.*/, '').trim();
+    var parts = clean.split(/\s+/).filter(Boolean);
+    var firstName = parts[0] || 'Alex';
+    var lastName = parts.slice(1).join(' ');
+    return {
+      firstName: firstName,
+      lastName: lastName,
+      name: lastName ? firstName + ' ' + lastName : firstName
+    };
+  }
+
+  function nexoraEthnicityForLastName(last) {
+    if (!last) return null;
+    var token = String(last).trim().split(/\s+/).pop();
+    return NEXORA_LAST_NAME_ETHNICITY[token] || null;
+  }
+
+  function nexoraEthnicityForName(fullName) {
+    var p = parseNexoraFullName(fullName);
+    var lastEth = nexoraEthnicityForLastName(p.lastName);
+    var firstEth = nexoraEthnicityForFirstName(p.firstName);
+    if (lastEth === 'filipino' || lastEth === 'latino') return lastEth;
+    if (firstEth === 'filipino' || firstEth === 'latino') return firstEth;
+    if (lastEth) return lastEth;
+    if (firstEth) return firstEth;
+    return 'american';
+  }
+
+  function nexoraVoiceEthnicity(ethnicity) {
+    return ethnicity === 'filipino' ? 'latino' : ethnicity;
+  }
+
+  function buildNexoraIdentityFromName(fullName) {
+    var p = parseNexoraFullName(fullName);
+    var female = global.isFemaleByName ? global.isFemaleByName(fullName) : false;
+    var gender = female ? 'female' : 'male';
+    var ethnicity = nexoraEthnicityForName(fullName);
+    var voiceEth = nexoraVoiceEthnicity(ethnicity);
+    var accentLabel = NEXORA_ETHNICITY_ACCENT[voiceEth][gender];
+    var voice = pickNexoraVoiceForProfile({ gender: gender, voiceAccent: accentLabel });
+    return {
+      firstName: p.firstName,
+      lastName: p.lastName,
+      name: p.name,
+      gender: gender,
+      ethnicity: ethnicity,
+      voiceId: voice.id,
+      voiceAccent: voice.accent
+    };
+  }
+
+  function applyNexoraIdentityFromName(profile, fullName) {
+    var id = buildNexoraIdentityFromName(fullName);
+    profile = profile || {};
+    profile.firstName = id.firstName;
+    profile.lastName = id.lastName;
+    profile.name = id.name;
+    profile.gender = id.gender;
+    profile.ethnicity = id.ethnicity;
+    profile.voiceId = id.voiceId;
+    profile.voiceAccent = id.voiceAccent;
+    return profile;
+  }
+
   function pickRandomNexoraIdentity() {
     var eth = NEXORA_ETHNICITIES[Math.floor(Math.random() * NEXORA_ETHNICITIES.length)];
     var isFemale = Math.random() > 0.5;
     var gender = isFemale ? 'female' : 'male';
-    var firstPool = NEXORA_FIRST_NAMES[eth][gender];
+    var nameEth = eth === 'filipino' ? 'latino' : eth;
+    var firstPool = NEXORA_FIRST_NAMES[nameEth][gender];
     var fn = firstPool[Math.floor(Math.random() * firstPool.length)];
-    var ln = NEXORA_LAST_NAMES[Math.floor(Math.random() * NEXORA_LAST_NAMES.length)];
-    var accentLabel = NEXORA_ETHNICITY_ACCENT[eth][gender];
+    var lnPool = NEXORA_LAST_NAMES_BY_ETH[eth] || NEXORA_LAST_NAMES_BY_ETH.latino;
+    var ln = lnPool[Math.floor(Math.random() * lnPool.length)];
+    var accentLabel = NEXORA_ETHNICITY_ACCENT[nexoraVoiceEthnicity(eth)][gender];
     var voice = pickNexoraVoiceForProfile({ gender: gender, voiceAccent: accentLabel });
     return {
       firstName: fn,
@@ -135,13 +230,19 @@
     };
   }
 
+  function getNexoraVoiceCatalog() {
+    return {
+      maleAccents: NEXORA_VOICES_MALE.map(function (v) { return v.accent; }),
+      femaleAccents: NEXORA_VOICES_FEMALE.map(function (v) { return v.accent; }),
+      ethnicities: NEXORA_ETHNICITIES.slice(),
+      filipinoVoiceAccent: 'Latino/Latina (shared with latino)',
+      totalVoices: NEXORA_VOICES_MALE.length + NEXORA_VOICES_FEMALE.length
+    };
+  }
+
   function getVoiceForPersonName(name) {
-    var first = String(name || '').split(' ')[0].replace(/—.*/, '').trim();
-    var female = global.isFemaleByName ? global.isFemaleByName(name) : (Math.random() > 0.5);
-    var eth = nexoraEthnicityForFirstName(first);
-    var gender = female ? 'female' : 'male';
-    var accentLabel = NEXORA_ETHNICITY_ACCENT[eth][gender];
-    return pickNexoraVoiceForProfile({ gender: gender, voiceAccent: accentLabel });
+    var id = buildNexoraIdentityFromName(name);
+    return { id: id.voiceId, accent: id.voiceAccent };
   }
 
   function applyNexoraVoicesPayload(data) {
@@ -160,5 +261,9 @@
   global.pickRandomNexoraIdentity = pickRandomNexoraIdentity;
   global.getVoiceForPersonName = getVoiceForPersonName;
   global.nexoraEthnicityForFirstName = nexoraEthnicityForFirstName;
+  global.nexoraEthnicityForName = nexoraEthnicityForName;
+  global.buildNexoraIdentityFromName = buildNexoraIdentityFromName;
+  global.applyNexoraIdentityFromName = applyNexoraIdentityFromName;
+  global.getNexoraVoiceCatalog = getNexoraVoiceCatalog;
   global.applyNexoraVoicesPayload = applyNexoraVoicesPayload;
 })(typeof window !== 'undefined' ? window : globalThis);
