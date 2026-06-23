@@ -14,6 +14,7 @@
     if (!s.nemesisState) s.nemesisState = { domain: [], reinforcement: [] };
     if (!s.weeklyPulseCompletions) s.weeklyPulseCompletions = [];
     if (!s.kpiTracker) s.kpiTracker = [];
+    if (!s.nexoraSessions) s.nexoraSessions = [];
     return s;
   }
 
@@ -360,6 +361,37 @@
 
   function init() {
     patchPortalTyping();
+    patchNexoraSessionRecord();
+  }
+
+  async function recordNexoraSession(ev, talkTime, isTransfer) {
+    var s = typeof CURRENT_STUDENT !== 'undefined' ? CURRENT_STUDENT : null;
+    if (!s || !s.id) return;
+    ensureFields(s);
+    var sc = (typeof _nxState !== 'undefined' && _nxState.scenario) ? _nxState.scenario : {};
+    var entry = {
+      date: new Date().toISOString(),
+      scenarioId: sc.id || '',
+      title: sc.title || '',
+      score: Math.round(ev.overall_score || 0),
+      talkSeconds: talkTime || 0,
+      satisfaction: ev.client_satisfaction || 0,
+      transferred: !!isTransfer,
+      source: 'portal-nexora'
+    };
+    s.nexoraSessions.push(entry);
+    s.nexoraSessionCount = s.nexoraSessions.length;
+    if (typeof dbSet === 'function') await dbSet('infinity_students', s.id, s);
+  }
+
+  function patchNexoraSessionRecord() {
+    if (typeof nexoraRenderQA !== 'function' || nexoraRenderQA._nexusWrapped) return;
+    var orig = nexoraRenderQA;
+    nexoraRenderQA = function (ev, isTransfer, talkTime) {
+      orig(ev, isTransfer, talkTime);
+      recordNexoraSession(ev || {}, talkTime, isTransfer).catch(function () {});
+    };
+    nexoraRenderQA._nexusWrapped = true;
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

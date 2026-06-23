@@ -37,6 +37,8 @@
     if (!s.nemesisState) s.nemesisState = { domain: [], reinforcement: [] };
     if (!s.jillProgress) s.jillProgress = { activeBundle: null, completedBundles: [] };
     if (!s.kpiDerived) s.kpiDerived = { lastMacroFromMicro: null, lastDate: null };
+    if (!s.nexoraSessions) s.nexoraSessions = [];
+    if (!s.intakeBaseline) s.intakeBaseline = null;
     return s;
   }
 
