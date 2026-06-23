@@ -15,6 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
 <script src="nexora-profile.js"></script>
+<script src="nexus-unified-portal.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -309,7 +310,10 @@ function showPortal(s){
   var tb=(s.trainingBook||[]).slice().reverse();
 
   // ── PROGRESO ──────────────────────────────────────────
-  var progresoHtml = renderProgressBlock(s)
+  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
+    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
+    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
+    + renderProgressBlock(s)
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiBars+'</div>'
     +(cals.length>=2?'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Mi progreso (diagnóstico)</div>'
       +'<div class="chart-wrap"><canvas id="portal-chart"></canvas></div></div>':'')
@@ -359,6 +363,9 @@ function showPortal(s){
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-help-circle"></i>Quiz de práctica</div>'
     +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-help-circle"></i>Generar quiz de práctica</button></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-skull"></i>Nemesis Quiz</div>'
+    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="NexusPortal.renderNemesisWidget(\'portal-nemesis-container\')"><i class="ti ti-skull"></i>Iniciar Nemesis Quiz</button></div>'
     +'</div>';
 
   // ── NOTAS DE SESIÓN ───────────────────────────────────
@@ -2331,10 +2338,11 @@ function renderJillTab(s){
 async function startJillSession(s){
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
+  var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: s.quizWeakKpis||[] })
+      body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
     if(statusEl) statusEl.textContent = '';
@@ -2372,9 +2380,10 @@ async function sendJillMsg(){
   var pending = ''; // accumulates text until sentence boundary for TTS
 
   try {
+    var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:s, history:_jillState.history.slice(-10), message:text, weakKpis:s.quizWeakKpis||[] })
+      body: JSON.stringify({ student:s, history:_jillState.history.slice(-10), message:text, weakKpis:jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var reader = resp.body.getReader();
     var dec = new TextDecoder();

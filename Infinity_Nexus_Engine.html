@@ -265,6 +265,8 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-students" onclick="showView('students',this)"><i class="ti ti-users"></i>Estudiantes<span class="sb-badge blue" id="sb-count">0</span></div>
       <div class="sb-section">Mi clase</div>
       <div class="sb-item" onclick="showView('kpitracker',this)"><i class="ti ti-refresh"></i>Weekly KPI Tracker</div>
+      <div class="sb-item" onclick="showView('weekly-pulse',this)"><i class="ti ti-heartbeat"></i>Weekly Pulse</div>
+      <div class="sb-item" onclick="showView('kpi-rulebook',this)"><i class="ti ti-book-2"></i>Q&A KPIs Rule Book</div>
       <div class="sb-item" id="nav-assign-ex" onclick="showView('assign-exercises',this)"><i class="ti ti-dumbbell"></i>Asignar ejercicios</div>
       <div class="sb-item" onclick="showView('exercises',this)"><i class="ti ti-books"></i>Catálogo Nexus</div>
       <div class="sb-item" onclick="showView('calendar',this)"><i class="ti ti-calendar"></i>Calendario</div>
@@ -1205,6 +1207,7 @@ function openStudent(id){
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">'
     +'<button class="btn btn-outline btn-sm" onclick="showView(\'students\',null)"><i class="ti ti-arrow-left"></i>Volver</button>'
     +'<button class="btn btn-green btn-sm" onclick="openCalibrate(\''+id+'\')"><i class="ti ti-refresh"></i>Calibrar sesión</button>'
+    +'<button class="btn btn-navy btn-sm" onclick="NexusUnified.openPulse(\''+id+'\')"><i class="ti ti-heartbeat"></i>Weekly Pulse</button>'
     +'<button class="btn btn-navy btn-sm" onclick="copyStudentLink(\''+id+'\')"><i class="ti ti-link"></i>Link + credenciales portal</button>'
     +'<button class="btn btn-outline btn-sm" onclick="copyMeetLink(\''+id+'\')"><i class="ti ti-video"></i>Link sesión (Meet)</button>'
     +renderAttendanceButtons(id)
@@ -2599,6 +2602,7 @@ function renderDiagnostic(m, leadId){
     +'</div>'
     +'<input type="hidden" id="dg-leadid" value="'+(leadId||'')+'">'
     +'<div class="ib ib-navy">Nexus Method · Advanced assessment · 4-week session plan · Studio Infinity CR</div>'
+    +'<div class="ib ib-navy" style="margin-top:8px;"><i class="ti ti-lock"></i> <strong>Intake Diagnostic</strong> — baseline único al crear estudiante. Calibraciones semanales → <strong>Weekly Pulse</strong>.</div>'
 
     +'<div class="card">'
     +'<div class="card-title"><i class="ti ti-user"></i>Información del estudiante</div>'
@@ -2816,8 +2820,11 @@ async function saveDiagnostic(){
     notes:[{ date:new Date().toISOString(), trainer:SESSION.name, text:notesText, phase:1 }],
     diagnosticReport,
     typingTests: window._diagTypingResult ? [window._diagTypingResult] : [],
-    payments:[], compliance:{ scheduled:32, attended:0 }, path_custom:''
+    payments:[], compliance:{ scheduled:32, attended:0 }, path_custom:'',
+    track:{ current:'jill', admission:'standard', graduated:{ jill:false, alice:false, nexora:false }, checklist:{ jill:{ bundlesMin:2, sessionsMin:8, macroMin:12 }, alice:{ sessionsMin:6, macroMin:15 }, nexora:{ simsMin:4, macroMin:18 } } },
+    weeklyPulse:[], nemesisQuizzes:[], nemesisState:{ domain:[], reinforcement:[] }, jillProgress:{ activeBundle:null, completedBundles:[] }, kpiTracker:[], kpiDerived:null
   };
+  if(typeof NexusUnified!=='undefined') NexusUnified.ensureStudentFields(student);
   await dbSet('infinity_students',id,student);
   DB[id]=student;
 
@@ -6000,5 +6007,6 @@ loadData = async function(){
 };
 
 </script>
+<script src="nexus-unified.js"></script>
 </body>
 </html>

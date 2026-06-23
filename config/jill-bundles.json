@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "bundles": [
+    {
+      "id": "B1-chunking",
+      "title": "Chunking Nexus — Oraciones base",
+      "level": "Survival",
+      "kpis": ["k3", "k8", "k9"],
+      "topics": ["Subject + verb", "Idea + linker + idea", "Yes because..."],
+      "whiteboard": ["I + verb", "Yes, because...", "However, ..."],
+      "images": ["chunk-svo", "chunk-linker-chain"]
+    },
+    {
+      "id": "B2-verbs",
+      "title": "Verbos esenciales — Presente y pasado",
+      "level": "Survival",
+      "kpis": ["k1", "k2", "k4"],
+      "topics": ["be/have/do", "regular past -ed", "irregular top 20"],
+      "whiteboard": ["I am / I was", "I have / I had", "I work / I worked"],
+      "images": ["verb-timeline"]
+    },
+    {
+      "id": "B3-tenses",
+      "title": "Tiempos — Now vs Before",
+      "level": "Emerging",
+      "kpis": ["k3", "k9", "k10"],
+      "topics": ["Present simple vs continuous", "Past simple vs continuous", "Future with going to"],
+      "whiteboard": ["Now → Present", "Before → Past", "Next → Future"],
+      "images": ["tense-line"]
+    },
+    {
+      "id": "B4-transitions",
+      "title": "Transiciones — Linkers del método",
+      "level": "Emerging",
+      "kpis": ["k8", "k10"],
+      "topics": ["Contrast: however", "Addition: on top of that", "Cause: because / therefore"],
+      "whiteboard": ["however", "on top of that", "therefore"],
+      "images": ["linker-map"]
+    },
+    {
+      "id": "B5-basics",
+      "title": "Números, colores y formas",
+      "level": "Survival",
+      "kpis": ["k4", "k18"],
+      "topics": ["Numbers 1-100", "Colors and shapes", "Describing objects"],
+      "whiteboard": ["1-10-100", "red/blue/green", "circle/square"],
+      "images": ["basics-grid"]
+    },
+    {
+      "id": "B6-recovery",
+      "title": "Recovery — Reparar y continuar",
+      "level": "Functional",
+      "kpis": ["k2", "k13", "k12"],
+      "topics": ["Sorry, let me rephrase", "Risk taking phrases", "Closing incomplete thoughts"],
+      "whiteboard": ["Let me rephrase...", "What I mean is...", "...and that is basically it."],
+      "images": ["recovery-flow"]
+    }
+  ]
+}

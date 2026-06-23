@@ -995,14 +995,23 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, mode, weakKpis } = req.body || {};
+    const { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
 
-    const name = student?.name || 'estudiante';
-    const level = student?.level || 'Foundations';
+    const name = student?.name || student?.info?.name || 'estudiante';
+    const level = student?.level || student?.info?.level || 'Foundations';
     const exercises = (student?.trainingBook || []).slice(0, 4)
       .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
     const weakNote = (weakKpis && weakKpis.length)
       ? `\nÁREAS DÉBILES EN QUIZ (reforzar hoy): ${weakKpis.join(', ')}.`
+      : '';
+    const bundleNote = jillBundle
+      ? `\nBUNDLE ACTIVO JILL: ${jillBundle.title || jillBundle.id}. Temas: ${(jillBundle.topics || []).join('; ')}. Whiteboard: ${(jillBundle.whiteboard || []).join(' | ')}. KPIs bundle: ${(jillBundle.kpis || []).join(', ')}. Responde dudas SOLO dentro de este bundle salvo que el estudiante necesite recovery.`
+      : '';
+    const nemesisNote = nemesisState?.reinforcement?.length
+      ? `\nNEMESIS REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
+      : (reinforcement?.length ? `\nNEMESIS REFUERZO: ${reinforcement.join(', ')}.` : '');
+    const trackNote = track?.current
+      ? `\nTRACK ACTIVO: ${track.current}. Graduados: jill=${!!track.graduated?.jill}, alice=${!!track.graduated?.alice}, nexora=${!!track.graduated?.nexora}.`
       : '';
 
     if (mode === 'start_session') {
@@ -1015,7 +1024,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -1028,7 +1037,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     const prevMsgs = (history || []).slice(-12);
     const msgs = [...prevMsgs, { role: 'user', content: message }];
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -1098,17 +1107,24 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages }) 
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, weakKpis } = req.body || {};
+    const { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
     if (!message) return res.status(400).end();
-    const name = student?.name || 'estudiante';
-    const level = student?.level || 'Foundations';
+    const name = student?.name || student?.info?.name || 'estudiante';
+    const level = student?.level || student?.info?.level || 'Foundations';
     const exercises = (student?.trainingBook || []).slice(0, 4)
       .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
     const weakNote = weakKpis?.length ? `\nTemas a reforzar hoy: ${weakKpis.join(', ')}.` : '';
+    const bundleNote = jillBundle
+      ? `\nBUNDLE JILL: ${jillBundle.title || jillBundle.id}. Temas: ${(jillBundle.topics || []).join('; ')}.`
+      : '';
+    const nemesisNote = nemesisState?.reinforcement?.length
+      ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
+      : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
+    const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     await streamAnthropicSSE(res, {
       max_tokens: 400,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
       messages: msgs
     });
   } catch (err) {
