@@ -42,7 +42,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 .hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:2rem;}
 .pill{background:white;border:1px solid var(--gray-light);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .pill i{color:var(--purple);}
-.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.hero-cta-row{display:flex;align-items:center;gap:10px;}
+.hero-portal-lock{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:white;color:var(--purple);border-radius:var(--r);font-size:18px;text-decoration:none;border:2px solid rgba(91,33,182,0.25);transition:all 0.2s;flex-shrink:0;box-shadow:0 4px 20px rgba(91,33,182,0.12);}
+.hero-portal-lock:hover{color:var(--purple-light);border-color:var(--purple);transform:translateY(-2px);box-shadow:0 6px 24px rgba(91,33,182,0.2);}
 .btn-primary{background:var(--purple);color:white;padding:14px 28px;border-radius:var(--r);font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.2s;box-shadow:0 4px 20px rgba(91,33,182,0.3);}
 .btn-primary:hover{background:var(--purple-light);transform:translateY(-2px);}
 .btn-secondary{background:white;color:var(--purple);padding:14px 28px;border-radius:var(--r);font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--purple);transition:all 0.2s;}
@@ -319,7 +322,10 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="pill"><i class="ti ti-rocket"></i>Real-Time Coaching</div>
       </div>
       <div class="hero-ctas">
-        <a href="#contact" class="btn-primary"><i class="ti ti-calendar-check"></i>Book Your Assessment</a>
+        <div class="hero-cta-row">
+          <a href="#contact" class="btn-primary"><i class="ti ti-calendar-check"></i>Book Your Assessment</a>
+          <a href="portal-access.html" class="hero-portal-lock" title="Portal Access" aria-label="Portal Access"><i class="ti ti-lock"></i></a>
+        </div>
         <a href="#ecosystem" class="btn-secondary"><i class="ti ti-arrow-down"></i>See The System</a>
       </div>
     </div>
@@ -898,7 +904,6 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/></svg>
       @infinitystudiocr
     </a>
-    <a href="portal-access.html" title="Portal Access" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.28);border-radius:50%;font-size:15px;text-decoration:none;border:1px solid rgba(255,255,255,0.08);transition:all .2s;" onmouseover="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(255,255,255,0.18)'" onmouseout="this.style.color='rgba(255,255,255,0.28)';this.style.borderColor='rgba(255,255,255,0.08)'"><i class="ti ti-lock"></i></a>
   </div>
   <div class="footer-copy">© 2026 Off The Clock by ∞ Infinity · All rights reserved · studioinfinitycr.com</div>
 </footer>

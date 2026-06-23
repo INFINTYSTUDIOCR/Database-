@@ -152,11 +152,6 @@
     global._pulseSid = sid;
     global._pulseProf = prof;
 
-    var lastQuiz = (s.quizzes || []).slice(-1)[0];
-    var lastNem = (s.nemesisQuizzes || []).slice(-1)[0];
-    var quizLine = lastQuiz ? (lastQuiz.correct + '/' + lastQuiz.total + ' (' + lastQuiz.score + '%)') : 'Sin quiz esta semana';
-    var nemLine = lastNem ? (lastNem.correct + '/' + lastNem.total + ' (' + lastNem.score + '%)') : 'Sin Nemesis esta semana';
-
     var gradReady = prof.macro.ST >= 3 && prof.macro.RA >= 3 && prof.macro.IG >= 3 && track === 'jill';
 
     m.innerHTML = '<div class="fade" id="pulse-mockup-root">'
@@ -210,6 +205,10 @@
             + '<div style="font-size:10px;color:var(--t3);">Evidencia: sesiones + quiz + Nemesis</div></div>';
         }).join('');
     } else if (n === 3) {
+      var lastQuiz = (s.quizzes || []).slice(-1)[0];
+      var lastNem = (s.nemesisQuizzes || []).slice(-1)[0];
+      var quizLine = lastQuiz ? (lastQuiz.correct + '/' + lastQuiz.total + ' (' + lastQuiz.score + '%)') : 'Sin quiz esta semana';
+      var nemLine = lastNem ? (lastNem.correct + '/' + lastNem.total + ' (' + lastNem.score + '%)') : 'Sin Nemesis esta semana';
       body.innerHTML = '<div style="font-size:13px;line-height:1.8;">'
         + '<div><strong>Quiz semanal:</strong> ' + quizLine + '</div>'
         + '<div><strong>Nemesis:</strong> ' + nemLine + '</div>'

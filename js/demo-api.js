@@ -7,6 +7,9 @@ var DEMO_LIMITS = {
 };
 
 var localDemoSessions = {};
+var demoWhitelisted = false;
+var demoMyIp = null;
+var DEMO_OWNER_IPS = ['38.210.166.95'];
 
 function demoGetConsent() {
   var el = document.getElementById('demo-consent');
@@ -59,6 +62,9 @@ function saveLocalIpBucket(service, bucket) {
 }
 
 function checkLocalLimit(service, action) {
+  if (demoWhitelisted) {
+    return { ok: true, sessionsLeft: 999, whitelisted: true };
+  }
   var limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
   var bucket = getLocalIpBucket(service);
   if (action === 'session') {
@@ -152,6 +158,30 @@ function demoSendLocal(sessionId, message) {
   return payload;
 }
 
+async function demoFetchMyIp() {
+  try {
+    var r = await fetch(DEMO_BACKEND + '/demo/my-ip');
+    var parsed = await demoParseResponse(r);
+    if (parsed.data) {
+      demoMyIp = parsed.data.ip || null;
+      demoWhitelisted = !!parsed.data.whitelisted;
+      return parsed.data;
+    }
+  } catch (e) {}
+  if (!demoWhitelisted) {
+    try {
+      var ipR = await fetch('https://api.ipify.org?format=json');
+      var ipData = await ipR.json();
+      if (ipData && ipData.ip && DEMO_OWNER_IPS.indexOf(ipData.ip) >= 0) {
+        demoMyIp = ipData.ip;
+        demoWhitelisted = true;
+        return { ip: ipData.ip, whitelisted: true, demoLimitPerService: 1 };
+      }
+    } catch (e2) {}
+  }
+  return null;
+}
+
 async function demoFetchStatus(service) {
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/status?service=' + encodeURIComponent(service));
@@ -167,6 +197,7 @@ async function demoFetchStatus(service) {
 }
 
 async function demoStart(service, scenario, name) {
+  await demoFetchMyIp();
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/start', {
       method: 'POST',
@@ -180,7 +211,9 @@ async function demoStart(service, scenario, name) {
     });
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;
-    if (parsed.data && !parsed.ok) throw parsed.data;
+    if (parsed.data && !parsed.ok) {
+      if (parsed.data.error === 'limit' || parsed.status === 429) throw parsed.data;
+    }
   } catch (e) {
     if (e && e.error === 'limit') throw e;
   }
