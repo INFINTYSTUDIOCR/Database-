@@ -18,6 +18,7 @@
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
+<script src="js/ai-profile.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -450,8 +451,8 @@ async function respondPortalTerms(agreed){
   afterPortalReady(s);
 }
 
-function showPortal(s, opts){
-  opts = opts || {};
+function showPortal(s){
+  var opts = arguments.length > 1 ? (arguments[1] || {}) : {};
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -1224,7 +1225,9 @@ function getAliceStudentPayload(){
   return {
     id: s.id, name:(s.info&&s.info.name)||'Student', level:getLevel(getScore(s)),
     program:(s.info&&s.info.program)||'Individual', sessionsCompleted:(s.kpiTracker||[]).length,
-    kpiProfile, weakAreas, trainingBook
+    kpiProfile, weakAreas, trainingBook,
+    info: s.info,
+    aiProfile: (typeof AiProfile !== 'undefined') ? AiProfile.getAiProfile(s) : (s.aiProfile || {})
   };
 }
 
@@ -1349,10 +1352,11 @@ async function startAliceSession(){
   _aliceState.savedSession = null;
   renderAlice();
   document.getElementById('alice-status').textContent = 'Alice está preparando tu escenario...';
+  var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   try{
     var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode:'start_session', student:getAliceStudentPayload(), secret:ALICE_SECRET })
+      body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET })
     });
     var data = await r.json();
     _aliceState.scenario = null; // no hay escenario en modo tutor
@@ -1368,6 +1372,11 @@ async function startAliceSession(){
       _aliceState.history.push({ role:'assistant', content:aliceLine });
       _aliceSpeakEnabled = true; aliceSpeak(aliceLine);
     }
+    if(typeof AiProfile !== 'undefined'){
+      var patch = { firstGreetingAlice: true };
+      if(mode === 'start_session') patch.nameAskedAlice = true;
+      await AiProfile.saveAiProfilePatch(patch, dbSet, CURRENT_STUDENT);
+    }
     renderAlice();
     scrollAliceMessages();
     saveAliceRuntimeStorage();
@@ -1377,7 +1386,7 @@ async function startAliceSession(){
   }
 }
 
-function resumeAliceSession(){
+async function resumeAliceSession(){
   if(!_aliceState.savedSession) return;
   _aliceState.history = _aliceState.savedSession.history || [];
   _aliceState.scenario = _aliceState.savedSession.scenario || null;
@@ -1387,7 +1396,34 @@ function resumeAliceSession(){
   scrollAliceMessages();
   _aliceSpeakEnabled = true;
   saveAliceRuntimeStorage();
-  aliceSpeak('Welcome back! Let\'s continue where we left off.');
+  var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'return_session';
+  if(mode === 'return_session' && _aliceState.history.length === 0){
+    try{
+      var r = await infinityFetch('/alice', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'return_session', student:getAliceStudentPayload(), secret:ALICE_SECRET })
+      });
+      var data = await r.json();
+      var opening = data.opening || '';
+      var parts = opening.split(/\nALICE:\s*/);
+      var aliceLine = parts[0].trim();
+      var aliceTip = parts[1] ? parts[1].trim() : '';
+      if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
+      if(aliceLine){
+        _aliceState.history.push({ role:'assistant', content:aliceLine });
+        aliceSpeak(aliceLine);
+      }
+      renderAlice();
+      scrollAliceMessages();
+      saveAliceRuntimeStorage();
+    }catch(e){
+      aliceSpeak('Welcome back! Let\'s continue where we left off.');
+    }
+    return;
+  }
+  var last = _aliceState.history.filter(function(m){ return m.role==='assistant'; }).pop();
+  if(last && last.content) aliceSpeak(last.content.replace(/^💬\s*/,''));
+  else aliceSpeak('Welcome back! Let\'s continue where we left off.');
 }
 
 function saveAliceSession(){
@@ -1428,6 +1464,8 @@ async function sendAliceMessage(micText){
   scrollAliceMessages();
   var statusEl = document.getElementById('alice-status');
   if(statusEl) statusEl.textContent='';
+
+  if(typeof AiProfile !== 'undefined') await AiProfile.processUserNameReply(text, 'alice', dbSet);
 
   // ── Streaming path ────────────────────────────────────────
   // Inject a placeholder assistant message that we'll update live
@@ -2114,6 +2152,7 @@ function nexoraShowCRM(restoring){
   } else {
     _nxState.callStart = Date.now();
     startNexoraTimer();
+    // Contestar de inmediato
     nexoraAnswerCall();
   }
 }
@@ -2777,16 +2816,23 @@ async function startJillSession(s){
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
   var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
+  var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
+  var mode = (typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session';
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
+      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
     if(statusEl) statusEl.textContent = '';
     jillAddMsg(data.reply||'¡Hola! Bienvenido a tu sesión de Foundations.', 'jill', data.contentType);
     jillSpeak(data.reply||'');
     _jillState.history.push({role:'assistant', content: data.reply||''});
+    if(typeof AiProfile !== 'undefined'){
+      var patch = { firstGreetingJill: true };
+      if(mode === 'start_session') patch.nameAskedJill = true;
+      await AiProfile.saveAiProfilePatch(patch, dbSet, s);
+    }
   } catch(e){
     if(statusEl) statusEl.textContent = '';
     jillAddMsg('¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?', 'jill', 'text');
@@ -2805,6 +2851,8 @@ async function sendJillMsg(micText){
   var statusEl = document.getElementById('jill-status');
   var s = window._currentStudent || window._portalStudent;
 
+  if(typeof AiProfile !== 'undefined') await AiProfile.processUserNameReply(text, 'jill', dbSet);
+
   // ── Streaming path ────────────────────────────────────────
   var msgs = document.getElementById('jill-messages');
   var bubble = document.createElement('div');
@@ -2820,9 +2868,10 @@ async function sendJillMsg(micText){
 
   try {
     var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
+    var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:s, history:_jillState.history.slice(-10), message:text, weakKpis:jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
+      body: JSON.stringify({ student:studentPayload, history:_jillState.history.slice(-10), message:text, weakKpis:jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var reader = resp.body.getReader();
     var dec = new TextDecoder();

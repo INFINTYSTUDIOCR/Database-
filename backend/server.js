@@ -1619,6 +1619,60 @@ async function synthesizeSpeech(req, res, { text, voiceId, label }) {
 }
 
 
+// ── AI PROFILE — preferred name + returning sessions ────────
+function getStudentFirstName(student) {
+  const full = String(student?.info?.name || student?.name || '').trim();
+  return full.split(/\s+/)[0] || 'estudiante';
+}
+
+function getStudentDisplayName(student) {
+  const preferred = String(student?.aiProfile?.preferredName || '').trim();
+  if (preferred) return preferred;
+  return getStudentFirstName(student);
+}
+
+const PREFERRED_NAME_BLOCKLIST = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','slut','whore'];
+
+function sanitizePreferredNameServer(name) {
+  if (!name || typeof name !== 'string') return null;
+  const clean = name.trim().replace(/\s+/g, ' ');
+  if (clean.length < 2 || clean.length > 24) return null;
+  if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/.test(clean)) return null;
+  const token = clean.split(/\s+/)[0];
+  const lower = token.toLowerCase();
+  if (PREFERRED_NAME_BLOCKLIST.some(b => lower.includes(b))) return null;
+  return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+}
+
+function isReturningStudent(student, tutor) {
+  const key = tutor === 'alice' ? 'alice' : 'jill';
+  return !!(student?.aiProfile?.firstGreetingDone && student.aiProfile.firstGreetingDone[key]);
+}
+
+function buildAiProfileNote(student, tutor) {
+  const key = tutor === 'alice' ? 'alice' : 'jill';
+  const first = getStudentFirstName(student);
+  const display = getStudentDisplayName(student);
+  const ai = student?.aiProfile || {};
+  const returning = !!(ai.firstGreetingDone && ai.firstGreetingDone[key]);
+  const asked = !!(ai.nameAsked && ai.nameAsked[key]);
+  const preferred = String(ai.preferredName || '').trim();
+  let note = `\nSTUDENT NAME — registro: "${first}". Address as: "${display}".`;
+  if (returning) {
+    note += tutor === 'alice'
+      ? ` RETURNING student: say "Welcome back, ${display}" briefly (1-2 sentences). Do NOT greet like a first meeting.`
+      : ` RETURNING student: say "Qué gusto verte de nuevo, ${display}" briefly. Do NOT greet like a first meeting.`;
+  } else {
+    note += tutor === 'alice'
+      ? ` FIRST meeting with Alice: warm intro + ONE polite question asking how they prefer to be called (respectful names only; use "${first}" if none).`
+      : ` FIRST meeting with Jill: warm intro + ONE polite question asking how they prefer to be called (respectful names only; use "${first}" if none).`;
+  }
+  if (asked && !preferred) note += ` You already asked preferred name; if still unknown, use "${first}".`;
+  if (preferred) note += ` Preferred name saved: "${preferred}". Use consistently unless they request a respectful change.`;
+  note += ` Never use humiliating, sexual, or offensive nicknames. Professional warmth always.`;
+  return note;
+}
+
 app.post('/alice', requireProductAuth, async (req, res) => {
   try {
     const { student, history, message, mode, secret, nexora } = req.body || {};
@@ -1630,21 +1684,27 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const tutorName = 'Alice';
     const sessionTable = isKamuk ? 'kamuk_sessions' : 'infinity_sessions';
 
-    // START SESSION
-    if (mode === 'start_session') {
+    // START / RETURN SESSION
+    if (mode === 'start_session' || mode === 'return_session') {
       const tb = (student?.trainingBook || []).slice(0,4)
         .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
       const actorKey = resolveActorKey({ student, req });
       const recent = await getRecentOpenings(actorKey, 'alice');
       const variation = buildOpeningVariationNote(recent, 'en');
+      const display = getStudentDisplayName(student);
+      const returning = mode === 'return_session' || isReturningStudent(student, 'alice');
+      const profileNote = buildAiProfileNote(student, 'alice');
+      const greetInstruction = returning
+        ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
+        : `First session: greet warmly, say you'll practice English together, ask ONE engaging practice question AND ONE polite question about how they prefer to be called (respectful names only).`;
 
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name (2-3 sentences max). Tell them you'll practice English together and ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
       recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
-      return res.json({ opening });
+      return res.json({ opening, sessionMode: returning ? 'return_session' : 'start_session' });
     }
 
     // EVALUATE
@@ -1703,7 +1763,7 @@ RESPONSE STYLE:
 - Give ONE specific example when explaining something
 - Ask ONE follow-up question at the end
 
-STUDENT: ${student?.name||'Student'} | Level: ${student?.level||'Functional'}
+STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}
 EXERCISES:\n${tb||'(none yet)'}`;
 
     const msgs = history?.length
@@ -1815,30 +1875,37 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? `\nTRACK ACTIVO: ${track.current}. Graduados: jill=${!!track.graduated?.jill}, alice=${!!track.graduated?.alice}, nexora=${!!track.graduated?.nexora}.`
       : '';
 
-    if (mode === 'start_session') {
+    if (mode === 'start_session' || mode === 'return_session') {
       const actorKey = resolveActorKey({ student, req });
       const recent = await getRecentOpenings(actorKey, 'jill');
       const variation = buildOpeningVariationNote(recent, 'es');
+      const display = getStudentDisplayName(student);
+      const returning = mode === 'return_session' || isReturningStudent(student, 'jill');
+      const profileNote = buildAiProfileNote(student, 'jill');
+      const greetInstruction = returning
+        ? `Saludá brevemente con "Qué gusto verte de nuevo, ${display}" — NO como primera vez — y hacé UNA pregunta para retomar.`
+        : `Saludalo con calidez en este primer contacto, recordá en qué estaban trabajando si hay ejercicios, y hacé UNA pregunta amable sobre cómo prefiere que le digas (nombre respetuoso).`;
+
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 350,
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       const parsed = parseJillResponse(raw);
       recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
-      return res.json(parsed);
+      return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session' }));
     }
 
     if (!message) return res.status(400).json({ error: 'Missing message' });
 
     const prevMsgs = (history || []).slice(-12);
     const msgs = [...prevMsgs, { role: 'user', content: message }];
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -1922,10 +1989,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
+    const displayName = getStudentDisplayName(student);
+    const profileNote = buildAiProfileNote(student, 'jill');
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     await streamAnthropicSSE(res, {
       max_tokens: 400,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
       messages: msgs
     });
   } catch (err) {
@@ -1945,12 +2014,14 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
     const sceneNote = scenario ? `\nActive scenario: ${scenario.title || ''} — ${scenario.desc || ''}` : '';
+    const displayName = getStudentDisplayName(student);
+    const profileNote = buildAiProfileNote(student, 'alice');
     const system = `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
 ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
-STUDENT: ${student?.name || 'Student'} | Level: ${student?.level || 'Functional'}
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     await streamAnthropicSSE(res, { max_tokens: 350, system, messages: msgs });

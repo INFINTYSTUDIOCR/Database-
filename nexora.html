@@ -462,6 +462,26 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 
 // ── NEXORA VOICE POOL (see nexora-profile.js) ─────────────────
 
+function nexoraAccentKey(accent){
+  if(typeof pickNexoraVoiceForProfile === 'function' && typeof window !== 'undefined' && window.nexoraAccentKey){
+    return window.nexoraAccentKey(accent);
+  }
+  var m = String(accent || '').match(/^(American|British|Chinese|German|Indian|Russian|Latino|Latina)/i);
+  return m ? m[1].toLowerCase().replace('latina','latino') : 'american';
+}
+function nexoraVoiceIdsForProfile(profile){
+  var ids = [];
+  if(profile && profile.voiceId) ids.push(profile.voiceId);
+  if(typeof pickNexoraVoiceForProfile === 'function'){
+    var v = pickNexoraVoiceForProfile(profile);
+    if(v && v.id && ids.indexOf(v.id) < 0) ids.push(v.id);
+  }
+  if(typeof NEXORA_TTS_FALLBACKS !== 'undefined'){
+    NEXORA_TTS_FALLBACKS.forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); });
+  }
+  return ids.length ? ids : ['r1KmysJdVYZjJCm4mL3b'];
+}
+
 var SCENARIOS = [
   {id:'cs1',industry:'Banking',title:'Billing Dispute',desc:'Client received an unexpected charge and wants it reversed immediately.',mood:'frustrated',diff:2},
   {id:'cs2',industry:'Telecom',title:'Service Cancellation',desc:'Client wants to cancel their account. You must retain them.',mood:'cold',diff:3},
@@ -1852,7 +1872,7 @@ function _nxTTSFlush(){
   if(_nxTTSBusy||_nxTTSQueue.length===0) return;
   _nxTTSBusy=true; var speakId=++_nxSpeakId; var chunk=_nxTTSQueue.shift();
   var clean=cleanForTTS(chunk); if(clean.length<3){ _nxTTSBusy=false; _nxTTSFlush(); return; }
-  var voiceId=_nx.profile&&_nx.profile.voiceId?_nx.profile.voiceId:'r1KmysJdVYZjJCm4mL3b';
+  var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
   var ttsPromise;
   if(isNexoraPublicDemo()){
     ttsPromise=fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})});
