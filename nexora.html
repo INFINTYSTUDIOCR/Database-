@@ -1079,7 +1079,7 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
   if(_nx.profile&&_nx.profile.voiceId) profile=Object.assign({},profile,{voiceId:_nx.profile.voiceId,voiceAccent:_nx.profile.voiceAccent,gender:_nx.profile.gender});
   try{
     if(isNexoraPublicDemo()){
-      var fullRaw=await nexoraStreamReply({
+      var fullRaw=await nexoraDemoStreamReply({
         message:startMsg,history:[],profile:profile,scenario:sc,agentName:_nx.agent||'Agent',
         accountContext:ctx,negRole:(sc.type==='negotiation')?_nx_negRole:null
       },null);
@@ -1632,40 +1632,22 @@ async function nexoraPostReply(payload){
   return String(d.reply||'').trim();
 }
 
-async function nexoraStreamReply(payload, onPartial){
+async function nexoraDemoStreamReply(payload, onPartial){
   var fullText='', pending='';
-  var isDemo=isNexoraPublicDemo();
-  if(isDemo){
-    var url=ALICE_BACKEND+'/demo/nexora-lab/stream';
-    var body=Object.assign({},payload,{demoSessionId:getNexoraDemoSessionId()});
-    var resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!resp.ok){
-      var errText=''; try{errText=await resp.text();}catch(e){}
-      if(isNexoraStreamUnavailable(errText,resp.status)){
-        var fbReply=await nexoraDemoMessageFallback(payload);
-        if(fbReply){
-          if(onPartial) onPartial(fbReply);
-          speak(fbReply);
-        }
-        return fbReply;
+  var url=ALICE_BACKEND+'/demo/nexora-lab/stream';
+  var body=Object.assign({},payload,{demoSessionId:getNexoraDemoSessionId()});
+  var resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!resp.ok){
+    var errText=''; try{errText=await resp.text();}catch(e){}
+    if(isNexoraStreamUnavailable(errText,resp.status)){
+      var fbReply=await nexoraDemoMessageFallback(payload);
+      if(fbReply){
+        if(onPartial) onPartial(fbReply);
+        speak(fbReply);
       }
-      throw new Error(errText||('stream_'+resp.status));
+      return fbReply;
     }
-  } else {
-    try{
-      var resp=await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(!resp.ok){
-        var errText2=''; try{errText2=await resp.text();}catch(e){}
-        throw new Error(errText2||('stream_'+resp.status));
-      }
-    }catch(streamErr){
-      var postReply=await nexoraPostReply(payload);
-      if(postReply){
-        if(onPartial) onPartial(postReply);
-        speak(postReply);
-      }
-      return postReply;
-    }
+    throw new Error(errText||('stream_'+resp.status));
   }
   var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
   while(true){
@@ -1694,21 +1676,44 @@ async function nexoraStreamReply(payload, onPartial){
   return fullText.trim();
 }
 
+async function nexoraGetReply(payload, onPartial){
+  if(isNexoraPublicDemo()) return await nexoraDemoStreamReply(payload, onPartial);
+  var reply=await nexoraPostReply(payload);
+  if(reply){
+    if(onPartial) onPartial(reply);
+    speak(reply);
+  }
+  return reply;
+}
+
+function buildNexoraPayload(message, history, p, sc){
+  return {
+    message:message,
+    history:history||[],
+    profile:p,
+    scenario:sc,
+    agentName:_nx.agent||'Agent',
+    negRole:(sc&&sc.type==='negotiation')?_nx_negRole:null,
+    accountContext:{
+      name:p.name,account:p.account,
+      services:(p.services||[]).map(function(s){return s.name+(s.price?' '+s.price:'');}),
+      billingAlerts:p.billingNotes||[],
+      disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null
+    }
+  };
+}
+
 async function aliceEnter(){
   var st=document.getElementById('co-status-text');
   if(st) st.textContent='Alice is connecting as client...';
   try{
     var p=_nx.profile;var sc=_nx.scenario;
-    var fullRaw=await nexoraStreamReply({
-      message:'START_CALL', history:[], profile:p, scenario:sc, agentName:_nx.agent||'Agent',
-      negRole:(sc.type==='negotiation')?_nx_negRole:null,
-      accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' at '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null}
-    }, null);
+    var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc),null);
     var reply=sanitizeNexoraReply(fullRaw||'Hello is this customer service?', p);
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-    if(!fullRaw) speak(reply);
+    if(!fullRaw&&reply&&!isNexoraPublicDemo()) speak(reply);
   }catch(e){
     if(st) st.textContent='';
     showToast('Could not connect AI client — try speaking again.');
@@ -1728,34 +1733,17 @@ async function sendToAlice(text){
   var st=nexoraStatusEl();
   if(st) st.textContent=(p.firstName||'Client')+' is responding...';
   try{
-    var fullRaw=await nexoraStreamReply({
-      message:text, history:_nx.history.slice(-14), profile:p, scenario:sc, agentName:_nx.agent||'Agent',
-      accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null},
-      negRole:(sc&&sc.type==='negotiation')?_nx_negRole:null
-    }, null);
+    var fullRaw=await nexoraGetReply(buildNexoraPayload(text,_nx.history.slice(-14),p,sc),null);
     var reply=sanitizeNexoraReply(fullRaw||'', p);
     if(st) st.textContent='';
     if(reply){
       _nx.history.push({role:'assistant',content:reply});
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
-    if(!fullRaw && reply) speak(reply);
+    if(!fullRaw&&reply&&!isNexoraPublicDemo()) speak(reply);
   }catch(e){
     if(st) st.textContent='';
-    try{
-      var fb=await nexoraPostReply({
-        message:text, history:_nx.history.slice(-14), profile:p, scenario:sc, agentName:_nx.agent||'Agent',
-        accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null},
-        negRole:(sc&&sc.type==='negotiation')?_nx_negRole:null
-      });
-      if(fb){
-        _nx.history.push({role:'assistant',content:fb});
-        _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+fb);
-        speak(fb);
-      }
-    }catch(e2){
-      showToast('AI did not respond — check login and try again.');
-    }
+    showToast('AI did not respond — check login and try again.');
   }
   _nxSending=false;
 }
