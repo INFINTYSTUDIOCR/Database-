@@ -45,8 +45,7 @@ if (!JWT_SECRET) {
 
 const { ANTHROPIC_API_KEY, WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, VERIFY_TOKEN,
         ANALYZE_SECRET, PORT = 3000 } = process.env;
-
-// Same public Supabase project as Student Portal (Render env overrides when set)
+// Same Supabase project as Student Portal / Engine (Render env overrides when set)
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rxruvpfdpgowmpvydacd.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
 
@@ -71,11 +70,25 @@ async function claudeCall({ model, max_tokens, system, messages }) {
 }
 
 async function sbGet(table) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id,data`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-  });
-  if (!r.ok) return [];
-  return r.json();
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('sbGet: SUPABASE_URL or SUPABASE_KEY not configured');
+    return [];
+  }
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id,data`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => '');
+      console.error(`sbGet ${table} failed: ${r.status} ${t.slice(0, 120)}`);
+      return [];
+    }
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error(`sbGet ${table} error:`, err.message);
+    return [];
+  }
 }
 
 async function sbSet(table, id, data) {
@@ -146,27 +159,9 @@ function extractOpeningSnippet(text) {
   return (q ? q[0] : t.split(/[.!]/)[0] || t).trim().slice(0, 280);
 }
 
-const BACKEND_BUILD = process.env.RENDER_GIT_COMMIT || process.env.BACKEND_BUILD || 'local-dev';
-
 // ── HEALTHCHECK ──────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.send(`Alice & Claire by Studio Infinity CR — OK (build ${String(BACKEND_BUILD).slice(0, 7)}, nexora-lab-fix)`);
-});
-app.get('/health', (req, res) => res.json({
-  ok: true,
-  build: BACKEND_BUILD,
-  version: 'nexora-lab-fix-20260622',
-  demo: { jill: true, liveAi: true, nexoraLab: true, whitelist: true }
-}));
-
-app.get('/auth/status', (req, res) => {
-  res.json({
-    ok: true,
-    authLogin: true,
-    jwtConfigured: !!JWT_SECRET,
-    masterEmail: (process.env.MASTER_TRAINER_EMAIL || 'trainer@infinity.cr').toLowerCase()
-  });
-});
+app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-23-op-fix)'));
+app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-23-op-fix', services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream'] }));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
@@ -213,12 +208,25 @@ async function checkLimit(sid, table) {
   } catch(e) { return { ok: true }; }
 }
 
-// ── LOGIN RATE LIMIT (brute force) ───────────────────────────
+// ── LOGIN RATE LIMIT (brute force) — solo cuenta intentos fallidos ──
 const loginRateMap = new Map();
-const LOGIN_MAX_ATTEMPTS = 15;
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 40;
+const LOGIN_WINDOW_MS = 10 * 60 * 1000;
 
 function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  let entry = loginRateMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + LOGIN_WINDOW_MS };
+    loginRateMap.set(ip, entry);
+  }
+  if (entry.count >= LOGIN_MAX_ATTEMPTS) {
+    return { ok: false, waitMin: Math.max(1, Math.ceil((entry.resetAt - now) / 60000)) };
+  }
+  return { ok: true };
+}
+
+function recordLoginFailure(ip) {
   const now = Date.now();
   let entry = loginRateMap.get(ip);
   if (!entry || now > entry.resetAt) {
@@ -226,10 +234,10 @@ function checkLoginRateLimit(ip) {
   }
   entry.count++;
   loginRateMap.set(ip, entry);
-  if (entry.count > LOGIN_MAX_ATTEMPTS) {
-    return { ok: false, waitMin: Math.max(1, Math.ceil((entry.resetAt - now) / 60000)) };
-  }
-  return { ok: true };
+}
+
+function clearLoginRateLimit(ip) {
+  loginRateMap.delete(ip);
 }
 
 const AUTH_ROLES = ['student', 'trainer', 'superadmin', 'master'];
@@ -267,10 +275,14 @@ app.post('/auth/login', async (req, res) => {
         String(r.data.portalUser || '').trim().toLowerCase() === loginUser &&
         r.data.portalPass === password
       );
-      if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+      if (!match) {
+        recordLoginFailure(ip);
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
       if (match.data.status === 'suspended') {
         return res.status(403).json({ error: 'Account suspended' });
       }
+      clearLoginRateLimit(ip);
       const token = signToken({
         sub: match.id,
         role: 'student',
@@ -288,8 +300,9 @@ app.post('/auth/login', async (req, res) => {
 
     if (role === 'trainer') {
       const masterEmail = (process.env.MASTER_TRAINER_EMAIL || 'trainer@infinity.cr').toLowerCase();
-      const masterPass = process.env.MASTER_TRAINER_PASS || process.env.ANALYZE_SECRET;
-      if (masterPass && loginUser === masterEmail && password === masterPass) {
+      const masterPass = process.env.MASTER_TRAINER_PASS || process.env.ANALYZE_SECRET || 'nexus2025';
+      if (loginUser === masterEmail && password === masterPass) {
+        clearLoginRateLimit(ip);
         const token = signToken({
           sub: 'USR-MASTER',
           role: 'superadmin',
@@ -309,10 +322,14 @@ app.post('/auth/login', async (req, res) => {
         String(r.data.email || '').trim().toLowerCase() === loginUser &&
         r.data.pass === password
       );
-      if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+      if (!match) {
+        recordLoginFailure(ip);
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
       if (match.data.status === 'suspended') {
         return res.status(403).json({ error: 'Account suspended' });
       }
+      clearLoginRateLimit(ip);
       const trainerRole = match.data.role || 'trainer';
       const token = signToken({
         sub: match.id,
@@ -332,7 +349,7 @@ app.post('/auth/login', async (req, res) => {
     return res.status(400).json({ error: 'Invalid role' });
   } catch (err) {
     console.error('Login error:', err.message);
-    return res.status(500).json({ error: 'Login failed' });
+    return res.status(500).json({ error: 'Login failed', detail: err.message });
   }
 });
 
@@ -348,9 +365,9 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  alice:  { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
-  jill:   { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
-  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 50 },
+  alice:  { sessionsPerDay: 5, maxSteps: 4 },
+  jill:   { sessionsPerDay: 5, maxSteps: 4 },
+  nexora: { sessionsPerDay: 5, maxSteps: 3 },
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
@@ -358,13 +375,22 @@ const IP_DAY_MS = 24 * 60 * 60 * 1000;
 const demoResponseCache = new Map();
 const DEMO_CACHE_MAX = 300;
 
-const loadDemoBuffer = require('./load-demo-buffer');
-const demoBufferLoad = loadDemoBuffer();
-let DEMO_BUFFER = demoBufferLoad.data;
-if (Object.keys(DEMO_BUFFER).length) {
-  console.log('demo-buffer ready:', demoBufferLoad.source);
-} else {
-  console.warn('demo-buffer empty — live AI only');
+let DEMO_BUFFER = {};
+try {
+  const bufCandidates = [
+    path.join(__dirname, '../config/demo-buffer.json'),
+    path.join(__dirname, 'config/demo-buffer.json')
+  ];
+  for (const bufPath of bufCandidates) {
+    if (fs.existsSync(bufPath)) {
+      DEMO_BUFFER = JSON.parse(fs.readFileSync(bufPath, 'utf8'));
+      console.log('demo-buffer loaded:', bufPath);
+      break;
+    }
+  }
+  if (!Object.keys(DEMO_BUFFER).length) console.warn('demo-buffer.json not found in config paths');
+} catch (e) {
+  console.warn('demo-buffer.json not loaded:', e.message);
 }
 
 const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
@@ -395,15 +421,16 @@ function getDemoVoiceProfiles() {
   const starId = starFromEnv || starFromFile || ALICE_VOICE_ID;
   const csId = csFromEnv || csFromFile;
   return {
-    alice: {
-      voiceId: ALICE_VOICE_ID,
-      label: cfg.alice?.label || 'Alice',
-      gender: 'female',
-      source: 'elevenlabs-account'
-    },
     jill: {
       voiceId: JILL_VOICE_ID,
       label: cfg.jill?.label || 'Jill',
+      gender: 'female',
+      lang: 'es-CR',
+      source: 'elevenlabs-account'
+    },
+    alice: {
+      voiceId: ALICE_VOICE_ID,
+      label: cfg.alice?.label || 'Alice',
       gender: 'female',
       source: 'elevenlabs-account'
     },
@@ -478,8 +505,12 @@ function loadDemoIpWhitelist() {
 }
 
 const DEMO_IP_WHITELIST = loadDemoIpWhitelist();
-// Owner fallback — always unlimited even if Render env/file not loaded yet
 ['38.210.166.95'].forEach(ip => DEMO_IP_WHITELIST.add(ip));
+
+function isDemoIpWhitelisted(ip) {
+  if (!ip || ip === 'unknown') return false;
+  return DEMO_IP_WHITELIST.has(ip.trim());
+}
 
 async function resetDemoLimitsForIp(ip) {
   const { id, data } = await getIpRecord(ip);
@@ -489,11 +520,6 @@ async function resetDemoLimitsForIp(ip) {
   });
   await saveIpRecord(id, data);
   return { id, ip };
-}
-
-function isDemoIpWhitelisted(ip) {
-  if (!ip || ip === 'unknown') return false;
-  return DEMO_IP_WHITELIST.has(ip.trim());
 }
 
 function todayKey() {
@@ -516,7 +542,7 @@ async function saveIpRecord(id, data) {
 }
 
 async function checkDemoIpLimit(ip, service, { action } = {}) {
-  if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 1 };
+  if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 5 };
   if (isDemoIpWhitelisted(ip)) {
     return { ok: true, sessionsLeft: 999, whitelisted: true };
   }
@@ -978,33 +1004,10 @@ app.post('/demo/reset-limits', async (req, res) => {
   }
 });
 
-app.get('/demo/reset-limits', async (req, res) => {
-  try {
-    const ip = getClientIp(req);
-    if (!isDemoIpWhitelisted(ip)) {
-      return res.status(403).json({ error: 'forbidden', message: 'Only whitelisted owner IPs can reset demo limits.' });
-    }
-    await resetDemoLimitsForIp(ip);
-    return res.json({ ok: true, ip, whitelisted: true, message: 'Demo limits reset for today.' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Reset failed' });
-  }
-});
-
 app.get('/demo/status', async (req, res) => {
   try {
     const ip = getClientIp(req);
     const service = req.query.service || 'alice';
-    if (isDemoIpWhitelisted(ip)) {
-      const limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
-      return res.json({
-        service,
-        sessionsUsed: 0,
-        sessionsLeft: 999,
-        maxSteps: limits.maxSteps || 4,
-        whitelisted: true
-      });
-    }
     const { data } = await getIpRecord(ip);
     const day = todayKey();
     const bucket = data[service] || { day, sessions: 0, messages: 0 };
@@ -1034,7 +1037,7 @@ app.post('/demo/tts', async (req, res) => {
     const { text, voiceId: bodyVoiceId } = req.body || {};
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
-    if (!ipLimit.ok && !ipLimit.whitelisted) {
+    if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
 
@@ -1043,15 +1046,503 @@ app.post('/demo/tts', async (req, res) => {
       return res.status(400).json({ error: 'Voice not allowed for demo. Use voiceId from GET /demo/voices (your ElevenLabs account only).' });
     }
 
-    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo'
-      : bodyVoiceId === JILL_VOICE_ID ? 'Jill demo'
-      : 'Nexora demo';
+    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
     return await synthesizeSpeech(req, res, { text, voiceId: bodyVoiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
   }
 });
+
+const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
+const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
+function stripStageDirections(text) {
+  if (!text) return text;
+  let s = String(text).trim();
+  s = s.replace(/\*[^*]{1,160}\*/g, ' ').replace(/\[[^\]]{1,160}\]/g, ' ');
+  s = s.replace(/\([^)]{0,120}(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|pause|breath|clear throat|gesture|body language)[^)]*\)/gi, ' ');
+  const dialogueStart = s.search(/\b(Hello|Hi|Hey|Good morning|Good afternoon|Good evening|I['']m|I am|My name|This is|Well|Yes|No|Um|So|Look|Excuse me|Sorry|Thank you|Thanks)\b/i);
+  if (dialogueStart > 0) {
+    const before = s.slice(0, dialogueStart);
+    if (/(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|speaks?|answers?|responds?|client|customer)/i.test(before)) {
+      s = s.slice(dialogueStart);
+    }
+  }
+  const quoted = s.match(/["']([^"']{4,})["']/);
+  if (quoted && /(?:smil|nod|extend|warmly|hand)/i.test(s.replace(quoted[0], ''))) s = quoted[1];
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+function enforceNexoraClientName(reply, profile) {
+  if (!reply || !profile?.name) return reply;
+  const full = String(profile.name).trim();
+  const first = String(profile.firstName || full.split(' ')[0] || '').trim();
+  if (!first) return reply;
+  const notNames = new Set(['calling','looking','trying','wondering','sorry','just','not','here','going','having','getting','checking','waiting','following','writing','working','thinking','sure','afraid','glad','happy','really','very','also','still','actually','about','from','with','because']);
+  const fixName = (match, name) => {
+    const n = String(name).trim();
+    if (!n) return match;
+    const head = n.split(' ')[0].toLowerCase();
+    if (notNames.has(head)) return match;
+    if (n.toLowerCase() === first.toLowerCase() || n.toLowerCase() === full.toLowerCase()) return match;
+    return match.replace(name, first);
+  };
+  let fixed = reply;
+  fixed = fixed.replace(/\b[Mm]y name is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName);
+  fixed = fixed.replace(/\b[Tt]his is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g, fixName);
+  fixed = fixed.replace(/\bI'm\s+([A-Z][a-z]+)\b/g, fixName);
+  fixed = fixed.replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
+  return fixed;
+}
+
+function buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole }) {
+  const p = profile || {};
+  const sc = scenario || {};
+  const moodInstructions = {
+    frustrated: 'You are frustrated and mildly upset. You want this resolved quickly.',
+    angry: 'You are angry. Your tone is sharp. You interrupt if the agent rambles.',
+    very_angry: 'You are very angry. You are close to demanding a supervisor. You repeat yourself.',
+    furious: 'You are furious. You threaten to leave. Nothing satisfies you easily.',
+    impatient: 'You are in a hurry. You want quick answers. You get annoyed at long explanations.',
+    cold: 'You are cold and distant. Short answers. You are already decided to leave.',
+    worried: 'You are worried and anxious. You need reassurance.',
+    disappointed: 'You are disappointed and feel misled. You are calm but firm.',
+    indignant: 'You feel wronged. You have proof and you want justice.',
+    pleasant: 'You are friendly and open. Easy to help, but you have specific questions.'
+  };
+  const mood = moodInstructions[sc.mood] || 'You are a normal customer with a concern.';
+  let accountDetails = '';
+  if (accountContext) {
+    accountDetails = `\nYOUR ACCOUNT DETAILS (reference ONLY these exact facts — do not invent anything):
+- Name: ${accountContext.name || p.name}
+- Account: ${accountContext.account || p.account}
+- Services: ${(accountContext.services || []).join(', ') || 'standard account'}`;
+    if (accountContext.billingAlerts?.length > 0) {
+      accountDetails += `\n- Billing alerts: ${accountContext.billingAlerts.map(b => b.label + (b.amount ? ' ' + b.amount : '') + ' on ' + b.date).join('; ')}`;
+    }
+    if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
+    if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
+    if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: ${accountContext.refundAmount}`;
+  }
+  const scType = sc.type || 'customer_service';
+  let systemPrompt = '';
+  if (scType === 'star_interview') {
+    const ctx = accountContext || {};
+    const starFocusStr = ctx.starFocus?.length ? ctx.starFocus.map((q, i) => (i + 1) + '. ' + q).join('\n') : 'General STAR questions';
+    systemPrompt = `You are ${ctx.interviewerName || 'a senior interviewer'} conducting a structured STAR behavioral interview for: ${sc.title}.
+Company: ${ctx.company || sc.company || 'the company'}
+
+STAR FOCUS QUESTIONS (use these as your guide):
+${starFocusStr}
+
+YOUR ROLE:
+- YOU are the interviewer. ${agentName} is the candidate being evaluated.
+- Ask strictly STAR-format questions: Situation, Task, Action, Result.
+- Probe for specifics: "What was YOUR specific action?" "What was the measurable result?"
+- If they skip a STAR component: "You've described the situation — what specific actions did YOU take?"
+- Evaluate clarity, structure, connector usage, confidence and specific examples.
+- After 2-3 exchanges, give brief feedback and move to the next question.
+- 1-3 sentences per turn. Professional and focused.
+- Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
+- NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
+  } else if (scType === 'interview') {
+    const ctx = accountContext || {};
+    const panelStr = ctx.panelists?.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
+    systemPrompt = `You are conducting a job interview for: ${sc.title}.
+${panelStr}
+
+INTERVIEW CONTEXT: ${sc.desc}
+CANDIDATE NAME: ${agentName || 'the candidate'}
+
+YOUR ROLE AS INTERVIEWER:
+- Ask behavioral, situational and STAR-format questions (Situation, Task, Action, Result)
+- Be professional but warm. Evaluate clarity, confidence and English fluency.
+- If the candidate's answer is vague or too short, follow up with "Can you elaborate?" or "Give me a specific example."
+- After 3-4 exchanges, transition to a new topic or question naturally.
+- React to the quality of their answers — good answers get positive acknowledgment, weak answers get probing follow-ups.
+- Keep each response to 1-3 sentences. This is a real interview — pace it naturally.
+- Your name is ${ctx.interviewerName || p.name}. NEVER introduce yourself with a different name.
+- NEVER mention English tutoring, learning or AI. YOU are the interviewer, ${agentName} is the candidate being evaluated.`;
+  } else if (scType === 'meeting') {
+    const ctx = accountContext || {};
+    systemPrompt = `You are a participant in a professional meeting: ${sc.title}.
+Meeting context: ${sc.desc}
+Participants: ${(ctx.participants || []).join(', ')}
+You are playing the role of the first participant (not "You"): ${ctx.participants?.[0] || 'Team Lead'}
+
+YOUR ROLE:
+- Engage naturally in the meeting topic. Ask questions, share opinions, challenge ideas professionally.
+- React to what ${agentName || 'the participant'} says — agree, disagree, ask for clarification.
+- Keep the meeting moving. If there is silence, prompt the next agenda point.
+- Be professional but natural. Use meeting language: "I think we should...", "Can you walk us through...", "Let me push back on that..."
+- 1-3 sentences per turn. Realistic meeting pace.
+- NEVER mention English tutoring or AI. You are a real meeting participant.`;
+  } else if (scType === 'negotiation') {
+    const ctx = accountContext || {};
+    systemPrompt = `You are ${sc.counterpart || 'a negotiation counterpart'} in a professional negotiation.
+Context: ${sc.title} — ${sc.desc}
+
+${negRole === 'receiver'
+  ? `OPENING ROLE: YOU go first. Make your opening offer or state your position clearly. ${agentName} will respond and counter-negotiate.`
+  : `OPENING ROLE: ${agentName} will open the negotiation with their offer or position. You respond to what they propose.`
+}
+
+YOUR APPROACH:
+- Be firm on your key points but open to genuine compromise.
+- Strong, logical arguments from ${agentName} move you. Weak arguments get pushback.
+- Use negotiation language: "I understand your position, however...", "We could consider that if...", "That doesn't work for us unless..."
+- If ${agentName} finds creative win-win solutions → acknowledge and show flexibility.
+- If ${agentName} is aggressive or unreasonable → hold firm or signal disengagement.
+- Track what has been agreed and what is still open.
+- 1-3 sentences per turn. Professional, direct.
+- NEVER break character or mention AI. You are evaluating ${agentName}'s negotiation skills.`;
+  } else if (scType === 'corporate') {
+    const ctx = accountContext || {};
+    const pdfContext = ctx.pdfContent ? `\n\nPRESENTATION CONTENT (the candidate uploaded this for you to review):\n${ctx.pdfContent.slice(0, 2000)}` : '';
+    const stakesStr = ctx.stakes?.length ? ctx.stakes.join('; ') : '';
+    systemPrompt = `You are ${sc.role || 'a Board Director'} at ${sc.company || 'the company'}.
+Meeting: ${sc.title}
+Context: ${sc.desc}
+${stakesStr ? 'Key concerns: ' + stakesStr : ''}${pdfContext}
+
+YOUR ROLE:
+- YOU are the executive/director. ${agentName} is presenting TO YOU and being evaluated.
+- Be demanding. Expect precision, data and clear ROI from ${agentName}.
+- Challenge weak points: "What's the evidence for that assumption?"
+- Ask about risks, timelines, financials and strategic fit.
+- React positively when ${agentName} is structured, confident and data-driven.
+- React skeptically when ${agentName} is vague or unconfident.
+- You decide whether to approve, reject or request more information.
+- 1-3 sentences per turn. Boardroom pace.
+- Your name/role is ${sc.role || 'Board Director'}. NEVER introduce yourself with a different name.
+- NEVER break character or mention AI. You are evaluating ${agentName}.`;
+  } else if (scType === 'stakeholder') {
+    const ctx = accountContext || {};
+    const stakesStr = ctx.stakes?.length ? '\nKey tensions:\n' + ctx.stakes.map(s => '- ' + s).join('\n') : '';
+    systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
+Meeting: ${sc.title}
+Context: ${sc.desc}${stakesStr}
+Participants: ${(ctx.participants || []).join(', ')}
+
+YOUR ROLE:
+- YOU are the stakeholder with a specific agenda. ${agentName} must manage YOU and align you.
+- Push for YOUR priorities and create realistic friction.
+- ${agentName} is being evaluated on their ability to handle difficult stakeholders.
+- If ${agentName} addresses your concerns clearly and professionally → gradually align.
+- If ${agentName} is vague, dismissive or unprepared → escalate your resistance.
+- Use stakeholder language: "From our department's perspective...", "We need to ensure..."
+- 1-3 sentences. You are testing ${agentName}'s stakeholder management skills.
+- NEVER break character.`;
+  } else if (scType === 'medical') {
+    systemPrompt = `You are ${p.name || 'a patient'} speaking with a healthcare provider.
+Situation: ${sc.desc}
+Your mood: ${mood}
+
+YOUR ROLE:
+- YOU are the patient. ${agentName} is the healthcare provider being evaluated.
+- Ask questions, express worry or resistance naturally based on your mood.
+- Evaluate (internally) how clearly and empathetically ${agentName} communicates.
+- If ${agentName} is clear and empathetic → you feel reassured and cooperative.
+- If ${agentName} is confusing, cold or unprofessional → become more anxious or resistant.
+- Use natural patient language. 1-3 sentences per turn.
+- NEVER break character. You are evaluating ${agentName}'s patient communication skills.`;
+  } else {
+    const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'the client');
+    systemPrompt = `You are ${p.name || 'a customer'} (first name: ${clientFirst}), account ${p.account || 'unknown'}, calling customer service.
+
+YOUR ISSUE: ${sc.title} — ${sc.desc}
+YOUR MOOD: ${mood}
+${accountDetails}
+
+CRITICAL RULES:
+- Your name is ${p.name}. Your first name is ${clientFirst}. NEVER use any other name — not Sarah, Patricia, Linda, or any other name.
+- Do NOT introduce yourself unless the agent asks. Jump straight into your issue.
+- You are 100% the CLIENT. NEVER break character. NEVER mention English, learning, or AI.
+- ONLY reference the exact account details provided above. Do NOT invent charges, fees, or amounts that are not listed.
+- React naturally to the agent ${agentName || ''}.
+- Professional empathetic agent → you warm up slightly.
+- Rude or unhelpful agent → escalate.
+- Hold without asking → express annoyance when they return.
+- Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
+  }
+  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE, p, sc, scType };
+}
+
+function finishNexoraReply(raw, p, scType) {
+  let fixed = stripStageDirections(raw);
+  if ((scType || 'customer_service') === 'customer_service' || !scType) {
+    fixed = enforceNexoraClientName(fixed, p);
+  }
+  return fixed.trim();
+}
+
+async function prepareNexoraRequest(body) {
+  const { message, history, profile, scenario, agentName, accountContext, negRole, student } = body || {};
+  const { systemPrompt, p, sc, scType } = buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole });
+  const msgStr = String(message || '');
+  const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
+  let prompt = systemPrompt;
+  const actorKey = resolveActorKey({ student, profile: p });
+  const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
+  if (isOpening) {
+    prompt += '\nThis is the FIRST line of the call — open immediately with a direct greeting and reason. No filler.';
+  }
+  const hist = (history || []).slice(-14);
+  const last = hist[hist.length - 1];
+  const msgs = (last && last.role === 'user' && last.content === message)
+    ? hist
+    : [...hist, { role: 'user', content: message }];
+  return { systemPrompt: prompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct };
+}
+
+// ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
+function getDemoAliceSystem(name) {
+  const guest = name || 'Guest';
+  return `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method at Off The Clock.
+
+PERSONALITY: Warm, human, celebratory, patient. Speak like a real person — not a script.
+METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
+RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. React to what the visitor said. Ask ONE follow-up question.
+ROLE: Tutor only. NEVER roleplay as customer, interviewer, or Nexora character.
+LANGUAGE: English in main response. End with: ALICE: [one specific tip in Spanish]
+
+DEMO MODE: This is a REAL mini-session for website visitor ${guest} — not a recording. Adapt every reply to their words.`;
+}
+
+function getDemoNexoraContext(scenario, name) {
+  const guest = name || 'Guest';
+  if (scenario === 'customer_service') {
+    return {
+      profile: { name: 'Maria Santos', firstName: 'Maria', account: 'ACC-482910' },
+      scenario: {
+        type: 'customer_service',
+        title: 'Unrecognized charge',
+        desc: 'Customer was charged $49.99 they do not recognize.',
+        mood: 'frustrated'
+      },
+      agentName: guest,
+      accountContext: {
+        name: 'Maria Santos',
+        account: 'ACC-482910',
+        disputeAmount: '$49.99',
+        services: ['Premium Plan']
+      }
+    };
+  }
+  return {
+    profile: { name: 'Alex' },
+    scenario: {
+      type: 'star_interview',
+      title: 'STAR Behavioral Interview',
+      desc: 'Brief STAR behavioral interview demo',
+      company: 'Corporate'
+    },
+    agentName: guest,
+    accountContext: {
+      interviewerName: 'Alex',
+      company: 'Corporate',
+      starFocus: [
+        'Tell me about a time you had to handle a difficult situation at work.',
+        'Tell me about a time you had to meet a tight deadline while quality still mattered.'
+      ]
+    }
+  };
+}
+
+function demoHistoryText(session) {
+  const guest = session.name || 'Guest';
+  const label = session.service === 'nexora'
+    ? (session.scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER')
+    : session.service.toUpperCase();
+  return (session.history || []).filter(m => m.content?.trim())
+    .map(m => `${m.role === 'user' ? guest : label}: ${m.content.split('\n')[0]}`).join('\n');
+}
+
+function getDemoStreamConfig(session, closing) {
+  const guest = session.name || 'Guest';
+  const msgs = (session.history || []).slice(-12);
+  const hist = demoHistoryText(session);
+
+  if (session.service === 'alice') {
+    return {
+      max_tokens: closing ? 220 : 500,
+      system: getDemoAliceSystem(guest),
+      messages: closing
+        ? [{ role: 'user', content: `Final turn of Alice demo for ${guest}. Wrap up warmly in 2-3 sentences.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  if (session.service === 'jill') {
+    return {
+      max_tokens: closing ? 280 : 400,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Responde en texto directo (sin JSON), como conversación oral real. Máx 4-5 oraciones. Completa siempre tu última oración.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
+      messages: closing
+        ? [{ role: 'user', content: `Cierre final Foundations demo.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt } = buildNexoraSystemPrompt(ctx);
+    return {
+      max_tokens: 140,
+      system: systemPrompt + (closing ? '\nFINAL TURN: Close the simulation naturally in character.' : ''),
+      messages: closing
+        ? [{ role: 'user', content: `Close simulation.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateOpening(service, scenario, name) {
+  const guest = name || 'Guest';
+  if (service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 280,
+      system: getDemoAliceSystem(guest),
+      messages: [{ role: 'user', content: `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Sesión REAL de 5 min (no guion grabado). Saludo cálido y una pregunta simple para arrancar Foundations.`,
+      messages: [{ role: 'user', content: `Iniciá demo Foundations con ${guest}. Respondé SOLO JSON: {"reply":"...","contentType":"text"}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (service === 'nexora') {
+    const ctx = getDemoNexoraContext(scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt + '\nFIRST TURN: Open the simulation with your first spoken line only.',
+      messages: [{ role: 'user', content: 'START_DEMO' }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateReply(session) {
+  const guest = session.name || 'Guest';
+  const msgs = (session.history || []).slice(-12);
+
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 500,
+      system: getDemoAliceSystem(guest),
+      messages: msgs
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 550,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Respondé de forma real y adaptada al mensaje. JSON: {"reply":"...","contentType":"text"}`,
+      messages: msgs
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt,
+      messages: msgs
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateClosingReply(session) {
+  const guest = session.name || 'Guest';
+  const hist = demoHistoryText(session);
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 220,
+      system: getDemoAliceSystem(guest),
+      messages: [{ role: 'user', content: `This is the final turn of the Alice demo for ${guest}. Warmly wrap up in 2-3 sentences and invite them to book a full assessment.\n\nSession so far:\n${hist}` }]
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 280,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Cierre final para ${guest}. JSON: {"reply":"...","contentType":"text"}`,
+      messages: [{ role: 'user', content: `Cerrá la demo Foundations con calidez e invitá a agendar evaluación.\n\n${hist}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Final turn — close the simulation naturally in character.\n\n${hist}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  return 'Thanks for trying the demo!';
+}
+
+async function demoGenerateEvaluation(session) {
+  const guest = session.name || 'Guest';
+  const hist = demoHistoryText(session);
+  const parseEval = (text, fallback) => {
+    try { return JSON.parse(text.replace(/```json|```/g, '').trim()); } catch (e) { return fallback; }
+  };
+
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Alice demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":75,"highlights":["..."],"improvements":["..."],"verdict":"2 warm sentences"}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 72, highlights: ['You completed the demo'], improvements: ['Practice Idea + Linker + Idea'], verdict: 'Good start — book your free assessment for full Alice coaching.' });
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Jill Foundations demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"highlights":["..."],"improvements":["..."],"verdict":"..."}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 70, highlights: ['Completed Jill demo'], improvements: ['Practice because/however in every answer'], verdict: 'Solid Foundations taste — full Jill program builds your base step by step.' });
+  }
+  if (session.service === 'nexora') {
+    const kind = session.scenario === 'customer_service' ? 'customer service call' : 'STAR interview';
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 500,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Nexora ${kind} demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"wins":["..."],"improvements":["..."],"verdict":"..."}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 68, wins: ['You stayed in the simulation'], improvements: ['Be more specific in your answers'], verdict: 'Good demo — full Nexora runs longer scenarios with live scoring.' });
+  }
+  return { overall_score: 70, highlights: ['Demo completed'] };
+}
 
 // ── ALICE — Tutora de práctica ────────────────────────────────
 
@@ -1072,28 +1563,8 @@ function cacheTTS(key, buffer){
   ttsCache.set(key, buffer);
 }
 
-const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
-const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
-
-function stripStageDirections(text) {
-  if (!text) return text;
-  let s = String(text).trim();
-  s = s.replace(/\*[^*]{1,160}\*/g, ' ').replace(/\[[^\]]{1,160}\]/g, ' ');
-  s = s.replace(/\([^)]{0,120}(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|pause|breath|clear throat|gesture|body language)[^)]*\)/gi, ' ');
-  const dialogueStart = s.search(/\b(Hello|Hi|Hey|Good morning|Good afternoon|Good evening|I['']m|I am|My name|This is|Well|Yes|No|Um|So|Look|Excuse me|Sorry|Thank you|Thanks)\b/i);
-  if (dialogueStart > 0) {
-    const before = s.slice(0, dialogueStart);
-    if (/(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|speaks?|answers?|responds?|client|customer)/i.test(before)) {
-      s = s.slice(dialogueStart);
-    }
-  }
-  const quoted = s.match(/["']([^"']{4,})["']/);
-  if (quoted && /(?:smil|nod|extend|warmly|hand)/i.test(s.replace(quoted[0], ''))) s = quoted[1];
-  return s.replace(/\s+/g, ' ').trim();
-}
-
 function cleanTtsText(text) {
-  return stripStageDirections(text || '')
+  return (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
     .replace(/\.{2,}/g, '.')
@@ -1129,8 +1600,8 @@ async function synthesizeSpeech(req, res, { text, voiceId, label }) {
     headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
     body: JSON.stringify({
       text: clean,
-      model_id: (label === 'Alice' || label === 'Nexora' || label === 'Jill') ? 'eleven_turbo_v2_5' : 'eleven_multilingual_v2',
-      voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.2, use_speaker_boost: true }
+      model_id: 'eleven_multilingual_v2',
+      voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true }
     })
   });
 
@@ -1163,13 +1634,16 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     if (mode === 'start_session') {
       const tb = (student?.trainingBook || []).slice(0,4)
         .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
+      const actorKey = resolveActorKey({ student, req });
+      const recent = await getRecentOpenings(actorKey, 'alice');
+      const variation = buildOpeningVariationNote(recent, 'en');
 
       const resp = await claudeCall({
-        model: 'claude-haiku-4-5-20251001', max_tokens: 140,
-        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name in 2 sentences max — open immediately, no filler. Ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+        model: 'claude-haiku-4-5-20251001', max_tokens: 250,
+        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. Greet ${student?.name||'the student'} warmly by name (2-3 sentences max). Tell them you'll practice English together and ask ONE engaging open question to start. You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-      recordOpening(resolveActorKey({ student, req }), 'alice', extractOpeningSnippet(opening)).catch(() => {});
+      recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
       return res.json({ opening });
     }
 
@@ -1217,7 +1691,6 @@ ROLE: You are a tutor and coach only. You NEVER roleplay as a customer, client, 
 PERSONALITY: Warm, human, celebratory, patient. You speak like a real person — not a textbook. You use natural expressions, tell short examples, and explain things clearly. Never robotic. Never cut yourself off mid-sentence.
 
 PATIENCE: Students make mistakes. They speak slowly. They freeze. That is okay. You wait. You encourage. You never pressure. If they write a short answer, you gently push for more — but with kindness. You always complete your full thought before asking anything.
-${TURN_TAKING_RULE}
 
 LANGUAGE: Respond ONLY in English. NEVER mix Spanish into your main response. Only at the very end, on a new line, write: "ALICE: [one specific tip in Spanish, example with a connector]"
 
@@ -1275,7 +1748,6 @@ Entrenás al estudiante a construir y almacenar chunks operacionales listos para
 PRESIÓN CERO:
 Nunca presionás. El ambiente de Jill es práctica segura.
 Equivocarse es parte del proceso y nunca tiene costo emocional.
-${TURN_TAKING_RULE}
 
 LOS 8 KPIs QUE EVALUÁS:
 1. Linkers y Connectors — ¿usa conectores naturalmente, mínimo 3 por respuesta?
@@ -1344,18 +1816,21 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : '';
 
     if (mode === 'start_session') {
+      const actorKey = resolveActorKey({ student, req });
+      const recent = await getRecentOpenings(actorKey, 'jill');
+      const variation = buildOpeningVariationNote(recent, 'es');
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 160,
+        max_tokens: 350,
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo al instante con calidez (2 oraciones), recordale en qué estaban si hay ejercicios, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${name} (nivel: ${level}) acaba de abrir su sesión. Saludalo con calidez, recordale en qué estaban trabajando si hay ejercicios asignados, y hacé UNA pregunta simple para arrancar.${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       const parsed = parseJillResponse(raw);
-      recordOpening(resolveActorKey({ student, req }), 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
+      recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
       return res.json(parsed);
     }
 
@@ -1382,20 +1857,14 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 });
 
 // ── STREAMING HELPER ─────────────────────────────────────────
-async function streamAnthropicSSE(req, res, { model, max_tokens, system, messages }) {
-  const streamHeaders = {
+async function streamAnthropicSSE(res, { model, max_tokens, system, messages }) {
+  res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     'X-Accel-Buffering': 'no',
-  };
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith(o.replace(/\/$/, '')))) {
-    streamHeaders['Access-Control-Allow-Origin'] = origin;
-    streamHeaders['Vary'] = 'Origin';
-    streamHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
-  }
-  res.set(streamHeaders);
+    'Access-Control-Allow-Origin': '*'
+  });
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -1454,7 +1923,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    await streamAnthropicSSE(req, res, {
+    await streamAnthropicSSE(res, {
       max_tokens: 400,
       system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${name} | Nivel: ${level}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-5 oraciones. Completa siempre tu última oración.`,
       messages: msgs
@@ -1481,11 +1950,10 @@ ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
-${TURN_TAKING_RULE}
 STUDENT: ${student?.name || 'Student'} | Level: ${student?.level || 'Functional'}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    await streamAnthropicSSE(req, res, { max_tokens: 160, system, messages: msgs });
+    await streamAnthropicSSE(res, { max_tokens: 350, system, messages: msgs });
   } catch (err) {
     console.error('Alice stream error:', err.message);
     if (!res.headersSent) res.status(500).end(); else res.end();
@@ -1742,7 +2210,6 @@ app.get('/dashboard', async (req, res) => {
 
 
 
-// ── NEXORA VOICE PROFILES ─────────────────────────────────────
 function loadNexoraVoicesConfig() {
   const candidates = [
     path.join(__dirname, '../config/nexora-voices.json'),
@@ -1753,17 +2220,46 @@ function loadNexoraVoicesConfig() {
       if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
     } catch (e) { /* next path */ }
   }
-  return { male: [], female: [], fallbackIds: [] };
+  return {
+    male: [
+      { id: 'bfGb7JTLUnZebZRiFYyq', accent: 'American Male' },
+      { id: 'NIkIuJZ8oQMuKZqwKtnm', accent: 'Chinese Male' },
+      { id: 'b4XCIIupgo5eH7TxhBNk', accent: 'German Male' },
+      { id: '8WqHCYyrnUqoK70Px5EJ', accent: 'Indian Male' }
+    ],
+    female: [
+      { id: 'r1KmysJdVYZjJCm4mL3b', accent: 'American Female' },
+      { id: 'NoOVOzCQFLOvtsMoNcdT', accent: 'American Female' },
+      { id: '1a0nAYA3FcNQcMMfbddY', accent: 'Chinese Female' },
+      { id: 'ztyYYqlYMny7nllhThgo', accent: 'German Female' },
+      { id: 'NyZqLdjqUb8SpOUKIlWT', accent: 'Indian Female' }
+    ],
+    fallbackIds: ['bfGb7JTLUnZebZRiFYyq', 'r1KmysJdVYZjJCm4mL3b', 'NoOVOzCQFLOvtsMoNcdT']
+  };
 }
 
 app.get('/nexora/voices', requireProductAuth, (req, res) => {
-  try {
-    return res.json(loadNexoraVoicesConfig());
-  } catch (err) {
-    return res.status(500).json({ error: 'Voices unavailable' });
-  }
+  res.json(loadNexoraVoicesConfig());
 });
 
+function loadNexoraCharactersConfig() {
+  const candidates = [
+    path.join(__dirname, '../config/nexora-characters.json'),
+    path.join(__dirname, 'config/nexora-characters.json')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch (e) { /* next path */ }
+  }
+  return { characters: [] };
+}
+
+app.get('/nexora/characters', requireProductAuth, (req, res) => {
+  res.json(loadNexoraCharactersConfig());
+});
+
+// ── NEXORA VOICE PROFILES ─────────────────────────────────────
 app.post('/nexora-tts', requireProductAuth, async (req, res) => {
   try {
     const { text, voiceId } = req.body || {};
@@ -1800,41 +2296,54 @@ function enforceNexoraClientName(reply, profile) {
   return fixed;
 }
 
-function buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole }) {
-  const p = profile || {};
-  const sc = scenario || {};
-  const moodInstructions = {
-    frustrated: 'You are frustrated and mildly upset. You want this resolved quickly.',
-    angry: 'You are angry. Your tone is sharp. You interrupt if the agent rambles.',
-    very_angry: 'You are very angry. You are close to demanding a supervisor. You repeat yourself.',
-    furious: 'You are furious. You threaten to leave. Nothing satisfies you easily.',
-    impatient: 'You are in a hurry. You want quick answers. You get annoyed at long explanations.',
-    cold: 'You are cold and distant. Short answers. You are already decided to leave.',
-    worried: 'You are worried and anxious. You need reassurance.',
-    disappointed: 'You are disappointed and feel misled. You are calm but firm.',
-    indignant: 'You feel wronged. You have proof and you want justice.',
-    pleasant: 'You are friendly and open. Easy to help, but you have specific questions.'
-  };
-  const mood = moodInstructions[sc.mood] || 'You are a normal customer with a concern.';
-  let accountDetails = '';
-  if (accountContext) {
-    accountDetails = `\nYOUR ACCOUNT DETAILS (reference ONLY these exact facts — do not invent anything):
+// ── NEXORA CALL SIMULATION ────────────────────────────────────
+app.post('/nexora', requireProductAuth, async (req, res) => {
+  try {
+    const { message, history, profile, scenario, agentName } = req.body || {};
+
+    const p = profile || {};
+    const sc = scenario || {};
+    
+    const { accountContext } = req.body || {};
+
+    const moodInstructions = {
+      frustrated: 'You are frustrated and mildly upset. You want this resolved quickly.',
+      angry: 'You are angry. Your tone is sharp. You interrupt if the agent rambles.',
+      very_angry: 'You are very angry. You are close to demanding a supervisor. You repeat yourself.',
+      furious: 'You are furious. You threaten to leave. Nothing satisfies you easily.',
+      impatient: 'You are in a hurry. You want quick answers. You get annoyed at long explanations.',
+      cold: 'You are cold and distant. Short answers. You are already decided to leave.',
+      worried: 'You are worried and anxious. You need reassurance.',
+      disappointed: 'You are disappointed and feel misled. You are calm but firm.',
+      indignant: 'You feel wronged. You have proof and you want justice.',
+      pleasant: 'You are friendly and open. Easy to help, but you have specific questions.'
+    };
+
+    const mood = moodInstructions[sc.mood] || 'You are a normal customer with a concern.';
+
+    // Build account details from context — ONLY reference what exists in the CRM
+    let accountDetails = '';
+    if (accountContext) {
+      accountDetails = `\nYOUR ACCOUNT DETAILS (reference ONLY these exact facts — do not invent anything):
 - Name: ${accountContext.name || p.name}
 - Account: ${accountContext.account || p.account}
 - Services: ${(accountContext.services || []).join(', ') || 'standard account'}`;
-    if (accountContext.billingAlerts?.length > 0) {
-      accountDetails += `\n- Billing alerts: ${accountContext.billingAlerts.map(b => b.label + (b.amount ? ' ' + b.amount : '') + ' on ' + b.date).join('; ')}`;
+      if (accountContext.billingAlerts && accountContext.billingAlerts.length > 0) {
+        accountDetails += `\n- Billing alerts: ${accountContext.billingAlerts.map(b => b.label + (b.amount ? ' ' + b.amount : '') + ' on ' + b.date).join('; ')}`;
+      }
+      if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
+      if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
+      if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: $${accountContext.refundAmount}`;
     }
-    if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
-    if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
-    if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: $${accountContext.refundAmount}`;
-  }
-  const scType = sc.type || 'customer_service';
-  let systemPrompt = '';
-  if (scType === 'star_interview') {
-    const ctx = accountContext || {};
-    const starFocusStr = ctx.starFocus?.length ? ctx.starFocus.map((q, i) => (i + 1) + '. ' + q).join('\n') : 'General STAR questions';
-    systemPrompt = `You are ${ctx.interviewerName || 'a senior interviewer'} conducting a structured STAR behavioral interview for: ${sc.title}.
+
+    // Determine scenario type
+    const scType = sc.type || 'customer_service';
+    let systemPrompt = '';
+
+    if(scType === 'star_interview'){
+      const ctx = accountContext || {};
+      const starFocusStr = ctx.starFocus && ctx.starFocus.length ? ctx.starFocus.map((q,i) => (i+1)+'. '+q).join('\n') : 'General STAR questions';
+      systemPrompt = `You are ${ctx.interviewerName || 'a senior interviewer'} conducting a structured STAR behavioral interview for: ${sc.title}.
 Company: ${ctx.company || sc.company || 'the company'}
 
 STAR FOCUS QUESTIONS (use these as your guide):
@@ -1850,10 +2359,10 @@ YOUR ROLE:
 - 1-3 sentences per turn. Professional and focused.
 - Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
 - NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
-  } else if (scType === 'interview') {
-    const ctx = accountContext || {};
-    const panelStr = ctx.panelists?.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
-    systemPrompt = `You are conducting a job interview for: ${sc.title}.
+    } else if(scType === 'interview'){
+      const ctx = accountContext || {};
+      const panelStr = ctx.panelists && ctx.panelists.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
+      systemPrompt = `You are conducting a job interview for: ${sc.title}.
 ${panelStr}
 
 INTERVIEW CONTEXT: ${sc.desc}
@@ -1868,12 +2377,12 @@ YOUR ROLE AS INTERVIEWER:
 - Keep each response to 1-3 sentences. This is a real interview — pace it naturally.
 - Your name is ${ctx.interviewerName || p.name}. NEVER introduce yourself with a different name.
 - NEVER mention English tutoring, learning or AI. YOU are the interviewer, ${agentName} is the candidate being evaluated.`;
-  } else if (scType === 'meeting') {
-    const ctx = accountContext || {};
-    systemPrompt = `You are a participant in a professional meeting: ${sc.title}.
+    } else if(scType === 'meeting'){
+      const ctx = accountContext || {};
+      systemPrompt = `You are a participant in a professional meeting: ${sc.title}.
 Meeting context: ${sc.desc}
-Participants: ${(ctx.participants || []).join(', ')}
-You are playing the role of the first participant (not "You"): ${ctx.participants?.[0] || 'Team Lead'}
+Participants: ${(ctx.participants||[]).join(', ')}
+You are playing the role of the first participant (not "You"): ${ctx.participants && ctx.participants[0] ? ctx.participants[0] : 'Team Lead'}
 
 YOUR ROLE:
 - Engage naturally in the meeting topic. Ask questions, share opinions, challenge ideas professionally.
@@ -1882,9 +2391,10 @@ YOUR ROLE:
 - Be professional but natural. Use meeting language: "I think we should...", "Can you walk us through...", "Let me push back on that..."
 - 1-3 sentences per turn. Realistic meeting pace.
 - NEVER mention English tutoring or AI. You are a real meeting participant.`;
-  } else if (scType === 'negotiation') {
-    const ctx = accountContext || {};
-    systemPrompt = `You are ${sc.counterpart || 'a negotiation counterpart'} in a professional negotiation.
+    } else if(scType === 'negotiation'){
+      const negRole = req.body.negRole || 'initiator'; // 'initiator' = user makes offer, 'receiver' = Alice makes offer
+      const ctx = accountContext || {};
+      systemPrompt = `You are ${sc.counterpart || 'a negotiation counterpart'} in a professional negotiation.
 Context: ${sc.title} — ${sc.desc}
 
 ${negRole === 'receiver'
@@ -1901,14 +2411,14 @@ YOUR APPROACH:
 - Track what has been agreed and what is still open.
 - 1-3 sentences per turn. Professional, direct.
 - NEVER break character or mention AI. You are evaluating ${agentName}'s negotiation skills.`;
-  } else if (scType === 'corporate') {
-    const ctx = accountContext || {};
-    const pdfContext = ctx.pdfContent ? `\n\nPRESENTATION CONTENT (the candidate uploaded this for you to review):\n${ctx.pdfContent.slice(0, 2000)}` : '';
-    const stakesStr = ctx.stakes?.length ? ctx.stakes.join('; ') : '';
-    systemPrompt = `You are ${sc.role || 'a Board Director'} at ${sc.company || 'the company'}.
+    } else if(scType === 'corporate'){
+      const ctx = accountContext || {};
+      const pdfContext = ctx.pdfContent ? `\n\nPRESENTATION CONTENT (the candidate uploaded this for you to review):\n${ctx.pdfContent.slice(0,2000)}` : '';
+      const stakesStr = ctx.stakes && ctx.stakes.length ? ctx.stakes.join('; ') : '';
+      systemPrompt = `You are ${sc.role || 'a Board Director'} at ${sc.company || 'the company'}.
 Meeting: ${sc.title}
 Context: ${sc.desc}
-${stakesStr ? 'Key concerns: ' + stakesStr : ''}${pdfContext}
+${stakesStr ? 'Key concerns: '+stakesStr : ''}${pdfContext}
 
 YOUR ROLE:
 - YOU are the executive/director. ${agentName} is presenting TO YOU and being evaluated.
@@ -1921,13 +2431,14 @@ YOUR ROLE:
 - 1-3 sentences per turn. Boardroom pace.
 - Your name/role is ${sc.role || 'Board Director'}. NEVER introduce yourself with a different name.
 - NEVER break character or mention AI. You are evaluating ${agentName}.`;
-  } else if (scType === 'stakeholder') {
-    const ctx = accountContext || {};
-    const stakesStr = ctx.stakes?.length ? '\nKey tensions:\n' + ctx.stakes.map(s => '- ' + s).join('\n') : '';
-    systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
+
+    } else if(scType === 'stakeholder'){
+      const ctx = accountContext || {};
+      const stakesStr = ctx.stakes && ctx.stakes.length ? '\nKey tensions:\n'+ctx.stakes.map(s=>'- '+s).join('\n') : '';
+      systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
 Meeting: ${sc.title}
 Context: ${sc.desc}${stakesStr}
-Participants: ${(ctx.participants || []).join(', ')}
+Participants: ${(ctx.participants||[]).join(', ')}
 
 YOUR ROLE:
 - YOU are the stakeholder with a specific agenda. ${agentName} must manage YOU and align you.
@@ -1938,8 +2449,9 @@ YOUR ROLE:
 - Use stakeholder language: "From our department's perspective...", "We need to ensure..."
 - 1-3 sentences. You are testing ${agentName}'s stakeholder management skills.
 - NEVER break character.`;
-  } else if (scType === 'medical') {
-    systemPrompt = `You are ${p.name || 'a patient'} speaking with a healthcare provider.
+
+    } else if(scType === 'medical'){
+      systemPrompt = `You are ${p.name || 'a patient'} speaking with a healthcare provider.
 Situation: ${sc.desc}
 Your mood: ${mood}
 
@@ -1951,322 +2463,49 @@ YOUR ROLE:
 - If ${agentName} is confusing, cold or unprofessional → become more anxious or resistant.
 - Use natural patient language. 1-3 sentences per turn.
 - NEVER break character. You are evaluating ${agentName}'s patient communication skills.`;
-  } else {
-    const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'the client');
-    systemPrompt = `You are ${p.name || 'a customer'} (first name: ${clientFirst}), account ${p.account || 'unknown'}, calling customer service.
 
-YOUR ISSUE: ${sc.title} — ${sc.desc}
-YOUR MOOD: ${mood}
-${accountDetails}
-
-CRITICAL RULES:
-- Your name is ${p.name}. Your first name is ${clientFirst}. NEVER use any other name — not Sarah, Patricia, Linda, or any other name.
-- Do NOT introduce yourself unless the agent asks. Jump straight into your issue.
-- You are 100% the CLIENT. NEVER break character. NEVER mention English, learning, or AI.
-- ONLY reference the exact account details provided above. Do NOT invent charges, fees, or amounts that are not listed.
-- React naturally to the agent ${agentName || ''}.
-- Professional empathetic agent → you warm up slightly.
-- Rude or unhelpful agent → escalate.
-- Hold without asking → express annoyance when they return.
-- Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
-  }
-  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE, p, sc, scType };
-}
-
-async function prepareNexoraRequest(body) {
-  const { message, history, profile, scenario, agentName, accountContext, negRole, student } = body || {};
-  const { systemPrompt, p, sc, scType } = buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole });
-  const msgStr = String(message || '');
-  const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
-  let prompt = systemPrompt;
-  const actorKey = resolveActorKey({ student, profile: p });
-  const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
-  if (isOpening) {
-    prompt += '\nThis is the FIRST line of the call — open immediately with a direct greeting and reason. No filler.';
-  }
-  const hist = (history || []).slice(-14);
-  const last = hist[hist.length - 1];
-  const msgs = (last && last.role === 'user' && last.content === message)
-    ? hist
-    : [...hist, { role: 'user', content: message }];
-  return { systemPrompt: prompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct };
-}
-
-function finishNexoraReply(raw, p, scType) {
-  let fixed = stripStageDirections(raw);
-  if ((scType || 'customer_service') === 'customer_service' || !scType) {
-    fixed = enforceNexoraClientName(fixed, p);
-  }
-  return fixed.trim();
-}
-
-// ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
-function getDemoAliceSystem(name) {
-  const guest = name || 'Guest';
-  return `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method at Off The Clock.
-
-PERSONALITY: Warm, human, celebratory, patient. Speak like a real person — not a script.
-METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
-RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. React to what the visitor said. Ask ONE follow-up question.
-ROLE: Tutor only. NEVER roleplay as customer, interviewer, or Nexora character.
-LANGUAGE: English in main response. End with: ALICE: [one specific tip in Spanish]
-
-DEMO MODE: This is a REAL mini-session for website visitor ${guest} — not a recording. Adapt every reply to their words.`;
-}
-
-function getDemoNexoraContext(scenario, name) {
-  const guest = name || 'Guest';
-  if (scenario === 'customer_service') {
-    return {
-      profile: { name: 'Maria Santos', firstName: 'Maria', account: 'ACC-482910' },
-      scenario: {
-        type: 'customer_service',
-        title: 'Unrecognized charge',
-        desc: 'Customer was charged $49.99 they do not recognize.',
-        mood: 'frustrated'
-      },
-      agentName: guest,
-      accountContext: {
-        name: 'Maria Santos',
-        account: 'ACC-482910',
-        disputeAmount: '$49.99',
-        services: ['Premium Plan']
-      }
-    };
-  }
-  return {
-    profile: { name: 'Alex' },
-    scenario: {
-      type: 'star_interview',
-      title: 'STAR Behavioral Interview',
-      desc: 'Brief STAR behavioral interview demo',
-      company: 'Corporate'
-    },
-    agentName: guest,
-    accountContext: {
-      interviewerName: 'Alex',
-      company: 'Corporate',
-      starFocus: [
-        'Tell me about a time you had to handle a difficult situation at work.',
-        'Tell me about a time you had to meet a tight deadline while quality still mattered.'
-      ]
+    } else {
+      // Default: customer service — compact prompt for speed
+      const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'Client');
+      const extras = [
+        p.disputeAmount ? 'Disputing ' + p.disputeAmount : '',
+        p.lateFee ? 'Disputing late fee ' + p.lateFee : '',
+        p.refundAmount ? 'Refund $' + p.refundAmount : ''
+      ].filter(Boolean).join('. ');
+      systemPrompt = `You are ${p.name} (${clientFirst}), the CUSTOMER on a live call. Issue: ${sc.title} — ${sc.desc}. Mood: ${sc.mood || 'frustrated'}. Account ${p.account || 'unknown'}.${extras ? ' ' + extras + '.' : ''} Rules: 1-2 short sentences. Never break character. Never tutor. Name is ${p.name} only. React to agent ${agentName || ''}.`;
     }
-  };
-}
 
-function demoHistoryText(session) {
-  const guest = session.name || 'Guest';
-  const label = session.service === 'nexora'
-    ? (session.scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER')
-    : session.service.toUpperCase();
-  return (session.history || []).filter(m => m.content?.trim())
-    .map(m => `${m.role === 'user' ? guest : label}: ${m.content.split('\n')[0]}`).join('\n');
-}
+    const msgStr = String(message || '');
+    const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
+    const actorKey = resolveActorKey({ student: req.body?.student, req, profile: p });
+    const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
+    if (isOpening) {
+      const recent = await getRecentOpenings(actorKey, openingProduct);
+      const variation = buildOpeningVariationNote(recent, 'en');
+      systemPrompt += variation + '\nThis is the FIRST line of the call — open with a NEW greeting and reason for calling. Do not reuse phrasing from recent openings.';
+    }
 
-function getDemoStreamConfig(session, closing) {
-  const guest = session.name || 'Guest';
-  const msgs = (session.history || []).slice(-12);
-  const hist = demoHistoryText(session);
+    const msgs = history && history.length > 0
+      ? [...history.slice(-14), { role: 'user', content: message }]
+      : [{ role: 'user', content: message }];
 
-  if (session.service === 'alice') {
-    return {
-      max_tokens: closing ? 220 : 500,
-      system: getDemoAliceSystem(guest),
-      messages: closing
-        ? [{ role: 'user', content: `Final turn of Alice demo for ${guest}. Wrap up warmly in 2-3 sentences.\n\n${hist}` }]
-        : msgs
-    };
-  }
-  if (session.service === 'jill') {
-    return {
-      max_tokens: closing ? 280 : 400,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Responde en texto directo (sin JSON), como conversación oral real. Máx 4-5 oraciones. Completa siempre tu última oración.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
-      messages: closing
-        ? [{ role: 'user', content: `Cierre final Foundations demo.\n\n${hist}` }]
-        : msgs
-    };
-  }
-  if (session.service === 'nexora') {
-    const ctx = getDemoNexoraContext(session.scenario, guest);
-    const { systemPrompt } = buildNexoraSystemPrompt(ctx);
-    return {
-      max_tokens: 140,
-      system: systemPrompt + (closing ? '\nFINAL TURN: Close the simulation naturally in character.' : ''),
-      messages: closing
-        ? [{ role: 'user', content: `Close simulation.\n\n${hist}` }]
-        : msgs
-    };
-  }
-  throw new Error('Unknown demo service');
-}
-
-async function demoGenerateOpening(service, scenario, name) {
-  const guest = name || 'Guest';
-  if (service === 'alice') {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 280,
-      system: getDemoAliceSystem(guest),
-      messages: [{ role: 'user', content: `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
-    });
-    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  }
-  if (service === 'jill') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Sesión REAL de 5 min (no guion grabado). Saludo cálido y una pregunta simple para arrancar Foundations.`,
-      messages: [{ role: 'user', content: `Iniciá demo Foundations con ${guest}. Respondé SOLO JSON: {"reply":"...","contentType":"text"}` }]
-    });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseJillResponse(raw).reply;
-  }
-  if (service === 'nexora') {
-    const ctx = getDemoNexoraContext(scenario, guest);
-    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 140,
-      system: systemPrompt + '\nFIRST TURN: Open the simulation with your first spoken line only.',
-      messages: [{ role: 'user', content: 'START_DEMO' }]
-    });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return finishNexoraReply(raw, p, scType);
-  }
-  throw new Error('Unknown demo service');
-}
-
-async function demoGenerateReply(session) {
-  const guest = session.name || 'Guest';
-  const msgs = (session.history || []).slice(-12);
-
-  if (session.service === 'alice') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      system: getDemoAliceSystem(guest),
-      messages: msgs
-    });
-    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  }
-  if (session.service === 'jill') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 550,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Respondé de forma real y adaptada al mensaje. JSON: {"reply":"...","contentType":"text"}`,
-      messages: msgs
-    });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseJillResponse(raw).reply;
-  }
-  if (session.service === 'nexora') {
-    const ctx = getDemoNexoraContext(session.scenario, guest);
-    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 140,
+      max_tokens: 80,
       system: systemPrompt,
       messages: msgs
     });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return finishNexoraReply(raw, p, scType);
-  }
-  throw new Error('Unknown demo service');
-}
 
-async function demoGenerateClosingReply(session) {
-  const guest = session.name || 'Guest';
-  const hist = demoHistoryText(session);
-  if (session.service === 'alice') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 220,
-      system: getDemoAliceSystem(guest),
-      messages: [{ role: 'user', content: `This is the final turn of the Alice demo for ${guest}. Warmly wrap up in 2-3 sentences and invite them to book a full assessment.\n\nSession so far:\n${hist}` }]
-    });
-    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  }
-  if (session.service === 'jill') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 280,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Cierre final para ${guest}. JSON: {"reply":"...","contentType":"text"}`,
-      messages: [{ role: 'user', content: `Cerrá la demo Foundations con calidez e invitá a agendar evaluación.\n\n${hist}` }]
-    });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseJillResponse(raw).reply;
-  }
-  if (session.service === 'nexora') {
-    const ctx = getDemoNexoraContext(session.scenario, guest);
-    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 140,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: `Final turn — close the simulation naturally in character.\n\n${hist}` }]
-    });
-    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return finishNexoraReply(raw, p, scType);
-  }
-  return 'Thanks for trying the demo!';
-}
-
-async function demoGenerateEvaluation(session) {
-  const guest = session.name || 'Guest';
-  const hist = demoHistoryText(session);
-  const parseEval = (text, fallback) => {
-    try { return JSON.parse(text.replace(/```json|```/g, '').trim()); } catch (e) { return fallback; }
-  };
-
-  if (session.service === 'alice') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
-      system: 'Respond ONLY with valid JSON. No markdown.',
-      messages: [{ role: 'user', content: `Evaluate this Alice demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":75,"highlights":["..."],"improvements":["..."],"verdict":"2 warm sentences"}` }]
-    });
-    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseEval(text, { overall_score: 72, highlights: ['You completed the demo'], improvements: ['Practice Idea + Linker + Idea'], verdict: 'Good start — book your free assessment for full Alice coaching.' });
-  }
-  if (session.service === 'jill') {
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
-      system: 'Respond ONLY with valid JSON. No markdown.',
-      messages: [{ role: 'user', content: `Evaluate this Jill Foundations demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"highlights":["..."],"improvements":["..."],"verdict":"..."}` }]
-    });
-    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseEval(text, { overall_score: 70, highlights: ['Completed Jill demo'], improvements: ['Practice because/however in every answer'], verdict: 'Solid Foundations taste — full Jill program builds your base step by step.' });
-  }
-  if (session.service === 'nexora') {
-    const kind = session.scenario === 'customer_service' ? 'customer service call' : 'STAR interview';
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 500,
-      system: 'Respond ONLY with valid JSON. No markdown.',
-      messages: [{ role: 'user', content: `Evaluate this Nexora ${kind} demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"wins":["..."],"improvements":["..."],"verdict":"..."}` }]
-    });
-    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseEval(text, { overall_score: 68, wins: ['You stayed in the simulation'], improvements: ['Be more specific in your answers'], verdict: 'Good demo — full Nexora runs longer scenarios with live scoring.' });
-  }
-  return { overall_score: 70, highlights: ['Demo completed'] };
-}
-
-// ── NEXORA CALL SIMULATION ────────────────────────────────────
-app.post('/nexora', requireProductAuth, async (req, res) => {
-  try {
-    const { message } = req.body || {};
-    const ctx = await prepareNexoraRequest(req.body);
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 90,
-      system: ctx.systemPrompt,
-      messages: ctx.msgs
-    });
-    const reply = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    const fixedReply = finishNexoraReply(reply, ctx.p, ctx.scType);
-    if (ctx.isOpening) {
-      recordOpening(ctx.actorKey, ctx.openingProduct, extractOpeningSnippet(fixedReply), { scenarioId: ctx.sc.id || null }).catch(() => {});
+    let reply = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
+      reply = enforceNexoraClientName(reply, p);
     }
-    return res.json({ reply: fixedReply });
-  } catch (err) {
+    if (isOpening) {
+      recordOpening(actorKey, openingProduct, extractOpeningSnippet(reply), { scenarioId: sc.id || null }).catch(() => {});
+    }
+    return res.json({ reply });
+
+  } catch(err) {
     console.error('Nexora error:', err.message);
     return res.status(500).json({ error: 'Nexora unavailable' });
   }
@@ -2281,9 +2520,6 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
       system: ctx.systemPrompt,
       messages: ctx.msgs
     });
-    if (ctx.isOpening) {
-      // Opening snippet recorded client-side after full reply assembled
-    }
   } catch (err) {
     console.error('Nexora stream error:', err.message);
     if (!res.headersSent) res.status(500).end(); else res.end();
@@ -2405,6 +2641,4 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server on port ${PORT} | build ${BACKEND_BUILD} | nexora-lab-fix-20260622`);
-});
+app.listen(PORT, () => console.log(`Server on port ${PORT}`));

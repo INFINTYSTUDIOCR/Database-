@@ -1,11 +1,10 @@
 {
   "name": "infinity-backend",
-  "version": "1.1.1-nexora-lab-fix",
+  "version": "1.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "postinstall": "node -e \"const fs=require('fs'); const ok=fs.existsSync('config/demo-buffer.json')||fs.existsSync('config/demo-buffer.fallback.js'); if(!ok) throw new Error('Missing demo-buffer config'); console.log('demo-buffer config ok');\""
+    "start": "node server.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

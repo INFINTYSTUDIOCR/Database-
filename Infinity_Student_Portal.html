@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Infinity Portal del Estudiante</title>
-<meta name="theme-color" content="#0B1F2A">
+<meta name="theme-color" content="#5B21B6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,22 +14,21 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
-<script src="nexora-profile.js"></script>
+<script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
-<script src="nexus-quiz-practice.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#1E2761;--nl:#E6F1FB;--nm:#185FA5;--nd:#0C447C;
+  --navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;
   --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
-  --amber:#BA7517;--ab:#FAEEDA;--ad:#633806;
+  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
   --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
-  --purple:#3C3489;--pb:#EEEDFE;--pm:#534AB7;
-  --gold:#F5A623;--gray:#F4F6FB;--border:#E2E8F0;
-  --text:#1E293B;--t2:#64748B;--t3:#94A3B8;
+  --purple:#5B21B6;--pb:#EDE9FE;--pm:#7C3AED;
+  --gold:#F5A623;--gray:#F8F8FF;--border:#E2E8F0;
+  --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;
   --r:8px;--rl:12px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;color:var(--text);min-height:100vh;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F8F8FF;color:var(--text);min-height:100vh;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade{animation:fadeIn 0.2s ease;}
@@ -40,10 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.tb-tool-btn{background:transparent;border:1px solid rgba(255,255,255,0.35);color:white;padding:5px 10px;font-size:11px;border-radius:var(--r);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;font-weight:600;line-height:1;}
-.tb-tool-btn:hover{background:rgba(255,255,255,0.1);}
-.tb-tool-btn i{font-size:14px;}
-.tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(15,110,86,0.3);color:#6EE7C0;border:1px solid rgba(110,231,192,0.3);}
+.tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(91,33,182,0.3);color:#FBBF24;border:1px solid rgba(245,166,35,0.35);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
 .login-wrap{max-width:420px;margin:5rem auto;padding:1.5rem;}
@@ -121,11 +117,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
   </div>
   <div class="tb-right">
-    <button type="button" class="tb-tool-btn" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i> Volver</button>
-    <button type="button" class="tb-tool-btn" onclick="portalRefresh()" title="Actualizar"><i class="ti ti-refresh"></i> Actualizar</button>
     <span class="tb-user" id="tb-user"></span>
     <span class="tb-role">Estudiante</span>
-    <button type="button" class="tb-tool-btn" onclick="logout()" title="Salir"><i class="ti ti-logout"></i> Salir</button>
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);padding:5px 10px;font-size:11px;" onclick="logout()"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 
@@ -207,38 +201,6 @@ document.getElementById('login-logo').src = 'data:image/png;base64,'+LOGO;
 var CURRENT_STUDENT = null;
 var ALL_STUDENTS = {};
 var CALENDAR_EVENTS = {};
-var _portalTabStack = ['progreso'];
-
-async function portalRefresh(){
-  if(!CURRENT_STUDENT || !CURRENT_STUDENT.id) return;
-  try{
-    showToast('Actualizando portal…');
-    var rows = await dbGet('infinity_students');
-    var fresh = null;
-    rows.forEach(function(r){
-      if(r.id === CURRENT_STUDENT.id && r.data) fresh = r.data;
-    });
-    if(fresh){
-      CURRENT_STUDENT = fresh;
-      ALL_STUDENTS[fresh.id] = fresh;
-      showPortal(fresh);
-      showToast('Portal actualizado');
-    } else {
-      showToast('No se pudo actualizar', 'err');
-    }
-  }catch(e){
-    showToast('Error al actualizar', 'err');
-  }
-}
-
-function portalGoBack(){
-  if(_portalTabStack.length > 1){
-    _portalTabStack.pop();
-    switchPortalTab(_portalTabStack[_portalTabStack.length - 1], true);
-    return;
-  }
-  switchPortalTab('progreso', true);
-}
 
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
@@ -256,7 +218,7 @@ async function doLogin(){
       if(r.data){
         ALL_STUDENTS[r.id]=r.data;
         var u = String(r.data.portalUser||'').trim().toLowerCase();
-        if(u === user && r.data.portalPass === pass){ student = r.data; student.id = r.id; }
+        if(u === user && r.data.portalPass === pass) student = r.data;
       }
     });
 
@@ -273,15 +235,8 @@ async function doLogin(){
       return;
     }
 
-    try {
-      var authResult = await infinityLogin(user, pass, 'student');
-      if(!authResult || !getAuthToken()) throw new Error('no_token');
-    } catch(authErr) {
-      err.textContent='No se pudo conectar con el servidor AI. Intentá de nuevo en unos segundos.';
-      err.style.display='block';
-      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
-      return;
-    }
+    try { await infinityLogin(user, pass, 'student', { silent: true }); } catch(e) {}
+    nexoraWarmApi();
 
     CURRENT_STUDENT = student;
 
@@ -306,11 +261,7 @@ async function doLogin(){
   }
 }
 
-function switchPortalTab(tab, fromBack){
-  if(!fromBack){
-    var last = _portalTabStack[_portalTabStack.length - 1];
-    if(last !== tab) _portalTabStack.push(tab);
-  }
+function switchPortalTab(tab){
   if(tab !== 'alice') stopAlice();
   if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
@@ -337,9 +288,6 @@ function logout(){
 }
 
 function showPortal(s){
-  window._currentStudent = s;
-  window._portalStudent = s;
-  _portalTabStack = ['progreso'];
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -363,11 +311,9 @@ function showPortal(s){
   var tb=(s.trainingBook||[]).slice().reverse();
 
   // ── PROGRESO ──────────────────────────────────────────
-  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderJourneyPath(s) : '')
-    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderMacroTrends(s) : '')
+  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
-    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderNextMilestone(s) : '')
     + renderProgressBlock(s)
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiBars+'</div>'
     +(cals.length>=2?'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Mi progreso (diagnóstico)</div>'
@@ -1183,66 +1129,32 @@ async function startAliceSession(){
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
   _aliceState.savedSession = null;
-  _aliceState.scenario = null;
-  _aliceSpeakEnabled = true;
   renderAlice();
-  var statusEl = document.getElementById('alice-status');
-  if(statusEl) statusEl.textContent = '';
-  var streamIdx = 0;
-  _aliceState.history.push({ role:'assistant', content:'▋' });
-  renderAlice();
-  scrollAliceMessages();
-  var fullText = '', pending = '';
-  try {
-    var resp = await infinityFetch('/alice/stream', {
+  document.getElementById('alice-status').textContent = 'Alice está preparando tu escenario...';
+  try{
+    var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        student: getAliceStudentPayload(),
-        history: [],
-        message: 'Hi Alice, I am ready to start our English practice session now.',
-        secret: ALICE_SECRET
-      })
+      body: JSON.stringify({ mode:'start_session', student:getAliceStudentPayload(), secret:ALICE_SECRET })
     });
-    if(!resp.ok) throw new Error('stream_'+resp.status);
-    var reader = resp.body.getReader();
-    var dec = new TextDecoder();
-    var lineBuf = '';
-    while(true){
-      var chunk = await reader.read();
-      if(chunk.done) break;
-      lineBuf += dec.decode(chunk.value, {stream:true});
-      var lines = lineBuf.split('\n');
-      lineBuf = lines.pop()||'';
-      for(var i=0;i<lines.length;i++){
-        var line = lines[i];
-        if(!line.startsWith('data: ')) continue;
-        var raw = line.slice(6).trim();
-        if(raw==='[DONE]') break;
-        try {
-          var evt = JSON.parse(raw);
-          if(evt.t){
-            fullText += evt.t;
-            pending += evt.t;
-            _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
-            renderAlice();
-            scrollAliceMessages();
-            pending = flushLiveSpeechChunk(pending, aliceQueueSpeak);
-          }
-        } catch(e){}
-      }
-    }
-    var parts = fullText.split(/\nALICE:\s*/);
+    var data = await r.json();
+    _aliceState.scenario = null; // no hay escenario en modo tutor
+
+    var opening = data.opening || '';
+    // Separar la línea de Alice del tip si viene junto
+    var parts = opening.split(/\nALICE:\s*/);
     var aliceLine = parts[0].trim();
     var aliceTip = parts[1] ? parts[1].trim() : '';
-    _aliceState.history = [];
+
     if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
-    if(aliceLine) _aliceState.history.push({ role:'assistant', content: aliceLine });
-    else if(fullText.trim()) _aliceState.history.push({ role:'assistant', content: fullText.trim() });
-    if(pending.trim().length > 2) aliceQueueSpeak(pending.split('\nALICE:')[0]);
+    if(aliceLine){
+      _aliceState.history.push({ role:'assistant', content:aliceLine });
+      _aliceSpeakEnabled = true; aliceSpeak(aliceLine);
+    }
     renderAlice();
     scrollAliceMessages();
-  } catch(e){
-    if(statusEl) statusEl.textContent='Error conectando con Alice — verificá la conexión.';
+    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
+  }catch(e){
+    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Error conectando con Alice — verificá la conexión.';
   }
 }
 
@@ -1281,8 +1193,7 @@ function cancelAliceSession(){
 async function sendAliceMessage(){
   var input = document.getElementById('alice-input');
   var text = (input?input.value:'').trim();
-  if(!text || _aliceState._sendLock) return;
-  _aliceState._sendLock = true;
+  if(!text) return;
   if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
   _aliceTTSQueue=[]; _aliceTTSBusy=false;
@@ -1336,7 +1247,9 @@ async function sendAliceMessage(){
             _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
             renderAlice();
             scrollAliceMessages();
-            pending = flushLiveSpeechChunk(pending, aliceQueueSpeak);
+            // Sentence-by-sentence TTS
+            var m = pending.match(/^([\s\S]+?[.!?])\s+/);
+            if(m && m[1].length > 8){ aliceQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
           }
         } catch(e){}
       }
@@ -1351,8 +1264,6 @@ async function sendAliceMessage(){
   } catch(e){
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
     renderAlice();
-  } finally {
-    _aliceState._sendLock = false;
   }
 }
 
@@ -1479,7 +1390,7 @@ function aliceSpeak(text){
       window._aliceAudio = null;
       _aliceState.speaking = false;
       // Auto-restart mic if it was active before AI spoke
-      if(_aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, MIC_REOPEN_MS);
+      if(_aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, 700);
     };
     window._aliceAudio.play();
   }).catch(function(){ _aliceState.speaking=false; });
@@ -1493,7 +1404,7 @@ function aliceAutoMic(){
   var rec = new SR();
   rec.lang = ALICE_ACCENTS[_aliceState.accent]?.lang || 'en-US';
   rec.interimResults = true;
-  rec.continuous = true;
+  rec.continuous = false;
   _aliceState.recognition = rec;
   _aliceState.listening = true;
   var btn = document.getElementById('alice-mic-btn');
@@ -1504,27 +1415,19 @@ function aliceAutoMic(){
     var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
     var inp=document.getElementById('alice-input');
     if(inp) inp.value=t;
-    armSilenceTurn(rec, function(){ return inp ? inp.value : ''; }, function(text){
-      if(_aliceState.speaking || _aliceState._sendLock) return;
-      if(inp) inp.value = text;
-      if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; }
-      _aliceState.speaking = false;
-      sendAliceMessage();
-    });
   };
   rec.onend = function(){
-    clearSilenceTurn(rec);
     _aliceState.listening=false;
     _aliceState.recognition=null;
     if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
     if(statusEl) statusEl.textContent='';
     var inp=document.getElementById('alice-input');
-    if(inp && inp.value.trim() && !_aliceState.speaking && !_aliceState._sendLock){
+    if(inp && inp.value.trim()){
       if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; }
       _aliceState.speaking=false;
       sendAliceMessage();
     } else if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking){
-      setTimeout(aliceAutoMic, MIC_REOPEN_MS);
+      setTimeout(aliceAutoMic, 400);
     }
   };
   rec.onerror = function(e){
@@ -1533,7 +1436,7 @@ function aliceAutoMic(){
     if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
     if(statusEl) statusEl.textContent='';
     if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking && e.error==='no-speech'){
-      setTimeout(aliceAutoMic, MIC_REOPEN_MS);
+      setTimeout(aliceAutoMic, 400);
     }
   };
   try{ rec.start(); }catch(e){}
@@ -1575,6 +1478,9 @@ var NEXORA_CS_SCENARIOS = [
   {id:'cs10',title:'Wrong Information',desc:'Client received wrong information from another agent. Feels misled.',mood:'disappointed',difficulty:3},
 ];
 
+var NEXORA_NAMES_F = ['Margaret','Sofia','Patricia','Linda','Jennifer','Amanda','Sarah','Elizabeth','Karen','Lisa'];
+var NEXORA_NAMES_M = ['James','David','Robert','Michael','William','Christopher','Carlos','Brian','Daniel','Kevin'];
+var NEXORA_LAST = ['Thompson','Martinez','Johnson','Williams','Brown','Davis','Wilson','Moore','Taylor','Anderson'];
 var NEXORA_SERVICES = [
   {name:'Personal Loan',price:'$189.50/mo',desc:'Fixed-rate personal financing'},
   {name:'Premium Account',price:'$45.00/mo',desc:'Full-service banking'},
@@ -1584,6 +1490,57 @@ var NEXORA_SERVICES = [
 ];
 var NEXORA_STREETS = ['Oak St','Maple Ave','Cedar Ln','Pine Rd','Elm Blvd'];
 var NEXORA_CITIES = ['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO'];
+
+var NEXORA_VOICES_MALE = [
+  {id:'bfGb7JTLUnZebZRiFYyq', accent:'American Male'},
+  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
+  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
+  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'}
+];
+var NEXORA_VOICES_FEMALE = [
+  {id:'r1KmysJdVYZjJCm4mL3b', accent:'American Female'},
+  {id:'NoOVOzCQFLOvtsMoNcdT', accent:'American Female'},
+  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
+  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
+  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'}
+];
+var NEXORA_TTS_FALLBACKS = ['bfGb7JTLUnZebZRiFYyq','r1KmysJdVYZjJCm4mL3b','NoOVOzCQFLOvtsMoNcdT'];
+
+function nexoraAccentKey(accent){
+  var m = String(accent || '').match(/^(American|Chinese|German|Indian)/i);
+  return m ? m[1].toLowerCase() : 'american';
+}
+function nexoraVoicesForAccent(pool, accent){
+  var key = nexoraAccentKey(accent);
+  var filtered = (pool || []).filter(function(v){ return nexoraAccentKey(v.accent) === key; });
+  return filtered.length ? filtered : (pool || []);
+}
+function nexoraVoiceIdsForProfile(profile){
+  var fullPool = (profile && profile.gender === 'female') ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
+  var accentPool = nexoraVoicesForAccent(fullPool, profile && profile.voiceAccent);
+  var ids = [];
+  if(profile && profile.voiceId) ids.push(profile.voiceId);
+  accentPool.forEach(function(v){ if(ids.indexOf(v.id) < 0) ids.push(v.id); });
+  NEXORA_TTS_FALLBACKS.forEach(function(id){
+    if(accentPool.some(function(v){ return v.id === id; }) && ids.indexOf(id) < 0) ids.push(id);
+  });
+  return ids.length ? ids : accentPool.map(function(v){ return v.id; });
+}
+function pickNexoraVoiceForProfile(profile, femaleOverride){
+  var female = (typeof femaleOverride === 'boolean') ? femaleOverride : (profile && profile.gender === 'female');
+  var fullPool = female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
+  var pool = nexoraVoicesForAccent(fullPool, (profile && profile.voiceAccent) || 'American');
+  if(profile && profile.voiceId){
+    for(var i = 0; i < pool.length; i++){
+      if(pool[i].id === profile.voiceId) return pool[i];
+    }
+  }
+  return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+}
+function pickNexoraVoice(female){
+  var pool = nexoraVoicesForAccent(female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE, 'American');
+  return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+}
 
 var NEXORA_ENGINE_TYPE_MAP = {
   customer_service:'customer_service',
@@ -1638,51 +1595,44 @@ function nexoraBuildAccountContext(profile){
   };
 }
 
+function nexoraInstantOpening(p, sc){
+  if(p.disputeAmount) return "Hello, I'm calling about an unauthorized charge of "+p.disputeAmount+" on account "+p.account+".";
+  if(p.lateFee) return "Hi, I need to dispute a late fee of "+p.lateFee+" on account "+p.account+".";
+  if(p.refundAmount) return "Hello, I'm calling to follow up on a refund of $"+p.refundAmount+" for account "+p.account+".";
+  var issue = (sc && sc.title) ? sc.title : 'my account';
+  var desc = (sc && sc.desc) ? sc.desc : 'I need help';
+  return "Hello, I'm calling about "+issue+" — "+desc+".";
+}
+
+function nexoraWarmApi(){
+  fetch(INFINITY_API+'/').catch(function(){});
+  infinityFetch('/nexora/voices',{headers:authHeaders()})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(d){
+    if(d&&d.male&&d.male.length) NEXORA_VOICES_MALE=d.male;
+    if(d&&d.female&&d.female.length) NEXORA_VOICES_FEMALE=d.female;
+    if(d&&d.fallbackIds&&d.fallbackIds.length) NEXORA_TTS_FALLBACKS=d.fallbackIds;
+  }).catch(function(){});
+  infinityFetch('/nexora/characters',{headers:authHeaders()})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(applyNexoraCharactersPayload)
+  .catch(function(){});
+}
+
 function nexoraGenerateProfile(scenario){
-  var id = pickRandomNexoraIdentity();
-  var fn = id.firstName;
-  var ln = id.lastName;
-  var phone = '('+( 200+Math.floor(Math.random()*800))+') '+(100+Math.floor(Math.random()*900))+'-'+(1000+Math.floor(Math.random()*9000));
-  var acct = '#N'+Math.floor(100000+Math.random()*900000);
-  var ssn = String(1000+Math.floor(Math.random()*9000));
-  var addr = (100+Math.floor(Math.random()*9900))+' '+NEXORA_STREETS[Math.floor(Math.random()*NEXORA_STREETS.length)]+', '+NEXORA_CITIES[Math.floor(Math.random()*NEXORA_CITIES.length)];
-  var year = 1965+Math.floor(Math.random()*30);
-  var dob = year+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-'+String(1+Math.floor(Math.random()*28)).padStart(2,'0');
-  var memberYear = 2017+Math.floor(Math.random()*7);
-  var memberDate = memberYear+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-01';
-  var shuffled = NEXORA_SERVICES.slice().sort(function(){return Math.random()-0.5;});
-  var services = shuffled.slice(0, 1+Math.floor(Math.random()*2));
-  var billingNotes = [];
-  var disputeAmount = null;
-  var lateFee = null;
-  var refundAmount = null;
-  if(scenario){
-    if(scenario.id==='cs1'||scenario.id==='cs5'||scenario.id==='cs10'){
-      disputeAmount = '$'+(15+Math.floor(Math.random()*85))+'.00';
-      billingNotes.push({type:'charge',label:'Unexpected charge',amount:disputeAmount,date:new Date(Date.now()-3*86400000).toLocaleDateString('en-US'),note:'Not authorized by client'});
-    }
-    if(scenario.id==='cs7'){
-      lateFee = '$'+(25+Math.floor(Math.random()*15))+'.00';
-      billingNotes.push({type:'fee',label:'Late payment fee',amount:lateFee,date:new Date(Date.now()-7*86400000).toLocaleDateString('en-US'),note:'Client disputes — claims payment was on time'});
-    }
-    if(scenario.id==='cs4'){
-      refundAmount = (services[0] ? parseFloat(services[0].price.replace(/[^0-9.]/g,'')) : 29).toFixed(2);
-      billingNotes.push({type:'refund',label:'Refund requested',amount:'$'+refundAmount,date:new Date(Date.now()-5*86400000).toLocaleDateString('en-US'),note:'Client says service did not work'});
-    }
-    if(scenario.id==='cs2'){
-      billingNotes.push({type:'cancel',label:'Cancellation requested',amount:'',date:new Date().toLocaleDateString('en-US'),note:'Client initiated cancellation request'});
-    }
-  }
-  var voice = pickNexoraVoiceForProfile({ gender: id.gender, voiceId: id.voiceId, voiceAccent: id.voiceAccent });
-  return {
-    name:fn+' '+ln, firstName:fn, lastName:ln, gender:id.gender, ethnicity:id.ethnicity,
-    phone:phone, account:acct, ssn4:ssn,
-    email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com', address:addr, dob:dob,
-    memberSince:memberDate, status:'Active', services:services,
-    billingNotes:billingNotes, disputeAmount:disputeAmount, lateFee:lateFee, refundAmount:refundAmount,
-    voiceId:voice.id, voiceAccent:voice.accent,
-    scenario:scenario, generatedAt:new Date().toISOString()
-  };
+  var base = pickNextNexoraCharacter();
+  if(base) return buildNexoraProfileFromCharacter(base, scenario);
+  var isFemale = Math.random() > 0.5;
+  var fn = isFemale ? NEXORA_NAMES_F[Math.floor(Math.random()*NEXORA_NAMES_F.length)] : NEXORA_NAMES_M[Math.floor(Math.random()*NEXORA_NAMES_M.length)];
+  var ln = NEXORA_LAST[Math.floor(Math.random()*NEXORA_LAST.length)];
+  var voice = pickNexoraVoice(isFemale);
+  return buildNexoraProfileFromCharacter({
+    firstName:fn, lastName:ln, gender:isFemale?'female':'male',
+    phone:'(555) 555-0100', account:'#N000000', ssn4:'0000',
+    email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com',
+    address:'100 Oak St, Portland OR', dob:'1980-01-01', memberSince:'2020-01-01',
+    services:[NEXORA_SERVICES[0]], voiceId:voice.id, voiceAccent:voice.accent
+  }, scenario);
 }
 
 // ── NEXORA STATE ──────────────────────────────────────────────
@@ -1708,22 +1658,15 @@ function renderNexoraTab(s){
     return;
   }
   var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service Call',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Sales Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
-  var descByType = {
-    mock_interview: 'Entrás a una entrevista laboral en vivo (formato STAR). El panel hará preguntas conductuales — respondé en inglés con situación, acción y resultado concreto.',
-    customer_service: 'Recibirás una llamada de cliente. Buscá el número en el CRM, revisá las pestañas y resolvé el caso profesionalmente — todo en inglés.',
-    team_meeting: 'Te unís a una reunión de equipo en vivo. Participá con claridad, conectores y estructura profesional.',
-    problem_solving: 'Escenario de resolución de problemas bajo presión. Explicá tu razonamiento paso a paso en inglés.',
-    presentation: 'Presentación corporativa en vivo. Estructurá tus ideas con apertura, desarrollo y cierre.',
-    negotiation: 'Simulación de negociación. Defendé tu posición con profesionalismo y claridad.',
-    stakeholder: 'Conversación con stakeholder. Comunicá impacto, riesgos y próximos pasos en inglés operacional.'
-  };
   var sessionLabel = (typeLabels[nxConfig.type] || 'Nexora Simulation').toUpperCase();
-  root.innerHTML = '<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.35);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(91,33,182,0.12);">'
-    +'<div style="font-size:11px;font-weight:700;color:#C084FC;letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
-    +'<div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
-    +'<div style="font-size:12px;color:var(--t2);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
-    +'<p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:1.25rem;">'+(descByType[nxConfig.type]||'Nexora simula el escenario configurado por tu trainer. Respondé en inglés con profesionalismo.')+'</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:white;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(34,197,94,0.25);"><i class="ti ti-phone-incoming"></i>Launch Nexora Lab</button>'
+  fetch(INFINITY_API+'/').catch(function(){});
+  nexoraWarmApi();
+  root.innerHTML = '<div style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:1.25rem;margin-top:1rem;box-shadow:0 8px 24px rgba(139,92,246,0.25);">'
+    +'<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.1em;margin-bottom:6px;">SESIÓN DE HOY · '+sessionLabel+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
+    +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
 }
@@ -1773,7 +1716,7 @@ function nexoraShowCRM(){
     +'<div style="padding:1.5rem;border-right:1px solid #E2E8F0;overflow-y:auto;">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:8px;height:8px;background:#F5A623;border-radius:50%;animation:pd 1s infinite;"></div><span style="font-size:11px;font-weight:700;color:#F5A623;">INCOMING CALL</span></div>'
     +'<div style="font-size:20px;font-weight:900;color:#1E2761;margin-bottom:2px;">'+p.name+'</div>'
-    +'<div style="font-size:12px;color:#94A3B8;margin-bottom:12px;">Account '+p.account+' · Member since '+p.memberSince+(p.voiceAccent?' · '+p.voiceAccent:'')+'</div>'
+    +'<div style="font-size:12px;color:#94A3B8;margin-bottom:12px;">Account '+p.account+' · Member since '+p.memberSince+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:12px;">'
     +'<div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;">Phone</div><div style="font-weight:600;">'+p.phone+'</div></div>'
     +'<div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;">Email</div><div style="font-weight:600;">'+p.email+'</div></div>'
@@ -1829,25 +1772,8 @@ function nexoraShowCRM(){
 }
 
 // ── ANSWER CALL ────────────────────────────────────────────────
-function stripStageDirections(text){
-  if(!text) return text;
-  var s = String(text).trim();
-  s = s.replace(/\*[^*]{1,160}\*/g,' ').replace(/\[[^\]]{1,160}\]/g,' ');
-  s = s.replace(/\([^)]{0,120}(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|pause|breath|clear throat|gesture|body language)[^)]*\)/gi,' ');
-  var idx = s.search(/\b(Hello|Hi|Hey|Good morning|Good afternoon|Good evening|I['']m|I am|My name|This is|Well|Yes|No|Um|So|Look|Excuse me|Sorry|Thank you|Thanks)\b/i);
-  if(idx > 0){
-    var before = s.slice(0, idx);
-    if(/(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|speaks?|answers?|responds?|client|customer)/i.test(before)) s = s.slice(idx);
-  }
-  var quoted = s.match(/["']([^"']{4,})["']/);
-  if(quoted && /(?:smil|nod|extend|warmly|hand)/i.test(s.replace(quoted[0],''))) s = quoted[1];
-  return s.replace(/\s+/g,' ').trim();
-}
-
 function sanitizeNexoraReply(reply, profile){
-  if(!reply) return reply;
-  reply = stripStageDirections(reply);
-  if(!profile || !profile.name) return reply;
+  if(!reply || !profile || !profile.name) return reply;
   var first = profile.firstName || profile.name.split(' ')[0];
   var full = profile.name;
   var notNames = {calling:1,looking:1,trying:1,wondering:1,sorry:1,just:1,not:1,here:1,going:1,having:1,getting:1,checking:1,waiting:1,following:1,writing:1,working:1,thinking:1,sure:1,afraid:1,glad:1,happy:1,really:1,very:1,also:1,still:1,actually:1,about:1,from:1,with:1,because:1};
@@ -1866,78 +1792,13 @@ function sanitizeNexoraReply(reply, profile){
     .replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
 }
 
-var TURN_SILENCE_MS = 850;
-var MIC_REOPEN_MS = 450;
-
-function clearSilenceTurn(rec){
-  if(rec && rec._silenceTimer){ clearTimeout(rec._silenceTimer); rec._silenceTimer = null; }
-}
-
-function armSilenceTurn(rec, getText, onSend){
-  clearSilenceTurn(rec);
-  rec._silenceTimer = setTimeout(function(){
-    var text = String(getText() || '').trim();
-    if(!text) return;
-    clearSilenceTurn(rec);
-    try{ rec.stop(); }catch(e){}
-    onSend(text);
-  }, TURN_SILENCE_MS);
-}
-
-function flushLiveSpeechChunk(pending, speakFn){
-  if(!pending) return pending;
-  var m = pending.match(/^([\s\S]+?[.!?])\s+/);
-  if(m && m[1].length > 2){ speakFn(m[1]); return pending.slice(m[0].length); }
-  if(pending.length >= 8){
-    var sp = pending.indexOf(' ', 5);
-    if(sp > 4){ speakFn(pending.slice(0, sp).trim()); return pending.slice(sp + 1); }
-  }
-  return pending;
-}
-
-async function nexoraStreamReply(payload, onPartial){
-  var fullText = '';
-  var pending = '';
-  var resp = await infinityFetch('/nexora/stream', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  });
-  var reader = resp.body.getReader();
-  var dec = new TextDecoder();
-  var lineBuf = '';
-  while(true){
-    var chunk = await reader.read();
-    if(chunk.done) break;
-    lineBuf += dec.decode(chunk.value, {stream:true});
-    var lines = lineBuf.split('\n');
-    lineBuf = lines.pop() || '';
-    for(var i=0;i<lines.length;i++){
-      var line = lines[i];
-      if(!line.startsWith('data: ')) continue;
-      var raw = line.slice(6).trim();
-      if(raw === '[DONE]') break;
-      try {
-        var evt = JSON.parse(raw);
-        if(evt.t){
-          fullText += evt.t;
-          pending += evt.t;
-          if(onPartial) onPartial(fullText);
-          pending = flushLiveSpeechChunk(pending, nexoraQueueSpeak);
-        }
-      } catch(e){}
-    }
-  }
-  if(pending.trim().length > 2) nexoraQueueSpeak(pending.split('\nALICE:')[0]);
-  return fullText.trim();
-}
-
 async function nexoraAnswerCall(){
   var p = _nxState.profile;
+  var sc = _nxState.scenario;
   var statusEl = document.getElementById('nx-call-status');
   if(statusEl) statusEl.textContent = 'Call active';
   _nxState.active = true;
 
-  // Habilitar controles
   var inp = document.getElementById('nx-input');
   var micBtn = document.getElementById('nx-mic-btn');
   var sendBtn = document.getElementById('nx-send-btn');
@@ -1945,44 +1806,29 @@ async function nexoraAnswerCall(){
   if(micBtn) micBtn.disabled = false;
   if(sendBtn) sendBtn.disabled = false;
 
-  // Mostrar botones de llamada
-  // buttons always visible
-
-  // Client connects on answer
   var clientStatus = document.getElementById('nx-alice-status');
-  if(clientStatus) clientStatus.textContent = p.firstName+' is connecting...';
+  if(clientStatus) clientStatus.textContent = '';
 
+  var student = window._currentStudent || window._portalStudent || {};
+  var accountContext = nexoraBuildAccountContext(p);
+  var opener = nexoraInstantOpening(p, sc);
   try {
-    var student = window._currentStudent || window._portalStudent || {};
-    var sc = _nxState.scenario;
-    var accountContext = nexoraBuildAccountContext(p);
-    var liveMsgId = 'nx-live-' + Date.now();
-    nexoraAddMsg('<span id="'+liveMsgId+'">...</span>', 'client');
-
-    var fullRaw = await nexoraStreamReply({
-      message: 'START_CALL',
-      history: [],
-      profile: p,
-      scenario: sc,
-      accountContext: accountContext,
-      agentName: (student.info&&student.info.name)||'Agent',
-      student: student
-    }, function(partial){
-      var el = document.getElementById(liveMsgId);
-      if(el) el.textContent = partial;
+    var r = await infinityFetch('/nexora', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message:'START_CALL', history:[],
+        profile:p, scenario:sc,
+        agentName:(student.info&&student.info.name)||'Agent',
+        accountContext:accountContext
+      })
     });
-
-    var reply = sanitizeNexoraReply((fullRaw||'Hello, is this customer service?').split('\nALICE:')[0].trim(), p);
-    var el = document.getElementById(liveMsgId);
-    if(el) el.textContent = reply;
-    if(clientStatus) clientStatus.textContent = '';
-    if(!fullRaw) nexoraQueueSpeak(reply);
-    _nxState.history.push({role:'assistant',content:reply});
-    _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-  } catch(e){
-    if(clientStatus) clientStatus.textContent = '';
-    nexoraAddMsg('Hello, is this customer service?', 'client');
-  }
+    var d = await r.json();
+    if(d && d.reply) opener = sanitizeNexoraReply(d.reply, p) || opener;
+  } catch(e){}
+  nexoraAddMsg(opener, 'client');
+  nexoraSpeak(opener);
+  _nxState.history.push({role:'assistant',content:opener});
+  _nxState.transcript.push('CLIENT ('+p.firstName+'): '+opener);
 }
 
 // ── HOLD ───────────────────────────────────────────────────────
@@ -2027,7 +1873,7 @@ function nexoraEndCall(isTransfer){
   nexoraAddMsg('*[Call ended — '+(isTransfer?'transferred to supervisor':'agent disconnected')+']*','system');
   
   // Show Q&A after 1 second
-  setTimeout(function(){ nexoraGenerateQA(isTransfer); }, 1000);
+  setTimeout(function(){ nexoraGenerateQA(isTransfer); }, 0);
 }
 
 // ── TIMER ──────────────────────────────────────────────────────
@@ -2050,55 +1896,45 @@ async function sendNexoraMsg(){
   var text = inp ? inp.value.trim() : '';
   if(!text || !_nxState.active) return;
   inp.value = '';
-  await nexoraSendToAlice(text);
+  nexoraSendToAlice(text);
 }
 
 async function sendNexoraMsgVoice(text){
   if(!text || !_nxState.active) return;
-  await nexoraSendToAlice(text);
+  nexoraSendToAlice(text);
 }
 
-async function nexoraSendToAlice(text){
-  if(_nxState._sendLock) return;
-  _nxState._sendLock = true;
+function nexoraSendToAlice(text){
   var p = _nxState.profile;
   var sc = _nxState.scenario;
   var accountContext = nexoraBuildAccountContext(p);
-  if(window._nxAudio){ window._nxAudio.pause(); window._nxAudio=null; }
-  _nexoraTTSQueue=[]; _nexoraTTSBusy=false; _nexoraSpeakId++;
   nexoraAddMsg(text, 'agent');
   _nxState.history.push({role:'user',content:text});
   _nxState.transcript.push('AGENT: '+text);
   var statusEl = document.getElementById('nx-alice-status');
   if(statusEl) statusEl.textContent = p.firstName+' is responding...';
-  try {
-    var student = window._currentStudent || window._portalStudent || {};
-    var liveMsgId = 'nx-live-' + Date.now();
-    nexoraAddMsg('<span id="'+liveMsgId+'">...</span>', 'client');
-    var fullRaw = await nexoraStreamReply({
+  var student = window._currentStudent || window._portalStudent || {};
+  infinityFetch('/nexora',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
       message: text,
       history: _nxState.history.slice(-14),
       profile: p,
       scenario: sc,
       accountContext: accountContext,
-      agentName: (student.info&&student.info.name)||'Agent',
-      student: student
-    }, function(partial){
-      var el = document.getElementById(liveMsgId);
-      if(el) el.textContent = partial;
-    });
-    var reply = sanitizeNexoraReply((fullRaw||'').split('\nALICE:')[0].trim(), p);
-    var el = document.getElementById(liveMsgId);
-    if(el) el.textContent = reply || '...';
+      agentName: (student.info&&student.info.name)||'Agent'
+    })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    var reply = sanitizeNexoraReply((data.reply||'').split('\nALICE:')[0].trim(), p);
     if(statusEl) statusEl.textContent='';
-    if(!fullRaw && reply) nexoraQueueSpeak(reply);
+    if(!reply) return;
+    nexoraAddMsg(reply,'client');
+    nexoraSpeak(reply);
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-  }catch(e){
+  }).catch(function(){
     if(statusEl) statusEl.textContent='';
-  } finally {
-    _nxState._sendLock = false;
-  }
+  });
 }
 
 // ── Q&A ────────────────────────────────────────────────────────
@@ -2238,41 +2074,22 @@ function toggleNexoraMic(){
   if(window._nxAudio) window._nxAudio.pause();
   _nxState.recognition = new SR();
   _nxState.recognition.lang='en-US';
-  _nxState.recognition.interimResults=true;
-  _nxState.recognition.continuous=true;
+  _nxState.recognition.interimResults=false;
+  _nxState.recognition.continuous=false;
   _nxState.micListening=true;
   var btn=document.getElementById('nx-mic-btn');
   if(btn){btn.style.background='rgba(239,68,68,0.3)';btn.style.borderColor='#EF4444';btn.style.color='white';}
-  var inp = document.getElementById('nx-input');
-  _nxState.recognition.onresult=function(e){
-    var t = Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
-    window._nxVoice = t;
-    if(inp) inp.value = t;
-    armSilenceTurn(_nxState.recognition, function(){ return window._nxVoice || (inp ? inp.value : ''); }, function(text){
-      if(_nxState._sendLock) return;
-      window._nxVoice = text;
-      if(inp) inp.value = text;
-      stopNexoraMic();
-      sendNexoraMsgVoice(text);
-      window._nxVoice = '';
-    });
-  };
+  _nxState.recognition.onresult=function(e){ window._nxVoice=Array.from(e.results).map(function(r){return r[0].transcript;}).join(''); };
   _nxState.recognition.onend=function(){
-    clearSilenceTurn(_nxState.recognition);
-    var voice = (window._nxVoice || (inp ? inp.value : '')).trim();
     stopNexoraMic();
-    if(voice && !_nxState._sendLock){ sendNexoraMsgVoice(voice); window._nxVoice=''; if(inp) inp.value=''; }
+    if(window._nxVoice&&window._nxVoice.trim()){ sendNexoraMsgVoice(window._nxVoice.trim()); window._nxVoice=''; }
   };
   _nxState.recognition.onerror=function(){ stopNexoraMic(); };
   _nxState.recognition.start();
 }
 
 function stopNexoraMic(){
-  if(_nxState.recognition){
-    clearSilenceTurn(_nxState.recognition);
-    try{_nxState.recognition.stop();}catch(e){}
-    _nxState.recognition = null;
-  }
+  if(_nxState.recognition) try{_nxState.recognition.stop();}catch(e){}
   _nxState.micListening=false;
   var btn=document.getElementById('nx-mic-btn');
   if(btn){btn.style.background='rgba(192,132,252,0.1)';btn.style.borderColor='rgba(192,132,252,0.3)';btn.style.color='#C084FC';}
@@ -2298,12 +2115,22 @@ function nexoraAddMsg(text, from){
 }
 
 // ── SPEAK ──────────────────────────────────────────────────────
-var _nexoraTTSQueue = [];
-var _nexoraTTSBusy = false;
-var _nexoraSpeakId = 0;
+function nexoraTtsTry(text, voiceIds, idx){
+  if(idx>=voiceIds.length) return;
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:text,voiceId:voiceIds[idx]})})
+  .then(function(r){return r.ok?r.blob():null;})
+  .then(function(b){
+    if(!b) return nexoraTtsTry(text,voiceIds,idx+1);
+    if(window._nxAudio) window._nxAudio.pause();
+    window._nxAudio=new Audio(URL.createObjectURL(b));
+    window._nxAudio.play();
+  })
+  .catch(function(){ nexoraTtsTry(text,voiceIds,idx+1); });
+}
 
-function nexoraCleanForTTS(text){
-  return stripStageDirections(text)
+function nexoraSpeak(text){
+  if(!text) return;
+  var clean=text
     .replace(/ALICE:|CLAIRE:|JILL:/g,'')
     .replace(/[*_#<>\[\]{}|~`^]/g,' ')
     .replace(/\.{2,}/g,'.')
@@ -2311,42 +2138,8 @@ function nexoraCleanForTTS(text){
     .replace(/;/g,' ')
     .replace(/\s+/g,' ')
     .trim().slice(0,500);
-}
-
-function _nexoraTTSFlush(){
-  if(_nexoraTTSBusy || _nexoraTTSQueue.length===0) return;
-  _nexoraTTSBusy = true;
-  var speakId = ++_nexoraSpeakId;
-  var chunk = _nexoraTTSQueue.shift();
-  var clean = nexoraCleanForTTS(chunk);
-  if(clean.length < 3){ _nexoraTTSBusy=false; _nexoraTTSFlush(); return; }
-  var voiceId = (_nxState.profile && _nxState.profile.voiceId) ? _nxState.profile.voiceId : null;
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
-  .then(function(r){return r.ok?r.blob():null;})
-  .then(function(b){
-    if(!b || speakId !== _nexoraSpeakId){ _nexoraTTSBusy=false; _nexoraTTSFlush(); return; }
-    if(window._nxAudio) window._nxAudio.pause();
-    var url = URL.createObjectURL(b);
-    window._nxAudio = new Audio(url);
-    window._nxAudio.onended = function(){
-      URL.revokeObjectURL(url);
-      _nexoraTTSBusy = false;
-      _nexoraTTSFlush();
-    };
-    window._nxAudio.play();
-  }).catch(function(){ _nexoraTTSBusy=false; _nexoraTTSFlush(); });
-}
-
-function nexoraQueueSpeak(text){
-  if(!text || text.trim().length < 2) return;
-  _nexoraTTSQueue.push(text);
-  _nexoraTTSFlush();
-}
-
-function nexoraSpeak(text){
-  _nexoraTTSQueue = [];
-  _nexoraTTSBusy = false;
-  nexoraQueueSpeak(text);
+  if(!clean) return;
+  nexoraTtsTry(clean, nexoraVoiceIdsForProfile(_nxState.profile), 0);
 }
 
 window.addEventListener('beforeunload',function(){
@@ -2423,7 +2216,7 @@ function _jillTTSFlush(){
       _jillState.audio = null;
       _jillTTSBusy = false;
       _jillState.speaking = _jillTTSQueue.length > 0;
-      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, MIC_REOPEN_MS);
+      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, 700);
       _jillTTSFlush();
     };
     _jillState.audio.play();
@@ -2456,7 +2249,7 @@ function _aliceTTSFlush(){
       window._aliceAudio = null;
       _aliceTTSBusy = false;
       _aliceState.speaking = _aliceTTSQueue.length > 0;
-      if(!_aliceState.speaking && _aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, MIC_REOPEN_MS);
+      if(!_aliceState.speaking && _aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, 700);
       _aliceTTSFlush();
     };
     window._aliceAudio.play();
@@ -2482,6 +2275,7 @@ function jillStopAudio(){
 }
 
 function jillStopMic(){
+  jillClearSilenceTimer();
   if(_jillState.recognition){ try{_jillState.recognition.stop();}catch(e){} _jillState.recognition = null; }
   _jillState.micRunning = false;
   var btn = document.getElementById('jill-mic-btn');
@@ -2493,7 +2287,26 @@ function jillStopAll(){
   jillStopMic();
 }
 
-// Voice Activity Detection: auto-start mic and send on silence
+var _jillSilenceTimer = null;
+var JILL_SILENCE_MS = 2200;
+
+function jillClearSilenceTimer(){
+  if(_jillSilenceTimer){ clearTimeout(_jillSilenceTimer); _jillSilenceTimer = null; }
+}
+
+function jillScheduleSend(){
+  jillClearSilenceTimer();
+  _jillSilenceTimer = setTimeout(function(){
+    _jillSilenceTimer = null;
+    if(_jillState.speaking || !_jillState.autoMic) return;
+    var inp = document.getElementById('jill-input');
+    if(!inp || !inp.value.trim()) return;
+    jillStopMic();
+    sendJillMsg();
+  }, JILL_SILENCE_MS);
+}
+
+// Voice Activity Detection: escucha continua — espera a que el estudiante termine
 function jillStartAutoMic(){
   if(_jillState.micRunning || _jillState.speaking) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2508,40 +2321,33 @@ function jillStartAutoMic(){
   var btn = document.getElementById('jill-mic-btn');
   var statusEl = document.getElementById('jill-status');
   if(btn){ btn.style.background = '#dc2626'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
-  if(statusEl) statusEl.textContent = '🎤 Escuchando...';
+  if(statusEl) statusEl.textContent = '🎤 Escuchando… hablá tranquilo, espero a que termines';
 
   rec.onresult = function(e){
     var t = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
     var inp = document.getElementById('jill-input');
     if(inp) inp.value = t;
-    armSilenceTurn(rec, function(){ return inp ? inp.value : ''; }, function(text){
-      if(_jillState.speaking || _jillState._sendLock) return;
-      if(inp) inp.value = text;
-      jillStopAudio();
-      sendJillMsg();
-    });
+    var last = e.results[e.results.length - 1];
+    if(last && last.isFinal && t.trim()) jillScheduleSend();
   };
   rec.onend = function(){
-    clearSilenceTurn(rec);
     _jillState.micRunning = false;
     _jillState.recognition = null;
-    if(btn){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
-    if(statusEl) statusEl.textContent = '';
-    var inp = document.getElementById('jill-input');
-    if(inp && inp.value.trim() && !_jillState.speaking && !_jillState._sendLock){
-      jillStopAudio();
-      sendJillMsg();
-    } else if(_jillState.autoMic && !_jillState.speaking){
-      setTimeout(jillStartAutoMic, MIC_REOPEN_MS);
+    if(_jillState.autoMic && !_jillState.speaking && !_jillSilenceTimer){
+      setTimeout(jillStartAutoMic, 350);
+      return;
     }
+    if(btn && !_jillState.autoMic){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
+    if(statusEl && !_jillState.autoMic) statusEl.textContent = '';
   };
   rec.onerror = function(e){
     _jillState.micRunning = false;
     _jillState.recognition = null;
+    jillClearSilenceTimer();
     if(btn){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
     if(statusEl) statusEl.textContent = '';
     if(_jillState.autoMic && !_jillState.speaking && e.error === 'no-speech'){
-      setTimeout(jillStartAutoMic, MIC_REOPEN_MS);
+      setTimeout(jillStartAutoMic, 400);
     }
   };
   try { rec.start(); } catch(e){}
@@ -2599,73 +2405,28 @@ function renderJillTab(s){
 
 async function startJillSession(s){
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = '';
+  if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
   var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
-  var msgs = document.getElementById('jill-messages');
-  var bubble = document.createElement('div');
-  bubble.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;';
-  var bubbleId = 'jb'+Date.now();
-  bubble.innerHTML = '<div id="'+bubbleId+'" style="max-width:88%;background:#ffffff;border:1px solid #d1d5db;border-left:4px solid #0a5c3c;color:#111827;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.7;min-height:24px;">▋</div>';
-  if(msgs){ msgs.appendChild(bubble); msgs.scrollTop = msgs.scrollHeight; }
-  var el = document.getElementById(bubbleId);
-  var fullText = '', pending = '';
   try {
-    var resp = await infinityFetch('/jill/stream', {
+    var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        student: s, history: [],
-        message: 'Hola Jill, acabo de abrir la sesión y estoy listo para empezar.',
-        weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[],
-        jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState,
-        track: jillCtx.track, reinforcement: jillCtx.reinforcement||[]
-      })
+      body: JSON.stringify({ student: s, history:[], mode:'start_session', weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
-    var reader = resp.body.getReader();
-    var dec = new TextDecoder();
-    var lineBuf = '';
-    while(true){
-      var chunk = await reader.read();
-      if(chunk.done) break;
-      lineBuf += dec.decode(chunk.value, {stream:true});
-      var lines = lineBuf.split('\n');
-      lineBuf = lines.pop()||'';
-      for(var i=0;i<lines.length;i++){
-        var line = lines[i];
-        if(!line.startsWith('data: ')) continue;
-        var raw = line.slice(6).trim();
-        if(raw==='[DONE]') break;
-        try {
-          var evt = JSON.parse(raw);
-          if(evt.t){
-            fullText += evt.t;
-            pending += evt.t;
-            if(el){
-              el.innerHTML = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'▋';
-              if(msgs) msgs.scrollTop = msgs.scrollHeight;
-            }
-            pending = flushLiveSpeechChunk(pending, jillQueueSpeak);
-          }
-        } catch(e){}
-      }
-    }
-    if(el){
-      var formatted = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-      el.innerHTML = formatted
-        +'<button onclick="jillQueueSpeak(this.dataset.text)" data-text="'+fullText.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>';
-    }
-    if(pending.trim().length > 2) jillQueueSpeak(pending);
-    _jillState.history.push({role:'assistant', content: fullText || '¡Hola! Bienvenido a tu sesión de Foundations.'});
+    var data = await r.json();
+    if(statusEl) statusEl.textContent = '';
+    jillAddMsg(data.reply||'¡Hola! Bienvenido a tu sesión de Foundations.', 'jill', data.contentType);
+    jillSpeak(data.reply||'');
+    _jillState.history.push({role:'assistant', content: data.reply||''});
   } catch(e){
-    if(el) el.innerHTML = '¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?';
-    else jillAddMsg('¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?', 'jill', 'text');
+    if(statusEl) statusEl.textContent = '';
+    jillAddMsg('¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?', 'jill', 'text');
   }
 }
 
 async function sendJillMsg(){
   var inp = document.getElementById('jill-input');
   var text = inp ? inp.value.trim() : '';
-  if(!text || _jillState._sendLock) return;
-  _jillState._sendLock = true;
+  if(!text) return;
   jillStopAll();
   _jillTTSQueue = []; _jillTTSBusy = false;
   inp.value = '';
@@ -2740,8 +2501,6 @@ async function sendJillMsg(){
   } catch(e){
     if(el) el.innerHTML = 'Error de conexión. Intentá de nuevo.';
     if(statusEl) statusEl.textContent = '';
-  } finally {
-    _jillState._sendLock = false;
   }
 }
 
