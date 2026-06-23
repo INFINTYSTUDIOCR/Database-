@@ -336,6 +336,7 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
   alice:  { sessionsPerDay: 5, maxSteps: 4 },
+  jill:   { sessionsPerDay: 5, maxSteps: 4 },
   nexora: { sessionsPerDay: 5, maxSteps: 3 },
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
@@ -396,6 +397,12 @@ function getDemoVoiceProfiles() {
       gender: 'female',
       source: 'elevenlabs-account'
     },
+    jill: {
+      voiceId: JILL_VOICE_ID,
+      label: cfg.jill?.label || 'Jill',
+      gender: 'female',
+      source: 'elevenlabs-account'
+    },
     nexora_star: {
       voiceId: starId,
       label: nd.star_interviewer?.label || 'Interviewer',
@@ -427,6 +434,7 @@ function getDemoTtsAllowlist() {
 function getDemoVoiceProfileFor(service, scenario) {
   const profiles = getDemoVoiceProfiles();
   if (service === 'alice') return profiles.alice;
+  if (service === 'jill') return profiles.jill;
   if (service === 'nexora') {
     return scenario === 'customer_service' ? profiles.nexora_cs : profiles.nexora_star;
   }
@@ -520,6 +528,7 @@ function cacheDemoResponse(key, reply) {
 
 function getDemoBuffer(service, scenario) {
   if (service === 'alice') return DEMO_BUFFER.alice;
+  if (service === 'jill') return DEMO_BUFFER.jill;
   if (service === 'nexora') {
     return scenario === 'customer_service' ? DEMO_BUFFER.nexora_cs : DEMO_BUFFER.nexora_star;
   }
@@ -587,7 +596,7 @@ app.post('/demo/start', async (req, res) => {
   try {
     const { service, scenario, consent, name } = req.body || {};
     if (!consent) return res.status(400).json({ error: 'Consent required' });
-    if (!['alice', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
+    if (!['alice', 'jill', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
 
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, service, { action: 'session' });
@@ -621,7 +630,7 @@ app.post('/demo/start', async (req, res) => {
       sessionId,
       reply,
       step: 0,
-      maxSteps: service === 'alice' ? DEMO_LIMITS.alice.maxSteps : DEMO_LIMITS.nexora.maxSteps,
+      maxSteps: (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
       buffered: true,
       sessionsLeft: ipLimit.sessionsLeft,
       voiceProfile: getDemoVoiceProfileFor(service, scenario || (service === 'nexora' ? 'star' : 'default'))
@@ -647,7 +656,7 @@ app.post('/demo/message', async (req, res) => {
     }
 
     const buf = getDemoBuffer(session.service, session.scenario);
-    const maxSteps = session.service === 'alice' ? DEMO_LIMITS.alice.maxSteps : DEMO_LIMITS.nexora.maxSteps;
+    const maxSteps = (DEMO_LIMITS[session.service] || DEMO_LIMITS.alice).maxSteps;
 
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
@@ -735,7 +744,9 @@ app.post('/demo/tts', async (req, res) => {
       return res.status(400).json({ error: 'Voice not allowed for demo. Use voiceId from GET /demo/voices (your ElevenLabs account only).' });
     }
 
-    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
+    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo'
+      : bodyVoiceId === JILL_VOICE_ID ? 'Jill demo'
+      : 'Nexora demo';
     return await synthesizeSpeech(req, res, { text, voiceId: bodyVoiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);

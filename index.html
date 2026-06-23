@@ -168,6 +168,14 @@ a.cc-link .cc-value{color:var(--purple);}
 .diff-desc{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;}
 
 .alice-wrap{background:linear-gradient(135deg,var(--purple-dark),var(--purple),var(--purple-light));}
+.jill-wrap{background:linear-gradient(135deg,#1A1A28,var(--purple-dark),#4C1D95);}
+.jill-inner{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+.jill-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(91,33,182,0.35);border:1px solid rgba(255,255,255,0.2);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:1rem;}
+.jill-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:white;margin-bottom:1rem;}
+.jill-sub{font-size:16px;color:rgba(255,255,255,0.7);line-height:1.7;margin-bottom:2rem;}
+.jill-visual{background:rgba(255,255,255,0.08);border:1px solid rgba(245,166,35,0.25);border-radius:var(--rxl);padding:1.5rem;}
+.btn-gold-dark{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:var(--r);font-size:15px;font-weight:800;text-decoration:none;background:#0A0A0F;color:var(--gold);box-shadow:0 4px 20px rgba(245,166,35,0.3),inset 0 0 0 1px rgba(245,166,35,0.35);transition:all .2s;}
+.btn-gold-dark:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,166,35,0.4);}
 .alice-inner{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
 .alice-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(245,166,35,0.2);border:1px solid rgba(245,166,35,0.4);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:1rem;}
 .alice-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:white;margin-bottom:1rem;}
@@ -254,7 +262,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 .fade-up.visible{opacity:1;transform:none;}
 
 @media(max-width:768px){
-  .hero-inner,.problem-grid,.alice-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
+  .hero-inner,.problem-grid,.alice-inner,.jill-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
   .hero-visual{display:none;}
   .nav-links{display:none;}
 }
@@ -289,6 +297,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       </div>
     </div>
     <a href="#programs">All Programs</a>
+    <a href="#jill">Jill</a>
     <a href="#alice">Alice</a>
     <a href="#about">About</a>
     <a href="#contact">Contact</a>
@@ -400,6 +409,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
     <div class="deliverables-tabs" role="tablist">
       <button type="button" class="deliverables-tab active" data-tab="nexora" role="tab" aria-selected="true">Nexora</button>
+      <button type="button" class="deliverables-tab" data-tab="jill" role="tab" aria-selected="false">Jill</button>
       <button type="button" class="deliverables-tab" data-tab="alice" role="tab" aria-selected="false">Alice</button>
       <button type="button" class="deliverables-tab" data-tab="training-book" role="tab" aria-selected="false">Training Book</button>
       <button type="button" class="deliverables-tab" data-tab="infinity-engine" role="tab" aria-selected="false">Infinity Engine</button>
@@ -419,8 +429,27 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="deliverable-feat"><i class="ti ti-chart-dots"></i><span>STAR evaluation in real time</span></div>
       </div>
       <div class="deliverable-actions">
-        <a href="try-nexora.html" class="btn-primary"><i class="ti ti-player-play"></i>Try Nexora — 5 min demo</a>
+        <a href="try-nexora.html" class="btn-gold-dark"><i class="ti ti-player-play"></i>Try Nexora — 5 min demo</a>
         <a href="#contact" class="btn-secondary"><i class="ti ti-calendar-check"></i>Book full assessment</a>
+      </div>
+    </div>
+
+    <div class="deliverables-panel" id="panel-jill" role="tabpanel">
+      <div class="deliverable-head">
+        <div class="deliverable-logo-wrap"><img class="deliverable-logo" src="assets/logos/jill.png" alt="Jill by Infinity"></div>
+        <div class="deliverable-intro">
+          <h3>Jill — Foundations Tutor</h3>
+          <p>Your entry point into operational English: chunking, verb tenses, linkers and structure — guided step by step before Alice coaches fluency and Nexora adds pressure.</p>
+        </div>
+      </div>
+      <div class="deliverable-features">
+        <div class="deliverable-feat"><i class="ti ti-message-circle"></i><span>Foundations track — async tutor</span></div>
+        <div class="deliverable-feat"><i class="ti ti-microphone"></i><span>Voice + text — Jill listens</span></div>
+        <div class="deliverable-feat"><i class="ti ti-layers-linked"></i><span>Idea + Linker + Idea from day one</span></div>
+      </div>
+      <div class="deliverable-actions">
+        <a href="try-jill.html" class="btn-primary"><i class="ti ti-player-play"></i>Try Jill — 5 min demo</a>
+        <a href="foundations.html" class="btn-secondary"><i class="ti ti-book"></i>Foundations program</a>
       </div>
     </div>
 
@@ -468,6 +497,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
               <div class="tb-portal-nav-label">Navigation</div>
               <div class="tb-portal-nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
               <div class="tb-portal-nav-item"><i class="ti ti-list-check"></i> My Exercises <span class="tb-nav-badge">4</span></div>
+              <a href="try-jill.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-message-circle"></i> Jill Tutor <span class="tb-link-arrow">Demo →</span></a>
               <a href="try-alice.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-robot"></i> Alice Coach <span class="tb-link-arrow">Demo →</span></a>
               <a href="try-nexora.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-headset"></i> Nexora Sims <span class="tb-link-arrow">Demo →</span></a>
               <div class="tb-portal-nav-item"><i class="ti ti-chart-radar"></i> KPI History</div>
@@ -628,6 +658,34 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <div class="diff-card fade-up"><div class="diff-num">04</div><div class="diff-title">Personalized Training Book</div><div class="diff-desc">No two students have the same exercises. Your weaknesses define your program.</div></div>
       <div class="diff-card fade-up"><div class="diff-num">05</div><div class="diff-title">Operational Simulations</div><div class="diff-desc">Nexora puts you in real business scenarios before you ever face them in real life.</div></div>
       <div class="diff-card fade-up"><div class="diff-num">06</div><div class="diff-title">Industry-Built Methodology</div><div class="diff-desc">Built from 26 years inside Amazon, BPO, leadership, and instructional design.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="jill-wrap" id="jill">
+  <div class="section-inner">
+    <div class="jill-inner">
+      <div>
+        <div class="jill-badge"><i class="ti ti-message-circle"></i>Foundations · Step 1</div>
+        <h2 class="jill-title">Meet Jill — Your Foundations Tutor</h2>
+        <p class="jill-sub">Jill builds the structure behind English before you need to perform under pressure. Chunks, tenses, linkers and recovery — aligned to your KPIs from day one.</p>
+        <div class="alice-caps">
+          <div class="alice-cap"><i class="ti ti-check"></i>Chunking &amp; verb tenses</div>
+          <div class="alice-cap"><i class="ti ti-check"></i>First Nexus linkers</div>
+          <div class="alice-cap"><i class="ti ti-check"></i>Voice &amp; text</div>
+          <div class="alice-cap"><i class="ti ti-check"></i>Foundations track</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:1.5rem;">
+          <a href="try-jill.html" class="btn-primary" style="display:inline-flex;"><i class="ti ti-player-play"></i>Try Jill — 5 min</a>
+          <a href="foundations.html" class="btn-secondary" style="margin-top:0;border-color:rgba(255,255,255,0.4);color:white;background:transparent;"><i class="ti ti-book"></i>Foundations program</a>
+        </div>
+      </div>
+      <div class="jill-visual">
+        <div style="font-size:10px;letter-spacing:0.2em;color:rgba(245,166,35,0.7);margin-bottom:12px;">JILL · FOUNDATIONS</div>
+        <div class="chat-msg from-alice"><div><div class="cname">JILL</div><div class="bubble">Let's build one sentence: Idea + because + Idea. Tell me why you want to improve your English.</div></div></div>
+        <div class="chat-msg from-student"><div><div class="cname right">STUDENT</div><div class="bubble">I want to improve because I need English for my job.</div></div></div>
+        <div class="chat-msg from-alice"><div><div class="cname">JILL</div><div class="bubble">Good chunk! Now add however — connect a second idea to the same sentence.</div></div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -823,7 +881,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="footer-links">
     <a href="#problem">The Problem</a><a href="#ecosystem">Ecosystem</a>
     <a href="#programs">Programs</a>
-    <a href="#alice">Alice</a><a href="#programs">Programs</a><a href="#about">About</a><a href="#contact">Contact</a>
+    <a href="#jill">Jill</a><a href="#alice">Alice</a><a href="#about">About</a><a href="#contact">Contact</a>
   </div>
   <div style="display:flex;justify-content:center;gap:16px;margin-bottom:1.5rem;">
     <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20contactar%20Off%20The%20Clock" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:white;padding:8px 18px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;">

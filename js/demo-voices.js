@@ -9,6 +9,12 @@ window.DEMO_VOICES = {
     gender: 'female',
     source: 'elevenlabs-account'
   },
+  jill: {
+    voiceId: 'NoOVOzCQFLOvtsMoNcdT',
+    label: 'Jill',
+    gender: 'female',
+    source: 'elevenlabs-account'
+  },
   nexora_star: {
     voiceId: 'bfGb7JTLUnZebZRiFYyq',
     label: 'Interviewer (American English)',
@@ -42,6 +48,7 @@ async function syncDemoVoicesFromServer() {
 function demoVoiceProfile(product, scenario) {
   var v = window.DEMO_VOICES || {};
   if (product === 'alice') return v.alice || window.DEMO_VOICES.alice;
+  if (product === 'jill') return v.jill || window.DEMO_VOICES.jill;
   if (product === 'nexora') {
     return scenario === 'customer_service' ? v.nexora_cs : v.nexora_star;
   }

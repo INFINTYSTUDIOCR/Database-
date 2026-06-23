@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/lang-toggle.css">
 <link rel="stylesheet" href="css/demo.css">
 </head>
-<body>
+<body class="demo-hub-dark">
 
 <nav>
   <a href="index.html" class="nav-brand">Off The <span>Clock</span></a>
@@ -23,11 +23,11 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> Live Demos</div>
     <h1 class="page-title">Try Before You Commit</h1>
-    <p class="page-lead">Free mini sessions with <strong>voice + microphone</strong> — speak or type in English. Alice coaches; Nexora simulates a live call.</p>
+    <p class="page-lead">Free mini sessions with <strong>voice + microphone</strong> — Jill builds your base, Alice coaches fluency, Nexora simulates real pressure.</p>
   </div>
 </header>
 
-<p class="demo-note">Sessions are buffered for speed and cost control. With your consent, anonymized patterns may improve Alice, Jill and our knowledge base.</p>
+<p class="demo-note">Sessions are buffered for speed. With your consent, anonymized patterns may improve Jill, Alice and Nexora.</p>
 
 <div class="consent-box">
   <label class="consent-label">
@@ -37,16 +37,24 @@
 </div>
 
 <div class="demo-grid">
+  <a href="try-jill.html" class="demo-gate jill" id="gate-jill">
+    <div class="demo-gate-art"><img src="assets/logos/jill.png" alt="Jill" onerror="this.outerHTML='<i class=\'ti ti-message-circle\'></i>'"></div>
+    <h2>Try Jill</h2>
+    <p>5-minute Foundations — structure, chunks, tenses and your first linkers. Jill <strong>speaks</strong> and listens via mic.</p>
+    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Jill demo</span>
+    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-jill"></div>
+  </a>
+
   <a href="try-alice.html" class="demo-gate alice" id="gate-alice">
-    <div class="demo-gate-art"><i class="ti ti-robot"></i></div>
+    <div class="demo-gate-art"><img src="assets/logos/alice.png" alt="Alice" onerror="this.outerHTML='<i class=\'ti ti-robot\'></i>'"></div>
     <h2>Try Alice</h2>
-    <p>5-minute coaching — Alice <strong>speaks</strong> and listens via mic. Operational English, connectors, real-time feedback.</p>
+    <p>5-minute coaching — connectors, structure and real-time feedback. Alice <strong>speaks</strong> and listens via mic.</p>
     <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Alice demo</span>
     <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-alice"></div>
   </a>
 
   <a href="try-nexora.html" class="demo-gate nexora" id="gate-nexora">
-    <div class="demo-gate-art"><i class="ti ti-headset"></i></div>
+    <div class="demo-gate-art"><img src="assets/logos/nexora.png" alt="Nexora"></div>
     <h2>Try Nexora</h2>
     <p>STAR interview or customer service — the client/interviewer <strong>speaks to you</strong>. Answer by mic or keyboard.</p>
     <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Nexora demo</span>
@@ -54,7 +62,7 @@
   </a>
 </div>
 
-<footer class="page-footer">
+<footer class="page-footer demo-footer-dark">
   Off The Clock · Demo limits apply per connection · <a href="index.html#contact">Contact</a>
 </footer>
 
@@ -70,11 +78,17 @@ document.querySelectorAll('.demo-gate').forEach(function (gate) {
   });
 });
 
-Promise.all([demoFetchStatus('alice'), demoFetchStatus('nexora')]).then(function (arr) {
+Promise.all([
+  demoFetchStatus('jill'),
+  demoFetchStatus('alice'),
+  demoFetchStatus('nexora')
+]).then(function (arr) {
+  var j = document.getElementById('status-jill');
   var a = document.getElementById('status-alice');
   var n = document.getElementById('status-nexora');
-  if (a) a.textContent = arr[0].sessionsLeft + ' demo(s) left today';
-  if (n) n.textContent = arr[1].sessionsLeft + ' demo(s) left today';
+  if (j) j.textContent = arr[0].sessionsLeft + ' demo(s) left today';
+  if (a) a.textContent = arr[1].sessionsLeft + ' demo(s) left today';
+  if (n) n.textContent = arr[2].sessionsLeft + ' demo(s) left today';
 });
 </script>
 <script src="js/i18n.js"></script>

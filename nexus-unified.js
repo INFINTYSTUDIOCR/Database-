@@ -8,6 +8,7 @@
 
   var CONFIG = null;
   var RULEBOOK = null;
+  var MEASUREMENT_GUIDE = null;
   var JILL_BUNDLES = null;
   var _pulseState = { sid: null, weekId: null, step: 1, waDone: false, ktDone: false };
 
@@ -58,7 +59,8 @@
     var base = configBasePath();
     return Promise.all([
       fetch(base + 'kpi-macro-map.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
-      fetch(base + 'jill-bundles.json').then(function (r) { return r.json(); }).catch(function () { return null; })
+      fetch(base + 'jill-bundles.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
+      fetch(base + 'kpi-measurement-guide.json').then(function (r) { return r.json(); }).catch(function () { return null; })
     ]).then(function (arr) {
       CONFIG = arr[0] || {
         macros: {
@@ -73,6 +75,7 @@
         tracks: {}
       };
       JILL_BUNDLES = (arr[1] && arr[1].bundles) || [];
+      MEASUREMENT_GUIDE = arr[2] || null;
       RULEBOOK = buildRuleBook();
       return CONFIG;
     });
@@ -456,160 +459,51 @@
     return JILL_BUNDLES.find(function (b) { return b.id === s.jillProgress.activeBundle; }) || null;
   }
 
-  /* ── RULE BOOK (7 secciones exhaustivas) ─────────────── */
+  /* ── RULE BOOK — glosario de medición KPI ─────────────── */
   function buildRuleBook() {
+    var g = MEASUREMENT_GUIDE;
+    if (!g || !g.macros) {
+      return { title: 'Guía de medición KPI', sections: [] };
+    }
+    var macroSection = {
+      id: 'macro',
+      title: 'Sección I — 5 Macro KPIs (IG · ST · RA · PS · R)',
+      entries: Object.keys(g.macros).map(function (k) {
+        var m = g.macros[k];
+        return { id: k, code: k, name: m.name, scale: m.scale, measures: m.measures, fixes: m.fixes, calibration: m.calibration, exampleLow: m.exampleLow, exampleHigh: m.exampleHigh, when: m.when };
+      })
+    };
+    var microSections = (g.microGroups || []).map(function (grp, idx) {
+      return {
+        id: 'micro-' + idx,
+        title: 'Sección ' + (idx + 2) + ' — ' + grp.title,
+        entries: (grp.ids || []).map(function (kid) {
+          var m = g.micro[kid] || {};
+          return { id: kid, code: kid, name: m.name || kid, scale: '1–' + (m.max || 5), measures: m.measures, fixes: m.fixes, calibration: m.calibration, exampleLow: m.exampleLow, exampleHigh: m.exampleHigh };
+        })
+      };
+    });
     return {
-      title: 'Q&A KPIs Rule Book — Infinity Nexus Method',
-      sections: [
-        { id: 'S1', title: 'Sección I — 5 Macro KPIs (IG · ST · RA · PS · R)', qa: section1QA() },
-        { id: 'S2', title: 'Sección II — Micro KPIs k1–k13 (Comunicación · Interacción · FSF)', qa: section2QA() },
-        { id: 'S3', title: 'Sección III — Micro KPIs k14–k26 (Colaboración · ORT · Presión)', qa: section3QA() },
-        { id: 'S4', title: 'Sección IV — Tracks Jill → Alice → Nexora & Graduación', qa: section4QA() },
-        { id: 'S5', title: 'Sección V — Weekly Pulse · Nemesis · Medición unificada', qa: section5QA() },
-        { id: 'S6', title: 'Sección VI — Programas · Precio · Experiencia del estudiante', qa: section6QA() },
-        { id: 'S7', title: 'Sección VII — Operación segura · Compatibilidad · No romper nada', qa: section7QA() }
-      ]
+      title: g.title || 'Guía de medición KPI',
+      subtitle: g.subtitle || '',
+      sections: [macroSection].concat(microSections)
     };
   }
 
-  function section1QA() {
-    return [
-      { q: '¿Qué mide IG (Idea Generation)?', a: 'Capacidad de generar y expandir ideas en inglés: claridad (k4), expansión (k9), conexión (k10) y pensamiento crítico (k26). No es gramática perfecta — es tener qué decir y desarrollarlo.' },
-      { q: '¿Qué mide ST (Structural Thinking)?', a: 'Organización lógica del mensaje (k3) y uso de linkers Nexus (k8). STAR y chunking son herramientas ST.' },
-      { q: '¿Qué mide RA (Recovery Ability)?', a: 'Completar ideas (k2) y recuperarse después de un error (k13) sin abandonar la conversación.' },
-      { q: '¿Qué mide PS (Problem Solving)?', a: 'Comunicación operacional: seguir instrucciones (k18), buscar info (k19), resolver con palabras (k20-k22). Puente hacia ORT y CRM.' },
-      { q: '¿Qué mide R (Responsiveness)?', a: 'Velocidad de arranque (k1), sostener conversación (k5-k7), confianza (k11-k12), colaboración (k14-k17) y desempeño bajo presión (k23-k25).' },
-      { q: '¿Cuál es la escala de los 5 macro KPIs?', a: '1–5 por dimensión. Suma total /25. Niveles: Survival (≤10), Emerging (11-15), Functional (16-20), Advanced (21-25).' },
-      { q: '¿Cuándo se calibran los 5 macro KPIs?', a: 'Intake Diagnostic (una vez, baseline) y cada Weekly Pulse paso 1 (Assessment). El tracker de 26 KPIs puede derivar sugerencias macro con peso 70% sesión.' },
-      { q: '¿Puede el trainer sobrescribir un macro KPI manualmente?', a: 'Sí, en Weekly Assessment. La derivación automática desde micro KPIs es sugerencia ponderada, no reemplazo silencioso del criterio humano.' },
-      { q: '¿Qué KPI macro prioriza Jill?', a: 'ST y RA en Foundations — estructura y completar ideas antes de velocidad.' },
-      { q: '¿Qué KPI macro prioriza Alice?', a: 'IG y R — fluidez conversacional, expansión y participación.' },
-      { q: '¿Qué KPI macro prioriza Nexora?', a: 'PS y R bajo presión — resolución operacional en simulación real.' },
-      { q: '¿Los 5 KPIs son CEFR?', a: 'No. Son KPIs operacionales propios de Infinity Nexus Method, válidos para entrenamiento BPO/CS local.' },
-      { q: '¿Cómo se documenta evidencia por macro KPI?', a: 'Campo kpiObservations en calibración + notas de sesión + transcripciones IA cuando aplique.' },
-      { q: '¿Qué pasa si un macro KPI baja dos semanas seguidas?', a: 'Dispara refuerzo en Nemesis Quiz y rotación Training Book en los micro KPIs mapeados.' },
-      { q: '¿El alumno ve los 5 macro KPIs?', a: 'Sí, en portal Progreso. Los 26 micro KPIs son principalmente herramienta trainer/master.' }
-    ];
-  }
-
-  function section2QA() {
-    return [
-      { q: 'k1 Response Speed — ¿qué evalúa?', a: 'Tiempo de arranque al hablar. Escala 1–10 en tracker. Meta: empezar en <3 segundos aunque la frase sea corta.' },
-      { q: 'k2 Response Completion — ¿qué evalúa?', a: 'Cerrar el pensamiento. "…and that is basically it." Evita ideas colgadas.' },
-      { q: 'k3 Thought Organization — ¿qué evalúa?', a: 'Estructura STAR: situación, tarea, acción, resultado. Gramática secundaria.' },
-      { q: 'k4 Communication Clarity — ¿qué evalúa?', a: 'Si el mensaje se entiende sin repetir tres veces. Reformular > hablar más fuerte.' },
-      { q: 'k5 Conversation Sustainability — ¿qué evalúa?', a: 'Follow-up questions y profundizar, no monosílabos.' },
-      { q: 'k6 Participation Level — ¿qué evalúa?', a: 'Intervención voluntaria y frecuencia en clase/grupo.' },
-      { q: 'k7 Turn Taking — ¿qué evalúa?', a: 'Entrar y salir de conversaciones sin interrumpir ni quedarse mudo.' },
-      { q: 'k8 Linking Usage — ¿por qué es eje Nexus?', a: 'Conectores (however, therefore, on top of that) pegan ideas. Sin k8 no hay fluidez real.' },
-      { q: 'k9 Idea Expansion — regla de oro?', a: 'Nunca "Yes" solo → "Yes, because… on top of that…"' },
-      { q: 'k10 Thought Connection — diferencia con k8?', a: 'k8 = conectores explícitos; k10 = cohesión global del discurso.' },
-      { q: 'k11 Communication Confidence — ¿se castiga el acento?', a: 'No. Se evalúa convicción y volumen, no pronunciación nativa.' },
-      { q: 'k12 Risk Taking — ¿qué cuenta como riesgo positivo?', a: 'Usar vocabulario nuevo aunque falle. Evitar silencio por miedo al error.' },
-      { q: 'k13 Recovery Ability — frase modelo?', a: '"Sorry, let me rephrase that…" y continuar.' },
-      { q: '¿Cuándo marcar N/A un micro KPI?', a: 'Solo si el contexto de la sesión no permitió observarlo. Documentar en naList del tracker.' },
-      { q: '¿Cómo se eligen ejercicios desde k1–k13?', a: 'Rotación automática desde weakest del tracker + bundles Jill activos.' }
-    ];
-  }
-
-  function section3QA() {
-    return [
-      { q: 'k14 Team Interaction — contexto Foundations', a: 'Trabajo en pareja/grupo. Eje de clase presencial + Jill async.' },
-      { q: 'k15 Active Listening — señal positiva', a: 'Parafrasea lo que dijo el otro antes de responder.' },
-      { q: 'k16 Contribution Quality — vs k6', a: 'k6 = cuánto participa; k16 = qué tan útil es lo que aporta.' },
-      { q: 'k17 Peer Support — ejemplo', a: 'Ayuda a un compañero a reformular en inglés sin traducir por él.' },
-      { q: 'k18 Instruction Following — puente ORT', a: 'Repetir instrucciones en tus palabras antes de ejecutar.' },
-      { q: 'k19 Information Retrieval — CRM', a: 'Localizar dato en sistema simulado o material de referencia con velocidad.' },
-      { q: 'k20 Problem Solving Communication — orden CS', a: 'Reconocer → proponer → confirmar.' },
-      { q: 'k21 Customer Interaction Readiness — Nexora', a: 'Saludo, empatía, cierre profesional en simulación.' },
-      { q: 'k22 Professional Communication — tono', a: 'Formalidad operacional, no slang, sin familiaridad excesiva.' },
-      { q: 'k23 Performance Under Pressure — diferenciador Infinity', a: 'Comportamiento cuando el cliente/interviewer presiona. Clave en Nexora.' },
-      { q: 'k24 Spontaneous Communication — vs script', a: 'Respuesta sin preparación previa. Alice y Nemesis entrenan esto.' },
-      { q: 'k25 Adaptability — escenario', a: 'Cambiar de tema/rol sin bloquearse cuando Nexora rota escenario.' },
-      { q: 'k26 Critical Thinking — estructura opinión', a: 'Opinión + because + example + although counterpoint.' },
-      { q: '¿Cómo se calcula overall del tracker?', a: 'Suma ponderada por max de cada k / total max × 100, ± ajuste typing ±3.' },
-      { q: '¿k18–k22 son solo para Nexora?', a: 'Se observan en ORT y clase, pero Nexora es la evidencia principal de k21–k23.' }
-    ];
-  }
-
-  function section4QA() {
-    return [
-      { q: '¿Cuáles son los 3 tracks?', a: 'Jill (Foundations) → Alice (Coaching) → Nexora (Simulation).' },
-      { q: '¿Qué hace Jill?', a: 'Tutora estructural desde básico: chunking, verbos, tiempos, linkers. Whiteboard/imágenes. No simula llamadas.' },
-      { q: '¿Qué hace Alice?', a: 'Práctica conversacional 24/7, acentos, escenarios ligeros. No reemplaza las 12h del trainer.' },
-      { q: '¿Qué hace Nexora?', a: 'Simulación realista CS/entrevista con CRM, voces multicultural, presión operacional.' },
-      { q: '¿Admisión directa a Alice?', a: 'Sí — track.admission = alice-direct. Salta graduación Jill pero conserva diagnostic baseline.' },
-      { q: '¿Solo Nexora?', a: 'nexora-only para repaso/simulación sin Foundations. Requiere nivel mínimo acordado con master.' },
-      { q: 'Criterios graduación Jill', a: '≥2 bundles completados, ≥8 sesiones calibradas, score macro ≥12/25.' },
-      { q: 'Criterios graduación Alice', a: '≥6 sesiones Alice registradas, score ≥15/25.' },
-      { q: 'Criterios graduación Nexora', a: '≥4 simulaciones, score ≥18/25, Nexora ON.' },
-      { q: '¿Quién activa graduación?', a: 'Trainer desde perfil estudiante → Track & Graduación. Master puede override.' },
-      { q: '¿system_mode vs track.current?', a: 'system_mode controla portal Jill/Alice visible. track.current es la ruta pedagógica completa incluyendo Nexora.' },
-      { q: '¿Cuánto dura Jill típicamente?', a: '12–16 semanas promedio (32 sesiones compliance + async Jill).' },
-      { q: '¿Se puede regresar a Jill?', a: 'Sí, master puede reactivar track jill para refuerzo estructural.' },
-      { q: '¿Nexora sin trainer?', a: 'Nexora complementa; las 12h presenciales/async trainer siguen siendo el núcleo del programa.' },
-      { q: '¿Qué ve el estudiante del track?', a: 'Badge de track activo y checklist simplificado en portal Progreso.' }
-    ];
-  }
-
-  function section5QA() {
-    return [
-      { q: '¿Qué es Weekly Pulse?', a: 'Un flujo unificado: paso 1 Assessment (5 KPIs) + paso 2 Tracker (26 KPIs) con mismo pulseSessionId y weekId.' },
-      { q: '¿Reemplaza formularios viejos?', a: 'No los elimina — los orquesta. Diagnóstico, Tracker y Assessment siguen existiendo para compatibilidad.' },
-      { q: '¿Qué es Intake Diagnostic guard?', a: 'Baseline único al ingreso. No se sobrescribe. Calibraciones posteriores van por Pulse.' },
-      { q: '¿Qué es Nemesis Quiz?', a: 'Quiz que SÍ impacta KPI (~30%). Repregunta todo lo fallado: sesiones, evals, quiz previo, weakKpis.' },
-      { q: 'Estados Nemesis dominio vs refuerzo', a: 'Dominio: ≥75% en bloque KPI → sube confianza micro. Refuerzo: <50% → congela/baja peso y asigna Jill bundle + Training Book.' },
-      { q: '¿Quiz de práctica vs Nemesis?', a: 'Práctica: no mueve KPI oficial, alimenta weakKpis para Jill. Nemesis: mueve kpiTracker parcial y macro derivado.' },
-      { q: 'Peso 70/30 explicado', a: '70% evidencia sesión trainer (tracker/calibración). 30% Nemesis y auto-detect portal.' },
-      { q: '¿Cómo correlacionar Assessment y Tracker?', a: 'Campos pulseSessionId y weekId en ambas entradas del mismo Weekly Pulse.' },
-      { q: '¿La IA lee Rule Book?', a: 'Backend Jill recibe bundle activo, weakKpis, nemesisState y track para contexto de sesión.' },
-      { q: '¿Dónde ve el master el Rule Book?', a: 'Engine → Q&A KPIs Rule Book (5 secciones).' },
-      { q: '¿Auditoría de cambios KPI?', a: 'notes[], calibrations[], kpiTracker[], nemesisQuizzes[] con fechas y trainer.' },
-      { q: '¿Qué pasa si trainer solo hace paso 1?', a: 'Pulse queda incompleto; recordatorio en selector Weekly Pulse.' },
-      { q: '¿Estudiante completa algo en Pulse?', a: 'Checklist portal: Nemesis + typing opcional; trainer completa Assessment+Tracker.' },
-      { q: '¿Se puede repetir Nemesis la misma semana?', a: 'Sí; cuenta el intento más reciente para peso 30% de esa semana.' },
-      { q: '¿Deploy sin romper producción?', a: 'Módulos aditivos nexus-unified.js; campos nuevos ignorados por UI vieja si no actualizada.' }
-    ];
-  }
-
-  function section6QA() {
-    return [
-      { q: '¿Qué programas existen?', a: 'Foundations (comunicación base) → ORT (presión operacional). Satélites: Off The Clock, Conversatorio, Job Finder — aparte del core.' },
-      { q: '¿Cuánto cuesta referencia Individual?', a: 'Engine PRICING Individual ~₡75,000/mes — el cierre final es post-assessment según modalidad y frecuencia.' },
-      { q: '¿Qué incluye el fee?', a: 'Trainer (12h programa), portal, Jill/Alice async, simulaciones Nexora cuando corresponda, seguimiento KPI.' },
-      { q: '¿Cuánto dura el camino completo?', a: '6–9 meses desde Survival hasta simulación fuerte; menos si ya trae base.' },
-      { q: '¿Sirve si nunca hablé inglés?', a: 'Sí — Jill + Foundations desde chunking básico; Nexora viene después.' },
-      { q: '¿Qué ve el estudiante en el portal?', a: 'Score /25, 3 focos semanales, track activo, Weekly Pulse checklist, quiz práctica + Nemesis, Training Book.' },
-      { q: '¿Qué NO ve el estudiante?', a: '26 KPIs detallados del tracker (herramienta trainer); calibraciones internas completas.' },
-      { q: '¿Cómo se inscribe alguien?', a: 'Diagnóstico/lead → precio y horario → credenciales portal → empieza Jill por defecto.' },
-      { q: '¿Corporate vs Individual?', a: 'Corporate ~₡120k, Institutional ~₡150k referencia — empresa o convenio paga y define grupo.' },
-      { q: '¿Hay demo antes de pagar?', a: 'try-alice, try-nexora en web — assessment formal cierra el plan real.' },
-      { q: '¿Qué prometemos al cliente?', a: 'Inglés operacional para trabajar — no certificado CEFR internacional.' },
-      { q: '¿Qué es Survival level?', a: 'Punto de partida oficial — casi cero hablado; sin vergüenza, con plan estructurado.' },
-      { q: '¿Cuántas sesiones con trainer?', a: '32 sesiones cortas (~23 min) = 12 horas totales compliance.' },
-      { q: '¿Practica entre sesiones?', a: 'Jill, Alice, quiz, Nemesis, typing — incluido en ecosistema portal.' },
-      { q: '¿WhatsApp con reportes?', a: 'Diagnóstico y calibraciones pueden enviarse por WA desde Engine — flujo existente intacto.' }
-    ];
-  }
-
-  function section7QA() {
-    return [
-      { q: '¿Qué NO debemos romper al actualizar?', a: 'Estilos portal (Alice morada, Nexora dorado), login Supabase, calibrations[], kpiTracker[], diagnosticReport, voces Nexora desplegadas.' },
-      { q: '¿Weekly Pulse reemplaza formularios viejos?', a: 'NO — los orquesta. Calibrar sesión y KPI Tracker siguen funcionando solos.' },
-      { q: '¿Quiz de práctica sigue sin KPI?', a: 'SÍ — intacto. Solo Nemesis impacta KPI (~30%).' },
-      { q: '¿Campos nuevos rompen estudiantes viejos?', a: 'NO — ensureStudentFields migra al cargar; campos opcionales aditivos.' },
-      { q: '¿Qué pasa si nexus-unified.js falla al cargar?', a: 'Engine/Portal operan como antes — script es capa adicional, no reemplazo.' },
-      { q: '¿Rollback?', a: 'Backup pre-deploy + git revert a commit anterior (ej. ad76311 parches voces).' },
-      { q: '¿Backend Jill sin deploy?', a: 'Jill funciona; bundle/nemesis contexto extra solo aplica cuando Render tiene server.js actualizado.' },
-      { q: '¿system_mode jill/alice intacto?', a: 'SÍ — toggle trainer sin cambios; track.current es capa pedagógica adicional.' },
-      { q: '¿Nexora enable por estudiante?', a: 'SÍ — toggle existente; graduación track puede activar Nexora pero no lo fuerza sin trainer.' },
-      { q: '¿Verificación pre-deploy 7 rondas?', a: 'Sintaxis JS, hooks no destructivos, paths config/, portal quiz intacto, Engine nav additive, backend jill backward compatible.' },
-      { q: '¿Producción GitHub Pages + Render?', a: 'Frontend Database-clone repo; backend Render desde backend/server.js — deploys separados.' },
-      { q: '¿Modificar estilos CSS globales?', a: 'PROHIBIDO sin orden explícita — solo HTML hooks mínimos y JS nuevo.' },
-      { q: '¿Commit/push?', a: 'Solo cuando usuario dice ejecute — con backup previo.' },
-      { q: '¿Alumno suspendido/status?', a: 'Campo status existente — módulo unified no cambia lógica suspensión.' },
-      { q: '¿Palabra clave ejecución?', a: 'Usuario confirma "ejecute" / "ejecuta ya" para deploy; sin ella solo análisis.' }
-    ];
+  function renderKpiGuideEntry(e) {
+    return '<div class="rb-kpi-card" style="margin-bottom:14px;padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--white);">'
+      + '<div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:8px;">'
+      + '<span style="background:var(--nl);color:var(--nm);padding:2px 8px;border-radius:4px;font-size:11px;margin-right:8px;">' + e.code + '</span>'
+      + e.name + ' <span style="font-size:11px;font-weight:600;color:var(--t3);">(' + e.scale + ')</span></div>'
+      + '<div style="font-size:12px;line-height:1.65;color:var(--t2);">'
+      + '<p style="margin:0 0 6px;"><strong style="color:var(--navy);">Qué mide:</strong> ' + e.measures + '</p>'
+      + '<p style="margin:0 0 6px;"><strong style="color:var(--navy);">Qué busca arreglar:</strong> ' + e.fixes + '</p>'
+      + '<p style="margin:0 0 6px;"><strong style="color:var(--navy);">Cómo calibrar:</strong> ' + e.calibration + '</p>'
+      + (e.when ? '<p style="margin:0 0 6px;"><strong style="color:var(--navy);">Cuándo:</strong> ' + e.when + '</p>' : '')
+      + '<p style="margin:6px 0 0;padding:8px;background:var(--gray);border-radius:6px;font-size:11px;">'
+      + '<span style="color:var(--rm);font-weight:700;">Ej. bajo:</span> ' + e.exampleLow + '<br>'
+      + '<span style="color:var(--sg);font-weight:700;margin-top:4px;display:inline-block;">Ej. alto:</span> ' + e.exampleHigh
+      + '</p></div></div>';
   }
 
   var PRE_DEPLOY_QA7 = [
@@ -618,7 +512,7 @@
     { round: 3, q: '¿Diagnóstico intacto?', pass: function () { return typeof saveDiagnostic === 'function'; } },
     { round: 4, q: '¿Quiz práctica portal intacto?', pass: function () { return typeof renderQuizWidget === 'function' || true; } },
     { round: 5, q: '¿NexusUnified cargado?', pass: function () { return !!global.NexusUnified; } },
-    { round: 6, q: '¿Rule Book 7 secciones?', pass: function () { var rb = buildRuleBook(); return rb.sections.length === 7; } },
+    { round: 6, q: '¿Rule Book = glosario medición (3+ secciones)?', pass: function () { var rb = buildRuleBook(); return rb.sections.length >= 3 && rb.sections[0].entries && rb.sections[0].entries.length === 5; } },
     { round: 7, q: '¿Config macro map presente?', pass: function () { return !!(CONFIG && CONFIG.macros); } }
   ];
 
@@ -636,16 +530,14 @@
     if (!RULEBOOK) RULEBOOK = buildRuleBook();
     var searchId = 'rb-search';
     m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-book-2"></i> ' + RULEBOOK.title + '</h2>'
-      + '<div class="ib ib-navy">7 secciones exhaustivas · Trainers y Masters · Referencia oficial de medición Nexus</div>'
-      + '<input class="inp" id="' + searchId + '" placeholder="Buscar pregunta o KPI..." style="margin:12px 0;" oninput="NexusUnified.filterRuleBook(this.value)">'
+      + '<div class="ib ib-navy">' + (RULEBOOK.subtitle || 'Definiciones de medición para trainers y masters — qué mide cada KPI, qué corrige y cómo calibrarlo con ejemplos.') + '</div>'
+      + '<input class="inp" id="' + searchId + '" placeholder="Buscar KPI (ej. k8, Recovery, Linking)..." style="margin:12px 0;" oninput="NexusUnified.filterRuleBook(this.value)">'
       + '<div id="rb-content">'
       + RULEBOOK.sections.map(function (sec, idx) {
         return '<div class="card rb-section" data-section="' + idx + '" style="margin-bottom:12px;">'
-          + '<div class="card-title">' + sec.title + ' <span class="badge" style="background:var(--pb);color:var(--pm);">' + sec.qa.length + ' Q&A</span></div>'
-          + sec.qa.map(function (item, qi) {
-            return '<details class="rb-item" style="margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:8px;" data-q="' + escAttr(item.q + ' ' + item.a) + '">'
-              + '<summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);">' + (qi + 1) + '. ' + item.q + '</summary>'
-              + '<div style="font-size:12px;color:var(--t2);margin-top:6px;line-height:1.6;">' + item.a + '</div></details>';
+          + '<div class="card-title">' + sec.title + ' <span class="badge" style="background:var(--pb);color:var(--pm);">' + (sec.entries ? sec.entries.length : 0) + ' KPIs</span></div>'
+          + (sec.entries || []).map(function (e) {
+            return '<div class="rb-item" data-q="' + escAttr(e.code + ' ' + e.name + ' ' + e.measures + ' ' + e.fixes) + '">' + renderKpiGuideEntry(e) + '</div>';
           }).join('')
           + '</div>';
       }).join('')
