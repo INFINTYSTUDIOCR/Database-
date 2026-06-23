@@ -4,7 +4,8 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "node -e \"const fs=require('fs'); const ok=fs.existsSync('config/demo-buffer.json')||fs.existsSync('config/demo-buffer.fallback.js'); if(!ok) throw new Error('Missing demo-buffer config'); console.log('demo-buffer config ok');\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

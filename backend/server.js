@@ -354,22 +354,13 @@ const IP_DAY_MS = 24 * 60 * 60 * 1000;
 const demoResponseCache = new Map();
 const DEMO_CACHE_MAX = 300;
 
-let DEMO_BUFFER = {};
-try {
-  const bufCandidates = [
-    path.join(__dirname, '../config/demo-buffer.json'),
-    path.join(__dirname, 'config/demo-buffer.json')
-  ];
-  for (const bufPath of bufCandidates) {
-    if (fs.existsSync(bufPath)) {
-      DEMO_BUFFER = JSON.parse(fs.readFileSync(bufPath, 'utf8'));
-      console.log('demo-buffer loaded:', bufPath);
-      break;
-    }
-  }
-  if (!Object.keys(DEMO_BUFFER).length) console.warn('demo-buffer.json not found in config paths');
-} catch (e) {
-  console.warn('demo-buffer.json not loaded:', e.message);
+const loadDemoBuffer = require('./load-demo-buffer');
+const demoBufferLoad = loadDemoBuffer();
+let DEMO_BUFFER = demoBufferLoad.data;
+if (Object.keys(DEMO_BUFFER).length) {
+  console.log('demo-buffer ready:', demoBufferLoad.source);
+} else {
+  console.warn('demo-buffer empty — live AI only');
 }
 
 const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
