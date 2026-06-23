@@ -206,6 +206,10 @@ async function demoFetchStatus(service) {
   };
 }
 
+function demoCanUseLocalFallback(service, scenario) {
+  return !!getLocalBuffer(service, scenario);
+}
+
 async function demoStart(service, scenario, name) {
   await demoFetchMyIp();
   try {
@@ -221,7 +225,7 @@ async function demoStart(service, scenario, name) {
     });
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;
-      if (parsed.data && !parsed.ok) {
+    if (parsed.data && !parsed.ok) {
       if (parsed.data.error === 'limit' || parsed.status === 429) {
         if (demoWhitelisted) {
           try {
@@ -234,24 +238,38 @@ async function demoStart(service, scenario, name) {
             var parsed2 = await demoParseResponse(r2);
             if (parsed2.data && parsed2.ok) return parsed2.data;
           } catch (e2) {}
+          if (demoCanUseLocalFallback(service, scenario)) {
+            return demoStartLocal(service, scenario, name);
+          }
         }
         throw parsed.data;
       }
-      if (parsed.data.error === 'Invalid service') {
-        throw { message: 'Backend desactualizado en Render — Jill aún no está desplegado. Redeploy manual en Render (alice-by-infinity) y probá de nuevo.' };
+      if (parsed.data.error === 'Invalid service' && demoCanUseLocalFallback(service, scenario)) {
+        return demoStartLocal(service, scenario, name);
       }
       throw { message: parsed.data.message || parsed.data.error || 'Live demo unavailable.' };
     }
+    if (!parsed.fromServer && demoCanUseLocalFallback(service, scenario)) {
+      return demoStartLocal(service, scenario, name);
+    }
   } catch (e) {
-    if (e && e.error === 'limit') throw e;
+    if (e && e.error === 'limit') {
+      if (demoWhitelisted && demoCanUseLocalFallback(service, scenario)) {
+        return demoStartLocal(service, scenario, name);
+      }
+      throw e;
+    }
     if (e && e.message) throw e;
+  }
+  if (demoCanUseLocalFallback(service, scenario)) {
+    return demoStartLocal(service, scenario, name);
   }
   throw { message: 'Live demo unavailable. Check your connection and try again.' };
 }
 
 async function demoSend(sessionId, message) {
   if (String(sessionId).indexOf('local-') === 0) {
-    throw { message: 'Session expired. Start a new live demo.' };
+    return demoSendLocal(sessionId, message);
   }
 
   try {

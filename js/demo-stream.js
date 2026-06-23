@@ -1,26 +1,45 @@
 /**
- * Demo streaming — same SSE pattern as Portal Alice/Jill/Nexora
+ * Demo streaming — SSE when Render has /demo/stream; falls back to /demo/message or local buffer.
  */
+function demoStreamFromText(text, opts) {
+  var full = String(text || '');
+  if (typeof opts.onToken === 'function') opts.onToken(full, full);
+  if (typeof opts.onSentence === 'function' && full.trim()) opts.onSentence(full);
+  return full;
+}
+
 async function demoStreamSend(sessionId, message, opts) {
   opts = opts || {};
-  var resp = await fetch(DEMO_BACKEND + '/demo/stream', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: sessionId, message: message })
-  });
 
-  if (!resp.ok) {
-    var errText = '';
-    try { errText = await resp.text(); } catch (e) {}
-    try {
-      var errJson = JSON.parse(errText);
-      if (errJson.error === 'limit') throw errJson;
-      throw { message: errJson.message || errJson.error || 'Stream failed' };
-    } catch (e) {
-      if (e && e.error === 'limit') throw e;
-      if (e && e.message) throw e;
-      throw { message: 'Live demo stream unavailable.' };
-    }
+  if (String(sessionId).indexOf('local-') === 0) {
+    var local = demoSendLocal(sessionId, message);
+    var localReply = demoStreamFromText(local.reply, opts);
+    return {
+      reply: localReply,
+      meta: { step: local.step, done: local.done, maxSteps: local.maxSteps },
+      evaluation: local.evaluation
+    };
+  }
+
+  var resp;
+  try {
+    resp = await fetch(DEMO_BACKEND + '/demo/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: sessionId, message: message })
+    });
+  } catch (netErr) {
+    resp = null;
+  }
+
+  if (!resp || !resp.ok) {
+    var d = await demoSend(sessionId, message);
+    var fbReply = demoStreamFromText(d.reply, opts);
+    return {
+      reply: fbReply,
+      meta: { step: d.step, done: d.done, maxSteps: d.maxSteps },
+      evaluation: d.evaluation
+    };
   }
 
   var reader = resp.body.getReader();
@@ -73,6 +92,16 @@ async function demoStreamSend(sessionId, message, opts) {
 
   if (pending.trim().length > 2 && typeof opts.onSentence === 'function') {
     opts.onSentence(pending.split('\nALICE:')[0].split('\nJILL:')[0]);
+  }
+
+  if (!fullText.trim()) {
+    var d2 = await demoSend(sessionId, message);
+    fullText = demoStreamFromText(d2.reply, opts);
+    return {
+      reply: fullText,
+      meta: { step: d2.step, done: d2.done, maxSteps: d2.maxSteps },
+      evaluation: d2.evaluation
+    };
   }
 
   return { reply: fullText, meta: meta, evaluation: evaluation };
