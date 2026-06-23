@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
+<script src="nexora-profile.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1469,9 +1470,6 @@ var NEXORA_CS_SCENARIOS = [
   {id:'cs10',title:'Wrong Information',desc:'Client received wrong information from another agent. Feels misled.',mood:'disappointed',difficulty:3},
 ];
 
-var NEXORA_NAMES_F = ['Margaret','Sofia','Patricia','Linda','Jennifer','Amanda','Sarah','Elizabeth','Karen','Lisa'];
-var NEXORA_NAMES_M = ['James','David','Robert','Michael','William','Christopher','Carlos','Brian','Daniel','Kevin'];
-var NEXORA_LAST = ['Thompson','Martinez','Johnson','Williams','Brown','Davis','Wilson','Moore','Taylor','Anderson'];
 var NEXORA_SERVICES = [
   {name:'Personal Loan',price:'$189.50/mo',desc:'Fixed-rate personal financing'},
   {name:'Premium Account',price:'$45.00/mo',desc:'Full-service banking'},
@@ -1481,17 +1479,6 @@ var NEXORA_SERVICES = [
 ];
 var NEXORA_STREETS = ['Oak St','Maple Ave','Cedar Ln','Pine Rd','Elm Blvd'];
 var NEXORA_CITIES = ['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO'];
-
-var NEXORA_VOICES_MALE = [
-  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
-  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
-  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'}
-];
-var NEXORA_VOICES_FEMALE = [
-  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
-  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
-  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'}
-];
 
 var NEXORA_ENGINE_TYPE_MAP = {
   customer_service:'customer_service',
@@ -1547,9 +1534,9 @@ function nexoraBuildAccountContext(profile){
 }
 
 function nexoraGenerateProfile(scenario){
-  var isFemale = Math.random() > 0.5;
-  var fn = isFemale ? NEXORA_NAMES_F[Math.floor(Math.random()*NEXORA_NAMES_F.length)] : NEXORA_NAMES_M[Math.floor(Math.random()*NEXORA_NAMES_M.length)];
-  var ln = NEXORA_LAST[Math.floor(Math.random()*NEXORA_LAST.length)];
+  var id = pickRandomNexoraIdentity();
+  var fn = id.firstName;
+  var ln = id.lastName;
   var phone = '('+( 200+Math.floor(Math.random()*800))+') '+(100+Math.floor(Math.random()*900))+'-'+(1000+Math.floor(Math.random()*9000));
   var acct = '#N'+Math.floor(100000+Math.random()*900000);
   var ssn = String(1000+Math.floor(Math.random()*9000));
@@ -1581,10 +1568,9 @@ function nexoraGenerateProfile(scenario){
       billingNotes.push({type:'cancel',label:'Cancellation requested',amount:'',date:new Date().toLocaleDateString('en-US'),note:'Client initiated cancellation request'});
     }
   }
-  var voicePool = isFemale ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
-  var voice = voicePool[Math.floor(Math.random()*voicePool.length)];
+  var voice = pickNexoraVoiceForProfile({ gender: id.gender, voiceId: id.voiceId, voiceAccent: id.voiceAccent });
   return {
-    name:fn+' '+ln, firstName:fn, lastName:ln, gender:isFemale?'female':'male',
+    name:fn+' '+ln, firstName:fn, lastName:ln, gender:id.gender, ethnicity:id.ethnicity,
     phone:phone, account:acct, ssn4:ssn,
     email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com', address:addr, dob:dob,
     memberSince:memberDate, status:'Active', services:services,
@@ -1673,7 +1659,7 @@ function nexoraShowCRM(){
     +'<div style="padding:1.5rem;border-right:1px solid #E2E8F0;overflow-y:auto;">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:8px;height:8px;background:#F5A623;border-radius:50%;animation:pd 1s infinite;"></div><span style="font-size:11px;font-weight:700;color:#F5A623;">INCOMING CALL</span></div>'
     +'<div style="font-size:20px;font-weight:900;color:#1E2761;margin-bottom:2px;">'+p.name+'</div>'
-    +'<div style="font-size:12px;color:#94A3B8;margin-bottom:12px;">Account '+p.account+' · Member since '+p.memberSince+'</div>'
+    +'<div style="font-size:12px;color:#94A3B8;margin-bottom:12px;">Account '+p.account+' · Member since '+p.memberSince+(p.voiceAccent?' · '+p.voiceAccent:'')+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:12px;">'
     +'<div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;">Phone</div><div style="font-weight:600;">'+p.phone+'</div></div>'
     +'<div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;">Email</div><div style="font-weight:600;">'+p.email+'</div></div>'

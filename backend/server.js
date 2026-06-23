@@ -1394,6 +1394,27 @@ app.get('/dashboard', async (req, res) => {
 
 
 // ── NEXORA VOICE PROFILES ─────────────────────────────────────
+function loadNexoraVoicesConfig() {
+  const candidates = [
+    path.join(__dirname, '../config/nexora-voices.json'),
+    path.join(__dirname, 'config/nexora-voices.json')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch (e) { /* next path */ }
+  }
+  return { male: [], female: [], fallbackIds: [] };
+}
+
+app.get('/nexora/voices', requireProductAuth, (req, res) => {
+  try {
+    return res.json(loadNexoraVoicesConfig());
+  } catch (err) {
+    return res.status(500).json({ error: 'Voices unavailable' });
+  }
+});
+
 app.post('/nexora-tts', requireProductAuth, async (req, res) => {
   try {
     const { text, voiceId } = req.body || {};

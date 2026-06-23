@@ -6,6 +6,7 @@
 <title>Nexora — Operational Simulation Lab</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="infinity-auth.js"></script>
+<script src="nexora-profile.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -461,18 +462,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <script>
 // ── NEXORA DATA ────────────────────────────────────────────────
 
-// ── NEXORA VOICE POOL ─────────────────────────────────────────
-// ElevenLabs voice IDs — different accents for realism
-var NEXORA_VOICES_MALE = [
-  {id:'NIkIuJZ8oQMuKZqwKtnm', accent:'Chinese Male'},
-  {id:'b4XCIIupgo5eH7TxhBNk', accent:'German Male'},
-  {id:'8WqHCYyrnUqoK70Px5EJ', accent:'Indian Male'},
-];
-var NEXORA_VOICES_FEMALE = [
-  {id:'1a0nAYA3FcNQcMMfbddY', accent:'Chinese Female'},
-  {id:'ztyYYqlYMny7nllhThgo', accent:'German Female'},
-  {id:'NyZqLdjqUb8SpOUKIlWT', accent:'Indian Female'},
-];
+// ── NEXORA VOICE POOL (see nexora-profile.js) ─────────────────
 
 var SCENARIOS = [
   {id:'cs1',industry:'Banking',title:'Billing Dispute',desc:'Client received an unexpected charge and wants it reversed immediately.',mood:'frustrated',diff:2},
@@ -675,9 +665,10 @@ function setAgent(v){_nx.agent=v;localStorage.setItem('nexora_agent',v);}
 
 // ── GENERATE PROFILE ──────────────────────────────────────────
 function genProfile(sc){
-  var isFemale=Math.random()>0.5;
-  var fn=isFemale?NAMES_F[Math.floor(Math.random()*NAMES_F.length)]:NAMES_M[Math.floor(Math.random()*NAMES_M.length)];
-  var ln=LAST[Math.floor(Math.random()*LAST.length)];
+  var id = pickRandomNexoraIdentity();
+  var fn = id.firstName;
+  var ln = id.lastName;
+  var isFemale = id.gender === 'female';
   var phone='('+(200+Math.floor(Math.random()*800))+') '+(100+Math.floor(Math.random()*900))+'-'+(1000+Math.floor(Math.random()*9000));
   var acct='#N'+Math.floor(100000+Math.random()*900000);
   var ssn=String(1000+Math.floor(Math.random()*9000));
@@ -718,14 +709,11 @@ function genProfile(sc){
   }
 
   var total=svcs.reduce(function(s,x){return s+parseFloat(x.price.replace(/[^0-9.]/g,'')||0);},0);
-  // Assign voice matching gender
-  var voicePool = isFemale ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
-  var voice = voicePool[Math.floor(Math.random()*voicePool.length)];
   return{name:fn+' '+ln,firstName:fn,lastName:ln,phone:phone,account:acct,ssn4:ssn,
     email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com',address:addr,dob:dob,
     memberSince:msince,services:svcs,total:total,billingNotes:billingNotes,
     disputeAmount:disputeAmount,lateFee:lateFee,refundAmount:refundAmount,
-    gender:isFemale?'female':'male',voiceId:voice.id,voiceAccent:voice.accent};
+    gender:id.gender,ethnicity:id.ethnicity,voiceId:id.voiceId,voiceAccent:id.voiceAccent};
 }
 
 // ── AUTO-IN ────────────────────────────────────────────────────
@@ -1500,10 +1488,14 @@ function showNegotiationDisplay(sc){
 // ── GENDER DETECTION BY NAME ──────────────────────────────────
 var FEMALE_NAMES = ['Sarah','Linda','Rachel','Maria','Diana','Karen','Lisa','Jennifer',
   'Amanda','Jessica','Emily','Ashley','Priya','Sandra','Michelle','Angela','Anna',
-  'Alice','Claire','Helen','Barbara','Patricia','Nancy','Betty','Margaret','Dorothy'];
+  'Alice','Claire','Helen','Barbara','Patricia','Nancy','Betty','Margaret','Dorothy',
+  'Olivia','Charlotte','Sophie','Natasha','Olga','Irina','Mei','Li','Yan','Greta','Lena',
+  'Sofia','Elena','Camila','Lucia','Valentina','Ananya','Neha','Deepa','Katya','Anya'];
 var MALE_NAMES = ['James','Robert','John','Carlos','Marcus','Tom','Kevin','Michael',
   'David','Chris','Daniel','Matthew','Anthony','Mark','Steven','Paul','Andrew','Jake',
-  'Sam','Alex','Ryan','Brian','Josh','Tyler','Nathan','Eric','Scott','Adam'];
+  'Sam','Alex','Ryan','Brian','Josh','Tyler','Nathan','Eric','Scott','Adam',
+  'Oliver','Harry','George','Dmitri','Ivan','Raj','Arjun','Wei','Jun','Hans','Klaus',
+  'Miguel','Diego','Luis','Rafael','Pavel','Sergei'];
 
 function isFemaleByName(name){
   if(!name) return Math.random() > 0.5;
@@ -1514,9 +1506,7 @@ function isFemaleByName(name){
 }
 
 function getVoiceByName(name){
-  var female = isFemaleByName(name);
-  var pool = female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
-  return pool[Math.floor(Math.random() * pool.length)];
+  return getVoiceForPersonName(name);
 }
 
 function sanitizeNexoraReply(reply, profile){
