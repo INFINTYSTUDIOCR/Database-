@@ -1,0 +1,82 @@
+.daily-inspire-overlay{
+  position:fixed;inset:0;background:rgba(8,6,18,0.72);backdrop-filter:blur(4px);
+  z-index:99990;display:none;align-items:center;justify-content:center;padding:1rem;
+  animation:dailyFadeIn 0.35s ease;
+}
+.daily-inspire-overlay.is-visible{display:flex;}
+@keyframes dailyFadeIn{from{opacity:0}to{opacity:1}}
+
+.daily-tv{
+  width:min(420px,94vw);position:relative;
+  filter:drop-shadow(0 24px 48px rgba(0,0,0,0.45));
+}
+.daily-tv-antenna{
+  position:absolute;top:-28px;left:50%;transform:translateX(-50%);
+  width:2px;height:26px;background:linear-gradient(#888,#555);
+}
+.daily-tv-antenna::before,.daily-tv-antenna::after{
+  content:'';position:absolute;top:-2px;width:28px;height:2px;background:#777;border-radius:2px;
+}
+.daily-tv-antenna::before{left:-24px;transform:rotate(-28deg);transform-origin:right center;}
+.daily-tv-antenna::after{right:-24px;transform:rotate(28deg);transform-origin:left center;}
+
+.daily-tv-body{
+  background:linear-gradient(145deg,#3d2817,#2a1a0f 40%,#1a1008);
+  border-radius:22px 22px 16px 16px;padding:14px 14px 18px;
+  border:3px solid #5c3d22;box-shadow:inset 0 2px 0 rgba(255,255,255,0.08),inset 0 -4px 12px rgba(0,0,0,0.35);
+}
+.daily-tv-brand{
+  text-align:center;font-size:9px;font-weight:800;letter-spacing:0.28em;
+  color:rgba(245,166,35,0.85);margin-bottom:8px;text-transform:uppercase;
+}
+.daily-tv-screen-wrap{
+  background:#0a0a0a;border-radius:12px;padding:8px;
+  border:2px solid #1a1a1a;box-shadow:inset 0 0 24px rgba(0,0,0,0.9);
+}
+.daily-tv-screen{
+  position:relative;background:radial-gradient(ellipse at center,#1a1530 0%,#0d0a18 70%);
+  border-radius:8px;min-height:180px;padding:1.25rem 1rem 1rem;
+  overflow:hidden;border:1px solid rgba(192,132,252,0.15);
+}
+.daily-tv-screen::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0px,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);
+  opacity:0.35;animation:dailyScan 6s linear infinite;
+}
+.daily-tv-screen::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.55) 100%);
+}
+@keyframes dailyScan{0%{transform:translateY(0)}100%{transform:translateY(4px)}}
+
+.daily-tv-label{
+  position:relative;z-index:1;font-size:10px;font-weight:800;letter-spacing:0.15em;
+  color:#F5A623;text-transform:uppercase;margin-bottom:10px;text-align:center;
+}
+.daily-tv-text{
+  position:relative;z-index:1;font-size:14px;line-height:1.65;color:#F8F8FF;
+  text-align:center;font-weight:600;text-shadow:0 0 12px rgba(192,132,252,0.25);
+}
+.daily-tv-sub{
+  position:relative;z-index:1;margin-top:10px;font-size:11px;line-height:1.5;
+  color:rgba(245,166,35,0.9);text-align:center;font-style:italic;
+}
+.daily-tv-knob-row{
+  display:flex;justify-content:center;gap:18px;margin-top:12px;
+}
+.daily-tv-knob{
+  width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#888,#333);
+  border:2px solid #222;box-shadow:inset 0 1px 2px rgba(255,255,255,0.2);
+}
+.daily-tv-btn{
+  display:block;width:100%;margin-top:14px;padding:12px 16px;
+  background:#0a0a0f;color:#F5A623;border:2px solid #fff;border-radius:12px;
+  font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+  transition:background 0.15s;
+}
+.daily-tv-btn:hover{background:#1a1a28;}
+
+@media(max-width:480px){
+  .daily-tv-screen{min-height:160px;padding:1rem 0.75rem;}
+  .daily-tv-text{font-size:13px;}
+}

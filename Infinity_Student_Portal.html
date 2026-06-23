@@ -12,10 +12,12 @@
 <link rel="manifest" href="manifest-portal.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="infinity-auth.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
+<script src="js/daily-inspiration.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -39,6 +41,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tb-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);color:white;border-radius:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;padding:0;font-family:inherit;transition:background 0.15s,border-color 0.15s;flex-shrink:0;}
+.tb-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.35);}
+.tb-btn:disabled{opacity:0.45;cursor:default;}
 .tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(91,33,182,0.3);color:#FBBF24;border:1px solid rgba(245,166,35,0.35);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
@@ -121,9 +126,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
   </div>
   <div class="tb-right">
+    <button type="button" class="tb-btn" id="tb-back" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i></button>
+    <button type="button" class="tb-btn" id="tb-refresh" onclick="portalRefresh()" title="Actualizar"><i class="ti ti-refresh"></i></button>
     <span class="tb-user" id="tb-user"></span>
     <span class="tb-role">Estudiante</span>
-    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);padding:5px 10px;font-size:11px;" onclick="logout()"><i class="ti ti-logout"></i></button>
+    <button type="button" class="tb-btn" onclick="logout()" title="Salir"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 
@@ -302,6 +309,7 @@ async function doLogin(){
 
 function switchPortalTab(tab){
   var prevTab = window._activePortalTab || 'progreso';
+  if(tab !== prevTab && prevTab) window._portalPrevTab = prevTab;
   if(tab !== 'alice' && prevTab === 'alice') pauseAliceMedia();
   if(tab === 'alice'){
     if(restoreAliceRuntimeStorage() || _aliceState.sessionActive) resumeAliceRuntime();
@@ -318,6 +326,66 @@ function switchPortalTab(tab){
   });
   if(tab==='alice') renderAlice();
   if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
+}
+
+function portalGoBack(){
+  var target = window._portalPrevTab || 'progreso';
+  if(target === window._activePortalTab) target = 'progreso';
+  switchPortalTab(target);
+}
+
+async function portalRefresh(){
+  var tab = window._activePortalTab || 'progreso';
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  var btn = document.getElementById('tb-refresh');
+  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader spin"></i>'; }
+  try{
+    if(s && s.id){
+      var rows = await dbGet('infinity_students');
+      rows.forEach(function(r){ if(r.data) ALL_STUDENTS[r.id] = r.data; });
+      var fresh = ALL_STUDENTS[s.id];
+      if(fresh){
+        fresh.id = s.id;
+        CURRENT_STUDENT = fresh;
+        window._currentStudent = fresh;
+        window._portalStudent = fresh;
+        _jillState.active = false;
+        showPortal(fresh, { tab: tab, skipInspiration: true });
+        await loadNexoraConfig(fresh);
+        checkNexoraAccess(fresh);
+        applySystemMode(fresh);
+        if(tab === 'nexora') ensureNexoraTab(fresh);
+        showToast('Portal actualizado');
+        return;
+      }
+    }
+    location.reload();
+  }catch(e){
+    showToast('No se pudo actualizar', 'err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-refresh"></i>'; }
+  }
+}
+
+function queuePortalDailyInspiration(onClose){
+  if(typeof DailyInspiration === 'undefined'){ if(onClose) onClose(); return; }
+  var s = CURRENT_STUDENT || window._currentStudent;
+  DailyInspiration.schedule({
+    userId: (s && s.id) || (s && s.portalUser) || 'student',
+    audience: 'student',
+    name: (s && s.info && s.info.name) || '',
+    onClose: onClose || null
+  });
+}
+
+function afterPortalReady(s, opts){
+  opts = opts || {};
+  if(s.infinityTermsAccepted !== true) return;
+  if(opts.skipInspiration){
+    checkMonthlySurvey(s);
+    return;
+  }
+  queuePortalDailyInspiration(function(){ checkMonthlySurvey(s); });
 }
 
 function logout(){
@@ -379,9 +447,11 @@ async function respondPortalTerms(agreed){
   ALL_STUDENTS[s.id] = s;
   document.getElementById('portal-terms-gate').style.display = 'none';
   switchPortalTab('news');
+  afterPortalReady(s);
 }
 
-function showPortal(s){
+function showPortal(s, opts){
+  opts = opts || {};
   document.getElementById('login-screen').style.display='none';
   document.getElementById('student-portal').style.display='block';
   document.getElementById('topbar').style.display='flex';
@@ -500,9 +570,8 @@ function showPortal(s){
     +'</div>';
 
   document.getElementById('portal-content').innerHTML = html;
-  switchPortalTab('progreso');
+  switchPortalTab(opts.tab || 'progreso');
   renderTypingPersonaPicker('portal-persona-container');
-  checkMonthlySurvey(s);
 
   // Verificar si el trainer habilitó Nexora
   checkNexoraAccess(s);
@@ -516,6 +585,7 @@ function showPortal(s){
       new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ y:{min:0,max:5,ticks:{stepSize:1}} }, plugins:{legend:{position:'bottom'}} } });
     },100);
   }
+  afterPortalReady(s, opts);
 }
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
 // Vocabulario operacional (alineado al contexto de Studio Infinity CR)

@@ -12,8 +12,10 @@
 <link rel="manifest" href="manifest-engine.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/daily-inspiration.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -976,6 +978,21 @@ function startApp(){
   if(!hasMasterAccess() && myDept!=='marketing') document.getElementById('nav-dept-marketing').style.display='none';
   showView('dashboard', document.querySelector('.sb-item'));
   maybeShowEngineTermsGate();
+  var termsEl = document.getElementById('modal-infinity-terms');
+  if(!termsEl || !termsEl.classList.contains('show')) queueEngineDailyInspiration();
+}
+
+function queueEngineDailyInspiration(){
+  if(typeof DailyInspiration === 'undefined' || !SESSION) return;
+  var u = Object.values(TRAINERS).find(function(t){ return t.email === SESSION.user; });
+  if(u && u.infinityTermsAccepted === false) return;
+  var termsOpen = document.getElementById('modal-infinity-terms');
+  if(termsOpen && termsOpen.classList.contains('show')) return;
+  DailyInspiration.schedule({
+    userId: SESSION.user || 'trainer',
+    audience: 'trainer',
+    name: SESSION.name || ''
+  });
 }
 
 function logout(){
@@ -3053,6 +3070,7 @@ async function respondInfinityTerms(agreed){
     await dbSet('infinity_users', u.id, u); TRAINERS[u.email]=u;
     closeModal('modal-infinity-terms');
     showToast('¡Bienvenido a Infinity!');
+    queueEngineDailyInspiration();
     return;
   }
 }
