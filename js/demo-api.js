@@ -214,8 +214,11 @@ async function demoStart(service, scenario, name) {
     });
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;
-    if (parsed.data && !parsed.ok) {
+      if (parsed.data && !parsed.ok) {
       if (parsed.data.error === 'limit' || parsed.status === 429) throw parsed.data;
+      if (parsed.data.error === 'Invalid service') {
+        throw { message: 'Backend desactualizado en Render — Jill aún no está desplegado. Redeploy manual en Render (alice-by-infinity) y probá de nuevo.' };
+      }
       throw { message: parsed.data.message || parsed.data.error || 'Live demo unavailable.' };
     }
   } catch (e) {

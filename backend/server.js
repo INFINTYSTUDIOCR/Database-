@@ -144,7 +144,11 @@ function extractOpeningSnippet(text) {
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Alice & Claire by Studio Infinity CR — OK'));
-app.get('/health', (req, res) => res.json({ ok: true, version: '8ee2381-nexora-voice' }));
+app.get('/health', (req, res) => res.json({
+  ok: true,
+  version: '3720a0b-live-demo',
+  demo: { jill: true, liveAi: true, nexoraLab: true, whitelist: true }
+}));
 
 app.get('/auth/status', (req, res) => {
   res.json({
