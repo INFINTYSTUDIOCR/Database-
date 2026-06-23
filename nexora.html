@@ -1509,8 +1509,25 @@ function getVoiceByName(name){
   return getVoiceForPersonName(name);
 }
 
+function stripStageDirections(text){
+  if(!text) return text;
+  var s = String(text).trim();
+  s = s.replace(/\*[^*]{1,160}\*/g,' ').replace(/\[[^\]]{1,160}\]/g,' ');
+  s = s.replace(/\([^)]{0,120}(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|pause|breath|clear throat|gesture|body language)[^)]*\)/gi,' ');
+  var idx = s.search(/\b(Hello|Hi|Hey|Good morning|Good afternoon|Good evening|I['']m|I am|My name|This is|Well|Yes|No|Um|So|Look|Excuse me|Sorry|Thank you|Thanks)\b/i);
+  if(idx > 0){
+    var before = s.slice(0, idx);
+    if(/(?:smil|nod|extend|lean|sigh|look|wave|hand|warmly|firmly|speaks?|answers?|responds?|client|customer)/i.test(before)) s = s.slice(idx);
+  }
+  var quoted = s.match(/["']([^"']{4,})["']/);
+  if(quoted && /(?:smil|nod|extend|warmly|hand)/i.test(s.replace(quoted[0],''))) s = quoted[1];
+  return s.replace(/\s+/g,' ').trim();
+}
+
 function sanitizeNexoraReply(reply, profile){
-  if(!reply || !profile || !profile.name) return reply;
+  if(!reply) return reply;
+  reply = stripStageDirections(reply);
+  if(!profile || !profile.name) return reply;
   var first = profile.firstName || profile.name.split(' ')[0];
   var full = profile.name;
   var notNames = {calling:1,looking:1,trying:1,wondering:1,sorry:1,just:1,not:1,here:1,going:1,having:1,getting:1,checking:1,waiting:1,following:1,writing:1,working:1,thinking:1,sure:1,afraid:1,glad:1,happy:1,really:1,very:1,also:1,still:1,actually:1,about:1,from:1,with:1,because:1};
@@ -1529,37 +1546,51 @@ function sanitizeNexoraReply(reply, profile){
     .replace(/\bI am\s+([A-Z][a-z]+)\b/g, fixName);
 }
 
+async function nexoraStreamReply(payload, onPartial){
+  var fullText='', pending='';
+  var resp=await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
+  while(true){
+    var chunk=await reader.read(); if(chunk.done) break;
+    lineBuf+=dec.decode(chunk.value,{stream:true});
+    var lines=lineBuf.split('\n'); lineBuf=lines.pop()||'';
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i]; if(!line.startsWith('data: ')) continue;
+      var raw=line.slice(6).trim(); if(raw==='[DONE]') break;
+      try{
+        var evt=JSON.parse(raw);
+        if(evt.t){
+          fullText+=evt.t; pending+=evt.t;
+          if(onPartial) onPartial(fullText);
+          var m=pending.match(/^([\s\S]+?[.!?])\s+/);
+          if(m&&m[1].length>3){ queueSpeak(m[1]); pending=pending.slice(m[0].length); }
+          else if(pending.length>=18&&/[,;]/.test(pending)){
+            var cm=pending.match(/^([\s\S]{10,}?[,;])\s+/);
+            if(cm){ queueSpeak(cm[1]); pending=pending.slice(cm[0].length); }
+          }
+        }
+      }catch(e){}
+    }
+  }
+  if(pending.trim().length>2) queueSpeak(pending.split('\nALICE:')[0]);
+  return fullText.trim();
+}
+
 async function aliceEnter(){
   var st=document.getElementById('co-status-text');
   if(st) st.textContent='Alice is connecting as client...';
   try{
     var p=_nx.profile;var sc=_nx.scenario;
-    var r=await infinityFetch('/nexora',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        message: 'START_CALL',
-        history: [],
-        profile: p,
-        scenario: sc,
-        agentName: _nx.agent||'Agent',
-        negRole: (sc.type==='negotiation') ? _nx_negRole : null,
-        accountContext: {
-          name: p.name,
-          account: p.account,
-          services: p.services.map(function(s){ return s.name+' at '+s.price; }),
-          billingAlerts: p.billingNotes||[],
-          disputeAmount: p.disputeAmount||null,
-          lateFee: p.lateFee||null,
-          refundAmount: p.refundAmount||null
-        }
-      })
-    });
-    var d=await r.json();
-    var reply=sanitizeNexoraReply(d.reply||'Hello is this customer service?', p);
+    var fullRaw=await nexoraStreamReply({
+      message:'START_CALL', history:[], profile:p, scenario:sc, agentName:_nx.agent||'Agent',
+      negRole:(sc.type==='negotiation')?_nx_negRole:null,
+      accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' at '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null}
+    }, null);
+    var reply=sanitizeNexoraReply(fullRaw||'Hello is this customer service?', p);
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-    speak(reply);
+    if(!fullRaw) speak(reply);
   }catch(e){
     if(st) st.textContent='';
     speak('Hello is this customer service?');
@@ -1570,7 +1601,8 @@ var _nxSending=false;
 async function sendToAlice(text){
   if(!text||!_nx.active||_nxSending) return;
   _nxSending=true;
-  setTimeout(function(){_nxSending=false;},400);
+  if(window._nxAudio){window._nxAudio.pause();window._nxAudio=null;}
+  _nxTTSQueue=[]; _nxTTSBusy=false; _nxSpeakId++;
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
@@ -1578,48 +1610,41 @@ async function sendToAlice(text){
   var st=document.getElementById('co-status-text');
   if(st) st.textContent=p.firstName+' is responding...';
   try{
-    var r=await infinityFetch('/nexora',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        message:text,
-        history:_nx.history.slice(-14),
-        profile:p,
-        scenario:sc,
-        agentName:_nx.agent||'Agent',
-        accountContext:{
-          name:p.name,
-          account:p.account,
-          services:p.services.map(function(s){return s.name+' '+s.price;}),
-          billingAlerts:p.billingNotes||[],
-          disputeAmount:p.disputeAmount||null,
-          lateFee:p.lateFee||null,
-          refundAmount:p.refundAmount||null
-        }
-      })
-    });
-    var d=await r.json();
-    var reply=sanitizeNexoraReply(d.reply||'', p);
+    var fullRaw=await nexoraStreamReply({
+      message:text, history:_nx.history.slice(-14), profile:p, scenario:sc, agentName:_nx.agent||'Agent',
+      accountContext:{name:p.name,account:p.account,services:p.services.map(function(s){return s.name+' '+s.price;}),billingAlerts:p.billingNotes||[],disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null}
+    }, null);
+    var reply=sanitizeNexoraReply(fullRaw||'', p);
     if(st) st.textContent='';
     _nx.history.push({role:'assistant',content:reply});
     _nx.transcript.push('CLIENT ('+p.firstName+'): '+reply);
-    speak(reply);
+    if(!fullRaw && reply) speak(reply);
   }catch(e){if(st) st.textContent='';}
+  _nxSending=false;
 }
 
 // ── SPEAK ─────────────────────────────────────────────────────
-function speak(text){
-  if(!text) return;
-  var clean=text.replace(/ALICE:/gi,'').replace(/CLAIRE:/gi,'')
-    .replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ')
-    .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,500);
-  if(!clean) return;
-  // Use client's assigned voice for immersion
-  var voiceId = _nx.profile && _nx.profile.voiceId ? _nx.profile.voiceId : 'r1KmysJdVYZjJCm4mL3b';
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean, voiceId:voiceId})})
-  .then(function(r){return r.ok?r.blob():null;})
-  .then(function(b){if(!b)return;if(window._nxAudio)window._nxAudio.pause();window._nxAudio=new Audio(URL.createObjectURL(b));window._nxAudio.play();})
-  .catch(function(){});
+var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakId=0;
+function cleanForTTS(text){
+  return stripStageDirections(text).replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,500);
 }
+function _nxTTSFlush(){
+  if(_nxTTSBusy||_nxTTSQueue.length===0) return;
+  _nxTTSBusy=true; var speakId=++_nxSpeakId; var chunk=_nxTTSQueue.shift();
+  var clean=cleanForTTS(chunk); if(clean.length<3){ _nxTTSBusy=false; _nxTTSFlush(); return; }
+  var voiceId=_nx.profile&&_nx.profile.voiceId?_nx.profile.voiceId:'r1KmysJdVYZjJCm4mL3b';
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
+  .then(function(r){return r.ok?r.blob():null;})
+  .then(function(b){
+    if(!b||speakId!==_nxSpeakId){ _nxTTSBusy=false; _nxTTSFlush(); return; }
+    if(window._nxAudio) window._nxAudio.pause();
+    var url=URL.createObjectURL(b); window._nxAudio=new Audio(url);
+    window._nxAudio.onended=function(){ URL.revokeObjectURL(url); _nxTTSBusy=false; _nxTTSFlush(); };
+    window._nxAudio.play();
+  }).catch(function(){ _nxTTSBusy=false; _nxTTSFlush(); });
+}
+function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
+function speak(text){ _nxTTSQueue=[]; _nxTTSBusy=false; queueSpeak(text); }
 
 // ── MIC ───────────────────────────────────────────────────────
 function toggleMic(){
