@@ -914,7 +914,7 @@ app.post('/demo/nexora-lab/stream', async (req, res) => {
     }
 
     const ctx = await prepareNexoraRequest(body);
-    await streamAnthropicSSE(req, res, {
+    await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 90,
       system: ctx.systemPrompt,
@@ -2514,7 +2514,7 @@ YOUR ROLE:
 app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
     const ctx = await prepareNexoraRequest(req.body);
-    await streamAnthropicSSE(req, res, {
+    await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 90,
       system: ctx.systemPrompt,
