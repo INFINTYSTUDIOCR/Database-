@@ -33,6 +33,23 @@
 .demo-mic-gold{border-color:rgba(245,166,35,0.45)!important;background:rgba(245,166,35,0.12)!important;color:var(--gold)!important;}
 .demo-send-gold{background:var(--gold-dark)!important;color:#0A0A0F!important;}
 .demo-theme-nexora .demo-limit,.demo-theme-jill .demo-limit{color:rgba(255,255,255,0.7);}
+/* Nexora demo — integrated purple/gold (no white chat box) */
+.demo-theme-nexora .demo-panel{background:rgba(10,10,15,0.82);border:1px solid rgba(245,166,35,0.28);box-shadow:0 24px 60px rgba(0,0,0,0.45);}
+.demo-theme-nexora .demo-panel-head.nexora{background:linear-gradient(135deg,#0A0A0F 0%,#3B0E8C 55%,#7c4a0a 100%);border-bottom:2px solid var(--gold);}
+.demo-theme-nexora .demo-msgs{background:rgba(0,0,0,0.38);}
+.demo-theme-nexora .demo-msg-label{color:rgba(255,255,255,0.45);}
+.demo-theme-nexora .demo-msg.user .demo-msg-label{color:var(--gold-light);}
+.demo-theme-nexora .demo-msg.user .demo-bubble{background:linear-gradient(135deg,#0A0A0F,#3B0E8C);border:1px solid rgba(245,166,35,0.35);color:var(--gold-light);}
+.demo-theme-nexora .demo-msg.assistant .demo-bubble{background:rgba(255,255,255,0.94);border:1px solid rgba(245,166,35,0.22);color:var(--text);}
+.demo-theme-nexora .demo-input-row{background:rgba(10,10,15,0.92);border-top:1px solid rgba(245,166,35,0.22);}
+.demo-theme-nexora .demo-input{background:rgba(255,255,255,0.06);border-color:rgba(245,166,35,0.35);color:#fff;}
+.demo-theme-nexora .demo-input::placeholder{color:rgba(255,255,255,0.42);}
+.demo-theme-nexora .demo-input:focus{border-color:var(--gold);}
+.demo-theme-nexora .demo-eval{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.28);color:rgba(255,255,255,0.88);}
+.demo-theme-nexora .demo-eval h3{color:var(--gold);}
+.demo-theme-nexora .demo-eval ul{color:rgba(255,255,255,0.75);}
+.demo-theme-nexora .demo-score{color:var(--gold);}
+.demo-theme-nexora .demo-voice-hint.nexora{color:var(--gold-light);background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.28);}
 .demo-hub-dark .page-hero{background:linear-gradient(135deg,#0A0A0F,#3B0E8C 50%,#5B21B6);border-bottom:none;}
 .demo-hub-dark .page-title,.demo-hub-dark .page-lead{color:white;}
 .demo-hub-dark .page-lead strong{color:var(--gold);}

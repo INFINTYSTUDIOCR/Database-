@@ -1,9 +1,9 @@
 var DEMO_BACKEND = 'https://alice-by-infinity.onrender.com';
 
 var DEMO_LIMITS = {
-  alice: { sessionsPerDay: 1, maxSteps: 4 },
-  jill: { sessionsPerDay: 1, maxSteps: 4 },
-  nexora: { sessionsPerDay: 1, maxSteps: 3 }
+  alice: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
+  jill: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
+  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 50 }
 };
 
 var localDemoSessions = {};
@@ -96,8 +96,8 @@ async function demoParseResponse(r) {
     status: r.status,
     error: 'html_response',
     message: r.status === 404
-      ? 'Demo API not deployed yet — running local buffered mode.'
-      : 'Demo server unavailable — running local buffered mode.',
+      ? 'Live demo API not available — try again in a moment.'
+      : 'Live demo server unavailable — try again in a moment.',
     fromServer: false
   };
 }
@@ -213,16 +213,18 @@ async function demoStart(service, scenario, name) {
     if (parsed.data && parsed.ok) return parsed.data;
     if (parsed.data && !parsed.ok) {
       if (parsed.data.error === 'limit' || parsed.status === 429) throw parsed.data;
+      throw { message: parsed.data.message || parsed.data.error || 'Live demo unavailable.' };
     }
   } catch (e) {
     if (e && e.error === 'limit') throw e;
+    if (e && e.message) throw e;
   }
-  return demoStartLocal(service, scenario, name);
+  throw { message: 'Live demo unavailable. Check your connection and try again.' };
 }
 
 async function demoSend(sessionId, message) {
   if (String(sessionId).indexOf('local-') === 0) {
-    return demoSendLocal(sessionId, message);
+    throw { message: 'Session expired. Start a new live demo.' };
   }
 
   try {

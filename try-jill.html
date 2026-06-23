@@ -38,7 +38,7 @@
     <div class="demo-panel-head jill">
       <div>
         <h1>Jill — Foundations mini session</h1>
-        <div class="meta" id="step-meta">Step 0 · Buffered session</div>
+        <div class="meta" id="step-meta">Live mini session</div>
       </div>
       <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
     </div>
@@ -69,6 +69,7 @@
 <script src="js/demo-api.js"></script>
 <script src="js/demo-voices.js"></script>
 <script src="js/demo-voice.js"></script>
+<script src="js/demo-stream.js"></script>
 <script>
 (function () {
   var sessionId = null, step = 0, maxSteps = 4, busy = false, done = false;
@@ -102,9 +103,9 @@
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
       demoAddMsg(msgs, d.reply, 'assistant', 'JILL');
-      DemoVoice.speak(d.reply, voiceProfile);
+      DemoVoice.queueSpeak(d.reply, voiceProfile);
       step = d.step;
-      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
+      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Live demo';
     } catch (e) {
       if (e.error === 'limit') { pre.style.display = 'none'; limitView.style.display = 'block'; }
       else alert(e.message || 'Demo unavailable.');
@@ -119,20 +120,33 @@
     inp.value = '';
     demoAddMsg(msgs, text, 'user', 'YOU');
     setBusy(true);
+    DemoVoice.clearQueue();
+    var bubbleId = 'stream-' + Date.now();
+    var wrap = document.createElement('div');
+    wrap.className = 'demo-msg assistant';
+    wrap.innerHTML = '<div class="demo-msg-label">JILL</div><div class="demo-bubble" id="' + bubbleId + '">▋</div>';
+    msgs.appendChild(wrap);
+    var bubble = document.getElementById(bubbleId);
     try {
-      var d = await demoSend(sessionId, text);
-      demoAddMsg(msgs, d.reply, 'assistant', d.done ? 'JILL' : 'JILL');
-      DemoVoice.speak(d.reply, voiceProfile);
-      step = d.step;
-      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Buffered';
-      if (d.done) {
+      var d = await demoStreamSend(sessionId, text, {
+        onToken: function (full) {
+          bubble.innerHTML = String(full).replace(/\n/g, '<br>') + '▋';
+          msgs.scrollTop = msgs.scrollHeight;
+        },
+        onSentence: function (s) { DemoVoice.queueSpeak(s, voiceProfile); }
+      });
+      bubble.innerHTML = String(d.reply || '').replace(/\n/g, '<br>');
+      step = d.meta ? d.meta.step : step + 1;
+      document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Live demo';
+      if (d.meta && d.meta.done) {
         done = true;
         document.getElementById('input-row').style.display = 'none';
         demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Jill');
       }
     } catch (e) {
+      if (bubble.parentNode) bubble.parentNode.remove();
       if (e.error === 'limit') { done = true; document.getElementById('input-row').style.display = 'none'; }
-      else demoAddMsg(msgs, 'Connection issue — try again or contact us on WhatsApp.', 'assistant', 'SYSTEM');
+      else demoAddMsg(msgs, e.message || 'Connection issue — try again or contact us on WhatsApp.', 'assistant', 'SYSTEM');
     }
     setBusy(false);
   }

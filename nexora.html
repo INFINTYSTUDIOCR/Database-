@@ -590,7 +590,18 @@ var CITIES=['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO','Phoen
 
 var ALICE_BACKEND='https://alice-by-infinity.onrender.com';
 
+function isNexoraPublicDemo(){
+  try{
+    return localStorage.getItem('nexora_public_demo')==='1'&&!!localStorage.getItem('nexora_demo_session');
+  }catch(e){return false;}
+}
+
+function getNexoraDemoSessionId(){
+  try{return localStorage.getItem('nexora_demo_session')||'';}catch(e){return '';}
+}
+
 document.addEventListener('DOMContentLoaded', function(){
+  if(isNexoraPublicDemo()) return;
   if(typeof getAuthToken === 'function' && !getAuthToken()){
     var gate = document.createElement('div');
     gate.style.cssText = 'position:fixed;inset:0;background:#1E2761;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
@@ -1548,7 +1559,16 @@ function sanitizeNexoraReply(reply, profile){
 
 async function nexoraStreamReply(payload, onPartial){
   var fullText='', pending='';
-  var resp=await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  var isDemo=isNexoraPublicDemo();
+  var url=isDemo?(ALICE_BACKEND+'/demo/nexora-lab/stream'):('/nexora/stream');
+  var body=isDemo?Object.assign({},payload,{demoSessionId:getNexoraDemoSessionId()}):payload;
+  var resp=isDemo
+    ? await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    : await infinityFetch('/nexora/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!resp.ok){
+    var errText=''; try{errText=await resp.text();}catch(e){}
+    throw new Error(errText||('stream_'+resp.status));
+  }
   var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
   while(true){
     var chunk=await reader.read(); if(chunk.done) break;
@@ -1633,7 +1653,13 @@ function _nxTTSFlush(){
   _nxTTSBusy=true; var speakId=++_nxSpeakId; var chunk=_nxTTSQueue.shift();
   var clean=cleanForTTS(chunk); if(clean.length<3){ _nxTTSBusy=false; _nxTTSFlush(); return; }
   var voiceId=_nx.profile&&_nx.profile.voiceId?_nx.profile.voiceId:'r1KmysJdVYZjJCm4mL3b';
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})})
+  var ttsPromise;
+  if(isNexoraPublicDemo()){
+    ttsPromise=fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})});
+  } else {
+    ttsPromise=infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})});
+  }
+  ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
     if(!b||speakId!==_nxSpeakId){ _nxTTSBusy=false; _nxTTSFlush(); return; }
@@ -1689,18 +1715,28 @@ async function generateQA(isTransfer){
   document.getElementById('qa-body').innerHTML='<div style="text-align:center;padding:2rem;color:var(--t3);">Alice is preparing your evaluation...</div>';
 
   try{
-    var r=await infinityFetch('/nexora-eval',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        transcript:_nx.transcript.join('\n'),
-        scenario:_nx.scenario,
-        profile:_nx.profile,
-        agentName:_nx.agent||'Agent',
-        talkTime:talkTime,
-        holdEvents:_nx.holdEvents,
-        transferred:isTransfer
-      })
-    });
+    var evalUrl=isNexoraPublicDemo()?('/demo/nexora-lab/eval'):('/nexora-eval');
+    var evalBody=isNexoraPublicDemo()?{
+      demoSessionId:getNexoraDemoSessionId(),
+      transcript:_nx.transcript.join('\n'),
+      scenario:_nx.scenario,
+      profile:_nx.profile,
+      agentName:_nx.agent||'Agent',
+      talkTime:talkTime,
+      holdEvents:_nx.holdEvents,
+      transferred:isTransfer
+    }:{
+      transcript:_nx.transcript.join('\n'),
+      scenario:_nx.scenario,
+      profile:_nx.profile,
+      agentName:_nx.agent||'Agent',
+      talkTime:talkTime,
+      holdEvents:_nx.holdEvents,
+      transferred:isTransfer
+    };
+    var r=isNexoraPublicDemo()
+      ? await fetch(ALICE_BACKEND+evalUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(evalBody)})
+      : await infinityFetch('/nexora-eval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(evalBody)});
     var ev=await r.json();
     if(ev.error) throw new Error(ev.error);
     renderQA(ev,talkTime,isTransfer);

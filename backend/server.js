@@ -335,9 +335,9 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  alice:  { sessionsPerDay: 1, maxSteps: 4 },
-  jill:   { sessionsPerDay: 1, maxSteps: 4 },
-  nexora: { sessionsPerDay: 1, maxSteps: 3 },
+  alice:  { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
+  jill:   { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
+  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 50 },
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
@@ -629,6 +629,9 @@ app.post('/demo/start', async (req, res) => {
     const { service, scenario, consent, name } = req.body || {};
     if (!consent) return res.status(400).json({ error: 'Consent required' });
     if (!['alice', 'jill', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
+    }
 
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, service, { action: 'session' });
@@ -640,21 +643,21 @@ app.post('/demo/start', async (req, res) => {
       });
     }
 
-    const buf = getDemoBuffer(service, scenario);
-    if (!buf) return res.status(500).json({ error: 'Demo buffer unavailable' });
+    const sc = scenario || (service === 'nexora' ? 'star' : 'default');
+    const guest = name || 'Guest';
+    const reply = await demoGenerateOpening(service, sc, guest);
 
     const sessionId = crypto.randomUUID();
-    const reply = buf.start.replace(/\*\*/g, '');
     const session = {
       service,
-      scenario: scenario || (service === 'nexora' ? 'star' : 'default'),
+      scenario: sc,
       step: 0,
-      name: name || 'Guest',
+      name: guest,
       consent: true,
       ip,
       history: [{ role: 'assistant', content: reply }],
       createdAt: new Date().toISOString(),
-      apiCalls: 0
+      apiCalls: 1
     };
     await saveDemoSession(sessionId, session);
 
@@ -663,14 +666,15 @@ app.post('/demo/start', async (req, res) => {
       reply,
       step: 0,
       maxSteps: (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
-      buffered: true,
+      buffered: false,
+      live: true,
       sessionsLeft: ipLimit.sessionsLeft,
       whitelisted: !!ipLimit.whitelisted,
-      voiceProfile: getDemoVoiceProfileFor(service, scenario || (service === 'nexora' ? 'star' : 'default'))
+      voiceProfile: getDemoVoiceProfileFor(service, sc)
     });
   } catch (err) {
     console.error('Demo start error:', err.message);
-    return res.status(500).json({ error: 'Demo unavailable' });
+    return res.status(500).json({ error: 'Demo unavailable', message: err.message });
   }
 });
 
@@ -678,6 +682,9 @@ app.post('/demo/message', async (req, res) => {
   try {
     const { sessionId, message } = req.body || {};
     if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
+    }
 
     const session = await getDemoSession(sessionId);
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
@@ -688,36 +695,26 @@ app.post('/demo/message', async (req, res) => {
       return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
     }
 
-    const buf = getDemoBuffer(session.service, session.scenario);
     const maxSteps = (DEMO_LIMITS[session.service] || DEMO_LIMITS.alice).maxSteps;
-
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
+    session.apiCalls = (session.apiCalls || 0) + 1;
 
-    const cacheK = bufferKey(session.service, session.scenario, session.step);
-    if (demoResponseCache.has(cacheK)) {
-      const cached = demoResponseCache.get(cacheK);
-      session.history.push({ role: 'assistant', content: cached });
-      await saveDemoSession(sessionId, session);
-      return res.json({ reply: cached, step: session.step, done: session.step >= maxSteps, buffered: true, cacheHit: true });
-    }
-
+    const done = session.step >= maxSteps;
     let reply;
-    let done = session.step >= maxSteps;
 
     if (done) {
-      reply = buf.finish.reply;
+      reply = await demoGenerateClosingReply(session);
     } else {
-      reply = (buf.steps[session.step - 1] || buf.steps[buf.steps.length - 1]).replace(/\*\*/g, '');
+      reply = await demoGenerateReply(session);
     }
 
-    cacheDemoResponse(cacheK, reply);
     session.history.push({ role: 'assistant', content: reply });
     await saveDemoSession(sessionId, session);
 
-    const payload = { reply, step: session.step, done, buffered: true, maxSteps };
+    const payload = { reply, step: session.step, done, buffered: false, live: true, maxSteps };
     if (done) {
-      payload.evaluation = enrichEvaluation(buf.finish.evaluation, session.history);
+      payload.evaluation = await demoGenerateEvaluation(session);
       await saveDemoKb({
         service: session.service,
         scenario: session.scenario,
@@ -731,7 +728,215 @@ app.post('/demo/message', async (req, res) => {
     return res.json(payload);
   } catch (err) {
     console.error('Demo message error:', err.message);
-    return res.status(500).json({ error: 'Demo unavailable' });
+    return res.status(500).json({ error: 'Demo unavailable', message: err.message });
+  }
+});
+
+app.post('/demo/stream', async (req, res) => {
+  try {
+    const { sessionId, message } = req.body || {};
+    if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
+    }
+
+    const session = await getDemoSession(sessionId);
+    if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
+
+    const ip = getClientIp(req);
+    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message' });
+    if (!ipLimit.ok) {
+      return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
+    }
+
+    const maxSteps = (DEMO_LIMITS[session.service] || DEMO_LIMITS.alice).maxSteps;
+    session.history.push({ role: 'user', content: message.trim() });
+    session.step++;
+    session.apiCalls = (session.apiCalls || 0) + 1;
+    const done = session.step >= maxSteps;
+
+    const streamCfg = getDemoStreamConfig(session, done);
+    let fullText = '';
+
+    res.set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: streamCfg.max_tokens,
+        stream: true,
+        system: streamCfg.system,
+        messages: streamCfg.messages
+      })
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      res.write(`data: ${JSON.stringify({ error: err?.error?.message || 'API error' })}\n\n`);
+      return res.end();
+    }
+
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done: streamDone, value } = await reader.read();
+      if (streamDone) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw) continue;
+        try {
+          const evt = JSON.parse(raw);
+          if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta' && evt.delta.text) {
+            fullText += evt.delta.text;
+            res.write(`data: ${JSON.stringify({ t: evt.delta.text })}\n\n`);
+          } else if (evt.type === 'message_stop') {
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    if (session.service === 'jill') {
+      fullText = parseJillResponse(fullText).reply;
+    }
+    if (session.service === 'nexora') {
+      const ctx = getDemoNexoraContext(session.scenario, session.name);
+      fullText = finishNexoraReply(fullText, ctx.profile, buildNexoraSystemPrompt(ctx).scType);
+    }
+
+    session.history.push({ role: 'assistant', content: fullText.trim() });
+    await saveDemoSession(sessionId, session);
+
+    const meta = { step: session.step, done, maxSteps, live: true };
+    res.write(`data: ${JSON.stringify({ meta })}\n\n`);
+
+    if (done) {
+      const evaluation = await demoGenerateEvaluation(session);
+      res.write(`data: ${JSON.stringify({ evaluation })}\n\n`);
+      await saveDemoKb({
+        service: session.service,
+        scenario: session.scenario,
+        history: session.history,
+        evaluation,
+        consent: session.consent,
+        ip
+      });
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('Demo stream error:', err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Demo stream unavailable', message: err.message });
+    }
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
+  }
+});
+
+app.post('/demo/nexora-lab/stream', async (req, res) => {
+  try {
+    const { demoSessionId, ...body } = req.body || {};
+    if (!demoSessionId) return res.status(400).json({ error: 'Missing demoSessionId' });
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI.' });
+    }
+
+    const session = await getDemoSession(demoSessionId);
+    if (!session || session.service !== 'nexora') {
+      return res.status(403).json({ error: 'Invalid or expired demo session' });
+    }
+
+    const ip = getClientIp(req);
+    const ipLimit = await checkDemoIpLimit(ip, 'nexora', { action: 'message' });
+    if (!ipLimit.ok && !ipLimit.whitelisted) {
+      return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.' });
+    }
+
+    const ctx = await prepareNexoraRequest(body);
+    await streamAnthropicSSE(res, {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 120,
+      system: ctx.systemPrompt,
+      messages: ctx.msgs
+    });
+  } catch (err) {
+    console.error('Demo nexora lab stream error:', err.message);
+    if (!res.headersSent) return res.status(500).json({ error: 'Stream unavailable' });
+    res.end();
+  }
+});
+
+app.post('/demo/nexora-lab/eval', async (req, res) => {
+  try {
+    const { demoSessionId, transcript, scenario, profile, agentName, talkTime, holdEvents, transferred } = req.body || {};
+    if (!demoSessionId) return res.status(400).json({ error: 'Missing demoSessionId' });
+
+    const session = await getDemoSession(demoSessionId);
+    if (!session || session.service !== 'nexora') {
+      return res.status(403).json({ error: 'Invalid or expired demo session' });
+    }
+
+    const ip = getClientIp(req);
+    await checkDemoIpLimit(ip, 'nexora', { action: 'message' });
+
+    const evalPrompt = `You are evaluating a customer service call simulation.
+
+Agent: ${agentName || 'Agent'}
+Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
+Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
+Talk time: ${talkTime || 0} seconds
+Hold events: ${JSON.stringify(holdEvents || [])}
+Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
+
+Transcript:
+${transcript || '(no transcript)'}
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "overall_score": 78,
+  "client_satisfaction": 7.5,
+  "wins": ["specific win 1", "specific win 2"],
+  "improvements": ["specific improvement 1", "specific improvement 2"],
+  "connectors_used": ["however", "on top of that"],
+  "connectors_missed": ["despite", "therefore"],
+  "hold_feedback": "comment about hold usage if applicable",
+  "transferred_feedback": "comment about supervisor transfer if applicable",
+  "verdict": "Start by celebrating 1-2 specific things the agent did well. Be warm and specific. Then mention 1-2 concrete improvements. End with an encouraging line.",
+  "practice_minutes": ${Math.ceil((talkTime || 60) / 60)}
+}`;
+
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      system: 'You evaluate call simulations. Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: evalPrompt }]
+    });
+
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const clean = text.replace(/```json|```/g, '').trim();
+    return res.json(JSON.parse(clean));
+  } catch (err) {
+    console.error('Demo nexora lab eval error:', err.message);
+    return res.status(500).json({ error: 'Evaluation failed' });
   }
 });
 
@@ -1749,6 +1954,255 @@ function finishNexoraReply(raw, p, scType) {
     fixed = enforceNexoraClientName(fixed, p);
   }
   return fixed.trim();
+}
+
+// ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
+function getDemoAliceSystem(name) {
+  const guest = name || 'Guest';
+  return `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method at Off The Clock.
+
+PERSONALITY: Warm, human, celebratory, patient. Speak like a real person — not a script.
+METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
+RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. React to what the visitor said. Ask ONE follow-up question.
+ROLE: Tutor only. NEVER roleplay as customer, interviewer, or Nexora character.
+LANGUAGE: English in main response. End with: ALICE: [one specific tip in Spanish]
+
+DEMO MODE: This is a REAL mini-session for website visitor ${guest} — not a recording. Adapt every reply to their words.`;
+}
+
+function getDemoNexoraContext(scenario, name) {
+  const guest = name || 'Guest';
+  if (scenario === 'customer_service') {
+    return {
+      profile: { name: 'Maria Santos', firstName: 'Maria', account: 'ACC-482910' },
+      scenario: {
+        type: 'customer_service',
+        title: 'Unrecognized charge',
+        desc: 'Customer was charged $49.99 they do not recognize.',
+        mood: 'frustrated'
+      },
+      agentName: guest,
+      accountContext: {
+        name: 'Maria Santos',
+        account: 'ACC-482910',
+        disputeAmount: '$49.99',
+        services: ['Premium Plan']
+      }
+    };
+  }
+  return {
+    profile: { name: 'Alex' },
+    scenario: {
+      type: 'star_interview',
+      title: 'STAR Behavioral Interview',
+      desc: 'Brief STAR behavioral interview demo',
+      company: 'Corporate'
+    },
+    agentName: guest,
+    accountContext: {
+      interviewerName: 'Alex',
+      company: 'Corporate',
+      starFocus: [
+        'Tell me about a time you had to handle a difficult situation at work.',
+        'Tell me about a time you had to meet a tight deadline while quality still mattered.'
+      ]
+    }
+  };
+}
+
+function demoHistoryText(session) {
+  const guest = session.name || 'Guest';
+  const label = session.service === 'nexora'
+    ? (session.scenario === 'customer_service' ? 'CLIENT' : 'INTERVIEWER')
+    : session.service.toUpperCase();
+  return (session.history || []).filter(m => m.content?.trim())
+    .map(m => `${m.role === 'user' ? guest : label}: ${m.content.split('\n')[0]}`).join('\n');
+}
+
+function getDemoStreamConfig(session, closing) {
+  const guest = session.name || 'Guest';
+  const msgs = (session.history || []).slice(-12);
+  const hist = demoHistoryText(session);
+
+  if (session.service === 'alice') {
+    return {
+      max_tokens: closing ? 220 : 500,
+      system: getDemoAliceSystem(guest),
+      messages: closing
+        ? [{ role: 'user', content: `Final turn of Alice demo for ${guest}. Wrap up warmly in 2-3 sentences.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  if (session.service === 'jill') {
+    return {
+      max_tokens: closing ? 280 : 400,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Responde en texto directo (sin JSON), como conversación oral real. Máx 4-5 oraciones. Completa siempre tu última oración.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
+      messages: closing
+        ? [{ role: 'user', content: `Cierre final Foundations demo.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt } = buildNexoraSystemPrompt(ctx);
+    return {
+      max_tokens: 140,
+      system: systemPrompt + (closing ? '\nFINAL TURN: Close the simulation naturally in character.' : ''),
+      messages: closing
+        ? [{ role: 'user', content: `Close simulation.\n\n${hist}` }]
+        : msgs
+    };
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateOpening(service, scenario, name) {
+  const guest = name || 'Guest';
+  if (service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 280,
+      system: getDemoAliceSystem(guest),
+      messages: [{ role: 'user', content: `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Sesión REAL de 5 min (no guion grabado). Saludo cálido y una pregunta simple para arrancar Foundations.`,
+      messages: [{ role: 'user', content: `Iniciá demo Foundations con ${guest}. Respondé SOLO JSON: {"reply":"...","contentType":"text"}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (service === 'nexora') {
+    const ctx = getDemoNexoraContext(scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt + '\nFIRST TURN: Open the simulation with your first spoken line only.',
+      messages: [{ role: 'user', content: 'START_DEMO' }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateReply(session) {
+  const guest = session.name || 'Guest';
+  const msgs = (session.history || []).slice(-12);
+
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 500,
+      system: getDemoAliceSystem(guest),
+      messages: msgs
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 550,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Respondé de forma real y adaptada al mensaje. JSON: {"reply":"...","contentType":"text"}`,
+      messages: msgs
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt,
+      messages: msgs
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  throw new Error('Unknown demo service');
+}
+
+async function demoGenerateClosingReply(session) {
+  const guest = session.name || 'Guest';
+  const hist = demoHistoryText(session);
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 220,
+      system: getDemoAliceSystem(guest),
+      messages: [{ role: 'user', content: `This is the final turn of the Alice demo for ${guest}. Warmly wrap up in 2-3 sentences and invite them to book a full assessment.\n\nSession so far:\n${hist}` }]
+    });
+    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 280,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Cierre final para ${guest}. JSON: {"reply":"...","contentType":"text"}`,
+      messages: [{ role: 'user', content: `Cerrá la demo Foundations con calidez e invitá a agendar evaluación.\n\n${hist}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseJillResponse(raw).reply;
+  }
+  if (session.service === 'nexora') {
+    const ctx = getDemoNexoraContext(session.scenario, guest);
+    const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 140,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Final turn — close the simulation naturally in character.\n\n${hist}` }]
+    });
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return finishNexoraReply(raw, p, scType);
+  }
+  return 'Thanks for trying the demo!';
+}
+
+async function demoGenerateEvaluation(session) {
+  const guest = session.name || 'Guest';
+  const hist = demoHistoryText(session);
+  const parseEval = (text, fallback) => {
+    try { return JSON.parse(text.replace(/```json|```/g, '').trim()); } catch (e) { return fallback; }
+  };
+
+  if (session.service === 'alice') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Alice demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":75,"highlights":["..."],"improvements":["..."],"verdict":"2 warm sentences"}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 72, highlights: ['You completed the demo'], improvements: ['Practice Idea + Linker + Idea'], verdict: 'Good start — book your free assessment for full Alice coaching.' });
+  }
+  if (session.service === 'jill') {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 450,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Jill Foundations demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"highlights":["..."],"improvements":["..."],"verdict":"..."}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 70, highlights: ['Completed Jill demo'], improvements: ['Practice because/however in every answer'], verdict: 'Solid Foundations taste — full Jill program builds your base step by step.' });
+  }
+  if (session.service === 'nexora') {
+    const kind = session.scenario === 'customer_service' ? 'customer service call' : 'STAR interview';
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 500,
+      system: 'Respond ONLY with valid JSON. No markdown.',
+      messages: [{ role: 'user', content: `Evaluate this Nexora ${kind} demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":70,"wins":["..."],"improvements":["..."],"verdict":"..."}` }]
+    });
+    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return parseEval(text, { overall_score: 68, wins: ['You stayed in the simulation'], improvements: ['Be more specific in your answers'], verdict: 'Good demo — full Nexora runs longer scenarios with live scoring.' });
+  }
+  return { overall_score: 70, highlights: ['Demo completed'] };
 }
 
 // ── NEXORA CALL SIMULATION ────────────────────────────────────

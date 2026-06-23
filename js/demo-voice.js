@@ -104,13 +104,16 @@ var DemoVoice = (function () {
     window.speechSynthesis.speak(u);
   }
 
-  function speak(text, profile) {
+  function speak(text, profile, onEnd) {
     var p = normalizeProfile(profile || _activeProfile);
     if (!p) return;
     _activeProfile = p;
 
     var cleanText = clean(text);
-    if (cleanText.length < 4) return;
+    if (cleanText.length < 4) {
+      if (typeof onEnd === 'function') onEnd();
+      return;
+    }
 
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
@@ -123,12 +126,59 @@ var DemoVoice = (function () {
         if (ct.indexOf('audio') >= 0) return r.blob();
         throw new Error('not_audio');
       })
-      .then(function (blob) { playBlob(blob); })
+      .then(function (blob) {
+        stopAudio();
+        _audio = new Audio(URL.createObjectURL(blob));
+        _audio.onended = function () {
+          if (typeof onEnd === 'function') onEnd();
+        };
+        _audio.play().catch(function () {
+          if (typeof onEnd === 'function') onEnd();
+        });
+      })
       .catch(function () {
         if (p.source === 'elevenlabs-account' || p.source === 'jill-voices.json' || p.source === 'NEXORA_DEMO_MALE_VOICE_ID' || p.source === 'NEXORA_DEMO_FEMALE_VOICE_ID' || p.source === 'voices.json') {
-          browserSpeak(cleanText, p);
+          stopAudio();
+          if (!window.speechSynthesis || !cleanText) {
+            if (typeof onEnd === 'function') onEnd();
+            return;
+          }
+          var u = new SpeechSynthesisUtterance(cleanText);
+          u.lang = 'en-US';
+          u.rate = p.gender === 'male' ? 0.94 : 0.97;
+          u.pitch = p.gender === 'male' ? 0.95 : 1.02;
+          var voice = getBrowserVoice(p);
+          if (voice) u.voice = voice;
+          u.onend = function () { if (typeof onEnd === 'function') onEnd(); };
+          window.speechSynthesis.speak(u);
+        } else if (typeof onEnd === 'function') {
+          onEnd();
         }
       });
+  }
+
+  var _ttsQueue = [];
+  var _ttsBusy = false;
+
+  function queueSpeak(text, profile) {
+    _ttsQueue.push({ text: text, profile: profile || _activeProfile });
+    if (!_ttsBusy) drainQueue();
+  }
+
+  function drainQueue() {
+    if (!_ttsQueue.length) {
+      _ttsBusy = false;
+      return;
+    }
+    _ttsBusy = true;
+    var item = _ttsQueue.shift();
+    speak(item.text, item.profile, drainQueue);
+  }
+
+  function clearQueue() {
+    _ttsQueue = [];
+    _ttsBusy = false;
+    stopAudio();
   }
 
   function setMicUi(on, btn, statusEl) {
@@ -194,6 +244,8 @@ var DemoVoice = (function () {
 
   return {
     speak: speak,
+    queueSpeak: queueSpeak,
+    clearQueue: clearQueue,
     bindMic: bindMic,
     stop: stopAudio,
     setProfile: setProfile,
