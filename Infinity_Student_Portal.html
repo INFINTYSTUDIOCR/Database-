@@ -124,7 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tb-div"></div>
   <div>
     <div class="tb-title">Portal del Estudiante</div>
-    <div class="tb-sub">Studio Infinity CR · Método Nexus</div>
+    <div class="tb-sub">Infinity Studio CR · Método Nexus</div>
   </div>
   <div class="tb-right">
     <button type="button" class="tb-btn" id="tb-back" onclick="portalGoBack()" title="Volver"><i class="ti ti-arrow-left"></i></button>
@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="login-card">
       <img class="login-logo" id="login-logo" src="" alt="Infinity">
       <div class="login-title">Portal del Estudiante</div>
-      <div class="login-sub">Studio Infinity CR · Tu Training Book, KPIs, horario y progreso, sincronizados en tiempo real.</div>
+      <div class="login-sub">Infinity Studio CR · Tu Training Book, KPIs, horario y progreso, sincronizados en tiempo real.</div>
       <input class="inp" id="l-user" placeholder="Usuario" autocomplete="username">
       <input class="inp" id="l-pass" placeholder="Contraseña" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <button type="button" class="btn btn-navy btn-block btn-login" id="btn-login" onclick="doLogin()"><i class="ti ti-login"></i>Ingresar</button>
@@ -439,7 +439,7 @@ async function respondPortalTerms(agreed){
     document.getElementById('portal-terms-gate').style.display = 'none';
     logout();
     var err = document.getElementById('login-err');
-    err.textContent = 'Acceso desactivado. Contactá a Studio Infinity CR (WhatsApp) para reactivar tu cuenta.';
+    err.textContent = 'Acceso desactivado. Contactá a Infinity Studio CR (WhatsApp) para reactivar tu cuenta.';
     err.style.display = 'block';
     return;
   }
@@ -589,7 +589,7 @@ function showPortal(s){
   afterPortalReady(s, opts);
 }
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
-// Vocabulario operacional (alineado al contexto de Studio Infinity CR)
+// Vocabulario operacional (alineado al contexto de Infinity Studio CR)
 var TYPING_TEST_PHRASES = [
   "I don't understand why my account was charged twice this month.",
   "Could you please send me the updated report by Friday afternoon?",

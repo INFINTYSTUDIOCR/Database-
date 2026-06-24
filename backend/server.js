@@ -1298,7 +1298,7 @@ async function prepareNexoraRequest(body) {
 // ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
 function getDemoAliceSystem(name) {
   const guest = name || 'Guest';
-  return `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method at Off The Clock.
+  return `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method at Infinity Studio CR.
 
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person — not a script.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
@@ -1783,7 +1783,7 @@ EXERCISES:\n${tb||'(none yet)'}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Studio Infinity CR.
+const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
 
 IDENTIDAD:
 Tu nombre es Jill. Sos paciente, cálida, amorosa y nunca generás presión. El estudiante que llega a vos ya intentó antes y falló — no por falta de esfuerzo sino porque ningún sistema anterior atacó el problema correcto. Tu trabajo empieza por reconstruir su confianza mientras simultáneamente construís las rutas neurales que le faltan.
@@ -2034,7 +2034,7 @@ EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
 // ── CLAIRE — Agente comercial ─────────────────────────────────
 const CLAIRE_KB = `
 QUIÉNES SOMOS:
-Off The Clock by Infinity — No somos una academia de inglés. Somos un sistema de desarrollo de comunicación operacional en inglés.
+Infinity Studio CR — No somos una academia de inglés. Somos un sistema de desarrollo de comunicación operacional en inglés.
 
 MÉTODO NEXUS:
 La estructura es: Idea + Linker + Idea. Los conectores (however, on top of that, even though, therefore, besides, so far, despite, so) son los que le dan velocidad, dirección y vida a una conversación. Sin conectores, la persona habla plano, cuadrado, sin fluir. Con conectores, la conversación se mueve, gira, camina, se redirige.
@@ -2077,11 +2077,11 @@ app.post('/claire', async (req, res) => {
       const ipLimit = await checkDemoIpLimit(ip, 'claire', { action: 'session' });
       if (!ipLimit.ok) {
         return res.json({
-          reply: 'Gracias por tu interés en Off The Clock. Alcanzaste el límite de conversaciones por hoy — escribinos al WhatsApp +506 6006 0981 o volvé mañana. 😊',
+          reply: 'Gracias por tu interés en Infinity Studio CR. Alcanzaste el límite de conversaciones por hoy — escribinos al WhatsApp +506 6006 0981 o volvé mañana. 😊',
           limitReached: true
         });
       }
-      const startBuffered = '¡Hola! Soy Claire de Off The Clock. Estoy acá para ayudarte a entender cómo desarrollamos comunicación operacional en inglés — no gramática de libro. ¿Qué te trae hoy?';
+      const startBuffered = '¡Hola! Soy Claire de Infinity Studio CR. Estoy acá para ayudarte a entender cómo desarrollamos comunicación operacional en inglés — no gramática de libro. ¿Qué te trae hoy?';
       return res.json({ reply: startBuffered, buffered: true });
     }
 
@@ -2100,7 +2100,7 @@ app.post('/claire', async (req, res) => {
     if (demoResponseCache.has(cacheKey)) {
       return res.json({ reply: demoResponseCache.get(cacheKey), buffered: true, cacheHit: true });
     }
-    const systemPrompt = `Eres Claire, asistente virtual de Off The Clock by Infinity. Cálida, paciente, experta, apasionada.
+    const systemPrompt = `Eres Claire, asistente virtual de Infinity Studio CR. Cálida, paciente, experta, apasionada.
 
 ${CLAIRE_KB}
 
@@ -2688,7 +2688,7 @@ app.post('/webhook', async (req, res) => {
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001', max_tokens: 300,
-      system: `Eres Claire, asistente de Off The Clock by Infinity en WhatsApp. Cálida, breve, directa. Mensajes cortos — máximo 3 líneas. Si hay interés real en el programa, pedí nombre y horario preferido para la evaluación gratuita. WhatsApp: +506 6006 0981`,
+      system: `Eres Claire, asistente de Infinity Studio CR en WhatsApp. Cálida, breve, directa. Mensajes cortos — máximo 3 líneas. Si hay interés real en el programa, pedí nombre y horario preferido para la evaluación gratuita. WhatsApp: +506 6006 0981`,
       messages: conv.history.slice(-10)
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');

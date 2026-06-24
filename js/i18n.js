@@ -39,13 +39,13 @@
   ];
 
   var INDEX = [
-    { s: '.hero-headline', en: 'More Than English.', es: 'Más que inglés.' },
-    { s: '.hero-sub', html: true, en: 'We develop operational capacity through <strong>AI, simulations and real-time metrics.</strong>', es: 'Desarrollamos capacidad operacional mediante <strong>IA, simulaciones y métricas en tiempo real.</strong>' },
-    { s: '.hero-lead', en: 'Track your progress, measure your performance and accelerate your growth from a platform built for the real world — all in the palm of your hand.', es: 'Seguí tu progreso, medí tu desempeño y acelerá tu crecimiento desde una plataforma diseñada para el mundo real, todo en la palma de tu mano.' },
-    { s: '.hero-pills .pill:nth-child(1)', en: 'AI-Powered', es: 'Con IA' },
-    { s: '.hero-pills .pill:nth-child(2)', en: 'KPI Tracking', es: 'Seguimiento KPI' },
-    { s: '.hero-pills .pill:nth-child(3)', en: '26 Years Experience', es: '26 Años de Experiencia' },
-    { s: '.hero-pills .pill:nth-child(4)', en: 'Real-Time Coaching', es: 'Coaching en Tiempo Real' },
+    { s: '.hero-headline', en: 'You don\'t need more English classes. You need to stop freezing.', es: 'No necesitás más clases de inglés. Necesitás dejar de paralizarte.' },
+    { s: '.hero-sub', html: true, en: '<strong>Private one-on-one coaching</strong> — we target your exact pain point with AI, live sessions and real-time metrics.', es: '<strong>Coaching privado uno a uno</strong> — atacamos tu dolor exacto con IA, sesiones en vivo y métricas en tiempo real.' },
+    { s: '.hero-lead', en: 'No group classes. No generic syllabus. Infinity Studio CR builds your path around the moments that paralyze you — interviews, client calls, meetings — until you operate under pressure.', es: 'Sin clases grupales. Sin syllabus genérico. Infinity Studio CR construye tu ruta alrededor de los momentos que te paralizan — entrevistas, llamadas con clientes, reuniones — hasta que operés bajo presión.' },
+    { s: '.hero-pills .pill:nth-child(1)', en: 'Private 1-on-1 Sessions', es: 'Sesiones Privadas 1 a 1' },
+    { s: '.hero-pills .pill:nth-child(2)', en: 'Built for Your Pain Point', es: 'Diseñado para Tu Dolor' },
+    { s: '.hero-pills .pill:nth-child(3)', en: 'AI + Human Coaching', es: 'Coaching IA + Humano' },
+    { s: '.hero-pills .pill:nth-child(4)', en: 'Real-Time KPI Tracking', es: 'KPIs en Tiempo Real' },
     { s: '.hero-ctas .btn-primary', en: 'Book Your Assessment', es: 'Agenda Tu Evaluación' },
     { s: '.hero-ctas .btn-secondary', en: 'See The System', es: 'Ver El Sistema' },
     { s: '.stats-bar .stat-item:nth-child(1) .stat-label', en: 'Years of Industry Experience', es: 'Años de Experiencia en la Industria' },
@@ -60,13 +60,13 @@
     { s: '#problem .problem-list li:nth-child(3)', html: true, en: '<i class="ti ti-check"></i>They <strong>write</strong> English', es: '<i class="ti ti-check"></i><strong>Escriben</strong> inglés' },
     { s: '#problem .problem-text:last-of-type', html: true, en: 'But when <strong>real interaction</strong> happens — under pressure, with a client, in a meeting, in a job interview...', es: 'Pero cuando ocurre la <strong>interacción real</strong> — bajo presión, con un cliente, en una reunión, en una entrevista...' },
     { s: '.freeze-word', html: true, en: 'They<br>Freeze.', es: 'Se<br>Paralizan.' },
-    { s: '.freeze-sub', html: true, en: 'That\'s not an English problem.<br>That\'s an operational readiness problem.<br><br>And we solve it.', es: 'Eso no es un problema de inglés.<br>Es un problema de preparación operacional.<br><br>Y nosotros lo resolvemos.' },
+    { s: '.freeze-sub', html: true, en: 'That\'s not an English problem.<br>That\'s an operational readiness problem.<br><br><strong>Infinity Studio CR</strong> was built for you if you live this pain — in private sessions, not group classrooms.', es: 'Eso no es un problema de inglés.<br>Es un problema de preparación operacional.<br><br><strong>Infinity Studio CR</strong> fue creado para vos si vivís este dolor — en sesiones privadas, no en aulas grupales.' },
     { s: '#comparison .section-tag', en: 'This Is Different', es: 'Esto Es Diferente' },
     { s: '#comparison .section-title', html: true, en: 'This Is <span style="color:var(--purple)">Not</span> An English Academy.', es: 'Esto <span style="color:var(--purple)">No</span> Es Una Academia de Inglés.' },
-    { s: '#comparison .section-sub', en: 'No grammar drills. No textbooks. No certificates for participation. Just real operational capacity.', es: 'Sin gramática memorizada. Sin libros. Sin certificados por asistir. Solo capacidad operacional real.' },
+    { s: '#comparison .section-sub', en: 'Private sessions for one person: you. No crowded classrooms, no shared curriculum — just your pain point, your Training Book, your results.', es: 'Sesiones privadas para una persona: vos. Sin aulas llenas, sin currículo compartido — solo tu dolor, tu Training Book, tus resultados.' },
     { s: '#ecosystem .section-tag', en: 'Your Student Kit', es: 'Tu Kit de Estudiante' },
     { s: '#ecosystem .section-title', html: true, en: 'What Do Our <span style="color:var(--purple)">Students Receive?</span>', es: '¿Qué Reciben Nuestros <span style="color:var(--purple)">Estudiantes?</span>' },
-    { s: '#ecosystem .section-sub', en: 'Not classes. A complete operational system — AI coaching, live simulations, personalized exercises and real-time performance intelligence.', es: 'No son clases. Es un sistema operacional completo — coaching con IA, simulaciones en vivo, ejercicios personalizados e inteligencia de desempeño en tiempo real.' },
+    { s: '#ecosystem .section-sub', en: 'Not group lessons. A private operational system — your trainer, your AI coach, your simulations and your metrics, built around the moment you freeze.', es: 'No son clases grupales. Es un sistema operacional privado — tu trainer, tu coach IA, tus simulaciones y tus métricas, construido alrededor del momento en que te paralizás.' },
     { s: '.deliverables-tab[data-tab="training-book"]', en: 'Training Book', es: 'Training Book' },
     { s: '.deliverables-tab[data-tab="infinity-engine"]', en: 'Infinity Engine', es: 'Infinity Engine' },
     { s: '#panel-nexora .deliverable-intro h3', en: 'Nexora — Business Simulation Lab', es: 'Nexora — Laboratorio de Simulación Empresarial' },
@@ -126,8 +126,8 @@
     { s: '#community-programs .programs-split-head h3', en: 'Community Programs', es: 'Programas de Comunidad' },
     { s: '#community-programs .programs-split-head p:first-of-type', en: 'Satellite initiatives that support the ecosystem — not part of Foundations or ORT.', es: 'Iniciativas satélite que apoyan el ecosistema — no forman parte de Foundations ni ORT.' },
     { s: '#community-programs .programs-note', en: 'Purpose: community building, visibility, engagement, exposure and employability support.', es: 'Propósito: comunidad, visibilidad, engagement, exposición y apoyo en empleabilidad.' },
-    { s: '.final-cta h2', html: true, en: 'Stop Studying English.<br><span>Start Operating In It.</span>', es: 'Deja de Estudiar Inglés.<br><span>Empieza a Operar En Él.</span>' },
-    { s: '.final-cta p', en: 'The only system in Costa Rica built for operational readiness.', es: 'El único sistema en Costa Rica diseñado para preparación operacional.' },
+    { s: '.final-cta h2', html: true, en: 'Private training.<br><span>Not classrooms.</span>', es: 'Entrenamiento privado.<br><span>No aulas grupales.</span>' },
+    { s: '.final-cta p', en: 'The private system for professionals who understand English but freeze when it counts.', es: 'El sistema privado para profesionales que entienden inglés pero se paralizan cuando importa.' },
     { s: '.final-cta .btn-gold', en: 'Schedule Your Assessment', es: 'Agenda Tu Evaluación' },
     { s: '#contact .section-tag', en: 'Contact', es: 'Contacto' },
     { s: '#contact .section-title', html: true, en: 'Ready To <span style="color:var(--purple)">Operate</span> In English?', es: '¿Listo Para <span style="color:var(--purple)">Operar</span> En Inglés?' },
@@ -153,7 +153,7 @@
     { s: '.footer-links a[href="#contact"]', en: 'Contact', es: 'Contacto' },
     { s: '#cf-goal', attr: 'placeholder', en: 'What do you want to achieve with operational English?', es: '¿Qué quieres lograr con inglés operacional?' },
     { s: '.contact-form .btn-primary', en: 'Send via WhatsApp', es: 'Enviar por WhatsApp' },
-    { s: '.footer-copy', en: '© 2026 Off The Clock by ∞ Infinity · All rights reserved · studioinfinitycr.com', es: '© 2026 Off The Clock by ∞ Infinity · Todos los derechos reservados · studioinfinitycr.com' }
+    { s: '.footer-copy', en: '© 2026 Infinity Studio CR · All rights reserved · studioinfinitycr.com', es: '© 2026 Infinity Studio CR · Todos los derechos reservados · studioinfinitycr.com' }
   ];
 
   var INDEX_MORE = [
@@ -164,13 +164,15 @@
     { s: '.comp-card.trad .comp-item:nth-child(5)', en: 'One-size-fits-all tests', es: 'Exámenes genéricos para todos' },
     { s: '.comp-card.trad .comp-item:nth-child(6)', en: 'Participation certificates', es: 'Certificados por asistir' },
     { s: '.comp-card.trad .comp-item:nth-child(7)', en: 'Academic fluency only', es: 'Solo fluidez académica' },
-    { s: '.comp-card.otc .comp-title', html: true, en: '<i class="ti ti-rocket"></i>Off The Clock System', es: '<i class="ti ti-rocket"></i>Sistema Off The Clock' },
-    { s: '.comp-card.otc .comp-item:nth-child(2)', en: 'Real-time interaction', es: 'Interacción en tiempo real' },
-    { s: '.comp-card.otc .comp-item:nth-child(3)', en: 'Personalized Training Book', es: 'Training Book personalizado' },
-    { s: '.comp-card.otc .comp-item:nth-child(4)', en: '5 Operational KPIs', es: '5 KPIs operacionales' },
-    { s: '.comp-card.otc .comp-item:nth-child(5)', en: 'Weekly performance tracking', es: 'Seguimiento semanal de desempeño' },
-    { s: '.comp-card.otc .comp-item:nth-child(6)', en: 'AI coaching 24/7', es: 'Coaching con IA 24/7' },
-    { s: '.comp-card.otc .comp-item:nth-child(7)', en: 'Operational readiness', es: 'Preparación operacional' },
+    { s: '.comp-card.trad .comp-item:nth-child(8)', en: 'Group classes with strangers', es: 'Clases grupales con desconocidos' },
+    { s: '.comp-card.otc .comp-title', html: true, en: '<i class="ti ti-rocket"></i>Infinity Studio CR System', es: '<i class="ti ti-rocket"></i>Sistema Infinity Studio CR' },
+    { s: '.comp-card.otc .comp-item:nth-child(2)', en: 'Private 1-on-1 sessions', es: 'Sesiones privadas 1 a 1' },
+    { s: '.comp-card.otc .comp-item:nth-child(3)', en: 'Real-time interaction', es: 'Interacción en tiempo real' },
+    { s: '.comp-card.otc .comp-item:nth-child(4)', en: 'Personalized Training Book', es: 'Training Book personalizado' },
+    { s: '.comp-card.otc .comp-item:nth-child(5)', en: '5 Operational KPIs', es: '5 KPIs operacionales' },
+    { s: '.comp-card.otc .comp-item:nth-child(6)', en: 'Weekly performance tracking', es: 'Seguimiento semanal de desempeño' },
+    { s: '.comp-card.otc .comp-item:nth-child(7)', en: 'AI coaching 24/7', es: 'Coaching con IA 24/7' },
+    { s: '.comp-card.otc .comp-item:nth-child(8)', en: 'Operational readiness', es: 'Preparación operacional' },
     { s: '.deliverables-tab[data-tab="nexora"]', en: 'Nexora', es: 'Nexora' },
     { s: '.deliverables-tab[data-tab="jill"]', en: 'Jill', es: 'Jill' },
     { s: '.deliverables-tab[data-tab="alice"]', en: 'Alice', es: 'Alice' },
@@ -345,8 +347,8 @@
   }
 
   function applyClaireWidget(lang) {
-    var online = document.querySelector('#claire-widget [style*="Off The Clock"]');
-    if (online) online.innerHTML = '<span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>' + (lang === 'es' ? 'Off The Clock · En línea' : 'Off The Clock · Online');
+    var online = document.querySelector('#claire-widget [style*="Infinity Studio CR"]');
+    if (online) online.innerHTML = '<span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>' + (lang === 'es' ? 'Infinity Studio CR · En línea' : 'Infinity Studio CR · Online');
     var vi = document.getElementById('cvi');
     if (vi && vi.style.display !== 'none') vi.textContent = lang === 'es' ? '🎙 Escuchando' : '🎙 Listening';
   }

@@ -1,7 +1,7 @@
 {
   "name": "Infinity Student Portal",
   "short_name": "SI Portal",
-  "description": "Student portal — Studio Infinity CR",
+  "description": "Student portal — Infinity Studio CR",
   "start_url": "./Infinity_Student_Portal.html",
   "scope": "./",
   "display": "standalone",

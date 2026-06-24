@@ -24,7 +24,7 @@ async function startClaire() {
     _ch.push({role:'assistant', content:d.reply});
   } catch(e) {
     showTyping(false);
-    addMsg('¡Hola! Soy Claire de Off The Clock. ¿En qué puedo ayudarte? 😊', 'c');
+    addMsg('¡Hola! Soy Claire de Infinity Studio CR. ¿En qué puedo ayudarte? 😊', 'c');
   }
 }
 

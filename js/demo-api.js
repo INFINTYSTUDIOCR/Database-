@@ -330,5 +330,5 @@ function demoRenderEval(container, evaluation, service) {
 }
 
 function demoWaCta(service) {
-  return 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Completé el demo de ' + service + ' en Off The Clock y quiero mi evaluación gratuita.');
+  return 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Completé el demo de ' + service + ' en Infinity Studio CR y quiero mi evaluación gratuita.');
 }

@@ -1,7 +1,7 @@
 /** Client-side demo buffer — used when Render /demo/* is unavailable */
 window.DEMO_BUFFER = {
   alice: {
-    start: "Hi! I'm Alice — your English performance coach at Off The Clock. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
+    start: "Hi! I'm Alice — your English performance coach at Infinity Studio CR. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
     steps: [
       "Good start! Now let's push a little. Describe a challenge you faced recently at work. Try to use the connector **however** when you switch ideas.",
       "Nice effort! I noticed your structure — let me coach you. Remember: **Idea + Linker + Idea**. For example: \"We had a deadline, **however** the client changed the scope, **so** we reprioritized.\" Can you try one more sentence using **on top of that** or **even though**?",
@@ -19,7 +19,7 @@ window.DEMO_BUFFER = {
     }
   },
   jill: {
-    start: "¡Hola! Soy Jill, tu tutora de Foundations en Off The Clock. Acá empezamos sin presión: estructura, chunks y tus primeros linkers. ¿Qué te gustaría mejorar en inglés esta semana?",
+    start: "¡Hola! Soy Jill, tu tutora de Foundations en Infinity Studio CR. Acá empezamos sin presión: estructura, chunks y tus primeros linkers. ¿Qué te gustaría mejorar en inglés esta semana?",
     steps: [
       "¡Muy bien! En Foundations no memorizamos listas — construimos **Idea + chunk + Idea**. Probá decir 'I want to improve' y agregá UNA razón con **because**.",
       "Buen intento. Ahora un tiempo verbal: contame qué **hiciste ayer** — una oración corta en pasado simple.",

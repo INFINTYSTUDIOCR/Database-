@@ -8,7 +8,7 @@
     { text: 'Determinación + entrenamiento = resultados. Vos elegís aparecer, y eso ya te hace diferente.', sub: 'Que tu día esté lleno de luz.' },
     { text: 'Cada trainer y cada estudiante suma. Sin vos, el ecosistema no sería el mismo.', sub: 'Dios guía tu camino.' },
     { text: 'Hoy es un buen día para avanzar un paso más. Lo que practiques hoy, mañana lo vas a usar.', sub: 'Confiá en el proceso — y en tu fe.' },
-    { text: 'Studio Infinity CR existe gracias a personas como vos: comprometidas, valientes y con ganas de crecer.', sub: 'Que Dios te dé sabiduría y paz.' },
+    { text: 'Infinity Studio CR existe gracias a personas como vos: comprometidas, valientes y con ganas de crecer.', sub: 'Que Dios te dé sabiduría y paz.' },
     { text: 'Tu voz importa. Tu progreso importa. Vos importás para esta organización.', sub: 'Bendito seas en tu jornada.' },
     { text: 'El entrenamiento real no es fácil — por eso valoramos tu presencia. Seguí, estamos con vos.', sub: 'Que el Señor abra puertas en tu camino.' },
     { text: 'Infinity no es solo inglés: es capacidad, carácter y confianza. Vos estás formando las tres.', sub: 'Que Dios multiplique tu esfuerzo.' },
@@ -28,7 +28,7 @@
     { text: 'Hoy recordá: sos capaz, sos importante y sos parte de algo que trasciende un aula.', sub: 'Bendito el camino que recorrés.' },
     { text: 'Infinity cree en entrenar personas, no perfiles. Vos tenés nombre, historia y futuro.', sub: 'Que Dios te acompañe siempre.' },
     { text: 'Cada sesión completada es victoria. Celebrá el avance — y seguí con determinación.', sub: 'Que tu fe y tu esfuerzo se multipliquen.' },
-    { text: 'Trainers y estudiantes: ustedes son el corazón de Studio Infinity CR. Gracias por estar.', sub: 'Que Dios bendiga sus caminos hoy.' },
+    { text: 'Trainers y estudiantes: ustedes son el corazón de Infinity Studio CR. Gracias por estar.', sub: 'Que Dios bendiga sus caminos hoy.' },
     { text: 'No importa qué tan difícil se sienta hoy: aparecer ya es ganar. Y vos apareciste.', sub: 'Seguí adelante — bendiciones.' },
     { text: 'Tu potencial es mayor que cualquier obstáculo de hoy. Entrenemos con esa verdad en mente.', sub: 'Que Dios te dé fuerza nueva.' },
     { text: 'Infinity existe para ver brillar personas como vos. Hoy brilla — aunque sea un poco más que ayer.', sub: 'Que Dios bendiga tu camino, hoy y siempre.' }
@@ -80,7 +80,7 @@
       + '<div class="daily-tv" role="dialog" aria-labelledby="daily-inspire-label">'
       + '<div class="daily-tv-antenna" aria-hidden="true"></div>'
       + '<div class="daily-tv-body">'
-      + '<div class="daily-tv-brand">Studio Infinity CR · Transmisión del día</div>'
+      + '<div class="daily-tv-brand">Infinity Studio CR · Transmisión del día</div>'
       + '<div class="daily-tv-screen-wrap"><div class="daily-tv-screen">'
       + '<div class="daily-tv-label" id="daily-inspire-label">Mensaje del día</div>'
       + '<div class="daily-tv-text" id="daily-inspire-text"></div>'

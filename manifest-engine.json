@@ -1,7 +1,7 @@
 {
   "name": "Infinity Nexus Engine",
   "short_name": "Nexus Engine",
-  "description": "Trainer platform — Studio Infinity CR",
+  "description": "Trainer platform — Infinity Studio CR",
   "start_url": "./Infinity_Nexus_Engine.html",
   "scope": "./",
   "display": "standalone",

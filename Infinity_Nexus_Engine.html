@@ -1410,7 +1410,7 @@ var STUDENT_PORTAL_URL = 'https://infintystudiocr.github.io/Database-/Infinity_S
 function copyStudentLink(id){
   var s=DB[id]; if(!s) return;
   if(!s.portalUser||!s.portalPass){ showToast('Generá las credenciales del portal primero (tab Información)','err'); return; }
-  var text = 'Portal del Estudiante — Studio Infinity CR\n'+STUDENT_PORTAL_URL+'\n\nUsuario: '+s.portalUser+'\nContraseña: '+s.portalPass;
+  var text = 'Portal del Estudiante — Infinity Studio CR\n'+STUDENT_PORTAL_URL+'\n\nUsuario: '+s.portalUser+'\nContraseña: '+s.portalPass;
   showShareModal('Link y credenciales del portal', text, ((s.info&&s.info.phone)||''));
 }
 
@@ -1563,7 +1563,7 @@ function generateReport(id){
     +'</table>'
     +(cals.length?'<h3>Historial de Calibraciones</h3><table><tr><th>Fecha</th><th>IG</th><th>ST</th><th>RA</th><th>PS</th><th>R</th><th>Score</th></tr>'
       +cals.map(function(c){ var t=Object.values(c.kpis||{}).reduce(function(a,v){return a+(parseInt(v)||0);},0); return '<tr><td>'+fmtDate(c.date)+'</td>'+Object.keys(KPI_NAMES).map(function(k){return '<td>'+((c.kpis||{})[k]||'—')+'</td>';}).join('')+'<td><strong>'+t+'</strong></td></tr>'; }).join('')+'</table>':'')
-    +'<p style="margin-top:2rem;font-size:12px;color:#64748B;">Generado por Studio Infinity CR — Nexus Engine · '+new Date().toLocaleDateString('es-CR')+'</p>'
+    +'<p style="margin-top:2rem;font-size:12px;color:#64748B;">Generado por Infinity Studio CR — Nexus Engine · '+new Date().toLocaleDateString('es-CR')+'</p>'
     +'</body></html>';
   var blob=new Blob([html],{type:'text/html'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Reporte_'+(s.info&&s.info.name).replace(/ /g,'_')+'.html'; a.click();
@@ -2083,7 +2083,7 @@ function renderCalendarMonth(m, year, month){
     +'<button class="btn btn-outline btn-sm" onclick="navCalendar('+nextYear+','+nextMonth+')"><i class="ti ti-chevron-right"></i></button>'
     +'<button class="btn btn-navy btn-sm" onclick="openNewCalendarEvent(\'\')"><i class="ti ti-plus"></i>Nueva sesión</button>'
     +'</div>'
-    +'<div class="ib ib-navy">Calendario interno de Studio Infinity CR — trainers y actividades. Los estudiantes ven su propio horario en su Training Book.</div>'
+    +'<div class="ib ib-navy">Calendario interno de Infinity Studio CR — trainers y actividades. Los estudiantes ven su propio horario en su Training Book.</div>'
     +(function(){
       var mySwaps = getMySwaps();
       if(!mySwaps.length) return '';
@@ -2517,7 +2517,7 @@ function renderDepartment(m, dept){
     +'</div>';
 
   if(dept==='misc'){
-    html += '<div class="ib ib-navy">Espacio compartido para anuncios internos, noticias y avisos generales de Studio Infinity CR.</div>';
+    html += '<div class="ib ib-navy">Espacio compartido para anuncios internos, noticias y avisos generales de Infinity Studio CR.</div>';
   } else {
     html += '<div class="ib ib-amber">Acceso restringido a colaboradores de '+(DEPT_LABELS[dept]||dept)+' y Master Trainer.</div>';
   }
@@ -2678,7 +2678,7 @@ function renderDiagnostic(m, leadId){
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-clipboard-check"></i> Operational English Diagnostic Tool'+(lead?' — '+li.name:'')+'</h2>'
     +'</div>'
     +'<input type="hidden" id="dg-leadid" value="'+(leadId||'')+'">'
-    +'<div class="ib ib-navy">Nexus Method · Advanced assessment · 4-week session plan · Studio Infinity CR</div>'
+    +'<div class="ib ib-navy">Nexus Method · Advanced assessment · 4-week session plan · Infinity Studio CR</div>'
     +'<div class="ib ib-navy" style="margin-top:8px;"><i class="ti ti-lock"></i> <strong>Intake Diagnostic</strong> — baseline único al crear estudiante. Calibraciones semanales → <strong>Weekly Pulse</strong>.</div>'
 
     +'<div class="card">'
@@ -2926,7 +2926,7 @@ function sendDiagnosticReportWA(id){
   var rep = s.diagnosticReport||{};
   var kpis = (s.kpis&&s.kpis.phase1)||{};
   var lines = [];
-  lines.push('📊 Reporte de Diagnóstico — Studio Infinity CR');
+  lines.push('📊 Reporte de Diagnóstico — Infinity Studio CR');
   lines.push((s.info&&s.info.name)||'');
   lines.push('Nivel: '+(rep.level||getLevel(getScore(s)))+' — Score '+(rep.score||getScore(s))+'/25');
   lines.push('');
@@ -2995,8 +2995,8 @@ function isForeignPayer(info){
 function buildPaymentReminderWaUrl(name, info){
   var foreign = isForeignPayer(info||{});
   var msg = foreign
-    ? 'Hola '+(name||'').trim()+', recordatorio de pago Studio Infinity CR. PayPal: '+INFINITY_PAYPAL
-    : 'Hola '+(name||'').trim()+', recordatorio de pago Studio Infinity CR. SINPE Móvil: '+INFINITY_SINPE;
+    ? 'Hola '+(name||'').trim()+', recordatorio de pago Infinity Studio CR. PayPal: '+INFINITY_PAYPAL
+    : 'Hola '+(name||'').trim()+', recordatorio de pago Infinity Studio CR. SINPE Móvil: '+INFINITY_SINPE;
   return 'https://wa.me/'+INFINITY_WA+'?text='+encodeURIComponent(msg);
 }
 
@@ -3499,7 +3499,7 @@ async function closeDeal(){
   showToast('Trato cerrado · Basic Training asignado · Credenciales generadas');
 
   // 3. Abrir WhatsApp con link + credenciales + bienvenida
-  var text = '¡Bienvenido/a a Studio Infinity CR, '+(s.info.name||'')+'!\\n\\n'
+  var text = '¡Bienvenido/a a Infinity Studio CR, '+(s.info.name||'')+'!\\n\\n'
     + 'Tu Portal del Estudiante (Training Book, KPIs y horario):\\n'+STUDENT_PORTAL_URL+'\\n\\n'
     + 'Usuario: '+portalUser+'\\nContraseña: '+portalPass+'\\n\\n'
     + 'Tu trainer asignado es '+(s.info.trainer||'—')+' y tu horario es '+(Array.isArray(s.info.scheduleDays)?s.info.scheduleDays.join(' y '):'')+' de '+(s.info.scheduleTime||'')+' a '+(s.info.scheduleEndTime||'')+'.\\n\\n'
@@ -4344,7 +4344,7 @@ function buildAIPrompt(s, rep){
 
   var kbText = (NEXUS_KB.entries||[]).slice(-12).map(function(e){ return '- '+e.text; }).join('\\n');
 
-  return 'Sos un experto en diseño curricular para entrenamiento de comunicación operacional en inglés — Método Nexus de Studio Infinity CR (STAR + Storytelling, 7 áreas / 26 KPIs).\\n\\n'
+  return 'Sos un experto en diseño curricular para entrenamiento de comunicación operacional en inglés — Método Nexus de Infinity Studio CR (STAR + Storytelling, 7 áreas / 26 KPIs).\\n\\n'
     + 'REGLA FUNDAMENTAL — NO ROMPER EL MÉTODO:\\n'
     + 'Todo lo que propongas debe basarse en la LÓGICA de los manuales y materiales ya compartidos del Método Nexus (estructura STAR, conectores naturales, 26 KPIs, niveles, filosofía de "comunicar > perfección"). Podés ser innovador en FORMATO, contexto, dinámica o tema de los ejercicios, pero NUNCA contradecir, reemplazar o desviarte de los principios centrales del método. Innovación SIEMPRE dentro del marco, nunca fuera de él. Si algo que se te ocurre se sale del método, no lo incluyas.\\n\\n'
     + CHUNKING_FRAMEWORK_TEXT.replace(/\\n/g,'\\\\n') + '\\n\\n'
@@ -4978,7 +4978,7 @@ async function deleteNexusKBEntry(idx){
 }
 
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
-// Vocabulario operacional (alineado al contexto de Studio Infinity CR)
+// Vocabulario operacional (alineado al contexto de Infinity Studio CR)
 var TYPING_TEST_PHRASES = [
   "I don't understand why my account was charged twice this month.",
   "Could you please send me the updated report by Friday afternoon?",
@@ -5683,7 +5683,7 @@ function sendVisualReportWA(sid){
   var hist = s.kpiTracker||[];
   var last = hist.length ? hist[hist.length-1] : null;
   var lines = [];
-  lines.push('📊 Reporte de Progreso — Studio Infinity CR');
+  lines.push('📊 Reporte de Progreso — Infinity Studio CR');
   lines.push((s.info&&s.info.name)||'');
   if(last){
     lines.push('Score global: '+last.overall+'/100 ('+fmtDate(last.date)+')');

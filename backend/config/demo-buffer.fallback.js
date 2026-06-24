@@ -1,6 +1,6 @@
 module.exports = {
   "alice": {
-    "start": "Hi! I'm Alice — your English performance coach at Off The Clock. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
+    "start": "Hi! I'm Alice — your English performance coach at Infinity Studio CR. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
     "steps": [
       "Good start! Now let's push a little. Describe a challenge you faced recently at work. Try to use the connector **however** when you switch ideas.",
       "Nice effort! I noticed your structure — let me coach you. Remember: **Idea + Linker + Idea**. For example: \"We had a deadline, **however** the client changed the scope, **so** we reprioritized.\" Can you try one more sentence using **on top of that** or **even though**?",
@@ -29,7 +29,7 @@ module.exports = {
     }
   },
   "jill": {
-    "start": "Hi! I'm Jill — your Foundations tutor at Off The Clock. I help you build the structure behind English: chunks, verb tenses, and your first linkers. Ready? Tell me one thing you want to improve in English this week.",
+    "start": "Hi! I'm Jill — your Foundations tutor at Infinity Studio CR. I help you build the structure behind English: chunks, verb tenses, and your first linkers. Ready? Tell me one thing you want to improve in English this week.",
     "steps": [
       "Good! In Foundations we don't memorize lists — we build **Idea + chunk + Idea**. Try this: say 'I want to improve' and add ONE reason using **because**.",
       "Nice try! Now let's use a time tense. Tell me what you **did yesterday** — one short sentence. Use a simple past verb.",
