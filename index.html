@@ -217,6 +217,24 @@ a.cc-link .cc-value{color:var(--purple);}
 .exp-tags{display:flex;flex-wrap:wrap;gap:8px;}
 .exp-tag{background:var(--purple-glow);color:var(--purple);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
 
+.success-section{background:linear-gradient(180deg,#fff 0%,var(--off-white) 100%);}
+.success-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:1.5rem;margin-top:2.5rem;}
+.success-card{background:white;border:1px solid var(--gray-light);border-radius:var(--rxl);padding:1.75rem;display:flex;flex-direction:column;transition:all 0.25s;}
+.success-card:hover{border-color:rgba(91,33,182,0.25);box-shadow:0 16px 48px rgba(91,33,182,0.1);transform:translateY(-2px);}
+.success-card.featured{border-color:rgba(91,33,182,0.2);background:linear-gradient(135deg,rgba(91,33,182,0.03),rgba(245,166,35,0.04));}
+.success-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);background:var(--purple-glow);padding:5px 10px;border-radius:20px;margin-bottom:12px;width:fit-content;}
+.success-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;line-height:1.25;margin-bottom:10px;color:var(--text);}
+.success-card > p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:1.25rem;}
+.success-metrics{list-style:none;margin:0 0 1.25rem;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.success-metrics li{background:var(--off-white);border:1px solid rgba(91,33,182,0.08);border-radius:var(--r);padding:12px;text-align:center;}
+.success-metric-num{display:block;font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:900;color:var(--purple);line-height:1.1;}
+.success-metric-label{display:block;font-size:11px;color:var(--t3);line-height:1.4;margin-top:4px;}
+.success-links{display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+.success-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--purple);text-decoration:none;}
+.success-link:hover{text-decoration:underline;}
+.success-link.official{color:var(--gold-dark);}
+.success-source{margin-top:12px;font-size:11px;color:var(--t3);line-height:1.55;}
+
 .portal-section{background:white;padding:60px 2rem;}
 .portal-inner{max-width:1200px;margin:0 auto;text-align:center;}
 .portal-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-top:2rem;}
@@ -306,6 +324,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <a href="#alice">Alice</a>
     <a href="#pricing">Pricing</a>
     <a href="#about">About</a>
+    <a href="#success-stories">Success Stories</a>
     <a href="#contact">Contact</a>
   </div>
   <a href="#contact" class="nav-cta">Book Assessment</a>
@@ -863,6 +882,33 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   </div>
 </section>
 
+<section id="success-stories" class="success-section">
+  <div class="section-inner">
+    <div class="section-tag">Success Stories</div>
+    <h2 class="section-title">Documented Impact — <span style="color:var(--purple)">Not Marketing Claims</span></h2>
+    <p class="section-sub">Public-sector partnerships with measurable employability outcomes — reported in official municipal transparency documents.</p>
+    <div class="success-grid">
+      <article class="success-card featured fade-up">
+        <span class="success-badge">Public sector · Goicoechea · 2021</span>
+        <h3>Municipalidad de Goicoechea — Call Center Readiness Pilot</h3>
+        <p>Infinity Studio led a strategic training alliance with the Municipality of Goicoechea: free English preparation for canton residents targeting call-center interviews and direct job placement — financed as a private-sector pilot with zero cost to beneficiaries.</p>
+        <ul class="success-metrics">
+          <li><span class="success-metric-num">90</span><span class="success-metric-label">Residents started (of 100 selected)</span></li>
+          <li><span class="success-metric-num">10</span><span class="success-metric-label">Confirmed hires in call-center roles</span></li>
+          <li><span class="success-metric-num">15</span><span class="success-metric-label">In active application process</span></li>
+          <li><span class="success-metric-num">25</span><span class="success-metric-label">Still in preparatory training</span></li>
+        </ul>
+        <div class="success-links">
+          <a href="https://transparencia.munigoicoechea.go.cr/wp-content/uploads/2023/05/INFORMEDELABORES2022.pdf" target="_blank" rel="noopener noreferrer" class="success-link official"><i class="ti ti-file-certificate"></i> Official source — Informe de Labores 2022 (p. 34) <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+          <a href="https://transparencia.munigoicoechea.go.cr/" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-building-community"></i> Portal Transparencia · Municipalidad de Goicoechea <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+          <a href="https://www.facebook.com/watch/?v=263792665317206&ref=sharing" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-player-play"></i> Watch program coverage (video) <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+        </div>
+        <p class="success-source">Metrics cited from the Municipality’s <em>Informe de Labores 2022</em>, section “Cursos de inglés preparatorios para call center”.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 
 <section id="programs" style="background:var(--dark);padding:100px 2rem;">
   <div class="section-inner">
@@ -982,7 +1028,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="footer-links">
     <a href="#problem">The Problem</a><a href="#ecosystem">Ecosystem</a>
     <a href="#programs">Programs</a>
-    <a href="#jill">Jill</a><a href="#alice">Alice</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#contact">Contact</a>
+    <a href="#jill">Jill</a><a href="#alice">Alice</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#success-stories">Success Stories</a><a href="#contact">Contact</a>
   </div>
   <div style="display:flex;justify-content:center;gap:16px;margin-bottom:1.5rem;">
     <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20contactar%20Off%20The%20Clock" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:white;padding:8px 18px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;">
