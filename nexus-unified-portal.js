@@ -266,16 +266,28 @@
       + '</div>';
   }
 
+  function scoreMax(s) {
+    if (s && s.kpiScale === 10) return 50;
+    var p = (s && s.kpis && s.kpis.phase1) || {};
+    var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
+    return keys.some(function (k) { return (parseInt(p[k]) || 0) > 5; }) ? 50 : 25;
+  }
+
   function renderNextMilestone(s) {
     var score = 0;
     var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
     keys.forEach(function (k) { score += parseInt((s.kpis && s.kpis.phase1 && s.kpis.phase1[k]) || 0); });
-    var target = 16;
-    var level = score >= 16 ? 'Functional' : (score >= 21 ? 'Advanced' : 'Functional (16/25)');
-    var weak = keys.filter(function (k) { return (parseInt((s.kpis && s.kpis.phase1 && s.kpis.phase1[k]) || 0) < 3); }).slice(0, 2);
+    var max = scoreMax(s);
+    var scale10 = max === 50;
+    var target = scale10 ? 32 : 16;
+    var level = scale10
+      ? (score >= 42 ? 'Advanced' : score >= 32 ? 'Functional' : 'Functional (' + target + '/50)')
+      : (score >= 21 ? 'Advanced' : score >= 16 ? 'Functional' : 'Functional (' + target + '/25)');
+    var weakTh = scale10 ? 6 : 3;
+    var weak = keys.filter(function (k) { return (parseInt((s.kpis && s.kpis.phase1 && s.kpis.phase1[k]) || 0) < weakTh); }).slice(0, 2);
     return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-flag"></i>Próximo hito</div>'
-      + '<div style="font-size:13px;">Meta: <strong>' + level + '</strong> (' + target + '/25)</div>'
-      + '<div style="font-size:12px;color:var(--t2);margin-top:6px;">Score actual: ' + score + '/25'
+      + '<div style="font-size:13px;">Meta: <strong>' + level + '</strong> (' + target + '/' + max + ')</div>'
+      + '<div style="font-size:12px;color:var(--t2);margin-top:6px;">Score actual: ' + score + '/' + max
       + (weak.length ? ' · Te faltan refuerzo en: ' + weak.join(', ') : '')
       + '</div></div>';
   }

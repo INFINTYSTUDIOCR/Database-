@@ -195,7 +195,7 @@
             + (disc ? ' <input type="number" min="1" max="5" value="' + now + '" id="pulse-adj-' + k + '" style="width:48px;margin-left:8px;">' : '')
             + '</div>';
         }).join('')
-        + '<div style="font-weight:700;margin:8px 0;">Total: ' + prof.prevTotal + ' → ' + prof.total + '/25</div>'
+        + '<div style="font-weight:700;margin:8px 0;">Total: ' + (global.fmtScore ? global.fmtScore(prof.prevTotal, s) : prof.prevTotal) + ' → ' + (global.fmtScore ? global.fmtScore(prof.total, s) : prof.total + '/50') + '</div>'
         + '<label style="font-size:12px;display:block;margin:8px 0;"><input type="checkbox" id="pulse-accept" checked> Acepto scores sugeridos</label>'
         + '<textarea class="inp" id="pulse-notes" placeholder="Notas trainer" style="min-height:50px;"></textarea>'
         + '<select class="inp" id="pulse-hw" style="margin-top:8px;"><option value="yes">Homework: Sí</option><option value="partial">Parcial</option><option value="no">No</option></select>';

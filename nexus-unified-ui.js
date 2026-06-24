@@ -15,6 +15,16 @@
     return t;
   }
 
+  function getScoreMax(s) {
+    if (typeof global.getScoreMax === 'function') return global.getScoreMax(s);
+    var scale10 = s && (s.kpiScale === 10 || getScore(s) > 25);
+    return scale10 ? 50 : 25;
+  }
+
+  function fmtScore(score, s) {
+    return score + '/' + getScoreMax(s);
+  }
+
   function getLevel(score, s) {
     var scale10 = s && (s.kpiScale === 10 || score > 25);
     if (typeof global.getLevelForStudent === 'function') return global.getLevelForStudent(score, s);
@@ -78,13 +88,13 @@
   function journeyEvents(s) {
     var ev = [];
     if (s.diagnosticReport && s.diagnosticReport.date) {
-      ev.push({ date: s.diagnosticReport.date, label: 'Intake · baseline ' + (s.diagnosticReport.score || '—') + '/25' });
+      ev.push({ date: s.diagnosticReport.date, label: 'Intake · baseline ' + fmtScore(s.diagnosticReport.score || 0, s) });
     }
     (s.weeklyPulse || []).forEach(function (p) {
       ev.push({ date: p.date || p.updated, label: 'Pulse ' + p.weekId + (p.complete ? ' ✓' : '') });
     });
     (s.calibrations || []).slice(1).forEach(function (c, i) {
-      ev.push({ date: c.date, label: 'Sesión ' + (i + 2) + ' · ' + (c.score || '—') + '/25' });
+      ev.push({ date: c.date, label: 'Sesión ' + (i + 2) + ' · ' + fmtScore(c.score || 0, s) });
     });
     (s.track && s.track.graduated) && Object.keys(s.track.graduated).forEach(function (t) {
       if (s.track.graduated[t]) ev.push({ date: s.updated_at || '', label: 'Graduación ' + t });
@@ -104,7 +114,7 @@
         var ev = journeyEvents(s);
         return '<div class="card" style="padding:12px;cursor:pointer;" onclick="openStudent(\'' + s.id + '\')">'
           + '<div style="font-size:13px;font-weight:700;color:var(--navy);">' + ((s.info && s.info.name) || s.id) + '</div>'
-          + '<div style="font-size:10px;color:var(--t3);margin-bottom:6px;">' + track.toUpperCase() + ' · ' + score + '/25 · ' + getLevel(score) + '</div>'
+          + '<div style="font-size:10px;color:var(--t3);margin-bottom:6px;">' + track.toUpperCase() + ' · ' + fmtScore(score, s) + ' · ' + getLevel(score, s) + '</div>'
           + '<div style="height:120px;position:relative;"><canvas id="journey-radar-' + idx + '" data-sid="' + s.id + '"></canvas></div>'
           + '<div style="font-size:10px;color:var(--t2);margin-top:6px;max-height:48px;overflow:hidden;">'
           + (ev.length ? ev.slice(-3).map(function (e) { return '· ' + (e.label || ''); }).join('<br>') : 'Sin historial aún')
@@ -166,7 +176,7 @@
       + prof.stats.quizzes + ' quiz · ' + prof.stats.nemesis + ' nemesis · confianza ' + prof.confidence + '%</div>'
       + '<div class="card" style="margin-top:10px;"><div class="card-title">Resumen (calculado)</div>'
       + macroHtml
-      + '<div style="font-size:13px;font-weight:700;margin-top:8px;">Total: ' + prof.prevTotal + ' → ' + prof.total + '/25</div></div>'
+      + '<div style="font-size:13px;font-weight:700;margin-top:8px;">Total: ' + fmtScore(prof.prevTotal, s) + ' → ' + fmtScore(prof.total, s) + '</div></div>'
       + '<div class="card"><div class="card-title">Profundidad — KPIs activos del track</div>' + microHtml + '</div>'
       + '<div class="card"><div class="card-title">Confirmación trainer</div>'
       + '<label style="font-size:12px;display:block;margin-bottom:8px;"><input type="checkbox" id="pulse-accept" checked> Acepto scores sugeridos (auto)</label>'
@@ -208,7 +218,7 @@
     if (s.info) {
       s.info.current_score = total;
       s.info.score = total;
-      s.info.level = getLevel(total);
+      s.info.level = getLevel(total, s);
     }
 
     var wk = deps().weekIdFromDate ? deps().weekIdFromDate() : '';
@@ -220,7 +230,7 @@
     s.calibrations.push({
       date: new Date().toISOString(), trainer: (typeof SESSION !== 'undefined' && SESSION.name) || 'trainer',
       kpis: macro, score: total, hw: hw,
-      notes: 'Weekly Pulse auto · ' + total + '/25' + (notes ? (' · ' + notes) : ''),
+      notes: 'Weekly Pulse auto · ' + fmtScore(total, s) + (notes ? (' · ' + notes) : ''),
       pulseSessionId: pulseId, weekId: wk, source: 'weekly-pulse-v2'
     });
 
@@ -240,7 +250,7 @@
     });
 
     if (!s.notes) s.notes = [];
-    s.notes.push({ date: new Date().toISOString(), trainer: (typeof SESSION !== 'undefined' && SESSION.name) || 'trainer', text: 'Weekly Pulse confirmado · ' + total + '/25', phase: parseInt((s.info && s.info.phase)) || 1 });
+    s.notes.push({ date: new Date().toISOString(), trainer: (typeof SESSION !== 'undefined' && SESSION.name) || 'trainer', text: 'Weekly Pulse confirmado · ' + fmtScore(total, s), phase: parseInt((s.info && s.info.phase)) || 1 });
 
     if (s.compliance) s.compliance.attended = (s.compliance.attended || 0) + 1;
 

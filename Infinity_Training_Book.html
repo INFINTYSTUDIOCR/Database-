@@ -591,11 +591,19 @@ function logout(){
   window.location.href = 'Infinity_Student_Portal.html';
 }
 
+function tbScoreMax(s){
+  if(!s) return 25;
+  if(s.kpiScale===10) return 50;
+  var p=(s.kpis||{}).phase1||{};
+  return Object.keys(p).some(function(k){ return parseInt(p[k],10)>5; })?50:25;
+}
+
 function buildSidebarProfile(){
   if(!CURRENT) return;
   var info = CURRENT.info||{};
+  var score = parseInt(info.current_score||info.score)||0;
   document.getElementById('sc-name').textContent = info.name||'—';
-  document.getElementById('sc-meta').textContent = (info.level||'—')+' · Score '+( info.current_score||info.score||'—')+'/25 · '+( info.program||'Individual');
+  document.getElementById('sc-meta').textContent = (info.level||'—')+' · Score '+score+'/'+tbScoreMax(CURRENT)+' · '+( info.program||'Individual');
   var kpis = (CURRENT.kpis||{}).phase1||{};
   var html = '';
   Object.keys(KPI_NAMES).forEach(function(k){
@@ -716,7 +724,7 @@ function renderOverview(area){
     + tabHead('Mi perfil', 'Resumen de fase, KPIs y accesos rápidos — usa el menú lateral para cada sección.', 'layout-dashboard')
 
     +'<div class="portal-section">'
-    +'<div class="phase-banner-sm"><small>Nexus — Current Phase</small><strong>'+(phaseNames[phase]||'—')+' · Score '+total+'/25 · '+level+'</strong></div>'
+    +'<div class="phase-banner-sm"><small>Nexus — Current Phase</small><strong>'+(phaseNames[phase]||'—')+' · Score '+total+'/'+tbScoreMax(CURRENT)+' · '+level+'</strong></div>'
     +'<p class="section-sub" style="margin-bottom:0;">'+(phaseDesc[phase]||'')+'</p>'
     +'</div>'
 

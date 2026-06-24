@@ -1115,6 +1115,24 @@ function isScale10Student(s){
   return Object.keys(kpis).some(function(k){ return parseInt(kpis[k],10)>5; });
 }
 function getScoreMax(s){ return (s&&isScale10Student(s))?50:25; }
+function kpiMax(s){ return isScale10Student(s)?10:5; }
+function fmtScore(score,s){ return score+'/'+getScoreMax(s); }
+function calScoreMax(c,s){ return (c&&(c.scale===10||(c.score&&c.score>25)))?50:getScoreMax(s); }
+function scoreHeatColor(score,s){
+  if(isScale10Student(s)||score>25) return score>=42?'var(--gm)':score>=32?'var(--amber)':'var(--rm)';
+  return score>=21?'var(--gm)':score>=16?'var(--amber)':'var(--rm)';
+}
+function needsAttentionScore(s){
+  var score=getScore(s);
+  return isScale10Student(s)?score<=21:score<=15;
+}
+function kpiVisual(v,s){
+  var scale10=isScale10Student(s);
+  if(!scale10) return {col:KPI_COLORS[v]||'var(--border)',tag:KPI_TAGS[v]||['var(--gray)','var(--t2)','—'],pct:(v/5)*100,label:v+'/5'};
+  var tier=v<=2?1:v<=4?2:v<=5?3:v<=7?4:5;
+  var tag=v<=3?KPI_TAGS[1]:v<=5?KPI_TAGS[2]:v<=6?KPI_TAGS[3]:v<=8?KPI_TAGS[4]:KPI_TAGS[5];
+  return {col:KPI_COLORS[tier]||'var(--border)',tag:tag,pct:(v/10)*100,label:v+'/10'};
+}
 function getLevelForStudent(score,s){
   if((s&&isScale10Student(s))||score>25) return score>=42?'Advanced':score>=32?'Functional':score>=22?'Emerging':'Survival';
   return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival';
@@ -1130,10 +1148,10 @@ function fmtDate(d){ if(!d) return '—'; var dt=new Date(d); return dt.toLocale
 function renderDashboard(m){
   var students = allStudents();
   var total = students.length;
-  var adv = students.filter(function(s){ return getLevel(getScore(s))==='Advanced'; }).length;
-  var func = students.filter(function(s){ return getLevel(getScore(s))==='Functional'; }).length;
-  var emerg = students.filter(function(s){ return getLevel(getScore(s))==='Emerging'; }).length;
-  var surv = students.filter(function(s){ return getLevel(getScore(s))==='Survival'; }).length;
+  var adv = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Advanced'; }).length;
+  var func = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Functional'; }).length;
+  var emerg = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Emerging'; }).length;
+  var surv = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Survival'; }).length;
 
   var recent = students.slice(-5).reverse();
 
@@ -1149,20 +1167,20 @@ function renderDashboard(m){
     +'<div class="card"><div class="card-title"><i class="ti ti-clock"></i>Actividad reciente</div>'
     +(recent.length?recent.map(function(s){ return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">'
       +'<div style="width:32px;height:32px;border-radius:50%;background:var(--nl);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--nm);flex-shrink:0;">'+(s.info&&s.info.name?s.info.name.charAt(0):'?')+'</div>'
-      +'<div><div style="font-size:13px;font-weight:600;">'+((s.info&&s.info.name)||'—')+'</div><div style="font-size:11px;color:var(--t2);">'+getLevel(getScore(s))+' · Score '+getScore(s)+'/25</div></div>'
+      +'<div><div style="font-size:13px;font-weight:600;">'+((s.info&&s.info.name)||'—')+'</div><div style="font-size:11px;color:var(--t2);">'+getLevelForStudent(getScore(s),s)+' · Score '+fmtScore(getScore(s),s)+'</div></div>'
       +'<button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="openStudent(\''+s.id+'\')"><i class="ti ti-arrow-right"></i></button>'
       +'</div>'; }).join(''):'<div style="font-size:13px;color:var(--t3);padding:1rem 0;">No hay estudiantes aún.</div>')
     +'</div></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-alert-triangle"></i>Estudiantes que requieren atención</div>'
-    +(students.filter(function(s){return getScore(s)<=15;}).length
+    +(students.filter(function(s){return needsAttentionScore(s);}).length
       ?'<table class="tbl"><thead><tr><th>Nombre</th><th>Score</th><th>Nivel</th><th>KPI crítico</th><th>Fase</th><th>Acción</th></tr></thead><tbody>'
-        +students.filter(function(s){return getScore(s)<=15;}).map(function(s){
+        +students.filter(function(s){return needsAttentionScore(s);}).map(function(s){
           var wk=getWeakKPI(s);
           return '<tr onclick="openStudent(\''+s.id+'\')">'
             +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong></td>'
-            +'<td style="color:var(--rm);font-weight:700;">'+getScore(s)+'/25</td>'
-            +'<td>'+getLevelBadge(getLevel(getScore(s)))+'</td>'
+            +'<td style="color:var(--rm);font-weight:700;">'+fmtScore(getScore(s),s)+'</td>'
+            +'<td>'+getLevelBadge(getLevelForStudent(getScore(s),s))+'</td>'
             +'<td>'+(wk?'<span class="badge" style="background:var(--rb);color:var(--rm);">'+wk+' — '+KPI_NAMES[wk]+'</span>':'—')+'</td>'
             +'<td>'+getPhaseBadge(parseInt((s.info||{}).phase)||1)+'</td>'
             +'<td><button class="btn btn-navy btn-sm" onclick="event.stopPropagation();openCalibrate(\''+s.id+'\')"><i class="ti ti-refresh"></i>Calibrar</button></td>'
@@ -1211,7 +1229,7 @@ function applyStudentFilters(){
   var phase = FILTER_STATE.phase;
   var students = allStudents().filter(function(s){
     var nameMatch = !q || (s.info && s.info.name && s.info.name.toLowerCase().includes(q.toLowerCase()));
-    var levelMatch = !level || getLevel(getScore(s)) === level;
+    var levelMatch = !level || getLevelForStudent(getScore(s), s) === level;
     var phaseMatch = !phase || String((s.info||{}).phase||1) === phase;
     return nameMatch && levelMatch && phaseMatch;
   }).sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
@@ -1228,7 +1246,7 @@ function buildStudentsTable(students){
   var trainerNames = Object.values(TRAINERS).map(function(u){return u.name;});
   return '<table class="tbl"><thead><tr><th>Nombre</th><th>Código</th><th>Score</th><th>Nivel</th><th>Fase</th><th>KPI débil</th><th>Trainer</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'
     +students.map(function(s){
-      var score=getScore(s); var level=getLevel(score); var wk=getWeakKPI(s);
+      var score=getScore(s); var level=getLevelForStudent(score,s); var wk=getWeakKPI(s);
       var kpis=(s.kpis||{}).phase1||{};
       var status = s.status || 'active';
       var statusBadge = status==='suspended'
@@ -1244,7 +1262,7 @@ function buildStudentsTable(students){
       return '<tr data-sid="'+s.id+'" onclick="openStudent(this.dataset.sid)">'
         +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+((s.info&&s.info.email)||'')+'</div></td>'
         +'<td><code style="font-size:11px;color:var(--t2);">'+((s.code)||'—')+'</code></td>'
-        +'<td><strong style="color:'+(score>=21?'var(--gm)':score>=16?'var(--amber)':'var(--rm)')+';">'+score+'/25</strong></td>'
+        +'<td><strong style="color:'+scoreHeatColor(score,s)+';">'+fmtScore(score,s)+'</strong></td>'
         +'<td>'+getLevelBadge(level)+'</td>'
         +'<td>'+getPhaseBadge(parseInt((s.info||{}).phase)||1)+'</td>'
         +'<td>'+(wk?'<span class="badge" style="background:var(--rb);color:var(--rm);">'+wk+':'+((kpis[wk])||'?')+'</span>':'<span style="color:var(--t3);font-size:11px;">—</span>')+'</td>'
@@ -1302,11 +1320,11 @@ function openStudent(id){
   currentView='student-'+id;
 
   var kpiBars=Object.keys(KPI_NAMES).map(function(k){
-    var v=parseInt(kpis[k])||0; var col=KPI_COLORS[v]||'var(--border)'; var tc=KPI_TAGS[v]||['var(--gray)','var(--t2)','—'];
+    var v=parseInt(kpis[k])||0; var kv=kpiVisual(v,s);
     return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+(v/5*100)+'%;background:'+col+';"></div></div>'
-      +'<span class="kbar-val" style="color:'+col+';">'+v+'/5</span>'
-      +'<span class="kbar-tag" style="background:'+tc[0]+';color:'+tc[1]+';">'+tc[2]+'</span></div>';
+      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+kv.pct+'%;background:'+kv.col+';"></div></div>'
+      +'<span class="kbar-val" style="color:'+kv.col+';">'+kv.label+'</span>'
+      +'<span class="kbar-tag" style="background:'+kv.tag[0]+';color:'+kv.tag[1]+';">'+kv.tag[2]+'</span></div>';
   }).join('');
 
   var exercises=getExercises(s);
@@ -1365,8 +1383,8 @@ function openStudent(id){
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-calendar"></i>Historial de calibraciones</div>'
     +(history.length?'<table class="tbl"><thead><tr><th>Fecha</th><th>IG</th><th>ST</th><th>RA</th><th>PS</th><th>R</th><th>Score</th></tr></thead><tbody>'
-      +history.map(function(c){ var t=Object.values(c.kpis||{}).reduce(function(a,v){return a+(parseInt(v)||0);},0);
-        return '<tr><td>'+fmtDate(c.date)+'</td>'+Object.keys(KPI_NAMES).map(function(k){ var v=parseInt((c.kpis||{})[k])||0; return '<td style="color:'+( KPI_COLORS[v]||'var(--t3)')+';font-weight:700;">'+v+'</td>'; }).join('')+'<td><strong>'+t+'</strong></td></tr>';
+      +history.map(function(c){ var t=c.score||Object.values(c.kpis||{}).reduce(function(a,v){return a+(parseInt(v)||0);},0);
+        return '<tr><td>'+fmtDate(c.date)+'</td>'+Object.keys(KPI_NAMES).map(function(k){ var v=parseInt((c.kpis||{})[k])||0; var kv=kpiVisual(v,s); return '<td style="color:'+kv.col+';font-weight:700;">'+v+'</td>'; }).join('')+'<td><strong>'+t+'/'+calScoreMax(c,s)+'</strong></td></tr>';
       }).join('')+'</tbody></table>'
     :'<div style="font-size:13px;color:var(--t3);">Aún no hay calibraciones registradas.</div>')
     +'</div></div>'
@@ -1512,8 +1530,8 @@ function renderCalibrateSelect(m){
       return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
         +'<div style="width:36px;height:36px;border-radius:50%;background:var(--nl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--nm);flex-shrink:0;">'+(s.info&&s.info.name?s.info.name.charAt(0):'?')+'</div>'
         +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;">'+((s.info&&s.info.name)||'—')+'</div>'
-        +'<div style="font-size:11px;color:var(--t2);">Score '+score+'/25 · '+(wk?'KPI débil: '+wk+'='+((kpis[wk])||'?'):'KPIs OK')+'</div></div>'
-        +getLevelBadge(getLevel(score))
+        +'<div style="font-size:11px;color:var(--t2);">Score '+fmtScore(score,s)+' · '+(wk?'KPI débil: '+wk+'='+((kpis[wk])||'?'):'KPIs OK')+'</div></div>'
+        +getLevelBadge(getLevelForStudent(score,s))
         +'<button class="btn btn-navy btn-sm" onclick="openManualKpiCal(\''+s.id+'\')"><i class="ti ti-adjustments"></i>Manual KPI</button>'
         +'<button class="btn btn-green btn-sm" onclick="openCalibrate(\''+s.id+'\')"><i class="ti ti-refresh"></i>Calibrar</button>'
         +'</div>';
@@ -1562,9 +1580,9 @@ function renderAnalytics(m){
       return '<tr onclick="openStudent(\''+s.id+'\')">'
         +'<td style="font-weight:700;color:var(--t3);">'+(i+1)+'</td>'
         +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong></td>'
-        +'<td><strong style="color:'+(getScore(s)>=21?'var(--gm)':getScore(s)>=16?'var(--amber)':'var(--rm)')+';">'+getScore(s)+'/25</strong></td>'
-        +'<td>'+getLevelBadge(getLevel(getScore(s)))+'</td>'
-        +Object.keys(KPI_NAMES).map(function(k){ var v=parseInt(kpis[k])||0; return '<td style="color:'+(KPI_COLORS[v]||'var(--t3)')+';font-weight:700;">'+(v||'—')+'</td>'; }).join('')
+        +'<td><strong style="color:'+scoreHeatColor(getScore(s),s)+';">'+fmtScore(getScore(s),s)+'</strong></td>'
+        +'<td>'+getLevelBadge(getLevelForStudent(getScore(s),s))+'</td>'
+        +Object.keys(KPI_NAMES).map(function(k){ var v=parseInt(kpis[k])||0; var kv=kpiVisual(v,s); return '<td style="color:'+kv.col+';font-weight:700;">'+(v||'—')+'</td>'; }).join('')
         +'</tr>';
     }).join('')+'</tbody></table></div></div>';
 
@@ -1575,7 +1593,7 @@ function renderAnalytics(m){
 
     // Score distribution
     var buckets={Advanced:0,Functional:0,Emerging:0,Survival:0};
-    students.forEach(function(s){ buckets[getLevel(getScore(s))]++; });
+    students.forEach(function(s){ buckets[getLevelForStudent(getScore(s),s)]++; });
     var sc=document.getElementById('chart-scores');
     if(sc) new Chart(sc,{ type:'bar', data:{ labels:Object.keys(buckets), datasets:[{data:Object.values(buckets),backgroundColor:['#0F6E56','#BA7517','#A32D2D','#94A3B8'],borderRadius:6}] }, options:{ responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true,ticks:{stepSize:1} } } } });
   },100);
@@ -1589,8 +1607,8 @@ function renderReports(m){
     +'<div class="card"><div class="card-title"><i class="ti ti-file-text"></i>Reporte individual</div>'
     +students.map(function(s){ return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">'
       +'<strong style="flex:1;">'+((s.info&&s.info.name)||'—')+'</strong>'
-      +getLevelBadge(getLevel(getScore(s)))
-      +'<span style="font-size:12px;color:var(--t2);">'+getScore(s)+'/25</span>'
+      +getLevelBadge(getLevelForStudent(getScore(s),s))
+      +'<span style="font-size:12px;color:var(--t2);">'+fmtScore(getScore(s),s)+'</span>'
       +'<button class="btn btn-navy btn-sm" onclick="generateReport(\''+s.id+'\')"><i class="ti ti-download"></i>Generar reporte</button>'
       +'</div>'; }).join('')
     +'</div></div>';
@@ -1600,16 +1618,16 @@ function generateReport(id){
   var s=DB[id]; if(!s) return;
   if(!hasMasterAccess() && ((s.info&&s.info.trainer)||'').trim().toLowerCase()!==(SESSION.name||'').trim().toLowerCase()){ showToast('Solo podés generar reportes de tus estudiantes asignados','err'); return; }
   var kpis=(s.kpis||{}).phase1||{};
-  var score=getScore(s); var level=getLevel(score);
+  var score=getScore(s); var level=getLevelForStudent(score,s); var scoreMax=getScoreMax(s); var kMax=kpiMax(s);
   var cals=(s.calibrations||[]);
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte — '+(s.info&&s.info.name)+'</title>'
     +'<style>body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;color:#1E293B;} h1{color:#5B21B6;} table{width:100%;border-collapse:collapse;} th{background:#5B21B6;color:white;padding:8px;} td{padding:8px;border-bottom:1px solid #E2E8F0;} .badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}</style>'
     +'</head><body>'
     +'<h1>Infinity Studio CR — Reporte de Progreso</h1>'
     +'<h2>'+(s.info&&s.info.name)+'</h2>'
-    +'<p>Nivel: <strong>'+level+'</strong> · Score: <strong>'+score+'/25</strong> · Código: <strong>'+(s.code||'—')+'</strong></p>'
+    +'<p>Nivel: <strong>'+level+'</strong> · Score: <strong>'+fmtScore(score,s)+'</strong> · Código: <strong>'+(s.code||'—')+'</strong></p>'
     +'<h3>KPIs Actuales</h3><table><tr><th>KPI</th><th>Score</th><th>Estado</th></tr>'
-    +Object.keys(KPI_NAMES).map(function(k){ var v=parseInt(kpis[k])||0; var tags=KPI_TAGS[v]||['','','—']; return '<tr><td>'+KPI_NAMES[k]+'</td><td>'+v+'/5</td><td><span class="badge" style="background:'+tags[0]+';color:'+tags[1]+';">'+tags[2]+'</span></td></tr>'; }).join('')
+    +Object.keys(KPI_NAMES).map(function(k){ var v=parseInt(kpis[k])||0; var tags=kpiVisual(v,s).tag; return '<tr><td>'+KPI_NAMES[k]+'</td><td>'+v+'/'+kMax+'</td><td><span class="badge" style="background:'+tags[0]+';color:'+tags[1]+';">'+tags[2]+'</span></td></tr>'; }).join('')
     +'</table>'
     +(cals.length?'<h3>Historial de Calibraciones</h3><table><tr><th>Fecha</th><th>IG</th><th>ST</th><th>RA</th><th>PS</th><th>R</th><th>Score</th></tr>'
       +cals.map(function(c){ var t=Object.values(c.kpis||{}).reduce(function(a,v){return a+(parseInt(v)||0);},0); return '<tr><td>'+fmtDate(c.date)+'</td>'+Object.keys(KPI_NAMES).map(function(k){return '<td>'+((c.kpis||{})[k]||'—')+'</td>';}).join('')+'<td><strong>'+t+'</strong></td></tr>'; }).join('')+'</table>':'')
@@ -2241,10 +2259,10 @@ function renderMyStudents(m){
     +'</div>'
     +(students.length ? '<table class="tbl"><thead><tr><th>Nombre</th><th>Score</th><th>Nivel</th><th>Fase</th><th>KPI débil</th><th>Acciones</th></tr></thead><tbody>'
       +students.map(function(s){
-        var score=getScore(s); var level=getLevel(score); var wk=getWeakKPI(s); var kpis=(s.kpis||{}).phase1||{};
+        var score=getScore(s); var level=getLevelForStudent(score,s); var wk=getWeakKPI(s); var kpis=(s.kpis||{}).phase1||{};
         return '<tr data-sid="'+s.id+'" onclick="openStudent(this.dataset.sid)">'
           +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+((s.info&&s.info.email)||'')+'</div></td>'
-          +'<td><strong style="color:'+(score>=21?'var(--gm)':score>=16?'var(--amber)':'var(--rm)')+';">'+score+'/25</strong></td>'
+          +'<td><strong style="color:'+scoreHeatColor(score,s)+';">'+fmtScore(score,s)+'</strong></td>'
           +'<td>'+getLevelBadge(level)+'</td>'
           +'<td>'+getPhaseBadge(parseInt((s.info||{}).phase)||1)+'</td>'
           +'<td>'+(wk?'<span class="badge" style="background:var(--rb);color:var(--rm);">'+wk+':'+((kpis[wk])||'?')+'</span>':'<span style="color:var(--t3);font-size:11px;">—</span>')+'</td>'
@@ -2335,7 +2353,7 @@ function renderAssignExercises(m){
       return '<div class="card">'
         +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
         +'<div style="width:36px;height:36px;border-radius:50%;background:var(--nl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--nm);">'+(s.info&&s.info.name?s.info.name.charAt(0):'?')+'</div>'
-        +'<div style="flex:1;"><strong>'+((s.info&&s.info.name)||'—')+'</strong><div style="font-size:11px;color:var(--t2);">Score '+getScore(s)+'/25 · '+assigned.length+' ejercicios asignados</div></div>'
+        +'<div style="flex:1;"><strong>'+((s.info&&s.info.name)||'—')+'</strong><div style="font-size:11px;color:var(--t2);">Score '+fmtScore(getScore(s),s)+' · '+assigned.length+' ejercicios asignados</div></div>'
         +'<button data-sid="'+s.id+'" class="btn btn-navy btn-sm" onclick="openAssignExModal(this.dataset.sid)"><i class="ti ti-plus"></i>Asignar</button>'
         +'<button data-sid="'+s.id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
         +'</div>'
@@ -3310,7 +3328,7 @@ function renderPricingSchedule(m, studentId){
     +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-cash-register"></i> Precio y horario — '+(info.name||'—')+'</h2>'
     +'</div>'
-    +'<div class="ib ib-navy">Diagnóstico completado · Score '+getScore(s)+'/25 ('+getLevel(getScore(s))+'). El próximo pago se calcula automáticamente según el horario asignado (2 sesiones de 1.5h/semana, ciclo de 30 días).</div>'
+    +'<div class="ib ib-navy">Diagnóstico completado · Score '+fmtScore(getScore(s),s)+' ('+getLevelForStudent(getScore(s),s)+'). El próximo pago se calcula automáticamente según el horario asignado (2 sesiones de 1.5h/semana, ciclo de 30 días).</div>'
     +'<input type="hidden" id="ps-sid" value="'+studentId+'">'
     +'<div class="card">'
     +'<div class="card-title"><i class="ti ti-tag"></i>Modalidad y forma de pago</div>'
@@ -3745,6 +3763,8 @@ function renderWeeklyAssessment(m, sid){
   var s = DB[sid]; if(!s) return;
   currentView = 'weekly-'+sid;
   var kpis = (s.kpis||{}).phase1||{};
+  var kMax = kpiMax(s);
+  var tMax = getScoreMax(s);
   var sessionNum = (s.calibrations||[]).length + 1;
   var beforeScore = (s.calibrations&&s.calibrations.length) ? s.calibrations[0].score : ((s.diagnosticReport&&s.diagnosticReport.score) || getScore(s));
   var nowScore = getScore(s);
@@ -3755,26 +3775,27 @@ function renderWeeklyAssessment(m, sid){
     +'<button type="button" class="btn btn-navy btn-sm" onclick="openManualKpiCal(\''+sid+'\')"><i class="ti ti-adjustments"></i> Calibración manual KPI (cuestionario 1–10)</button>'
     +'</div>'
     +'<input type="hidden" id="wa-sid" value="'+sid+'">'
-    +'<div class="ib ib-navy">Sesión #'+sessionNum+' · Fase activa: '+PHASE_NAMES[parseInt((s.info||{}).phase)||1]+' · Score actual: '+nowScore+'/25 ('+getLevel(nowScore)+') · ¿Buscás el cuestionario macro+26? Usá <strong>Calibración manual KPI</strong> arriba.</div>'
+    +'<div class="ib ib-navy">Sesión #'+sessionNum+' · Fase activa: '+PHASE_NAMES[parseInt((s.info||{}).phase)||1]+' · Score actual: '+fmtScore(nowScore,s)+' ('+getLevelForStudent(nowScore,s)+') · ¿Buscás el cuestionario macro+26? Usá <strong>Calibración manual KPI</strong> arriba.</div>'
 
     +'<div class="card">'
     +'<div class="card-title"><i class="ti ti-chart-bar"></i>KPI Assessment — esta sesión</div>'
     +Object.keys(KPI_NAMES).map(function(k){
       var cur=parseInt(kpis[k])||3;
+      if(cur>kMax) cur=kMax;
       return '<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;color:var(--navy);">'+KPI_NAMES[k]+' ('+k+')</span><span style="font-size:11px;color:var(--t3);">Anterior: '+cur+'/5</span></div>'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;color:var(--navy);">'+KPI_NAMES[k]+' ('+k+')</span><span style="font-size:11px;color:var(--t3);">Anterior: '+cur+'/'+kMax+'</span></div>'
         +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
-        +'<input type="range" min="1" max="5" value="'+cur+'" id="wa-'+k+'" oninput="document.getElementById(\'wa-'+k+'-val\').textContent=this.value+\' / 5\'; updateWeeklyTotal();" style="flex:1;">'
-        +'<span id="wa-'+k+'-val" style="font-size:13px;font-weight:700;color:var(--nm);min-width:48px;text-align:right;">'+cur+' / 5</span>'
+        +'<input type="range" min="1" max="'+kMax+'" value="'+cur+'" id="wa-'+k+'" oninput="document.getElementById(\'wa-'+k+'-val\').textContent=this.value+\' / '+kMax+'\'; updateWeeklyTotal();" style="flex:1;">'
+        +'<span id="wa-'+k+'-val" style="font-size:13px;font-weight:700;color:var(--nm);min-width:48px;text-align:right;">'+cur+' / '+kMax+'</span>'
         +'</div>'
         +'<textarea class="inp" id="wa-'+k+'-obs" placeholder="Observación de '+KPI_NAMES[k]+' en esta sesión..." style="min-height:50px;"></textarea>'
         +'</div>';
     }).join('')
     +'<div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;">'
     +'<span style="font-size:13px;font-weight:700;">Score de esta sesión</span>'
-    +'<span id="wa-total" style="font-size:22px;font-weight:800;color:var(--navy);">'+nowScore+'/25</span>'
+    +'<span id="wa-total" style="font-size:22px;font-weight:800;color:var(--navy);">'+fmtScore(nowScore,s)+'</span>'
     +'</div>'
-    +'<div style="margin-top:6px;" id="wa-level-badge">'+getLevelBadge(getLevel(nowScore))+'</div>'
+    +'<div style="margin-top:6px;" id="wa-level-badge">'+getLevelBadge(getLevelForStudent(nowScore,s))+'</div>'
     +'</div>'
 
     +'<div class="card">'
@@ -3806,15 +3827,20 @@ function renderWeeklyAssessment(m, sid){
 }
 
 function updateWeeklyTotal(){
+  var sid = document.getElementById('wa-sid') && document.getElementById('wa-sid').value;
+  var s = sid && DB[sid];
+  var tMax = getScoreMax(s);
   var total=0;
   Object.keys(KPI_NAMES).forEach(function(k){ total+=parseInt(document.getElementById('wa-'+k).value)||0; });
-  document.getElementById('wa-total').textContent = total+'/25';
-  document.getElementById('wa-level-badge').innerHTML = getLevelBadge(getLevel(total));
+  document.getElementById('wa-total').textContent = total+'/'+tMax;
+  document.getElementById('wa-level-badge').innerHTML = getLevelBadge(getLevelForStudent(total,s));
 }
 
 function generateWeeklyReport(){
   var sid = document.getElementById('wa-sid').value;
   var s = DB[sid]; if(!s) return;
+  var kMax = kpiMax(s);
+  var tMax = getScoreMax(s);
   var kpis={}, obs={};
   Object.keys(KPI_NAMES).forEach(function(k){ kpis[k]=parseInt(document.getElementById('wa-'+k).value)||3; obs[k]=document.getElementById('wa-'+k+'-obs').value.trim(); });
   var nowTotal=0; Object.keys(kpis).forEach(function(k){ nowTotal+=kpis[k]; });
@@ -3827,42 +3853,39 @@ function generateWeeklyReport(){
   var params=[];
   OPERATIONAL_PARAMS.forEach(function(p,i){ if(document.getElementById('wa-param-'+i).checked) params.push(p); });
 
-  // Before/Now/Prospect por KPI
   var bnpRows = Object.keys(KPI_NAMES).map(function(k){
     var before=parseInt(beforeKpis[k])||0, now=kpis[k];
     var rate = sessionsElapsed>1 ? (now-before)/(sessionsElapsed-1) : Math.max(0.25,(now-before));
-    var prospect = Math.min(5, Math.round((now + rate*4)*10)/10);
+    var prospect = Math.min(kMax, Math.round((now + rate*4)*10)/10);
     return { k, before, now, prospect };
   });
-  var bnpTotal = { before:beforeTotal, now:nowTotal, prospect: Math.min(25, Math.round(bnpRows.reduce(function(a,r){return a+r.prospect;},0))) };
+  var bnpTotal = { before:beforeTotal, now:nowTotal, prospect: Math.min(tMax, Math.round(bnpRows.reduce(function(a,r){return a+r.prospect;},0))) };
 
   var bnpHtml = '<table class="tbl"><thead><tr><th>KPI</th><th>Before</th><th>Now</th><th>Prospect (4 sem.)</th></tr></thead><tbody>'
     + Object.keys(KPI_NAMES).map(function(k,i){ var r=bnpRows[i];
-        return '<tr><td>'+KPI_NAMES[k]+' ('+k+')</td><td>'+r.before+'/5</td><td><strong>'+r.now+'/5</strong></td><td style="color:var(--gm);">'+r.prospect+'/5</td></tr>';
+        return '<tr><td>'+KPI_NAMES[k]+' ('+k+')</td><td>'+r.before+'/'+kMax+'</td><td><strong>'+r.now+'/'+kMax+'</strong></td><td style="color:var(--gm);">'+r.prospect+'/'+kMax+'</td></tr>';
       }).join('')
-    + '<tr style="font-weight:800;background:var(--gray);"><td>TOTAL</td><td>'+bnpTotal.before+'/25</td><td>'+bnpTotal.now+'/25</td><td style="color:var(--gm);">'+bnpTotal.prospect+'/25</td></tr>'
+    + '<tr style="font-weight:800;background:var(--gray);"><td>TOTAL</td><td>'+bnpTotal.before+'/'+tMax+'</td><td>'+bnpTotal.now+'/'+tMax+'</td><td style="color:var(--gm);">'+bnpTotal.prospect+'/'+tMax+'</td></tr>'
     + '</tbody></table>';
 
-  // Diagnóstico por KPI esta sesión
   var detailHtml = Object.keys(KPI_NAMES).map(function(k){
-    var v=kpis[k]; var tc=KPI_TAGS[v]||['var(--gray)','var(--t2)','—'];
+    var v=kpis[k]; var kv=kpiVisual(v,s);
     var delta = v - (parseInt(beforeKpis[k])||v);
     var deltaTxt = delta>0?(' <span style="color:var(--gm);">▲+'+delta+'</span>'):delta<0?(' <span style="color:var(--rm);">▼'+delta+'</span>'):' <span style="color:var(--t3);">=</span>';
     return '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;margin-bottom:8px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
       +'<strong style="font-size:13px;">'+KPI_NAMES[k]+' ('+k+')'+deltaTxt+'</strong>'
-      +'<span class="badge" style="background:'+tc[0]+';color:'+tc[1]+';">'+v+'/5 — '+tc[2]+'</span>'
+      +'<span class="badge" style="background:'+kv.tag[0]+';color:'+kv.tag[1]+';">'+kv.label+' — '+kv.tag[2]+'</span>'
       +'</div>'
       +(obs[k]?'<div style="font-size:12px;color:var(--text);line-height:1.6;">'+obs[k]+'</div>':'<div style="font-size:12px;color:var(--t3);">Sin observación.</div>')
       +'</div>';
   }).join('');
 
-  // Ejercicios recomendados actualizados
   var sortedKpis = Object.keys(kpis).sort(function(a,b){ return kpis[a]-kpis[b]; });
   var recommended=[];
   sortedKpis.forEach(function(k){
     var v=kpis[k];
-    var key = v<=2?k+'_critical':v<=3?k+'_developing':null;
+    var key = isScale10Student(s)?(v<=4?k+'_critical':v<=6?k+'_developing':null):(v<=2?k+'_critical':v<=3?k+'_developing':null);
     if(key && EXERCISES[key]) recommended.push(EXERCISES[key]);
   });
   if(!recommended.length){ sortedKpis.slice(0,2).forEach(function(k){ if(EXERCISES[k+'_developing']) recommended.push(EXERCISES[k+'_developing']); }); }
@@ -3882,12 +3905,12 @@ function generateWeeklyReport(){
   document.getElementById('wa-report').innerHTML = '<div class="fade">'
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>KPI performance — esta sesión</div>'
     +Object.keys(KPI_NAMES).map(function(k){
-      var v=kpis[k]; var col=KPI_COLORS[v]||'var(--border)';
+      var v=kpis[k]; var kv=kpiVisual(v,s);
       return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-        +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+(v/5*100)+'%;background:'+col+';"></div></div>'
-        +'<span class="kbar-val" style="color:'+col+';">'+v+'/5</span></div>';
+        +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+kv.pct+'%;background:'+kv.col+';"></div></div>'
+        +'<span class="kbar-val" style="color:'+kv.col+';">'+kv.label+'</span></div>';
     }).join('')
-    +'<div style="margin-top:10px;text-align:right;"><strong style="font-size:18px;color:var(--navy);">'+nowTotal+'/25</strong> '+getLevelBadge(getLevel(nowTotal))+'</div>'
+    +'<div style="margin-top:10px;text-align:right;"><strong style="font-size:18px;color:var(--navy);">'+fmtScore(nowTotal,s)+'</strong> '+getLevelBadge(getLevelForStudent(nowTotal,s))+'</div>'
     +'</div>'
 
     +'<div class="card"><div class="card-title"><i class="ti ti-table"></i>Before · Now · Prospect</div>'+bnpHtml+'</div>'
@@ -3931,15 +3954,16 @@ async function saveWeeklyAssessment(){
   if(!s.kpis) s.kpis={};
   if(!s.kpis.phase1) s.kpis.phase1={};
   Object.keys(rep.kpis).forEach(function(k){ s.kpis.phase1[k]=String(rep.kpis[k]); });
+  if(Object.keys(rep.kpis).some(function(k){ return (parseInt(rep.kpis[k])||0)>5; })) s.kpiScale=10;
 
   var newScore = rep.nowTotal;
   s.info = s.info||{};
   s.info.current_score=newScore;
   s.info.score=newScore;
-  s.info.level=getLevel(newScore);
+  s.info.level=getLevelForStudent(newScore,s);
   if(phaseUpdate) s.info.phase=phaseUpdate;
 
-  var notesText = 'Weekly Assessment · Score '+newScore+'/25 ('+getLevel(newScore)+').'
+  var notesText = 'Weekly Assessment · Score '+fmtScore(newScore,s)+' ('+getLevelForStudent(newScore,s)+').'
     + (trainerNotes?(' '+trainerNotes):'')
     + (milestone?(' Próximo hito: '+milestone):'');
 
@@ -3959,7 +3983,7 @@ async function saveWeeklyAssessment(){
   await dbSet('infinity_students', sid, s);
   DB[sid]=s;
   delete window._weeklyReport;
-  await logAction('Calibración semanal', (s.info.name||sid)+' — Score '+newScore+'/25');
+  await logAction('Calibración semanal', (s.info.name||sid)+' — Score '+fmtScore(newScore,s));
   showToast('Calibración guardada correctamente');
   document.getElementById('sb-count').textContent=allStudents().length;
   openStudent(sid);
