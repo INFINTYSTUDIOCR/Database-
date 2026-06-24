@@ -244,6 +244,15 @@ a.cc-link .cc-value{color:var(--purple);}
 .success-link:hover{text-decoration:underline;}
 .success-link.official{color:var(--gold-dark);}
 .success-source{margin-top:12px;font-size:11px;color:var(--t3);line-height:1.55;}
+.success-cases{display:flex;flex-direction:column;gap:2rem;margin-top:2.5rem;}
+.success-showcase--kamuk{border-color:rgba(27,155,209,0.22);background:linear-gradient(135deg,rgba(27,155,209,0.04),rgba(91,33,182,0.03));grid-template-columns:1fr;}
+.success-badge--kamuk{color:#0E7490;background:rgba(27,155,209,0.12);}
+.success-resume{font-size:14px;color:var(--t2);line-height:1.75;margin-bottom:1rem;}
+.success-features{list-style:none;margin:0 0 1.25rem;padding:0;font-size:13px;color:var(--t2);line-height:1.55;}
+.success-features li{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);}
+.success-features li:last-child{border-bottom:none;}
+.success-features li i{color:#1B9BD1;font-size:16px;margin-top:2px;flex-shrink:0;}
+.success-link--kamuk{color:#0E7490;}
 @media(max-width:960px){.success-showcase{grid-template-columns:1fr;}}
 
 .portal-section{background:white;padding:60px 2rem;}
@@ -897,8 +906,9 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="section-inner">
     <div class="section-tag">Success Stories</div>
     <h2 class="section-title">Documented Impact — <span style="color:var(--purple)">Not Marketing Claims</span></h2>
-    <p class="section-sub">Public-sector partnerships with measurable employability outcomes — reported in official municipal transparency documents.</p>
-    <article class="success-showcase fade-up" style="margin-top:2.5rem;">
+    <p class="section-sub">Public-sector and institutional pilots with measurable outcomes — municipal transparency reports and bilingual school partnerships.</p>
+    <div class="success-cases">
+    <article class="success-showcase fade-up">
       <div class="success-media">
         <p class="success-video-channel"><i class="ti ti-brand-facebook"></i> Municipalidad de Goicoechea · Facebook</p>
         <h4 class="success-video-title">JÓVENES QUE RECIBIERON CURSO DE INGLÉS YA TRABAJAN GRACIAS A ALIANZA DE MUNICIPALIDAD DE GOICOECHEA Y TU506</h4>
@@ -930,6 +940,26 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <p class="success-source">Video title and coverage published by the Municipality on Facebook. Report text quoted verbatim from the transparency portal PDF.</p>
       </div>
     </article>
+
+    <article class="success-showcase success-showcase--kamuk fade-up">
+      <div class="success-document">
+        <span class="success-badge success-badge--kamuk">Institutional · Kamuk School</span>
+        <h3>Kamuk School — Operational English Pilot</h3>
+        <p class="success-resume">Institutional pilot with <strong>Kamuk School</strong> (Tibás, San José) — a bilingual neuroeducational institution with more than three decades of integral education. Infinity Studio CR integrated its operational English system into Kamuk's secondary track: KPI-based performance measurement, personalized Training Book paths, and Alice &amp; Jill AI coaching — aligned with Kamuk's natural communicative approach, led by <strong>Prof. John</strong>.</p>
+        <ul class="success-features">
+          <li><i class="ti ti-chart-radar"></i><span>5 operational KPIs tracked per student — same framework as BPO readiness, adapted for institutional cohorts</span></li>
+          <li><i class="ti ti-book"></i><span>Training Book + Student Portal for pilot cohort — exercises rotated by trainer and Engine</span></li>
+          <li><i class="ti ti-robot"></i><span>Alice &amp; Jill available for structured practice between classroom sessions</span></li>
+          <li><i class="ti ti-school"></i><span>Institutional track in Infinity Engine — dedicated cohort management (KAM- students)</span></li>
+        </ul>
+        <div class="success-links">
+          <a href="https://kamukschool.ed.cr/" target="_blank" rel="noopener noreferrer" class="success-link success-link--kamuk"><i class="ti ti-school"></i> Kamuk School — sitio oficial <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+          <a href="https://kamukschool.ed.cr/educacion_integral/" target="_blank" rel="noopener noreferrer" class="success-link success-link--kamuk"><i class="ti ti-world"></i> Programa bilingüe · Educación integral <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+        </div>
+        <p class="success-source">Pilot partnership — Infinity operational methodology inside a established bilingual school environment.</p>
+      </div>
+    </article>
+    </div>
   </div>
 </section>
 
