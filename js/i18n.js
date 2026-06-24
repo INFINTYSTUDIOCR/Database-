@@ -29,6 +29,7 @@
     { s: '.nav-drop-label:first-of-type', en: 'Core Training', es: 'Entrenamiento Core' },
     { s: '.nav-drop-label:last-of-type', en: 'Community', es: 'Comunidad' },
     { s: 'a[href="#programs"]', en: 'All Programs', es: 'Todos los Programas' },
+    { s: 'a[href="#pricing"]', en: 'Pricing', es: 'Precios' },
     { s: 'a[href="#alice"]', en: 'Alice', es: 'Alice' },
     { s: 'a[href="#about"]', en: 'About', es: 'Nosotros' },
     { s: 'a[href="#contact"]', en: 'Contact', es: 'Contacto' },
@@ -102,6 +103,18 @@
     { s: '#kpis .section-tag', en: 'Performance Metrics', es: 'Métricas de Desempeño' },
     { s: '#kpis .section-title', html: true, en: 'We Measure What <span style="color:var(--purple)">Actually Matters</span>', es: 'Medimos Lo Que <span style="color:var(--purple)">Realmente Importa</span>' },
     { s: '#kpis .section-sub', en: 'Not grammar. Not vocabulary lists. We track operational performance — the only metrics that predict real-world success.', es: 'No gramática. No listas de vocabulario. Medimos desempeño operacional — las únicas métricas que predicen éxito real.' },
+    { s: '#pricing .section-tag', en: 'Investment', es: 'Inversión' },
+    { s: '#pricing .section-title', html: true, en: 'Operational Infrastructure — <span style="color:var(--purple)">Not Classroom Hours</span>', es: 'Infraestructura Operacional — <span style="color:var(--purple)">No Horas de Aula</span>' },
+    { s: '#pricing .section-sub', en: 'Human calibration + AI that never sleeps + simulations that grade you instantly. Three entry points. One methodology: Idea + Linker + Idea.', es: 'Calibración humana + IA que nunca duerme + simulaciones que te califican al instante. Tres puntos de entrada. Una metodología: Idea + Linker + Idea.' },
+    { s: '#pricing .pricing-nexus', html: true, en: '<i class="ti ti-link"></i> Nexus Method · Idea + Linker + Idea', es: '<i class="ti ti-link"></i> Método Nexus · Idea + Linker + Idea' },
+    { s: '.pricing-card--foundations .pricing-tagline', en: 'The base no academy built — communication core with zero pressure.', es: 'La base que ninguna academia construyó — núcleo comunicativo con presión cero.' },
+    { s: '.pricing-card--foundations .pricing-why', en: 'Starting from basics here is not a step back — it installs the neural routes academies skip. Without this base, you freeze again under pressure.', es: 'Empezar desde lo básico aquí no es retroceder — instala las rutas neurales que las academias omiten. Sin esta base, te volvés a congelar bajo presión.' },
+    { s: '.pricing-card--ort .pricing-tagline', en: 'Operational Readiness — execute in English when it counts.', es: 'Preparación Operacional — ejecutá en inglés cuando importa.' },
+    { s: '.pricing-card--ort .pricing-why', en: 'ORT does not teach rules — it forces execution. The bridge between understanding English and performing in BPO, remote teams and international interviews.', es: 'ORT no enseña reglas — fuerza ejecución. El puente entre entender inglés y performar en BPO, equipos remotos e entrevistas internacionales.' },
+    { s: '.pricing-card--nexora .pricing-tagline', en: 'Automated Practice System — your boss, client or interviewer on demand.', es: 'Sistema de Práctica Automatizada — tu jefe, cliente o entrevistador a demanda.' },
+    { s: '.pricing-card--nexora .pricing-why', en: 'For professionals who already speak but need high-volume role-play without paying per hour. Know your score before the real interview.', es: 'Para profesionales que ya hablan pero necesitan role-play de alto volumen sin pagar por hora. Conocé tu puntaje antes de la entrevista real.' },
+    { s: '#pricing .pricing-legal', en: 'Promotional price ₡67,500 valid for the rest of calendar 2026, subject to availability. Regular price ₡75,000/month (Foundations & ORT) or ₡75,000/30 days (Nexora Professional). Strikethrough prices represent bundled ecosystem value. Free professional assessment available — 1.5 h with a human trainer.', es: 'Precio promocional ₡67.500 válido por el resto del calendario 2026, sujeto a disponibilidad de cupos. Precio regular ₡75.000/mes (Foundations y ORT) o ₡75.000/30 días (Nexora Professional). Precios tachados representan valor desglosado del ecosistema. Evaluación profesional gratuita — 1.5 h con trainer humano.' },
+    { s: '.footer-links a[href="#pricing"]', en: 'Pricing', es: 'Precios' },
     { s: '#about .section-tag', en: 'Built From Experience', es: 'Construido Con Experiencia' },
     { s: '#about .section-title', html: true, en: '26 Years In The Industry.<br><span style="color:var(--purple)">Not The Classroom.</span>', es: '26 Años en la Industria.<br><span style="color:var(--purple)">No en el Aula.</span>' },
     { s: '#about .section-sub', en: 'Every methodology, every KPI, every simulation was designed from direct operational experience — not a university curriculum.', es: 'Cada metodología, KPI y simulación fue diseñada desde experiencia operacional directa — no un currículo universitario.' },
@@ -327,6 +340,7 @@
     if (page === 'try-jill.html') return NAV.concat(DEMO_JILL);
     if (page === 'try-demo.html') return NAV.concat(DEMO_COMMON);
     if (page === 'foundations.html') return NAV.concat(SUBPAGE);
+    if (page === 'ort.html') return NAV.concat(SUBPAGE);
     return NAV;
   }
 

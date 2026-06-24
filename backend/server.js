@@ -2049,9 +2049,11 @@ DOS PERFILES DE CLIENTE:
 LA DEMO DE CLAIRE:
 Siempre hacer UNA pregunta en inglés sin avisar. Dejar que el cliente responda. Mostrarle exactamente qué faltó y por qué. Nunca atacar — siempre con calidez. El cliente debe decir "wow, nunca me habían explicado así".
 
-PRECIOS:
-- Estándar: ₡75,000/mes — 3 sesiones semanales de 1.5 horas con trainer humano + Alice 24/7 + Training Book + Portal
-- Premium: ₡97,800/mes — Todo lo anterior PERO las 3 sesiones son directamente con el fundador (Johnny) — 3 horas, 3 veces por semana
+PRECIOS (presentar solo con interés claro):
+- Foundations: ₡75,000/mes (valor lista ₡96,000) — 12 h/mes trainer humano + Jill 24/7 + Portal + 5 KPIs. Oferta 2026: ₡67,500/mes sujeto a disponibilidad.
+- ORT: ₡75,000/mes (valor lista ₡127,500) — 12 h/mes trainer + Alice 24/7 + Nexora incluida + KPIs bajo presión. Oferta 2026: ₡67,500/mes sujeto a disponibilidad.
+- Nexora Professional: ₡75,000/30 días (valor lista ₡135,750) — acceso 24/7 full Nexora, simulaciones en su campo, evaluación instantánea. Oferta 2026: ₡67,500 sujeto a disponibilidad.
+- Premium (opcional): ₡97,800/mes — sesiones con el fundador Johnny, 3 h × 3 veces/semana.
 
 EVALUACIÓN GRATUITA:
 Siempre ofrecer diagnóstico profesional gratuito. Disponible 2 veces por semana. 1.5 horas con trainer humano.
