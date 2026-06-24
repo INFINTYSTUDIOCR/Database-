@@ -1,0 +1,84 @@
+# Infinity Studio CR — llms.txt
+# Plain-text facts for AI crawlers and search assistants.
+# Canonical site: https://studioinfinitycr.com/
+
+> Private operational English coaching in Costa Rica. Not an academy — ORT, KPIs, AI coaches (Jill, Alice, Nexora), human trainers. Legacy brand: TU506 (Training United 506).
+
+## Contact
+- Website: https://studioinfinitycr.com/
+- Email: info@studioinfinitycr.com
+- WhatsApp: +506 6006 0981
+- Location: Costa Rica
+
+## Programs (Core)
+- Foundations — communication core, Jill 24/7, zero pressure. https://studioinfinitycr.com/foundations.html
+- ORT (Operational Readiness Training) — execution under pressure, Alice 24/7, Nexora included. https://studioinfinitycr.com/ort.html
+- Nexora Professional — simulation lab, 30-day access. https://studioinfinitycr.com/try-nexora.html
+
+## Pricing (CRC, calendar 2026)
+Promotional price valid rest of 2026, subject to availability.
+
+| Program | Regular | Promo 2026 | Period |
+|---------|---------|------------|--------|
+| Foundations | ₡75,000 | ₡67,500 | /month |
+| ORT | ₡75,000 | ₡67,500 | /month |
+| Nexora Professional | ₡75,000 | ₡67,500 | /30 days |
+
+List value (strikethrough on site): Foundations ₡96,000 · ORT ₡127,500 · Nexora Pro ₡135,750.
+
+Free professional assessment: 1.5 h with human trainer.
+
+Full pricing section: https://studioinfinitycr.com/pricing.html
+Full pricing section (anchor): https://studioinfinitycr.com/#pricing
+
+## Methodology
+- Nexus Method: Idea + Linker + Idea
+- 5 operational KPIs: Idea Generation, Structural Thinking, Recovery Ability, Problem Solving, Responsiveness
+
+Full pricing section: https://studioinfinitycr.com/pricing.html
+Full pricing section (anchor): https://studioinfinitycr.com/#pricing
+
+## Para quién (target audience)
+Infinity Studio CR is NOT an English academy. Private 1-on-1 operational coaching for people who understand English but freeze under pressure.
+
+Ideal profiles:
+- Call center / BPO / tech support candidates — need to pass interviews and perform from day one → ORT
+- Remote workers with international teams — meetings, stakeholders, fast structured responses → ORT + Nexora
+- Weak foundation — academies failed; need communication core before pressure → Foundations (Jill 24/7)
+- Already speak — need high-volume role-play without hourly cost → Nexora Professional (30 days 24/7)
+- Bilingual schools & institutions — ORT pilots for employability KPIs → Kamuk School case
+- Municipalities / public sector — youth employability with documented outcomes → Goicoechea case
+
+NOT for: A1-B2 certificates only, cheap group classes, grammar-only study, casual conversation without work pressure.
+
+Full page: https://studioinfinitycr.com/para-quien.html
+Section on homepage: https://studioinfinitycr.com/#who-its-for
+
+## Success stories (documented)
+Full page: https://studioinfinitycr.com/casos-de-exito.html
+Homepage section: https://studioinfinitycr.com/#success-stories
+
+### Goicoechea 2021 (public sector)
+- Municipal call-center readiness pilot led by TU506 (legacy name → Infinity Studio CR), our founder as head instructor
+- Metrics (Informe de Labores 2022, p.34): 90 started / 10 confirmed hires / 15 in application / 25 still in training
+- Official PDF: https://transparencia.munigoicoechea.go.cr/wp-content/uploads/2023/05/INFORMEDELABORES2022.pdf
+- Transparency portal: https://transparencia.munigoicoechea.go.cr/
+- Municipal video (Facebook): https://www.facebook.com/watch/?v=263792665317206
+- Video title: JÓVENES QUE RECIBIERON CURSO DE INGLÉS YA TRABAJAN GRACIAS A ALIANZA DE MUNICIPALIDAD DE GOICOECHEA Y TU506
+
+### Kamuk School (institutional ORT)
+- ORT pilot for high-performance bilingual employability — NOT classroom English
+- Kamuk School, Tibás, San José — Alice & Nexora, KPI tracking, KAM- institutional cohort
+- Official site: https://kamukschool.ed.cr/
+- Bilingual program: https://kamukschool.ed.cr/educacion_integral/
+
+## Demos (free, limited)
+- Jill: https://studioinfinitycr.com/try-jill.html
+- Alice: https://studioinfinitycr.com/try-alice.html
+- Nexora: https://studioinfinitycr.com/try-nexora.html
+
+## Keywords (ES/EN)
+inglés operacional Costa Rica, ORT inglés, call center inglés, entrenamiento BPO, congelarse al hablar inglés, operational English Costa Rica, private English coaching, empleabilidad bilingüe
+
+## Do not index (login apps)
+- Student Portal, Infinity Engine, full Nexora lab — require authorized access.
