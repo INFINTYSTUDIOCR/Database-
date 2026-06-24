@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-super-brain-v2',
+  build: '2026-06-24-super-brain-voice',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -445,6 +445,7 @@ try {
 
 const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
 const ALICE_VOICE_ID = process.env.ALICE_VOICE_ID || 'r1KmysJdVYZjJCm4mL3b';
+const SUPER_BRAIN_VOICE_ID = process.env.SUPER_BRAIN_VOICE_ID || 'sEKG93QQ3jE73oo5Xn3b';
 const JILL_VOICE_ID = process.env.JILL_VOICE_ID || 'NoOVOzCQFLOvtsMoNcdT';
 const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
 
@@ -2953,7 +2954,7 @@ app.post('/super-brain/publish', requireMasterOrAnalyzeSecret, async (req, res) 
 app.post('/super-brain/tts', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Super Brain' });
+    return await synthesizeSpeech(req, res, { text, voiceId: SUPER_BRAIN_VOICE_ID, label: 'Super Brain' });
   } catch (err) {
     return res.status(500).json({ error: 'TTS failed' });
   }
