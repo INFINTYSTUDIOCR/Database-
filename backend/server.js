@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-super-brain-f1',
+  build: '2026-06-24-super-brain-full',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -2164,7 +2164,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {
       max_tokens: 800,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await maybeSuperBrainSlice(message, req.auth)}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -2173,6 +2173,16 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (!res.headersSent) res.status(500).end(); else res.end();
   }
 });
+
+async function maybeSuperBrainSlice(message, auth) {
+  if (!SuperBrain.isSuperBrainEnabled() || !auth || !['superadmin', 'master'].includes(auth.role)) return '';
+  try {
+    const ctx = await SuperBrain.buildContextBlock(String(message || '').slice(0, 400), 8);
+    return `\n\nFOUNDER SUPER BRAIN (usá esto como guía interna — no lo cites literalmente al estudiante):\n${ctx.slice(0, 4500)}`;
+  } catch {
+    return '';
+  }
+}
 
 // ── ALICE STREAM ─────────────────────────────────────────────
 app.post('/alice/stream', requireProductAuth, async (req, res) => {
@@ -2193,7 +2203,7 @@ PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await maybeSuperBrainSlice(message, req.auth)}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     const levelExtra = student?.level || 'Functional';
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
@@ -2918,13 +2928,37 @@ app.post('/super-brain/correct', requireMasterOrAnalyzeSecret, async (req, res) 
 app.post('/super-brain/chat', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { message, founderName } = req.body || {};
+    const { message, founderName, autoApproveLearn } = req.body || {};
     const state = await SuperBrain.loadState();
-    const result = await SuperBrain.chat(state, { message, founderName, claudeCall });
+    const result = await SuperBrain.chat(state, { message, founderName, autoApproveLearn: !!autoApproveLearn, claudeCall });
     return res.json({ ok: true, ...result });
   } catch (err) {
     console.error('super-brain chat:', err.message);
     return res.status(400).json({ error: err.message || 'Chat failed' });
+  }
+});
+
+app.post('/super-brain/approve', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { pendingId } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const lesson = await SuperBrain.approvePending(state, pendingId);
+    return res.json({ ok: true, lesson, lessonsCount: state.lessons.length, pendingCount: state.pendingLessons.length });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Could not approve' });
+  }
+});
+
+app.post('/super-brain/reject', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { pendingId } = req.body || {};
+    const state = await SuperBrain.loadState();
+    await SuperBrain.rejectPending(state, pendingId);
+    return res.json({ ok: true, pendingCount: state.pendingLessons.length });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Could not reject' });
   }
 });
 
@@ -2934,11 +2968,21 @@ app.post('/analyze', async (req, res) => {
     const { prompt, secret } = req.body || {};
     if (ANALYZE_SECRET && secret !== ANALYZE_SECRET) return res.status(401).json({ error: 'Unauthorized' });
     if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
+    let fullPrompt = prompt;
+    if (SuperBrain.isSuperBrainEnabled()) {
+      try {
+        const ctx = await SuperBrain.buildContextBlock(String(prompt).slice(0, 500), 10);
+        fullPrompt = `${ctx}\n\n---\n\n${prompt}`;
+      } catch (e) {
+        console.warn('analyze superBrain ctx:', e.message);
+      }
+    }
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001', max_tokens: 1000,
-      messages: [{ role:'user', content:prompt }]
+      messages: [{ role:'user', content: fullPrompt }]
     });
-    return res.json({ result: resp.content.filter(b=>b.type==='text').map(b=>b.text).join('') });
+    const text = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    return res.json({ result: text, text });
   } catch(err) {
     return res.status(500).json({ error: 'Analyze no disponible.' });
   }

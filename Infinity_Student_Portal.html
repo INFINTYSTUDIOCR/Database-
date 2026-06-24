@@ -1144,7 +1144,9 @@ var _aliceState = {
   recognition: null,
   synth:null,
   accent: 'american',
-  savedSession: null  // sesión guardada para retomar
+  savedSession: null,
+  autoMic: false,
+  micRunning: false
 };
 
 // ── ALICE: pausa vs stop completo ─────────────────────────
@@ -1159,6 +1161,8 @@ function pauseAliceMedia(){
   }
   if(_aliceState.recognition){ try{ _aliceState.recognition.stop(); }catch(e){} _aliceState.recognition = null; }
   _aliceState.listening = false;
+  _aliceState.micRunning = false;
+  aliceClearSilenceTimer();
   _aliceState.speaking = false;
   _aliceTTSQueue = [];
   _aliceTTSBusy = false;
@@ -1307,7 +1311,7 @@ function renderAliceSession(){
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
     +'<div id="alice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o usá el micrófono..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.25);color:white;border-radius:12px;padding:10px 14px;" onfocus="if(window._aliceAudio){_aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;}" onkeydown="if(event.key!==\'Enter\' && window._aliceAudio){window._aliceAudio.pause();window._aliceAudio=null;_aliceState.speaking=false;} if(event.key===\'Enter\')sendAliceMessage();">'
+    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o usá el micrófono..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.25);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendAliceMessage();">'
     +'<button id="alice-mic-btn" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#C084FC;border-radius:12px;cursor:pointer;font-size:18px;" onclick="toggleAliceMic()"><i class="ti ti-microphone"></i></button>'
     +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
     +'</div>'
@@ -1348,39 +1352,51 @@ async function startAliceSession(){
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
   _aliceState.savedSession = null;
+  _aliceState.autoMic = true;
   renderAlice();
-  document.getElementById('alice-status').textContent = 'Alice está preparando tu escenario...';
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
+  var returning = mode === 'return_session';
+  var instant = aliceInstantOpening(CURRENT_STUDENT, returning);
+  document.getElementById('alice-status').textContent = '';
+  _aliceState.scenario = null;
+  _aliceState.history.push({ role:'assistant', content: instant });
+  _aliceSpeakEnabled = true;
+  aliceSpeak(instant);
+  renderAlice();
+  scrollAliceMessages();
   try{
     var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET })
     });
     var data = await r.json();
-    _aliceState.scenario = null; // no hay escenario en modo tutor
-
     var opening = data.opening || '';
-    // Separar la línea de Alice del tip si viene junto
-    var parts = opening.split(/\nALICE:\s*/);
-    var aliceLine = parts[0].trim();
-    var aliceTip = parts[1] ? parts[1].trim() : '';
-
-    if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
-    if(aliceLine){
-      _aliceState.history.push({ role:'assistant', content:aliceLine });
-      _aliceSpeakEnabled = true; aliceSpeak(aliceLine);
+    if(opening && opening.length > 20){
+      var parts = opening.split(/\nALICE:\s*/);
+      var aliceLine = parts[0].trim();
+      var aliceTip = parts[1] ? parts[1].trim() : '';
+      if(aliceLine && aliceLine.replace(/\s+/g,' ').slice(0,80) !== instant.replace(/\s+/g,' ').slice(0,80)){
+        _aliceState.history = [];
+        if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
+        if(aliceLine){
+          _aliceState.history.push({ role:'assistant', content:aliceLine });
+          _aliceSpeakId++;
+          _aliceTTSQueue = []; _aliceTTSBusy = false;
+          if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; }
+          aliceSpeak(aliceLine);
+        }
+        renderAlice();
+        scrollAliceMessages();
+      }
     }
     if(typeof AiProfile !== 'undefined'){
       var patch = { firstGreetingAlice: true };
       if(mode === 'start_session') patch.nameAskedAlice = true;
       await AiProfile.saveAiProfilePatch(patch, dbSet, CURRENT_STUDENT);
     }
-    renderAlice();
-    scrollAliceMessages();
     saveAliceRuntimeStorage();
-    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
   }catch(e){
-    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Error conectando con Alice — verificá la conexión.';
+    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
   }
 }
 
@@ -1452,9 +1468,8 @@ async function sendAliceMessage(micText){
   var text = (micText || (input ? input.value : '') || '').trim();
   if(!text) return;
   if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
-  if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
+  aliceStopMic();
   _aliceTTSQueue=[]; _aliceTTSBusy=false;
-  _aliceState.listening = false;
   _aliceMicText = '';
   input.value = '';
   _aliceState.history.push({ role:'user', content:text });
@@ -1507,7 +1522,7 @@ async function sendAliceMessage(micText){
             _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
             renderAlice();
             scrollAliceMessages();
-            var drained = drainTtsPending(pending, aliceQueueSpeak);
+            var drained = drainTtsPending(pending, aliceQueueSpeak, alicePrefetchTTS);
             pending = drained.pending;
           }
         } catch(e){}
@@ -1524,6 +1539,7 @@ async function sendAliceMessage(micText){
     renderAlice();
     scrollAliceMessages();
     saveAliceRuntimeStorage();
+    if(_aliceState.autoMic && !_aliceState.speaking) setTimeout(aliceStartAutoMic, 700);
 
   } catch(e){
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
@@ -1641,47 +1657,87 @@ function aliceSpeak(text){
   });
 }
 
-// Auto-VAD for Alice: restarts until user speaks, then sends
-function aliceAutoMic(){
-  if(_aliceState.listening || _aliceState.speaking || !_aliceSpeakEnabled) return;
+// Auto-VAD for Alice: mic continuo + 2.2s silencio (como Jill)
+var _aliceSilenceTimer = null;
+var ALICE_SILENCE_MS = 2200;
+
+function aliceClearSilenceTimer(){
+  if(_aliceSilenceTimer){ clearTimeout(_aliceSilenceTimer); _aliceSilenceTimer = null; }
+}
+
+function aliceScheduleSend(){
+  aliceClearSilenceTimer();
+  _aliceSilenceTimer = setTimeout(function(){
+    _aliceSilenceTimer = null;
+    if(_aliceState.speaking || !_aliceState.autoMic) return;
+    var text = _aliceMicText.trim();
+    if(!text) return;
+    _aliceMicText = '';
+    var input = document.getElementById('alice-input');
+    if(input) input.value = '';
+    aliceStopMic();
+    sendAliceMessage(text);
+  }, ALICE_SILENCE_MS);
+}
+
+function aliceStopMic(){
+  aliceClearSilenceTimer();
+  if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition = null; }
+  _aliceState.listening = false;
+  _aliceMicText = '';
+  var btn = document.getElementById('alice-mic-btn');
+  if(btn){
+    btn.style.background = _aliceState.autoMic ? 'rgba(134,239,172,0.25)' : 'rgba(192,132,252,0.1)';
+    btn.style.borderColor = _aliceState.autoMic ? '#86EFAC' : 'rgba(192,132,252,0.3)';
+    btn.style.color = _aliceState.autoMic ? '#86EFAC' : '#C084FC';
+    btn.innerHTML = '<i class="ti ti-microphone'+( _aliceState.autoMic ? '' : '-off')+'"></i>';
+  }
+}
+
+function aliceStartAutoMic(){
+  if(_aliceState.micRunning || _aliceState.speaking || !_aliceSpeakEnabled || !_aliceState.autoMic) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return;
+  _aliceMicText = '';
+  var input = document.getElementById('alice-input');
+  if(input) input.value = '';
   var rec = new SR();
   rec.lang = ALICE_ACCENTS[_aliceState.accent]?.lang || 'en-US';
   rec.interimResults = true;
-  rec.continuous = false;
+  rec.continuous = true;
   _aliceState.recognition = rec;
   _aliceState.listening = true;
+  _aliceState.micRunning = true;
   var btn = document.getElementById('alice-mic-btn');
   var statusEl = document.getElementById('alice-status');
-  if(btn){ btn.style.background='rgba(255,92,92,0.3)'; btn.style.borderColor='#FF5C5C'; btn.style.color='white'; }
-  if(statusEl) statusEl.textContent='🎤 Escuchando...';
+  if(btn){ btn.style.background='rgba(255,92,92,0.3)'; btn.style.borderColor='#FF5C5C'; btn.style.color='white'; btn.innerHTML='<i class="ti ti-microphone"></i>'; }
+  if(statusEl) statusEl.textContent='🎤 Listening… take your time, I wait until you finish';
   rec.onresult = function(e){
-    var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
+    var t = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
     _aliceMicText = t;
+    var last = e.results[e.results.length - 1];
+    if(last && last.isFinal && t.trim()) aliceScheduleSend();
   };
   rec.onend = function(){
-    _aliceState.listening=false;
-    _aliceState.recognition=null;
-    if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
-    if(statusEl) statusEl.textContent='';
-    var spoken = _aliceMicText.trim();
-    _aliceMicText = '';
-    if(spoken){
-      if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; }
-      _aliceState.speaking=false;
-      sendAliceMessage(spoken);
-    } else if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking){
-      setTimeout(aliceAutoMic, 400);
+    _aliceState.micRunning = false;
+    _aliceState.listening = false;
+    _aliceState.recognition = null;
+    if(_aliceState.autoMic && !_aliceState.speaking && !_aliceSilenceTimer){
+      setTimeout(aliceStartAutoMic, 350);
+      return;
     }
+    if(btn && !_aliceState.autoMic){
+      btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC';
+    }
+    if(statusEl && !_aliceState.autoMic) statusEl.textContent='';
   };
   rec.onerror = function(e){
-    _aliceState.listening=false;
-    _aliceState.recognition=null;
-    if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
-    if(statusEl) statusEl.textContent='';
-    if(_aliceSpeakEnabled && _aliceState.sessionActive && !_aliceState.speaking && e.error==='no-speech'){
-      setTimeout(aliceAutoMic, 400);
+    _aliceState.micRunning = false;
+    _aliceState.listening = false;
+    _aliceState.recognition = null;
+    aliceClearSilenceTimer();
+    if(_aliceState.autoMic && !_aliceState.speaking && e.error === 'no-speech'){
+      setTimeout(aliceStartAutoMic, 400);
     }
   };
   try{ rec.start(); }catch(e){}
@@ -1691,19 +1747,18 @@ var _aliceSpeakId = 0;
 
 // ── STT ───────────────────────────────────────────────────
 function toggleAliceMic(){
-  // Stop audio immediately — user wants to speak
-  if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
-  if(_aliceState.listening){
-    if(_aliceState.recognition) try{_aliceState.recognition.stop();}catch(e){}
-    _aliceState.listening = false;
-    var btn = document.getElementById('alice-mic-btn');
-    if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
-    if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='';
+  if(_aliceState.autoMic){
+    _aliceState.autoMic = false;
+    aliceStopMic();
+    var statusEl = document.getElementById('alice-status');
+    if(statusEl) statusEl.textContent = '';
     return;
   }
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Tu navegador no soporta voz. Usá Chrome o Edge.'; return; }
-  aliceAutoMic();
+  _aliceState.autoMic = true;
+  if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
+  aliceStartAutoMic();
 }
 
 function scrollAliceMessages(){
@@ -1838,6 +1893,28 @@ function nexoraBuildAccountContext(profile){
     lateFee: profile.lateFee || null,
     refundAmount: profile.refundAmount || null
   };
+}
+
+function aliceStudentFirstName(student){
+  var s = student || CURRENT_STUDENT || {};
+  var n = (s.info && s.info.name) || s.name || 'there';
+  return String(n).trim().split(/\s+/)[0] || 'there';
+}
+
+function aliceInstantOpening(student, returning){
+  var name = aliceStudentFirstName(student);
+  if(returning){
+    return "Welcome back, "+name+"! I'm glad you're here to practice again. What would you like to work on today?";
+  }
+  return "Hi "+name+"! I'm Alice, your English practice partner. We'll use the Nexus Method — Idea plus Linker plus Idea. What topic would you like to practice today?";
+}
+
+function jillInstantOpening(student, returning){
+  var name = aliceStudentFirstName(student);
+  if(returning){
+    return "¡Hola de nuevo, "+name+"! Me alegra verte. ¿Cómo te sentís hoy para practicar?";
+  }
+  return "¡Hola "+name+"! Soy Jill, tu tutora de Foundations. Vamos a practicar juntos paso a paso. ¿Cómo estás hoy?";
 }
 
 function nexoraInstantOpening(p, sc){
@@ -2621,17 +2698,49 @@ function applySystemMode(s){
 // ── KEEP RENDER ALIVE (ping every 8 min to prevent cold starts) ──
 setInterval(function(){ fetch(INFINITY_API+'/').catch(function(){}); }, 8*60*1000);
 
-// ── JILL TTS QUEUE (sentence-by-sentence for instant playback) ──
+// ── JILL TTS QUEUE (sentence-by-sentence + prefetch) ──
 var _jillTTSQueue = [];
 var _jillTTSBusy = false;
+var _jillTtsPrefetch = {};
+
+function jillCleanTtsText(text){
+  return String(text||'').replace(/JILL:|ALICE:|CLAIRE:/gi,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function jillPrefetchTTS(text){
+  var clean = jillCleanTtsText(text);
+  if(clean.length < 3 || _jillTtsPrefetch[clean]) return;
+  _jillTtsPrefetch[clean] = 'loading';
+  infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){ if(b) _jillTtsPrefetch[clean] = b; else delete _jillTtsPrefetch[clean]; })
+  .catch(function(){ delete _jillTtsPrefetch[clean]; });
+}
 
 function _jillTTSFlush(){
   if(_jillTTSBusy || _jillTTSQueue.length===0) return;
   _jillTTSBusy = true;
   _jillState.speaking = true;
   var text = _jillTTSQueue.shift();
-  var clean = text.replace(/JILL:|ALICE:|CLAIRE:/gi,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
+  var clean = jillCleanTtsText(text);
   if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
+  var cached = _jillTtsPrefetch[clean];
+  if(cached && cached !== 'loading'){
+    delete _jillTtsPrefetch[clean];
+    jillStopAudio();
+    var url = URL.createObjectURL(cached);
+    _jillState.audio = new Audio(url);
+    _jillState.audio.onended = function(){
+      URL.revokeObjectURL(url);
+      _jillState.audio = null;
+      _jillTTSBusy = false;
+      _jillState.speaking = _jillTTSQueue.length > 0;
+      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, 700);
+      _jillTTSFlush();
+    };
+    _jillState.audio.play();
+    return;
+  }
   infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
@@ -2653,9 +2762,24 @@ function _jillTTSFlush(){
 
 function jillQueueSpeak(text){ if(!text||text.trim().length<2) return; _jillTTSQueue.push(text); _jillTTSFlush(); }
 
-// ── ALICE TTS QUEUE ──────────────────────────────────────────
+// ── ALICE TTS QUEUE + prefetch ───────────────────────────────
 var _aliceTTSQueue = [];
 var _aliceTTSBusy = false;
+var _aliceTtsPrefetch = {};
+
+function aliceCleanTtsText(text){
+  return String(text||'').replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function alicePrefetchTTS(text){
+  var clean = aliceCleanTtsText(text);
+  if(clean.length < 3 || _aliceTtsPrefetch[clean]) return;
+  _aliceTtsPrefetch[clean] = 'loading';
+  infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){ if(b) _aliceTtsPrefetch[clean] = b; else delete _aliceTtsPrefetch[clean]; })
+  .catch(function(){ delete _aliceTtsPrefetch[clean]; });
+}
 
 function _aliceTTSFlush(){
   if(_aliceTTSBusy || _aliceTTSQueue.length===0 || !_aliceSpeakEnabled) return;
@@ -2663,8 +2787,26 @@ function _aliceTTSFlush(){
   _aliceState.speaking = true;
   var speakId = ++_aliceSpeakId;
   var text = _aliceTTSQueue.shift();
-  var clean = text.replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/\s+/g,' ').trim();
+  var clean = aliceCleanTtsText(text);
   if(clean.length < 3){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
+  var cached = _aliceTtsPrefetch[clean];
+  if(cached && cached !== 'loading'){
+    delete _aliceTtsPrefetch[clean];
+    if(!cached || !_aliceSpeakEnabled || speakId !== _aliceSpeakId){ _aliceTTSBusy=false; _aliceTTSFlush(); return; }
+    if(window._aliceAudio){window._aliceAudio.pause();}
+    var url = URL.createObjectURL(cached);
+    window._aliceAudio = new Audio(url);
+    window._aliceAudio.onended = function(){
+      URL.revokeObjectURL(url);
+      window._aliceAudio = null;
+      _aliceTTSBusy = false;
+      _aliceState.speaking = _aliceTTSQueue.length > 0;
+      if(!_aliceState.speaking && _aliceState.autoMic && _aliceSpeakEnabled) setTimeout(aliceStartAutoMic, 700);
+      _aliceTTSFlush();
+    };
+    window._aliceAudio.play();
+    return;
+  }
   infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
@@ -2677,7 +2819,7 @@ function _aliceTTSFlush(){
       window._aliceAudio = null;
       _aliceTTSBusy = false;
       _aliceState.speaking = _aliceTTSQueue.length > 0;
-      if(!_aliceState.speaking && _aliceSpeakEnabled && _aliceState.sessionActive) setTimeout(aliceAutoMic, 700);
+      if(!_aliceState.speaking && _aliceState.autoMic && _aliceSpeakEnabled) setTimeout(aliceStartAutoMic, 700);
       _aliceTTSFlush();
     };
     window._aliceAudio.play();
@@ -2840,20 +2982,31 @@ function renderJillTab(s){
 
 async function startJillSession(s){
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Jill está preparando la sesión...';
+  if(statusEl) statusEl.textContent = '';
   var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
   var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session';
+  var returning = mode === 'return_session';
+  var instant = jillInstantOpening(s, returning);
+  jillAddMsg(instant, 'jill', 'text');
+  jillSpeak(instant);
+  _jillState.history.push({role:'assistant', content: instant});
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
-    if(statusEl) statusEl.textContent = '';
-    jillAddMsg(data.reply||'¡Hola! Bienvenido a tu sesión de Foundations.', 'jill', data.contentType);
-    jillSpeak(data.reply||'');
-    _jillState.history.push({role:'assistant', content: data.reply||''});
+    var reply = data.reply || '';
+    if(reply && reply.length > 20 && reply.replace(/\s+/g,' ').slice(0,80) !== instant.replace(/\s+/g,' ').slice(0,80)){
+      _jillState.history = [{role:'assistant', content: reply}];
+      var msgs = document.getElementById('jill-messages');
+      if(msgs) msgs.innerHTML = '';
+      jillAddMsg(reply, 'jill', data.contentType || 'text');
+      _jillTTSQueue = []; _jillTTSBusy = false;
+      jillStopAudio();
+      jillSpeak(reply);
+    }
     if(typeof AiProfile !== 'undefined'){
       var patch = { firstGreetingJill: true };
       if(mode === 'start_session') patch.nameAskedJill = true;
@@ -2861,7 +3014,6 @@ async function startJillSession(s){
     }
   } catch(e){
     if(statusEl) statusEl.textContent = '';
-    jillAddMsg('¡Hola! Estoy aquí para ayudarte. ¿Cómo estás hoy?', 'jill', 'text');
   }
 }
 
@@ -2923,7 +3075,7 @@ async function sendJillMsg(micText){
               el.innerHTML = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'▋';
               msgs.scrollTop = msgs.scrollHeight;
             }
-            var drained = drainTtsPending(pending, jillQueueSpeak);
+            var drained = drainTtsPending(pending, jillQueueSpeak, jillPrefetchTTS);
             pending = drained.pending;
           }
         } catch(e){}

@@ -45,7 +45,7 @@ function splitTtsChunks(text, maxLen) {
   return chunks;
 }
 
-function drainTtsPending(pending, onSentence) {
+function drainTtsPending(pending, onSentence, onPrefetch) {
   var rest = String(pending || '');
   var out = [];
   while (rest.length) {
@@ -54,6 +54,10 @@ function drainTtsPending(pending, onSentence) {
       out.push(m[1].trim());
       if (typeof onSentence === 'function') onSentence(m[1].trim());
       rest = rest.slice(m[0].length);
+      var next = rest.match(/^([\s\S]+?[.!?¿¡])(?:\s+|$)/);
+      if (next && next[1].length > 8 && typeof onPrefetch === 'function') {
+        onPrefetch(next[1].trim());
+      }
       continue;
     }
     break;

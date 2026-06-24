@@ -11,7 +11,7 @@ var DemoVoice = (function () {
   var _silenceTimer = null;
   var _browserVoiceCache = {};
   var _activeProfile = null;
-  var DEFAULT_SILENCE_MS = 2000;
+  var DEFAULT_SILENCE_MS = 2200;
 
   function normalizeProfile(profile) {
     if (!profile) return typeof demoVoiceProfile === 'function' ? demoVoiceProfile('alice') : { voiceId: 'r1KmysJdVYZjJCm4mL3b', gender: 'female', lang: 'en-US' };

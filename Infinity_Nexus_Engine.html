@@ -5022,6 +5022,9 @@ function renderSuperBrain(m){
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>Clases guardadas</div>'
     +'<div id="sb-lessons-list" style="font-size:13px;color:var(--t2);">Cargando...</div>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Aprendizajes pendientes (modo Alumno · APRENDÍ)</div>'
+    +'<div id="sb-pending-list" style="font-size:13px;color:var(--t2);">Sin pendientes.</div>'
     +'</div></div>';
   superBrainRefresh();
 }
@@ -5038,14 +5041,23 @@ async function superBrainRefresh(){
     var data = await superBrainFetch('/super-brain?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
     _superBrainState = data;
     var st = document.getElementById('sb-status');
-    if(st) st.innerHTML = 'Modo: <strong>'+(data.mode||'alumno')+'</strong> · Clases: '+(data.lessonsCount||0)+' · Correcciones: '+(data.correctionsCount||0)+(data.brainCache!==undefined?'':' · Super Brain activo');
+    if(st) st.innerHTML = 'Modo: <strong>'+(data.mode||'alumno')+'</strong> · Clases: '+(data.lessonsCount||0)+' · Correcciones: '+(data.correctionsCount||0)+' · Pendientes: '+(data.pendingCount||0);
     superBrainHighlightMode(data.mode || 'alumno');
     var list = document.getElementById('sb-lessons-list');
     if(list){
       var lessons = data.recentLessons || [];
       list.innerHTML = lessons.length ? lessons.map(function(l){
-        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(l.date?l.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(l.preview||'')+'</div></div>';
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong>'+(l.source?(' <span style="font-size:10px;color:var(--t3);">'+l.source+'</span>'):'')+'<div style="font-size:11px;color:var(--t3);">'+(l.date?l.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(l.preview||'')+'</div></div>';
       }).join('') : 'Sin clases todavía — empezá dando la primera arriba.';
+    }
+    var pending = document.getElementById('sb-pending-list');
+    if(pending){
+      var items = data.pendingLessons || [];
+      pending.innerHTML = items.length ? items.map(function(p){
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(p.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(p.date?p.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(p.preview||'')+'</div>'
+          +'<div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-navy btn-sm" onclick="superBrainApprovePending(\''+p.id+'\')"><i class="ti ti-check"></i>Aprobar</button>'
+          +'<button class="btn btn-outline btn-sm" onclick="superBrainRejectPending(\''+p.id+'\')"><i class="ti ti-x"></i>Descartar</button></div></div>';
+      }).join('') : 'Sin pendientes — el cerebro propone APRENDÍ en modo Alumno.';
     }
   }catch(e){
     var st = document.getElementById('sb-status');
@@ -5114,13 +5126,30 @@ async function superBrainSendChat(){
       body: JSON.stringify({ message: msg, founderName: SESSION.name||'Fundador', secret: SUPER_BRAIN_SECRET })
     });
     superBrainAppendChat('assistant', data.reply || '—');
-    status.textContent = data.brainCache ? 'Respuesta desde Nexus Brain (caché)' : 'Respuesta nueva';
+    status.textContent = (data.brainCache ? 'Respuesta desde Nexus Brain (caché)' : 'Respuesta nueva') + (data.autoLearned ? ' · APRENDÍ guardado pendiente' : '');
+    if(data.autoLearned) superBrainRefresh();
   }catch(e){
     status.textContent = '';
     superBrainAppendChat('assistant', 'Error: '+e.message);
     showToast(e.message,'err');
   }
   btn.disabled = false;
+}
+
+async function superBrainApprovePending(id){
+  try{
+    await superBrainFetch('/super-brain/approve', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
+    showToast('Clase aprobada y guardada');
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainRejectPending(id){
+  try{
+    await superBrainFetch('/super-brain/reject', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
+    showToast('Pendiente descartado');
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
 }
 
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
