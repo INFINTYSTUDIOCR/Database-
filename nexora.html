@@ -1928,17 +1928,19 @@ function bindAllNexoraPttMics(){
   document.querySelectorAll('[data-ptt-mic]').forEach(function(btn){
     if(btn._pttBound) return;
     btn._pttBound = true;
-    PttMic.bind({
-      btn: btn,
-      lang: 'en-US',
-      onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); _nxMicSent = false; },
-      onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
-      onSend: function(text){
-        if(!text || _nxMicSent) return;
-        _nxMicSent = true;
-        sendToAlice(text);
-      }
-    });
+    try {
+      PttMic.bind({
+        btn: btn,
+        lang: 'en-US',
+        onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); _nxMicSent = false; },
+        onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
+        onSend: function(text){
+          if(!text || _nxMicSent) return;
+          _nxMicSent = true;
+          sendToAlice(text);
+        }
+      });
+    } catch(e) { btn._pttBound = false; console.warn('Nexora PTT bind:', e); }
   });
 }
 

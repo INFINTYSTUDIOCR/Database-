@@ -1151,6 +1151,8 @@ var _aliceState = {
 };
 
 // ── ALICE: pausa vs stop completo ─────────────────────────
+function aliceClearSilenceTimer(){ /* PTT — no auto-silence timer */ }
+
 function pauseAliceMedia(){
   if(_aliceState.sessionActive) _aliceState._paused = true;
   _aliceSpeakEnabled = false;
@@ -1258,7 +1260,7 @@ function renderAlice(){
   if(_aliceState.sessionActive){
     _aliceSpeakEnabled = true;
     scrollAliceMessages();
-    bindAlicePttMic();
+    try { bindAlicePttMic(); } catch(e) { console.warn('Alice PTT bind:', e); }
   }
 }
 
@@ -1660,7 +1662,7 @@ function aliceSpeak(text){
 // PTT mic for Alice — hold to speak, release to send
 function bindAlicePttMic(){
   var btn = document.getElementById('alice-mic-btn');
-  if(!btn || btn._pttBound) return;
+  if(!btn || btn._pttBound || typeof PttMic === 'undefined') return;
   btn._pttBound = true;
   PttMic.bind({
     btn: btn,
@@ -1933,6 +1935,7 @@ function resumeNexoraRuntime(){
     var el = document.getElementById(id);
     if(el && _nxState.active) el.disabled = false;
   });
+  bindNexoraPttMic();
 }
 
 function saveNexoraRuntimeStorage(){
@@ -2028,7 +2031,8 @@ function renderNexoraTab(s, force){
     +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
     +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
+    +'<button id="nx-autoin-btn" onclick="nexoraAutoIn()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);margin-bottom:10px;"><i class="ti ti-phone-incoming"></i>Iniciar simulación aquí</button>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);color:#FFFFFF;padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-external-link"></i>Abrir Nexora Lab (pantalla completa)</button>'
     +'</div>'
     +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
   root.setAttribute('data-nx-init', '1');
@@ -2141,7 +2145,7 @@ function nexoraShowCRM(restoring){
     if(inp) inp.disabled = false;
     if(micBtn) micBtn.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
-    bindNexoraPttMic();
+    try { bindNexoraPttMic(); } catch(e) { console.warn('Nexora PTT bind:', e); }
     if(_nxState.onHold){
       var holdBtn = document.getElementById('nx-hold-btn');
       var resumeBtn = document.getElementById('nx-resume-btn');
@@ -2193,7 +2197,7 @@ async function nexoraAnswerCall(){
   if(inp) inp.disabled = false;
   if(micBtn) micBtn.disabled = false;
   if(sendBtn) sendBtn.disabled = false;
-  bindNexoraPttMic();
+  try { bindNexoraPttMic(); } catch(e) { console.warn('Nexora PTT bind:', e); }
 
   var clientStatus = document.getElementById('nx-alice-status');
   if(clientStatus) clientStatus.textContent = '';
@@ -2471,7 +2475,7 @@ async function nexoraSavePracticeMinutes(mins){
 // ── MIC (PTT) ────────────────────────────────────────────────
 function bindNexoraPttMic(){
   var btn = document.getElementById('nx-mic-btn');
-  if(!btn || btn._pttBound) return;
+  if(!btn || btn._pttBound || btn.disabled || typeof PttMic === 'undefined') return;
   btn._pttBound = true;
   PttMic.bind({
     btn: btn,
@@ -2780,7 +2784,7 @@ function jillStopMic(){
 
 function bindJillPttMic(){
   var btn = document.getElementById('jill-mic-btn');
-  if(!btn || btn._pttBound) return;
+  if(!btn || btn._pttBound || typeof PttMic === 'undefined') return;
   btn._pttBound = true;
   PttMic.bind({
     btn: btn,
