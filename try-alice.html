@@ -145,10 +145,10 @@
         onToken: function (full) {
           bubble.innerHTML = String(full).replace(/\n/g, '<br>') + '▋';
           msgs.scrollTop = msgs.scrollHeight;
-        },
-        onSentence: function (s) { DemoVoice.queueSpeak(s, voiceProfile); }
+        }
       });
       bubble.innerHTML = String(d.reply || '').replace(/\n/g, '<br>');
+      if (d.reply && d.reply.trim().length > 2) DemoVoice.queueSpeak(d.reply, voiceProfile);
       step = d.meta ? d.meta.step : step + 1;
       maxSteps = d.meta && d.meta.maxSteps ? d.meta.maxSteps : maxSteps;
       updateMeta();

@@ -952,6 +952,8 @@ Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
 Transcript:
 ${transcript || '(no transcript)'}
 
+IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
+
 Respond ONLY with valid JSON, no markdown:
 {
   "overall_score": 78,
@@ -2615,6 +2617,8 @@ Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
 
 Transcript:
 ${transcript || '(no transcript)'}
+
+IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
 
 Respond ONLY with valid JSON, no markdown:
 {

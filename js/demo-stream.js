@@ -68,13 +68,6 @@ async function demoStreamSend(sessionId, message, opts) {
           fullText += evt.t;
           pending += evt.t;
           if (typeof opts.onToken === 'function') opts.onToken(fullText, evt.t);
-          if (typeof opts.onSentence === 'function') {
-            var m = pending.match(/^([\s\S]+?[.!?¿¡])\s+/);
-            if (m && m[1].length > 3) {
-              opts.onSentence(m[1]);
-              pending = pending.slice(m[0].length);
-            }
-          }
         }
         if (evt.meta) meta = evt.meta;
         if (evt.evaluation) evaluation = evt.evaluation;
@@ -84,8 +77,8 @@ async function demoStreamSend(sessionId, message, opts) {
     }
   }
 
-  if (pending.trim().length > 2 && typeof opts.onSentence === 'function') {
-    opts.onSentence(pending.split('\nALICE:')[0].split('\nJILL:')[0]);
+  if (fullText.trim().length > 2 && typeof opts.onSentence === 'function') {
+    opts.onSentence(fullText.split('\nALICE:')[0].split('\nJILL:')[0].trim());
   }
 
   if (!fullText.trim()) {

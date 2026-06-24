@@ -1509,9 +1509,6 @@ async function sendAliceMessage(micText){
             _aliceState.history[streamIdx] = { role:'assistant', content: fullText+'▋' };
             renderAlice();
             scrollAliceMessages();
-            // Sentence-by-sentence TTS
-            var m = pending.match(/^([\s\S]+?[.!?])\s+/);
-            if(m && m[1].length > 8){ aliceQueueSpeak(m[1]); pending = pending.slice(m[0].length); }
           }
         } catch(e){}
       }
@@ -1519,7 +1516,8 @@ async function sendAliceMessage(micText){
 
     // Finalize
     _aliceState.history[streamIdx] = { role:'assistant', content: fullText || 'I did not get that — could you try again?' };
-    if(pending.trim().length > 2) aliceQueueSpeak(pending.split('\nALICE:')[0]);
+    var aliceLine = fullText.split('\nALICE:')[0].trim();
+    if(aliceLine.length > 2) aliceSpeak(aliceLine);
     renderAlice();
     scrollAliceMessages();
     saveAliceRuntimeStorage();
@@ -1867,6 +1865,13 @@ function nexoraInstantOpening(p, sc){
   return "Hello, I'm calling about "+issue+" — "+desc+".";
 }
 
+function nexoraReplyTtsReady(text){
+  var t = String(text || '').replace(/ALICE:|CLAIRE:|JILL:/g,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
+  if(t.length < 12) return false;
+  if((t.match(/\b\w+\b/g) || []).length < 3) return false;
+  return true;
+}
+
 function nexoraWarmApi(){
   fetch(INFINITY_API+'/').catch(function(){});
   infinityFetch('/nexora/voices',{headers:authHeaders()})
@@ -2197,7 +2202,11 @@ async function nexoraAnswerCall(){
 
   var student = window._currentStudent || window._portalStudent || {};
   var accountContext = nexoraBuildAccountContext(p);
-  var opener = nexoraInstantOpening(p, sc);
+  var opener = sanitizeNexoraReply(nexoraInstantOpening(p, sc), p);
+  nexoraAddMsg(opener, 'client');
+  if(nexoraReplyTtsReady(opener)) nexoraSpeak(opener);
+  _nxState.history.push({role:'assistant',content:opener});
+  _nxState.transcript.push('CLIENT ('+p.firstName+'): '+opener);
   try {
     var r = await infinityFetch('/nexora', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -2209,12 +2218,12 @@ async function nexoraAnswerCall(){
       })
     });
     var d = await r.json();
-    if(d && d.reply) opener = sanitizeNexoraReply(d.reply, p) || opener;
+    var aiReply = sanitizeNexoraReply((d && d.reply) || '', p);
+    if(aiReply && aiReply.length > 15 && aiReply !== opener){
+      _nxState.history[_nxState.history.length-1] = {role:'assistant',content:aiReply};
+      _nxState.transcript[_nxState.transcript.length-1] = 'CLIENT ('+p.firstName+'): '+aiReply;
+    }
   } catch(e){}
-  nexoraAddMsg(opener, 'client');
-  nexoraSpeak(opener);
-  _nxState.history.push({role:'assistant',content:opener});
-  _nxState.transcript.push('CLIENT ('+p.firstName+'): '+opener);
 }
 
 // ── HOLD ───────────────────────────────────────────────────────
@@ -2319,7 +2328,8 @@ function nexoraSendToAlice(text){
     if(statusEl) statusEl.textContent='';
     if(!reply) return;
     nexoraAddMsg(reply,'client');
-    nexoraSpeak(reply);
+    if(nexoraReplyTtsReady(reply)) nexoraSpeak(reply);
+    else showToast('Client line was cut short — ask them to repeat.');
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
     saveNexoraRuntimeStorage();
@@ -2523,7 +2533,7 @@ function nexoraTtsTry(text, voiceIds, idx){
 }
 
 function nexoraSpeak(text){
-  if(!text) return;
+  if(!text || !nexoraReplyTtsReady(text)) return;
   var clean=text
     .replace(/ALICE:|CLAIRE:|JILL:/g,'')
     .replace(/[*_#<>\[\]{}|~`^]/g,' ')
