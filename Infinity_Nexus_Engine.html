@@ -5011,7 +5011,7 @@ function renderSuperBrain(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
   m.innerHTML = '<div class="fade">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> A.D.A.M. · Adjusting Deployment Application Matrix</h2>'
-    +'<div class="ib ib-navy">Te saluda, queda en silencio y responde solo cuando vos das la orden — sin límite de extensión en sus respuestas.</div>'
+    +'<div class="ib ib-navy">Bilingüe nativo (español + inglés). Te saluda, queda en silencio y responde con precisión cuando das la orden.</div>'
     +'<div id="sb-db-status" class="ib ib-amber" style="margin-top:8px;">Conectando a base de datos...</div>'
     +'<div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:12px;align-items:start;">'
     // LEFT — Alice-style voice session
@@ -5167,12 +5167,19 @@ function superBrainTextForVoice(text){
     .trim();
 }
 
+function superBrainCleanTtsChunk(part){
+  return String(part||'')
+    .replace(/[*_#\[\]{}<>|~`^]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
 function superBrainQueueSpeak(text){
   var spoken = superBrainTextForVoice(text);
   if(!spoken || spoken.length < 4) return;
   var parts = splitTtsSentences(spoken);
   parts.forEach(function(part){
-    var clean = part.replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/\s+/g,' ').trim();
+    var clean = superBrainCleanTtsChunk(part);
     if(clean.length >= 3) { _sbUi.ttsQueue.push(clean); superBrainTtsFlush(); }
   });
 }

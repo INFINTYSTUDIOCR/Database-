@@ -186,6 +186,25 @@ function formatSourcesBlock(sources) {
   return parts.join('\n') || '(Base de datos conectada — sin entradas aún en esta categoría.)';
 }
 
+const ADAM_MODEL = process.env.ADAM_MODEL || 'claude-sonnet-4-6';
+const ADAM_GREETING_MODEL = process.env.ADAM_GREETING_MODEL || 'claude-haiku-4-5-20251001';
+
+function detectOrderLanguage(text) {
+  const t = String(text || '');
+  const hasSpanish = /[áéíóúñ¿¡]/i.test(t) || /\b(hola|qué|que|como|cómo|por favor|orden|necesito|explic|dime|cuál|cual|gracias|hoy|clase|estudiante|publicar|metodolog)\b/i.test(t);
+  const hasEnglish = /\b(the|what|how|please|order|need|explain|tell|thanks|today|class|student|publish|method|should|would|could)\b/i.test(t);
+  if (hasSpanish && hasEnglish) return 'mixed';
+  if (hasSpanish) return 'es';
+  if (hasEnglish) return 'en';
+  return 'es';
+}
+
+function languageInstruction(lang) {
+  if (lang === 'en') return 'Respond in fluent, natural English (native-level clarity).';
+  if (lang === 'mixed') return 'Respond in the same Spanish/English mix the founder used — natural Spanglish, both languages polished.';
+  return 'Respond in fluent, natural Spanish (Latin American — Costa Rica friendly), perfect grammar and clarity.';
+}
+
 function firstName(name) {
   return String(name || 'Master').trim().split(/\s+/)[0] || 'Master';
 }
@@ -200,23 +219,29 @@ function instantGreeting(founderName) {
 const ADAM_CORE = `IDENTIDAD — A.D.A.M. (Adjusting Deployment Application Matrix):
 - Cálido, energético, amable, genuinamente interesado en el fundador.
 - Inteligente, sagaz, firme y comprensivo a la vez.
+- Bilingüe nativo: español e inglés impecables — gramática, vocabulario y tono profesional en ambos.
 - Escuchás primero; respondés solo a lo que te piden — sin bombardear con datos no solicitados.
-- Cuando te dan una orden: analizás a fondo, improvisás si hace falta, proponés con claridad y profundidad.
+- COMPRENSIÓN: interpretá la intención exacta de la orden (no solo palabras sueltas). Si es ambigua, hacé UNA pregunta precisa antes de inventar.
+- Cuando te dan una orden clara: analizás a fondo, improvisás si hace falta, proponés con claridad y profundidad.
 - Respondé con la extensión que la orden requiera — sin límite artificial de palabras u oraciones.
 - Si algo no está en la BD: decilo en una frase y ofrecé propuestas concretas (no inventes hechos).
-- Español claro salvo que escriban en inglés. Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).`;
+- Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).`;
 
 function buildBrainPrompt(sources, founderName, query) {
   const founder = founderName || sources.state?.founderName || 'Master Trainer';
   const db = formatSourcesBlock(sources);
-  return `You are A.D.A.M. — Adjusting Deployment Application Matrix — institutional AI for Infinity Studio CR. Like Jarvis: loyal, sharp, warm.
+  const lang = detectOrderLanguage(query);
+  return `You are A.D.A.M. — Adjusting Deployment Application Matrix — institutional AI for Infinity Studio CR. Like Jarvis: loyal, sharp, warm, bilingual.
 
 ${ADAM_CORE}
 
 SESSION RULES:
 - You already greeted the founder. Do NOT greet again.
+- ${languageInstruction(lang)}
+- If they switch language in this message, follow immediately in that language.
 - Answer ONLY their current order — as fully as needed (short when trivial, deep when complex).
-- Use the database below silently; cite source only if helpful ("según la KB…").
+- Before answering: (1) identify intent, (2) check database relevance, (3) respond precisely.
+- Use the database below silently; cite source only if helpful ("según la KB…" / "per the KB…").
 - Never dump unprompted lists or unrelated info.
 - If they teach NEW institutional knowledge explicitly, end with: NUEVO_CONOCIMIENTO: [paragraph]
 
@@ -345,13 +370,13 @@ async function greeting(founderName, claudeCall) {
   if (claudeCall) {
     try {
       const resp = await claudeCall({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 70,
-        system: `${ADAM_CORE}\n\nTASK: ONE greeting sentence in Spanish. Warm tone. Use first name "${name}". Say A.D.A.M. is online and waiting for their order. ZERO database content. ZERO lists.`,
+        model: ADAM_GREETING_MODEL,
+        max_tokens: 120,
+        system: `${ADAM_CORE}\n\nTASK: ONE greeting sentence. Warm Jarvis tone. Use first name "${name}". Say A.D.A.M. is online and waiting for their order. Spanish by default; perfect grammar. ZERO database content.`,
         messages: [{ role: 'user', content: 'Saludo inicial.' }]
       });
       const g = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-      if (g && g.length >= 12 && g.length <= 200 && !g.includes('\n\n')) text = g;
+      if (g && g.length >= 12 && g.length <= 280 && !g.includes('\n\n')) text = g;
     } catch { /* fallback */ }
   }
 
@@ -377,7 +402,7 @@ async function talk(state, { message, claudeCall, founderName }) {
 
   let reply = '';
   let brainCache = false;
-  const brainExtra = `brain:${sources.published.length}:${sources.kbEntries.length}`;
+  const brainExtra = `adam-v3:${ADAM_MODEL}:${sources.published.length}:${sources.kbEntries.length}`;
 
   if (_brain?.brainGetLLM) {
     const cached = await _brain.brainGetLLM('super', 'brain', msg, brainExtra);
@@ -386,7 +411,7 @@ async function talk(state, { message, claudeCall, founderName }) {
       brainCache = true;
     } else if (cached.hash && claudeCall) {
       const resp = await claudeCall({
-        model: 'claude-haiku-4-5-20251001',
+        model: ADAM_MODEL,
         max_tokens: 4096,
         system,
         messages
@@ -398,7 +423,7 @@ async function talk(state, { message, claudeCall, founderName }) {
 
   if (!reply && claudeCall) {
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
+      model: ADAM_MODEL,
       max_tokens: 4096,
       system,
       messages

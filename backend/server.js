@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-adam-ptt',
+  build: '2026-06-24-adam-bilingual',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1666,7 +1666,7 @@ function cleanTtsText(text) {
     .slice(0, 2500);
 }
 
-async function synthesizeSpeech(req, res, { text, voiceId, label }) {
+async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style }) {
   if (!text) return res.status(400).json({ error: 'Missing text' });
   if (!ELEVEN_KEY) return res.status(500).json({ error: 'ELEVENLABS_KEY not configured' });
   if (!voiceId) return res.status(503).json({ error: `${label} voice ID not configured` });
@@ -1698,7 +1698,12 @@ async function synthesizeSpeech(req, res, { text, voiceId, label }) {
     body: JSON.stringify({
       text: clean,
       model_id: 'eleven_multilingual_v2',
-      voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true }
+      voice_settings: {
+        stability: stability ?? 0.5,
+        similarity_boost: similarityBoost ?? 0.75,
+        style: style ?? 0.3,
+        use_speaker_boost: true
+      }
     })
   });
 
@@ -2965,7 +2970,14 @@ app.post('/super-brain/publish', requireMasterOrAnalyzeSecret, async (req, res) 
 app.post('/super-brain/tts', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: SUPER_BRAIN_VOICE_ID, label: 'A.D.A.M.' });
+    return await synthesizeSpeech(req, res, {
+      text,
+      voiceId: SUPER_BRAIN_VOICE_ID,
+      label: 'A.D.A.M.',
+      stability: 0.42,
+      similarityBoost: 0.82,
+      style: 0.35
+    });
   } catch (err) {
     return res.status(500).json({ error: 'TTS failed' });
   }
