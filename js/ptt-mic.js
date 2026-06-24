@@ -16,8 +16,10 @@ var PttMic = (function () {
       if (typeof opts.onUi === 'function') opts.onUi(listening, btn);
     }
 
+    var sent = false;
     function stop(send) {
       if (!active && !rec) return;
+      if (send && sent) return;
       active = false;
       var text = transcript.trim();
       transcript = '';
@@ -26,7 +28,10 @@ var PttMic = (function () {
         rec = null;
       }
       ui(false);
-      if (send && text && typeof opts.onSend === 'function') opts.onSend(text);
+      if (send && text && !sent) {
+        sent = true;
+        if (typeof opts.onSend === 'function') opts.onSend(text);
+      }
     }
 
     function start(e) {
@@ -46,7 +51,16 @@ var PttMic = (function () {
       rec.interimResults = true;
       rec.continuous = true;
       rec.onresult = function (ev) {
-        transcript = Array.from(ev.results).map(function (r) { return r[0].transcript; }).join('');
+        var finals = [];
+        for (var i = 0; i < ev.results.length; i++) {
+          if (ev.results[i].isFinal) finals.push(ev.results[i][0].transcript.trim());
+        }
+        if (finals.length) {
+          transcript = finals.join(' ').replace(/\s+/g, ' ').trim();
+        } else if (ev.results.length) {
+          var last = ev.results[ev.results.length - 1];
+          transcript = (last && last[0] && last[0].transcript) ? last[0].transcript.trim() : transcript;
+        }
       };
       rec.onend = function () { rec = null; };
       rec.onerror = function () { stop(false); };

@@ -2208,7 +2208,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     const levelExtra = `${level}:${JILL_BRAIN_VER}`;
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
+    if (brain.hit) {
+      const parsed = parseJillResponse(brain.reply);
+      return Brain.writeBrainSSE(res, parsed.reply || brain.reply);
+    }
     await streamAnthropicSSE(res, {
       max_tokens: 800,
       system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nResponde en texto directo, sin JSON. 4-6 oraciones, tono natural y espontáneo dentro del método. Regla + ejemplo + UNA pregunta de práctica. Ritmo conversacional — sin pausas largas ni relleno.`,

@@ -2779,7 +2779,7 @@ function bindJillPttMic(){
   btn._pttBound = true;
   PttMic.bind({
     btn: btn,
-    lang: 'es-CR',
+    lang: 'en-US',
     canStart: function(){ return true; },
     onBeforeStart: function(){ jillInterruptSpeaking(); jillStopMic(); },
     onUi: function(listening){
@@ -2857,7 +2857,7 @@ async function startJillSession(s){
       body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
-    var reply = data.reply || '';
+    var reply = jillExtractReply(data.reply || '');
     if(reply && reply.length > 20 && reply.replace(/\s+/g,' ').slice(0,80) !== instant.replace(/\s+/g,' ').slice(0,80)){
       _jillState.history = [{role:'assistant', content: reply}];
       var msgs = document.getElementById('jill-messages');
@@ -2875,6 +2875,23 @@ async function startJillSession(s){
   } catch(e){
     if(statusEl) statusEl.textContent = '';
   }
+}
+
+function jillExtractReply(raw){
+  if(!raw) return '';
+  var text = String(raw).trim();
+  try {
+    var clean = text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+    var parsed = JSON.parse(clean);
+    if(parsed && parsed.reply) return String(parsed.reply).trim();
+  } catch(e){}
+  var m = text.match(/\{[\s\S]*?"reply"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if(m) try { return JSON.parse('"'+m[1]+'"'); } catch(e2){ return m[1]; }
+  return text.replace(/```[\s\S]*?```/g,'').trim();
+}
+
+function jillFormatReplyHtml(text){
+  return jillExtractReply(text).replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
 }
 
 async function sendJillMsg(micText){
@@ -2943,9 +2960,10 @@ async function sendJillMsg(micText){
       }
     }
 
-    // Finalize bubble
+    // Finalize bubble — strip JSON wrapper if model/brain returned {"reply":"..."}
+    fullText = jillExtractReply(fullText);
     if(el){
-      var formatted = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      var formatted = jillFormatReplyHtml(fullText);
       el.innerHTML = formatted
         +'<button onclick="jillQueueSpeak(this.dataset.text)" data-text="'+fullText.replace(/"/g,"'")+'" style="margin-top:8px;background:#0a5c3c;border:none;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;"><i class="ti ti-volume"></i> Escuchar</button>';
     }
