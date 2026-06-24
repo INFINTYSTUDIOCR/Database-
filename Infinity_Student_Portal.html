@@ -2673,6 +2673,8 @@ setInterval(function(){ fetch(INFINITY_API+'/').catch(function(){}); }, 8*60*100
 // ── JILL TTS QUEUE (sentence-by-sentence + prefetch) ──
 var _jillTTSQueue = [];
 var _jillTTSBusy = false;
+var _jillSpeakGen = 0;
+var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 
 function jillCleanTtsText(text){
@@ -2693,21 +2695,29 @@ function _jillTTSFlush(){
   if(_jillTTSBusy || _jillTTSQueue.length===0) return;
   _jillTTSBusy = true;
   _jillState.speaking = true;
+  var gen = _jillSpeakGen;
   var text = _jillTTSQueue.shift();
   var clean = jillCleanTtsText(text);
   if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
 
   function playBlob(b){
-    if(!b){ _jillTTSQueue.unshift(text); _jillTTSBusy=false; setTimeout(_jillTTSFlush, 400); return; }
+    if(!b || gen !== _jillSpeakGen){
+      _jillTTSBusy=false;
+      _jillState.speaking = _jillTTSQueue.length>0 && gen === _jillSpeakGen;
+      if(gen === _jillSpeakGen) _jillTTSFlush();
+      return;
+    }
     jillStopAudio();
     _jillState.audio = playAudioBlob(b, {
       onEnded: function(){
+        if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
         _jillTTSBusy = false;
         _jillState.speaking = _jillTTSQueue.length > 0;
         _jillTTSFlush();
       },
       onError: function(){
+        if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
         _jillTTSQueue.unshift(text);
         _jillTTSBusy = false;
@@ -2727,6 +2737,7 @@ function _jillTTSFlush(){
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(playBlob)
   .catch(function(){
+    if(gen !== _jillSpeakGen){ _jillTTSBusy=false; return; }
     _jillTTSQueue.unshift(text);
     _jillTTSBusy=false;
     _jillState.speaking=_jillTTSQueue.length>0;
@@ -2830,6 +2841,7 @@ function jillPauseAudio(){
 }
 
 function jillCancelSpeech(){
+  _jillSpeakGen++;
   _jillTTSQueue = [];
   _jillTTSBusy = false;
   jillStopAudio();
@@ -2837,6 +2849,10 @@ function jillCancelSpeech(){
 
 function jillInterruptSpeaking(){
   jillCancelSpeech();
+  if(_jillStreamCtrl){
+    try{ _jillStreamCtrl.abort(); }catch(e){}
+    _jillStreamCtrl = null;
+  }
 }
 
 function bindJillPttMic(){
@@ -2846,7 +2862,7 @@ function bindJillPttMic(){
   PttMic.bind({
     btn: btn,
     lang: 'es-CR',
-    canStart: function(){ return !_jillSending; },
+    canStart: function(){ return true; },
     onBeforeStart: function(){ jillInterruptSpeaking(); jillStopMic(); },
     onUi: function(listening){
       var b = document.getElementById('jill-mic-btn');
@@ -2996,6 +3012,7 @@ async function sendJillMsg(micText){
 
   var fullText = '';
   var ctrl = new AbortController();
+  _jillStreamCtrl = ctrl;
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
   try {
@@ -3053,6 +3070,7 @@ async function sendJillMsg(micText){
     if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez.';
   } finally {
     clearTimeout(tid);
+    if(_jillStreamCtrl === ctrl) _jillStreamCtrl = null;
     unwatchJill();
     _jillSending = false;
   }
