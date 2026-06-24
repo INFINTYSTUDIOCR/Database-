@@ -4984,7 +4984,7 @@ var SUPER_BRAIN_SECRET = 'otro-secreto-distinto-2026';
 var _sbUi = {
   history: [],
   speaking: false,
-  autoMic: true,
+  autoMic: false,
   micRunning: false,
   recognition: null,
   ttsQueue: [],
@@ -4993,7 +4993,7 @@ var _sbUi = {
   micText: '',
   silenceTimer: null
 };
-var SB_SILENCE_MS = 2200;
+var SB_SILENCE_MS = 2800;
 
 async function superBrainFetch(path, opts){
   opts = opts || {};
@@ -5008,7 +5008,7 @@ function renderSuperBrain(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
   m.innerHTML = '<div class="fade">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> Super Cerebro · Nexus AI</h2>'
-    +'<div class="ib ib-navy">No es un chatbot. Es la <strong>memoria institucional</strong> conectada a Nexus KB, archivos subidos y tu conocimiento. Habla con voz (como Alice). Lo que <strong>publicás</strong> se propaga a Alice, Jill, Nexora y Analizar con IA.</div>'
+    +'<div class="ib ib-navy">Espera <strong>tu orden</strong>. No habla solo — respondé cuando vos escribís, enviás o activás el micrófono. Respuestas cortas en español.</div>'
     +'<div id="sb-db-status" class="ib ib-amber" style="margin-top:8px;">Conectando a base de datos...</div>'
     +'<div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:12px;align-items:start;">'
     // LEFT — Alice-style voice session
@@ -5017,8 +5017,8 @@ function renderSuperBrain(m){
     +'<div id="sb-msgs" style="max-height:340px;overflow-y:auto;margin-bottom:10px;padding-right:4px;"></div>'
     +'<div id="sb-voice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:8px;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;">'
-    +'<input id="sb-input" class="inp" placeholder="Hablá o escribí — el cerebro ya conoce la BD..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
-    +'<button id="sb-mic-btn" onclick="superBrainToggleMic()" style="width:44px;height:44px;background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.35);color:#C084FC;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-microphone"></i></button>'
+    +'<input id="sb-input" class="inp" placeholder="Tu orden aquí — Enter o botón enviar..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
+    +'<button id="sb-mic-btn" onclick="superBrainToggleMic()" title="Activar micrófono (off por defecto)" style="width:44px;height:44px;background:rgba(107,114,128,0.4);border:1px solid rgba(192,132,252,0.35);color:#9CA3AF;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-microphone-off"></i></button>'
     +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
     +'</div></div>'
     // RIGHT — upload + publish
@@ -5037,6 +5037,7 @@ function renderSuperBrain(m){
     +'<div id="sb-published-list" style="font-size:12px;color:var(--t2);">—</div></div>'
     +'</div></div></div>';
   superBrainRefresh();
+  renderSuperBrainStop();
   superBrainRenderMsgs();
 }
 
@@ -5044,7 +5045,7 @@ function superBrainRenderMsgs(){
   var el = document.getElementById('sb-msgs');
   if(!el) return;
   if(!_sbUi.history.length){
-    el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,0.45);text-align:center;padding:24px 12px;">Hola '+((SESSION&&SESSION.name)||'Master')+'. Soy el Super Cerebro — ya leo Nexus KB y tus archivos. Hablame o subí material.</div>';
+    el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,0.45);text-align:center;padding:24px 12px;">En espera de tu orden.<br><span style="font-size:11px;">Escribí abajo o tocá el micrófono para activarlo.</span></div>';
     return;
   }
   el.innerHTML = _sbUi.history.map(function(m){
@@ -5091,9 +5092,19 @@ function superBrainStopAudio(){
   _sbUi.speaking = false;
 }
 
+function superBrainTextForVoice(text){
+  return String(text||'')
+    .replace(/\n?NUEVO_CONOCIMIENTO:[\s\S]*$/i,'')
+    .replace(/[*_#\[\]]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
 function superBrainQueueSpeak(text){
-  if(!text || text.trim().length < 2) return;
-  splitTtsSentences(text).forEach(function(part){
+  var spoken = superBrainTextForVoice(text);
+  if(!spoken || spoken.length < 4) return;
+  var parts = splitTtsSentences(spoken).slice(0, 2);
+  parts.forEach(function(part){
     var clean = part.replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/\s+/g,' ').trim();
     if(clean.length >= 3) { _sbUi.ttsQueue.push(clean); superBrainTtsFlush(); }
   });
@@ -5116,7 +5127,6 @@ function superBrainTtsFlush(){
       _sbUi.audio = null;
       _sbUi.ttsBusy = false;
       _sbUi.speaking = _sbUi.ttsQueue.length > 0;
-      if(!_sbUi.speaking && _sbUi.autoMic) setTimeout(superBrainStartMic, 600);
       superBrainTtsFlush();
     };
     _sbUi.audio.play();
@@ -5133,7 +5143,7 @@ function superBrainScheduleSend(){
     _sbUi.silenceTimer = null;
     if(_sbUi.speaking || !_sbUi.autoMic) return;
     var text = _sbUi.micText.trim();
-    if(!text) return;
+    if(!text || text.length < 8) return;
     _sbUi.micText = '';
     var inp = document.getElementById('sb-input');
     if(inp) inp.value = '';
@@ -5148,7 +5158,11 @@ function superBrainStopMic(){
   _sbUi.micRunning = false;
   _sbUi.micText = '';
   var btn = document.getElementById('sb-mic-btn');
-  if(btn){ btn.style.background='rgba(192,132,252,0.15)'; btn.style.color='#C084FC'; }
+  if(btn){
+    btn.style.background = _sbUi.autoMic ? 'rgba(255,92,92,0.35)' : 'rgba(107,114,128,0.4)';
+    btn.style.color = _sbUi.autoMic ? 'white' : '#9CA3AF';
+    btn.innerHTML = '<i class="ti ti-microphone'+( _sbUi.autoMic ? '' : '-off')+'"></i>';
+  }
 }
 
 function superBrainStartMic(){
@@ -5174,23 +5188,43 @@ function superBrainStartMic(){
   rec.onend = function(){
     _sbUi.micRunning = false;
     _sbUi.recognition = null;
-    if(_sbUi.autoMic && !_sbUi.speaking && !_sbUi.silenceTimer) setTimeout(superBrainStartMic, 350);
   };
   rec.onerror = function(){ superBrainStopMic(); };
   try{ rec.start(); }catch(e){}
 }
 
 function superBrainToggleMic(){
-  if(_sbUi.autoMic){ _sbUi.autoMic = false; superBrainStopMic(); return; }
+  if(_sbUi.autoMic){
+    _sbUi.autoMic = false;
+    superBrainStopMic();
+    var st = document.getElementById('sb-voice-status');
+    if(st) st.textContent = 'Micrófono off — esperando tu orden por texto';
+    return;
+  }
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('Usá Chrome o Edge para voz','err'); return; }
   _sbUi.autoMic = true;
   superBrainStopAudio();
+  _sbUi.ttsQueue = []; _sbUi.ttsBusy = false;
+  var st = document.getElementById('sb-voice-status');
+  if(st) st.textContent = 'Micrófono ON — hablá tu orden';
   superBrainStartMic();
+}
+
+function renderSuperBrainStop(){
+  superBrainStopAudio();
+  superBrainStopMic();
+  _sbUi.autoMic = false;
+  _sbUi.ttsQueue = [];
+  _sbUi.ttsBusy = false;
 }
 
 async function superBrainTalk(micText){
   var inp = document.getElementById('sb-input');
   var text = (micText || (inp ? inp.value : '') || '').trim();
-  if(!text) return;
+  if(!text || text.length < 3){ showToast('Dame una orden clara primero','err'); return; }
+  superBrainStopAudio();
+  _sbUi.ttsQueue = []; _sbUi.ttsBusy = false;
   if(inp) inp.value = '';
   superBrainStopMic();
   _sbUi.history.push({ role:'user', text: text });

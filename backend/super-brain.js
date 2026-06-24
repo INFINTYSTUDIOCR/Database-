@@ -189,24 +189,25 @@ function formatSourcesBlock(sources) {
 function buildBrainPrompt(sources, founderName, query) {
   const founder = founderName || sources.state?.founderName || 'Master Trainer';
   const db = formatSourcesBlock(sources);
-  return `You are the Nexus Super Brain — the institutional intelligence of Infinity Studio CR.
+  return `You are the Nexus Super Brain — institutional memory of Infinity Studio CR.
 
-CRITICAL IDENTITY:
-- You are NOT a generic chatbot.
-- You are NOT a student learning English. You already know English at a professional level.
-- You are the live memory of the Nexus Method connected to the real database (Nexus KB, uploaded files, published knowledge).
+STRICT BEHAVIOR (non-negotiable):
+- You do NOT speak until the founder gives you an explicit order or question.
+- You NEVER monologue, ramble, or dump database content unprompted.
+- Answer ONLY what was asked — nothing extra.
+- Maximum 2-4 short sentences in clear Spanish (unless they write in English).
+- If the answer is not in the database below, say exactly: "Eso no está en la base todavía." Do NOT invent.
+- Never list random KB entries. Never quote long passages. Never speak "like a lecture".
+- You already know English. Do not teach English unless explicitly asked.
+- Never contradict Nexus Method (STAR, Idea+Linker+Idea, 26 KPIs).
 
-YOUR ROLE with ${founder} (founder / master trainer):
-- Recall and apply knowledge from the database below.
-- Help plan exercises, KPIs, curriculum, and operational decisions.
-- When they teach you something new, distill it clearly.
-- Never contradict Nexus Method (STAR, Idea+Linker+Idea, 26 KPIs, communicate > perfection).
-- Respond in Spanish unless they write in English. Be concise and operational (3-6 sentences).
-- If you use a specific source, mention it briefly (ej: "Según la KB de conectores…").
-- If they share NEW institutional knowledge worth saving, end with exactly one line:
-  NUEVO_CONOCIMIENTO: [one paragraph ready to publish to Alice/Jill/Nexora]
+WHEN TO SAVE (rare): only if the founder explicitly teaches NEW institutional knowledge in this message, add one line at the end:
+NUEVO_CONOCIMIENTO: [one short paragraph]
 
-LIVE DATABASE (query: "${String(query || '').slice(0, 80)}"):
+Founder: ${founder}
+Their order/question: "${String(query || '').slice(0, 200)}"
+
+DATABASE (use only what is relevant to their question — do not recite all of it):
 ${db}`;
 }
 
@@ -314,7 +315,8 @@ async function rejectPending(state, pendingId) {
 
 async function talk(state, { message, claudeCall, founderName }) {
   const msg = String(message || '').trim();
-  if (!msg) throw new Error('Mensaje vacío.');
+  if (!msg) throw new Error('Esperando tu orden — escribí o hablá primero.');
+  if (msg.length < 3) throw new Error('Orden muy corta — sé más específico.');
   if (founderName) state.founderName = String(founderName).slice(0, 80);
 
   const sources = await loadKnowledgeSources(msg);
@@ -337,7 +339,7 @@ async function talk(state, { message, claudeCall, founderName }) {
     } else if (cached.hash && claudeCall) {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 650,
+        max_tokens: 220,
         system,
         messages
       });
@@ -349,7 +351,7 @@ async function talk(state, { message, claudeCall, founderName }) {
   if (!reply && claudeCall) {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 650,
+      max_tokens: 220,
       system,
       messages
     });
@@ -360,7 +362,7 @@ async function talk(state, { message, claudeCall, founderName }) {
 
   let nuevoPending = null;
   const nuevo = extractNuevoConocimiento(reply);
-  if (nuevo) {
+  if (nuevo && /enseñ|guardá|recordá|agregá|publicá|nuevo|regla|siempre/i.test(msg)) {
     reply = reply.replace(/\n?NUEVO_CONOCIMIENTO:[\s\S]*$/i, '').trim();
     state.pendingLessons = state.pendingLessons || [];
     nuevoPending = {
