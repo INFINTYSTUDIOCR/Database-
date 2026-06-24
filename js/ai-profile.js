@@ -3,6 +3,29 @@
 
   var BLOCK = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','dog','slut','whore','marica','maricon'];
 
+  // Common words mis-read as names (e.g. "I'm planning…" → "Planing")
+  var NON_NAME = {
+    planning:1, planing:1, going:1, doing:1, trying:1, thinking:1, learning:1, studying:1,
+    practicing:1, working:1, looking:1, speaking:1, talking:1, writing:1, reading:1, watching:1,
+    listening:1, feeling:1, having:1, being:1, getting:1, waiting:1, calling:1, helping:1,
+    starting:1, finishing:1, meeting:1, running:1, walking:1, busy:1, ready:1, fine:1, good:1,
+    great:1, here:1, back:1, sorry:1, happy:1, tired:1, well:1, okay:1, ok:1, yes:1, no:1,
+    just:1, only:1, really:1, very:1, also:1, still:1, about:1, today:1, tomorrow:1
+  };
+
+  function isNonNameWord(word){
+    return !!(word && NON_NAME[String(word).toLowerCase()]);
+  }
+
+  function isValidPreferredName(name, student){
+    var clean = sanitizePreferredName(name);
+    if(!clean) return null;
+    if(isNonNameWord(clean)) return null;
+    var registered = studentFirstName(student).toLowerCase();
+    if(clean.toLowerCase() === registered) return clean;
+    return clean;
+  }
+
   function getAiProfile(student){
     var raw = (student && student.aiProfile) || {};
     return {
@@ -25,7 +48,12 @@
 
   function displayName(student){
     var p = getAiProfile(student);
-    return p.preferredName || studentFirstName(student);
+    var registered = studentFirstName(student);
+    if(p.preferredName){
+      var valid = isValidPreferredName(p.preferredName, student);
+      if(valid) return valid;
+    }
+    return registered;
   }
 
   function sanitizePreferredName(name){
@@ -46,14 +74,14 @@
     var t = String(text).trim();
     var patterns = [
       /(?:ll[aá]mame|llama me|pod[eé]s decirme|me dec[ií]s|prefiero que me digas|me gustar[ií]a que me digas|call me|please call me|you can call me|i prefer to be called|i'd like to be called|my preferred name is|i go by)\s+[""']?([A-Za-zÁÉÍÓÚáéíóúÑñüÜ]{2,20})/i,
-      /(?:me llamo|my name is|i'm|i am)\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]{2,20})(?:\s|$|\.|,)/i,
-      /(?:solo|just|only)\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]{2,20})/i
+      /(?:me llamo|my name is)\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]{2,20})(?:\s|$|\.|,)/i,
+      /\b(?:i'm|i am)\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]{2,20})(?:\s*[.!,]|$)/i
     ];
     for(var i=0;i<patterns.length;i++){
       var m = t.match(patterns[i]);
       if(m && m[1]){
         var clean = sanitizePreferredName(m[1]);
-        if(clean) return clean;
+        if(clean && !isNonNameWord(clean)) return clean;
       }
     }
     return null;
@@ -87,8 +115,9 @@
     if(!s || !s.id) return;
     var profile = getAiProfile(s);
     if(patch.preferredName !== undefined){
-      var clean = sanitizePreferredName(patch.preferredName);
+      var clean = isValidPreferredName(patch.preferredName, s);
       if(clean) profile.preferredName = clean;
+      else if(patch.preferredName === '' || patch.preferredName === null) profile.preferredName = '';
     }
     if(patch.nameAskedAlice) profile.nameAsked.alice = true;
     if(patch.nameAskedJill) profile.nameAsked.jill = true;
@@ -110,7 +139,9 @@
     if(profile.preferredName) return;
     var detected = detectPreferredName(text);
     if(!detected) return;
-    await saveAiProfilePatch({ preferredName: detected }, dbSetFn, s);
+    var valid = isValidPreferredName(detected, s);
+    if(!valid) return;
+    await saveAiProfilePatch({ preferredName: valid }, dbSetFn, s);
   }
 
   global.AiProfile = {

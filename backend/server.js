@@ -1731,11 +1731,19 @@ function getStudentFirstName(student) {
 
 function getStudentDisplayName(student) {
   const preferred = String(student?.aiProfile?.preferredName || '').trim();
-  if (preferred) return preferred;
+  const valid = preferred ? sanitizePreferredNameServer(preferred) : null;
+  if (valid && !PREFERRED_NAME_NON_WORDS.has(valid.toLowerCase())) return valid;
   return getStudentFirstName(student);
 }
 
 const PREFERRED_NAME_BLOCKLIST = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','slut','whore'];
+const PREFERRED_NAME_NON_WORDS = new Set([
+  'planning','planing','going','doing','trying','thinking','learning','studying','practicing','working',
+  'looking','speaking','talking','writing','reading','watching','listening','feeling','having','being',
+  'getting','waiting','calling','helping','starting','finishing','meeting','running','walking','busy',
+  'ready','fine','good','great','here','back','sorry','happy','tired','well','okay','ok','yes','no',
+  'just','only','really','very','also','still','about','today','tomorrow'
+]);
 
 function sanitizePreferredNameServer(name) {
   if (!name || typeof name !== 'string') return null;
@@ -1744,6 +1752,7 @@ function sanitizePreferredNameServer(name) {
   if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/.test(clean)) return null;
   const token = clean.split(/\s+/)[0];
   const lower = token.toLowerCase();
+  if (PREFERRED_NAME_NON_WORDS.has(lower)) return null;
   if (PREFERRED_NAME_BLOCKLIST.some(b => lower.includes(b))) return null;
   return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
 }
@@ -1760,7 +1769,10 @@ function buildAiProfileNote(student, tutor) {
   const ai = student?.aiProfile || {};
   const returning = !!(ai.firstGreetingDone && ai.firstGreetingDone[key]);
   const asked = !!(ai.nameAsked && ai.nameAsked[key]);
-  const preferred = String(ai.preferredName || '').trim();
+  const rawPreferred = String(ai.preferredName || '').trim();
+  const sanitizedPreferred = rawPreferred ? sanitizePreferredNameServer(rawPreferred) : null;
+  const preferred = sanitizedPreferred && !PREFERRED_NAME_NON_WORDS.has(sanitizedPreferred.toLowerCase())
+    ? sanitizedPreferred : '';
   let note = `\nSTUDENT NAME — registro: "${first}". Address as: "${display}".`;
   if (returning) {
     note += tutor === 'alice'
