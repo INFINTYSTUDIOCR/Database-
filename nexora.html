@@ -1252,35 +1252,48 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
   var profile={name:personName,firstName:(personName.split(' ')[0]||personName),account:'N/A',services:[],billingNotes:[]};
   if(_nx.profile&&_nx.profile.voiceId) profile=Object.assign({},profile,{voiceId:_nx.profile.voiceId,voiceAccent:_nx.profile.voiceAccent,gender:_nx.profile.gender});
   try{
-    if(isNexoraPublicDemo()){
-      var fullRaw=await nexoraDemoStreamReply({
-        message:startMsg,history:[],profile:profile,scenario:sc,agentName:_nx.agent||'Agent',
-        accountContext:ctx,negRole:(sc.type==='negotiation')?_nx_negRole:null
-      },null);
-      var reply=sanitizeNexoraReply(fullRaw||'',profile);
-      if(st) st.textContent='';
-      if(reply){
-        _nx.history.push({role:'assistant',content:reply});
-        _nx.transcript.push(personName.toUpperCase()+': '+reply);
-      }
-      if(reply) speak(reply);
-      return;
-    }
     var payload=buildNexoraPayload(startMsg,[],profile,sc);
     if(ctx) payload.accountContext=ctx;
-    var r=await infinityFetch('/nexora',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    var d=await r.json();
+    var fullRaw=await nexoraGetReply(payload,null);
+    var reply=stripStageDirections(fullRaw||'');
+    var needsQuestion=(sc.type==='star_interview'||sc.type==='interview');
+    if(reply && (isNexoraReplyIncomplete(reply, sc.type) || (needsQuestion && !/\?/.test(reply)))){
+      try{
+        var contPayload=Object.assign({},payload,{
+          message:'Continue — finish your introduction and ask your first complete interview question now.',
+          history:[
+            {role:'assistant',content:reply},
+            {role:'user',content:'Continue — finish your introduction and ask your first complete interview question now.'}
+          ]
+        });
+        fullRaw=await nexoraPostReply(contPayload);
+        reply=stripStageDirections(fullRaw||'')||reply;
+      }catch(e2){}
+    }
     if(st) st.textContent='';
-    _nx.history.push({role:'assistant',content:d.reply});
-    _nx.transcript.push(personName.toUpperCase()+': '+d.reply);
-    speak(d.reply);
+    if(reply){
+      _nx.history.push({role:'assistant',content:reply});
+      _nx.transcript.push(personName.toUpperCase()+': '+reply);
+    }
+    if(reply && (isCompleteSpokenLine(reply) || nexoraReplyTtsReady(reply))) speak(reply);
+    else showToast('Interviewer line was cut short — tap mic to continue.');
+    saveNexoraLabRuntime();
+    if(!reply || !nexoraReplyTtsReady(reply)) nexoraReadyHint();
   }catch(e){
     if(st) st.textContent='';
-    if(isNexoraPublicDemo()) showToast('Could not start simulation — refresh and try again.');
+    showToast('Could not start simulation — try again.');
+    nexoraReadyHint();
   }
+}
+
+function isNexoraReplyIncomplete(text, scType){
+  var t=String(text||'').trim();
+  if(!t||t.length<20) return true;
+  if(/\.{2,}$|\.\.\./.test(t)) return true;
+  if(/\band I\.?$/i.test(t)) return true;
+  if(!/[.!?]"?$/.test(t)) return true;
+  if((scType==='star_interview'||scType==='interview')&&!/\?/.test(t)) return true;
+  return false;
 }
 
 // ── CORPORATE DISPLAY ─────────────────────────────────────────
@@ -1871,7 +1884,7 @@ async function nexoraAuthStreamReply(payload, onPartial){
     try{ reader.releaseLock(); }catch(e){}
   }
   fullText = fullText.trim();
-  if(!isCompleteSpokenLine(fullText)) return await nexoraPostReply(payload);
+  if(isNexoraReplyIncomplete(fullText, payload.scenario&&payload.scenario.type)) return await nexoraPostReply(payload);
   return fullText;
 }
 
@@ -2024,7 +2037,7 @@ function _nxTTSFlush(){
     if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlush, 400); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(b, {
-      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); },
+      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
       onError: function(){
         window._nxAudio=null;
         _nxTTSQueue.unshift(chunk);

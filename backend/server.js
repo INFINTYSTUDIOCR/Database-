@@ -191,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v6-nexora-voice',
+  build: '2026-06-24-v7-star-opening',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1238,6 +1238,7 @@ YOUR ROLE:
 - After 2-3 exchanges, give brief feedback and move to the next question.
 - 1-3 sentences per turn. Professional and focused.
 - Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
+- FIRST TURN ONLY: One-sentence intro (name, title, ${ctx.company || sc.company || 'company'}). Then ask question 1 from STAR FOCUS immediately. Must end with a complete question mark. Never use ellipsis (...). Never stop at "and I".
 - NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
   } else if (scType === 'interview') {
     const ctx = accountContext || {};
@@ -1372,6 +1373,26 @@ function finishNexoraReply(raw, p, scType) {
   return fixed.trim();
 }
 
+function isNexoraReplyIncomplete(text, scType) {
+  const t = String(text || '').trim();
+  if (!t || t.length < 20) return true;
+  if (/\.{2,}$|\.\.\./.test(t)) return true;
+  if (/\band I\.?$/i.test(t)) return true;
+  if (!/[.!?]"?$/.test(t)) return true;
+  if ((scType === 'star_interview' || scType === 'interview') && !/\?/.test(t)) return true;
+  return false;
+}
+
+function buildNexoraOpeningNote(scType, variation) {
+  if (scType === 'star_interview' || scType === 'interview') {
+    return `${variation || ''}\nOPENING TURN: Brief intro (name, role, company) in one sentence. Then ask your FIRST behavioral/STAR question. Must end with ?. Never use ellipsis (...). Never stop at "and I". Two or three complete sentences total.`;
+  }
+  if (scType === 'meeting' || scType === 'corporate' || scType === 'stakeholder' || scType === 'negotiation' || scType === 'medical') {
+    return `${variation || ''}\nOPENING: One short professional greeting, then continue naturally. Complete sentences only — no ellipsis.`;
+  }
+  return `${variation || ''}\nThis is the FIRST line of the call — open with a NEW greeting and reason for calling. Do not reuse phrasing from recent openings.`;
+}
+
 async function prepareNexoraRequest(body, req) {
   const { message, history, profile, scenario, agentName: agentNameRaw, accountContext, negRole, student: studentRaw } = body || {};
   const student = resolveNexoraStudent(studentRaw, req);
@@ -1383,7 +1404,9 @@ async function prepareNexoraRequest(body, req) {
   const actorKey = resolveActorKey({ student, profile: p });
   const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
   if (isOpening) {
-    prompt += '\nThis is the FIRST line of the call — open immediately with a direct greeting and reason. No filler.';
+    const recent = (scType === 'customer_service' || !scType) ? await getRecentOpenings(actorKey, openingProduct) : [];
+    const variation = buildOpeningVariationNote(recent, 'en');
+    prompt += buildNexoraOpeningNote(scType, variation);
   }
   const hist = (history || []).slice(-14);
   const last = hist[hist.length - 1];
@@ -2769,6 +2792,7 @@ YOUR ROLE:
 - After 2-3 exchanges, give brief feedback and move to the next question.
 - 1-3 sentences per turn. Professional and focused.
 - Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
+- FIRST TURN ONLY: One-sentence intro (name, title, ${ctx.company || sc.company || 'company'}). Then ask question 1 from STAR FOCUS immediately. Must end with a complete question mark. Never use ellipsis (...). Never stop at "and I".
 - NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
     } else if(scType === 'interview'){
       const ctx = accountContext || {};
@@ -2893,29 +2917,35 @@ YOUR ROLE:
     const actorKey = resolveActorKey({ student, req, profile: p });
     const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
     if (isOpening) {
-      const recent = await getRecentOpenings(actorKey, openingProduct);
+      const recent = (scType === 'customer_service' || !scType) ? await getRecentOpenings(actorKey, openingProduct) : [];
       const variation = buildOpeningVariationNote(recent, 'en');
-      systemPrompt += variation + '\nThis is the FIRST line of the call — open with a NEW greeting and reason for calling. Do not reuse phrasing from recent openings.';
+      systemPrompt += buildNexoraOpeningNote(scType, variation);
     }
 
     const msgs = history && history.length > 0
       ? [...history.slice(-14), { role: 'user', content: message }]
       : [{ role: 'user', content: message }];
 
-    const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}`);
+    const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}${isOpening ? ':opening-v2' : ''}`);
     const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);
     if (brain.hit) {
       let cached = brain.reply;
       if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
         cached = enforceNexoraClientName(cached, p);
       }
-      res.set('X-Brain-LLM', 'HIT');
-      return res.json({ reply: cached, brainCache: true });
+      cached = finishNexoraReply(cached, p, scType);
+      if (isOpening && isNexoraReplyIncomplete(cached, scType)) {
+        res.set('X-Brain-LLM', 'MISS');
+      } else {
+        res.set('X-Brain-LLM', 'HIT');
+        return res.json({ reply: cached, brainCache: true });
+      }
     }
 
+    const openingTokens = (scType === 'star_interview' || scType === 'interview') ? 420 : 200;
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 200,
+      max_tokens: isOpening ? openingTokens : 200,
       system: systemPrompt,
       messages: msgs
     });
@@ -2924,7 +2954,17 @@ YOUR ROLE:
     if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
       reply = enforceNexoraClientName(reply, p);
     }
-    if (brain.hash && reply) await Brain.brainSetLLM(brain.hash, 'nexora', isOpening ? 'opening' : 'reply', message, reply, nexoraExtra);
+    reply = finishNexoraReply(reply, p, scType);
+    if (isOpening && isNexoraReplyIncomplete(reply, scType)) {
+      const retry = await claudeCall({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: openingTokens,
+        system: systemPrompt + '\nCRITICAL: Your last draft was cut off. Give a COMPLETE intro plus your FIRST interview question ending with ?.',
+        messages: [...msgs, { role: 'assistant', content: reply }, { role: 'user', content: 'Continue — finish your intro and ask your first complete interview question now.' }]
+      });
+      reply = finishNexoraReply(retry.content.filter(b => b.type === 'text').map(b => b.text).join('').trim(), p, scType);
+    }
+    if (brain.hash && reply && !isNexoraReplyIncomplete(reply, scType)) await Brain.brainSetLLM(brain.hash, 'nexora', isOpening ? 'opening' : 'reply', message, reply, nexoraExtra);
     if (isOpening) {
       recordOpening(actorKey, openingProduct, extractOpeningSnippet(reply), { scenarioId: sc.id || null }).catch(() => {});
     }
