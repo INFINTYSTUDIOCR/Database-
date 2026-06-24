@@ -101,24 +101,6 @@ async function sbSet(table, id, data) {
   return r.ok;
 }
 
-async function sbGetOne(table, id) {
-  if (!SUPABASE_URL || !SUPABASE_KEY || !id) return null;
-  try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=id,data&limit=1`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-    });
-    if (!r.ok) return null;
-    const rows = await r.json();
-    return Array.isArray(rows) && rows[0] ? rows[0] : null;
-  } catch (err) {
-    console.warn(`sbGetOne ${table}/${id}:`, err.message);
-    return null;
-  }
-}
-
-const Brain = require('./nexus-brain');
-Brain.initNexusBrain({ sbGetOne, sbSet });
-
 // ── OPENING ROTATION LOG (Alice / Jill / Nexora session starts) ──
 const OPENING_LOG_MAX = 8;
 
@@ -179,15 +161,7 @@ function extractOpeningSnippet(text) {
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-23-fase2)'));
-app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-24-nexus-brain', brain: Brain.isBrainEnabled(), services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats'] }));
-
-app.get('/brain/stats', requireProductAuth, async (req, res) => {
-  try {
-    return res.json(await Brain.brainGetStats());
-  } catch (err) {
-    return res.status(500).json({ error: 'Brain stats unavailable' });
-  }
-});
+app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-23-fase2', services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream'] }));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
@@ -212,31 +186,26 @@ app.get('/keycheck', async (req, res) => {
 });
 
 // ── RATE LIMIT ───────────────────────────────────────────────
-const TUTOR_LIMIT = 50;
+const ALICE_LIMIT = 50;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
-async function checkTutorLimit(sid, tutor, table) {
+async function checkLimit(sid, table) {
   if (!sid) return { ok: true };
   const t = table || 'infinity_sessions';
-  const prefix = ({ alice: 'ALICE', jill: 'JILL', nexora: 'NEXORA' }[tutor] || 'ALICE') + '-LIMIT';
   try {
     const rows = await sbGet(t);
-    const row = rows.find(r => r.id === `${prefix}-${sid}`);
+    const row = rows.find(r => r.id === `ALICE-LIMIT-${sid}`);
     let d = row?.data || { count: 0, resetAt: null };
     if (d.resetAt && Date.now() > new Date(d.resetAt).getTime()) { d.count = 0; d.resetAt = null; }
-    if (d.count >= TUTOR_LIMIT) {
-      if (!d.resetAt) { d.resetAt = new Date(Date.now() + COOLDOWN_MS).toISOString(); await sbSet(t, `${prefix}-${sid}`, d); }
+    if (d.count >= ALICE_LIMIT) {
+      if (!d.resetAt) { d.resetAt = new Date(Date.now() + COOLDOWN_MS).toISOString(); await sbSet(t, `ALICE-LIMIT-${sid}`, d); }
       const mins = Math.ceil((new Date(d.resetAt).getTime() - Date.now()) / 60000);
       return { ok: false, wait: mins < 60 ? `${mins} minutos` : `${Math.ceil(mins/60)} horas` };
     }
     d.count++;
-    await sbSet(t, `${prefix}-${sid}`, d);
+    await sbSet(t, `ALICE-LIMIT-${sid}`, d);
     return { ok: true };
-  } catch (e) { return { ok: true }; }
-}
-
-async function checkLimit(sid, table) {
-  return checkTutorLimit(sid, 'alice', table);
+  } catch(e) { return { ok: true }; }
 }
 
 // ── LOGIN RATE LIMIT (brute force) — solo cuenta intentos fallidos ──
@@ -830,36 +799,6 @@ app.post('/demo/stream', async (req, res) => {
 
     const streamCfg = getDemoStreamConfig(session, done);
     let fullText = '';
-    const demoExtra = `${session.service}:${session.scenario || 'default'}:step${session.step}`;
-    const brain = await Brain.brainGetLLM('demo', session.service, message.trim(), demoExtra);
-
-    if (brain.hit) {
-      fullText = brain.reply;
-      if (session.service === 'jill') fullText = parseJillResponse(fullText).reply || fullText;
-      if (session.service === 'nexora') {
-        const ctx = getDemoNexoraContext(session.scenario, session.name);
-        fullText = finishNexoraReply(fullText, ctx.profile, buildNexoraSystemPrompt(ctx).scType);
-      }
-      res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no',
-        'Access-Control-Allow-Origin': '*',
-        'X-Brain-LLM': 'HIT'
-      });
-      res.write(`data: ${JSON.stringify({ t: fullText })}\n\n`);
-      session.history.push({ role: 'assistant', content: fullText.trim() });
-      await saveDemoSession(sessionId, session);
-      res.write(`data: ${JSON.stringify({ meta: { step: session.step, done, maxSteps, live: true, brainCache: true } })}\n\n`);
-      if (done) {
-        const evaluation = await demoGenerateEvaluation(session);
-        res.write(`data: ${JSON.stringify({ evaluation })}\n\n`);
-        await saveDemoKb({ service: session.service, scenario: session.scenario, history: session.history, evaluation, consent: session.consent, ip });
-      }
-      res.write('data: [DONE]\n\n');
-      return res.end();
-    }
 
     res.set({
       'Content-Type': 'text/event-stream',
@@ -922,10 +861,6 @@ app.post('/demo/stream', async (req, res) => {
     if (session.service === 'nexora') {
       const ctx = getDemoNexoraContext(session.scenario, session.name);
       fullText = finishNexoraReply(fullText, ctx.profile, buildNexoraSystemPrompt(ctx).scType);
-    }
-
-    if (brain.hash && fullText.trim().length > 8) {
-      Brain.brainSetLLM(brain.hash, 'demo', session.service, message.trim(), fullText.trim(), demoExtra).catch(() => {});
     }
 
     session.history.push({ role: 'assistant', content: fullText.trim() });
@@ -1659,17 +1594,7 @@ async function synthesizeSpeech(req, res, { text, voiceId, label }) {
     const cached = ttsCache.get(cacheKey);
     res.set('Content-Type', 'audio/mpeg');
     res.set('X-Cache', 'HIT');
-    res.set('X-Brain-TTS', 'RAM');
     return res.send(cached);
-  }
-
-  const brainTts = await Brain.brainGetTTS(clean, voiceId);
-  if (brainTts.hit) {
-    cacheTTS(cacheKey, brainTts.buffer);
-    res.set('Content-Type', 'audio/mpeg');
-    res.set('X-Cache', 'HIT');
-    res.set('X-Brain-TTS', 'HIT');
-    return res.send(brainTts.buffer);
   }
 
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -1690,10 +1615,8 @@ async function synthesizeSpeech(req, res, { text, voiceId, label }) {
 
   const buf = Buffer.from(await r.arrayBuffer());
   cacheTTS(cacheKey, buf);
-  if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf);
   res.set('Content-Type', 'audio/mpeg');
   res.set('Cache-Control', 'no-cache');
-  res.set('X-Brain-TTS', 'MISS');
   return res.send(buf);
 }
 
@@ -1777,18 +1700,11 @@ app.post('/alice', requireProductAuth, async (req, res) => {
         ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
         : `First session: greet warmly, say you'll practice English together, ask ONE engaging practice question AND ONE polite question about how they prefer to be called (respectful names only).`;
 
-      const openExtra = `${mode}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}`;
-      const openBrain = await Brain.brainGetLLM('alice', 'opening', `START_${mode}`, openExtra);
-      if (openBrain.hit) {
-        return res.json({ opening: openBrain.reply, sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
-      }
-
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 250,
         messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-      if (openBrain.hash && opening) await Brain.brainSetLLM(openBrain.hash, 'alice', 'opening', `START_${mode}`, opening, openExtra);
       recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
       return res.json({ opening, sessionMode: returning ? 'return_session' : 'start_session' });
     }
@@ -1856,21 +1772,11 @@ EXERCISES:\n${tb||'(none yet)'}`;
       ? [...history.slice(-10), { role:'user', content:message }]
       : [{ role:'user', content:message }];
 
-    const levelExtra = student?.level || 'Functional';
-    const brain = await Brain.brainGetLLM('alice', 'chat', message, levelExtra);
-    if (brain.hit) {
-      res.set('X-Brain-LLM', 'HIT');
-      return res.json({ reply: brain.reply, brainCache: true });
-    }
-
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001', max_tokens: 700,
       system: systemPrompt, messages: msgs
     });
-    const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    if (brain.hash && reply) await Brain.brainSetLLM(brain.hash, 'alice', 'chat', message, reply, levelExtra);
-    res.set('X-Brain-LLM', 'MISS');
-    return res.json({ reply });
+    return res.json({ reply: resp.content.filter(b=>b.type==='text').map(b=>b.text).join('') });
 
   } catch(err) {
     console.error('Alice error:', err.message, err.status);
@@ -1982,17 +1888,6 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         ? `Saludá brevemente con "Qué gusto verte de nuevo, ${display}" — NO como primera vez — y hacé UNA pregunta para retomar.`
         : `Saludalo con calidez en este primer contacto, recordá en qué estaban trabajando si hay ejercicios, y hacé UNA pregunta amable sobre cómo prefiere que le digas (nombre respetuoso).`;
 
-      const openExtra = `${mode}:${level}:${returning ? 'return' : 'new'}`;
-      const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
-      if (openBrain.hit) {
-        try {
-          const parsed = parseJillResponse(openBrain.reply);
-          return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', brainCache: true }));
-        } catch (e) {
-          return res.json({ reply: openBrain.reply, contentType: 'text', sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
-        }
-      }
-
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 350,
@@ -2004,32 +1899,11 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       const parsed = parseJillResponse(raw);
-      if (openBrain.hash && raw) await Brain.brainSetLLM(openBrain.hash, 'jill', 'opening', `START_${mode}`, raw, openExtra);
       recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
       return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session' }));
     }
 
     if (!message) return res.status(400).json({ error: 'Missing message' });
-
-    const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
-    if (!limit.ok) {
-      return res.json({
-        reply: `Alcanzaste el límite de práctica con Jill por hoy. Descansá ${limit.wait} y volvé con energía.`,
-        contentType: 'text',
-        limitReached: true
-      });
-    }
-
-    const levelExtra = level;
-    const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
-    if (brain.hit) {
-      res.set('X-Brain-LLM', 'HIT');
-      try {
-        return res.json({ ...parseJillResponse(brain.reply), brainCache: true });
-      } catch (e) {
-        return res.json({ reply: brain.reply, contentType: 'text', brainCache: true });
-      }
-    }
 
     const prevMsgs = (history || []).slice(-12);
     const msgs = [...prevMsgs, { role: 'user', content: message }];
@@ -2043,10 +1917,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     });
 
     const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    const parsed = parseJillResponse(raw);
-    if (brain.hash && parsed?.reply) await Brain.brainSetLLM(brain.hash, 'jill', 'chat', message, raw, levelExtra);
-    res.set('X-Brain-LLM', 'MISS');
-    return res.json(parsed);
+    return res.json(parseJillResponse(raw));
 
   } catch (err) {
     console.error('Jill error:', err.message, err.status);
@@ -2055,14 +1926,13 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 });
 
 // ── STREAMING HELPER ─────────────────────────────────────────
-async function streamAnthropicSSE(res, { model, max_tokens, system, messages, brainMeta }) {
+async function streamAnthropicSSE(res, { model, max_tokens, system, messages }) {
   res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     'X-Accel-Buffering': 'no',
-    'Access-Control-Allow-Origin': '*',
-    'X-Brain-LLM': brainMeta ? 'MISS' : 'OFF'
+    'Access-Control-Allow-Origin': '*'
   });
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -2081,7 +1951,6 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
   const reader = r.body.getReader();
   const dec = new TextDecoder();
   let buf = '';
-  let fullText = '';
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -2095,23 +1964,12 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
       try {
         const evt = JSON.parse(raw);
         if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta' && evt.delta.text) {
-          fullText += evt.delta.text;
           res.write(`data: ${JSON.stringify({ t: evt.delta.text })}\n\n`);
         } else if (evt.type === 'message_stop') {
           res.write('data: [DONE]\n\n');
         }
       } catch {}
     }
-  }
-  if (brainMeta?.hash && fullText.trim().length > 8) {
-    Brain.brainSetLLM(
-      brainMeta.hash,
-      brainMeta.tutor,
-      brainMeta.intent,
-      brainMeta.message,
-      fullText.trim(),
-      brainMeta.extra
-    ).catch(() => {});
   }
   res.end();
 }
@@ -2121,10 +1979,6 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
     const { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
     if (!message) return res.status(400).end();
-    const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
-    if (!limit.ok) {
-      return res.status(429).json({ error: 'limit', message: `Jill practice limit reached. Wait ${limit.wait}.`, wait: limit.wait });
-    }
     const name = student?.name || student?.info?.name || 'estudiante';
     const level = student?.level || student?.info?.level || 'Foundations';
     const exercises = (student?.trainingBook || []).slice(0, 4)
@@ -2140,14 +1994,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    const levelExtra = level;
-    const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {
       max_tokens: 800,
       system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
-      messages: msgs,
-      brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
+      messages: msgs
     });
   } catch (err) {
     console.error('Jill stream error:', err.message);
@@ -2176,15 +2026,7 @@ RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    const levelExtra = student?.level || 'Functional';
-    const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
-    await streamAnthropicSSE(res, {
-      max_tokens: 750,
-      system,
-      messages: msgs,
-      brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
-    });
+    await streamAnthropicSSE(res, { max_tokens: 750, system, messages: msgs });
   } catch (err) {
     console.error('Alice stream error:', err.message);
     if (!res.headersSent) res.status(500).end(); else res.end();
@@ -2255,10 +2097,7 @@ app.post('/claire', async (req, res) => {
 
     if (!message?.trim()) return res.status(400).json({ error: 'Missing message' });
 
-    const brain = await Brain.brainGetLLM('claire', 'chat', message, 'web');
-    if (brain.hit) {
-      return res.json({ reply: brain.reply, buffered: true, brainCache: true, cacheHit: true });
-    }
+    // CHAT — cache key from last user message hash for repeated FAQ-style inputs
     const cacheKey = 'claire:' + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
     if (demoResponseCache.has(cacheKey)) {
       return res.json({ reply: demoResponseCache.get(cacheKey), buffered: true, cacheHit: true });
@@ -2293,10 +2132,7 @@ COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a L
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    if (reply.length > 20) {
-      cacheDemoResponse(cacheKey, reply);
-      if (brain.hash) await Brain.brainSetLLM(brain.hash, 'claire', 'chat', message, reply, 'web');
-    }
+    if (reply.length > 20) cacheDemoResponse(cacheKey, reply);
     return res.json({ reply });
 
   } catch(err) {
@@ -2538,16 +2374,7 @@ function enforceNexoraClientName(reply, profile) {
 // ── NEXORA CALL SIMULATION ────────────────────────────────────
 app.post('/nexora', requireProductAuth, async (req, res) => {
   try {
-    const { message, history, profile, scenario, agentName, student } = req.body || {};
-
-    const limit = await checkTutorLimit(student?.id, 'nexora', 'infinity_sessions');
-    if (!limit.ok && !/^START_/.test(String(message || ''))) {
-      return res.json({
-        reply: 'The line went quiet — try again in a few minutes.',
-        limitReached: true,
-        wait: limit.wait
-      });
-    }
+    const { message, history, profile, scenario, agentName } = req.body || {};
 
     const p = profile || {};
     const sc = scenario || {};
@@ -2737,17 +2564,6 @@ YOUR ROLE:
       ? [...history.slice(-14), { role: 'user', content: message }]
       : [{ role: 'user', content: message }];
 
-    const nexoraExtra = `${scType}:${sc.mood || 'normal'}`;
-    const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);
-    if (brain.hit) {
-      let cached = brain.reply;
-      if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
-        cached = enforceNexoraClientName(cached, p);
-      }
-      res.set('X-Brain-LLM', 'HIT');
-      return res.json({ reply: cached, brainCache: true });
-    }
-
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 200,
@@ -2759,11 +2575,9 @@ YOUR ROLE:
     if ((sc.type || 'customer_service') === 'customer_service' || !sc.type) {
       reply = enforceNexoraClientName(reply, p);
     }
-    if (brain.hash && reply) await Brain.brainSetLLM(brain.hash, 'nexora', isOpening ? 'opening' : 'reply', message, reply, nexoraExtra);
     if (isOpening) {
       recordOpening(actorKey, openingProduct, extractOpeningSnippet(reply), { scenarioId: sc.id || null }).catch(() => {});
     }
-    res.set('X-Brain-LLM', 'MISS');
     return res.json({ reply });
 
   } catch(err) {
@@ -2775,15 +2589,11 @@ YOUR ROLE:
 app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
     const ctx = await prepareNexoraRequest(req.body);
-    const nexoraExtra = `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`;
-    const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 220,
       system: ctx.systemPrompt + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
-      messages: ctx.msgs,
-      brainMeta: { hash: brain.hash, tutor: 'nexora', intent: 'stream', message: req.body?.message, extra: nexoraExtra }
+      messages: ctx.msgs
     });
   } catch (err) {
     console.error('Nexora stream error:', err.message);
