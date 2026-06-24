@@ -216,16 +216,22 @@
 
   function renderWeeklyPulseSelect(m) {
     var students = typeof allStudents === 'function' ? allStudents() : [];
+    var openCal = typeof openManualKpiCal === 'function' ? 'openManualKpiCal' : 'NexusManualCal.open';
     m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-heartbeat"></i> Weekly Pulse — Seleccionar estudiante</h2>'
-      + '<div class="ib ib-navy">Un solo flujo: Assessment (5 KPIs) + Tracker (26 KPIs) + un guardado correlacionado. Los formularios anteriores siguen disponibles por separado.</div>'
+      + '<div class="ib ib-navy"><strong>Calibración manual KPI</strong> — cuestionario macro (10) + micro (26), sliders 1–10, PDF e historial. Cuenta como Weekly Pulse.</div>'
       + students.map(function (s) {
         var wk = weekIdFromDate();
         var pulse = getPulseForWeek(ensureStudentFields(s), wk);
         var status = pulse && pulse.complete ? '✓ Completo' : (pulse ? 'En progreso' : 'Pendiente');
-        return '<div class="card" style="cursor:pointer;margin-bottom:8px;" onclick="NexusUnified.openPulse(\'' + s.id + '\')">'
-          + '<div style="display:flex;justify-content:space-between;align-items:center;">'
-          + '<div><strong>' + ((s.info && s.info.name) || s.id) + '</strong><div style="font-size:11px;color:var(--t3);">Semana ' + wk + '</div></div>'
-          + '<span class="badge" style="background:var(--nl);color:var(--nm);">' + status + '</span></div></div>';
+        return '<div class="card" style="margin-bottom:8px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">'
+          + '<div style="cursor:pointer;flex:1;min-width:160px;" onclick="NexusUnified.openPulse(\'' + s.id + '\')">'
+          + '<strong>' + ((s.info && s.info.name) || s.id) + '</strong>'
+          + '<div style="font-size:11px;color:var(--t3);">Semana ' + wk + '</div></div>'
+          + '<span class="badge" style="background:var(--nl);color:var(--nm);">' + status + '</span>'
+          + '<button type="button" class="btn btn-navy btn-sm" onclick="event.stopPropagation();' + openCal + '(\'' + s.id + '\')"><i class="ti ti-adjustments"></i> Calibración manual KPI</button>'
+          + '<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();NexusUnified.openPulse(\'' + s.id + '\')"><i class="ti ti-heartbeat"></i> Pulse auto</button>'
+          + '</div></div>';
       }).join('') + '</div>';
   }
 
@@ -242,10 +248,12 @@
     var wk = st.weekId;
     var pulse = getPulseForWeek(s, wk);
 
+    var openCal = typeof openManualKpiCal === 'function' ? 'openManualKpiCal' : 'NexusManualCal.open';
     m.innerHTML = '<div class="fade">'
-      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">'
       + '<button class="btn btn-outline btn-sm" onclick="showView(\'weekly-pulse\',null)"><i class="ti ti-arrow-left"></i>Volver</button>'
       + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2>'
+      + '<button type="button" class="btn btn-navy btn-sm" onclick="' + openCal + '(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual KPI</button>'
       + '</div>'
       + '<div class="ib ib-navy">Semana <strong>' + wk + '</strong> · Paso ' + st.step + ' de 2 · ID sesión: ' + ((pulse && pulse.pulseSessionId) || 'nuevo') + '</div>'
       + '<div style="display:flex;gap:8px;margin:12px 0;">'
@@ -412,21 +420,32 @@
   }
 
   /* ── JILL BUNDLES (trainer assign) ───────────────────── */
+  function sortedJillBundles() {
+    return (JILL_BUNDLES || []).slice().sort(function (a, b) {
+      return (a.order != null ? a.order : 999) - (b.order != null ? b.order : 999);
+    });
+  }
+
   function renderJillBundlePanel(sid) {
     var s = DB[sid];
     if (!s || (s.track && s.track.current !== 'jill' && s.system_mode === 'alice')) return '';
     ensureStudentFields(s);
     var active = s.jillProgress.activeBundle;
     var done = s.jillProgress.completedBundles || [];
-    return '<div class="card" style="margin-top:12px;"><div class="card-title"><i class="ti ti-school"></i>Jill — Bundle activo</div>'
-      + (active ? '<div class="ib ib-navy">Bundle: <strong>' + active + '</strong></div>' : '<div style="font-size:12px;color:var(--t3);">Sin bundle asignado</div>')
+    var activeMeta = active ? JILL_BUNDLES.find(function (b) { return b.id === active; }) : null;
+    return '<div class="card" style="margin-top:12px;"><div class="card-title"><i class="ti ti-school"></i>Jill — Ruta Foundations (v2)</div>'
+      + '<div class="ib ib-navy" style="font-size:11px;">Secuencia A.D.A.M. · mecánica Lego → tiempos → chunking → oral → Alice</div>'
+      + (activeMeta
+        ? '<div class="ib ib-green" style="margin-top:6px;">Activo: <strong>' + activeMeta.title + '</strong>' + (activeMeta.phase ? ' · ' + activeMeta.phase : '') + '</div>'
+        : '<div style="font-size:12px;color:var(--t3);margin-top:6px;">Sin bundle — asigná F0 o el que corresponda al estudiante</div>')
       + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">'
-      + JILL_BUNDLES.map(function (b) {
+      + sortedJillBundles().map(function (b) {
         var isDone = done.indexOf(b.id) >= 0;
-        return '<button class="btn btn-sm ' + (active === b.id ? 'btn-navy' : 'btn-outline') + '" onclick="NexusUnified.assignBundle(\'' + sid + '\',\'' + b.id + '\')">' + b.title + (isDone ? ' ✓' : '') + '</button>';
+        var label = (b.phase ? b.phase + ' · ' : '') + b.title;
+        return '<button class="btn btn-sm ' + (active === b.id ? 'btn-navy' : 'btn-outline') + '" title="' + (b.doctrine || '').replace(/"/g, '') + '" onclick="NexusUnified.assignBundle(\'' + sid + '\',\'' + b.id + '\')">' + label + (isDone ? ' ✓' : '') + '</button>';
       }).join('')
       + '</div>'
-      + (active ? '<button class="btn btn-green btn-sm" style="margin-top:8px;" onclick="NexusUnified.completeBundle(\'' + sid + '\')"><i class="ti ti-check"></i> Marcar bundle completado</button>' : '')
+      + (active ? '<button class="btn btn-green btn-sm" style="margin-top:8px;" onclick="NexusUnified.completeBundle(\'' + sid + '\')"><i class="ti ti-check"></i> Completar y avanzar al siguiente</button>' : '')
       + '</div>';
   }
 
@@ -445,17 +464,31 @@
     if (!s || !s.jillProgress.activeBundle) return;
     ensureStudentFields(s);
     var id = s.jillProgress.activeBundle;
+    var meta = JILL_BUNDLES.find(function (b) { return b.id === id; });
     if (s.jillProgress.completedBundles.indexOf(id) < 0) s.jillProgress.completedBundles.push(id);
-    s.jillProgress.activeBundle = null;
+    var next = meta && meta.nextBundle;
+    s.jillProgress.activeBundle = next || null;
     await dbSet('infinity_students', sid, s);
     DB[sid] = s;
-    showToast('Bundle completado');
+    if (next) {
+      var nextMeta = JILL_BUNDLES.find(function (b) { return b.id === next; });
+      showToast('Avanzó a: ' + (nextMeta ? nextMeta.title : next));
+    } else {
+      showToast('Ruta Foundations completada — evaluar transición Alice (F7)');
+    }
     openStudent(sid);
   }
 
   function getActiveBundleForStudent(s) {
     ensureStudentFields(s);
-    if (!s.jillProgress.activeBundle) return null;
+    if (!s.jillProgress.activeBundle) {
+      var done = s.jillProgress.completedBundles || [];
+      var seq = sortedJillBundles();
+      for (var i = 0; i < seq.length; i++) {
+        if (done.indexOf(seq[i].id) < 0) return seq[i];
+      }
+      return null;
+    }
     return JILL_BUNDLES.find(function (b) { return b.id === s.jillProgress.activeBundle; }) || null;
   }
 

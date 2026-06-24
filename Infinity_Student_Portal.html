@@ -219,8 +219,9 @@ async function dbSet(table,id,data){
 function getLevelBadge(level){ return '<span class="badge b-'+((level||'').toLowerCase())+'">'+level+'</span>'; }
 function getPhaseBadge(p){ return '<span class="badge b-p'+p+'">'+( PHASE_NAMES[p]||'—')+'</span>'; }
 function getScore(s){ var kpis=(s.kpis||{}).phase1||{}; var t=0; Object.keys(KPI_NAMES).forEach(function(k){t+=parseInt(kpis[k])||0;}); return t; }
-function getLevel(score){ return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival'; }
-function getExercises(s){ var kpis=(s.kpis||{}).phase1||{}; var ex=[]; var sorted=Object.keys(KPI_NAMES).sort(function(a,b){return (parseInt(kpis[a])||0)-(parseInt(kpis[b])||0);}); sorted.forEach(function(k){ var v=parseInt(kpis[k])||0; var key=v<=2?k+'_critical':v<=3?k+'_developing':null; if(key&&EXERCISES[key]) ex.push(EXERCISES[key]); }); return ex.slice(0,5); }
+function portalScale10(s){ return s&&(s.kpiScale===10||(function(){ var p=(s.kpis||{}).phase1||{}; return Object.keys(p).some(function(k){return parseInt(p[k],10)>5;}); })()); }
+function getLevel(score,s){ if(portalScale10(s)||score>25) return score>=42?'Advanced':score>=32?'Functional':score>=22?'Emerging':'Survival'; return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival'; }
+function getExercises(s){ var kpis=(s.kpis||{}).phase1||{}; var scale10=portalScale10(s); var ex=[]; var sorted=Object.keys(KPI_NAMES).sort(function(a,b){return (parseInt(kpis[a])||0)-(parseInt(kpis[b])||0);}); sorted.forEach(function(k){ var v=parseInt(kpis[k])||0; var key=scale10?(v<=4?k+'_critical':v<=6?k+'_developing':null):(v<=2?k+'_critical':v<=3?k+'_developing':null); if(key&&EXERCISES[key]) ex.push(EXERCISES[key]); }); return ex.slice(0,5); }
 function fmtDate(d){ if(!d) return '—'; var dt=new Date(d); return dt.toLocaleDateString('es-CR'); }
 
 function showToast(msg, type){
@@ -1153,6 +1154,18 @@ var _aliceState = {
 // ── ALICE: pausa vs stop completo ─────────────────────────
 function aliceClearSilenceTimer(){ /* PTT — no auto-silence timer */ }
 
+function aliceInterruptSpeaking(){
+  _aliceSpeakId++;
+  if(window._aliceAudio){
+    window._aliceAudio.pause();
+    window._aliceAudio.src = '';
+    window._aliceAudio = null;
+  }
+  _aliceState.speaking = false;
+  _aliceTTSQueue = [];
+  _aliceTTSBusy = false;
+}
+
 function pauseAliceMedia(){
   if(_aliceState.sessionActive) _aliceState._paused = true;
   _aliceSpeakEnabled = false;
@@ -1222,15 +1235,20 @@ function getAliceStudentPayload(){
   var hist = s.kpiTracker||[];
   var last = hist.length ? hist[hist.length-1] : null;
   var kpiProfile = {};
-  if(last && last.areaAverages) last.areaAverages.forEach(function(a){ kpiProfile[a.id]=Math.round(a.pct/10); });
-  var weakAreas = last ? last.areaAverages.filter(function(a){return a.pct<60;}).map(function(a){return a.name;}) : [];
+  if(s.kpiFile && s.kpiFile.macro){
+    Object.keys(s.kpiFile.macro).forEach(function(k){ kpiProfile[k]=s.kpiFile.macro[k]; });
+  } else if(last && last.areaAverages) last.areaAverages.forEach(function(a){ kpiProfile[a.id]=Math.round(a.pct/10); });
+  var weakAreas = (s.kpiFile && s.kpiFile.weakMacro && s.kpiFile.weakMacro.length) ? s.kpiFile.weakMacro.slice()
+    : (last ? last.areaAverages.filter(function(a){return a.pct<60;}).map(function(a){return a.name;}) : []);
   var trainingBook = (s.trainingBook||[]).map(function(ex){
     return { title: ex.title, kpi: ex.kpi, studentTask: ex.studentTask, freq: ex.freq };
   });
   return {
-    id: s.id, name:(s.info&&s.info.name)||'Student', level:getLevel(getScore(s)),
+    id: s.id, name:(s.info&&s.info.name)||'Student', level:getLevel(getScore(s), s),
     program:(s.info&&s.info.program)||'Individual', sessionsCompleted:(s.kpiTracker||[]).length,
     kpiProfile, weakAreas, trainingBook,
+    kpiFile: s.kpiFile || null,
+    kpiScale: s.kpiScale || (s.kpiFile && s.kpiFile.scale) || null,
     info: s.info,
     aiProfile: (typeof AiProfile !== 'undefined') ? AiProfile.getAiProfile(s) : (s.aiProfile || {})
   };
@@ -1470,9 +1488,8 @@ async function sendAliceMessage(micText){
   var input = document.getElementById('alice-input');
   var text = (micText || (input ? input.value : '') || '').trim();
   if(!text) return;
-  if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
+  aliceInterruptSpeaking();
   aliceStopMic();
-  _aliceTTSQueue=[]; _aliceTTSBusy=false;
   _aliceMicText = '';
   input.value = '';
   _aliceState.history.push({ role:'user', content:text });
@@ -1667,9 +1684,9 @@ function bindAlicePttMic(){
   PttMic.bind({
     btn: btn,
     lang: (ALICE_ACCENTS[_aliceState.accent] && ALICE_ACCENTS[_aliceState.accent].lang) || 'en-US',
-    canStart: function(){ return _aliceSpeakEnabled && !_aliceState.speaking; },
+    canStart: function(){ return _aliceSpeakEnabled; },
     onBeforeStart: function(){
-      if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
+      aliceInterruptSpeaking();
       aliceStopMic();
     },
     onUi: function(listening){
@@ -1849,9 +1866,9 @@ function aliceInstantOpening(student, returning){
 function jillInstantOpening(student, returning){
   var name = aliceStudentFirstName(student);
   if(returning){
-    return "¡Hola de nuevo, "+name+"! Me alegra verte. ¿Cómo te sentís hoy para practicar?";
+    return "Hola "+name+", retomemos. ¿Listo para practicar?";
   }
-  return "¡Hola "+name+"! Soy Jill, tu tutora de Foundations. Vamos a practicar juntos paso a paso. ¿Cómo estás hoy?";
+  return "Hola "+name+", soy Jill. Empezamos — ¿tenés duda del ejercicio o arrancamos con el chunk de hoy?";
 }
 
 function nexoraInstantOpening(p, sc){
@@ -1988,18 +2005,6 @@ function nexoraRestoreMessagesFromHistory(){
 }
 
 function ensureNexoraTab(s){
-  if(_nxState.active && _nxState.profile){
-    if(!document.getElementById('nx-crm-modal')) renderNexoraTab(s, true);
-    if(!document.getElementById('nx-msgs')) nexoraShowCRM(true);
-    else resumeNexoraRuntime();
-    return;
-  }
-  if(restoreNexoraRuntimeStorage()){
-    if(!document.getElementById('nx-crm-modal')) renderNexoraTab(s, true);
-    nexoraShowCRM(true);
-    resumeNexoraRuntime();
-    return;
-  }
   var root = document.getElementById('nexora-scenario-display');
   if(!root || !root.querySelector('[data-nx-init]')) renderNexoraTab(s);
 }
@@ -2008,13 +2013,10 @@ function ensureNexoraTab(s){
 function renderNexoraTab(s, force){
   var root = document.getElementById('nexora-scenario-display');
   if(!root) return;
-  if(!force && (_nxState.active && _nxState.profile)){
-    ensureNexoraTab(s);
-    return;
-  }
-  if(!force && restoreNexoraRuntimeStorage()){
-    ensureNexoraTab(s);
-    return;
+  if(!force && ((_nxState.active && _nxState.profile) || restoreNexoraRuntimeStorage())){
+    try{ sessionStorage.removeItem('portal_nexora_runtime'); }catch(e){}
+    _nxState.active = false;
+    _nxState.profile = null;
   }
   var nxConfig = window._nexoraConfig;
   if(!nxConfig){
@@ -2031,38 +2033,21 @@ function renderNexoraTab(s, force){
     +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
     +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button id="nx-autoin-btn" onclick="nexoraAutoIn()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);margin-bottom:10px;"><i class="ti ti-phone-incoming"></i>Iniciar simulación aquí</button>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);color:#FFFFFF;padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-external-link"></i>Abrir Nexora Lab (pantalla completa)</button>'
-    +'</div>'
-    +'<div id="nx-crm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:1rem;"></div>';
+    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
+    +'</div>';
   root.setAttribute('data-nx-init', '1');
 }
 
 // ── AUTO-IN ────────────────────────────────────────────────────
 function nexoraAutoIn(){
-  var btn = document.getElementById('nx-autoin-btn');
-  if(btn){ btn.textContent='Waiting for call...'; btn.style.background='rgba(255,255,255,0.1)'; btn.disabled=true; }
-  
-  // Generar nuevo cliente
-  var nxConfig = window._nexoraConfig;
-  var prevId = _nxState.scenario ? _nxState.scenario.id : null;
-  var sc = pickNexoraScenarioFromConfig(nxConfig, prevId);
-  _nxState.scenario = sc;
-  _nxState.profile = nexoraGenerateProfile(sc);
-  _nxState.profiles.push(_nxState.profile);
-  _nxState.history = [];
-  _nxState.transcript = [];
-  _nxState.holdEvents = [];
-  _nxState.talkSeconds = 0;
-  _nxState.onHold = false;
-  _nxState.paused = false;
-
-  // Mostrar CRM de inmediato
-  nexoraShowCRM();
+  openNexoraLab();
 }
 
 // ── MOSTRAR CRM ────────────────────────────────────────────────
 function nexoraShowCRM(restoring){
+  openNexoraLab();
+  return;
+  /* Portal embedded CRM disabled — Nexora Lab only */
   var p = _nxState.profile;
   var sc = _nxState.scenario;
   var modal = document.getElementById('nx-crm-modal');
@@ -2782,6 +2767,12 @@ function jillStopMic(){
   _jillMicText = '';
 }
 
+function jillInterruptSpeaking(){
+  _jillTTSQueue = [];
+  _jillTTSBusy = false;
+  jillStopAudio();
+}
+
 function bindJillPttMic(){
   var btn = document.getElementById('jill-mic-btn');
   if(!btn || btn._pttBound || typeof PttMic === 'undefined') return;
@@ -2789,8 +2780,8 @@ function bindJillPttMic(){
   PttMic.bind({
     btn: btn,
     lang: 'es-CR',
-    canStart: function(){ return !_jillState.speaking; },
-    onBeforeStart: function(){ jillStopAudio(); jillStopMic(); },
+    canStart: function(){ return true; },
+    onBeforeStart: function(){ jillInterruptSpeaking(); jillStopMic(); },
     onUi: function(listening){
       var b = document.getElementById('jill-mic-btn');
       var statusEl = document.getElementById('jill-status');
@@ -2806,7 +2797,7 @@ function bindJillPttMic(){
 }
 
 function jillStopAll(){
-  jillStopAudio();
+  jillInterruptSpeaking();
   jillStopMic();
 }
 
@@ -2892,10 +2883,10 @@ async function sendJillMsg(micText){
   if(!text) return;
   jillStopAll();
   _jillMicText = '';
-  _jillTTSQueue = []; _jillTTSBusy = false;
   if(inp) inp.value = '';
   jillAddMsg(text, 'student', 'text');
   var statusEl = document.getElementById('jill-status');
+  if(statusEl) statusEl.textContent = 'Jill responde…';
   var s = window._currentStudent || window._portalStudent;
 
   if(typeof AiProfile !== 'undefined') await AiProfile.processUserNameReply(text, 'jill', dbSet);
@@ -2940,6 +2931,7 @@ async function sendJillMsg(micText){
           if(evt.t){
             fullText += evt.t;
             pending += evt.t;
+            if(statusEl) statusEl.textContent = '';
             if(el){
               el.innerHTML = fullText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'▋';
               msgs.scrollTop = msgs.scrollHeight;

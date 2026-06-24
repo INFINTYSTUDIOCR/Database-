@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nexus Engine">
 <link rel="manifest" href="manifest-engine.json">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
@@ -1075,10 +1076,21 @@ function showView(view, btn){
 // ── HELPERS ───────────────────────────────────────────────
 function getLevelBadge(level){ return '<span class="badge b-'+((level||'').toLowerCase())+'">'+level+'</span>'; }
 function getPhaseBadge(p){ return '<span class="badge b-p'+p+'">'+( PHASE_NAMES[p]||'—')+'</span>'; }
+function isScale10Student(s){
+  if(!s) return false;
+  if(s.kpiScale===10) return true;
+  var kpis=(s.kpis||{}).phase1||{};
+  return Object.keys(kpis).some(function(k){ return parseInt(kpis[k],10)>5; });
+}
+function getScoreMax(s){ return (s&&isScale10Student(s))?50:25; }
+function getLevelForStudent(score,s){
+  if((s&&isScale10Student(s))||score>25) return score>=42?'Advanced':score>=32?'Functional':score>=22?'Emerging':'Survival';
+  return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival';
+}
+function getLevel(score){ return getLevelForStudent(score,null); }
 function getScore(s){ var kpis=(s.kpis||{}).phase1||{}; var t=0; Object.keys(KPI_NAMES).forEach(function(k){t+=parseInt(kpis[k])||0;}); return t; }
-function getLevel(score){ return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival'; }
-function getWeakKPI(s){ var kpis=(s.kpis||{}).phase1||{}; var min=6,kpi=''; Object.keys(KPI_NAMES).forEach(function(k){ var v=parseInt(kpis[k])||0; if(v>0&&v<min){min=v;kpi=k;} }); return kpi; }
-function getExercises(s){ var kpis=(s.kpis||{}).phase1||{}; var ex=[]; var sorted=Object.keys(KPI_NAMES).sort(function(a,b){return (parseInt(kpis[a])||0)-(parseInt(kpis[b])||0);}); sorted.forEach(function(k){ var v=parseInt(kpis[k])||0; var key=v<=2?k+'_critical':v<=3?k+'_developing':null; if(key&&EXERCISES[key]) ex.push(EXERCISES[key]); }); return ex.slice(0,5); }
+function getWeakKPI(s){ var kpis=(s.kpis||{}).phase1||{}; var scale10=isScale10Student(s); var min=scale10?11:6,kpi=''; Object.keys(KPI_NAMES).forEach(function(k){ var v=parseInt(kpis[k])||0; if(v>0&&v<min){min=v;kpi=k;} }); return kpi; }
+function getExercises(s){ var kpis=(s.kpis||{}).phase1||{}; var scale10=isScale10Student(s); var ex=[]; var sorted=Object.keys(KPI_NAMES).sort(function(a,b){return (parseInt(kpis[a])||0)-(parseInt(kpis[b])||0);}); sorted.forEach(function(k){ var v=parseInt(kpis[k])||0; var key=scale10?(v<=4?k+'_critical':v<=6?k+'_developing':null):(v<=2?k+'_critical':v<=3?k+'_developing':null); if(key&&EXERCISES[key]) ex.push(EXERCISES[key]); }); return ex.slice(0,5); }
 function genCode(fname,lname){ var n=(fname||'').substring(0,2).toUpperCase(); var l=(lname||'').substring(0,3).toUpperCase(); var num=Math.floor(1000+Math.random()*8999); return n+l+'-INF-'+num; }
 function fmtDate(d){ if(!d) return '—'; var dt=new Date(d); return dt.toLocaleDateString('es-CR'); }
 
@@ -1271,8 +1283,9 @@ function openStudent(id){
   m.innerHTML='<div class="fade">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">'
     +'<button class="btn btn-outline btn-sm" onclick="showView(\'students\',null)"><i class="ti ti-arrow-left"></i>Volver</button>'
-    +'<button class="btn btn-green btn-sm" onclick="openCalibrate(\''+id+'\')"><i class="ti ti-refresh"></i>Calibrar sesión</button>'
-    +'<button class="btn btn-navy btn-sm" onclick="NexusUnified.openPulse(\''+id+'\')"><i class="ti ti-heartbeat"></i>Weekly Pulse</button>'
+    +'<button class="btn btn-navy btn-sm" onclick="openManualKpiCal(\''+id+'\')"><i class="ti ti-adjustments"></i>Calibración manual KPI</button>'
+    +'<button class="btn btn-green btn-sm" onclick="openCalibrate(\''+id+'\')"><i class="ti ti-refresh"></i>Calibrar sesión (5 KPIs)</button>'
+    +'<button class="btn btn-outline btn-sm" onclick="NexusUnified.openPulse(\''+id+'\')"><i class="ti ti-heartbeat"></i>Weekly Pulse</button>'
     +'<button class="btn btn-navy btn-sm" onclick="copyStudentLink(\''+id+'\')"><i class="ti ti-link"></i>Link + credenciales portal</button>'
     +'<button class="btn btn-outline btn-sm" onclick="copyMeetLink(\''+id+'\')"><i class="ti ti-video"></i>Link sesión (Meet)</button>'
     +renderAttendanceButtons(id)
@@ -1459,7 +1472,8 @@ function copyShareText(){
 function renderCalibrateSelect(m){
   var students=allStudents().sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
   m.innerHTML='<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;">Weekly Calibration</h2>'
-    +'<div class="ib ib-amber">Seleccioná un estudiante para registrar la calibración de la semana. Los KPIs se actualizan automáticamente en todas las herramientas.</div>'
+    +'<div class="ib ib-navy"><strong>Calibración manual KPI</strong> — cuestionario macro + 26 micro, escala 1–10, PDF. Usá el botón morado en cada fila.</div>'
+    +'<div class="ib ib-amber">Calibrar sesión (verde) = formulario clásico de 5 KPIs. Calibración manual = flujo completo con cuestionario.</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Seleccioná el estudiante</div>'
     +students.map(function(s){ var score=getScore(s); var wk=getWeakKPI(s); var kpis=(s.kpis||{}).phase1||{};
       return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
@@ -1467,6 +1481,7 @@ function renderCalibrateSelect(m){
         +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;">'+((s.info&&s.info.name)||'—')+'</div>'
         +'<div style="font-size:11px;color:var(--t2);">Score '+score+'/25 · '+(wk?'KPI débil: '+wk+'='+((kpis[wk])||'?'):'KPIs OK')+'</div></div>'
         +getLevelBadge(getLevel(score))
+        +'<button class="btn btn-navy btn-sm" onclick="openManualKpiCal(\''+s.id+'\')"><i class="ti ti-adjustments"></i>Manual KPI</button>'
         +'<button class="btn btn-green btn-sm" onclick="openCalibrate(\''+s.id+'\')"><i class="ti ti-refresh"></i>Calibrar</button>'
         +'</div>';
     }).join('')+'</div></div>';
@@ -3694,6 +3709,14 @@ function retryStandbySchedule(sid){
 
 
 // ── WEEKLY KPI ASSESSMENT TOOL (vista completa) ──────────
+function openManualKpiCal(id){
+  if(typeof NexusManualCal!=='undefined'&&NexusManualCal.open){
+    NexusManualCal.open(id);
+    return;
+  }
+  showToast('Calibración manual no cargada — recargá con Ctrl+F5 o desplegá los archivos nuevos','err');
+}
+
 function openCalibrate(id){
   showView('students', hasMasterAccess()?document.getElementById('nav-students'):null);
   renderWeeklyAssessment(document.getElementById('main-content'), id);
@@ -3708,11 +3731,12 @@ function renderWeeklyAssessment(m, sid){
   var nowScore = getScore(s);
 
   m.innerHTML = '<div class="fade">'
-    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-refresh"></i> Weekly KPI Assessment — '+((s.info&&s.info.name)||'—')+'</h2>'
+    +'<button type="button" class="btn btn-navy btn-sm" onclick="openManualKpiCal(\''+sid+'\')"><i class="ti ti-adjustments"></i> Calibración manual KPI (cuestionario 1–10)</button>'
     +'</div>'
     +'<input type="hidden" id="wa-sid" value="'+sid+'">'
-    +'<div class="ib ib-navy">Sesión #'+sessionNum+' · Fase activa: '+PHASE_NAMES[parseInt((s.info||{}).phase)||1]+' · Score actual: '+nowScore+'/25 ('+getLevel(nowScore)+')</div>'
+    +'<div class="ib ib-navy">Sesión #'+sessionNum+' · Fase activa: '+PHASE_NAMES[parseInt((s.info||{}).phase)||1]+' · Score actual: '+nowScore+'/25 ('+getLevel(nowScore)+') · ¿Buscás el cuestionario macro+26? Usá <strong>Calibración manual KPI</strong> arriba.</div>'
 
     +'<div class="card">'
     +'<div class="card-title"><i class="ti ti-chart-bar"></i>KPI Assessment — esta sesión</div>'
@@ -6600,6 +6624,7 @@ loadData = async function(){
 </script>
 <script src="nexus-unified.js"></script>
 <script src="nexus-unified-ui.js"></script>
+<script src="nexus-manual-calibration.js"></script>
 <script src="nexus-unified-mockup.js"></script>
 </body>
 </html>

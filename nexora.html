@@ -642,13 +642,81 @@ document.addEventListener('DOMContentLoaded', function(){
 
 var ENGINE_TYPE_MAP={
   customer_service:'customer_service',
-  mock_interview:'interview',
+  mock_interview:'star_interview',
   team_meeting:'meeting',
   problem_solving:'customer_service',
   presentation:'corporate',
   negotiation:'negotiation',
-  stakeholder:'stakeholder'
+  stakeholder:'stakeholder',
+  star_interview:'star_interview'
 };
+
+var ENGINE_INDUSTRY_CRM_MAP={
+  corporate:'Banking', tech:'Technology', technology:'Technology',
+  healthcare:'Healthcare', health:'Healthcare', medical:'Healthcare',
+  education:'Banking', finance:'Finance', banking:'Banking',
+  hospitality:'Tourism', tourism:'Tourism',
+  retail:'Retail', telecom:'Telecom', bpo:'Banking'
+};
+
+var NEXORA_MEETING_TYPES=['star_interview','interview','meeting','stakeholder','corporate','negotiation'];
+
+function normalizeCRMIndustry(sc, nxConfig){
+  var raw=(sc&&sc.industry)||(nxConfig&&nxConfig.industry)||'Banking';
+  var key=String(raw).toLowerCase().replace(/[^a-z]/g,'');
+  if(ENGINE_INDUSTRY_CRM_MAP[key]) return ENGINE_INDUSTRY_CRM_MAP[key];
+  if(ENGINE_INDUSTRY_CRM_MAP[String(raw).toLowerCase()]) return ENGINE_INDUSTRY_CRM_MAP[String(raw).toLowerCase()];
+  return raw;
+}
+
+function mergeEngineConfig(sc, nxConfig){
+  if(!nxConfig||!sc) return sc;
+  var merged=Object.assign({},sc);
+  merged.industry=normalizeCRMIndustry(sc,nxConfig);
+  if(nxConfig.difficulty) merged.diff=parseInt(nxConfig.difficulty,10)||merged.diff;
+  if(nxConfig.typeLabel){
+    merged.title=nxConfig.typeLabel+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:'');
+  }
+  if(nxConfig.industryLabel&&!merged.company) merged.company=nxConfig.industryLabel;
+  return merged;
+}
+
+function buildScenarioFromConfig(nxConfig){
+  var targetType=ENGINE_TYPE_MAP[nxConfig.type]||nxConfig.type||'customer_service';
+  var sc={
+    id:'engine-'+nxConfig.type+'-'+(nxConfig.industry||'general'),
+    title:(nxConfig.typeLabel||targetType)+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:''),
+    desc:'Professional simulation in '+(nxConfig.industryLabel||nxConfig.industry||'business')+' context. Review all CRM tabs before responding.',
+    industry:normalizeCRMIndustry(null,nxConfig),
+    diff:parseInt(nxConfig.difficulty,10)||3,
+    mood:'professional'
+  };
+  if(targetType==='star_interview'){
+    sc.type='star_interview';
+    sc.company=nxConfig.industryLabel||'Company';
+    sc.interviewer='Alex Morgan';
+    sc.role='Senior HR Manager';
+    sc.starFocus=['Tell me about a time you faced a significant challenge at work.','Describe a situation where you had to lead without formal authority.','Give an example of resolving a conflict with a colleague or client.'];
+  } else if(NEXORA_MEETING_TYPES.indexOf(targetType)>=0){
+    sc.type=targetType;
+    sc.participants=targetType==='stakeholder'
+      ?['You — Project Lead','Alice — Stakeholder','Tom — Finance Lead']
+      :['You','Alex — Team Lead','Maria — Colleague','Sam — Partner'];
+    if(targetType==='corporate') sc.company=nxConfig.industryLabel||'Company';
+    if(targetType==='negotiation') sc.counterpart='Alice — Counterpart';
+  } else {
+    sc.type=targetType==='customer_service'?undefined:targetType;
+  }
+  return sc;
+}
+
+var _crmTabsDefaultHtml=null;
+function resetCRMTabs(){
+  var tabs=document.querySelector('#crm-main .tabs');
+  if(!tabs) return;
+  if(!_crmTabsDefaultHtml) _crmTabsDefaultHtml=tabs.innerHTML;
+  tabs.innerHTML=_crmTabsDefaultHtml;
+}
 
 function loadNexoraEngineConfig(){
   try{return JSON.parse(localStorage.getItem('nexora_scenario')||'null');}catch(e){return null;}
@@ -672,15 +740,14 @@ function pickScenarioFromConfig(nxConfig,prevId){
   }
   var candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s)&&matchesDiff(s);});
   if(!candidates.length) candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s);});
-  if(!candidates.length) candidates=SCENARIOS.filter(function(s){return s.id!==prevId;});
-  return candidates[Math.floor(Math.random()*candidates.length)];
+  if(!candidates.length) return mergeEngineConfig(buildScenarioFromConfig(nxConfig),nxConfig);
+  return mergeEngineConfig(candidates[Math.floor(Math.random()*candidates.length)],nxConfig);
 }
 
 function applyScenarioToUI(sc){
   var titleEl=document.getElementById('sp-title');
-  var descEl=document.getElementById('sp-desc');
   if(titleEl) titleEl.textContent=sc.title;
-  if(descEl) descEl.textContent=sc.desc;
+  /* desc intentionally hidden from agent UI — issue emerges on the call */
 }
 
 // ── STATE ─────────────────────────────────────────────────────
@@ -871,10 +938,10 @@ function nexoraAutoIn(){
     showStakeholderDisplay(sc);
   } else if(scType === 'meeting'){
     showMeetingDisplay(sc);
-  } else if(scType === 'medical'){
-    showIncomingCall();
+  } else if(NEXORA_MEETING_TYPES.indexOf(scType)>=0){
+    showMeetingDisplay(sc);
   } else {
-    // Default: CRM / customer service
+    // Call-based: customer service, medical, tourism, finance, etc. → CRM + incoming call
     document.getElementById('empty-state').style.display='flex';
     document.getElementById('crm-main').style.display='none';
     showIncomingCall();
@@ -884,10 +951,10 @@ function nexoraAutoIn(){
 // ── INCOMING CALL ─────────────────────────────────────────────
 function showIncomingCall(){
   var p=_nx.profile;
-  var sc=_nx.scenario;
-  document.getElementById('inc-name').textContent=p.name;
+  document.getElementById('inc-name').textContent='Incoming call';
   document.getElementById('inc-phone').textContent=p.phone;
-  document.getElementById('inc-reason').innerHTML='<strong>Reason for call</strong><br>'+sc.title+' — '+sc.desc+(p.disputeAmount?' <strong>Amount: '+p.disputeAmount+'</strong>':'')+(p.lateFee?' <strong>Late fee: '+p.lateFee+'</strong>':'')+(p.refundAmount?' <strong>Refund: $'+p.refundAmount+'</strong>':'');
+  var reasonEl=document.getElementById('inc-reason');
+  if(reasonEl){ reasonEl.innerHTML=''; reasonEl.style.display='none'; }
   document.getElementById('phone-inp').value=p.phone;
   document.getElementById('incoming-overlay').style.display='flex';
 }
@@ -986,14 +1053,8 @@ function loadCRM(p){
     });
   }
   document.getElementById('billing-content').innerHTML=billingHtml;
-  // Apply industry-specific CRM layout
+  resetCRMTabs();
   getCRMByIndustry(_nx.scenario, p);
-  // Payments tab
-  document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary payment method</div></div><span class="badge-active">Active</span></div>';
-  // Notes
-  document.getElementById('notes-list').innerHTML='<div style="color:var(--t3);font-size:13px;">No notes on file.</div>';
-  // Changes
-  document.getElementById('changes-content').innerHTML='<div style="color:var(--t3);font-size:13px;">No recent changes.</div>';
 }
 
 function toggleSSN(){
@@ -1442,136 +1503,129 @@ function setNegRole(role){
 
 
 // ── INDUSTRY-SPECIFIC CRM CONTENT ─────────────────────────────
+function crmNotesHtml(sc, p, extra){
+  return (extra||'')
+    +'<div class="note-card"><div class="note-date">Account</div><div class="note-text">Member since '+p.memberSince+'. Verify identity (last 4 SSN) before changes.</div></div>'
+    +'<div class="note-card"><div class="note-date">Prior contact</div><div class="note-text">No open escalations on file before this interaction.</div></div>';
+}
+
+function crmChangesHtml(sc, p){
+  var rows=[
+    {when:'2 days ago',what:'Profile contact info reviewed',by:'System'},
+    {when:'5 days ago',what:'Last successful payment processed',by:'Billing'},
+    {when:'Today',what:'Inbound call logged — '+p.phone,by:'IVR'}
+  ];
+  if(p.billingNotes&&p.billingNotes.length){
+    p.billingNotes.forEach(function(n){
+      rows.unshift({when:n.date||'Recent',what:n.label+(n.amount?(' · '+n.amount):''),by:'Billing alert'});
+    });
+  }
+  return rows.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--gl);font-size:12px;">'
+      +'<div><div style="font-weight:700;">'+r.what+'</div><div style="color:var(--t3);">'+r.when+' · '+r.by+'</div></div></div>';
+  }).join('');
+}
+
+function crmRenameTabs(map){
+  var tabs=document.querySelector('#crm-main .tabs');
+  if(!tabs||!map) return;
+  Object.keys(map).forEach(function(from){
+    tabs.innerHTML=tabs.innerHTML.split('>'+from+'<').join('>'+map[from]+'<');
+  });
+}
+
 function getCRMByIndustry(sc, p){
-  var industry = (sc && sc.industry) || 'Banking';
-  var tabs = document.querySelector('#crm-main .tabs');
+  var industry=normalizeCRMIndustry(sc,null);
 
-  if(industry === 'Banking' || industry === 'Finance'){
-    // Banking: Account, Cards, Loans, Transactions
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-building-bank"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Checking Account</div><div class="svc-sub">'+p.account+'</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>'
-      +(p.services||[]).map(function(s){
-        return '<div class="service-item">'
-          +'<div class="svc-icon"><i class="ti ti-credit-card"></i></div>'
-          +'<div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div>'
-          +'<div class="svc-price badge-active">Active</div></div>';
-      }).join('')
-      +'<div class="service-item" style="margin-top:12px;">'
-      +'<div class="svc-icon"><i class="ti ti-lock"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Online Banking</div><div class="svc-sub">2-Factor Auth enabled</div></div>'
-      +'<div class="svc-price badge-active">Secured</div></div>';
+  if(industry==='Banking'||industry==='Finance'){
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Accounts & Products</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">Checking Account</div><div class="svc-sub">'+p.account+' · Available balance reviewed</div></div><div class="svc-price badge-active">Active</div></div>'
+      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div><div class="svc-price badge-active">Active</div></div>';}).join('')
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-lock"></i></div><div class="svc-info"><div class="svc-name">Online Banking</div><div class="svc-sub">2-Factor Auth enabled</div></div><div class="svc-price badge-active">Secured</div></div>';
+    document.getElementById('billing-content').innerHTML=
+      '<div class="billing-total">Monthly total: $'+p.total.toFixed(2)+'</div>'
+      +(p.billingNotes||[]).map(function(n){return '<div class="billing-row"><span>'+n.label+'</span><span>'+(n.amount||'Pending')+'</span></div>';}).join('')
+      +'<div class="billing-row" style="margin-top:8px;"><span>Last payment</span><span style="color:var(--green);">Received</span></div>'
+      +'<div class="billing-row"><span>Next billing date</span><span>15th of next month</span></div>';
+    document.getElementById('payments-content').innerHTML=
+      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary debit card · Exp 08/27</div></div><span class="badge-active">Active</span></div>'
+      +'<div class="svc-card"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">ACH linked account</div><div class="svc-desc">Auto-pay enabled</div></div><span class="badge-active">Verified</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Compliance</div><div class="note-text">Verify last 4 SSN and recent transactions before discussing disputed charges.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-  } else if(industry === 'Telecom'){
-    // Telecom: Plan, Data, Lines, Devices
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-wifi"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Internet Plan</div><div class="svc-sub">300 Mbps Fiber</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>'
-      +(p.services||[]).map(function(s){
-        return '<div class="service-item">'
-          +'<div class="svc-icon"><i class="ti ti-device-mobile"></i></div>'
-          +'<div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo · Unlimited data</div></div>'
-          +'<div class="svc-price badge-active">Active</div></div>';
-      }).join('')
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-tv"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">TV Package</div><div class="svc-sub">180 channels</div></div>'
-      +'<div class="svc-price" style="background:#FEF3C7;color:#92400E;">Paused</div></div>';
+  } else if(industry==='Telecom'){
+    crmRenameTabs({'Services':'Plan & Lines','Billing':'Usage & Charges','Payment methods':'Payment','Notes':'Support Notes'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Plan & Lines</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-wifi"></i></div><div class="svc-info"><div class="svc-name">Internet Plan</div><div class="svc-sub">300 Mbps Fiber · Account '+p.account+'</div></div><div class="svc-price badge-active">Active</div></div>'
+      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti ti-device-mobile"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo · Unlimited data</div></div><div class="svc-price badge-active">Active</div></div>';}).join('')
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-tv"></i></div><div class="svc-info"><div class="svc-name">TV Package</div><div class="svc-sub">180 channels</div></div><div class="svc-price" style="background:#FEF3C7;color:#92400E;">Paused</div></div>';
+    document.getElementById('billing-content').innerHTML='<div class="billing-row"><span>Current cycle usage</span><span>42 GB / Unlimited</span></div><div class="billing-row"><span>Monthly plan</span><span>$'+p.total.toFixed(2)+'</span></div><div class="billing-row"><span>Equipment fee</span><span>$12.00</span></div>';
+    document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Auto-pay Visa ·'+p.ssn4+'</div><div class="svc-desc">Charged on bill date</div></div><span class="badge-active">Active</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Network</div><div class="note-text">Check outage map and line status before troubleshooting connectivity issues.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-  } else if(industry === 'Healthcare'){
-    // Healthcare: Patient info, Appointments, Insurance
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-heart-rate-monitor"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Primary Care Plan</div><div class="svc-sub">Dr. Martinez · Annual checkup due</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-calendar-event"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Next Appointment</div><div class="svc-sub">July 15 · 9:00 AM · Consultation</div></div>'
-      +'<div class="svc-price badge-active">Scheduled</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-shield-check"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Insurance</div><div class="svc-sub">BlueCross · Policy #BC-'+p.ssn4+' · $500 deductible</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>';
+  } else if(industry==='Healthcare'){
+    crmRenameTabs({'Services':'Patient Info','Billing':'Insurance','Payment methods':'Appointments','Notes':'Medical Notes'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Patient Information</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-heart-rate-monitor"></i></div><div class="svc-info"><div class="svc-name">Primary Care Plan</div><div class="svc-sub">Dr. Martinez · DOB '+p.dob+'</div></div><div class="svc-price badge-active">Active</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-pill"></i></div><div class="svc-info"><div class="svc-name">Active prescriptions</div><div class="svc-sub">2 medications · Last refill 14 days ago</div></div><div class="svc-price badge-active">Active</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-alert-circle"></i></div><div class="svc-info"><div class="svc-name">Allergies on file</div><div class="svc-sub">Penicillin · Verify before changes</div></div><div class="svc-price badge-active">Verified</div></div>';
+    document.getElementById('billing-content').innerHTML=
+      '<div class="service-item"><div class="svc-icon"><i class="ti ti-shield-check"></i></div><div class="svc-info"><div class="svc-name">BlueCross Policy</div><div class="svc-sub">#BC-'+p.ssn4+' · $500 deductible · Copay $25</div></div><div class="svc-price badge-active">Active</div></div>'
+      +'<div class="billing-row"><span>Last claim</span><span>Processed · $120 covered</span></div>';
+    document.getElementById('payments-content').innerHTML=
+      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-calendar-event"></i></div><div class="svc-info"><div class="svc-name">Next appointment</div><div class="svc-desc">July 15 · 9:00 AM · Consultation</div></div><span class="badge-active">Scheduled</span></div>'
+      +'<div class="svc-card"><div class="svc-icon"><i class="ti ti-calendar-plus"></i></div><div class="svc-info"><div class="svc-name">Previous visit</div><div class="svc-desc">May 2 · Follow-up completed</div></div><span class="badge-active">Closed</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Clinical</div><div class="note-text">Review allergies and active prescriptions on file before advising.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-    // Change tabs labels for healthcare
-    if(tabs){
-      tabs.innerHTML = tabs.innerHTML
-        .replace('>Services<', '>Patient Info<')
-        .replace('>Billing<', '>Insurance<')
-        .replace('>Payment methods<', '>Appointments<')
-        .replace('>Notes<', '>Medical Notes<');
-    }
+  } else if(industry==='Tourism'||industry==='Hospitality'){
+    crmRenameTabs({'Services':'Reservations','Billing':'Charges','Payment methods':'Payment'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Reservations & Trips</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-plane"></i></div><div class="svc-info"><div class="svc-name">Upcoming Flight</div><div class="svc-sub">SJO → MIA · July 20 · Seat 14A · Conf #FL-'+p.ssn4+'</div></div><div class="svc-price badge-active">Confirmed</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building"></i></div><div class="svc-info"><div class="svc-name">Hotel Reservation</div><div class="svc-sub">Marriott Miami · 3 nights · July 20-23</div></div><div class="svc-price badge-active">Confirmed</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-star"></i></div><div class="svc-info"><div class="svc-name">Loyalty Status</div><div class="svc-sub">Gold Member · 48,500 points</div></div><div class="svc-price badge-active">Gold</div></div>';
+    document.getElementById('billing-content').innerHTML=
+      '<div class="billing-row"><span>Package total</span><span>$'+Math.max(p.total,899).toFixed(2)+'</span></div>'
+      +'<div class="billing-row"><span>Resort fee</span><span>$45.00/night</span></div>'
+      +(p.billingNotes||[]).map(function(n){return '<div class="billing-row"><span>'+n.label+'</span><span>'+(n.amount||'Review')+'</span></div>';}).join('');
+    document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Card on file ·'+p.ssn4+'</div><div class="svc-desc">Deposit captured · Balance due at check-in</div></div><span class="badge-active">Active</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Travel</div><div class="note-text">Verify booking reference and cancellation policy before modifying reservations.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-  } else if(industry === 'Tourism' || industry === 'Hospitality'){
-    // Tourism: Reservations, Trips, Loyalty points
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-plane"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Upcoming Flight</div><div class="svc-sub">SJO → MIA · July 20 · Seat 14A</div></div>'
-      +'<div class="svc-price badge-active">Confirmed</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-building"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Hotel Reservation</div><div class="svc-sub">Marriott Miami · 3 nights · July 20-23</div></div>'
-      +'<div class="svc-price badge-active">Confirmed</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-star"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Loyalty Points</div><div class="svc-sub">Gold Member · 48,500 points</div></div>'
-      +'<div class="svc-price badge-active">Gold</div></div>';
+  } else if(industry==='Retail'||industry==='E-Commerce'){
+    crmRenameTabs({'Services':'Orders','Billing':'Refunds'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Orders & Returns</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-package"></i></div><div class="svc-info"><div class="svc-name">Recent Order #ORD-88421</div><div class="svc-sub">3 items · Delivered June 10 · '+p.account+'</div></div><div class="svc-price badge-active">Delivered</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-arrow-back-up"></i></div><div class="svc-info"><div class="svc-name">Return Request #RET-441</div><div class="svc-sub">1 item · Pending approval</div></div><div class="svc-price" style="background:#FEF3C7;color:#92400E;">Pending</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-award"></i></div><div class="svc-info"><div class="svc-name">Rewards Account</div><div class="svc-sub">Silver Member · 2,340 points</div></div><div class="svc-price badge-active">Active</div></div>';
+    document.getElementById('billing-content').innerHTML='<div class="billing-row"><span>Order value</span><span>$'+p.total.toFixed(2)+'</span></div><div class="billing-row"><span>Return credit</span><span>Pending review</span></div>';
+    document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-brand-paypal"></i></div><div class="svc-info"><div class="svc-name">PayPal · '+p.email+'</div><div class="svc-desc">Original payment method</div></div><span class="badge-active">Verified</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p);
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-    if(tabs){
-      tabs.innerHTML = tabs.innerHTML
-        .replace('>Services<', '>Reservations<')
-        .replace('>Billing<', '>Charges<')
-        .replace('>Payment methods<', '>Payment<');
-    }
+  } else if(industry==='Technology'){
+    crmRenameTabs({'Services':'Products','Notes':'Support Notes'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Products & Subscriptions</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-device-laptop"></i></div><div class="svc-info"><div class="svc-name">Software License</div><div class="svc-sub">Pro Suite · 3 devices · Expires Dec 2025</div></div><div class="svc-price badge-active">Active</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-ticket"></i></div><div class="svc-info"><div class="svc-name">Open Support Ticket</div><div class="svc-sub">#TKT-7734 · Login issue · 2 days open</div></div><div class="svc-price" style="background:#FEF3C7;color:#92400E;">Open</div></div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-cloud"></i></div><div class="svc-info"><div class="svc-name">Cloud Storage</div><div class="svc-sub">500GB · 312GB used</div></div><div class="svc-price badge-active">Active</div></div>';
+    document.getElementById('billing-content').innerHTML='<div class="billing-row"><span>Subscription</span><span>$'+p.total.toFixed(2)+'/mo</span></div><div class="billing-row"><span>Support tier</span><span>Business · SLA 4h</span></div>';
+    document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Corporate card ·'+p.ssn4+'</div><div class="svc-desc">Invoiced monthly</div></div><span class="badge-active">Active</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Support</div><div class="note-text">Escalate to Tier 2 if issue persists after password reset and cache clear.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
-  } else if(industry === 'Retail' || industry === 'E-Commerce'){
-    // Retail: Orders, Returns, Loyalty
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-package"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Recent Order #ORD-88421</div><div class="svc-sub">3 items · Delivered June 10</div></div>'
-      +'<div class="svc-price badge-active">Delivered</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-arrow-back-up"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Return Request #RET-441</div><div class="svc-sub">1 item · Pending approval</div></div>'
-      +'<div class="svc-price" style="background:#FEF3C7;color:#92400E;">Pending</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-award"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Rewards Account</div><div class="svc-sub">Silver Member · 2,340 points</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>';
-
-    if(tabs){
-      tabs.innerHTML = tabs.innerHTML
-        .replace('>Services<', '>Orders<')
-        .replace('>Billing<', '>Refunds<');
-    }
-
-  } else if(industry === 'Technology'){
-    // Tech support: Products, Tickets, Subscriptions
-    document.getElementById('tab-services').innerHTML =
-      '<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-device-laptop"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Software License</div><div class="svc-sub">Pro Suite · 3 devices · Expires Dec 2025</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-ticket"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Open Support Ticket</div><div class="svc-sub">#TKT-7734 · Login issue · 2 days open</div></div>'
-      +'<div class="svc-price" style="background:#FEF3C7;color:#92400E;">Open</div></div>'
-      +'<div class="service-item">'
-      +'<div class="svc-icon"><i class="ti ti-cloud"></i></div>'
-      +'<div class="svc-info"><div class="svc-name">Cloud Storage</div><div class="svc-sub">500GB · 312GB used</div></div>'
-      +'<div class="svc-price badge-active">Active</div></div>';
-
-    if(tabs){
-      tabs.innerHTML = tabs.innerHTML
-        .replace('>Services<', '>Products<')
-        .replace('>Notes<', '>Support Notes<');
+  } else {
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p);
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
+    if(!document.getElementById('payments-content').innerHTML.trim()){
+      document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary payment method</div></div><span class="badge-active">Active</span></div>';
     }
   }
 }
@@ -1820,12 +1874,16 @@ function buildNexoraPayload(message, history, p, sc){
 }
 
 function nexoraInstantOpening(p, sc){
-  if(p.disputeAmount) return "Hello, I'm calling about an unauthorized charge of "+p.disputeAmount+" on account "+p.account+".";
-  if(p.lateFee) return "Hi, I need to dispute a late fee of "+p.lateFee+" on account "+p.account+".";
-  if(p.refundAmount) return "Hello, I'm calling to follow up on a refund of $"+p.refundAmount+" for account "+p.account+".";
-  var issue = (sc && sc.title) ? sc.title : 'my account';
-  var desc = (sc && sc.desc) ? sc.desc : 'I need help';
-  return "Hello, I'm calling about "+issue+" — "+desc+".";
+  if(p.disputeAmount) return "Hi, I'm calling because there's a charge of "+p.disputeAmount+" on my account that I don't recognize.";
+  if(p.lateFee) return "Hello, I was charged a fee on my account and I need to talk to someone about it.";
+  if(p.refundAmount) return "Hi, I'm calling to follow up on a refund for my account.";
+  var openers=[
+    "Hello, I need some help with my account.",
+    "Hi there, I'm having an issue and was hoping you could help me.",
+    "Good morning, I'm calling about my account — something doesn't look right.",
+    "Hi, I've been trying to sort something out on my account and need assistance."
+  ];
+  return openers[Math.floor(Math.random()*openers.length)];
 }
 
 function nexoraReplyTtsReady(text){

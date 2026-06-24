@@ -15,8 +15,11 @@
     return t;
   }
 
-  function getLevel(score) {
-    if (typeof global.getLevel === 'function') return global.getLevel(score);
+  function getLevel(score, s) {
+    var scale10 = s && (s.kpiScale === 10 || score > 25);
+    if (typeof global.getLevelForStudent === 'function') return global.getLevelForStudent(score, s);
+    if (scale10) return score >= 42 ? 'Advanced' : score >= 32 ? 'Functional' : score >= 22 ? 'Emerging' : 'Survival';
+    if (typeof global.getLevel === 'function' && !s) return global.getLevel(score);
     if (score <= 10) return 'Survival';
     if (score <= 15) return 'Emerging';
     if (score <= 20) return 'Functional';
@@ -157,7 +160,8 @@
     m.innerHTML = '<div class="fade">'
       + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
       + '<button class="btn btn-outline btn-sm" onclick="showView(\'weekly-pulse\',null)"><i class="ti ti-arrow-left"></i>Volver</button>'
-      + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2></div>'
+      + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2>'
+      + '<button type="button" class="btn btn-outline btn-sm" onclick="NexusManualCal.open(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual</button></div>'
       + '<div class="ib ib-navy">Semana <strong>' + wk + '</strong> · Track: <strong>' + track.toUpperCase() + '</strong> · Auto: '
       + prof.stats.quizzes + ' quiz · ' + prof.stats.nemesis + ' nemesis · confianza ' + prof.confidence + '%</div>'
       + '<div class="card" style="margin-top:10px;"><div class="card-title">Resumen (calculado)</div>'
@@ -175,6 +179,7 @@
       }).join('') + '</div>'
       + '<textarea class="inp" id="pulse-notes" placeholder="Notas trainer (opcional)" style="min-height:50px;margin-bottom:8px;"></textarea>'
       + '<select class="inp" id="pulse-hw" style="margin-bottom:8px;"><option value="yes">Homework: Sí</option><option value="partial">Parcial</option><option value="no">No</option></select>'
+      + '<button type="button" class="btn btn-outline" style="margin-bottom:8px;" onclick="NexusManualCal.open(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual (1–10 · macro + 26)</button>'
       + '<button class="btn btn-navy" onclick="NexusUI.confirmWeeklyPulse(\'' + sid + '\')"><i class="ti ti-check"></i> Confirmar pulso semanal (un solo guardado)</button>'
       + '</div></div>';
 

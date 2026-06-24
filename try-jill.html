@@ -155,7 +155,7 @@
 
   document.getElementById('btn-start').onclick = start;
   document.getElementById('btn-send').onclick = send;
-  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'es-CR', profile: voiceProfile, silenceMs: 2200, onSend: send });
+  DemoVoice.bindMic({ inputId: 'inp', micBtnId: 'btn-mic', statusId: 'mic-status', lang: 'es-CR', profile: voiceProfile, silenceMs: 1200, onSend: send });
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); send(); } });
 })();
 </script>

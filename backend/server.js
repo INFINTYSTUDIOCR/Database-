@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-adam-bilingual',
+  build: '2026-06-24-jill-natural',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1462,7 +1462,7 @@ function getDemoStreamConfig(session, closing) {
   if (session.service === 'jill') {
     return {
       max_tokens: closing ? 360 : 750,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Responde en texto directo (sin JSON), como conversación oral real. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Texto directo (sin JSON). 4-6 oraciones, método Nexus, tono natural y espontáneo — sin relleno motivacional.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
       messages: closing
         ? [{ role: 'user', content: `Cierre final Foundations demo.\n\n${hist}` }]
         : msgs
@@ -1497,7 +1497,7 @@ async function demoGenerateOpening(service, scenario, name) {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 400,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Sesión REAL de 5 min (no guion grabado). Saludo cálido y una pregunta simple para arrancar Foundations.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Sesión REAL de 5 min. Bienvenida breve + enseguida el primer chunk/ejercicio. Ritmo ágil, sin charla previa.`,
       messages: [{ role: 'user', content: `Iniciá demo Foundations con ${guest}. Respondé SOLO JSON: {"reply":"...","contentType":"text"}` }]
     });
     const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -1786,7 +1786,35 @@ function buildAiProfileNote(student, tutor) {
   if (asked && !preferred) note += ` You already asked preferred name; if still unknown, use "${first}".`;
   if (preferred) note += ` Preferred name saved: "${preferred}". Use consistently unless they request a respectful change.`;
   note += ` Never use humiliating, sexual, or offensive nicknames. Professional warmth always.`;
-  return note;
+  return note + buildKpiFileNote(student);
+}
+
+function buildKpiFileNote(student) {
+  const kf = student?.kpiFile;
+  if (!kf || !kf.macro) return '';
+  const macroLine = Object.keys(kf.macro).map(k => `${k}:${kf.macro[k]}/10`).join(', ');
+  const weak = [...(kf.weakMacro || []), ...(kf.weakMicro || [])].slice(0, 8).join(', ');
+  return `\nKPI FILE (trainer calibration · scale 1–10): ${kf.score || '—'}/${kf.scoreMax || 50} · ${kf.level || ''}. Macro: ${macroLine}. Micro overall: ${kf.microOverall ?? '—'}/100.${weak ? ` Prioritize: ${weak}.` : ''}${kf.trainerNotes ? ` Trainer note: ${String(kf.trainerNotes).slice(0, 200)}` : ''}`;
+}
+
+function formatJillBundleNote(jillBundle) {
+  if (!jillBundle) return '';
+  const parts = [
+    `\nBUNDLE ACTIVO JILL (Foundations): ${jillBundle.title || jillBundle.id}`,
+    jillBundle.phase ? `Fase ${jillBundle.phase}` : '',
+    jillBundle.foundationsSection ? `Sección: ${jillBundle.foundationsSection}` : '',
+    jillBundle.doctrine ? `Doctrina: ${jillBundle.doctrine}` : '',
+    jillBundle.legoRules?.length ? `Reglas Lego: ${jillBundle.legoRules.join(' | ')}` : '',
+    jillBundle.structures?.length ? `Estructuras: ${jillBundle.structures.join('; ')}` : '',
+    jillBundle.vocabDomains?.length ? `Dominios vocab: ${jillBundle.vocabDomains.slice(0, 6).join(', ')}` : '',
+    jillBundle.exitCriteria?.length ? `Perfil salida (checklist): ${jillBundle.exitCriteria.join('; ')}` : '',
+    jillBundle.aliceTransition ? `Transición Alice: ${jillBundle.aliceTransition}` : '',
+    `Temas: ${(jillBundle.topics || []).join('; ')}`,
+    `Whiteboard: ${(jillBundle.whiteboard || []).join(' | ')}`,
+    `KPIs bundle: ${(jillBundle.kpis || []).join(', ')}`,
+    'Enseñá mecánica Lego + chunking — NO listas ni frases memorizadas. Responde SOLO dentro de este bundle salvo recovery.'
+  ].filter(Boolean);
+  return parts.join('. ') + '.';
 }
 
 app.post('/alice', requireProductAuth, async (req, res) => {
@@ -1916,31 +1944,36 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
+const JILL_BRAIN_VER = 'v2-natural';
 const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
 
 IDENTIDAD:
-Tu nombre es Jill. Sos paciente, cálida, amorosa y nunca generás presión. El estudiante que llega a vos ya intentó antes y falló — no por falta de esfuerzo sino porque ningún sistema anterior atacó el problema correcto. Tu trabajo empieza por reconstruir su confianza mientras simultáneamente construís las rutas neurales que le faltan.
+Tu nombre es Jill. Sos paciente, clara y natural — nunca generás presión. Enseñás el Método Nexus con soltura: podés improvisar ejemplos y reacciones dentro del método, sin sonar robótica ni dar charlas motivacionales vacías.
+Corregís con afecto y claridad, sin sermones ni relleno.
 
-Nunca juzgás. Nunca mostrás impaciencia. Celebrás cada avance, por pequeño que sea. Corregís siempre con afecto y claridad, nunca con frustración.
+ESTILO — MÉTODO CON NATURALIDAD:
+- Directa al tema, sin bla bla ni azúcar excesivo — pero sí espontánea y conversacional cuando sirve la lección.
+- Mini-analogías, ejemplos vivos y reacciones naturales están bien; siempre ancladas al Método Nexus.
+- Cada respuesta mueve la lección: regla/chunk + ejemplo + práctica. Típicamente 4-6 oraciones; más si hace falta para claridad.
+- El bundle/ejercicio activo guía el tema; adaptate al momento del estudiante sin salirte del método.
+- Si hay INSTITUTIONAL KNOWLEDGE en el prompt: obedecelo; nunca contradigas el Método Nexus.
 
 IDIOMA:
 Hablás en español durante explicaciones, teoría, análisis y correcciones.
 Practicás en inglés durante los ejercicios orales y de producción.
-Cuando das un ejemplo en inglés, lo contextualizás en español primero.
+Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 
 FILOSOFÍA CENTRAL — Idea + Linker + Idea:
-No enseñás inglés — enseñás a conectar ideas ya existentes usando andamiaje preestablecido.
-El estudiante no construye cada frase desde cero. Ejecuta la fórmula y la llena con contenido.
+No enseñás inglés genérico — enseñás a conectar ideas usando andamiaje preestablecido.
+El estudiante ejecuta la fórmula y la llena con contenido.
 Linkers clave: however, on top of that, even though, therefore, besides, so far, in other words, rather than, as long as, as a result, not only... but also, in addition to that, at the same time.
 
 MÉTODO — CHUNKING:
-El cerebro no procesa palabras individuales — procesa bloques.
-Un hablante fluido no piensa I + want + to + say, piensa "I want to say" como una unidad.
-Entrenás al estudiante a construir y almacenar chunks operacionales listos para usar.
+El cerebro procesa bloques, no palabras sueltas.
+Entrenás chunks operacionales listos para usar — siempre dentro del Método Nexus.
 
 PRESIÓN CERO:
-Nunca presionás. El ambiente de Jill es práctica segura.
-Equivocarse es parte del proceso y nunca tiene costo emocional.
+Práctica segura. Equivocarse no tiene costo emocional — pero seguís avanzando en la lección, sin rodeos.
 
 LOS 8 KPIs QUE EVALUÁS:
 1. Linkers y Connectors — ¿usa conectores naturalmente, mínimo 3 por respuesta?
@@ -1956,8 +1989,8 @@ ROL EN ESTE SISTEMA:
 Vos sos el Modo Jill. Mientras vos estás activa, el sistema está en modo aprendizaje.
 NO simulás escenarios de trabajo, entrevistas, clientes ni llamadas.
 NO evaluás para certificación ni ORT.
-SÍ explicás, analizás, ejemplificás, guiás, enseñás y practicás con el estudiante.
-Si el estudiante pregunta por simulaciones: le explicás que eso es Alice Mode y que su trainer lo activará cuando esté listo.
+SÍ enseñás el método con espontaneidad natural: explicás, demostrás, guiás y practicás — guiada por bundle/ejercicio activo.
+Si el estudiante pregunta por simulaciones: le decís que eso es Alice Mode.
 
 CONTENIDO ADAPTABLE:
 Cuando querés mostrar algo visual o estructurado, usás el campo contentType en tu respuesta para señalarlo.
@@ -1998,9 +2031,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const weakNote = (weakKpis && weakKpis.length)
       ? `\nÁREAS DÉBILES EN QUIZ (reforzar hoy): ${weakKpis.join(', ')}.`
       : '';
-    const bundleNote = jillBundle
-      ? `\nBUNDLE ACTIVO JILL: ${jillBundle.title || jillBundle.id}. Temas: ${(jillBundle.topics || []).join('; ')}. Whiteboard: ${(jillBundle.whiteboard || []).join(' | ')}. KPIs bundle: ${(jillBundle.kpis || []).join(', ')}. Responde dudas SOLO dentro de este bundle salvo que el estudiante necesite recovery.`
-      : '';
+    const bundleNote = formatJillBundleNote(jillBundle);
     const nemesisNote = nemesisState?.reinforcement?.length
       ? `\nNEMESIS REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS REFUERZO: ${reinforcement.join(', ')}.` : '');
@@ -2016,10 +2047,10 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const returning = mode === 'return_session' || isReturningStudent(student, 'jill');
       const profileNote = buildAiProfileNote(student, 'jill');
       const greetInstruction = returning
-        ? `Saludá brevemente con "Qué gusto verte de nuevo, ${display}" — NO como primera vez — y hacé UNA pregunta para retomar.`
-        : `Saludalo con calidez en este primer contacto, recordá en qué estaban trabajando si hay ejercicios, y hacé UNA pregunta amable sobre cómo prefiere que le digas (nombre respetuoso).`;
+        ? `Saludo breve a ${display} y retomá el bundle/ejercicio activo — natural, sin preámbulos largos.`
+        : `Bienvenida corta. Decile qué chunk/tema de hoy (según ejercicios o bundle) y UNA pregunta de práctica. Tono natural, ritmo ágil.`;
 
-      const openExtra = `${mode}:${level}:${returning ? 'return' : 'new'}`;
+      const openExtra = `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`;
       const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
       if (openBrain.hit) {
         try {
@@ -2057,7 +2088,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       });
     }
 
-    const levelExtra = level;
+    const levelExtra = `${level}:${JILL_BRAIN_VER}`;
     const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
     if (brain.hit) {
       res.set('X-Brain-LLM', 'HIT');
@@ -2070,7 +2101,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     const prevMsgs = (history || []).slice(-12);
     const msgs = [...prevMsgs, { role: 'user', content: message }];
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -2167,9 +2198,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const exercises = (student?.trainingBook || []).slice(0, 4)
       .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
     const weakNote = weakKpis?.length ? `\nTemas a reforzar hoy: ${weakKpis.join(', ')}.` : '';
-    const bundleNote = jillBundle
-      ? `\nBUNDLE JILL: ${jillBundle.title || jillBundle.id}. Temas: ${(jillBundle.topics || []).join('; ')}.`
-      : '';
+    const bundleNote = formatJillBundleNote(jillBundle);
     const nemesisNote = nemesisState?.reinforcement?.length
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
@@ -2177,12 +2206,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    const levelExtra = level;
+    const levelExtra = `${level}:${JILL_BRAIN_VER}`;
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {
       max_tokens: 800,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nResponde en texto directo, sin JSON. 4-6 oraciones, tono natural y espontáneo dentro del método. Regla + ejemplo + UNA pregunta de práctica. Ritmo conversacional — sin pausas largas ni relleno.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

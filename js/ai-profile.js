@@ -91,6 +91,7 @@
     if(!student) return {};
     return Object.assign({}, student, {
       aiProfile: getAiProfile(student),
+      kpiFile: student.kpiFile || null,
       name: (student.info && student.info.name) || student.name || 'Student'
     });
   }

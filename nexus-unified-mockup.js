@@ -152,12 +152,11 @@
     global._pulseSid = sid;
     global._pulseProf = prof;
 
-    var gradReady = prof.macro.ST >= 3 && prof.macro.RA >= 3 && prof.macro.IG >= 3 && track === 'jill';
-
     m.innerHTML = '<div class="fade" id="pulse-mockup-root">'
       + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
       + '<button class="btn btn-outline btn-sm" onclick="showView(\'weekly-pulse\',null)"><i class="ti ti-arrow-left"></i>Volver</button>'
-      + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2></div>'
+      + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2>'
+      + '<button type="button" class="btn btn-outline btn-sm" onclick="NexusManualCal.open(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual</button></div>'
       + '<div class="ib ib-navy">Semana <strong>' + wk + '</strong> · Track: <strong>' + track.toUpperCase() + '</strong> · Auto: '
       + (s.aliceSessions || []).length + ' Jill/Alice · ' + prof.stats.quizzes + ' quiz · ' + (s.nexoraSessions || []).length + ' Nexora · Confianza ' + prof.confidence + '%</div>'
       + '<div class="card" style="margin-top:10px;"><div style="display:flex;flex-wrap:wrap;gap:6px;">'
@@ -178,6 +177,11 @@
     if (!s || !prof) return;
     var body = document.getElementById('pulse-tab-body');
     if (!body) return;
+    var track = (s.track && s.track.current) || 'jill';
+    var macro = prof.macro || {};
+    var scale10 = s.kpiScale === 10 || macro.ST > 5 || macro.IG > 5;
+    var th = scale10 ? 6 : 3;
+    var gradReady = macro.ST >= th && macro.RA >= th && macro.IG >= th && track === 'jill';
     var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
 
     if (n === 1) {
@@ -215,6 +219,7 @@
         + '<div class="ib ib-navy" style="margin-top:8px;">Ya contado en auto — el alumno no repite aquí.</div></div>';
     } else {
       body.innerHTML = '<div style="font-size:13px;margin-bottom:10px;">Training Book: rotación automática al confirmar pulso.</div>'
+        + '<button type="button" class="btn btn-outline" style="margin-bottom:8px;" onclick="NexusManualCal.open(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual (macro + 26 · 1–10)</button>'
         + (gradReady ? '<label style="font-size:12px;display:block;margin-bottom:10px;"><input type="checkbox" id="pulse-suggest-grad"> Sugerir graduación → Alice (ST≥3 ✓ RA≥3 ✓ IG≥3 ✓)</label>' : '<div class="ib ib-amber">Graduación aún no cumple criterios mínimos.</div>')
         + '<button class="btn btn-navy" onclick="NexusMockup.confirmPulse()"><i class="ti ti-check"></i> Confirmar pulso semanal — UN SOLO SAVE</button>';
     }
@@ -248,7 +253,7 @@
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else setTimeout(init, 100);
+  else init();
 
   global.NexusMockup = {
     intakeTab: intakeTab,
