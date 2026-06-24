@@ -178,16 +178,8 @@ function extractOpeningSnippet(text) {
 }
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
-app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-23-fase2)'));
+app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-24-nexus-brain', brain: Brain.isBrainEnabled(), services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats'] }));
-
-app.get('/brain/stats', requireProductAuth, async (req, res) => {
-  try {
-    return res.json(await Brain.brainGetStats());
-  } catch (err) {
-    return res.status(500).json({ error: 'Brain stats unavailable' });
-  }
-});
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
@@ -273,6 +265,14 @@ function clearLoginRateLimit(ip) {
 
 const AUTH_ROLES = ['student', 'trainer', 'superadmin', 'master'];
 const requireProductAuth = requireAuth(['student', 'trainer', 'superadmin', 'master']);
+
+app.get('/brain/stats', requireProductAuth, async (req, res) => {
+  try {
+    return res.json(await Brain.brainGetStats());
+  } catch (err) {
+    return res.status(500).json({ error: 'Brain stats unavailable' });
+  }
+});
 
 function assertStudentScope(req, studentId) {
   if (req.auth.role === 'student' && studentId && studentId !== req.auth.studentId) {
