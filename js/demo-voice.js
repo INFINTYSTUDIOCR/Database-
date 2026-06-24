@@ -221,17 +221,37 @@ var DemoVoice = (function () {
     var statusEl = opts.statusId ? document.getElementById(opts.statusId) : null;
     if (!input || !btn) return;
 
-    btn.addEventListener('click', function () {
-      if (_micOn) {
-        clearSilenceTimer();
-        var hadText = _micTranscript.trim().length > 0;
-        var text = _micTranscript.trim();
-        _micTranscript = '';
-        if (input) input.value = '';
-        stopMic(btn, statusEl, opts.profile);
-        if (hadText && typeof opts.onSend === 'function') opts.onSend(text);
-        return;
-      }
+    if (typeof PttMic !== 'undefined') {
+      PttMic.bind({
+        btn: btn,
+        lang: opts.lang || profileLang(opts.profile || _activeProfile),
+        canStart: function () { return !_micOn; },
+        onBeforeStart: function () {
+          stopAudio();
+          clearQueue();
+          _micTranscript = '';
+          if (input) input.value = '';
+          _micOn = true;
+        },
+        onUi: function (listening) {
+          setMicUi(listening, btn, statusEl, opts.profile || _activeProfile);
+          if (!listening) _micOn = false;
+        },
+        onSend: function (text) {
+          _micTranscript = '';
+          if (input) input.value = '';
+          if (text.length >= 1 && typeof opts.onSend === 'function') opts.onSend(text);
+        },
+        onError: function () {
+          alert('Voice input needs Chrome or Edge. You can still type your answers.');
+        }
+      });
+      return;
+    }
+
+    btn.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      if (_micOn) return;
       var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SR) {
         alert('Voice input needs Chrome or Edge. You can still type your answers.');
@@ -247,24 +267,32 @@ var DemoVoice = (function () {
       _mic.continuous = true;
       _micOn = true;
       setMicUi(true, btn, statusEl, opts.profile || _activeProfile);
-
-      _mic.onresult = function (e) {
-        var transcript = '';
-        for (var i = 0; i < e.results.length; i++) {
-          transcript += e.results[i][0].transcript;
-        }
-        _micTranscript = transcript;
-        var last = e.results[e.results.length - 1];
-        if (last && last.isFinal && transcript.trim()) {
-          scheduleMicSend(input, btn, statusEl, opts);
-        }
+      _mic.onresult = function (ev) {
+        for (var i = 0; i < ev.results.length; i++) _micTranscript += ev.results[i][0].transcript;
       };
-      _mic.onend = function () {
-        if (!_micOn) return;
-        try { _mic.start(); } catch (e) { stopMic(btn, statusEl, opts.profile); }
-      };
-      _mic.onerror = function () { clearSilenceTimer(); stopMic(btn, statusEl, opts.profile); };
-      try { _mic.start(); } catch (e) { stopMic(btn, statusEl, opts.profile); }
+      _mic.onend = function () { _mic = null; };
+      _mic.onerror = function () { stopMic(btn, statusEl, opts.profile); };
+      try { _mic.start(); } catch (err) { stopMic(btn, statusEl, opts.profile); }
+    });
+    btn.addEventListener('mouseup', function () {
+      if (!_micOn) return;
+      var text = _micTranscript.trim();
+      stopMic(btn, statusEl, opts.profile);
+      if (text.length >= 1 && typeof opts.onSend === 'function') opts.onSend(text);
+    });
+    btn.addEventListener('mouseleave', function () {
+      if (!_micOn) return;
+      var text = _micTranscript.trim();
+      stopMic(btn, statusEl, opts.profile);
+      if (text.length >= 1 && typeof opts.onSend === 'function') opts.onSend(text);
+    });
+    btn.addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    }, { passive: false });
+    btn.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      btn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     });
   }
 

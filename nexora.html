@@ -8,6 +8,7 @@
 <script src="infinity-auth.js"></script>
 <script src="nexora-profile.js"></script>
 <script src="js/tts-chunks.js"></script>
+<script src="js/ptt-mic.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -292,7 +293,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div style="background:#0f0f23;padding:1rem 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="iv-status-text">Connecting...</div>
     <div style="margin-left:auto;display:flex;gap:8px;">
-      <button class="co-mic-btn" id="iv-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
+      <button class="co-mic-btn" id="iv-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
       <button onclick="endInterview()" style="background:#EF4444;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">End Interview</button>
     </div>
   </div>
@@ -310,7 +311,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div style="background:#3c3c3c;padding:10px 1.5rem;display:flex;align-items:center;gap:10px;">
     <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="mt-status-text"></div>
     <div style="margin-left:auto;display:flex;gap:8px;">
-      <button class="co-mic-btn" id="mt-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
+      <button class="co-mic-btn" id="mt-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
       <button onclick="endMeeting()" style="background:#EA4335;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;"><i class="ti ti-phone-off"></i></button>
     </div>
   </div>
@@ -338,7 +339,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div style="background:#0f0f23;padding:10px 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="corp-status"></div>
     <div style="margin-left:auto;display:flex;gap:8px;">
-      <button class="co-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
+      <button class="co-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
       <button onclick="endCorporate()" style="background:#EF4444;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">End Meeting</button>
     </div>
   </div>
@@ -362,7 +363,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div style="background:#161b22;padding:10px 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="sh-status"></div>
     <div style="margin-left:auto;display:flex;gap:8px;">
-      <button class="co-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
+      <button class="co-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
       <button onclick="endStakeholder()" style="background:#EF4444;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;"><i class="ti ti-phone-off"></i></button>
     </div>
   </div>
@@ -382,8 +383,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   </div>
   <div class="co-status-text" id="co-status-text"></div>
   <div class="co-mic-row">
-    <button class="co-mic-btn" id="co-mic-btn" onclick="toggleMic()"><i class="ti ti-microphone"></i></button>
-    <div class="co-voice-note">🎙 Use mic to respond — Nexora is listening</div>
+    <button class="co-mic-btn" id="co-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
+    <div class="co-voice-note">🎙 Mantené presionado el micrófono (PTT) para responder</div>
   </div>
   <div class="co-buttons">
     <button class="co-btn co-btn-hold" id="co-hold-btn" onclick="toggleHold()"><i class="ti ti-player-pause"></i>Hold</button>
@@ -693,6 +694,7 @@ var _nx={
 // ── INIT ──────────────────────────────────────────────────────
 window.onload=function(){
   clearNexoraDemoFlagsIfPortal();
+  bindAllNexoraPttMics();
   var savedAgent=localStorage.getItem('nexora_agent');
   if(savedAgent){_nx.agent=savedAgent;document.getElementById('agent-inp').value=savedAgent;}
   var nxConfig=loadNexoraEngineConfig();
@@ -1918,76 +1920,33 @@ function speak(text){
   splitTtsChunks(text, 450).forEach(function(chunk){ queueSpeak(chunk); });
 }
 
-// ── MIC ───────────────────────────────────────────────────────
-var TURN_SILENCE_MS = 2200;
+// ── MIC (PTT) ───────────────────────────────────────────────────────
 var _nxMicSent = false;
 
-function clearSilenceTurn(rec){
-  if(rec && rec._silenceTimer){ clearTimeout(rec._silenceTimer); rec._silenceTimer = null; }
-}
-
-function armSilenceTurn(rec, getText, onSend){
-  clearSilenceTurn(rec);
-  rec._silenceTimer = setTimeout(function(){
-    var text = String(getText() || '').trim();
-    if(!text) return;
-    clearSilenceTurn(rec);
-    try{ rec.stop(); }catch(e){}
-    onSend(text);
-  }, TURN_SILENCE_MS);
-}
-
-function toggleMic(){
-  if(_nx.micOn){stopMic();return;}
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){showToast('Use Chrome for microphone');return;}
-  if(window._nxAudio) window._nxAudio.pause();
-  _nx.mic=new SR();_nx.mic.lang='en-US';_nx.mic.interimResults=true;_nx.mic.continuous=true;
-  _nx.micOn=true;
-  var btn=document.getElementById('co-mic-btn');
-  if(btn) btn.classList.add('listening');
-  var stEl=document.getElementById('co-status-text')||document.getElementById('iv-status-text')||document.getElementById('mt-status-text');
-  _nxMicSent = false;
-  if(stEl) stEl.textContent='Listening — take your time, I wait until you finish';
-  _nx.mic.onresult=function(e){
-    window._nxVoice=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
-    var last=e.results[e.results.length-1];
-    if(last&&last.isFinal&&window._nxVoice.trim()){
-      armSilenceTurn(_nx.mic, function(){ return window._nxVoice; }, function(text){
-        if(_nxMicSent) return;
-        _nxMicSent=true;
-        window._nxVoice = text;
-        stopMic();
+function bindAllNexoraPttMics(){
+  if(typeof PttMic === 'undefined') return;
+  document.querySelectorAll('[data-ptt-mic]').forEach(function(btn){
+    if(btn._pttBound) return;
+    btn._pttBound = true;
+    PttMic.bind({
+      btn: btn,
+      lang: 'en-US',
+      onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); _nxMicSent = false; },
+      onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
+      onSend: function(text){
+        if(!text || _nxMicSent) return;
+        _nxMicSent = true;
         sendToAlice(text);
-        window._nxVoice = '';
-      });
-    }
-  };
-  _nx.mic.onend=function(){
-    clearSilenceTurn(_nx.mic);
-    if(_nxMicSent) return;
-    var voice = (window._nxVoice || '').trim();
-    if(!voice){
-      if(_nx.micOn){ try{ _nx.mic.start(); }catch(e){} }
-      return;
-    }
-    _nxMicSent=true;
-    stopMic();
-    sendToAlice(voice);
-    window._nxVoice='';
-  };
-  _nx.mic.onerror=function(){stopMic();};
-  _nx.mic.start();
+      }
+    });
+  });
 }
+
+function toggleMic(){ /* legacy — PTT via bindAllNexoraPttMics */ }
 
 function stopMic(){
-  if(_nx.mic){
-    clearSilenceTurn(_nx.mic);
-    try{_nx.mic.stop();}catch(e){}
-  }
-  _nx.micOn=false;
-  var btn=document.getElementById('co-mic-btn');
-  if(btn) btn.classList.remove('listening');
+  _nx.micOn = false;
+  document.querySelectorAll('[data-ptt-mic]').forEach(function(b){ b.classList.remove('listening'); });
   var stEl=document.getElementById('co-status-text')||document.getElementById('iv-status-text')||document.getElementById('mt-status-text');
   if(stEl) stEl.textContent='';
 }

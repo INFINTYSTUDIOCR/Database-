@@ -20,6 +20,7 @@
 <script src="js/daily-inspiration.js"></script>
 <script src="js/ai-profile.js"></script>
 <script src="js/tts-chunks.js"></script>
+<script src="js/ptt-mic.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1257,6 +1258,7 @@ function renderAlice(){
   if(_aliceState.sessionActive){
     _aliceSpeakEnabled = true;
     scrollAliceMessages();
+    bindAlicePttMic();
   }
 }
 
@@ -1311,8 +1313,8 @@ function renderAliceSession(){
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
     +'<div id="alice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o usá el micrófono..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.25);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendAliceMessage();">'
-    +'<button id="alice-mic-btn" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#C084FC;border-radius:12px;cursor:pointer;font-size:18px;" onclick="toggleAliceMic()"><i class="ti ti-microphone"></i></button>'
+    +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.25);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendAliceMessage();">'
+    +'<button id="alice-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#C084FC;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
     +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
@@ -1352,7 +1354,6 @@ async function startAliceSession(){
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
   _aliceState.savedSession = null;
-  _aliceState.autoMic = true;
   renderAlice();
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   var returning = mode === 'return_session';
@@ -1539,7 +1540,6 @@ async function sendAliceMessage(micText){
     renderAlice();
     scrollAliceMessages();
     saveAliceRuntimeStorage();
-    if(_aliceState.autoMic && !_aliceState.speaking) setTimeout(aliceStartAutoMic, 700);
 
   } catch(e){
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
@@ -1657,109 +1657,44 @@ function aliceSpeak(text){
   });
 }
 
-// Auto-VAD for Alice: mic continuo + 2.2s silencio (como Jill)
-var _aliceSilenceTimer = null;
-var ALICE_SILENCE_MS = 2200;
-
-function aliceClearSilenceTimer(){
-  if(_aliceSilenceTimer){ clearTimeout(_aliceSilenceTimer); _aliceSilenceTimer = null; }
-}
-
-function aliceScheduleSend(){
-  aliceClearSilenceTimer();
-  _aliceSilenceTimer = setTimeout(function(){
-    _aliceSilenceTimer = null;
-    if(_aliceState.speaking || !_aliceState.autoMic) return;
-    var text = _aliceMicText.trim();
-    if(!text) return;
-    _aliceMicText = '';
-    var input = document.getElementById('alice-input');
-    if(input) input.value = '';
-    aliceStopMic();
-    sendAliceMessage(text);
-  }, ALICE_SILENCE_MS);
+// PTT mic for Alice — hold to speak, release to send
+function bindAlicePttMic(){
+  var btn = document.getElementById('alice-mic-btn');
+  if(!btn || btn._pttBound) return;
+  btn._pttBound = true;
+  PttMic.bind({
+    btn: btn,
+    lang: (ALICE_ACCENTS[_aliceState.accent] && ALICE_ACCENTS[_aliceState.accent].lang) || 'en-US',
+    canStart: function(){ return _aliceSpeakEnabled && !_aliceState.speaking; },
+    onBeforeStart: function(){
+      if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
+      aliceStopMic();
+    },
+    onUi: function(listening){
+      var b = document.getElementById('alice-mic-btn');
+      var statusEl = document.getElementById('alice-status');
+      if(b){
+        if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
+        else { b.style.background='rgba(192,132,252,0.1)'; b.style.borderColor='rgba(192,132,252,0.3)'; b.style.color='#C084FC'; }
+      }
+      if(statusEl) statusEl.textContent = listening ? '🎤 Mantené presionado…' : '';
+    },
+    onSend: function(text){ if(text) sendAliceMessage(text); },
+    onError: function(){
+      var st = document.getElementById('alice-status');
+      if(st) st.textContent = 'Usá Chrome o Edge para voz.';
+    }
+  });
 }
 
 function aliceStopMic(){
-  aliceClearSilenceTimer();
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition = null; }
+  _aliceState.micRunning = false;
   _aliceState.listening = false;
   _aliceMicText = '';
-  var btn = document.getElementById('alice-mic-btn');
-  if(btn){
-    btn.style.background = _aliceState.autoMic ? 'rgba(134,239,172,0.25)' : 'rgba(192,132,252,0.1)';
-    btn.style.borderColor = _aliceState.autoMic ? '#86EFAC' : 'rgba(192,132,252,0.3)';
-    btn.style.color = _aliceState.autoMic ? '#86EFAC' : '#C084FC';
-    btn.innerHTML = '<i class="ti ti-microphone'+( _aliceState.autoMic ? '' : '-off')+'"></i>';
-  }
-}
-
-function aliceStartAutoMic(){
-  if(_aliceState.micRunning || _aliceState.speaking || !_aliceSpeakEnabled || !_aliceState.autoMic) return;
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  _aliceMicText = '';
-  var input = document.getElementById('alice-input');
-  if(input) input.value = '';
-  var rec = new SR();
-  rec.lang = ALICE_ACCENTS[_aliceState.accent]?.lang || 'en-US';
-  rec.interimResults = true;
-  rec.continuous = true;
-  _aliceState.recognition = rec;
-  _aliceState.listening = true;
-  _aliceState.micRunning = true;
-  var btn = document.getElementById('alice-mic-btn');
-  var statusEl = document.getElementById('alice-status');
-  if(btn){ btn.style.background='rgba(255,92,92,0.3)'; btn.style.borderColor='#FF5C5C'; btn.style.color='white'; btn.innerHTML='<i class="ti ti-microphone"></i>'; }
-  if(statusEl) statusEl.textContent='🎤 Listening… take your time, I wait until you finish';
-  rec.onresult = function(e){
-    var t = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
-    _aliceMicText = t;
-    var last = e.results[e.results.length - 1];
-    if(last && last.isFinal && t.trim()) aliceScheduleSend();
-  };
-  rec.onend = function(){
-    _aliceState.micRunning = false;
-    _aliceState.listening = false;
-    _aliceState.recognition = null;
-    if(_aliceState.autoMic && !_aliceState.speaking && !_aliceSilenceTimer){
-      setTimeout(aliceStartAutoMic, 350);
-      return;
-    }
-    if(btn && !_aliceState.autoMic){
-      btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC';
-    }
-    if(statusEl && !_aliceState.autoMic) statusEl.textContent='';
-  };
-  rec.onerror = function(e){
-    _aliceState.micRunning = false;
-    _aliceState.listening = false;
-    _aliceState.recognition = null;
-    aliceClearSilenceTimer();
-    if(_aliceState.autoMic && !_aliceState.speaking && e.error === 'no-speech'){
-      setTimeout(aliceStartAutoMic, 400);
-    }
-  };
-  try{ rec.start(); }catch(e){}
 }
 
 var _aliceSpeakId = 0;
-
-// ── STT ───────────────────────────────────────────────────
-function toggleAliceMic(){
-  if(_aliceState.autoMic){
-    _aliceState.autoMic = false;
-    aliceStopMic();
-    var statusEl = document.getElementById('alice-status');
-    if(statusEl) statusEl.textContent = '';
-    return;
-  }
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Tu navegador no soporta voz. Usá Chrome o Edge.'; return; }
-  _aliceState.autoMic = true;
-  if(window._aliceAudio){ window._aliceAudio.pause(); window._aliceAudio=null; _aliceState.speaking=false; }
-  aliceStartAutoMic();
-}
 
 function scrollAliceMessages(){
   setTimeout(function(){ var el=document.getElementById('alice-messages'); if(el) el.scrollTop=el.scrollHeight; },50);
@@ -2180,7 +2115,7 @@ function nexoraShowCRM(restoring){
     // Input
     +'<div style="padding:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:6px;">'
     +'<input id="nx-input" placeholder="Respond to the client..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:10px;padding:7px 12px;font-size:12px;font-family:inherit;" disabled>'
-    +'<button id="nx-mic-btn" onclick="toggleNexoraMic()" style="width:34px;height:34px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#C084FC;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;" disabled><i class="ti ti-microphone"></i></button>'
+    +'<button id="nx-mic-btn" title="Mantené presionado para hablar (PTT)" style="width:34px;height:34px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#C084FC;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;" disabled><i class="ti ti-microphone"></i></button>'
     +'<button onclick="sendNexoraMsg()" style="width:34px;height:34px;background:var(--purple);border:none;color:white;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;" disabled id="nx-send-btn"><i class="ti ti-send"></i></button>'
     +'</div>'
     // Call buttons
@@ -2206,6 +2141,7 @@ function nexoraShowCRM(restoring){
     if(inp) inp.disabled = false;
     if(micBtn) micBtn.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
+    bindNexoraPttMic();
     if(_nxState.onHold){
       var holdBtn = document.getElementById('nx-hold-btn');
       var resumeBtn = document.getElementById('nx-resume-btn');
@@ -2257,6 +2193,7 @@ async function nexoraAnswerCall(){
   if(inp) inp.disabled = false;
   if(micBtn) micBtn.disabled = false;
   if(sendBtn) sendBtn.disabled = false;
+  bindNexoraPttMic();
 
   var clientStatus = document.getElementById('nx-alice-status');
   if(clientStatus) clientStatus.textContent = '';
@@ -2531,33 +2468,28 @@ async function nexoraSavePracticeMinutes(mins){
   }catch(e){}
 }
 
-// ── MIC ────────────────────────────────────────────────────────
-function toggleNexoraMic(){
-  if(_nxState.micListening){ stopNexoraMic(); return; }
-  var SR = window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR) return;
-  if(window._nxAudio) window._nxAudio.pause();
-  _nxState.recognition = new SR();
-  _nxState.recognition.lang='en-US';
-  _nxState.recognition.interimResults=false;
-  _nxState.recognition.continuous=false;
-  _nxState.micListening=true;
-  var btn=document.getElementById('nx-mic-btn');
-  if(btn){btn.style.background='rgba(239,68,68,0.3)';btn.style.borderColor='#EF4444';btn.style.color='white';}
-  _nxState.recognition.onresult=function(e){ window._nxVoice=Array.from(e.results).map(function(r){return r[0].transcript;}).join(''); };
-  _nxState.recognition.onend=function(){
-    stopNexoraMic();
-    if(window._nxVoice&&window._nxVoice.trim()){ sendNexoraMsgVoice(window._nxVoice.trim()); window._nxVoice=''; }
-  };
-  _nxState.recognition.onerror=function(){ stopNexoraMic(); };
-  _nxState.recognition.start();
+// ── MIC (PTT) ────────────────────────────────────────────────
+function bindNexoraPttMic(){
+  var btn = document.getElementById('nx-mic-btn');
+  if(!btn || btn._pttBound) return;
+  btn._pttBound = true;
+  PttMic.bind({
+    btn: btn,
+    lang: 'en-US',
+    canStart: function(){ return !_nxState.micListening; },
+    onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); },
+    onUi: function(listening){
+      if(listening){ btn.style.background='rgba(239,68,68,0.3)'; btn.style.borderColor='#EF4444'; btn.style.color='white'; }
+      else { btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
+    },
+    onSend: function(text){ if(text) sendNexoraMsgVoice(text); }
+  });
 }
 
 function stopNexoraMic(){
-  if(_nxState.recognition) try{_nxState.recognition.stop();}catch(e){}
-  _nxState.micListening=false;
-  var btn=document.getElementById('nx-mic-btn');
-  if(btn){btn.style.background='rgba(192,132,252,0.1)';btn.style.borderColor='rgba(192,132,252,0.3)';btn.style.color='#C084FC';}
+  _nxState.micListening = false;
+  var btn = document.getElementById('nx-mic-btn');
+  if(btn){ btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
 }
 
 // ── ADD MSG ────────────────────────────────────────────────────
@@ -2735,7 +2667,6 @@ function _jillTTSFlush(){
       _jillState.audio = null;
       _jillTTSBusy = false;
       _jillState.speaking = _jillTTSQueue.length > 0;
-      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, 700);
       _jillTTSFlush();
     };
     _jillState.audio.play();
@@ -2753,7 +2684,6 @@ function _jillTTSFlush(){
       _jillState.audio = null;
       _jillTTSBusy = false;
       _jillState.speaking = _jillTTSQueue.length > 0;
-      if(!_jillState.speaking && _jillState.autoMic) setTimeout(jillStartAutoMic, 700);
       _jillTTSFlush();
     };
     _jillState.audio.play();
@@ -2801,7 +2731,6 @@ function _aliceTTSFlush(){
       window._aliceAudio = null;
       _aliceTTSBusy = false;
       _aliceState.speaking = _aliceTTSQueue.length > 0;
-      if(!_aliceState.speaking && _aliceState.autoMic && _aliceSpeakEnabled) setTimeout(aliceStartAutoMic, 700);
       _aliceTTSFlush();
     };
     window._aliceAudio.play();
@@ -2819,7 +2748,6 @@ function _aliceTTSFlush(){
       window._aliceAudio = null;
       _aliceTTSBusy = false;
       _aliceState.speaking = _aliceTTSQueue.length > 0;
-      if(!_aliceState.speaking && _aliceState.autoMic && _aliceSpeakEnabled) setTimeout(aliceStartAutoMic, 700);
       _aliceTTSFlush();
     };
     window._aliceAudio.play();
@@ -2845,12 +2773,32 @@ function jillStopAudio(){
 }
 
 function jillStopMic(){
-  jillClearSilenceTimer();
   if(_jillState.recognition){ try{_jillState.recognition.stop();}catch(e){} _jillState.recognition = null; }
   _jillState.micRunning = false;
   _jillMicText = '';
+}
+
+function bindJillPttMic(){
   var btn = document.getElementById('jill-mic-btn');
-  if(btn) btn.style.background = _jillState.autoMic ? '#16a34a' : '#6b7280';
+  if(!btn || btn._pttBound) return;
+  btn._pttBound = true;
+  PttMic.bind({
+    btn: btn,
+    lang: 'es-CR',
+    canStart: function(){ return !_jillState.speaking; },
+    onBeforeStart: function(){ jillStopAudio(); jillStopMic(); },
+    onUi: function(listening){
+      var b = document.getElementById('jill-mic-btn');
+      var statusEl = document.getElementById('jill-status');
+      if(b) b.style.background = listening ? '#dc2626' : '#6b7280';
+      if(statusEl) statusEl.textContent = listening ? '🎤 Mantené presionado…' : '';
+    },
+    onSend: function(text){ if(text) sendJillMsg(text); },
+    onError: function(){
+      var st = document.getElementById('jill-status');
+      if(st) st.textContent = 'Usá Chrome o Edge para voz.';
+    }
+  });
 }
 
 function jillStopAll(){
@@ -2858,92 +2806,7 @@ function jillStopAll(){
   jillStopMic();
 }
 
-var _jillSilenceTimer = null;
-var JILL_SILENCE_MS = 2200;
 var _jillMicText = '';
-
-function jillClearSilenceTimer(){
-  if(_jillSilenceTimer){ clearTimeout(_jillSilenceTimer); _jillSilenceTimer = null; }
-}
-
-function jillScheduleSend(){
-  jillClearSilenceTimer();
-  _jillSilenceTimer = setTimeout(function(){
-    _jillSilenceTimer = null;
-    if(_jillState.speaking || !_jillState.autoMic) return;
-    var text = _jillMicText.trim();
-    if(!text) return;
-    _jillMicText = '';
-    var inp = document.getElementById('jill-input');
-    if(inp) inp.value = '';
-    jillStopMic();
-    sendJillMsg(text);
-  }, JILL_SILENCE_MS);
-}
-
-// Voice Activity Detection: escucha continua — espera a que el estudiante termine
-function jillStartAutoMic(){
-  if(_jillState.micRunning || _jillState.speaking) return;
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  _jillMicText = '';
-  var inp = document.getElementById('jill-input');
-  if(inp) inp.value = '';
-  var rec = new SR();
-  rec.lang = 'es-CR';
-  rec.interimResults = true;
-  rec.continuous = true;
-  _jillState.recognition = rec;
-  _jillState.micRunning = true;
-
-  var btn = document.getElementById('jill-mic-btn');
-  var statusEl = document.getElementById('jill-status');
-  if(btn){ btn.style.background = '#dc2626'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
-  if(statusEl) statusEl.textContent = '🎤 Escuchando… hablá tranquilo, espero a que termines';
-
-  rec.onresult = function(e){
-    var t = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
-    _jillMicText = t;
-    var last = e.results[e.results.length - 1];
-    if(last && last.isFinal && t.trim()) jillScheduleSend();
-  };
-  rec.onend = function(){
-    _jillState.micRunning = false;
-    _jillState.recognition = null;
-    if(_jillState.autoMic && !_jillState.speaking && !_jillSilenceTimer){
-      setTimeout(jillStartAutoMic, 350);
-      return;
-    }
-    if(btn && !_jillState.autoMic){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
-    if(statusEl && !_jillState.autoMic) statusEl.textContent = '';
-  };
-  rec.onerror = function(e){
-    _jillState.micRunning = false;
-    _jillState.recognition = null;
-    jillClearSilenceTimer();
-    if(btn){ btn.style.background = '#16a34a'; btn.innerHTML = '<i class="ti ti-microphone"></i>'; }
-    if(statusEl) statusEl.textContent = '';
-    if(_jillState.autoMic && !_jillState.speaking && e.error === 'no-speech'){
-      setTimeout(jillStartAutoMic, 400);
-    }
-  };
-  try { rec.start(); } catch(e){}
-}
-
-function toggleJillMic(){
-  if(_jillState.autoMic){
-    _jillState.autoMic = false;
-    jillStopMic();
-    var btn = document.getElementById('jill-mic-btn');
-    if(btn){ btn.style.background = '#6b7280'; btn.innerHTML = '<i class="ti ti-microphone-off"></i>'; }
-    var statusEl = document.getElementById('jill-status');
-    if(statusEl) statusEl.textContent = '';
-  } else {
-    _jillState.autoMic = true;
-    jillStopAudio();
-    jillStartAutoMic();
-  }
-}
 
 function renderJillTab(s){
   var root = document.getElementById('jill-root');
@@ -2958,14 +2821,16 @@ function renderJillTab(s){
     +'<div style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:0.02em;">Jill</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.85);">Tutora de Foundations · Presión cero · Avance garantizado</div>'
     +'</div>'
-    +'<button id="jill-mic-btn" onclick="toggleJillMic()" title="Activar/desactivar micrófono automático" style="width:40px;height:40px;border-radius:50%;border:none;background:#6b7280;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-microphone-off"></i></button>'
+    +'<button id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" style="width:40px;height:40px;border-radius:50%;border:none;background:#6b7280;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
     +'</div>'
     +'<div id="jill-messages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;min-height:200px;max-height:400px;overflow-y:auto;padding:2px 0;"></div>'
     +'<div style="display:flex;gap:8px;align-items:flex-end;">'
-    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o presioná el 🎤 para hablar..." style="flex:1;background:#ffffff;border:2px solid #d1d5db;color:#111827;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;resize:none;outline:none;"></textarea>'
+    +'<textarea id="jill-input" rows="2" placeholder="Escribí tu respuesta o mantené presionado el micrófono (PTT)..." style="flex:1;background:#ffffff;border:2px solid #d1d5db;color:#111827;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;resize:none;outline:none;"></textarea>'
     +'<button onclick="sendJillMsg()" style="padding:10px 18px;background:#0a5c3c;border:none;color:#ffffff;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;height:52px;"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div id="jill-status" style="font-size:12px;color:#0a5c3c;font-weight:600;margin-top:6px;min-height:18px;"></div>';
+
+  bindJillPttMic();
 
   // Stop audio on typing/focus; send on Enter
   var inp = document.getElementById('jill-input');

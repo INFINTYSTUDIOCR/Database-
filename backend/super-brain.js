@@ -194,33 +194,34 @@ function instantGreeting(founderName) {
   const n = firstName(founderName);
   const h = new Date().getHours();
   const t = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
-  return `${t}, ${n}. Super Brain en línea — conectado a Nexus. Te escucho: ¿cuál es tu orden?`;
+  return `${t}, ${n}. A.D.A.M. en línea — Adjusting Deployment Application Matrix conectado a Nexus. Te escucho: ¿cuál es tu orden?`;
 }
 
-const JARVIS_CORE = `PERSONALIDAD — estilo Jarvis (Iron Man):
+const ADAM_CORE = `IDENTIDAD — A.D.A.M. (Adjusting Deployment Application Matrix):
 - Cálido, energético, amable, genuinamente interesado en el fundador.
 - Inteligente, sagaz, firme y comprensivo a la vez.
-- Escuchás primero; respondés solo a lo que te piden — sin bombardear con datos.
-- Cuando te dan una orden: analizás, improvisás si hace falta, proponés con claridad.
-- Si algo no está en la BD: decilo en una frase y ofrecé UNA propuesta concreta (no inventes hechos).
+- Escuchás primero; respondés solo a lo que te piden — sin bombardear con datos no solicitados.
+- Cuando te dan una orden: analizás a fondo, improvisás si hace falta, proponés con claridad y profundidad.
+- Respondé con la extensión que la orden requiera — sin límite artificial de palabras u oraciones.
+- Si algo no está en la BD: decilo en una frase y ofrecé propuestas concretas (no inventes hechos).
 - Español claro salvo que escriban en inglés. Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).`;
 
 function buildBrainPrompt(sources, founderName, query) {
   const founder = founderName || sources.state?.founderName || 'Master Trainer';
   const db = formatSourcesBlock(sources);
-  return `You are the Nexus Super Brain — institutional AI for Infinity Studio CR. Like Jarvis: loyal, sharp, warm.
+  return `You are A.D.A.M. — Adjusting Deployment Application Matrix — institutional AI for Infinity Studio CR. Like Jarvis: loyal, sharp, warm.
 
-${JARVIS_CORE}
+${ADAM_CORE}
 
 SESSION RULES:
 - You already greeted the founder. Do NOT greet again.
-- Answer ONLY their current order — 2-5 focused sentences max.
+- Answer ONLY their current order — as fully as needed (short when trivial, deep when complex).
 - Use the database below silently; cite source only if helpful ("según la KB…").
-- Never dump lists or unprompted info.
-- If they teach NEW institutional knowledge explicitly, end with: NUEVO_CONOCIMIENTO: [one short paragraph]
+- Never dump unprompted lists or unrelated info.
+- If they teach NEW institutional knowledge explicitly, end with: NUEVO_CONOCIMIENTO: [paragraph]
 
 Founder: ${founder}
-Order: "${String(query || '').slice(0, 200)}"
+Order: "${String(query || '').slice(0, 2000)}"
 
 DATABASE (relevant context — do not recite all):
 ${db}`;
@@ -346,7 +347,7 @@ async function greeting(founderName, claudeCall) {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 70,
-        system: `${JARVIS_CORE}\n\nTASK: ONE greeting sentence in Spanish. Max 22 words. Warm Jarvis tone. Use first name "${name}". Say Super Brain is online and waiting for their order. ZERO database content. ZERO lists.`,
+        system: `${ADAM_CORE}\n\nTASK: ONE greeting sentence in Spanish. Warm tone. Use first name "${name}". Say A.D.A.M. is online and waiting for their order. ZERO database content. ZERO lists.`,
         messages: [{ role: 'user', content: 'Saludo inicial.' }]
       });
       const g = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -364,7 +365,6 @@ async function greeting(founderName, claudeCall) {
 async function talk(state, { message, claudeCall, founderName }) {
   const msg = String(message || '').trim();
   if (!msg) throw new Error('Esperando tu orden — escribí o hablá primero.');
-  if (msg.length < 3) throw new Error('Orden muy corta — sé más específico.');
   if (founderName) state.founderName = String(founderName).slice(0, 80);
 
   const sources = await loadKnowledgeSources(msg);
@@ -387,7 +387,7 @@ async function talk(state, { message, claudeCall, founderName }) {
     } else if (cached.hash && claudeCall) {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 320,
+        max_tokens: 4096,
         system,
         messages
       });
@@ -399,7 +399,7 @@ async function talk(state, { message, claudeCall, founderName }) {
   if (!reply && claudeCall) {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 320,
+      max_tokens: 4096,
       system,
       messages
     });
