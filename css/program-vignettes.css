@@ -21,6 +21,14 @@
   filter: drop-shadow(0 8px 24px rgba(91, 33, 182, 0.15));
 }
 
+.visual-banner.vignette-slot,
+.visual-banner.purple.vignette-slot,
+.visual-banner.gold.vignette-slot,
+.visual-banner.rose.vignette-slot {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f7fc 55%, #f3effe 100%);
+}
+
+.visual-banner.vignette-slot .vignette-logo-fallback,
 .program-vignette .vignette-logo-fallback,
 .vignette-slot .vignette-logo-fallback {
   font-family: 'Space Grotesk', sans-serif;

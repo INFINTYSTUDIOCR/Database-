@@ -21,6 +21,12 @@
     var img = el.querySelector('.vignette-logo');
     var fb = el.querySelector('.vignette-logo-fallback');
     img.onerror = function () {
+      if (id === 'foundations' && img.getAttribute('data-fallback-tried') !== '1') {
+        img.setAttribute('data-fallback-tried', '1');
+        img.style.display = '';
+        img.src = 'assets/logos/jill.png';
+        return;
+      }
       img.style.display = 'none';
       if (fb) fb.hidden = false;
     };
