@@ -186,28 +186,43 @@ function formatSourcesBlock(sources) {
   return parts.join('\n') || '(Base de datos conectada — sin entradas aún en esta categoría.)';
 }
 
+function firstName(name) {
+  return String(name || 'Master').trim().split(/\s+/)[0] || 'Master';
+}
+
+function instantGreeting(founderName) {
+  const n = firstName(founderName);
+  const h = new Date().getHours();
+  const t = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
+  return `${t}, ${n}. Super Brain en línea — conectado a Nexus. Te escucho: ¿cuál es tu orden?`;
+}
+
+const JARVIS_CORE = `PERSONALIDAD — estilo Jarvis (Iron Man):
+- Cálido, energético, amable, genuinamente interesado en el fundador.
+- Inteligente, sagaz, firme y comprensivo a la vez.
+- Escuchás primero; respondés solo a lo que te piden — sin bombardear con datos.
+- Cuando te dan una orden: analizás, improvisás si hace falta, proponés con claridad.
+- Si algo no está en la BD: decilo en una frase y ofrecé UNA propuesta concreta (no inventes hechos).
+- Español claro salvo que escriban en inglés. Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).`;
+
 function buildBrainPrompt(sources, founderName, query) {
   const founder = founderName || sources.state?.founderName || 'Master Trainer';
   const db = formatSourcesBlock(sources);
-  return `You are the Nexus Super Brain — institutional memory of Infinity Studio CR.
+  return `You are the Nexus Super Brain — institutional AI for Infinity Studio CR. Like Jarvis: loyal, sharp, warm.
 
-STRICT BEHAVIOR (non-negotiable):
-- You do NOT speak until the founder gives you an explicit order or question.
-- You NEVER monologue, ramble, or dump database content unprompted.
-- Answer ONLY what was asked — nothing extra.
-- Maximum 2-4 short sentences in clear Spanish (unless they write in English).
-- If the answer is not in the database below, say exactly: "Eso no está en la base todavía." Do NOT invent.
-- Never list random KB entries. Never quote long passages. Never speak "like a lecture".
-- You already know English. Do not teach English unless explicitly asked.
-- Never contradict Nexus Method (STAR, Idea+Linker+Idea, 26 KPIs).
+${JARVIS_CORE}
 
-WHEN TO SAVE (rare): only if the founder explicitly teaches NEW institutional knowledge in this message, add one line at the end:
-NUEVO_CONOCIMIENTO: [one short paragraph]
+SESSION RULES:
+- You already greeted the founder. Do NOT greet again.
+- Answer ONLY their current order — 2-5 focused sentences max.
+- Use the database below silently; cite source only if helpful ("según la KB…").
+- Never dump lists or unprompted info.
+- If they teach NEW institutional knowledge explicitly, end with: NUEVO_CONOCIMIENTO: [one short paragraph]
 
 Founder: ${founder}
-Their order/question: "${String(query || '').slice(0, 200)}"
+Order: "${String(query || '').slice(0, 200)}"
 
-DATABASE (use only what is relevant to their question — do not recite all of it):
+DATABASE (relevant context — do not recite all):
 ${db}`;
 }
 
@@ -313,6 +328,39 @@ async function rejectPending(state, pendingId) {
   return true;
 }
 
+async function greeting(founderName, claudeCall) {
+  const name = firstName(founderName);
+  const dayKey = `GREET_${name}_${new Date().toISOString().slice(0, 10)}`;
+  const fallback = instantGreeting(founderName);
+
+  if (_brain?.brainGetLLM) {
+    const cached = await _brain.brainGetLLM('super', 'greeting', dayKey, 'daily');
+    if (cached.hit && cached.reply) {
+      return { greeting: cached.reply, brainCache: true };
+    }
+  }
+
+  let text = fallback;
+  if (claudeCall) {
+    try {
+      const resp = await claudeCall({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 70,
+        system: `${JARVIS_CORE}\n\nTASK: ONE greeting sentence in Spanish. Max 22 words. Warm Jarvis tone. Use first name "${name}". Say Super Brain is online and waiting for their order. ZERO database content. ZERO lists.`,
+        messages: [{ role: 'user', content: 'Saludo inicial.' }]
+      });
+      const g = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+      if (g && g.length >= 12 && g.length <= 200 && !g.includes('\n\n')) text = g;
+    } catch { /* fallback */ }
+  }
+
+  if (_brain?.brainGetLLM) {
+    const c = await _brain.brainGetLLM('super', 'greeting', dayKey, 'daily');
+    if (c.hash && text) _brain.brainSetLLM(c.hash, 'super', 'greeting', dayKey, text, 'daily').catch(() => {});
+  }
+  return { greeting: text, brainCache: false };
+}
+
 async function talk(state, { message, claudeCall, founderName }) {
   const msg = String(message || '').trim();
   if (!msg) throw new Error('Esperando tu orden — escribí o hablá primero.');
@@ -339,7 +387,7 @@ async function talk(state, { message, claudeCall, founderName }) {
     } else if (cached.hash && claudeCall) {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 220,
+        max_tokens: 320,
         system,
         messages
       });
@@ -351,7 +399,7 @@ async function talk(state, { message, claudeCall, founderName }) {
   if (!reply && claudeCall) {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 220,
+      max_tokens: 320,
       system,
       messages
     });
@@ -437,7 +485,15 @@ async function getFullSummary() {
   const state = await loadState();
   const kb = await loadNexusKB();
   const files = await loadKbFiles();
-  return publicSummary(state, { nexusKbCount: kb.length, kbFilesCount: files.length });
+  const summary = publicSummary(state, { nexusKbCount: kb.length, kbFilesCount: files.length });
+  summary.capabilities = {
+    claude: true,
+    openai: !!process.env.OPENAI_API_KEY,
+    chatgptPro: !!process.env.OPENAI_API_KEY,
+    images: process.env.SUPER_BRAIN_IMAGES === '1' && !!process.env.OPENAI_API_KEY,
+    tutorImages: process.env.TUTOR_IMAGES === '1' && !!process.env.OPENAI_API_KEY
+  };
+  return summary;
 }
 
 // Legacy aliases
@@ -456,6 +512,7 @@ module.exports = {
   rejectPending,
   talk,
   chat,
+  greeting,
   buildContextBlock,
   getPropagatedContext,
   getFullSummary,

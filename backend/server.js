@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-super-brain-wait',
+  build: '2026-06-24-super-brain-jarvis',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -2886,6 +2886,17 @@ app.get('/super-brain', requireMasterOrAnalyzeSecret, async (req, res) => {
   }
 });
 
+app.get('/super-brain/greeting', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const founderName = req.query.name || req.auth?.name || 'Fundador';
+    const result = await SuperBrain.greeting(founderName, claudeCall);
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    return res.status(500).json({ error: 'Greeting failed' });
+  }
+});
+
 app.post('/super-brain/talk', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
@@ -2957,6 +2968,43 @@ app.post('/super-brain/tts', requireMasterOrAnalyzeSecret, async (req, res) => {
     return await synthesizeSpeech(req, res, { text, voiceId: SUPER_BRAIN_VOICE_ID, label: 'Super Brain' });
   } catch (err) {
     return res.status(500).json({ error: 'TTS failed' });
+  }
+});
+
+app.post('/super-brain/image', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const openaiKey = process.env.OPENAI_API_KEY || '';
+    if (process.env.SUPER_BRAIN_IMAGES !== '1' || !openaiKey) {
+      return res.status(503).json({
+        error: 'not_configured',
+        message: 'Imágenes desactivadas. En Render: OPENAI_API_KEY + SUPER_BRAIN_IMAGES=1'
+      });
+    }
+    const { prompt } = req.body || {};
+    if (!prompt || String(prompt).trim().length < 8) {
+      return res.status(400).json({ error: 'Prompt too short' });
+    }
+    const r = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt: String(prompt).slice(0, 900),
+        n: 1,
+        size: '1024x1024',
+        response_format: 'b64_json'
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data?.error?.message || 'OpenAI image error' });
+    }
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) return res.status(502).json({ error: 'No image returned' });
+    return res.json({ ok: true, imageB64: b64, mime: 'image/png' });
+  } catch (err) {
+    console.error('super-brain image:', err.message);
+    return res.status(500).json({ error: 'Image generation failed' });
   }
 });
 
