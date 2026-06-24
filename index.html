@@ -220,11 +220,10 @@ a.cc-link .cc-value{color:var(--purple);}
 .success-section{background:linear-gradient(180deg,#fff 0%,var(--off-white) 100%);}
 .success-showcase{background:white;border:1px solid var(--gray-light);border-radius:var(--rxl);padding:1.75rem;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:2rem;box-shadow:0 16px 48px rgba(91,33,182,0.08);border-color:rgba(91,33,182,0.15);}
 .success-media{display:flex;flex-direction:column;gap:12px;}
-.success-video-shell{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--rl);overflow:hidden;background:#0A0A0F;border:1px solid rgba(91,33,182,0.12);}
-.success-video-shell iframe,.success-video-shell video{width:100%;height:100%;border:0;display:block;object-fit:cover;}
-.success-video-shell[hidden],.success-video-local[hidden],.success-video-fb[hidden]{display:none !important;}
 .success-video-channel{font-size:12px;font-weight:700;color:var(--t3);display:flex;align-items:center;gap:6px;}
 .success-video-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:800;line-height:1.45;color:var(--text);}
+.success-video-link{display:inline-flex;align-items:center;gap:8px;width:fit-content;margin-top:4px;padding:12px 16px;border-radius:var(--r);background:var(--purple-glow);border:1px solid rgba(91,33,182,0.2);color:var(--purple);font-size:13px;font-weight:700;text-decoration:none;transition:all 0.2s;}
+.success-video-link:hover{background:rgba(91,33,182,0.12);transform:translateY(-1px);}
 .success-legacy-note{font-size:13px;color:var(--t2);line-height:1.65;padding:12px 14px;background:linear-gradient(135deg,rgba(91,33,182,0.06),rgba(245,166,35,0.08));border:1px solid rgba(91,33,182,0.12);border-radius:var(--r);margin-bottom:1rem;}
 .success-legacy-note strong{color:var(--purple);}
 .success-video-note{font-size:12px;color:var(--t3);line-height:1.55;margin-top:4px;}
@@ -901,17 +900,10 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <p class="section-sub">Public-sector partnerships with measurable employability outcomes — reported in official municipal transparency documents.</p>
     <article class="success-showcase fade-up" style="margin-top:2.5rem;">
       <div class="success-media">
-        <div class="success-video-shell">
-          <video id="success-local-video" class="success-video-local" controls playsinline preload="metadata" hidden>
-            <source src="assets/media/goicoechea-municipio-2021.mp4" type="video/mp4">
-          </video>
-          <div class="success-video-fb" id="success-fb-embed">
-            <iframe title="Municipalidad de Goicoechea — cobertura curso call center 2021" src="https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D263792665317206&amp;show_text=false&amp;width=560" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>
-          </div>
-        </div>
         <p class="success-video-channel"><i class="ti ti-brand-facebook"></i> Municipalidad de Goicoechea · Facebook</p>
         <h4 class="success-video-title">JÓVENES QUE RECIBIERON CURSO DE INGLÉS YA TRABAJAN GRACIAS A ALIANZA DE MUNICIPALIDAD DE GOICOECHEA Y TU506</h4>
         <p class="success-video-note">Official municipal coverage · <strong>TU506</strong> (Training United 506) is our legacy name — today <strong>Infinity Studio CR</strong> · Program led by <strong>Prof. John</strong></p>
+        <a href="https://www.facebook.com/watch/?v=263792665317206" target="_blank" rel="noopener noreferrer" class="success-video-link"><i class="ti ti-brand-facebook"></i> Ver video en Facebook <i class="ti ti-external-link" style="font-size:12px;"></i></a>
       </div>
       <div class="success-document">
         <span class="success-badge">Public sector · Goicoechea · 2021</span>
@@ -934,7 +926,6 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="success-links">
           <a href="https://transparencia.munigoicoechea.go.cr/wp-content/uploads/2023/05/INFORMEDELABORES2022.pdf" target="_blank" rel="noopener noreferrer" class="success-link official"><i class="ti ti-file-certificate"></i> Official source — Informe de Labores 2022 (p. 34) <i class="ti ti-external-link" style="font-size:12px;"></i></a>
           <a href="https://transparencia.munigoicoechea.go.cr/" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-building-community"></i> Portal Transparencia · Municipalidad de Goicoechea <i class="ti ti-external-link" style="font-size:12px;"></i></a>
-          <a href="https://www.facebook.com/watch/?v=263792665317206" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-brand-facebook"></i> Open video on Facebook <i class="ti ti-external-link" style="font-size:12px;"></i></a>
         </div>
         <p class="success-source">Video title and coverage published by the Municipality on Facebook. Report text quoted verbatim from the transparency portal PDF.</p>
       </div>
@@ -1094,20 +1085,6 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){
 });
 var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
 document.querySelectorAll('.fade-up').forEach(function(el){obs.observe(el);});
-
-(function initSuccessVideo() {
-  var video = document.getElementById('success-local-video');
-  var fb = document.getElementById('success-fb-embed');
-  if (!video || !fb) return;
-  var src = video.querySelector('source');
-  if (!src) return;
-  fetch(src.getAttribute('src'), { method: 'HEAD' }).then(function (r) {
-    if (r.ok) {
-      video.hidden = false;
-      fb.hidden = true;
-    }
-  }).catch(function () {});
-})();
 
 function submitContact(){
   var name = (document.getElementById('cf-name')||{}).value || '';
