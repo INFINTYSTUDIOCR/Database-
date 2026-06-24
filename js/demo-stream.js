@@ -78,7 +78,8 @@ async function demoStreamSend(sessionId, message, opts) {
   }
 
   if (fullText.trim().length > 2 && typeof opts.onSentence === 'function') {
-    splitTtsSentences(fullText.split('\nALICE:')[0].split('\nJILL:')[0].trim()).forEach(function (sentence) {
+    var spoken = (typeof TutorReply !== 'undefined') ? TutorReply.extract(fullText) : fullText;
+    splitTtsSentences(spoken.split('\nALICE:')[0].split('\nJILL:')[0].trim()).forEach(function (sentence) {
       opts.onSentence(sentence);
     });
   }
@@ -93,5 +94,5 @@ async function demoStreamSend(sessionId, message, opts) {
     };
   }
 
-  return { reply: fullText, meta: meta, evaluation: evaluation };
+  return { reply: (typeof TutorReply !== 'undefined') ? TutorReply.extract(fullText) : fullText, meta: meta, evaluation: evaluation };
 }

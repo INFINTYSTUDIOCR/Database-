@@ -133,6 +133,13 @@ function resolveActorKey({ student, req, profile }) {
   return 'anon';
 }
 
+/** Brain LLM cache must be per-student — never share personalized greetings across actors. */
+function brainScopeExtra(student, req, suffix) {
+  const actorKey = resolveActorKey({ student, req });
+  const display = getStudentDisplayName(student);
+  return `${actorKey}:${display}:${suffix || ''}`;
+}
+
 function openingLogId(actorKey, product) {
   const safe = String(actorKey || 'anonymous').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
   return `OPENING-${product}-${safe}`;
@@ -184,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-jill-natural',
+  build: '2026-06-24-v5-registered-name',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1730,19 +1737,30 @@ function getStudentFirstName(student) {
 }
 
 function getStudentDisplayName(student) {
-  const preferred = String(student?.aiProfile?.preferredName || '').trim();
-  const valid = preferred ? sanitizePreferredNameServer(preferred) : null;
-  if (valid && !PREFERRED_NAME_NON_WORDS.has(valid.toLowerCase())) return valid;
+  sanitizeStudentAiProfile(student);
   return getStudentFirstName(student);
 }
 
+function sanitizeStudentAiProfile(student) {
+  if (!student?.aiProfile) return;
+  const raw = String(student.aiProfile.preferredName || '').trim();
+  if (!raw) return;
+  const valid = sanitizePreferredNameServer(raw);
+  const registered = getStudentFirstName(student).toLowerCase();
+  const token = raw.split(/\s+/)[0].toLowerCase();
+  if (!valid || PREFERRED_NAME_NON_WORDS.has(valid.toLowerCase()) || STAFF_NAME_BLOCKLIST.has(token) || token !== registered) {
+    student.aiProfile.preferredName = '';
+  }
+}
+
 const PREFERRED_NAME_BLOCKLIST = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','slut','whore'];
+const STAFF_NAME_BLOCKLIST = new Set(['johnny','john','trainer','admin','guest','student','teacher','infinity','alice','jill','nexora','claire','adam']);
 const PREFERRED_NAME_NON_WORDS = new Set([
-  'planning','planing','going','doing','trying','thinking','learning','studying','practicing','working',
+  'planning','planing','planned','going','doing','trying','thinking','learning','studying','practicing','working',
   'looking','speaking','talking','writing','reading','watching','listening','feeling','having','being',
   'getting','waiting','calling','helping','starting','finishing','meeting','running','walking','busy',
   'ready','fine','good','great','here','back','sorry','happy','tired','well','okay','ok','yes','no',
-  'just','only','really','very','also','still','about','today','tomorrow'
+  'just','only','really','very','also','still','about','today','tomorrow','practice','english','lesson'
 ]);
 
 function sanitizePreferredNameServer(name) {
@@ -1754,6 +1772,8 @@ function sanitizePreferredNameServer(name) {
   const lower = token.toLowerCase();
   if (PREFERRED_NAME_NON_WORDS.has(lower)) return null;
   if (PREFERRED_NAME_BLOCKLIST.some(b => lower.includes(b))) return null;
+  if (STAFF_NAME_BLOCKLIST.has(lower)) return null;
+  if (/ing$/i.test(token) && token.length > 4) return null;
   return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
 }
 
@@ -1768,23 +1788,17 @@ function buildAiProfileNote(student, tutor) {
   const display = getStudentDisplayName(student);
   const ai = student?.aiProfile || {};
   const returning = !!(ai.firstGreetingDone && ai.firstGreetingDone[key]);
-  const asked = !!(ai.nameAsked && ai.nameAsked[key]);
-  const rawPreferred = String(ai.preferredName || '').trim();
-  const sanitizedPreferred = rawPreferred ? sanitizePreferredNameServer(rawPreferred) : null;
-  const preferred = sanitizedPreferred && !PREFERRED_NAME_NON_WORDS.has(sanitizedPreferred.toLowerCase())
-    ? sanitizedPreferred : '';
-  let note = `\nSTUDENT NAME — registro: "${first}". Address as: "${display}".`;
+  let note = `\nSTUDENT NAME — ONLY use "${display}" (registered: "${first}"). Never guess or reuse another name.`;
   if (returning) {
     note += tutor === 'alice'
       ? ` RETURNING student: say "Welcome back, ${display}" briefly (1-2 sentences). Do NOT greet like a first meeting.`
       : ` RETURNING student: say "Qué gusto verte de nuevo, ${display}" briefly. Do NOT greet like a first meeting.`;
   } else {
     note += tutor === 'alice'
-      ? ` FIRST meeting with Alice: warm intro + ONE polite question asking how they prefer to be called (respectful names only; use "${first}" if none).`
-      : ` FIRST meeting with Jill: warm intro + ONE polite question asking how they prefer to be called (respectful names only; use "${first}" if none).`;
+      ? ` FIRST meeting: warm intro + ONE practice question. Do NOT ask how they prefer to be called — use "${display}" only.`
+      : ` FIRST meeting: brief intro + ONE practice question. Do NOT ask preferred name — use "${display}" only.`;
   }
-  if (asked && !preferred) note += ` You already asked preferred name; if still unknown, use "${first}".`;
-  if (preferred) note += ` Preferred name saved: "${preferred}". Use consistently unless they request a respectful change.`;
+  note += ` NEVER use Johnny, Planning, Going, Trying, or any -ing verb as a name. NEVER use trainer/staff/demo names.`;
   note += ` Never use humiliating, sexual, or offensive nicknames. Professional warmth always.`;
   return note + buildKpiFileNote(student);
 }
@@ -1823,6 +1837,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
       return res.status(403).json({ error: 'Student scope mismatch' });
     }
+    sanitizeStudentAiProfile(student);
 
     const isKamuk = student?.id && student.id.startsWith('KAM-');
     const tutorName = 'Alice';
@@ -1840,12 +1855,12 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       const profileNote = buildAiProfileNote(student, 'alice');
       const greetInstruction = returning
         ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
-        : `First session: greet warmly, say you'll practice English together, ask ONE engaging practice question AND ONE polite question about how they prefer to be called (respectful names only).`;
+        : `First session: greet warmly using ONLY the name "${display}" from the student record. ONE engaging practice question. Do NOT ask how they prefer to be called. Never say Johnny, Planning, or any name not in the student record.`;
 
-      const openExtra = `${mode}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}`;
+      const openExtra = brainScopeExtra(student, req, `${mode}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}:${ALICE_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('alice', 'opening', `START_${mode}`, openExtra);
       if (openBrain.hit) {
-        return res.json({ opening: openBrain.reply, sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
+        return res.json({ opening: plainBrainReply(openBrain.reply), sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
       }
 
       const resp = await claudeCall({
@@ -1921,11 +1936,11 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
       ? [...history.slice(-10), { role:'user', content:message }]
       : [{ role:'user', content:message }];
 
-    const levelExtra = student?.level || 'Functional';
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('alice', 'chat', message, levelExtra);
     if (brain.hit) {
       res.set('X-Brain-LLM', 'HIT');
-      return res.json({ reply: brain.reply, brainCache: true });
+      return res.json({ reply: plainBrainReply(brain.reply), brainCache: true });
     }
 
     const resp = await claudeCall({
@@ -1944,12 +1959,20 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v2-natural';
+const JILL_BRAIN_VER = 'v5-registered-name';
+const ALICE_BRAIN_VER = 'v5-registered-name';
+
+/** Never stream or cache raw {"reply":...} to clients/TTS. */
+function plainBrainReply(raw) {
+  const parsed = parseJillResponse(raw);
+  return parsed.reply || String(raw || '').trim();
+}
 const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
 
 IDENTIDAD:
 Tu nombre es Jill. Sos paciente, clara y natural — nunca generás presión. Enseñás el Método Nexus con soltura: podés improvisar ejemplos y reacciones dentro del método, sin sonar robótica ni dar charlas motivacionales vacías.
 Corregís con afecto y claridad, sin sermones ni relleno.
+CRÍTICO: Solo dirigite al estudiante cuyo nombre aparece en la línea ESTUDIANTE del contexto. Nunca uses el nombre de otra persona, trainer, o visitante.
 
 ESTILO — MÉTODO CON NATURALIDAD:
 - Directa al tema, sin bla bla ni azúcar excesivo — pero sí espontánea y conversacional cuando sirve la lección.
@@ -2023,6 +2046,10 @@ function parseJillResponse(raw) {
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
     const { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
+      return res.status(403).json({ error: 'Student scope mismatch' });
+    }
+    sanitizeStudentAiProfile(student);
 
     const name = student?.name || student?.info?.name || 'estudiante';
     const level = student?.level || student?.info?.level || 'Foundations';
@@ -2048,9 +2075,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const profileNote = buildAiProfileNote(student, 'jill');
       const greetInstruction = returning
         ? `Saludo breve a ${display} y retomá el bundle/ejercicio activo — natural, sin preámbulos largos.`
-        : `Bienvenida corta. Decile qué chunk/tema de hoy (según ejercicios o bundle) y UNA pregunta de práctica. Tono natural, ritmo ágil.`;
+        : `Bienvenida corta usando SOLO el nombre "${display}" del registro. Decile qué chunk/tema de hoy y UNA pregunta de práctica. Nunca digas Johnny, Planning, ni otro nombre.`;
 
-      const openExtra = `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`;
+      const openExtra = brainScopeExtra(student, req, `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
       if (openBrain.hit) {
         try {
@@ -2088,14 +2115,17 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       });
     }
 
-    const levelExtra = `${level}:${JILL_BRAIN_VER}`;
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
     if (brain.hit) {
       res.set('X-Brain-LLM', 'HIT');
       try {
-        return res.json({ ...parseJillResponse(brain.reply), brainCache: true });
+        const parsed = parseJillResponse(brain.reply);
+        const plain = parsed.reply || brain.reply;
+        return res.json({ ...parsed, reply: plain, brainCache: true });
       } catch (e) {
-        return res.json({ reply: brain.reply, contentType: 'text', brainCache: true });
+        const plain = String(brain.reply || '').replace(/^\s*\{\s*"reply"\s*:\s*"?/, '').replace(/"?\s*\}\s*$/, '').trim();
+        return res.json({ reply: plain, contentType: 'text', brainCache: true });
       }
     }
 
@@ -2188,6 +2218,10 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
     const { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
+      return res.status(403).json({ error: 'Student scope mismatch' });
+    }
+    sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
     if (!limit.ok) {
@@ -2206,11 +2240,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    const levelExtra = `${level}:${JILL_BRAIN_VER}`;
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     if (brain.hit) {
-      const parsed = parseJillResponse(brain.reply);
-      return Brain.writeBrainSSE(res, parsed.reply || brain.reply);
+      return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
     await streamAnthropicSSE(res, {
       max_tokens: 800,
@@ -2242,6 +2275,7 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
       return res.status(403).json({ error: 'Student scope mismatch' });
     }
+    sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
@@ -2256,9 +2290,9 @@ RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSlice(message)}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
-    const levelExtra = student?.level || 'Functional';
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
+    if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
       max_tokens: 750,
       system,

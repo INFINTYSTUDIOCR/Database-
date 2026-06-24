@@ -897,9 +897,6 @@ function restoreNexoraLabRuntime(){
 
 function pauseNexoraLab(){
   if(!_nx.active&&!_nx.profile) return;
-  _nxSending=false;
-  _nxSpeakId++;
-  _nxTTSQueue=[]; _nxTTSBusy=false;
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
   stopMic();
   if(_nx.callTimer){ clearInterval(_nx.callTimer); _nx.callTimer=null; }
@@ -908,8 +905,8 @@ function pauseNexoraLab(){
 
 function resumeNexoraLab(){
   if(!_nx.active) return;
-  _nxSending=false;
   if(!_nx.callTimer) startTimer();
+  if(_nxTTSQueue.length && !_nxTTSBusy) _nxTTSFlush();
   nexoraReadyHint();
 }
 
@@ -1826,27 +1823,41 @@ async function nexoraDemoStreamReply(payload, onPartial){
 
 async function nexoraAuthStreamReply(payload, onPartial){
   var fullText='';
-  var resp=await infinityFetch('/nexora/stream',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  });
-  if(!resp.ok) throw new Error('stream_'+resp.status);
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ ctrl.abort(); }, 55000);
+  var resp;
+  try{
+    resp=await infinityFetch('/nexora/stream',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
+      signal:ctrl.signal
+    });
+  }catch(e){
+    clearTimeout(tid);
+    throw e;
+  }
+  if(!resp.ok){ clearTimeout(tid); throw new Error('stream_'+resp.status); }
   var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
-  while(true){
-    var chunk=await reader.read(); if(chunk.done) break;
-    lineBuf+=dec.decode(chunk.value,{stream:true});
-    var lines=lineBuf.split('\n'); lineBuf=lines.pop()||'';
-    for(var i=0;i<lines.length;i++){
-      var line=lines[i]; if(!line.startsWith('data: ')) continue;
-      var raw=line.slice(6).trim(); if(raw==='[DONE]') break;
-      try{
-        var evt=JSON.parse(raw);
-        if(evt.t){
-          fullText+=evt.t;
-          if(onPartial) onPartial(fullText);
-        }
-      }catch(e){}
+  try{
+    while(true){
+      var chunk=await reader.read(); if(chunk.done) break;
+      lineBuf+=dec.decode(chunk.value,{stream:true});
+      var lines=lineBuf.split('\n'); lineBuf=lines.pop()||'';
+      for(var i=0;i<lines.length;i++){
+        var line=lines[i]; if(!line.startsWith('data: ')) continue;
+        var raw=line.slice(6).trim(); if(raw==='[DONE]') break;
+        try{
+          var evt=JSON.parse(raw);
+          if(evt.t){
+            fullText+=evt.t;
+            if(onPartial) onPartial(fullText);
+          }
+        }catch(e){}
+      }
     }
+  }finally{
+    clearTimeout(tid);
+    try{ reader.releaseLock(); }catch(e){}
   }
   return fullText.trim();
 }
@@ -1917,8 +1928,8 @@ var _nxSending=false;
 async function sendToAlice(text){
   if(!text||!_nx.active||_nxSending) return;
   _nxSending=true;
-  if(window._nxAudio){window._nxAudio.pause();window._nxAudio=null;}
-  _nxTTSQueue=[]; _nxTTSBusy=false; _nxSpeakId++;
+  var unwatchNx=voiceSendWatchdog(function(){ return _nxSending; }, function(){ _nxSending=false; _nxMicSent=false; });
+  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
@@ -1936,23 +1947,38 @@ async function sendToAlice(text){
     }
     if(reply && nexoraReplyTtsReady(reply)) speak(reply);
     else if(reply && !nexoraReplyTtsReady(reply)) showToast('Client line was cut short — ask them to repeat.');
+    else if(!reply) showToast('Client did not respond — try again.');
     saveNexoraLabRuntime();
   }catch(e){
     if(st) st.textContent='';
     showToast('AI did not respond — check login and try again.');
+  }finally{
+    unwatchNx();
+    _nxSending=false;
+    _nxMicSent=false;
   }
-  _nxSending=false;
 }
 
 // ── SPEAK ─────────────────────────────────────────────────────
-var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakId=0;
+var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakGen=0;
+
+function nexoraCancelSpeech(){
+  _nxSpeakGen++;
+  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
+  _nxTTSQueue=[];
+  _nxTTSBusy=false;
+}
+
 function cleanForTTS(text){
   return stripStageDirections(text).replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
 }
 function _nxTTSFlush(){
   if(_nxTTSBusy||_nxTTSQueue.length===0) return;
-  _nxTTSBusy=true; var speakId=++_nxSpeakId; var chunk=_nxTTSQueue.shift();
-  var clean=cleanForTTS(chunk); if(!nexoraReplyTtsReady(chunk)){ _nxTTSBusy=false; _nxTTSFlush(); return; }
+  _nxTTSBusy=true;
+  var gen=_nxSpeakGen;
+  var chunk=_nxTTSQueue.shift();
+  var clean=cleanForTTS(chunk);
+  if(!nexoraReplyTtsReady(chunk)){ _nxTTSBusy=false; _nxTTSFlush(); return; }
   var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
   var ttsPromise;
   if(isNexoraPublicDemo()){
@@ -1963,18 +1989,27 @@ function _nxTTSFlush(){
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b||speakId!==_nxSpeakId){ _nxTTSBusy=false; _nxTTSFlush(); return; }
-    if(window._nxAudio) window._nxAudio.pause();
-    var url=URL.createObjectURL(b); window._nxAudio=new Audio(url);
-    window._nxAudio.onended=function(){ URL.revokeObjectURL(url); _nxTTSBusy=false; _nxTTSFlush(); };
-    window._nxAudio.play();
-  }).catch(function(){ _nxTTSBusy=false; _nxTTSFlush(); });
+    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlush, 400); return; }
+    if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+    window._nxAudio=playAudioBlob(b, {
+      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); },
+      onError: function(){
+        window._nxAudio=null;
+        _nxTTSQueue.unshift(chunk);
+        _nxTTSBusy=false;
+        setTimeout(_nxTTSFlush, 300);
+      }
+    });
+  }).catch(function(){
+    _nxTTSQueue.unshift(chunk);
+    _nxTTSBusy=false;
+    setTimeout(_nxTTSFlush, 400);
+  });
 }
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
 function speak(text){
-  _nxTTSQueue=[];
-  _nxTTSBusy=false;
-  _nxSpeakId++;
+  if(!text) return;
+  nexoraCancelSpeech();
   splitTtsChunks(text, 450).forEach(function(chunk){ queueSpeak(chunk); });
 }
 
@@ -1985,12 +2020,12 @@ function bindAllNexoraPttMics(){
   if(typeof PttMic === 'undefined') return;
   document.querySelectorAll('[data-ptt-mic]').forEach(function(btn){
     if(btn._pttBound) return;
-    btn._pttBound = true;
     try {
       PttMic.bind({
         btn: btn,
         lang: 'en-US',
-        onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); _nxMicSent = false; },
+        canStart: function(){ return _nx.active && !_nxSending; },
+        onBeforeStart: function(){ if(window._nxAudio) try{ window._nxAudio.pause(); }catch(e){} _nxMicSent = false; },
         onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
         onSend: function(text){
           if(!text || _nxMicSent) return;

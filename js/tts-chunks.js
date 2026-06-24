@@ -64,3 +64,58 @@ function drainTtsPending(pending, onSentence, onPrefetch) {
   }
   return { pending: rest, spoken: out };
 }
+
+/**
+ * Play TTS blob reliably — retries autoplay, never skips queue silently.
+ */
+function playAudioBlob(blob, handlers) {
+  handlers = handlers || {};
+  if (!blob) {
+    if (handlers.onError) handlers.onError();
+    return null;
+  }
+  var url = URL.createObjectURL(blob);
+  var audio = new Audio(url);
+  var dead = false;
+  var attempts = 0;
+
+  function done(fn) {
+    if (dead) return;
+    dead = true;
+    try { URL.revokeObjectURL(url); } catch (e) {}
+    if (fn) fn();
+  }
+
+  audio.onended = function () { done(handlers.onEnded); };
+  audio.onerror = function () { done(handlers.onError); };
+
+  function tryPlay() {
+    var p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.catch(function () {
+        attempts++;
+        if (attempts < 5) {
+          setTimeout(tryPlay, 120 * attempts);
+        } else {
+          done(handlers.onError);
+        }
+      });
+    }
+  }
+  tryPlay();
+  return audio;
+}
+
+/** Unlock stuck send locks after network hang */
+function voiceSendWatchdog(isStuck, unlock, ms) {
+  ms = ms || 50000;
+  var t0 = Date.now();
+  var id = setInterval(function () {
+    if (!isStuck()) { clearInterval(id); return; }
+    if (Date.now() - t0 > ms) {
+      clearInterval(id);
+      unlock();
+    }
+  }, 2000);
+  return function () { clearInterval(id); };
+}
