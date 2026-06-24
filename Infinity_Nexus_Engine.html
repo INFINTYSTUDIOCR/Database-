@@ -861,23 +861,55 @@ window.addEventListener('unhandledrejection', function(e){
 });
 
 
-async function loadData(){
-  await loadUsers();
-  await loadRoster();
-  await loadCalendar();
-  await loadAuditLog();
-  await loadNews();
-  await loadSwaps();
-  await loadNexusKB();
-  await loadAttendance();
-  await loadStaffChat();
-  var rows = await dbGet('infinity_students');
+async function hydrateFromSessionRows(rows){
+  ROSTER = {};
+  CALENDAR_EVENTS = {};
+  AUDIT_LOG = [];
+  NEWS_ITEMS = {};
+  SWAPS = {};
+  NEXUS_KB = { entries: [] };
+  ATTENDANCE = {};
+  PORTAL_ACCESS = {};
+  STAFF_CHAT = { messages: [] };
+  KB_UPLOADS = [];
+  ALICE_CACHE = {};
+  (rows||[]).forEach(function(r){
+    if(!r || !r.id) return;
+    var id = r.id;
+    if(id.indexOf('ROSTER-')===0 && r.data) ROSTER[id] = r.data;
+    else if(id.indexOf('EVT-')===0 && r.data) CALENDAR_EVENTS[id] = r.data;
+    else if(id.indexOf('LOG-')===0 && r.data) AUDIT_LOG.push(r.data);
+    else if(id.indexOf('NEWS-')===0 && r.data) NEWS_ITEMS[id] = r.data;
+    else if(id.indexOf('SWAP-')===0 && r.data) SWAPS[id] = r.data;
+    else if(id==='NEXUS-KB' && r.data) NEXUS_KB = r.data;
+    else if(id.indexOf('ATT-')===0 && r.data) ATTENDANCE[id] = r.data;
+    else if(id.indexOf('PORTALACCESS-')===0 && r.data) PORTAL_ACCESS[id] = r.data;
+    else if(id==='STAFF-CHAT' && r.data) STAFF_CHAT = r.data;
+    else if(id.indexOf('KBFILE-')===0 && r.data) KB_UPLOADS.push(Object.assign({_id:id}, r.data));
+    else if(id.indexOf('ACACHE-')===0 && r.data) ALICE_CACHE[id] = r.data;
+  });
+  AUDIT_LOG.sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
+  KB_UPLOADS.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+}
+
+async function loadCoreData(){
+  var sessionRows, studentRows, videoRows;
+  [sessionRows, studentRows, videoRows] = await Promise.all([
+    dbGet('infinity_sessions'),
+    dbGet('infinity_students'),
+    dbGet('infinity_videos')
+  ]);
+  hydrateFromSessionRows(sessionRows);
   DB = {};
-  rows.forEach(function(r){ if(r.data) DB[r.id]=r.data; });
-  var vrows = await dbGet('infinity_videos');
+  (studentRows||[]).forEach(function(r){ if(r.data) DB[r.id]=r.data; });
   RESOURCES = {};
-  vrows.forEach(function(r){ if(r.data) RESOURCES[r.id]=r.data; });
-  document.getElementById('sb-count').textContent = allStudents().length;
+  (videoRows||[]).forEach(function(r){ if(r.data) RESOURCES[r.id]=r.data; });
+  var sb = document.getElementById('sb-count');
+  if(sb) sb.textContent = allStudents().length;
+}
+
+async function loadData(){
+  await Promise.all([loadUsers(), loadCoreData()]);
 }
 
 // ── LOGIN ─────────────────────────────────────────────────
@@ -932,7 +964,7 @@ async function doLogin(){
     return;
   }
   SESSION = { user, name: trainer.name, role: trainer.role, department: trainer.department };
-  await loadData();
+  await loadCoreData();
   SESSION.code = getTrainerCode(user);
   await logAction('Inicio de sesión', trainer.email);
   startApp();
@@ -1885,10 +1917,7 @@ async function saveAssignResource(){
 var ROSTER = {};
 
 async function loadRoster(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    rows.forEach(function(r){ if(r.id&&r.id.startsWith('ROSTER-')&&r.data) ROSTER[r.id]=r.data; });
-  }catch(e){}
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
 }
 
 function renderRoster(m){
@@ -2039,10 +2068,7 @@ function deleteRosterProfile(userId){
 var CALENDAR_EVENTS = {};
 
 async function loadCalendar(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    rows.forEach(function(r){ if(r.id&&r.id.startsWith('EVT-')&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
-  }catch(e){}
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
 }
 
 function renderCalendar(m){
@@ -2474,11 +2500,7 @@ function goHome(){
 var AUDIT_LOG = [];
 
 async function loadAuditLog(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    AUDIT_LOG = rows.filter(function(r){ return r.id && r.id.indexOf('LOG-')===0 && r.data; }).map(function(r){ return r.data; });
-    AUDIT_LOG.sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
-  }catch(e){ AUDIT_LOG=[]; }
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ AUDIT_LOG=[]; }
 }
 
 async function logAction(action, details){
@@ -2512,11 +2534,7 @@ function renderAuditLog(m){
 var NEWS_ITEMS = {};
 
 async function loadNews(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    NEWS_ITEMS = {};
-    rows.forEach(function(r){ if(r.id&&r.id.indexOf('NEWS-')===0&&r.data) NEWS_ITEMS[r.id]=r.data; });
-  }catch(e){}
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
 }
 
 var DEPT_LABELS = {admin:'Administration',training:'Training Team',marketing:'Marketing',misc:'Misceláneos'};
@@ -4626,11 +4644,7 @@ function renderAvailabilityOverview(m){
 var SWAPS = {};
 
 async function loadSwaps(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    SWAPS = {};
-    rows.forEach(function(r){ if(r.id&&r.id.indexOf('SWAP-')===0&&r.data) SWAPS[r.id]=r.data; });
-  }catch(e){}
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
 }
 
 function openSwapModal(evtId){
@@ -4948,11 +4962,7 @@ function findKPI26Meta(id){
 var NEXUS_KB = { entries: [] };
 
 async function loadNexusKB(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    var row = rows.find(function(r){ return r.id==='NEXUS-KB'; });
-    NEXUS_KB = (row&&row.data) ? row.data : { entries: [] };
-  }catch(e){ NEXUS_KB = { entries: [] }; }
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ NEXUS_KB = { entries: [] }; }
 }
 
 async function saveNexusKB(){
@@ -5516,14 +5526,7 @@ var ATTENDANCE = {};
 var PORTAL_ACCESS = {}; // key: studentId+'_'+YYYY-MM-DD -> {time}
 
 async function loadAttendance(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    ATTENDANCE = {}; PORTAL_ACCESS = {};
-    rows.forEach(function(r){
-      if(r.id && r.id.indexOf('ATT-')===0 && r.data) ATTENDANCE[r.id]=r.data;
-      if(r.id && r.id.indexOf('PORTALACCESS-')===0 && r.data) PORTAL_ACCESS[r.id]=r.data;
-    });
-  }catch(e){}
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
 }
 
 function getActiveClassFor(sid){
@@ -5656,11 +5659,7 @@ function renderOpsTrainerDetail(students){
 var STAFF_CHAT = { messages: [] };
 
 async function loadStaffChat(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    var row = rows.find(function(r){ return r.id==='STAFF-CHAT'; });
-    STAFF_CHAT = (row&&row.data) ? row.data : { messages: [] };
-  }catch(e){ STAFF_CHAT = { messages: [] }; }
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ STAFF_CHAT = { messages: [] }; }
 }
 
 // ── CHAT PRIVADO ENTRE TRAINERS + TRANSCRIPCIONES ─────────
@@ -6338,14 +6337,7 @@ function previewNexora(s){
 var KB_UPLOADS = [];
 
 async function loadKBUploads(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    KB_UPLOADS = [];
-    rows.forEach(function(r){
-      if(r.id && r.id.indexOf('KBFILE-')===0 && r.data) KB_UPLOADS.push(Object.assign({_id:r.id},r.data));
-    });
-    KB_UPLOADS.sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
-  }catch(e){ KB_UPLOADS=[]; }
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ KB_UPLOADS=[]; }
 }
 
 function renderKBUpload(m){
@@ -6532,13 +6524,7 @@ async function kbuDelete(id){
 var ALICE_CACHE = {};
 
 async function loadAliceCache(){
-  try{
-    var rows = await dbGet('infinity_sessions');
-    ALICE_CACHE = {};
-    rows.forEach(function(r){
-      if(r.id && r.id.indexOf('ACACHE-')===0 && r.data) ALICE_CACHE[r.id]=r.data;
-    });
-  }catch(e){ ALICE_CACHE={}; }
+  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ ALICE_CACHE={}; }
 }
 
 function _cacheKey(prompt){
@@ -6612,14 +6598,6 @@ runAIAnalysis = async function(){
     showToast('Error conectando con Alice','err');
   }
   btn.disabled = false;
-};
-
-// Cargar cache en loadData
-var _origLoadData = loadData;
-loadData = async function(){
-  await _origLoadData();
-  await loadKBUploads();
-  await loadAliceCache();
 };
 
 </script>
