@@ -113,7 +113,10 @@
     { s: '.pricing-card--ort .pricing-why', en: 'ORT does not teach rules — it forces execution. The bridge between understanding English and performing in BPO, remote teams and international interviews.', es: 'ORT no enseña reglas — fuerza ejecución. El puente entre entender inglés y performar en BPO, equipos remotos e entrevistas internacionales.' },
     { s: '.pricing-card--nexora .pricing-tagline', en: 'Automated Practice System — your boss, client or interviewer on demand.', es: 'Sistema de Práctica Automatizada — tu jefe, cliente o entrevistador a demanda.' },
     { s: '.pricing-card--nexora .pricing-why', en: 'For professionals who already speak but need high-volume role-play without paying per hour. Know your score before the real interview.', es: 'Para profesionales que ya hablan pero necesitan role-play de alto volumen sin pagar por hora. Conocé tu puntaje antes de la entrevista real.' },
-    { s: '#pricing .pricing-legal', en: 'Promotional price ₡67,500 valid for the rest of calendar 2026, subject to availability. Regular price ₡75,000/month (Foundations & ORT) or ₡75,000/30 days (Nexora Professional). Strikethrough prices represent bundled ecosystem value. Free professional assessment available — 1.5 h with a human trainer.', es: 'Precio promocional ₡67.500 válido por el resto del calendario 2026, sujeto a disponibilidad de cupos. Precio regular ₡75.000/mes (Foundations y ORT) o ₡75.000/30 días (Nexora Professional). Precios tachados representan valor desglosado del ecosistema. Evaluación profesional gratuita — 1.5 h con trainer humano.' },
+    { s: '#pricing .pricing-legal', en: 'Promotional prices valid for the rest of calendar 2026, subject to availability: Foundations ₡67,500/mo · ORT ₡87,500/mo · Nexora Pro ₡75,000/30 days. Regular prices: Foundations ₡75,000/mo · ORT ₡97,500/mo · Nexora Pro ₡85,000/30 days. Strikethrough prices represent bundled ecosystem value. Free professional assessment — 1.5 h with a human trainer.', es: 'Precios promocionales válidos resto 2026, sujeto a cupos: Foundations ₡67.500/mes · ORT ₡87.500/mes · Nexora Pro ₡75.000/30 días. Precios regulares: Foundations ₡75.000/mes · ORT ₡97.500/mes · Nexora Pro ₡85.000/30 días. Precios tachados = valor desglosado del ecosistema. Evaluación profesional gratuita — 1.5 h con trainer humano.' },
+    { s: '.pricing-card--foundations .pricing-kpis-title', en: 'KPIs Jill trains', es: 'KPIs que entrena Jill' },
+    { s: '.pricing-card--ort .pricing-kpis-title', en: 'KPIs Alice + trainer elevate', es: 'KPIs que elevan Alice + trainer' },
+    { s: '.pricing-card--nexora .pricing-kpis-title', en: 'KPIs Nexora scores live', es: 'KPIs que califica Nexora en vivo' },
     { s: '.footer-links a[href="#pricing"]', en: 'Pricing', es: 'Precios' },
     { s: '#about .section-tag', en: 'Built From Experience', es: 'Construido Con Experiencia' },
     { s: '#about .section-title', html: true, en: '26 Years In The Industry.<br><span style="color:var(--purple)">Not The Classroom.</span>', es: '26 Años en la Industria.<br><span style="color:var(--purple)">No en el Aula.</span>' },
@@ -280,22 +283,44 @@
     { s: '#ct', en: 'Claire is typing...', es: 'Claire está escribiendo...' }
   ];
 
-  var SUBPAGE = [
+  var SUBPAGE_COMMON = [
     { s: 'a[href="index.html#ecosystem"]', en: 'Ecosystem', es: 'Ecosistema' },
-    { s: '.page-title', en: 'Foundations', es: 'Foundations' },
-    { s: '.page-lead', en: 'Communication Core — the operational English base. Communication, participation, interaction and collaboration built for real workplace execution.', es: 'Núcleo comunicativo — la base de inglés operacional. Comunicación, participación, interacción y colaboración para ejecución real en el trabajo.' },
     { s: '.content-block:nth-child(1) h2', en: 'What it is', es: 'Qué es' },
-    { s: '.content-block:nth-child(1) p', en: 'Foundations is the core communication program of the Infinity methodology. It is structured training — not a community event. Students develop the operational language skills required to participate, interact and collaborate in professional environments.', es: 'Foundations es el programa de comunicación core de la metodología Infinity. Es entrenamiento estructurado — no un evento comunitario. Los estudiantes desarrollan habilidades de lenguaje operacional para participar, interactuar y colaborar en entornos profesionales.' },
-    { s: '.content-block:nth-child(2) h2', en: 'What you develop', es: 'Qué desarrollás' },
-    { s: '.feature-chip:nth-child(1)', html: true, en: '<i class="ti ti-message"></i> Communication', es: '<i class="ti ti-message"></i> Comunicación' },
-    { s: '.feature-chip:nth-child(2)', html: true, en: '<i class="ti ti-hand-stop"></i> Participation', es: '<i class="ti ti-hand-stop"></i> Participación' },
-    { s: '.feature-chip:nth-child(3)', html: true, en: '<i class="ti ti-arrows-exchange"></i> Interaction', es: '<i class="ti ti-arrows-exchange"></i> Interacción' },
-    { s: '.feature-chip:nth-child(4)', html: true, en: '<i class="ti ti-users-group"></i> Collaboration', es: '<i class="ti ti-users-group"></i> Colaboración' },
-    { s: '.content-block:nth-child(3) h2', en: 'Pathway', es: 'Ruta' },
-    { s: '.content-block:nth-child(3) p', en: 'Foundations leads into ORT (Operational Readiness Training) for pressure-based execution. Community programs such as Off The Clock, The Conversatory and Job Finder support the ecosystem but are separate from this core track.', es: 'Foundations conduce a ORT (Operational Readiness Training) para ejecución bajo presión. Programas comunitarios como Off The Clock, El Conversatorio y Job Finder apoyan el ecosistema pero son independientes de este track core.' },
-    { s: '.page-main .btn-primary', html: true, en: '<i class="ti ti-calendar"></i> Book your assessment', es: '<i class="ti ti-calendar"></i> Agenda tu evaluación' },
-    { s: '.visual-tag', en: 'Core · Communication', es: 'Core · Comunicación' }
+    { s: '.page-main > .btn-primary', html: true, en: '<i class="ti ti-calendar"></i> Book your assessment', es: '<i class="ti ti-calendar"></i> Agenda tu evaluación' }
   ];
+
+  var FOUNDATIONS_SUBPAGE = SUBPAGE_COMMON.concat([
+    { s: 'body.page-foundations .page-title', en: 'Foundations', es: 'Foundations' },
+    { s: 'body.page-foundations .page-lead', en: 'Private operational English training — one student, one path. Communication built for real workplace execution, not group classrooms.', es: 'Entrenamiento privado de inglés operacional — un estudiante, una ruta. Comunicación para ejecución real en el trabajo, no aulas grupales.' },
+    { s: 'body.page-foundations .content-block:nth-child(1) p', en: 'Foundations is the core communication program of the Infinity methodology. It is structured training — not a community event. Students develop the operational language skills required to participate, interact and collaborate in professional environments.', es: 'Foundations es el programa de comunicación core de la metodología Infinity. Es entrenamiento estructurado — no un evento comunitario. Los estudiantes desarrollan habilidades de lenguaje operacional para participar, interactuar y colaborar en entornos profesionales.' },
+    { s: 'body.page-foundations .content-block:nth-child(2) h2', en: 'What you develop', es: 'Qué desarrollás' },
+    { s: 'body.page-foundations .feature-chip:nth-child(1)', html: true, en: '<i class="ti ti-message"></i> Communication', es: '<i class="ti ti-message"></i> Comunicación' },
+    { s: 'body.page-foundations .feature-chip:nth-child(2)', html: true, en: '<i class="ti ti-hand-stop"></i> Participation', es: '<i class="ti ti-hand-stop"></i> Participación' },
+    { s: 'body.page-foundations .feature-chip:nth-child(3)', html: true, en: '<i class="ti ti-arrows-exchange"></i> Interaction', es: '<i class="ti ti-arrows-exchange"></i> Interacción' },
+    { s: 'body.page-foundations .feature-chip:nth-child(4)', html: true, en: '<i class="ti ti-users-group"></i> Collaboration', es: '<i class="ti ti-users-group"></i> Colaboración' },
+    { s: 'body.page-foundations .content-block:nth-child(3) h2', en: 'Pathway', es: 'Ruta' },
+    { s: 'body.page-foundations .content-block:nth-child(3) p', en: 'Foundations leads into ORT (Operational Readiness Training) for pressure-based execution. Community programs such as Off The Clock, The Conversatory and Job Finder support the ecosystem but are separate from this core track.', es: 'Foundations conduce a ORT (Operational Readiness Training) para ejecución bajo presión. Programas comunitarios como Off The Clock, El Conversatorio y Job Finder apoyan el ecosistema pero son independientes de este track core.' },
+    { s: 'body.page-foundations .visual-tag', en: 'Core · Communication', es: 'Core · Comunicación' },
+    { s: '#pricing-foundations h3', en: 'Foundations — Investment', es: 'Foundations — Inversión' },
+    { s: '#pricing-foundations .pricing-kpis-title', en: 'KPIs Jill trains', es: 'KPIs que entrena Jill' }
+  ]);
+
+  var ORT_SUBPAGE = SUBPAGE_COMMON.concat([
+    { s: 'body.page-ort .page-title', en: 'ORT', es: 'ORT' },
+    { s: 'body.page-ort .page-lead', en: 'Operational Readiness Training — pressure-based training that forces execution under real conditions. No comfort zones.', es: 'Operational Readiness Training — entrenamiento bajo presión que fuerza ejecución en condiciones reales. Sin zonas de confort.' },
+    { s: 'body.page-ort .content-block:nth-child(1) p', en: 'ORT is the advanced core program of Infinity Studio. After Foundations builds communication capacity, ORT applies it under operational pressure — simulating the demands of BPO, customer service, tech support and international remote roles.', es: 'ORT es el programa core avanzado de Infinity Studio. Después de que Foundations construye capacidad comunicativa, ORT la aplica bajo presión operacional — simulando las exigencias de BPO, servicio al cliente, soporte técnico y roles remotos internacionales.' },
+    { s: 'body.page-ort .content-block:nth-child(2) h2', en: 'How it works', es: 'Cómo funciona' },
+    { s: 'body.page-ort .content-block:nth-child(2) li:nth-child(1)', en: 'Realistic scenarios with time pressure and performance expectations', es: 'Escenarios realistas con presión de tiempo y expectativas de desempeño' },
+    { s: 'body.page-ort .content-block:nth-child(2) li:nth-child(2)', en: 'KPI-driven feedback from your trainer', es: 'Feedback guiado por KPIs de tu trainer' },
+    { s: 'body.page-ort .content-block:nth-child(2) li:nth-child(3)', en: 'Personalized coaching and structured follow-up', es: 'Coaching personalizado y seguimiento estructurado' },
+    { s: 'body.page-ort .content-block:nth-child(2) li:nth-child(4)', en: 'Exercises targeted to your operational weaknesses', es: 'Ejercicios dirigidos a tus debilidades operacionales' },
+    { s: 'body.page-ort .content-block:nth-child(3) h2', en: 'Not a community program', es: 'No es un programa comunitario' },
+    { s: 'body.page-ort .content-block:nth-child(3) p', en: 'ORT is structured training — distinct from satellite initiatives like Off The Clock (talk show), The Conversatory (live practice events) and Job Finder (employability).', es: 'ORT es entrenamiento estructurado — distinto de iniciativas satélite como Off The Clock (talk show), El Conversatorio (práctica en vivo) y Job Finder (empleabilidad).' },
+    { s: 'body.page-ort .visual-tag', en: 'Core · Readiness', es: 'Core · Preparación' },
+    { s: '#pricing-ort h3', en: 'ORT — Investment', es: 'ORT — Inversión' },
+    { s: '#pricing-ort .pricing-kpis-title', en: 'KPIs Alice + trainer elevate', es: 'KPIs que elevan Alice + trainer' },
+    { s: 'body.page-ort .page-main .btn-secondary', html: true, en: '<i class="ti ti-arrow-left"></i> Start with Foundations', es: '<i class="ti ti-arrow-left"></i> Empezar con Foundations' }
+  ]);
 
   var DEMO_COMMON = [
     { s: 'a[href="try-demo.html"]', en: '← All demos', es: '← Todos los demos' },
@@ -341,8 +366,8 @@
     if (page === 'try-nexora.html') return NAV.concat(DEMO_NEXORA);
     if (page === 'try-jill.html') return NAV.concat(DEMO_JILL);
     if (page === 'try-demo.html') return NAV.concat(DEMO_COMMON);
-    if (page === 'foundations.html') return NAV.concat(SUBPAGE);
-    if (page === 'ort.html') return NAV.concat(SUBPAGE);
+    if (page === 'foundations.html') return NAV.concat(FOUNDATIONS_SUBPAGE);
+    if (page === 'ort.html') return NAV.concat(ORT_SUBPAGE);
     return NAV;
   }
 
