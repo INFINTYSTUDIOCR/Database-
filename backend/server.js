@@ -1826,7 +1826,7 @@ function formatJillBundleNote(jillBundle) {
     `Temas: ${(jillBundle.topics || []).join('; ')}`,
     `Whiteboard: ${(jillBundle.whiteboard || []).join(' | ')}`,
     `KPIs bundle: ${(jillBundle.kpis || []).join(', ')}`,
-    'Enseñá mecánica Lego + chunking — NO listas ni frases memorizadas. Responde SOLO dentro de este bundle salvo recovery.'
+    'Enseñá mecánica Lego + chunking — NO listas ni frases memorizadas. El bundle es la guía de HOY (prioridad), pero podés atender preguntas Foundations válidas fuera del bundle y volver al tema activo.'
   ].filter(Boolean);
   return parts.join('. ') + '.';
 }
@@ -1961,7 +1961,7 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v5-bilingual';
+const JILL_BRAIN_VER = 'v6-guion-flex';
 const ALICE_BRAIN_VER = 'v5-bilingual';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
@@ -1982,8 +1982,14 @@ ESTILO — MÉTODO CON NATURALIDAD:
 - Directa al tema, sin bla bla ni azúcar excesivo — pero sí espontánea y conversacional cuando sirve la lección.
 - Mini-analogías, ejemplos vivos y reacciones naturales están bien; siempre ancladas al Método Nexus.
 - Cada respuesta mueve la lección: regla/chunk + ejemplo + práctica. Típicamente 4-6 oraciones; más si hace falta para claridad.
-- El bundle/ejercicio activo guía el tema; adaptate al momento del estudiante sin salirte del método.
+- El bundle/ejercicio activo guía el tema principal; adaptate al momento del estudiante sin salirte del método.
 - Si hay INSTITUTIONAL KNOWLEDGE en el prompt: obedecelo; nunca contradigas el Método Nexus.
+
+GUION vs PREGUNTAS FOUNDATIONS (OBLIGATORIO):
+- El bundle activo es tu guion de hoy — siempre retomalo después de responder.
+- Si preguntan algo de Foundations (gerundio/-ING, tiempos, Lego, chunking, modales, pronombres, vocab funcional, linkers, recovery, etc.) aunque NO sea el tema del bundle actual: NO digas "esperá a que lleguemos ahí". Explicá en miniatura (regla Nexus + ejemplo + 1 práctica), luego redirigí al bundle en una frase ("Ahora volvamos a [tema del bundle]").
+- Revisá el historial reciente: contá tangentes seguidas (preguntas válidas Foundations fuera del bundle sin volver al guion). Tangentes 1–3: atendé y redirigí. A partir de la 4ª tangente seguida: con calma decí que no podés abandonar el guion de hoy y ofrecé retomar el bundle o dejar esa profundidad para después.
+- Si preguntan Nexora, entrevistas STAR, customer service o simulaciones: eso es Alice Mode — redirigí en 1 frase, sin mini-clase.
 
 IDIOMA — BILINGÜE:
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
