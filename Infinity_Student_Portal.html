@@ -2239,7 +2239,6 @@ async function nexoraAnswerCall(){
   var accountContext = nexoraBuildAccountContext(p);
   var opener = sanitizeNexoraReply(nexoraInstantOpening(p, sc), p);
   nexoraAddMsg(opener, 'client');
-  if(nexoraReplyTtsReady(opener)) nexoraSpeak(opener);
   _nxState.history.push({role:'assistant',content:opener});
   _nxState.transcript.push('CLIENT ('+p.firstName+'): '+opener);
   try {
@@ -2255,11 +2254,21 @@ async function nexoraAnswerCall(){
     });
     var d = await r.json();
     var aiReply = sanitizeNexoraReply((d && d.reply) || '', p);
+    var finalLine = (aiReply && aiReply.length > 15) ? aiReply : opener;
     if(aiReply && aiReply.length > 15 && aiReply !== opener){
       _nxState.history[_nxState.history.length-1] = {role:'assistant',content:aiReply};
       _nxState.transcript[_nxState.transcript.length-1] = 'CLIENT ('+p.firstName+'): '+aiReply;
+      var msgs = document.getElementById('nx-msgs');
+      if(msgs && msgs.lastElementChild){
+        var bubble = msgs.lastElementChild.querySelector('div:last-child');
+        if(bubble) bubble.textContent = aiReply;
+      }
     }
-  } catch(e){}
+    if(isCompleteSpokenLine(finalLine) || nexoraReplyTtsReady(finalLine)) nexoraSpeak(finalLine);
+    else showToast('Client line was cut short — ask them to repeat.');
+  } catch(e){
+    if(nexoraReplyTtsReady(opener)) nexoraSpeak(opener);
+  }
 }
 
 // ── HOLD ───────────────────────────────────────────────────────
@@ -2339,6 +2348,7 @@ async function sendNexoraMsgVoice(text){
 function nexoraSendToAlice(text){
   if(_nxSending) return;
   _nxSending = true;
+  nexoraCancelSpeech();
   var p = _nxState.profile;
   var sc = _nxState.scenario;
   var accountContext = nexoraBuildAccountContext(p);
@@ -2368,7 +2378,7 @@ function nexoraSendToAlice(text){
     if(statusEl) statusEl.textContent='';
     if(!reply){ showToast('Client did not respond — try again.'); return; }
     nexoraAddMsg(reply,'client');
-    if(nexoraReplyTtsReady(reply)) nexoraSpeak(reply);
+    if(isCompleteSpokenLine(reply) || nexoraReplyTtsReady(reply)) nexoraSpeak(reply);
     else showToast('Client line was cut short — ask them to repeat.');
     _nxState.history.push({role:'assistant',content:reply});
     _nxState.transcript.push('CLIENT ('+p.firstName+'): '+reply);
@@ -2520,7 +2530,7 @@ function bindNexoraPttMic(){
     btn: btn,
     lang: 'en-US',
     canStart: function(){ return _nxState.active && !_nxSending; },
-    onBeforeStart: function(){ if(window._nxAudio) window._nxAudio.pause(); },
+    onBeforeStart: function(){ nexoraCancelSpeech(); },
     onUi: function(listening){
       if(listening){ btn.style.background='rgba(239,68,68,0.3)'; btn.style.borderColor='#EF4444'; btn.style.color='white'; }
       else { btn.style.background='rgba(192,132,252,0.1)'; btn.style.borderColor='rgba(192,132,252,0.3)'; btn.style.color='#C084FC'; }
@@ -2591,7 +2601,16 @@ function _nxTTSFlushPortal(){
     .replace(/;/g,' ')
     .replace(/\s+/g,' ')
     .trim();
-  if(!clean || !nexoraReplyTtsReady(clean)){ _nxTTSBusy=false; _nxTTSFlushPortal(); return; }
+  if(!clean || !nexoraReplyTtsReady(clean)){
+    if(_nxTTSQueue.length){
+      _nxTTSQueue[0]=chunk+' '+_nxTTSQueue[0];
+      _nxTTSBusy=false;
+      _nxTTSFlushPortal();
+      return;
+    }
+    _nxTTSBusy=false;
+    return;
+  }
   infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){

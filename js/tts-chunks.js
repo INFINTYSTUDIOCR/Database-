@@ -1,17 +1,38 @@
 /**
  * Split long tutor/voice text into TTS-safe chunks without cutting mid-sentence.
  */
+function protectTtsDecimalPoints(text) {
+  return String(text || '')
+    .replace(/(\d)\.(\d)/g, '$1<TTS_DOT>$2')
+    .replace(/\b([A-Za-z])\./g, '$1<TTS_ABBR>');
+}
+
+function restoreTtsDecimalPoints(text) {
+  return String(text || '')
+    .replace(/<TTS_DOT>/g, '.')
+    .replace(/<TTS_ABBR>/g, '.');
+}
+
 function splitTtsSentences(text) {
   var src = String(text || '').replace(/\s+/g, ' ').trim();
   if (!src) return [];
+  var shielded = protectTtsDecimalPoints(src);
   var parts = [];
   var re = /[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g;
   var m;
-  while ((m = re.exec(src)) !== null) {
-    var s = m[0].trim();
+  while ((m = re.exec(shielded)) !== null) {
+    var s = restoreTtsDecimalPoints(m[0].trim());
     if (s.length > 1) parts.push(s);
   }
   return parts.length ? parts : [src];
+}
+
+function isCompleteSpokenLine(text, minWords) {
+  minWords = minWords || 5;
+  var t = String(text || '').replace(/\s+/g, ' ').trim();
+  if (t.length < 18) return false;
+  if ((t.match(/\b\w+\b/g) || []).length < minWords) return false;
+  return /[.!?]$/.test(t);
 }
 
 function splitTtsChunks(text, maxLen) {

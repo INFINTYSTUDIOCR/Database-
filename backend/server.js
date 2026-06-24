@@ -191,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v5-nexora-scoped',
+  build: '2026-06-24-v6-nexora-voice',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -2942,7 +2942,10 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
     const ctx = await prepareNexoraRequest(req.body, req);
     const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
-    if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
+    if (brain.hit) {
+      const fixed = finishNexoraReply(brain.reply, ctx.p, ctx.scType);
+      return Brain.writeBrainSSE(res, fixed);
+    }
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 220,

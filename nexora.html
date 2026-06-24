@@ -1841,9 +1841,13 @@ async function nexoraAuthStreamReply(payload, onPartial){
     });
   }catch(e){
     clearTimeout(tid);
-    throw e;
+    return await nexoraPostReply(payload);
   }
-  if(!resp.ok){ clearTimeout(tid); throw new Error('stream_'+resp.status); }
+  if(!resp.ok){
+    clearTimeout(tid);
+    if(isNexoraStreamUnavailable('', resp.status)) return await nexoraPostReply(payload);
+    throw new Error('stream_'+resp.status);
+  }
   var reader=resp.body.getReader(), dec=new TextDecoder(), lineBuf='';
   try{
     while(true){
@@ -1866,7 +1870,9 @@ async function nexoraAuthStreamReply(payload, onPartial){
     clearTimeout(tid);
     try{ reader.releaseLock(); }catch(e){}
   }
-  return fullText.trim();
+  fullText = fullText.trim();
+  if(!isCompleteSpokenLine(fullText)) return await nexoraPostReply(payload);
+  return fullText;
 }
 
 async function nexoraGetReply(payload, onPartial){
@@ -1925,16 +1931,19 @@ async function aliceEnter(){
   if(st) st.textContent='';
   _nx.history.push({role:'assistant',content:opener});
   _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+opener);
-  if(nexoraReplyTtsReady(opener)) speak(opener);
   try{
     var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc),null);
     var reply=sanitizeNexoraReply(fullRaw||'', p);
+    var finalLine=(reply && reply.length > 15) ? reply : opener;
     if(reply && reply.length > 15 && reply !== opener){
       _nx.history[_nx.history.length-1]={role:'assistant',content:reply};
       _nx.transcript[_nx.transcript.length-1]='CLIENT ('+(p.firstName||'Client')+'): '+reply;
     }
+    if(isCompleteSpokenLine(finalLine) || nexoraReplyTtsReady(finalLine)) speak(finalLine);
+    else showToast('Client line was cut short — ask them to repeat.');
   }catch(e){
-    showToast('Could not connect AI client — try speaking again.');
+    if(nexoraReplyTtsReady(opener)) speak(opener);
+    else showToast('Could not connect AI client — try speaking again.');
   }
 }
 
@@ -1943,7 +1952,7 @@ async function sendToAlice(text){
   if(!text||!_nx.active||_nxSending) return;
   _nxSending=true;
   var unwatchNx=voiceSendWatchdog(function(){ return _nxSending; }, function(){ _nxSending=false; _nxMicSent=false; });
-  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+  nexoraCancelSpeech();
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
@@ -1959,8 +1968,8 @@ async function sendToAlice(text){
       _nx.history.push({role:'assistant',content:reply});
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
-    if(reply && nexoraReplyTtsReady(reply)) speak(reply);
-    else if(reply && !nexoraReplyTtsReady(reply)) showToast('Client line was cut short — ask them to repeat.');
+    if(reply && (isCompleteSpokenLine(reply) || nexoraReplyTtsReady(reply))) speak(reply);
+    else if(reply && !isCompleteSpokenLine(reply) && !nexoraReplyTtsReady(reply)) showToast('Client line was cut short — ask them to repeat.');
     else if(!reply) showToast('Client did not respond — try again.');
     saveNexoraLabRuntime();
   }catch(e){
@@ -1992,7 +2001,16 @@ function _nxTTSFlush(){
   var gen=_nxSpeakGen;
   var chunk=_nxTTSQueue.shift();
   var clean=cleanForTTS(chunk);
-  if(!nexoraReplyTtsReady(chunk)){ _nxTTSBusy=false; _nxTTSFlush(); return; }
+  if(!nexoraReplyTtsReady(chunk)){
+    if(_nxTTSQueue.length){
+      _nxTTSQueue[0]=chunk+' '+_nxTTSQueue[0];
+      _nxTTSBusy=false;
+      _nxTTSFlush();
+      return;
+    }
+    _nxTTSBusy=false;
+    return;
+  }
   var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
   var ttsPromise;
   if(isNexoraPublicDemo()){
@@ -2039,7 +2057,7 @@ function bindAllNexoraPttMics(){
         btn: btn,
         lang: 'en-US',
         canStart: function(){ return _nx.active && !_nxSending; },
-        onBeforeStart: function(){ if(window._nxAudio) try{ window._nxAudio.pause(); }catch(e){} _nxMicSent = false; },
+        onBeforeStart: function(){ nexoraCancelSpeech(); _nxMicSent = false; },
         onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
         onSend: function(text){
           if(!text || _nxMicSent) return;
