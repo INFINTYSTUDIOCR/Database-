@@ -1133,6 +1133,22 @@ function kpiVisual(v,s){
   var tag=v<=3?KPI_TAGS[1]:v<=5?KPI_TAGS[2]:v<=6?KPI_TAGS[3]:v<=8?KPI_TAGS[4]:KPI_TAGS[5];
   return {col:KPI_COLORS[tier]||'var(--border)',tag:tag,pct:(v/10)*100,label:v+'/10'};
 }
+function defaultAreaAverages(){
+  return KPI_TRACKER_AREAS.map(function(a){ return {id:a.id, name:a.name, pct:0}; });
+}
+function areaAveragesFromScores(scores){
+  if(!scores || typeof KPI_TRACKER_AREAS==='undefined') return defaultAreaAverages();
+  return KPI_TRACKER_AREAS.map(function(area){
+    var sum=0, max=0;
+    area.kpis.forEach(function(k){ if(scores[k.id]!==undefined){ sum+=Number(scores[k.id])||0; max+=k.max; } });
+    return { id:area.id, name:area.name, pct: max?Math.round(sum/max*100):0 };
+  });
+}
+function resolveAreaAverages(last){
+  if(last && Array.isArray(last.areaAverages) && last.areaAverages.length) return last.areaAverages;
+  if(last && last.scores) return areaAveragesFromScores(last.scores);
+  return defaultAreaAverages();
+}
 function getLevelForStudent(score,s){
   if((s&&isScale10Student(s))||score>25) return score>=42?'Advanced':score>=32?'Functional':score>=22?'Emerging':'Survival';
   return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival';
@@ -5893,7 +5909,7 @@ function renderProgressBlock(s, id){
   var hist = s.kpiTracker||[];
   var last = hist.length ? hist[hist.length-1] : null;
   var prev = hist.length>1 ? hist[hist.length-2] : null;
-  var areaAverages = last ? last.areaAverages : KPI_TRACKER_AREAS.map(function(a){ return {id:a.id, name:a.name, pct:0}; });
+  var areaAverages = resolveAreaAverages(last);
 
   if(!last){
     return '<div style="background:linear-gradient(135deg,#0B1F2A,#13343F);border-radius:16px;padding:1.25rem;margin-bottom:1rem;color:white;">'
@@ -5993,7 +6009,7 @@ function generateStudentVisualReport(sid){
   var hist = s.kpiTracker||[];
   var last = hist.length ? hist[hist.length-1] : null;
 
-  var areaAverages = last ? last.areaAverages : KPI_TRACKER_AREAS.map(function(a){ return {id:a.id, name:a.name, pct:0}; });
+  var areaAverages = resolveAreaAverages(last);
   var strengths = areaAverages.filter(function(a){ return a.pct>=70; }).sort(function(a,b){return b.pct-a.pct;});
   var improvements = areaAverages.filter(function(a){ return a.pct<70; }).sort(function(a,b){return a.pct-b.pct;});
 
@@ -6076,7 +6092,7 @@ function sendVisualReportWA(sid){
     lines.push('Score global: '+last.overall+'/100 ('+fmtDate(last.date)+')');
     lines.push('');
     lines.push('Por área:');
-    last.areaAverages.forEach(function(a){ lines.push('• '+a.id+' '+a.name+': '+a.pct+'%'); });
+    resolveAreaAverages(last).forEach(function(a){ lines.push('• '+a.id+' '+a.name+': '+a.pct+'%'); });
   } else {
     lines.push('Todavía sin evaluaciones de Weekly KPI Tracker.');
   }

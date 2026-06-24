@@ -236,11 +236,17 @@
 
     var scores = {};
     prof.activeMicro.forEach(function (id) { if (prof.micro[id] !== undefined) scores[id] = prof.micro[id]; });
+    var areaAverages = (typeof global.areaAveragesFromScores === 'function')
+      ? global.areaAveragesFromScores(scores)
+      : [];
+    var microOverall = areaAverages.length
+      ? Math.round(areaAverages.reduce(function (a, x) { return a + x.pct; }, 0) / areaAverages.length)
+      : prof.confidence;
     if (!s.kpiTracker) s.kpiTracker = [];
     s.kpiTracker.push({
       date: new Date().toISOString(), trainer: (typeof SESSION !== 'undefined' && SESSION.name) || 'trainer',
-      scores: scores, observations: {}, source: 'weekly-pulse-v2', weekId: wk, pulseSessionId: pulseId,
-      overall: prof.confidence, notes: 'Auto desde Pulse v2'
+      scores: scores, observations: {}, areaAverages: areaAverages, source: 'weekly-pulse-v2', weekId: wk, pulseSessionId: pulseId,
+      overall: microOverall, notes: 'Auto desde Pulse v2'
     });
 
     if (!s.weeklyPulse) s.weeklyPulse = [];
