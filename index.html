@@ -218,13 +218,24 @@ a.cc-link .cc-value{color:var(--purple);}
 .exp-tag{background:var(--purple-glow);color:var(--purple);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
 
 .success-section{background:linear-gradient(180deg,#fff 0%,var(--off-white) 100%);}
-.success-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:1.5rem;margin-top:2.5rem;}
-.success-card{background:white;border:1px solid var(--gray-light);border-radius:var(--rxl);padding:1.75rem;display:flex;flex-direction:column;transition:all 0.25s;}
-.success-card:hover{border-color:rgba(91,33,182,0.25);box-shadow:0 16px 48px rgba(91,33,182,0.1);transform:translateY(-2px);}
-.success-card.featured{border-color:rgba(91,33,182,0.2);background:linear-gradient(135deg,rgba(91,33,182,0.03),rgba(245,166,35,0.04));}
+.success-showcase{background:white;border:1px solid var(--gray-light);border-radius:var(--rxl);padding:1.75rem;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:2rem;box-shadow:0 16px 48px rgba(91,33,182,0.08);border-color:rgba(91,33,182,0.15);}
+.success-media{display:flex;flex-direction:column;gap:12px;}
+.success-video-shell{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--rl);overflow:hidden;background:#0A0A0F;border:1px solid rgba(91,33,182,0.12);}
+.success-video-shell iframe,.success-video-shell video{width:100%;height:100%;border:0;display:block;object-fit:cover;}
+.success-video-shell[hidden],.success-video-local[hidden],.success-video-fb[hidden]{display:none !important;}
+.success-video-channel{font-size:12px;font-weight:700;color:var(--t3);display:flex;align-items:center;gap:6px;}
+.success-video-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:800;line-height:1.45;color:var(--text);}
+.success-legacy-note{font-size:13px;color:var(--t2);line-height:1.65;padding:12px 14px;background:linear-gradient(135deg,rgba(91,33,182,0.06),rgba(245,166,35,0.08));border:1px solid rgba(91,33,182,0.12);border-radius:var(--r);margin-bottom:1rem;}
+.success-legacy-note strong{color:var(--purple);}
+.success-video-note{font-size:12px;color:var(--t3);line-height:1.55;margin-top:4px;}
+.success-document{display:flex;flex-direction:column;min-width:0;}
 .success-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);background:var(--purple-glow);padding:5px 10px;border-radius:20px;margin-bottom:12px;width:fit-content;}
-.success-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;line-height:1.25;margin-bottom:10px;color:var(--text);}
-.success-card > p{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:1.25rem;}
+.success-document h3{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;line-height:1.25;margin-bottom:10px;color:var(--text);}
+.success-report-heading{font-size:12px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold-dark);margin:0 0 6px;}
+.success-report-ref{font-size:11px;color:var(--t3);margin-bottom:12px;line-height:1.5;}
+.success-excerpt{margin:0 0 1.25rem;padding:1rem 1.1rem;background:var(--off-white);border-left:4px solid var(--purple);border-radius:0 var(--r) var(--r) 0;font-size:13px;color:var(--t2);line-height:1.75;}
+.success-excerpt-lead{font-weight:800;color:var(--purple);margin-bottom:10px;font-size:14px;}
+.success-excerpt p+p{margin-top:10px;}
 .success-metrics{list-style:none;margin:0 0 1.25rem;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .success-metrics li{background:var(--off-white);border:1px solid rgba(91,33,182,0.08);border-radius:var(--r);padding:12px;text-align:center;}
 .success-metric-num{display:block;font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:900;color:var(--purple);line-height:1.1;}
@@ -234,6 +245,7 @@ a.cc-link .cc-value{color:var(--purple);}
 .success-link:hover{text-decoration:underline;}
 .success-link.official{color:var(--gold-dark);}
 .success-source{margin-top:12px;font-size:11px;color:var(--t3);line-height:1.55;}
+@media(max-width:960px){.success-showcase{grid-template-columns:1fr;}}
 
 .portal-section{background:white;padding:60px 2rem;}
 .portal-inner{max-width:1200px;margin:0 auto;text-align:center;}
@@ -887,11 +899,32 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <div class="section-tag">Success Stories</div>
     <h2 class="section-title">Documented Impact — <span style="color:var(--purple)">Not Marketing Claims</span></h2>
     <p class="section-sub">Public-sector partnerships with measurable employability outcomes — reported in official municipal transparency documents.</p>
-    <div class="success-grid">
-      <article class="success-card featured fade-up">
+    <article class="success-showcase fade-up" style="margin-top:2.5rem;">
+      <div class="success-media">
+        <div class="success-video-shell">
+          <video id="success-local-video" class="success-video-local" controls playsinline preload="metadata" hidden>
+            <source src="assets/media/goicoechea-municipio-2021.mp4" type="video/mp4">
+          </video>
+          <div class="success-video-fb" id="success-fb-embed">
+            <iframe title="Municipalidad de Goicoechea — cobertura curso call center 2021" src="https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D263792665317206&amp;show_text=false&amp;width=560" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+        </div>
+        <p class="success-video-channel"><i class="ti ti-brand-facebook"></i> Municipalidad de Goicoechea · Facebook</p>
+        <h4 class="success-video-title">JÓVENES QUE RECIBIERON CURSO DE INGLÉS YA TRABAJAN GRACIAS A ALIANZA DE MUNICIPALIDAD DE GOICOECHEA Y TU506</h4>
+        <p class="success-video-note">Official municipal coverage · <strong>TU506</strong> (Training United 506) is our legacy name — today <strong>Infinity Studio CR</strong> · Program led by <strong>Prof. John</strong></p>
+      </div>
+      <div class="success-document">
         <span class="success-badge">Public sector · Goicoechea · 2021</span>
         <h3>Municipalidad de Goicoechea — Call Center Readiness Pilot</h3>
-        <p>Infinity Studio led a strategic training alliance with the Municipality of Goicoechea: free English preparation for canton residents targeting call-center interviews and direct job placement — financed as a private-sector pilot with zero cost to beneficiaries.</p>
+        <p class="success-legacy-note"><strong>TU506 → Infinity Studio CR.</strong> Training United 506 (TU506) was our name when this municipal alliance ran in 2021 — same methodology, same founder. <strong>Prof. John</strong> designed and led the program as head instructor.</p>
+        <h4 class="success-report-heading">Informe de Labores 2022 — official excerpt</h4>
+        <p class="success-report-ref">Section «Cursos de inglés preparatorios para call center» · page 34 · Municipalidad de Goicoechea</p>
+        <blockquote class="success-excerpt">
+          <p class="success-excerpt-lead">Cursos de inglés preparatorios para call center</p>
+          <p>Como parte de las alianzas estratégicas realizadas por parte de esta Administración, se logró realizar un curso de inglés dirigido a jóvenes del cantón de Goicoechea, con la finalidad de prepararles para la entrevista en los call center y así pudieran colocarse de manera más expedita en un puesto de trabajo.</p>
+          <p>Este curso lo iniciaron 90 de las 100 escogidas y se redujo a 60 debido a diversos conflictos de horario y trabajo de las y los interesados, aún continúan en clase preparatoria 25 del grupo de básico y 10 han sido colocados exitosamente en un empleo confirmado, a este momento 15 aún están en proceso de aplicación. Este curso no representaba ningún costo para los y las beneficiadas, ya que fue financiado por la empresa privada, como parte de un plan piloto en nuestro Cantón.</p>
+          <p>El objetivo es lograr que más jóvenes puedan inscribirse en el proyecto y con esto contribuir a mejorar las condiciones de vida de los y las habitantes de nuestro cantón.</p>
+        </blockquote>
         <ul class="success-metrics">
           <li><span class="success-metric-num">90</span><span class="success-metric-label">Residents started (of 100 selected)</span></li>
           <li><span class="success-metric-num">10</span><span class="success-metric-label">Confirmed hires in call-center roles</span></li>
@@ -901,11 +934,11 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="success-links">
           <a href="https://transparencia.munigoicoechea.go.cr/wp-content/uploads/2023/05/INFORMEDELABORES2022.pdf" target="_blank" rel="noopener noreferrer" class="success-link official"><i class="ti ti-file-certificate"></i> Official source — Informe de Labores 2022 (p. 34) <i class="ti ti-external-link" style="font-size:12px;"></i></a>
           <a href="https://transparencia.munigoicoechea.go.cr/" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-building-community"></i> Portal Transparencia · Municipalidad de Goicoechea <i class="ti ti-external-link" style="font-size:12px;"></i></a>
-          <a href="https://www.facebook.com/watch/?v=263792665317206&ref=sharing" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-player-play"></i> Watch program coverage (video) <i class="ti ti-external-link" style="font-size:12px;"></i></a>
+          <a href="https://www.facebook.com/watch/?v=263792665317206" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-brand-facebook"></i> Open video on Facebook <i class="ti ti-external-link" style="font-size:12px;"></i></a>
         </div>
-        <p class="success-source">Metrics cited from the Municipality’s <em>Informe de Labores 2022</em>, section “Cursos de inglés preparatorios para call center”.</p>
-      </article>
-    </div>
+        <p class="success-source">Video title and coverage published by the Municipality on Facebook. Report text quoted verbatim from the transparency portal PDF.</p>
+      </div>
+    </article>
   </div>
 </section>
 
@@ -1061,6 +1094,20 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){
 });
 var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
 document.querySelectorAll('.fade-up').forEach(function(el){obs.observe(el);});
+
+(function initSuccessVideo() {
+  var video = document.getElementById('success-local-video');
+  var fb = document.getElementById('success-fb-embed');
+  if (!video || !fb) return;
+  var src = video.querySelector('source');
+  if (!src) return;
+  fetch(src.getAttribute('src'), { method: 'HEAD' }).then(function (r) {
+    if (r.ok) {
+      video.hidden = false;
+      fb.hidden = true;
+    }
+  }).catch(function () {});
+})();
 
 function submitContact(){
   var name = (document.getElementById('cf-name')||{}).value || '';
