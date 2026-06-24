@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/daily-inspiration.js"></script>
+<script src="js/tts-chunks.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -292,7 +293,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-avail-overview" onclick="showView('avail-overview',this)"><i class="ti ti-users-group"></i>Disponibilidad equipo</div>
       <div class="sb-item" id="nav-broadcast" onclick="openBroadcastModal()"><i class="ti ti-brand-whatsapp"></i>Comunicado general</div>
       <div class="sb-item" id="nav-nexus-kb" onclick="showView('nexus-kb',this)"><i class="ti ti-bulb"></i>Nexus AI · Base de conocimiento</div>
-      <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>Super Cerebro · Entrenamiento</div>
+      <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>Super Cerebro · Nexus AI</div>
       <div class="sb-item" id="nav-kb-upload" onclick="showView('kb-upload',this)"><i class="ti ti-cloud-upload"></i>KB Upload · Archivos</div>
       <div class="sb-item" id="nav-ops" onclick="showView('ops',this)"><i class="ti ti-activity"></i>Operación en vivo</div>
       <div class="sb-item" id="nav-network" onclick="showView('network',this)"><i class="ti ti-radar"></i>Network Traffic</div>
@@ -4977,10 +4978,22 @@ async function deleteNexusKBEntry(idx){
   });
 }
 
-// ── SUPER CEREBRO · Entrenamiento personal del fundador ─────
+// ── SUPER CEREBRO · Interfaz tipo Alice (voz + BD viva) ─────
 var SUPER_BRAIN_API = 'https://alice-by-infinity.onrender.com';
 var SUPER_BRAIN_SECRET = 'otro-secreto-distinto-2026';
-var _superBrainState = null;
+var _sbUi = {
+  history: [],
+  speaking: false,
+  autoMic: true,
+  micRunning: false,
+  recognition: null,
+  ttsQueue: [],
+  ttsBusy: false,
+  audio: null,
+  micText: '',
+  silenceTimer: null
+};
+var SB_SILENCE_MS = 2200;
 
 async function superBrainFetch(path, opts){
   opts = opts || {};
@@ -4994,152 +5007,236 @@ async function superBrainFetch(path, opts){
 function renderSuperBrain(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
   m.innerHTML = '<div class="fade">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-brain"></i> Super Cerebro · Entrenamiento personal</h2>'
-    +'<div class="ib ib-navy">Entrená tu propio cerebro en 3 fases: <strong>Alumno</strong> (le das clases) → <strong>Asistente</strong> (te ayuda) → <strong>Colega</strong> (colabora contigo). Las clases quedan guardadas en Supabase y se conectan con Nexus KB + Nexus Brain.</div>'
-    +'<div id="sb-status" class="ib ib-amber" style="margin-top:8px;">Cargando estado...</div>'
-    +'<div class="card" style="margin-top:12px;"><div class="card-title"><i class="ti ti-switch-3"></i>Modo de relación</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:8px;" id="sb-mode-btns">'
-    +'<button class="btn btn-outline btn-sm" data-mode="alumno" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-school"></i>Alumno</button>'
-    +'<button class="btn btn-outline btn-sm" data-mode="asistente" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-robot"></i>Asistente</button>'
-    +'<button class="btn btn-outline btn-sm" data-mode="colega" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-users"></i>Colega</button>'
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> Super Cerebro · Nexus AI</h2>'
+    +'<div class="ib ib-navy">No es un chatbot. Es la <strong>memoria institucional</strong> conectada a Nexus KB, archivos subidos y tu conocimiento. Habla con voz (como Alice). Lo que <strong>publicás</strong> se propaga a Alice, Jill, Nexora y Analizar con IA.</div>'
+    +'<div id="sb-db-status" class="ib ib-amber" style="margin-top:8px;">Conectando a base de datos...</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:12px;align-items:start;">'
+    // LEFT — Alice-style voice session
+    +'<div style="background:linear-gradient(160deg,#1e1035 0%,#2d1b4e 100%);border-radius:16px;padding:16px;border:1px solid rgba(192,132,252,0.25);">'
+    +'<div style="font-size:10px;font-weight:800;color:#C084FC;letter-spacing:0.12em;margin-bottom:8px;">NEXUS SUPER BRAIN</div>'
+    +'<div id="sb-msgs" style="max-height:340px;overflow-y:auto;margin-bottom:10px;padding-right:4px;"></div>'
+    +'<div id="sb-voice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:8px;"></div>'
+    +'<div style="display:flex;gap:8px;align-items:center;">'
+    +'<input id="sb-input" class="inp" placeholder="Hablá o escribí — el cerebro ya conoce la BD..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
+    +'<button id="sb-mic-btn" onclick="superBrainToggleMic()" style="width:44px;height:44px;background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.35);color:#C084FC;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-microphone"></i></button>'
+    +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
     +'</div></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Dar una clase (modo Alumno)</div>'
-    +'<input class="inp" id="sb-lesson-title" placeholder="Título de la clase (ej: Cómo corregir k9 en Corporate)">'
-    +'<textarea class="inp" id="sb-lesson-content" placeholder="Contenido de la clase — explicá como si le enseñaras a tu alumno..." style="min-height:120px;margin-top:8px;"></textarea>'
-    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn btn-navy btn-sm" onclick="superBrainSaveLesson()"><i class="ti ti-check"></i>Guardar clase</button></div>'
-    +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-message-2"></i>Conversar con el Super Cerebro</div>'
-    +'<div id="sb-chat-log" style="max-height:260px;overflow-y:auto;background:var(--gray);border-radius:var(--r);padding:12px;font-size:13px;line-height:1.6;margin-bottom:8px;color:var(--t2);">Sin mensajes todavía.</div>'
-    +'<textarea class="inp" id="sb-chat-input" placeholder="Escribí tu mensaje..." style="min-height:70px;"></textarea>'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">'
-    +'<button class="btn btn-navy btn-sm" id="sb-chat-btn" onclick="superBrainSendChat()"><i class="ti ti-send"></i>Enviar</button>'
-    +'<span id="sb-chat-status" style="font-size:11px;color:var(--t3);"></span>'
+    // RIGHT — upload + publish
+    +'<div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Subir conocimiento</div>'
+    +'<input class="inp" id="sb-up-title" placeholder="Título (ej: Regla k9 Corporate)">'
+    +'<select class="inp" id="sb-up-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option></select>'
+    +'<textarea class="inp" id="sb-up-content" placeholder="Pegá texto, procedimientos, reglas..." style="min-height:100px;margin-top:8px;"></textarea>'
+    +'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
+    +'<button class="btn btn-outline btn-sm" onclick="superBrainIngest(false)"><i class="ti ti-inbox"></i>Guardar pendiente</button>'
+    +'<button class="btn btn-navy btn-sm" onclick="superBrainIngest(true)"><i class="ti ti-broadcast"></i>Publicar ya</button>'
     +'</div></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-edit"></i>Corregir respuesta (refuerzo)</div>'
-    +'<input class="inp" id="sb-wrong" placeholder="Lo que dijo mal el cerebro">'
-    +'<input class="inp" id="sb-right" placeholder="La corrección correcta" style="margin-top:8px;">'
-    +'<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="superBrainSaveCorrection()"><i class="ti ti-check"></i>Guardar corrección</button>'
-    +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>Clases guardadas</div>'
-    +'<div id="sb-lessons-list" style="font-size:13px;color:var(--t2);">Cargando...</div>'
-    +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Aprendizajes pendientes (modo Alumno · APRENDÍ)</div>'
-    +'<div id="sb-pending-list" style="font-size:13px;color:var(--t2);">Sin pendientes.</div>'
-    +'</div></div>';
+    +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Pendiente de publicar</div>'
+    +'<div id="sb-pending-list" style="font-size:12px;color:var(--t2);">—</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-check"></i>Ya propagado a tutores</div>'
+    +'<div id="sb-published-list" style="font-size:12px;color:var(--t2);">—</div></div>'
+    +'</div></div></div>';
   superBrainRefresh();
+  superBrainRenderMsgs();
 }
 
-function superBrainHighlightMode(mode){
-  document.querySelectorAll('#sb-mode-btns button').forEach(function(btn){
-    var active = btn.dataset.mode === mode;
-    btn.className = 'btn btn-sm ' + (active ? 'btn-navy' : 'btn-outline');
-  });
+function superBrainRenderMsgs(){
+  var el = document.getElementById('sb-msgs');
+  if(!el) return;
+  if(!_sbUi.history.length){
+    el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,0.45);text-align:center;padding:24px 12px;">Hola '+((SESSION&&SESSION.name)||'Master')+'. Soy el Super Cerebro — ya leo Nexus KB y tus archivos. Hablame o subí material.</div>';
+    return;
+  }
+  el.innerHTML = _sbUi.history.map(function(m){
+    var isBrain = m.role === 'brain';
+    return '<div style="display:flex;flex-direction:column;align-items:'+(isBrain?'flex-start':'flex-end')+';margin-bottom:12px;">'
+      +'<div style="font-size:10px;color:'+(isBrain?'#C084FC':'rgba(255,255,255,0.4)')+';font-weight:700;margin-bottom:4px;">'+(isBrain?'SUPER CEREBRO':'VOS')+'</div>'
+      +'<div style="max-width:92%;background:'+(isBrain?'rgba(192,132,252,0.12)':'rgba(255,255,255,0.08)')
+      +';border:1px solid '+(isBrain?'rgba(192,132,252,0.28)':'rgba(255,255,255,0.12)')
+      +';border-radius:'+(isBrain?'4px 14px 14px 14px':'14px 4px 14px 14px')
+      +';padding:10px 14px;font-size:13px;line-height:1.65;color:white;white-space:pre-wrap;">'+m.text+'</div></div>';
+  }).join('');
+  el.scrollTop = el.scrollHeight;
 }
 
 async function superBrainRefresh(){
   try{
     var data = await superBrainFetch('/super-brain?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
-    _superBrainState = data;
-    var st = document.getElementById('sb-status');
-    if(st) st.innerHTML = 'Modo: <strong>'+(data.mode||'alumno')+'</strong> · Clases: '+(data.lessonsCount||0)+' · Correcciones: '+(data.correctionsCount||0)+' · Pendientes: '+(data.pendingCount||0);
-    superBrainHighlightMode(data.mode || 'alumno');
-    var list = document.getElementById('sb-lessons-list');
-    if(list){
-      var lessons = data.recentLessons || [];
-      list.innerHTML = lessons.length ? lessons.map(function(l){
-        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong>'+(l.source?(' <span style="font-size:10px;color:var(--t3);">'+l.source+'</span>'):'')+'<div style="font-size:11px;color:var(--t3);">'+(l.date?l.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(l.preview||'')+'</div></div>';
-      }).join('') : 'Sin clases todavía — empezá dando la primera arriba.';
-    }
+    var st = document.getElementById('sb-db-status');
+    if(st) st.innerHTML = 'BD conectada · Nexus KB: <strong>'+(data.nexusKbCount||0)+'</strong> · Archivos: <strong>'+(data.kbFilesCount||0)+'</strong> · Publicado: <strong>'+(data.publishedCount||0)+'</strong> · Pendiente: <strong>'+(data.pendingCount||0)+'</strong>';
     var pending = document.getElementById('sb-pending-list');
     if(pending){
       var items = data.pendingLessons || [];
       pending.innerHTML = items.length ? items.map(function(p){
-        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(p.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(p.date?p.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(p.preview||'')+'</div>'
-          +'<div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-navy btn-sm" onclick="superBrainApprovePending(\''+p.id+'\')"><i class="ti ti-check"></i>Aprobar</button>'
-          +'<button class="btn btn-outline btn-sm" onclick="superBrainRejectPending(\''+p.id+'\')"><i class="ti ti-x"></i>Descartar</button></div></div>';
-      }).join('') : 'Sin pendientes — el cerebro propone APRENDÍ en modo Alumno.';
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(p.title||'—')+'</strong><div style="margin:4px 0;color:var(--t3);">'+(p.preview||'')+'</div>'
+          +'<button class="btn btn-navy btn-sm" onclick="superBrainPublishPending(\''+p.id+'\')"><i class="ti ti-broadcast"></i>Publicar a tutores</button> '
+          +'<button class="btn btn-outline btn-sm" onclick="superBrainRejectPending(\''+p.id+'\')"><i class="ti ti-x"></i></button></div>';
+      }).join('') : 'Nada pendiente.';
+    }
+    var pub = document.getElementById('sb-published-list');
+    if(pub){
+      var published = data.recentPublished || [];
+      pub.innerHTML = published.length ? published.map(function(l){
+        return '<div style="padding:6px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(l.preview||'')+'</div></div>';
+      }).join('') : 'Publicá material para que Alice/Jill lo reciban.';
     }
   }catch(e){
-    var st = document.getElementById('sb-status');
-    if(st) st.textContent = 'Error cargando Super Cerebro: '+e.message+'. (Requiere deploy del backend.)';
+    var st = document.getElementById('sb-db-status');
+    if(st) st.textContent = 'Error: '+e.message;
   }
 }
 
-async function superBrainSetMode(mode){
-  try{
-    await superBrainFetch('/super-brain/mode', { method:'POST', body: JSON.stringify({ mode: mode, secret: SUPER_BRAIN_SECRET }) });
-    showToast('Modo: '+mode);
-    superBrainRefresh();
-  }catch(e){ showToast(e.message,'err'); }
+function superBrainStopAudio(){
+  if(_sbUi.audio){ try{_sbUi.audio.pause();}catch(e){} _sbUi.audio=null; }
+  _sbUi.speaking = false;
 }
 
-async function superBrainSaveLesson(){
-  var title = document.getElementById('sb-lesson-title').value.trim();
-  var content = document.getElementById('sb-lesson-content').value.trim();
-  if(!content){ showToast('Escribí el contenido de la clase','err'); return; }
-  try{
-    await superBrainFetch('/super-brain/lesson', { method:'POST', body: JSON.stringify({ title: title, content: content, secret: SUPER_BRAIN_SECRET }) });
-    document.getElementById('sb-lesson-title').value = '';
-    document.getElementById('sb-lesson-content').value = '';
-    showToast('Clase guardada en Super Cerebro');
-    await logAction('Clase Super Cerebro', (title||content).substring(0,80));
-    superBrainRefresh();
-  }catch(e){ showToast(e.message,'err'); }
+function superBrainQueueSpeak(text){
+  if(!text || text.trim().length < 2) return;
+  splitTtsSentences(text).forEach(function(part){
+    var clean = part.replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/\s+/g,' ').trim();
+    if(clean.length >= 3) { _sbUi.ttsQueue.push(clean); superBrainTtsFlush(); }
+  });
 }
 
-async function superBrainSaveCorrection(){
-  var wrong = document.getElementById('sb-wrong').value.trim();
-  var right = document.getElementById('sb-right').value.trim();
-  if(!wrong || !right){ showToast('Completá ambos campos','err'); return; }
-  try{
-    await superBrainFetch('/super-brain/correct', { method:'POST', body: JSON.stringify({ wrong: wrong, right: right, secret: SUPER_BRAIN_SECRET }) });
-    document.getElementById('sb-wrong').value = '';
-    document.getElementById('sb-right').value = '';
-    showToast('Corrección guardada');
-    superBrainRefresh();
-  }catch(e){ showToast(e.message,'err'); }
+function superBrainTtsFlush(){
+  if(_sbUi.ttsBusy || !_sbUi.ttsQueue.length) return;
+  _sbUi.ttsBusy = true;
+  _sbUi.speaking = true;
+  var text = _sbUi.ttsQueue.shift();
+  fetch(SUPER_BRAIN_API+'/super-brain/tts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text: text, secret: SUPER_BRAIN_SECRET }) })
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){
+    if(!b){ _sbUi.ttsBusy=false; _sbUi.speaking=_sbUi.ttsQueue.length>0; superBrainTtsFlush(); return; }
+    superBrainStopAudio();
+    var url = URL.createObjectURL(b);
+    _sbUi.audio = new Audio(url);
+    _sbUi.audio.onended = function(){
+      URL.revokeObjectURL(url);
+      _sbUi.audio = null;
+      _sbUi.ttsBusy = false;
+      _sbUi.speaking = _sbUi.ttsQueue.length > 0;
+      if(!_sbUi.speaking && _sbUi.autoMic) setTimeout(superBrainStartMic, 600);
+      superBrainTtsFlush();
+    };
+    _sbUi.audio.play();
+  }).catch(function(){ _sbUi.ttsBusy=false; _sbUi.speaking=false; superBrainTtsFlush(); });
 }
 
-function superBrainAppendChat(role, text){
-  var log = document.getElementById('sb-chat-log');
-  if(!log) return;
-  if(log.textContent === 'Sin mensajes todavía.') log.innerHTML = '';
-  var who = role === 'user' ? (SESSION.name||'Fundador') : 'Super Cerebro';
-  var color = role === 'user' ? 'var(--navy)' : 'var(--purple)';
-  log.innerHTML += '<div style="margin-bottom:10px;"><strong style="color:'+color+';">'+who+':</strong><div style="white-space:pre-wrap;margin-top:2px;">'+text+'</div></div>';
-  log.scrollTop = log.scrollHeight;
+function superBrainClearSilence(){
+  if(_sbUi.silenceTimer){ clearTimeout(_sbUi.silenceTimer); _sbUi.silenceTimer = null; }
 }
 
-async function superBrainSendChat(){
-  var input = document.getElementById('sb-chat-input');
-  var btn = document.getElementById('sb-chat-btn');
-  var status = document.getElementById('sb-chat-status');
-  var msg = input.value.trim();
-  if(!msg) return;
-  btn.disabled = true;
-  status.textContent = 'Pensando...';
-  superBrainAppendChat('user', msg);
-  input.value = '';
+function superBrainScheduleSend(){
+  superBrainClearSilence();
+  _sbUi.silenceTimer = setTimeout(function(){
+    _sbUi.silenceTimer = null;
+    if(_sbUi.speaking || !_sbUi.autoMic) return;
+    var text = _sbUi.micText.trim();
+    if(!text) return;
+    _sbUi.micText = '';
+    var inp = document.getElementById('sb-input');
+    if(inp) inp.value = '';
+    superBrainStopMic();
+    superBrainTalk(text);
+  }, SB_SILENCE_MS);
+}
+
+function superBrainStopMic(){
+  superBrainClearSilence();
+  if(_sbUi.recognition){ try{_sbUi.recognition.stop();}catch(e){} _sbUi.recognition = null; }
+  _sbUi.micRunning = false;
+  _sbUi.micText = '';
+  var btn = document.getElementById('sb-mic-btn');
+  if(btn){ btn.style.background='rgba(192,132,252,0.15)'; btn.style.color='#C084FC'; }
+}
+
+function superBrainStartMic(){
+  if(_sbUi.micRunning || _sbUi.speaking || !_sbUi.autoMic) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  _sbUi.micText = '';
+  var rec = new SR();
+  rec.lang = 'es-CR';
+  rec.interimResults = true;
+  rec.continuous = true;
+  _sbUi.recognition = rec;
+  _sbUi.micRunning = true;
+  var btn = document.getElementById('sb-mic-btn');
+  var st = document.getElementById('sb-voice-status');
+  if(btn){ btn.style.background='rgba(255,92,92,0.35)'; btn.style.color='white'; }
+  if(st) st.textContent = '🎤 Escuchando… hablá tranquilo';
+  rec.onresult = function(e){
+    _sbUi.micText = Array.from(e.results).map(function(r){ return r[0].transcript; }).join('');
+    var last = e.results[e.results.length - 1];
+    if(last && last.isFinal && _sbUi.micText.trim()) superBrainScheduleSend();
+  };
+  rec.onend = function(){
+    _sbUi.micRunning = false;
+    _sbUi.recognition = null;
+    if(_sbUi.autoMic && !_sbUi.speaking && !_sbUi.silenceTimer) setTimeout(superBrainStartMic, 350);
+  };
+  rec.onerror = function(){ superBrainStopMic(); };
+  try{ rec.start(); }catch(e){}
+}
+
+function superBrainToggleMic(){
+  if(_sbUi.autoMic){ _sbUi.autoMic = false; superBrainStopMic(); return; }
+  _sbUi.autoMic = true;
+  superBrainStopAudio();
+  superBrainStartMic();
+}
+
+async function superBrainTalk(micText){
+  var inp = document.getElementById('sb-input');
+  var text = (micText || (inp ? inp.value : '') || '').trim();
+  if(!text) return;
+  if(inp) inp.value = '';
+  superBrainStopMic();
+  _sbUi.history.push({ role:'user', text: text });
+  superBrainRenderMsgs();
+  var st = document.getElementById('sb-voice-status');
+  if(st) st.textContent = 'Pensando...';
   try{
-    var data = await superBrainFetch('/super-brain/chat', {
+    var data = await superBrainFetch('/super-brain/talk', {
       method:'POST',
-      body: JSON.stringify({ message: msg, founderName: SESSION.name||'Fundador', secret: SUPER_BRAIN_SECRET })
+      body: JSON.stringify({ message: text, founderName: (SESSION&&SESSION.name)||'Fundador', secret: SUPER_BRAIN_SECRET })
     });
-    superBrainAppendChat('assistant', data.reply || '—');
-    status.textContent = (data.brainCache ? 'Respuesta desde Nexus Brain (caché)' : 'Respuesta nueva') + (data.autoLearned ? ' · APRENDÍ guardado pendiente' : '');
-    if(data.autoLearned) superBrainRefresh();
+    var reply = data.reply || '—';
+    _sbUi.history.push({ role:'brain', text: reply });
+    superBrainRenderMsgs();
+    superBrainQueueSpeak(reply);
+    if(st) st.textContent = data.brainCache ? 'Desde caché Nexus Brain' : '';
+    if(data.nuevoPending) showToast('Nuevo conocimiento detectado — revisá pendientes');
+    superBrainRefresh();
   }catch(e){
-    status.textContent = '';
-    superBrainAppendChat('assistant', 'Error: '+e.message);
+    if(st) st.textContent = '';
     showToast(e.message,'err');
   }
-  btn.disabled = false;
 }
 
-async function superBrainApprovePending(id){
+async function superBrainIngest(publishNow){
+  var title = document.getElementById('sb-up-title').value.trim();
+  var content = document.getElementById('sb-up-content').value.trim();
+  var cat = document.getElementById('sb-up-cat').value;
+  if(!content){ showToast('Escribí el contenido','err'); return; }
   try{
-    await superBrainFetch('/super-brain/approve', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
-    showToast('Clase aprobada y guardada');
+    await superBrainFetch('/super-brain/ingest', {
+      method:'POST',
+      body: JSON.stringify({ title: title, content: content, category: cat, autoPublish: !!publishNow, secret: SUPER_BRAIN_SECRET })
+    });
+    document.getElementById('sb-up-title').value = '';
+    document.getElementById('sb-up-content').value = '';
+    showToast(publishNow ? 'Publicado — Alice/Jill/Nexora actualizados' : 'Guardado como pendiente');
+    await logAction(publishNow?'Super Cerebro publicó':'Super Cerebro ingest', (title||content).slice(0,80));
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainPublishPending(id){
+  try{
+    await superBrainFetch('/super-brain/publish', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
+    showToast('Publicado en Nexus KB — propagado a tutores');
     superBrainRefresh();
   }catch(e){ showToast(e.message,'err'); }
 }
@@ -5147,7 +5244,7 @@ async function superBrainApprovePending(id){
 async function superBrainRejectPending(id){
   try{
     await superBrainFetch('/super-brain/reject', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
-    showToast('Pendiente descartado');
+    showToast('Descartado');
     superBrainRefresh();
   }catch(e){ showToast(e.message,'err'); }
 }

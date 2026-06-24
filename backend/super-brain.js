@@ -1,26 +1,26 @@
 /**
- * Super Cerebro — entrenamiento personal del fundador.
- * Modos: alumno → asistente → colega.
- * Fases: auto-aprendizaje (APRENDÍ), ranking semántico ligero, contexto para analyze.
+ * Super Cerebro — inteligencia institucional Nexus (NO chatbot).
+ * Se alimenta de NEXUS-KB, KBFILE uploads y conocimiento del fundador.
+ * Lo publicado se propaga a Alice, Jill, Nexora y Analyze.
  */
 const SUPER_BRAIN_ID = 'SUPER-BRAIN-CORE';
 const NEXUS_KB_ID = 'NEXUS-KB';
-const MODES = ['alumno', 'asistente', 'colega'];
-const MAX_LESSONS = 200;
-const MAX_CORRECTIONS = 500;
-const MAX_PENDING = 80;
-const MAX_CHAT_HISTORY = 40;
+const MAX_LESSONS = 300;
+const MAX_PENDING = 100;
+const MAX_CHAT_HISTORY = 30;
 const MAX_LESSON_CHARS = 12000;
 
 let _sbGetOne = null;
 let _sbSet = null;
+let _sbGet = null;
 let _brain = null;
 
 const SUPER_BRAIN_ENABLED = process.env.SUPER_BRAIN !== '0';
 
-function initSuperBrain({ sbGetOne, sbSet, brain }) {
+function initSuperBrain({ sbGetOne, sbSet, sbGet, brain }) {
   _sbGetOne = sbGetOne;
   _sbSet = sbSet;
+  _sbGet = sbGet;
   _brain = brain;
 }
 
@@ -40,13 +40,11 @@ function normalizeText(text) {
 
 function defaultState() {
   return {
-    mode: 'alumno',
     founderName: '',
     lessons: [],
-    corrections: [],
     pendingLessons: [],
-    chatHistory: [],
-    stats: { lessonsCount: 0, correctionsCount: 0, chatTurns: 0, autoLearned: 0 },
+    talkHistory: [],
+    stats: { lessonsCount: 0, publishedCount: 0, pendingCount: 0, talkTurns: 0 },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -57,7 +55,9 @@ async function loadState() {
   try {
     const row = await _sbGetOne('infinity_sessions', SUPER_BRAIN_ID);
     if (!row?.data) return defaultState();
-    return { ...defaultState(), ...row.data };
+    const merged = { ...defaultState(), ...row.data };
+    merged.lessons = (merged.lessons || []).map(l => ({ published: !!l.published, ...l }));
+    return merged;
   } catch (e) {
     console.warn('superBrain loadState:', e.message);
     return defaultState();
@@ -69,7 +69,7 @@ async function saveState(state) {
   state.updatedAt = new Date().toISOString();
   state.stats = state.stats || {};
   state.stats.lessonsCount = (state.lessons || []).length;
-  state.stats.correctionsCount = (state.corrections || []).length;
+  state.stats.publishedCount = (state.lessons || []).filter(l => l.published).length;
   state.stats.pendingCount = (state.pendingLessons || []).length;
   return _sbSet('infinity_sessions', SUPER_BRAIN_ID, state);
 }
@@ -78,14 +78,47 @@ async function loadNexusKB() {
   if (!_sbGetOne) return [];
   try {
     const row = await _sbGetOne('infinity_sessions', NEXUS_KB_ID);
-    return (row?.data?.entries || []).slice(-20);
+    return (row?.data?.entries || []).slice(-40);
   } catch {
     return [];
   }
 }
 
-function trimHistory(history) {
-  return (Array.isArray(history) ? history : []).slice(-MAX_CHAT_HISTORY);
+async function appendNexusKB(text, author, meta = {}) {
+  const row = await _sbGetOne('infinity_sessions', NEXUS_KB_ID);
+  const kb = row?.data || { entries: [] };
+  kb.entries = kb.entries || [];
+  kb.entries.push({
+    date: new Date().toISOString(),
+    author: author || 'Super Cerebro',
+    text: String(text).slice(0, 2000),
+    studentName: null,
+    source: 'super-brain',
+    ...meta
+  });
+  if (kb.entries.length > 600) kb.entries = kb.entries.slice(-600);
+  await _sbSet('infinity_sessions', NEXUS_KB_ID, kb);
+  return kb.entries[kb.entries.length - 1];
+}
+
+async function loadKbFiles() {
+  if (!_sbGet) return [];
+  try {
+    const rows = await _sbGet('infinity_sessions');
+    return rows
+      .filter(r => r.id && r.id.startsWith('KBFILE-') && r.data)
+      .map(r => ({
+        id: r.id,
+        title: r.data.title || r.data.fileName || 'Archivo',
+        category: r.data.category || 'otro',
+        text: String(r.data.extractedText || '').slice(0, 1800),
+        date: r.data.date
+      }))
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+      .slice(0, 25);
+  } catch {
+    return [];
+  }
 }
 
 function rankLessons(query, lessons, limit) {
@@ -99,7 +132,7 @@ function rankLessons(query, lessons, limit) {
     words.forEach(w => { if (blob.includes(w)) score += 1; });
     return { lesson, score };
   });
-  scored.sort((a, b) => b.score - a.score || (b.lesson.date || '').localeCompare(a.lesson.date || ''));
+  scored.sort((a, b) => b.score - a.score || String(b.lesson.date || '').localeCompare(String(a.lesson.date || '')));
   const top = scored.filter(s => s.score > 0).slice(0, limit).map(s => s.lesson);
   if (top.length >= Math.min(3, limit)) return top;
   const ids = new Set(top.map(l => l.id));
@@ -109,100 +142,148 @@ function rankLessons(query, lessons, limit) {
   return top.slice(0, limit);
 }
 
-function buildLessonsBlock(lessons, query) {
-  const list = query ? rankLessons(query, lessons, 12) : (lessons || []).slice(-24);
-  if (!list.length) return '(Todavía no hay clases registradas — el fundador las irá agregando.)';
-  return list.map((l, i) => {
-    const title = l.title || `Clase ${i + 1}`;
-    const date = l.date ? l.date.slice(0, 10) : '';
-    const tag = l.source === 'auto-aprendi' ? ' [auto]' : '';
-    return `### ${title}${tag}${date ? ` (${date})` : ''}\n${String(l.content || '').slice(0, 2000)}`;
-  }).join('\n\n');
+async function loadKnowledgeSources(query) {
+  const [state, kbEntries, kbFiles] = await Promise.all([
+    loadState(),
+    loadNexusKB(),
+    loadKbFiles()
+  ]);
+  const allLessons = state.lessons || [];
+  const published = allLessons.filter(l => l.published);
+  const drafts = allLessons.filter(l => !l.published);
+  const relevantPublished = rankLessons(query, published, 10);
+  const relevantDrafts = rankLessons(query, drafts, 6);
+  const relevantKb = kbEntries.slice(-15);
+  const relevantFiles = query
+    ? rankLessons(query, kbFiles.map(f => ({ id: f.id, title: f.title, content: f.text, date: f.date })), 8)
+    : kbFiles.slice(0, 8).map(f => ({ id: f.id, title: f.title, content: f.text, date: f.date }));
+
+  return { state, kbEntries, kbFiles, published, drafts, relevantPublished, relevantDrafts, relevantKb, relevantFiles };
 }
 
-function buildCorrectionsBlock(corrections) {
-  const list = (corrections || []).slice(-16);
-  if (!list.length) return '';
-  return '\n\nCORRECCIONES DEL FUNDADOR (aprendé de estos ajustes):\n'
-    + list.map(c => `- Cuando dijiste "${String(c.wrong || '').slice(0, 120)}" → correcto: "${String(c.right || '').slice(0, 120)}"${c.note ? ` (${c.note})` : ''}`).join('\n');
-}
-
-function buildKbBlock(entries) {
-  if (!entries?.length) return '(KB metodológica vacía por ahora.)';
-  return entries.map(e => `- ${String(e.text || '').slice(0, 400)}`).join('\n');
-}
-
-function buildSystemPrompt(mode, state, kbEntries, query) {
-  const founder = state.founderName || 'el fundador de Infinity Studio CR';
-  const lessons = buildLessonsBlock(state.lessons, query);
-  const corrections = buildCorrectionsBlock(state.corrections);
-  const kb = buildKbBlock(kbEntries);
-  const base = `Sos el Super Cerebro de Infinity Studio CR — entrenado personalmente por ${founder}.
-Método Nexus: STAR, Idea+Linker+Idea, 26 KPIs, comunicar > perfección.
-Nunca contradigas la metodología Nexus. Respondé en español salvo que pidan inglés.
-
-CLASES DEL FUNDADOR (memoria principal — priorizadas por relevancia):
-${lessons}
-${corrections}
-
-CONTEXTO METODOLÓGICO (Nexus KB compartida):
-${kb}`;
-
-  if (mode === 'alumno') {
-    return `${base}
-
-MODO ALUMNO: Sos el estudiante del fundador. Escuchás con atención, hacés preguntas inteligentes (máx 2 por turno), repetís lo esencial para confirmar que entendiste, y admitís cuando no sabés algo. No des órdenes — aprendés. Al final de cada respuesta, si aprendiste algo nuevo, agregá una línea: APRENDÍ: [resumen de 1 oración].`;
+function formatSourcesBlock(sources) {
+  const parts = [];
+  if (sources.relevantKb?.length) {
+    parts.push('NEXUS KB (base metodológica viva):');
+    sources.relevantKb.forEach(e => parts.push(`- ${String(e.text || '').slice(0, 420)}`));
   }
-  if (mode === 'asistente') {
-    return `${base}
-
-MODO ASISTENTE: Sos el asistente personal del fundador. Ejecutás tareas, resumís, proponés borradores, recordás lo que te enseñó en las clases. Sé proactivo pero conciso. Priorizá acciones concretas.`;
+  if (sources.relevantFiles?.length) {
+    parts.push('\nARCHIVOS SUBIDOS (KBFILE):');
+    sources.relevantFiles.forEach(f => parts.push(`- [${f.title}]: ${String(f.content || '').slice(0, 350)}`));
   }
-  return `${base}
-
-MODO COLEGA: Sos colega senior del fundador — mismo nivel estratégico. Cuestioná ideas con respeto, proponé alternativas, co-diseñá soluciones. No seas obsecuente; aportá criterio propio basado en las clases y la KB.`;
+  if (sources.relevantPublished?.length) {
+    parts.push('\nCONOCIMIENTO PUBLICADO (ya en Alice/Jill/Nexora):');
+    sources.relevantPublished.forEach(l => parts.push(`- [${l.title}]: ${String(l.content || '').slice(0, 400)}`));
+  }
+  if (sources.relevantDrafts?.length) {
+    parts.push('\nBORRADORES INTERNOS (solo fundador):');
+    sources.relevantDrafts.forEach(l => parts.push(`- [${l.title}]: ${String(l.content || '').slice(0, 300)}`));
+  }
+  if (sources.state?.pendingLessons?.length) {
+    parts.push('\nPENDIENTE DE PUBLICAR:');
+    sources.state.pendingLessons.slice(-5).forEach(p => parts.push(`- [${p.title}]: ${String(p.content || '').slice(0, 200)}`));
+  }
+  return parts.join('\n') || '(Base de datos conectada — sin entradas aún en esta categoría.)';
 }
 
-function extractAprendi(reply) {
-  const m = String(reply || '').match(/APREND[IÍ]:\s*(.+)/i);
-  return m ? m[1].trim().slice(0, 500) : null;
+function buildBrainPrompt(sources, founderName, query) {
+  const founder = founderName || sources.state?.founderName || 'Master Trainer';
+  const db = formatSourcesBlock(sources);
+  return `You are the Nexus Super Brain — the institutional intelligence of Infinity Studio CR.
+
+CRITICAL IDENTITY:
+- You are NOT a generic chatbot.
+- You are NOT a student learning English. You already know English at a professional level.
+- You are the live memory of the Nexus Method connected to the real database (Nexus KB, uploaded files, published knowledge).
+
+YOUR ROLE with ${founder} (founder / master trainer):
+- Recall and apply knowledge from the database below.
+- Help plan exercises, KPIs, curriculum, and operational decisions.
+- When they teach you something new, distill it clearly.
+- Never contradict Nexus Method (STAR, Idea+Linker+Idea, 26 KPIs, communicate > perfection).
+- Respond in Spanish unless they write in English. Be concise and operational (3-6 sentences).
+- If you use a specific source, mention it briefly (ej: "Según la KB de conectores…").
+- If they share NEW institutional knowledge worth saving, end with exactly one line:
+  NUEVO_CONOCIMIENTO: [one paragraph ready to publish to Alice/Jill/Nexora]
+
+LIVE DATABASE (query: "${String(query || '').slice(0, 80)}"):
+${db}`;
 }
 
-async function addLesson(state, { title, content, author, source }) {
+function extractNuevoConocimiento(reply) {
+  const m = String(reply || '').match(/NUEVO_CONOCIMIENTO:\s*([\s\S]+)/i);
+  return m ? m[1].trim().replace(/\n+/g, ' ').slice(0, 1200) : null;
+}
+
+function trimHistory(history) {
+  return (Array.isArray(history) ? history : []).slice(-MAX_CHAT_HISTORY);
+}
+
+async function ingest(state, { title, content, author, category, autoPublish }) {
   const text = String(content || '').trim();
-  if (!text || text.length < 8) throw new Error('La clase necesita al menos 8 caracteres.');
-  const lesson = {
-    id: `L-${Date.now()}`,
-    title: String(title || 'Clase sin título').trim().slice(0, 120),
-    content: text.slice(0, MAX_LESSON_CHARS),
-    author: author || 'Fundador',
-    source: source || 'manual',
-    date: new Date().toISOString()
-  };
-  state.lessons = state.lessons || [];
-  state.lessons.push(lesson);
-  if (state.lessons.length > MAX_LESSONS) state.lessons = state.lessons.slice(-MAX_LESSONS);
-  await saveState(state);
-  return lesson;
-}
-
-async function addPendingLesson(state, { content, source, title }) {
-  const text = String(content || '').trim();
-  if (!text || text.length < 8) return null;
-  state.pendingLessons = state.pendingLessons || [];
+  if (!text || text.length < 8) throw new Error('El contenido necesita al menos 8 caracteres.');
   const item = {
     id: `P-${Date.now()}`,
-    title: String(title || 'Aprendizaje automático').slice(0, 120),
+    title: String(title || 'Material subido').slice(0, 120),
     content: text.slice(0, MAX_LESSON_CHARS),
-    source: source || 'auto',
+    category: category || 'metodologia',
+    author: author || 'Fundador',
+    source: 'upload',
     date: new Date().toISOString()
   };
+  if (autoPublish) {
+    const lesson = await publishKnowledge(state, {
+      title: item.title,
+      content: item.content,
+      author: item.author,
+      category: item.category,
+      source: 'upload-direct'
+    });
+    return { pending: null, lesson, published: true };
+  }
+  state.pendingLessons = state.pendingLessons || [];
   state.pendingLessons.push(item);
   if (state.pendingLessons.length > MAX_PENDING) {
     state.pendingLessons = state.pendingLessons.slice(-MAX_PENDING);
   }
   await saveState(state);
-  return item;
+  return { pending: item, published: false };
+}
+
+async function publishKnowledge(state, { title, content, author, category, source, lessonId }) {
+  let text = String(content || '').trim();
+  let lessonTitle = title;
+  let saved = null;
+  if (lessonId) {
+    saved = (state.lessons || []).find(l => l.id === lessonId);
+    if (!saved) throw new Error('Conocimiento no encontrado.');
+    text = saved.content;
+    lessonTitle = saved.title;
+    saved.published = true;
+    saved.publishedAt = new Date().toISOString();
+  } else {
+    if (!text) throw new Error('Contenido vacío.');
+    saved = {
+      id: `L-${Date.now()}`,
+      title: String(lessonTitle || 'Conocimiento Nexus').slice(0, 120),
+      content: text.slice(0, MAX_LESSON_CHARS),
+      author: author || 'Fundador',
+      source: source || 'manual',
+      category: category || 'metodologia',
+      published: true,
+      publishedAt: new Date().toISOString(),
+      date: new Date().toISOString()
+    };
+    state.lessons = state.lessons || [];
+    state.lessons.push(saved);
+    if (state.lessons.length > MAX_LESSONS) state.lessons = state.lessons.slice(-MAX_LESSONS);
+  }
+  const kbText = `[${(category || saved.category || 'metodologia').toUpperCase()}] ${lessonTitle}: ${text.slice(0, 900)}`;
+  await appendNexusKB(kbText, author || 'Super Cerebro', { category: category || saved.category, lessonTitle });
+  state.stats = state.stats || {};
+  state.stats.publishedCount = (state.lessons || []).filter(l => l.published).length;
+  await saveState(state);
+  return saved;
 }
 
 async function approvePending(state, pendingId) {
@@ -211,11 +292,13 @@ async function approvePending(state, pendingId) {
   if (idx < 0) throw new Error('Pendiente no encontrado.');
   const item = state.pendingLessons[idx];
   state.pendingLessons.splice(idx, 1);
-  const lesson = await addLesson(state, {
+  await saveState(state);
+  const lesson = await publishKnowledge(state, {
     title: item.title,
     content: item.content,
-    author: 'Super Cerebro',
-    source: item.source || 'approved-pending'
+    author: item.author || 'Fundador',
+    category: item.category || 'metodologia',
+    source: item.source || 'approved'
   });
   return lesson;
 }
@@ -229,52 +312,14 @@ async function rejectPending(state, pendingId) {
   return true;
 }
 
-async function addCorrection(state, { wrong, right, note, lessonId }) {
-  const w = String(wrong || '').trim();
-  const r = String(right || '').trim();
-  if (!w || !r) throw new Error('Corrección requiere respuesta incorrecta y correcta.');
-  const correction = {
-    id: `C-${Date.now()}`,
-    wrong: w.slice(0, 500),
-    right: r.slice(0, 500),
-    note: String(note || '').slice(0, 300),
-    lessonId: lessonId || null,
-    date: new Date().toISOString()
-  };
-  state.corrections = state.corrections || [];
-  state.corrections.push(correction);
-  if (state.corrections.length > MAX_CORRECTIONS) {
-    state.corrections = state.corrections.slice(-MAX_CORRECTIONS);
-  }
-  await saveState(state);
-  return correction;
-}
-
-async function setMode(state, mode) {
-  if (!MODES.includes(mode)) throw new Error(`Modo inválido. Usá: ${MODES.join(', ')}`);
-  state.mode = mode;
-  await saveState(state);
-  return state.mode;
-}
-
-async function buildContextBlock(query, maxLessons) {
-  const state = await loadState();
-  const kb = await loadNexusKB();
-  const lessons = buildLessonsBlock(state.lessons, query).slice(0, 6000);
-  const kbText = buildKbBlock(kb).slice(0, 3000);
-  return `SUPER CEREBRO DEL FUNDADOR (clases prioritarias):\n${lessons}\n\nNEXUS KB:\n${kbText}`;
-}
-
-async function chat(state, { message, claudeCall, founderName, autoApproveLearn }) {
+async function talk(state, { message, claudeCall, founderName }) {
   const msg = String(message || '').trim();
   if (!msg) throw new Error('Mensaje vacío.');
   if (founderName) state.founderName = String(founderName).slice(0, 80);
 
-  const mode = state.mode || 'alumno';
-  const kbEntries = await loadNexusKB();
-  const system = buildSystemPrompt(mode, state, kbEntries, msg);
-
-  const history = trimHistory(state.chatHistory || []);
+  const sources = await loadKnowledgeSources(msg);
+  const system = buildBrainPrompt(sources, founderName, msg);
+  const history = trimHistory(state.talkHistory || []);
   const messages = [
     ...history.map(m => ({ role: m.role, content: m.content })),
     { role: 'user', content: msg }
@@ -282,32 +327,29 @@ async function chat(state, { message, claudeCall, founderName, autoApproveLearn 
 
   let reply = '';
   let brainCache = false;
-  let autoLearned = null;
-  const brainExtra = `${mode}:${state.lessons?.length || 0}:${state.corrections?.length || 0}`;
+  const brainExtra = `brain:${sources.published.length}:${sources.kbEntries.length}`;
 
   if (_brain?.brainGetLLM) {
-    const cached = await _brain.brainGetLLM('super', mode, msg, brainExtra);
+    const cached = await _brain.brainGetLLM('super', 'brain', msg, brainExtra);
     if (cached.hit) {
       reply = cached.reply;
       brainCache = true;
     } else if (cached.hash && claudeCall) {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: mode === 'colega' ? 700 : 550,
+        max_tokens: 650,
         system,
         messages
       });
       reply = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-      if (reply.length > 8) {
-        _brain.brainSetLLM(cached.hash, 'super', mode, msg, reply, brainExtra).catch(() => {});
-      }
+      if (reply.length > 8) _brain.brainSetLLM(cached.hash, 'super', 'brain', msg, reply, brainExtra).catch(() => {});
     }
   }
 
   if (!reply && claudeCall) {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: mode === 'colega' ? 700 : 550,
+      max_tokens: 650,
       system,
       messages
     });
@@ -316,60 +358,89 @@ async function chat(state, { message, claudeCall, founderName, autoApproveLearn 
 
   if (!reply) throw new Error('Sin respuesta del modelo.');
 
-  const aprendi = extractAprendi(reply);
-  if (aprendi && mode === 'alumno') {
-    if (autoApproveLearn) {
-      autoLearned = await addLesson(state, {
-        title: `Auto: ${aprendi.slice(0, 60)}`,
-        content: aprendi,
-        author: 'Super Cerebro',
-        source: 'auto-aprendi'
-      });
-      state.stats.autoLearned = (state.stats.autoLearned || 0) + 1;
-    } else {
-      autoLearned = await addPendingLesson(state, {
-        title: `APRENDÍ: ${aprendi.slice(0, 50)}`,
-        content: aprendi,
-        source: 'auto-aprendi'
-      });
-    }
+  let nuevoPending = null;
+  const nuevo = extractNuevoConocimiento(reply);
+  if (nuevo) {
+    reply = reply.replace(/\n?NUEVO_CONOCIMIENTO:[\s\S]*$/i, '').trim();
+    state.pendingLessons = state.pendingLessons || [];
+    nuevoPending = {
+      id: `P-${Date.now()}`,
+      title: `De conversación: ${nuevo.slice(0, 50)}`,
+      content: nuevo,
+      source: 'conversation',
+      date: new Date().toISOString()
+    };
+    state.pendingLessons.push(nuevoPending);
   }
 
   history.push({ role: 'user', content: msg });
   history.push({ role: 'assistant', content: reply });
-  state.chatHistory = trimHistory(history);
+  state.talkHistory = trimHistory(history);
   state.stats = state.stats || {};
-  state.stats.chatTurns = (state.stats.chatTurns || 0) + 1;
+  state.stats.talkTurns = (state.stats.talkTurns || 0) + 1;
   await saveState(state);
 
-  return { reply, mode, brainCache, autoLearned, stats: state.stats };
+  return {
+    reply,
+    brainCache,
+    nuevoPending,
+    stats: state.stats,
+    sourcesUsed: {
+      nexusKb: sources.kbEntries.length,
+      kbFiles: sources.kbFiles.length,
+      published: sources.published.length,
+      pending: (state.pendingLessons || []).length
+    }
+  };
 }
 
-function publicSummary(state) {
+async function buildContextBlock(query) {
+  const sources = await loadKnowledgeSources(query);
+  return formatSourcesBlock(sources);
+}
+
+async function getPropagatedContext(query, charLimit = 1400) {
+  const sources = await loadKnowledgeSources(query);
+  const lines = [];
+  sources.relevantPublished.slice(0, 6).forEach(l => {
+    lines.push(`- ${l.title}: ${String(l.content || '').slice(0, 180)}`);
+  });
+  sources.relevantKb.slice(-6).forEach(e => {
+    lines.push(`- ${String(e.text || '').slice(0, 140)}`);
+  });
+  return lines.join('\n').slice(0, charLimit);
+}
+
+function publicSummary(state, extra = {}) {
   return {
     enabled: isSuperBrainEnabled(),
-    mode: state.mode,
     founderName: state.founderName || '',
     lessonsCount: (state.lessons || []).length,
-    correctionsCount: (state.corrections || []).length,
+    publishedCount: (state.lessons || []).filter(l => l.published).length,
     pendingCount: (state.pendingLessons || []).length,
-    recentLessons: (state.lessons || []).slice(-8).reverse().map(l => ({
-      id: l.id,
-      title: l.title,
-      date: l.date,
-      source: l.source,
-      preview: String(l.content || '').slice(0, 120)
+    nexusKbCount: extra.nexusKbCount || 0,
+    kbFilesCount: extra.kbFilesCount || 0,
+    recentPublished: (state.lessons || []).filter(l => l.published).slice(-6).reverse().map(l => ({
+      id: l.id, title: l.title, date: l.publishedAt || l.date, preview: String(l.content || '').slice(0, 100)
     })),
     pendingLessons: (state.pendingLessons || []).slice().reverse().map(p => ({
-      id: p.id,
-      title: p.title,
-      date: p.date,
-      preview: String(p.content || '').slice(0, 120)
+      id: p.id, title: p.title, date: p.date, preview: String(p.content || '').slice(0, 120)
     })),
     stats: state.stats,
-    modes: MODES,
     updatedAt: state.updatedAt
   };
+}
+
+async function getFullSummary() {
+  const state = await loadState();
+  const kb = await loadNexusKB();
+  const files = await loadKbFiles();
+  return publicSummary(state, { nexusKbCount: kb.length, kbFilesCount: files.length });
+}
+
+// Legacy aliases
+async function chat(state, opts) {
+  return talk(state, opts);
 }
 
 module.exports = {
@@ -377,17 +448,16 @@ module.exports = {
   isSuperBrainEnabled,
   loadState,
   saveState,
-  addLesson,
-  addCorrection,
-  addPendingLesson,
+  ingest,
+  publishKnowledge,
   approvePending,
   rejectPending,
-  setMode,
+  talk,
   chat,
   buildContextBlock,
+  getPropagatedContext,
+  getFullSummary,
   publicSummary,
-  rankLessons,
-  extractAprendi,
-  MODES,
+  appendNexusKB,
   SUPER_BRAIN_ID
 };

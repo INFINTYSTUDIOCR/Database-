@@ -120,7 +120,7 @@ const Brain = require('./nexus-brain');
 Brain.initNexusBrain({ sbGetOne, sbSet });
 
 const SuperBrain = require('./super-brain');
-SuperBrain.initSuperBrain({ sbGetOne, sbSet, brain: Brain });
+SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 
 // ── OPENING ROTATION LOG (Alice / Jill / Nexora session starts) ──
 const OPENING_LOG_MAX = 8;
@@ -184,7 +184,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-super-brain-full',
+  build: '2026-06-24-super-brain-v2',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1869,7 +1869,7 @@ RESPONSE STYLE:
 - Ask ONE follow-up question at the end
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}
-EXERCISES:\n${tb||'(none yet)'}`;
+EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 
     const msgs = history?.length
       ? [...history.slice(-10), { role:'user', content:message }]
@@ -2164,7 +2164,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {
       max_tokens: 800,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await maybeSuperBrainSlice(message, req.auth)}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nResponde en texto directo, sin JSON, como en una conversación oral. Máx 4-6 oraciones. NUNCA te cortes a mitad de explicación — siempre terminá cada oración y cerrá la idea antes de hacer una pregunta.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -2174,11 +2174,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
   }
 });
 
-async function maybeSuperBrainSlice(message, auth) {
-  if (!SuperBrain.isSuperBrainEnabled() || !auth || !['superadmin', 'master'].includes(auth.role)) return '';
+async function tutorKnowledgeSlice(message) {
+  if (!SuperBrain.isSuperBrainEnabled()) return '';
   try {
-    const ctx = await SuperBrain.buildContextBlock(String(message || '').slice(0, 400), 8);
-    return `\n\nFOUNDER SUPER BRAIN (usá esto como guía interna — no lo cites literalmente al estudiante):\n${ctx.slice(0, 4500)}`;
+    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 1400);
+    if (!ctx.trim()) return '';
+    return `\n\nINSTITUTIONAL KNOWLEDGE (Nexus Super Brain — use when relevant, never contradict Nexus Method):\n${ctx}`;
   } catch {
     return '';
   }
@@ -2203,7 +2204,7 @@ PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await maybeSuperBrainSlice(message, req.auth)}`;
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSlice(message)}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     const levelExtra = student?.level || 'Functional';
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
@@ -2871,70 +2872,90 @@ Respond ONLY with valid JSON, no markdown:
   }
 });
 
-// ── SUPER CEREBRO (fundador — no afecta Alice/Jill/Nexora) ───
+// ── SUPER CEREBRO (inteligencia institucional — no chatbot) ──
 app.get('/super-brain', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) {
-      return res.status(503).json({ error: 'Super Brain disabled', hint: 'Set SUPER_BRAIN=1 or remove SUPER_BRAIN=0' });
+      return res.status(503).json({ error: 'Super Brain disabled' });
     }
-    const state = await SuperBrain.loadState();
-    return res.json(SuperBrain.publicSummary(state));
+    return res.json(await SuperBrain.getFullSummary());
   } catch (err) {
     console.error('super-brain GET:', err.message);
     return res.status(500).json({ error: 'Super Brain unavailable' });
   }
 });
 
-app.post('/super-brain/mode', requireMasterOrAnalyzeSecret, async (req, res) => {
+app.post('/super-brain/talk', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { mode } = req.body || {};
+    const { message, founderName } = req.body || {};
     const state = await SuperBrain.loadState();
-    const newMode = await SuperBrain.setMode(state, mode);
-    return res.json({ ok: true, mode: newMode });
+    const result = await SuperBrain.talk(state, { message, founderName, claudeCall });
+    return res.json({ ok: true, ...result });
   } catch (err) {
-    return res.status(400).json({ error: err.message || 'Invalid mode' });
-  }
-});
-
-app.post('/super-brain/lesson', requireMasterOrAnalyzeSecret, async (req, res) => {
-  try {
-    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { title, content } = req.body || {};
-    const state = await SuperBrain.loadState();
-    const lesson = await SuperBrain.addLesson(state, {
-      title,
-      content,
-      author: req.auth?.name || 'Fundador'
-    });
-    return res.json({ ok: true, lesson, lessonsCount: state.lessons.length });
-  } catch (err) {
-    return res.status(400).json({ error: err.message || 'Could not save lesson' });
-  }
-});
-
-app.post('/super-brain/correct', requireMasterOrAnalyzeSecret, async (req, res) => {
-  try {
-    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { wrong, right, note, lessonId } = req.body || {};
-    const state = await SuperBrain.loadState();
-    const correction = await SuperBrain.addCorrection(state, { wrong, right, note, lessonId });
-    return res.json({ ok: true, correction, correctionsCount: state.corrections.length });
-  } catch (err) {
-    return res.status(400).json({ error: err.message || 'Could not save correction' });
+    console.error('super-brain talk:', err.message);
+    return res.status(400).json({ error: err.message || 'Talk failed' });
   }
 });
 
 app.post('/super-brain/chat', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { message, founderName, autoApproveLearn } = req.body || {};
+    const { message, founderName } = req.body || {};
     const state = await SuperBrain.loadState();
-    const result = await SuperBrain.chat(state, { message, founderName, autoApproveLearn: !!autoApproveLearn, claudeCall });
+    const result = await SuperBrain.talk(state, { message, founderName, claudeCall });
     return res.json({ ok: true, ...result });
   } catch (err) {
-    console.error('super-brain chat:', err.message);
-    return res.status(400).json({ error: err.message || 'Chat failed' });
+    return res.status(400).json({ error: err.message || 'Talk failed' });
+  }
+});
+
+app.post('/super-brain/ingest', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { title, content, category, autoPublish } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const result = await SuperBrain.ingest(state, {
+      title,
+      content,
+      category,
+      author: req.auth?.name || 'Fundador',
+      autoPublish: !!autoPublish
+    });
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Ingest failed' });
+  }
+});
+
+app.post('/super-brain/publish', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { pendingId, lessonId, title, content, category } = req.body || {};
+    const state = await SuperBrain.loadState();
+    if (pendingId) {
+      const lesson = await SuperBrain.approvePending(state, pendingId);
+      return res.json({ ok: true, lesson, published: true });
+    }
+    const lesson = await SuperBrain.publishKnowledge(state, {
+      lessonId,
+      title,
+      content,
+      category,
+      author: req.auth?.name || 'Fundador'
+    });
+    return res.json({ ok: true, lesson, published: true });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Publish failed' });
+  }
+});
+
+app.post('/super-brain/tts', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const { text } = req.body || {};
+    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Super Brain' });
+  } catch (err) {
+    return res.status(500).json({ error: 'TTS failed' });
   }
 });
 
@@ -2944,7 +2965,7 @@ app.post('/super-brain/approve', requireMasterOrAnalyzeSecret, async (req, res) 
     const { pendingId } = req.body || {};
     const state = await SuperBrain.loadState();
     const lesson = await SuperBrain.approvePending(state, pendingId);
-    return res.json({ ok: true, lesson, lessonsCount: state.lessons.length, pendingCount: state.pendingLessons.length });
+    return res.json({ ok: true, lesson, published: true, message: 'Publicado en Nexus KB — Alice, Jill y Nexora lo reciben.' });
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Could not approve' });
   }
