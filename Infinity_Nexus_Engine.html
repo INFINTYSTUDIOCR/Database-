@@ -292,6 +292,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-avail-overview" onclick="showView('avail-overview',this)"><i class="ti ti-users-group"></i>Disponibilidad equipo</div>
       <div class="sb-item" id="nav-broadcast" onclick="openBroadcastModal()"><i class="ti ti-brand-whatsapp"></i>Comunicado general</div>
       <div class="sb-item" id="nav-nexus-kb" onclick="showView('nexus-kb',this)"><i class="ti ti-bulb"></i>Nexus AI · Base de conocimiento</div>
+      <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>Super Cerebro · Entrenamiento</div>
       <div class="sb-item" id="nav-kb-upload" onclick="showView('kb-upload',this)"><i class="ti ti-cloud-upload"></i>KB Upload · Archivos</div>
       <div class="sb-item" id="nav-ops" onclick="showView('ops',this)"><i class="ti ti-activity"></i>Operación en vivo</div>
       <div class="sb-item" id="nav-network" onclick="showView('network',this)"><i class="ti ti-radar"></i>Network Traffic</div>
@@ -957,6 +958,7 @@ function startApp(){
     document.getElementById('nav-avail-overview').style.display='none';
     document.getElementById('nav-broadcast').style.display='none';
     document.getElementById('nav-nexus-kb').style.display='none';
+    document.getElementById('nav-super-brain').style.display='none';
     document.getElementById('nav-kb-upload').style.display='none';
     document.getElementById('nav-ops').style.display='none';
     document.getElementById('nav-network').style.display='none';
@@ -1057,6 +1059,7 @@ function showView(view, btn){
   else if(view==='attendance') renderAttendanceView(m);
   else if(view==='avail-overview') renderAvailabilityOverview(m);
   else if(view==='nexus-kb') renderNexusKB(m);
+  else if(view==='super-brain') renderSuperBrain(m);
   else if(view==='kb-upload') renderKBUpload(m);
   else if(view==='ops') renderOpsOverview(m);
   else if(view==='staffchat') renderStaffChat(m);
@@ -4972,6 +4975,152 @@ async function deleteNexusKBEntry(idx){
     showToast('Entrada eliminada');
     renderNexusKB(document.getElementById('main-content'));
   });
+}
+
+// ── SUPER CEREBRO · Entrenamiento personal del fundador ─────
+var SUPER_BRAIN_API = 'https://alice-by-infinity.onrender.com';
+var SUPER_BRAIN_SECRET = 'otro-secreto-distinto-2026';
+var _superBrainState = null;
+
+async function superBrainFetch(path, opts){
+  opts = opts || {};
+  var headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+  var r = await fetch(SUPER_BRAIN_API + path, Object.assign({}, opts, { headers: headers }));
+  var data = await r.json().catch(function(){ return {}; });
+  if(!r.ok) throw new Error(data.error || ('HTTP '+r.status));
+  return data;
+}
+
+function renderSuperBrain(m){
+  if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
+  m.innerHTML = '<div class="fade">'
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-brain"></i> Super Cerebro · Entrenamiento personal</h2>'
+    +'<div class="ib ib-navy">Entrená tu propio cerebro en 3 fases: <strong>Alumno</strong> (le das clases) → <strong>Asistente</strong> (te ayuda) → <strong>Colega</strong> (colabora contigo). Las clases quedan guardadas en Supabase y se conectan con Nexus KB + Nexus Brain.</div>'
+    +'<div id="sb-status" class="ib ib-amber" style="margin-top:8px;">Cargando estado...</div>'
+    +'<div class="card" style="margin-top:12px;"><div class="card-title"><i class="ti ti-switch-3"></i>Modo de relación</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;" id="sb-mode-btns">'
+    +'<button class="btn btn-outline btn-sm" data-mode="alumno" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-school"></i>Alumno</button>'
+    +'<button class="btn btn-outline btn-sm" data-mode="asistente" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-robot"></i>Asistente</button>'
+    +'<button class="btn btn-outline btn-sm" data-mode="colega" onclick="superBrainSetMode(this.dataset.mode)"><i class="ti ti-users"></i>Colega</button>'
+    +'</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Dar una clase (modo Alumno)</div>'
+    +'<input class="inp" id="sb-lesson-title" placeholder="Título de la clase (ej: Cómo corregir k9 en Corporate)">'
+    +'<textarea class="inp" id="sb-lesson-content" placeholder="Contenido de la clase — explicá como si le enseñaras a tu alumno..." style="min-height:120px;margin-top:8px;"></textarea>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn btn-navy btn-sm" onclick="superBrainSaveLesson()"><i class="ti ti-check"></i>Guardar clase</button></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-message-2"></i>Conversar con el Super Cerebro</div>'
+    +'<div id="sb-chat-log" style="max-height:260px;overflow-y:auto;background:var(--gray);border-radius:var(--r);padding:12px;font-size:13px;line-height:1.6;margin-bottom:8px;color:var(--t2);">Sin mensajes todavía.</div>'
+    +'<textarea class="inp" id="sb-chat-input" placeholder="Escribí tu mensaje..." style="min-height:70px;"></textarea>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">'
+    +'<button class="btn btn-navy btn-sm" id="sb-chat-btn" onclick="superBrainSendChat()"><i class="ti ti-send"></i>Enviar</button>'
+    +'<span id="sb-chat-status" style="font-size:11px;color:var(--t3);"></span>'
+    +'</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-edit"></i>Corregir respuesta (refuerzo)</div>'
+    +'<input class="inp" id="sb-wrong" placeholder="Lo que dijo mal el cerebro">'
+    +'<input class="inp" id="sb-right" placeholder="La corrección correcta" style="margin-top:8px;">'
+    +'<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="superBrainSaveCorrection()"><i class="ti ti-check"></i>Guardar corrección</button>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>Clases guardadas</div>'
+    +'<div id="sb-lessons-list" style="font-size:13px;color:var(--t2);">Cargando...</div>'
+    +'</div></div>';
+  superBrainRefresh();
+}
+
+function superBrainHighlightMode(mode){
+  document.querySelectorAll('#sb-mode-btns button').forEach(function(btn){
+    var active = btn.dataset.mode === mode;
+    btn.className = 'btn btn-sm ' + (active ? 'btn-navy' : 'btn-outline');
+  });
+}
+
+async function superBrainRefresh(){
+  try{
+    var data = await superBrainFetch('/super-brain?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+    _superBrainState = data;
+    var st = document.getElementById('sb-status');
+    if(st) st.innerHTML = 'Modo: <strong>'+(data.mode||'alumno')+'</strong> · Clases: '+(data.lessonsCount||0)+' · Correcciones: '+(data.correctionsCount||0)+(data.brainCache!==undefined?'':' · Super Brain activo');
+    superBrainHighlightMode(data.mode || 'alumno');
+    var list = document.getElementById('sb-lessons-list');
+    if(list){
+      var lessons = data.recentLessons || [];
+      list.innerHTML = lessons.length ? lessons.map(function(l){
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(l.date?l.date.slice(0,10):'')+'</div><div style="margin-top:4px;">'+(l.preview||'')+'</div></div>';
+      }).join('') : 'Sin clases todavía — empezá dando la primera arriba.';
+    }
+  }catch(e){
+    var st = document.getElementById('sb-status');
+    if(st) st.textContent = 'Error cargando Super Cerebro: '+e.message+'. (Requiere deploy del backend.)';
+  }
+}
+
+async function superBrainSetMode(mode){
+  try{
+    await superBrainFetch('/super-brain/mode', { method:'POST', body: JSON.stringify({ mode: mode, secret: SUPER_BRAIN_SECRET }) });
+    showToast('Modo: '+mode);
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainSaveLesson(){
+  var title = document.getElementById('sb-lesson-title').value.trim();
+  var content = document.getElementById('sb-lesson-content').value.trim();
+  if(!content){ showToast('Escribí el contenido de la clase','err'); return; }
+  try{
+    await superBrainFetch('/super-brain/lesson', { method:'POST', body: JSON.stringify({ title: title, content: content, secret: SUPER_BRAIN_SECRET }) });
+    document.getElementById('sb-lesson-title').value = '';
+    document.getElementById('sb-lesson-content').value = '';
+    showToast('Clase guardada en Super Cerebro');
+    await logAction('Clase Super Cerebro', (title||content).substring(0,80));
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainSaveCorrection(){
+  var wrong = document.getElementById('sb-wrong').value.trim();
+  var right = document.getElementById('sb-right').value.trim();
+  if(!wrong || !right){ showToast('Completá ambos campos','err'); return; }
+  try{
+    await superBrainFetch('/super-brain/correct', { method:'POST', body: JSON.stringify({ wrong: wrong, right: right, secret: SUPER_BRAIN_SECRET }) });
+    document.getElementById('sb-wrong').value = '';
+    document.getElementById('sb-right').value = '';
+    showToast('Corrección guardada');
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+function superBrainAppendChat(role, text){
+  var log = document.getElementById('sb-chat-log');
+  if(!log) return;
+  if(log.textContent === 'Sin mensajes todavía.') log.innerHTML = '';
+  var who = role === 'user' ? (SESSION.name||'Fundador') : 'Super Cerebro';
+  var color = role === 'user' ? 'var(--navy)' : 'var(--purple)';
+  log.innerHTML += '<div style="margin-bottom:10px;"><strong style="color:'+color+';">'+who+':</strong><div style="white-space:pre-wrap;margin-top:2px;">'+text+'</div></div>';
+  log.scrollTop = log.scrollHeight;
+}
+
+async function superBrainSendChat(){
+  var input = document.getElementById('sb-chat-input');
+  var btn = document.getElementById('sb-chat-btn');
+  var status = document.getElementById('sb-chat-status');
+  var msg = input.value.trim();
+  if(!msg) return;
+  btn.disabled = true;
+  status.textContent = 'Pensando...';
+  superBrainAppendChat('user', msg);
+  input.value = '';
+  try{
+    var data = await superBrainFetch('/super-brain/chat', {
+      method:'POST',
+      body: JSON.stringify({ message: msg, founderName: SESSION.name||'Fundador', secret: SUPER_BRAIN_SECRET })
+    });
+    superBrainAppendChat('assistant', data.reply || '—');
+    status.textContent = data.brainCache ? 'Respuesta desde Nexus Brain (caché)' : 'Respuesta nueva';
+  }catch(e){
+    status.textContent = '';
+    superBrainAppendChat('assistant', 'Error: '+e.message);
+    showToast(e.message,'err');
+  }
+  btn.disabled = false;
 }
 
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────

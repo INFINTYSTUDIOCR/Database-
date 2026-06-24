@@ -119,6 +119,9 @@ async function sbGetOne(table, id) {
 const Brain = require('./nexus-brain');
 Brain.initNexusBrain({ sbGetOne, sbSet });
 
+const SuperBrain = require('./super-brain');
+SuperBrain.initSuperBrain({ sbGetOne, sbSet, brain: Brain });
+
 // ── OPENING ROTATION LOG (Alice / Jill / Nexora session starts) ──
 const OPENING_LOG_MAX = 8;
 
@@ -179,7 +182,13 @@ function extractOpeningSnippet(text) {
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
-app.get('/health', (req, res) => res.json({ ok: true, build: '2026-06-24-nexus-brain', brain: Brain.isBrainEnabled(), services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats'] }));
+app.get('/health', (req, res) => res.json({
+  ok: true,
+  build: '2026-06-24-super-brain-f1',
+  brain: Brain.isBrainEnabled(),
+  superBrain: SuperBrain.isSuperBrainEnabled(),
+  services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
+}));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
 app.get('/keycheck', async (req, res) => {
@@ -265,6 +274,16 @@ function clearLoginRateLimit(ip) {
 
 const AUTH_ROLES = ['student', 'trainer', 'superadmin', 'master'];
 const requireProductAuth = requireAuth(['student', 'trainer', 'superadmin', 'master']);
+const requireMasterAccess = requireAuth(['superadmin', 'master']);
+
+function requireMasterOrAnalyzeSecret(req, res, next) {
+  const secret = req.headers['x-analyze-secret'] || req.body?.secret || req.query?.secret;
+  if (ANALYZE_SECRET && secret === ANALYZE_SECRET) {
+    req.auth = { role: 'superadmin', sub: 'ANALYZE-SECRET', name: 'Master' };
+    return next();
+  }
+  return requireMasterAccess(req, res, next);
+}
 
 app.get('/brain/stats', requireProductAuth, async (req, res) => {
   try {
@@ -2839,6 +2858,73 @@ Respond ONLY with valid JSON, no markdown:
   } catch(err) {
     console.error('Nexora eval error:', err.message);
     return res.status(500).json({ error: 'Evaluation failed' });
+  }
+});
+
+// ── SUPER CEREBRO (fundador — no afecta Alice/Jill/Nexora) ───
+app.get('/super-brain', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) {
+      return res.status(503).json({ error: 'Super Brain disabled', hint: 'Set SUPER_BRAIN=1 or remove SUPER_BRAIN=0' });
+    }
+    const state = await SuperBrain.loadState();
+    return res.json(SuperBrain.publicSummary(state));
+  } catch (err) {
+    console.error('super-brain GET:', err.message);
+    return res.status(500).json({ error: 'Super Brain unavailable' });
+  }
+});
+
+app.post('/super-brain/mode', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { mode } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const newMode = await SuperBrain.setMode(state, mode);
+    return res.json({ ok: true, mode: newMode });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Invalid mode' });
+  }
+});
+
+app.post('/super-brain/lesson', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { title, content } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const lesson = await SuperBrain.addLesson(state, {
+      title,
+      content,
+      author: req.auth?.name || 'Fundador'
+    });
+    return res.json({ ok: true, lesson, lessonsCount: state.lessons.length });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Could not save lesson' });
+  }
+});
+
+app.post('/super-brain/correct', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { wrong, right, note, lessonId } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const correction = await SuperBrain.addCorrection(state, { wrong, right, note, lessonId });
+    return res.json({ ok: true, correction, correctionsCount: state.corrections.length });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Could not save correction' });
+  }
+});
+
+app.post('/super-brain/chat', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { message, founderName } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const result = await SuperBrain.chat(state, { message, founderName, claudeCall });
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    console.error('super-brain chat:', err.message);
+    return res.status(400).json({ error: err.message || 'Chat failed' });
   }
 });
 
