@@ -1262,7 +1262,8 @@ function openStudent(id){
     showToast('No tenés acceso a este estudiante','err');
     return;
   }
-  var score=getScore(s); var level=getLevel(score); var phase=parseInt((s.info||{}).phase)||1;
+  var score=getScore(s); var level=getLevelForStudent(score,s); var phase=parseInt((s.info||{}).phase)||1;
+  var scoreMax=getScoreMax(s);
   var isMaster = hasMasterAccess();
   var kpis=(s.kpis||{}).phase1||{};
   var m=document.getElementById('main-content');
@@ -1302,7 +1303,7 @@ function openStudent(id){
     +'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+getLevelBadge(level)+' '+getPhaseBadge(phase)
     +(isMaster?paymentFlagBadgeHtml(s.info):'')
     +'<span class="ph-code">'+((s.code)||'—')+'</span></div></div>'
-    +'<div style="text-align:right;"><div class="ph-score">'+score+'</div><div class="ph-score-label">score / 25</div></div>'
+    +'<div style="text-align:right;"><div class="ph-score">'+score+'</div><div class="ph-score-label">score / '+scoreMax+'</div></div>'
     +'</div>'
 
     +'<div class="tabs" id="profile-tabs">'
