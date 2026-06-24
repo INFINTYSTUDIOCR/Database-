@@ -191,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v5-registered-name',
+  build: '2026-06-24-v5-nexora-scoped',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1359,7 +1359,9 @@ CRITICAL RULES:
 - Hold without asking → express annoyance when they return.
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
   }
-  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE, p, sc, scType };
+  const agentLabel = String(agentName || 'Agent').trim() || 'Agent';
+  const agentIdentity = `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Never call them Byron, Johnny, or any other name.`;
+  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + agentIdentity, p, sc, scType };
 }
 
 function finishNexoraReply(raw, p, scType) {
@@ -1370,8 +1372,10 @@ function finishNexoraReply(raw, p, scType) {
   return fixed.trim();
 }
 
-async function prepareNexoraRequest(body) {
-  const { message, history, profile, scenario, agentName, accountContext, negRole, student } = body || {};
+async function prepareNexoraRequest(body, req) {
+  const { message, history, profile, scenario, agentName: agentNameRaw, accountContext, negRole, student: studentRaw } = body || {};
+  const student = resolveNexoraStudent(studentRaw, req);
+  const agentName = resolveNexoraAgentName(student, agentNameRaw, req);
   const { systemPrompt, p, sc, scType } = buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole });
   const msgStr = String(message || '');
   const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
@@ -1386,7 +1390,7 @@ async function prepareNexoraRequest(body) {
   const msgs = (last && last.role === 'user' && last.content === message)
     ? hist
     : [...hist, { role: 'user', content: message }];
-  return { systemPrompt: prompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct };
+  return { systemPrompt: prompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
 }
 
 // ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
@@ -2669,10 +2673,37 @@ function enforceNexoraClientName(reply, profile) {
   return fixed;
 }
 
+const NEXORA_BRAIN_VER = 'v5-scoped-name';
+
+function resolveNexoraStudent(student, req) {
+  if (student?.id) return student;
+  if (req?.auth?.studentId) {
+    return { id: req.auth.studentId, info: { name: req.auth.name || '' }, name: req.auth.name || '' };
+  }
+  return student || null;
+}
+
+function resolveNexoraAgentName(student, agentNameFromClient, req) {
+  const scoped = resolveNexoraStudent(student, req);
+  if (scoped?.id) return getStudentDisplayName(scoped);
+  const raw = String(agentNameFromClient || req?.auth?.name || '').trim();
+  if (!raw) return 'Agent';
+  const first = raw.split(/\s+/)[0];
+  const valid = sanitizePreferredNameServer(first);
+  if (valid && !STAFF_NAME_BLOCKLIST.has(valid.toLowerCase())) return valid;
+  return 'Agent';
+}
+
+function nexoraBrainExtra(student, req, suffix) {
+  return brainScopeExtra(resolveNexoraStudent(student, req), req, `${suffix}:${NEXORA_BRAIN_VER}`);
+}
+
 // ── NEXORA CALL SIMULATION ────────────────────────────────────
 app.post('/nexora', requireProductAuth, async (req, res) => {
   try {
-    const { message, history, profile, scenario, agentName, student } = req.body || {};
+    const { message, history, profile, scenario, agentName: agentNameRaw, student: studentRaw, accountContext } = req.body || {};
+    const student = resolveNexoraStudent(studentRaw, req);
+    const agentName = resolveNexoraAgentName(student, agentNameRaw, req);
 
     const limit = await checkTutorLimit(student?.id, 'nexora', 'infinity_sessions');
     if (!limit.ok && !/^START_/.test(String(message || ''))) {
@@ -2685,8 +2716,6 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
 
     const p = profile || {};
     const sc = scenario || {};
-    
-    const { accountContext } = req.body || {};
 
     const moodInstructions = {
       frustrated: 'You are frustrated and mildly upset. You want this resolved quickly.',
@@ -2859,7 +2888,9 @@ YOUR ROLE:
 
     const msgStr = String(message || '');
     const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
-    const actorKey = resolveActorKey({ student: req.body?.student, req, profile: p });
+    systemPrompt += `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Never call them Byron, Johnny, or any other name.`;
+
+    const actorKey = resolveActorKey({ student, req, profile: p });
     const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
     if (isOpening) {
       const recent = await getRecentOpenings(actorKey, openingProduct);
@@ -2871,7 +2902,7 @@ YOUR ROLE:
       ? [...history.slice(-14), { role: 'user', content: message }]
       : [{ role: 'user', content: message }];
 
-    const nexoraExtra = `${scType}:${sc.mood || 'normal'}`;
+    const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}`);
     const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);
     if (brain.hit) {
       let cached = brain.reply;
@@ -2908,8 +2939,8 @@ YOUR ROLE:
 
 app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
-    const ctx = await prepareNexoraRequest(req.body);
-    const nexoraExtra = `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`;
+    const ctx = await prepareNexoraRequest(req.body, req);
+    const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, brain.reply);
     await streamAnthropicSSE(res, {

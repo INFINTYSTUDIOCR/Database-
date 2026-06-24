@@ -1603,7 +1603,7 @@ function openNexoraLab(){
   var student = window._currentStudent || window._portalStudent;
   var nxConfig = window._nexoraConfig;
   if(nxConfig) localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
-  localStorage.setItem('nexora_agent', (student&&student.info&&student.info.name)||'Student');
+  localStorage.setItem('nexora_agent', nexoraAgentName(student));
   localStorage.setItem('nexora_student_id', (student&&student.id)||'');
   window.open('nexora.html','_blank');
 }
@@ -1899,6 +1899,16 @@ function jillStudentDisplayName(student){
   var s = student || window._currentStudent || window._portalStudent || CURRENT_STUDENT || {};
   if(typeof AiProfile !== 'undefined') return AiProfile.displayName(s);
   return aliceStudentFirstName(s);
+}
+
+function nexoraAgentName(student){
+  return jillStudentDisplayName(student);
+}
+
+function nexoraStudentPayload(student){
+  var s = student || window._currentStudent || window._portalStudent || CURRENT_STUDENT || {};
+  if(typeof AiProfile !== 'undefined') return AiProfile.enrichStudentPayload(s);
+  return { id: s.id, info: s.info, name: (s.info && s.info.name) || s.name, aiProfile: s.aiProfile || {} };
 }
 
 function jillInstantOpening(student, returning){
@@ -2238,8 +2248,9 @@ async function nexoraAnswerCall(){
       body: JSON.stringify({
         message:'START_CALL', history:[],
         profile:p, scenario:sc,
-        agentName:(student.info&&student.info.name)||'Agent',
-        accountContext:accountContext
+        agentName: nexoraAgentName(student),
+        accountContext: accountContext,
+        student: nexoraStudentPayload(student)
       })
     });
     var d = await r.json();
@@ -2346,7 +2357,8 @@ function nexoraSendToAlice(text){
       profile: p,
       scenario: sc,
       accountContext: accountContext,
-      agentName: (student.info&&student.info.name)||'Agent'
+      agentName: nexoraAgentName(student),
+      student: nexoraStudentPayload(student)
     })
   }).then(function(r){
     if(!r.ok) throw new Error('nexora_'+r.status);
@@ -2394,7 +2406,7 @@ async function nexoraGenerateQA(isTransfer){
         transcript: _nxState.transcript.join('\n'),
         scenario: sc,
         profile: p,
-        agentName: (window._currentStudent&&window._currentStudent.info&&window._currentStudent.info.name)||'Agent',
+        agentName: nexoraAgentName(window._currentStudent),
         talkTime: talkTime,
         holdEvents: _nxState.holdEvents,
         transferred: isTransfer

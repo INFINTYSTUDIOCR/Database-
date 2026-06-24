@@ -763,7 +763,7 @@ window.onload=function(){
   clearNexoraDemoFlagsIfPortal();
   bindAllNexoraPttMics();
   var savedAgent=localStorage.getItem('nexora_agent');
-  if(savedAgent){_nx.agent=savedAgent;document.getElementById('agent-inp').value=savedAgent;}
+  if(savedAgent){_nx.agent=savedAgent.split(/\s+/)[0];document.getElementById('agent-inp').value=_nx.agent;}
   var nxConfig=loadNexoraEngineConfig();
   var prev=_nx.scenario?_nx.scenario.id:null;
   _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
@@ -772,7 +772,16 @@ window.onload=function(){
   document.getElementById('autoin-screen').style.display='flex';
 };
 
-function setAgent(v){_nx.agent=v;localStorage.setItem('nexora_agent',v);}
+function setAgent(v){var n=String(v||'').trim().split(/\s+/)[0]||'Agent';_nx.agent=n;localStorage.setItem('nexora_agent',n);}
+
+function nexoraLabStudentPayload(){
+  try{
+    var sid=localStorage.getItem('nexora_student_id');
+    if(!sid) return null;
+    var agent=localStorage.getItem('nexora_agent')||'';
+    return {id:sid,info:{name:agent},name:agent};
+  }catch(e){return null;}
+}
 
 // ── GENERATE PROFILE ──────────────────────────────────────────
 function genProfile(sc){
@@ -1257,13 +1266,11 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
       if(reply) speak(reply);
       return;
     }
+    var payload=buildNexoraPayload(startMsg,[],profile,sc);
+    if(ctx) payload.accountContext=ctx;
     var r=await infinityFetch('/nexora',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        message:startMsg,history:[],
-        profile:profile,
-        scenario:sc,agentName:_nx.agent||'You',accountContext:ctx
-      })
+      body:JSON.stringify(payload)
     });
     var d=await r.json();
     if(st) st.textContent='';
@@ -1868,12 +1875,17 @@ async function nexoraGetReply(payload, onPartial){
 }
 
 function buildNexoraPayload(message, history, p, sc){
-  return {
+  var student=nexoraLabStudentPayload();
+  var agent=String(_nx.agent||'Agent').trim().split(/\s+/)[0]||'Agent';
+  if(student&&student.info&&student.info.name){
+    agent=String(student.info.name).trim().split(/\s+/)[0]||agent;
+  }
+  var payload={
     message:message,
     history:history||[],
     profile:p,
     scenario:sc,
-    agentName:_nx.agent||'Agent',
+    agentName:agent,
     negRole:(sc&&sc.type==='negotiation')?_nx_negRole:null,
     accountContext:{
       name:p.name,account:p.account,
@@ -1882,6 +1894,8 @@ function buildNexoraPayload(message, history, p, sc){
       disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null
     }
   };
+  if(student) payload.student=student;
+  return payload;
 }
 
 function nexoraInstantOpening(p, sc){
