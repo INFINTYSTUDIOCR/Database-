@@ -22,7 +22,7 @@
 <script src="js/ai-profile.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/tts-chunks.js"></script>
-<script src="js/ptt-mic.js"></script>
+<script src="js/ptt-mic.js?v=20260627"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -2682,6 +2682,7 @@ function nexoraCancelSpeech(){
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
   _nxTTSQueue = [];
   _nxTTSBusy = false;
+  if(typeof PttMic !== 'undefined') PttMic.reset(document.getElementById('nx-mic-btn'));
 }
 
 function nexoraSpeak(text){

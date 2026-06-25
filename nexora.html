@@ -9,7 +9,7 @@
 <script src="nexora-profile.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
-<script src="js/ptt-mic.js"></script>
+<script src="js/ptt-mic.js?v=20260627"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1979,7 +1979,7 @@ var _nxSending=false;
 async function sendToAlice(text){
   if(!text||!_nx.active||_nxSending) return;
   _nxSending=true;
-  var unwatchNx=voiceSendWatchdog(function(){ return _nxSending; }, function(){ _nxSending=false; _nxMicSent=false; });
+  var unwatchNx=voiceSendWatchdog(function(){ return _nxSending; }, function(){ _nxSending=false; });
   nexoraCancelSpeech();
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
@@ -2006,7 +2006,6 @@ async function sendToAlice(text){
   }finally{
     unwatchNx();
     _nxSending=false;
-    _nxMicSent=false;
   }
 }
 
@@ -2033,6 +2032,9 @@ function nexoraCancelSpeech(){
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
   _nxTTSQueue=[];
   _nxTTSBusy=false;
+  if(typeof PttMic !== 'undefined'){
+    document.querySelectorAll('[data-ptt-mic]').forEach(function(b){ PttMic.reset(b); });
+  }
 }
 
 function cleanForTTS(text){
@@ -2104,8 +2106,6 @@ function speak(text){
 }
 
 // ── MIC (PTT) ───────────────────────────────────────────────────────
-var _nxMicSent = false;
-
 function bindAllNexoraPttMics(){
   if(typeof PttMic === 'undefined') return;
   document.querySelectorAll('[data-ptt-mic]').forEach(function(btn){
@@ -2115,13 +2115,9 @@ function bindAllNexoraPttMics(){
         btn: btn,
         lang: 'en-US',
         canStart: function(){ return _nx.active && !_nxSending; },
-        onBeforeStart: function(){ nexoraCancelSpeech(); _nxMicSent = false; },
+        onBeforeStart: function(){ nexoraCancelSpeech(); },
         onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
-        onSend: function(text){
-          if(!text || _nxMicSent) return;
-          _nxMicSent = true;
-          sendToAlice(text);
-        }
+        onSend: function(text){ if(text) sendToAlice(text); }
       });
     } catch(e) { btn._pttBound = false; console.warn('Nexora PTT bind:', e); }
   });

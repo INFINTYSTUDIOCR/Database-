@@ -1,6 +1,7 @@
 /**
  * Push-to-Talk mic — hold to speak, release to send.
  * Waits for speech recognition to finish before sending (no half words).
+ * Tolerates rapid press/release cycles without locking the mic.
  */
 var PttMic = (function () {
   'use strict';
@@ -39,6 +40,7 @@ var PttMic = (function () {
     var wantSend = false;
     var sendTimer = null;
     var lastResults = null;
+    var sessionId = 0;
 
     function ui(listening) {
       if (typeof opts.onUi === 'function') opts.onUi(listening, btn);
@@ -55,109 +57,145 @@ var PttMic = (function () {
       return (last && last[0] && last[0].transcript) ? String(last[0].transcript).trim() : transcript;
     }
 
-    function flushSend() {
+    function clearSendTimer() {
       clearTimeout(sendTimer);
       sendTimer = null;
+    }
+
+    function unlockStop() {
+      stopLock = false;
+      wantSend = false;
+    }
+
+    function flushSend() {
+      clearSendTimer();
       if (sent || !wantSend) {
-        wantSend = false;
-        stopLock = false;
+        unlockStop();
         return;
       }
       var text = transcript.trim();
       transcript = '';
-      wantSend = false;
+      unlockStop();
       sent = true;
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
-      setTimeout(function () { stopLock = false; sent = false; }, 500);
+      setTimeout(function () { sent = false; }, 120);
     }
 
     function scheduleSend() {
-      clearTimeout(sendTimer);
+      clearSendTimer();
       sendTimer = setTimeout(function () {
         if (lastResults) transcript = rebuildTranscript(lastResults);
         flushSend();
       }, 220);
     }
 
-    function teardownRec() {
+    function killRec() {
       if (!rec) return;
-      try {
-        rec.onresult = null;
-        rec.onend = null;
-        rec.onerror = null;
-        rec.stop();
-      } catch (e) {}
+      var r = rec;
       rec = null;
+      try {
+        r.onresult = null;
+        r.onend = null;
+        r.onerror = null;
+        if (typeof r.abort === 'function') r.abort();
+        else r.stop();
+      } catch (e) {}
+    }
+
+    function resetSession(cancelSend) {
+      clearSendTimer();
+      killRec();
+      active = false;
+      stopLock = false;
+      if (cancelSend) wantSend = false;
+      ui(false);
     }
 
     function stop(send) {
-      if (!active && !rec && !wantSend) return;
+      if (!active && !rec && !wantSend && !sendTimer) return;
       if (send && stopLock) return;
-      if (send) stopLock = true;
-      wantSend = !!send;
+
+      if (send) {
+        stopLock = true;
+        wantSend = true;
+      } else {
+        wantSend = false;
+        clearSendTimer();
+      }
+
       active = false;
       ui(false);
+
       if (rec) {
         var r = rec;
+        var sid = sessionId;
         r.onend = function () {
+          if (sid !== sessionId) return;
           if (r === rec) rec = null;
           if (lastResults) transcript = rebuildTranscript(lastResults);
-          scheduleSend();
+          if (wantSend) scheduleSend();
+          else unlockStop();
         };
         r.onerror = function (ev) {
+          if (sid !== sessionId) return;
           if (ev && ev.error === 'aborted') return;
           if (r === rec) rec = null;
-          scheduleSend();
+          if (wantSend) scheduleSend();
+          else unlockStop();
         };
-        try { r.stop(); } catch (e) { rec = null; scheduleSend(); }
+        try { r.stop(); } catch (e) {
+          if (r === rec) rec = null;
+          if (wantSend) scheduleSend();
+          else unlockStop();
+        }
       } else if (send) {
         scheduleSend();
       } else {
-        wantSend = false;
-        stopLock = false;
+        unlockStop();
       }
     }
 
     function start(e) {
       if (e) e.preventDefault();
-      if (active) return;
       if (typeof opts.canStart === 'function' && !opts.canStart()) return;
+
+      sessionId++;
+      resetSession(true);
+      clearSendTimer();
+      unlockStop();
+      sent = false;
+
+      if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
+
       var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SR) {
         if (typeof opts.onError === 'function') opts.onError('no-sr');
         return;
       }
-      if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
-      sent = false;
-      stopLock = false;
-      wantSend = false;
-      clearTimeout(sendTimer);
+
       active = true;
       transcript = '';
       lastResults = null;
+      var sid = sessionId;
       rec = new SR();
       rec.lang = opts.lang || 'en-US';
       rec.interimResults = true;
       rec.continuous = true;
       rec.onresult = function (ev) {
+        if (sid !== sessionId) return;
         lastResults = ev;
         transcript = rebuildTranscript(ev);
       };
-      rec.onend = function () {
-        if (active) {
-          active = false;
-          ui(false);
-        }
-      };
       rec.onerror = function (ev) {
+        if (sid !== sessionId) return;
         if (ev && ev.error === 'aborted') return;
-        stop(false);
+        resetSession(false);
       };
       try {
         rec.start();
       } catch (err) {
+        killRec();
         active = false;
-        rec = null;
         ui(false);
         if (typeof opts.onError === 'function') opts.onError('start-failed');
         return;
@@ -192,9 +230,10 @@ var PttMic = (function () {
 
     var inst = {
       stop: function (send) { stop(!!send); },
+      reset: function () { sessionId++; resetSession(true); unlockStop(); sent = false; },
       destroy: function () {
-        clearTimeout(sendTimer);
-        stop(false);
+        sessionId++;
+        resetSession(true);
         btn.removeEventListener('pointerdown', onPointerDown);
         btn.removeEventListener('pointerup', onPointerUp);
         btn.removeEventListener('pointercancel', onPointerCancel);
@@ -214,6 +253,12 @@ var PttMic = (function () {
     if (inst) inst.stop(false);
   }
 
+  function reset(btn) {
+    var b = typeof btn === 'string' ? document.getElementById(btn) : btn;
+    var inst = b && getInst(b);
+    if (inst && inst.reset) inst.reset();
+  }
+
   function stopAll() {
     document.querySelectorAll('[data-ptt-mic], [id$="-mic-btn"]').forEach(function (b) {
       var inst = getInst(b);
@@ -221,5 +266,5 @@ var PttMic = (function () {
     });
   }
 
-  return { bind: bind, stop: stop, stopAll: stopAll };
+  return { bind: bind, stop: stop, reset: reset, stopAll: stopAll };
 })();
