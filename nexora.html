@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="infinity-auth.js"></script>
 <script src="nexora-profile.js"></script>
+<script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
 <script src="js/ptt-mic.js"></script>
 <style>
@@ -800,40 +801,14 @@ function genProfile(sc){
   var pool=[...SERVICES_POOL].sort(function(){return Math.random()-0.5;});
   var svcs=pool.slice(0,1+Math.floor(Math.random()*2));
 
-  // Scenario-specific billing details
-  var billingNotes=[];
-  var disputeAmount=null;
-  var lateFee=null;
-  var refundAmount=null;
-
-  if(sc){
-    if(sc.id==='cs1'||sc.id==='cs5'||sc.id==='cs10'){
-      // Billing dispute / complaint — add unexpected charge
-      disputeAmount='$'+(15+Math.floor(Math.random()*85))+'.00';
-      billingNotes.push({type:'charge',label:'Unexpected charge',amount:disputeAmount,date:new Date(Date.now()-3*86400000).toLocaleDateString('en-US'),note:'Not authorized by client'});
-    }
-    if(sc.id==='cs7'){
-      // Late fee dispute
-      lateFee='$'+(25+Math.floor(Math.random()*15))+'.00';
-      billingNotes.push({type:'fee',label:'Late payment fee',amount:lateFee,date:new Date(Date.now()-7*86400000).toLocaleDateString('en-US'),note:'Client disputes — claims payment was on time'});
-    }
-    if(sc.id==='cs4'){
-      // Refund request
-      refundAmount='$'+(svcs[0]?parseFloat(svcs[0].price.replace(/[^0-9.]/g,'')):29).toFixed(2);
-      billingNotes.push({type:'refund',label:'Refund requested',amount:'$'+refundAmount,date:new Date(Date.now()-5*86400000).toLocaleDateString('en-US'),note:'Client says service did not work'});
-    }
-    if(sc.id==='cs2'){
-      // Cancellation — show pending cancellation
-      billingNotes.push({type:'cancel',label:'Cancellation requested',amount:'',date:new Date().toLocaleDateString('en-US'),note:'Client initiated cancellation request'});
-    }
-  }
-
-  var total=svcs.reduce(function(s,x){return s+parseFloat(x.price.replace(/[^0-9.]/g,'')||0);},0);
-  return{name:fn+' '+ln,firstName:fn,lastName:ln,phone:phone,account:acct,ssn4:ssn,
+  // Scenario-specific billing details — shared with portal via nexora-characters.js
+  var profile = {name:fn+' '+ln,firstName:fn,lastName:ln,phone:phone,account:acct,ssn4:ssn,
     email:fn.toLowerCase()+'.'+ln.toLowerCase()+'@email.com',address:addr,dob:dob,
-    memberSince:msince,services:svcs,total:total,billingNotes:billingNotes,
-    disputeAmount:disputeAmount,lateFee:lateFee,refundAmount:refundAmount,
+    memberSince:msince,services:svcs,
     gender:id.gender,ethnicity:id.ethnicity,voiceId:id.voiceId,voiceAccent:id.voiceAccent};
+  applyScenarioBillingToProfile(profile, sc);
+  profile.total=svcs.reduce(function(s,x){return s+parseFloat(x.price.replace(/[^0-9.]/g,'')||0);},0);
+  return profile;
 }
 
 function personalizeStarInterviewer(sc){
@@ -1043,21 +1018,6 @@ function loadCRM(p){
     +p.services.map(function(s){return '<div class="billing-row"><span>'+s.name+'</span><span>'+s.price+'</span></div>';}).join('')
     +'<div class="billing-row" style="margin-top:8px;"><span>Last payment</span><span style="color:var(--green);">Received</span></div>'
     +'<div class="billing-row"><span>Next billing date</span><span>15th of next month</span></div>';
-  if(p.billingNotes&&p.billingNotes.length){
-    billingHtml+='<div style="margin-top:16px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">Billing Alerts</div>';
-    p.billingNotes.forEach(function(n){
-      var color=n.type==='charge'?'#FEF3C7':n.type==='fee'?'#FEF2F2':n.type==='cancel'?'#FEF2F2':'#EFF6FF';
-      var tcolor=n.type==='charge'?'#92400E':n.type==='fee'?'#991B1B':n.type==='cancel'?'#991B1B':'#1E40AF';
-      billingHtml+='<div style="background:'+color+';border-radius:var(--r);padding:10px 14px;margin-bottom:8px;">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
-        +'<span style="font-size:13px;font-weight:700;color:'+tcolor+';">'+n.label+'</span>'
-        +(n.amount?'<span style="font-size:13px;font-weight:700;color:'+tcolor+';">'+n.amount+'</span>':'')
-        +'</div>'
-        +'<div style="font-size:11px;color:var(--t2);">Date: '+n.date+'</div>'
-        +'<div style="font-size:11px;color:var(--t2);">'+n.note+'</div>'
-        +'</div>';
-    });
-  }
   document.getElementById('billing-content').innerHTML=billingHtml;
   resetCRMTabs();
   getCRMByIndustry(_nx.scenario, p);
@@ -1525,6 +1485,54 @@ function setNegRole(role){
 
 
 // ── INDUSTRY-SPECIFIC CRM CONTENT ─────────────────────────────
+function crmBillingAlertsHtml(p){
+  if(!p.billingNotes||!p.billingNotes.length) return '';
+  var html='<div style="margin-top:16px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">Billing Alerts</div>';
+  p.billingNotes.forEach(function(n){
+    var color=n.type==='charge'?'#FEF3C7':n.type==='fee'?'#FEF2F2':n.type==='cancel'?'#FEF2F2':n.type==='alert'?'#FEF2F2':n.type==='ticket'?'#EFF6FF':'#EFF6FF';
+    var tcolor=n.type==='charge'?'#92400E':n.type==='fee'?'#991B1B':n.type==='cancel'?'#991B1B':n.type==='alert'?'#991B1B':n.type==='ticket'?'#1E40AF':'#1E40AF';
+    html+='<div style="background:'+color+';border-radius:var(--r);padding:10px 14px;margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+      +'<span style="font-size:13px;font-weight:700;color:'+tcolor+';">'+n.label+'</span>'
+      +(n.amount?'<span style="font-size:13px;font-weight:700;color:'+tcolor+';">'+n.amount+'</span>':'')
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--t2);">Date: '+n.date+'</div>'
+      +'<div style="font-size:11px;color:var(--t2);">'+n.note+'</div>'
+      +'</div>';
+  });
+  return html;
+}
+
+function crmScenarioBannerHtml(sc, p){
+  if(!sc||!sc.title) return '';
+  return '<div style="margin-top:12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--r);padding:10px 14px;">'
+    +'<div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:4px;">REASON FOR CALL</div>'
+    +'<div style="font-size:13px;color:#78350F;">'+sc.title+(sc.desc?' — '+sc.desc:'')
+    +(p.disputeAmount?' · Disputed: '+p.disputeAmount:'')
+    +(p.lateFee?' · Late fee: '+p.lateFee:'')
+    +(p.refundAmount?' · Refund: $'+p.refundAmount:'')
+    +'</div></div>';
+}
+
+function appendCrmScenarioContext(sc, p){
+  var billing=document.getElementById('billing-content');
+  if(billing && billing.innerHTML.indexOf('Billing Alerts')===-1) billing.innerHTML+=crmBillingAlertsHtml(p);
+  var sidebar=document.querySelector('.sidebar-body');
+  if(sidebar){
+    var banner=document.getElementById('cl-issue-banner');
+    if(!banner){
+      banner=document.createElement('div');
+      banner.id='cl-issue-banner';
+      sidebar.appendChild(banner);
+    }
+    banner.innerHTML=crmScenarioBannerHtml(sc,p);
+  }
+  var notes=document.getElementById('notes-list');
+  if(notes && sc && sc.title && notes.innerHTML.indexOf('Call reason')===-1){
+    notes.innerHTML='<div class="note-card"><div class="note-date">Call reason</div><div class="note-text"><strong>'+sc.title+'</strong> — '+(sc.desc||'')+'</div></div>'+notes.innerHTML;
+  }
+}
+
 function crmNotesHtml(sc, p, extra){
   return (extra||'')
     +'<div class="note-card"><div class="note-date">Account</div><div class="note-text">Member since '+p.memberSince+'. Verify identity (last 4 SSN) before changes.</div></div>'
@@ -1567,7 +1575,6 @@ function getCRMByIndustry(sc, p){
       +'<div class="service-item"><div class="svc-icon"><i class="ti ti-lock"></i></div><div class="svc-info"><div class="svc-name">Online Banking</div><div class="svc-sub">2-Factor Auth enabled</div></div><div class="svc-price badge-active">Secured</div></div>';
     document.getElementById('billing-content').innerHTML=
       '<div class="billing-total">Monthly total: $'+p.total.toFixed(2)+'</div>'
-      +(p.billingNotes||[]).map(function(n){return '<div class="billing-row"><span>'+n.label+'</span><span>'+(n.amount||'Pending')+'</span></div>';}).join('')
       +'<div class="billing-row" style="margin-top:8px;"><span>Last payment</span><span style="color:var(--green);">Received</span></div>'
       +'<div class="billing-row"><span>Next billing date</span><span>15th of next month</span></div>';
     document.getElementById('payments-content').innerHTML=
@@ -1613,8 +1620,7 @@ function getCRMByIndustry(sc, p){
       +'<div class="service-item"><div class="svc-icon"><i class="ti ti-star"></i></div><div class="svc-info"><div class="svc-name">Loyalty Status</div><div class="svc-sub">Gold Member · 48,500 points</div></div><div class="svc-price badge-active">Gold</div></div>';
     document.getElementById('billing-content').innerHTML=
       '<div class="billing-row"><span>Package total</span><span>$'+Math.max(p.total,899).toFixed(2)+'</span></div>'
-      +'<div class="billing-row"><span>Resort fee</span><span>$45.00/night</span></div>'
-      +(p.billingNotes||[]).map(function(n){return '<div class="billing-row"><span>'+n.label+'</span><span>'+(n.amount||'Review')+'</span></div>';}).join('');
+      +'<div class="billing-row"><span>Resort fee</span><span>$45.00/night</span></div>';
     document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Card on file ·'+p.ssn4+'</div><div class="svc-desc">Deposit captured · Balance due at check-in</div></div><span class="badge-active">Active</span></div>';
     document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Travel</div><div class="note-text">Verify booking reference and cancellation policy before modifying reservations.</div></div>');
     document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
@@ -1650,6 +1656,7 @@ function getCRMByIndustry(sc, p){
       document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary payment method</div></div><span class="badge-active">Active</span></div>';
     }
   }
+  appendCrmScenarioContext(sc, p);
 }
 
 

@@ -26,31 +26,78 @@ function pickNextNexoraCharacter(){
   return JSON.parse(JSON.stringify(ch));
 }
 
-function buildNexoraProfileFromCharacter(base, scenario){
-  var p = JSON.parse(JSON.stringify(base));
-  p.name = p.firstName + ' ' + p.lastName;
-  p.status = 'Active';
+function applyScenarioBillingToProfile(p, scenario) {
+  if (!p) return p;
   p.billingNotes = [];
   p.disputeAmount = null;
   p.lateFee = null;
   p.refundAmount = null;
-  if(scenario){
-    if(scenario.id==='cs1'||scenario.id==='cs5'||scenario.id==='cs10'){
-      p.disputeAmount = '$'+(15+Math.floor(Math.random()*85))+'.00';
-      p.billingNotes.push({type:'charge',label:'Unexpected charge',amount:p.disputeAmount,date:new Date(Date.now()-3*86400000).toLocaleDateString('en-US'),note:'Not authorized by client'});
-    }
-    if(scenario.id==='cs7'){
-      p.lateFee = '$'+(25+Math.floor(Math.random()*15))+'.00';
-      p.billingNotes.push({type:'fee',label:'Late payment fee',amount:p.lateFee,date:new Date(Date.now()-7*86400000).toLocaleDateString('en-US'),note:'Client disputes — claims payment was on time'});
-    }
-    if(scenario.id==='cs4'){
-      p.refundAmount = (p.services && p.services[0] ? parseFloat(p.services[0].price.replace(/[^0-9.]/g,'')) : 29).toFixed(2);
-      p.billingNotes.push({type:'refund',label:'Refund requested',amount:'$'+p.refundAmount,date:new Date(Date.now()-5*86400000).toLocaleDateString('en-US'),note:'Client says service did not work'});
-    }
-    if(scenario.id==='cs2'){
-      p.billingNotes.push({type:'cancel',label:'Cancellation requested',amount:'',date:new Date().toLocaleDateString('en-US'),note:'Client initiated cancellation request'});
-    }
+  if (!scenario) return p;
+
+  var id = String(scenario.id || '');
+  var blob = (String(scenario.title || '') + ' ' + String(scenario.desc || '')).toLowerCase();
+
+  function addNote(type, label, amount, note, daysAgo) {
+    p.billingNotes.push({
+      type: type,
+      label: label,
+      amount: amount || '',
+      date: new Date(Date.now() - (daysAgo || 3) * 86400000).toLocaleDateString('en-US'),
+      note: note
+    });
   }
+
+  var isBillingDispute = id === 'cs1' || id === 'cs5' || id === 'cs10' || /billing|unexpected charge|dispute|complaint escalation|wrong information|vip complaint/.test(blob);
+  var isLateFee = id === 'cs7' || /late fee/.test(blob);
+  var isRefund = id === 'cs4' || /refund/.test(blob);
+  var isCancel = id === 'cs2' || /cancellation|cancel/.test(blob);
+  var isSecurity = id === 'cs6' || /security|unauthorized|suspicious access/.test(blob);
+  var isTechnical = id === 'cs3' || /technical|cannot access|online account|login issue/.test(blob);
+  var isUpgrade = id === 'cs8' || /upgrade/.test(blob);
+
+  if (isBillingDispute) {
+    p.disputeAmount = '$' + (15 + Math.floor(Math.random() * 85)) + '.00';
+    addNote('charge', 'Unexpected charge', p.disputeAmount, 'Not authorized by client — disputing on this call', 3);
+  }
+  if (isLateFee) {
+    p.lateFee = '$' + (25 + Math.floor(Math.random() * 15)) + '.00';
+    addNote('fee', 'Late payment fee', p.lateFee, 'Client disputes — claims payment was on time', 7);
+  }
+  if (isRefund) {
+    p.refundAmount = (p.services && p.services[0]
+      ? parseFloat(String(p.services[0].price).replace(/[^0-9.]/g, ''))
+      : 29).toFixed(2);
+    addNote('refund', 'Refund requested', '$' + p.refundAmount, 'Client says service did not work as expected', 5);
+  }
+  if (isCancel) {
+    addNote('cancel', 'Cancellation requested', '', 'Client initiated cancellation — retention opportunity', 0);
+  }
+  if (isSecurity) {
+    addNote('alert', 'Security alert', '', 'Failed login attempts from unknown device — review required', 2);
+    addNote('alert', 'Account access review', '', 'Client reports possible unauthorized access', 1);
+  }
+  if (isTechnical) {
+    addNote('ticket', 'Portal access failure', '', 'Online account locked after failed login attempts — reset pending', 1);
+    addNote('ticket', 'Support ticket #TKT-' + (7700 + Math.floor(Math.random() * 200)), '', 'Client cannot access online account', 2);
+  }
+  if (isUpgrade && !isCancel) {
+    addNote('request', 'Plan upgrade inquiry', '', 'Client comparing plan options — quote requested', 0);
+  }
+
+  if (!p.billingNotes.length && (!scenario.type || scenario.type === 'customer_service')) {
+    p.disputeAmount = '$' + (20 + Math.floor(Math.random() * 60)) + '.00';
+    addNote('charge', 'Billing inquiry', p.disputeAmount, scenario.desc || 'Issue logged on account before inbound call', 3);
+  }
+
+  p.crmIssueSummary = (scenario.title || 'Customer issue') + (scenario.desc ? ' — ' + scenario.desc : '');
+  return p;
+}
+
+function buildNexoraProfileFromCharacter(base, scenario){
+  var p = JSON.parse(JSON.stringify(base));
+  p.name = p.firstName + ' ' + p.lastName;
+  p.status = 'Active';
+  applyScenarioBillingToProfile(p, scenario);
   p.scenario = scenario;
   p.generatedAt = new Date().toISOString();
   p.total = (p.services || []).reduce(function(s, x) {
