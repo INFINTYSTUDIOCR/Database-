@@ -262,7 +262,7 @@
     return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
       + '<span style="font-size:12px;font-weight:600;width:42%;">' + label + '</span>'
       + '<input type="range" min="1" max="10" value="' + val + '" style="flex:1;" oninput="NexusManualCal.' + fn + '(\'' + key + '\',this.value)">'
-      + '<span style="min-width:56px;font-size:12px;font-weight:700;color:var(--nm);">' + val + '/10</span></div>';
+      + '<span id="mcal-sv-' + id + '" style="min-width:56px;font-size:12px;font-weight:700;color:var(--nm);">' + val + '/10</span></div>';
   }
 
   function buildAreaAverages(microScores) {
@@ -412,10 +412,14 @@
   function setMacro(k, val) {
     if (k.indexOf('macro-') === 0) k = k.slice(6);
     state.macro[k] = clamp10(val);
+    var el = document.getElementById('mcal-sv-macro-' + k);
+    if (el) el.textContent = state.macro[k] + '/10';
   }
 
   function setMicro(k, val) {
     state.micro[k] = clamp10(val);
+    var el = document.getElementById('mcal-sv-' + k);
+    if (el) el.textContent = state.micro[k] + '/10';
   }
 
   function setObs(k, val) {
