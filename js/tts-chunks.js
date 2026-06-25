@@ -48,6 +48,21 @@ function prepareTtsLine(text) {
     .trim();
 }
 
+/** Debounced TTS warm-up while LLM is still streaming. */
+function scheduleTtsPrefetch(text, prefetchFn, state) {
+  state = state || {};
+  var minLen = state.minLen || 48;
+  var ms = state.ms || 200;
+  var line = prepareTtsLine(text);
+  if (line.length < minLen) return;
+  clearTimeout(state.timer);
+  state.timer = setTimeout(function () {
+    if (line === state.last) return;
+    state.last = line;
+    if (typeof prefetchFn === 'function') prefetchFn(line);
+  }, ms);
+}
+
 /** Prefer one TTS request; split only when text is very long. */
 function ttsSpeakLines(text, maxLen) {
   maxLen = maxLen || 900;

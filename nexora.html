@@ -1288,11 +1288,16 @@ async function aliceEnterMode(sc, statusId, personName, startMsg, ctx){
 
 function isNexoraReplyIncomplete(text, scType){
   var t=String(text||'').trim();
-  if(!t||t.length<20) return true;
+  if(!t||t.length<12) return true;
   if(/\.{2,}$|\.\.\./.test(t)) return true;
   if(/\band I\.?$/i.test(t)) return true;
-  if(!/[.!?]"?$/.test(t)) return true;
-  if((scType==='star_interview'||scType==='interview')&&!/\?/.test(t)) return true;
+  if(/\b(I|I'm|I've|I'll|I'd|because|and|but|so|when|where|that)\.?$/i.test(t)) return true;
+  if(scType==='star_interview'||scType==='interview'){
+    if(!/\?/.test(t)) return true;
+    if(!/[.!?]"?$/.test(t)) return true;
+    return false;
+  }
+  if(t.length<28&&!/[.!?]$/.test(t)) return true;
   return false;
 }
 
@@ -1843,6 +1848,7 @@ async function nexoraDemoStreamReply(payload, onPartial){
 
 async function nexoraAuthStreamReply(payload, onPartial){
   var fullText='';
+  var nxPrefetchState={};
   var ctrl=new AbortController();
   var tid=setTimeout(function(){ ctrl.abort(); }, 55000);
   var resp;
@@ -1874,6 +1880,7 @@ async function nexoraAuthStreamReply(payload, onPartial){
           var evt=JSON.parse(raw);
           if(evt.t){
             fullText+=evt.t;
+            scheduleTtsPrefetch(fullText, nexoraPrefetchTTS, nxPrefetchState);
             if(onPartial) onPartial(fullText);
           }
         }catch(e){}
@@ -1884,7 +1891,8 @@ async function nexoraAuthStreamReply(payload, onPartial){
     try{ reader.releaseLock(); }catch(e){}
   }
   fullText = fullText.trim();
-  if(isNexoraReplyIncomplete(fullText, payload.scenario&&payload.scenario.type)) return await nexoraPostReply(payload);
+  var scType = payload.scenario && payload.scenario.type;
+  if(isNexoraReplyIncomplete(fullText, scType) && (scType==='star_interview'||scType==='interview')) return await nexoraPostReply(payload);
   return fullText;
 }
 
@@ -1997,6 +2005,21 @@ async function sendToAlice(text){
 
 // ── SPEAK ─────────────────────────────────────────────────────
 var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakGen=0;
+var _nexoraTtsPrefetch={};
+
+function nexoraPrefetchTTS(text){
+  var clean=prepareTtsLine(text);
+  if(clean.length<12||_nexoraTtsPrefetch[clean]) return;
+  _nexoraTtsPrefetch[clean]='loading';
+  var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
+  var ttsPromise=isNexoraPublicDemo()
+    ? fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})})
+    : infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})});
+  ttsPromise
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){ if(b) _nexoraTtsPrefetch[clean]=b; else delete _nexoraTtsPrefetch[clean]; })
+  .catch(function(){ delete _nexoraTtsPrefetch[clean]; });
+}
 
 function nexoraCancelSpeech(){
   _nxSpeakGen++;
@@ -2025,6 +2048,21 @@ function _nxTTSFlush(){
     return;
   }
   var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
+  var cached=_nexoraTtsPrefetch[clean];
+  if(cached && cached!=='loading'){
+    delete _nexoraTtsPrefetch[clean];
+    if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+    window._nxAudio=playAudioBlob(cached, {
+      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
+      onError: function(){
+        window._nxAudio=null;
+        _nxTTSQueue.unshift(chunk);
+        _nxTTSBusy=false;
+        setTimeout(_nxTTSFlush, 150);
+      }
+    });
+    return;
+  }
   var ttsPromise;
   if(isNexoraPublicDemo()){
     ttsPromise=fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})});

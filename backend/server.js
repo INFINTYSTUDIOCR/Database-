@@ -191,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v6-tutor-pace',
+  build: '2026-06-24-v6-alice-eval-score',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -667,10 +667,44 @@ function getDemoBuffer(service, scenario) {
   return null;
 }
 
-function detectConnectors(text) {
-  const list = ['however', 'on top of that', 'even though', 'therefore', 'besides', 'so far', 'in other words', 'despite', 'as a result', 'in addition'];
+const ALICE_EVAL_CONNECTORS = [
+  'however', 'on top of that', 'even though', 'therefore', 'besides', 'so far',
+  'in other words', 'despite', 'as a result', 'in addition', 'rather than', 'as long as'
+];
+
+function detectConnectors(text, list) {
+  const items = list || ALICE_EVAL_CONNECTORS;
   const lower = (text || '').toLowerCase();
-  return list.filter(c => lower.includes(c));
+  return items.filter(c => lower.includes(c));
+}
+
+function buildAliceSessionMetrics(history) {
+  const users = (history || []).filter(m => m.role === 'user' && String(m.content || '').trim());
+  const userText = users
+    .map(m => String(m.content).replace(/ALICE:.*/gis, '').replace(/\s+/g, ' ').trim())
+    .join(' ');
+  const words = userText.match(/\b[a-zA-Z']+\b/g) || [];
+  const connectors = detectConnectors(userText);
+  const turns = users.length;
+  const avgWords = turns ? words.length / turns : 0;
+  return { turns, wordCount: words.length, avgWords, connectors, userText };
+}
+
+function scoreAliceSessionFromMetrics(metrics) {
+  const { turns, wordCount, connectors, avgWords } = metrics;
+  if (!turns) return 55;
+  let score = 50;
+  score += Math.min(22, turns * 5);
+  score += Math.min(16, Math.floor(wordCount / 10));
+  score += Math.min(24, connectors.length * 8);
+  if (avgWords >= 14) score += 8;
+  else if (avgWords >= 8) score += 5;
+  else if (avgWords >= 4) score += 2;
+  return Math.round(Math.min(97, Math.max(54, score)));
+}
+
+function aliceEvalConnectorsMissed(used) {
+  return ALICE_EVAL_CONNECTORS.filter(c => !used.includes(c)).slice(0, 4);
 }
 
 function enrichEvaluation(baseEval, history) {
@@ -683,6 +717,12 @@ function enrichEvaluation(baseEval, history) {
   }
   if (found.length >= 2 && ev.overall_score) ev.overall_score = Math.min(95, ev.overall_score + 10);
   else if (found.length === 1 && ev.overall_score) ev.overall_score = Math.min(90, ev.overall_score + 5);
+  if (history) {
+    const metrics = buildAliceSessionMetrics(history);
+    ev.overall_score = scoreAliceSessionFromMetrics(metrics);
+    ev.connectors_used = metrics.connectors;
+    if (ev.connectors_missed === undefined) ev.connectors_missed = aliceEvalConnectorsMissed(metrics.connectors);
+  }
   return ev;
 }
 
@@ -1150,6 +1190,7 @@ app.post('/demo/tts', async (req, res) => {
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): One flowing turn — prefer commas over heavy periods, no ellipses (...), no staccato fragments. Sound natural and brisk, not dramatic or theatrical.';
+const TUTOR_LATENCY_RULE = '\nLIVE TURN: 2-3 short sentences max. No preamble or filler. Answer immediately — the student is waiting on voice.';
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -1376,11 +1417,16 @@ function finishNexoraReply(raw, p, scType) {
 
 function isNexoraReplyIncomplete(text, scType) {
   const t = String(text || '').trim();
-  if (!t || t.length < 20) return true;
+  if (!t || t.length < 12) return true;
   if (/\.{2,}$|\.\.\./.test(t)) return true;
   if (/\band I\.?$/i.test(t)) return true;
-  if (!/[.!?]"?$/.test(t)) return true;
-  if ((scType === 'star_interview' || scType === 'interview') && !/\?/.test(t)) return true;
+  if (/\b(I|I'm|I've|I'll|I'd|because|and|but|so|when|where|that)\.?$/i.test(t)) return true;
+  if (scType === 'star_interview' || scType === 'interview') {
+    if (!/\?/.test(t)) return true;
+    if (!/[.!?]"?$/.test(t)) return true;
+    return false;
+  }
+  if (t.length < 28 && !/[.!?]$/.test(t)) return true;
   return false;
 }
 
@@ -1639,11 +1685,12 @@ async function demoGenerateEvaluation(session) {
   if (session.service === 'alice') {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001', max_tokens: 450,
-      system: 'Respond ONLY with valid JSON. No markdown.',
-      messages: [{ role: 'user', content: `Evaluate this Alice demo for ${guest}.\n\n${hist}\n\nJSON: {"overall_score":75,"highlights":["..."],"improvements":["..."],"verdict":"2 warm sentences"}` }]
+      system: 'Respond ONLY with valid JSON. No markdown. Do NOT include overall_score — scoring is computed separately.',
+      messages: [{ role: 'user', content: `Evaluate this Alice demo for ${guest}.\n\n${hist}\n\nReturn ONLY JSON:\n{"highlights":["specific thing they did well"],"improvements":["specific tip"],"verdict":"2 warm sentences"}` }]
     });
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    return parseEval(text, { overall_score: 72, highlights: ['You completed the demo'], improvements: ['Practice Idea + Linker + Idea'], verdict: 'Good start — book your free assessment for full Alice coaching.' });
+    const qual = parseEval(text, { highlights: ['You completed the demo'], improvements: ['Practice Idea + Linker + Idea'], verdict: 'Good start — book your free assessment for full Alice coaching.' });
+    return enrichEvaluation({ ...qual, overall_score: scoreAliceSessionFromMetrics(buildAliceSessionMetrics(session.history)) }, session.history);
   }
   if (session.service === 'jill') {
     const resp = await claudeCall({
@@ -1904,28 +1951,54 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 
     // EVALUATE
     if (mode === 'evaluate') {
-      const hist = (history||[]).filter(m=>m.content?.trim())
-        .map(m=>`${m.role==='user'?'Student':'Alice'}: ${m.content.split('\n')[0]}`).join('\n');
+      const hist = (history || []).filter(m => m.content?.trim())
+        .map(m => `${m.role === 'user' ? 'Student' : 'Alice'}: ${String(m.content).replace(/\n+/g, ' ').trim()}`)
+        .join('\n');
+
+      const metrics = buildAliceSessionMetrics(history);
+      const overall_score = scoreAliceSessionFromMetrics(metrics);
+      const connectors_used = metrics.connectors;
+      const connectors_missed = aliceEvalConnectorsMissed(connectors_used);
 
       if (!hist || hist.length < 20) {
         return res.json({ evaluation: {
-          overall_score: 60, best_moment: 'You started the session — that takes courage.',
+          overall_score: Math.max(54, overall_score),
+          connectors_used,
+          connectors_missed,
+          best_moment: 'You started the session — that takes courage.',
           main_improvement: 'Practice a bit longer next time for a full evaluation.',
-          alice_message: `Good start, ${student?.name||''}! Every session counts.\nALICE: ¡Buen comienzo! Cada sesión te hace más fuerte.`
+          alice_message: `Good start, ${student?.name || ''}! Every session counts.\nALICE: ¡Buen comienzo! Cada sesión te hace más fuerte.`
         }});
       }
 
+      const statsNote = `Session stats: ${metrics.turns} student turns, ${metrics.wordCount} words, connectors used: ${connectors_used.join(', ') || 'none'}. Computed score: ${overall_score}/100 — your feedback must match this performance level.`;
+
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 400,
-        system: 'You are Alice, a warm English tutor. Respond ONLY with valid JSON. No markdown. No extra text.',
-        messages: [{ role: 'user', content: `Evaluate this English practice session for ${student?.name||'the student'} (level: ${student?.level||'Functional'}).\n\nSession:\n${hist}\n\nReturn ONLY this JSON:\n{"overall_score":75,"best_moment":"One specific warm thing they did well","main_improvement":"One concrete tip in simple English","alice_message":"2-3 warm encouraging sentences to the student. End with: ALICE: [one motivating sentence in Spanish]"}` }]
+        system: 'You are Alice, a warm English tutor. Respond ONLY with valid JSON. No markdown. No overall_score field — score is already computed from the transcript.',
+        messages: [{ role: 'user', content: `Evaluate this English practice session for ${student?.name || 'the student'} (level: ${student?.level || 'Functional'}).\n\n${statsNote}\n\nSession:\n${hist}\n\nReturn ONLY this JSON (no overall_score):\n{"best_moment":"One specific warm thing they did well","main_improvement":"One concrete tip tied to what they actually said","alice_message":"2-3 warm encouraging sentences. End with: ALICE: [one motivating sentence in Spanish]"}` }]
       });
 
-      const text = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+      const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       try {
-        return res.json({ evaluation: JSON.parse(text.replace(/```json|```/g,'').trim()) });
-      } catch(e) {
-        return res.json({ evaluation: { overall_score:70, best_moment:'Good effort today', main_improvement:'Keep practicing connectors', alice_message:`Great work, ${student?.name||''}!\nALICE: ¡Muy bien! Seguí practicando.` }});
+        const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
+        return res.json({ evaluation: {
+          overall_score,
+          connectors_used,
+          connectors_missed,
+          best_moment: qual.best_moment || 'You showed up and practiced — that matters.',
+          main_improvement: qual.main_improvement || 'Keep using Idea + Linker + Idea in every answer.',
+          alice_message: qual.alice_message || `Great work, ${student?.name || ''}!\nALICE: ¡Muy bien! Seguí practicando.`
+        }});
+      } catch (e) {
+        return res.json({ evaluation: {
+          overall_score,
+          connectors_used,
+          connectors_missed,
+          best_moment: 'Good effort today',
+          main_improvement: 'Keep practicing connectors in full sentences',
+          alice_message: `Great work, ${student?.name || ''}!\nALICE: ¡Muy bien! Seguí practicando.`
+        }});
       }
     }
 
@@ -2309,8 +2382,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
     await streamAnthropicSSE(res, {
-      max_tokens: 800,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nResponde en texto directo, sin JSON. 4-6 oraciones, tono natural y espontáneo dentro del método. Regla + ejemplo + UNA pregunta de práctica. Ritmo conversacional — sin pausas largas ni relleno.`,
+      max_tokens: 420,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nResponde en texto directo, sin JSON. 2-4 oraciones, tono natural. Regla + ejemplo + UNA pregunta de práctica.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -2326,6 +2399,18 @@ async function tutorKnowledgeSlice(message) {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 1400);
     if (!ctx.trim()) return '';
     return `\n\nINSTITUTIONAL KNOWLEDGE (Nexus Super Brain — use when relevant, never contradict Nexus Method):\n${ctx}`;
+  } catch {
+    return '';
+  }
+}
+
+async function tutorKnowledgeSliceFast(message) {
+  if (!SuperBrain.isSuperBrainEnabled()) return '';
+  try {
+    return await Promise.race([
+      tutorKnowledgeSlice(message),
+      new Promise((resolve) => setTimeout(() => resolve(''), 350))
+    ]);
   } catch {
     return '';
   }
@@ -2353,13 +2438,13 @@ ${ALICE_COACHING_RULES}
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. One flowing spoken turn — no ellipses or dramatic pauses.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSlice(message)}`;
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: 750,
+      max_tokens: 380,
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
@@ -3008,7 +3093,7 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 220,
-      system: ctx.systemPrompt + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
+      system: ctx.systemPrompt + TUTOR_LATENCY_RULE + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
       messages: ctx.msgs,
       brainMeta: { hash: brain.hash, tutor: 'nexora', intent: 'stream', message: req.body?.message, extra: nexoraExtra }
     });

@@ -1532,13 +1532,14 @@ async function sendAliceMessage(micText){
   var statusEl = document.getElementById('alice-status');
   if(statusEl) statusEl.textContent='';
 
-  if(typeof AiProfile !== 'undefined') await AiProfile.processUserNameReply(text, 'alice', dbSet);
+  if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'alice', dbSet).catch(function(){});
 
   var streamIdx = _aliceState.history.length;
   _aliceState.history.push({ role:'assistant', content:'▋' });
   aliceRenderHistoryMessages();
 
   var fullText = '';
+  var alicePrefetchState = {};
   var ctrl = new AbortController();
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
@@ -1575,6 +1576,7 @@ async function sendAliceMessage(micText){
             var displayAlice = aliceStreamPlainText(fullText);
             _aliceState.history[streamIdx] = { role:'assistant', content: displayAlice+'▋' };
             aliceRenderHistoryMessages();
+            scheduleTtsPrefetch(aliceExtractReply(fullText), alicePrefetchTTS, alicePrefetchState);
           }
         } catch(e){}
       }
@@ -2356,22 +2358,54 @@ function nexoraSendToAlice(text){
   var statusEl = document.getElementById('nx-alice-status');
   if(statusEl) statusEl.textContent = p.firstName+' is responding...';
   var student = window._currentStudent || window._portalStudent || {};
-  infinityFetch('/nexora',{
+  var payload = {
+    message: text,
+    history: _nxState.history.slice(-14),
+    profile: p,
+    scenario: sc,
+    accountContext: accountContext,
+    agentName: nexoraAgentName(student),
+    student: nexoraStudentPayload(student)
+  };
+  var fullText = '';
+  var nxPrefetchState = {};
+  var ctrl = new AbortController();
+  var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
+
+  infinityFetch('/nexora/stream', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      message: text,
-      history: _nxState.history.slice(-14),
-      profile: p,
-      scenario: sc,
-      accountContext: accountContext,
-      agentName: nexoraAgentName(student),
-      student: nexoraStudentPayload(student)
-    })
+    body: JSON.stringify(payload),
+    signal: ctrl.signal
   }).then(function(r){
-    if(!r.ok) throw new Error('nexora_'+r.status);
-    return r.json();
-  }).then(function(data){
-    var reply = sanitizeNexoraReply((data.reply||'').split('\nALICE:')[0].trim(), p);
+    if(!r.ok) throw new Error('nexora_stream_'+r.status);
+    var reader = r.body.getReader();
+    var dec = new TextDecoder();
+    var lineBuf = '';
+    function pump(){
+      return reader.read().then(function(chunk){
+        if(chunk.done) return;
+        lineBuf += dec.decode(chunk.value, {stream:true});
+        var lines = lineBuf.split('\n');
+        lineBuf = lines.pop()||'';
+        for(var i=0;i<lines.length;i++){
+          var line = lines[i];
+          if(!line.startsWith('data: ')) continue;
+          var raw = line.slice(6).trim();
+          if(raw==='[DONE]') continue;
+          try {
+            var evt = JSON.parse(raw);
+            if(evt.t){
+              fullText += evt.t;
+              scheduleTtsPrefetch(fullText, nexoraPrefetchTTS, nxPrefetchState);
+            }
+          } catch(e){}
+        }
+        return pump();
+      });
+    }
+    return pump();
+  }).then(function(){
+    var reply = sanitizeNexoraReply(fullText.trim(), p);
     if(statusEl) statusEl.textContent='';
     if(!reply){ showToast('Client did not respond — try again.'); return; }
     nexoraAddMsg(reply,'client');
@@ -2384,6 +2418,7 @@ function nexoraSendToAlice(text){
     if(statusEl) statusEl.textContent='';
     showToast('AI did not respond — try again.');
   }).finally(function(){
+    clearTimeout(tid);
     _nxSending = false;
   });
 }
@@ -2565,6 +2600,17 @@ function nexoraAddMsg(text, from){
 var _nxTTSQueue = [];
 var _nxTTSBusy = false;
 var _nxSpeakGen = 0;
+var _nexoraTtsPrefetch = {};
+
+function nexoraPrefetchTTS(text){
+  var clean = prepareTtsLine(text);
+  if(clean.length < 12 || _nexoraTtsPrefetch[clean]) return;
+  _nexoraTtsPrefetch[clean] = 'loading';
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
+  .then(function(r){ return r.ok ? r.blob() : null; })
+  .then(function(b){ if(b) _nexoraTtsPrefetch[clean] = b; else delete _nexoraTtsPrefetch[clean]; })
+  .catch(function(){ delete _nexoraTtsPrefetch[clean]; });
+}
 
 function nexoraCancelSpeech(){
   _nxSpeakGen++;
@@ -2599,6 +2645,25 @@ function _nxTTSFlushPortal(){
       return;
     }
     _nxTTSBusy=false;
+    return;
+  }
+  var cached = _nexoraTtsPrefetch[clean];
+  if(cached && cached !== 'loading'){
+    delete _nexoraTtsPrefetch[clean];
+    if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+    window._nxAudio = playAudioBlob(cached, {
+      onEnded: function(){
+        window._nxAudio = null;
+        _nxTTSBusy = false;
+        _nxTTSFlushPortal();
+      },
+      onError: function(){
+        window._nxAudio = null;
+        _nxTTSQueue.unshift(chunk);
+        _nxTTSBusy = false;
+        setTimeout(_nxTTSFlushPortal, 150);
+      }
+    });
     return;
   }
   infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
@@ -3020,7 +3085,7 @@ async function sendJillMsg(micText){
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill responde…';
   var s = window._currentStudent || window._portalStudent;
-  if(typeof AiProfile !== 'undefined') await AiProfile.processUserNameReply(text, 'jill', dbSet);
+  if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'jill', dbSet).catch(function(){});
 
   var msgs = document.getElementById('jill-messages');
   var bubble = document.createElement('div');
@@ -3032,6 +3097,7 @@ async function sendJillMsg(micText){
   var el = document.getElementById(bubbleId);
 
   var fullText = '';
+  var jillPrefetchState = {};
   var ctrl = new AbortController();
   _jillStreamCtrl = ctrl;
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
@@ -3070,6 +3136,7 @@ async function sendJillMsg(micText){
               el.innerHTML = display.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'▋';
               msgs.scrollTop = msgs.scrollHeight;
             }
+            scheduleTtsPrefetch(jillExtractReply(fullText), jillPrefetchTTS, jillPrefetchState);
           }
         } catch(e){}
       }
