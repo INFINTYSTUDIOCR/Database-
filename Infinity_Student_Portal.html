@@ -1700,10 +1700,7 @@ function aliceSpeak(text){
   if(!text || !_aliceSpeakEnabled) return;
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
   _aliceState.listening = false;
-  splitTtsSentences(text).forEach(function(part){
-    var clean = part.replace(/ALICE:/gi,'').replace(/CLAIRE:/gi,'')
-      .replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ')
-      .replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  ttsSpeakLines(text, 900).forEach(function(clean){
     if(clean.length >= 3) aliceQueueSpeak(clean);
   });
 }
@@ -2579,7 +2576,7 @@ function nexoraCancelSpeech(){
 function nexoraSpeak(text){
   if(!text || !nexoraReplyTtsReady(text)) return;
   nexoraCancelSpeech();
-  splitTtsChunks(text, 450).forEach(function(chunk){ nexoraQueueSpeak(chunk); });
+  ttsSpeakLines(text, 900).forEach(function(chunk){ nexoraQueueSpeak(chunk); });
 }
 
 function nexoraQueueSpeak(text){
@@ -2593,14 +2590,7 @@ function _nxTTSFlushPortal(){
   _nxTTSBusy = true;
   var gen = _nxSpeakGen;
   var chunk = _nxTTSQueue.shift();
-  var clean = chunk
-    .replace(/ALICE:|CLAIRE:|JILL:/g,'')
-    .replace(/[*_#<>\[\]{}|~`^]/g,' ')
-    .replace(/\.{2,}/g,'.')
-    .replace(/,/g,' ')
-    .replace(/;/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
+  var clean = prepareTtsLine(chunk);
   if(!clean || !nexoraReplyTtsReady(clean)){
     if(_nxTTSQueue.length){
       _nxTTSQueue[0]=chunk+' '+_nxTTSQueue[0];
@@ -2614,7 +2604,7 @@ function _nxTTSFlushPortal(){
   infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b || gen !== _nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlushPortal, 400); return; }
+    if(!b || gen !== _nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlushPortal, 180); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio = playAudioBlob(b, {
       onEnded: function(){
@@ -2626,13 +2616,13 @@ function _nxTTSFlushPortal(){
         window._nxAudio = null;
         _nxTTSQueue.unshift(chunk);
         _nxTTSBusy = false;
-        setTimeout(_nxTTSFlushPortal, 300);
+        setTimeout(_nxTTSFlushPortal, 150);
       }
     });
   }).catch(function(){
     _nxTTSQueue.unshift(chunk);
     _nxTTSBusy=false;
-    setTimeout(_nxTTSFlushPortal, 400);
+    setTimeout(_nxTTSFlushPortal, 180);
   });
 }
 
@@ -2709,7 +2699,7 @@ var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 
 function jillCleanTtsText(text){
-  return String(text||'').replace(/JILL:|ALICE:|CLAIRE:/gi,'').replace(/[*_#<>\[\]{}|~`^]/g,' ').replace(/\s+/g,' ').trim();
+  return prepareTtsLine(text);
 }
 
 function jillPrefetchTTS(text){
@@ -2753,7 +2743,7 @@ function _jillTTSFlush(){
         _jillTTSQueue.unshift(text);
         _jillTTSBusy = false;
         _jillState.speaking = _jillTTSQueue.length > 0;
-        setTimeout(_jillTTSFlush, 300);
+        setTimeout(_jillTTSFlush, 150);
       }
     });
   }
@@ -2772,7 +2762,7 @@ function _jillTTSFlush(){
     _jillTTSQueue.unshift(text);
     _jillTTSBusy=false;
     _jillState.speaking=_jillTTSQueue.length>0;
-    setTimeout(_jillTTSFlush, 400);
+    setTimeout(_jillTTSFlush, 180);
   });
 }
 
@@ -2784,7 +2774,7 @@ var _aliceTTSBusy = false;
 var _aliceTtsPrefetch = {};
 
 function aliceCleanTtsText(text){
-  return String(text||'').replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  return prepareTtsLine(text);
 }
 
 function alicePrefetchTTS(text){
@@ -2821,7 +2811,7 @@ function _aliceTTSFlush(){
         _aliceTTSQueue.unshift(text);
         _aliceTTSBusy = false;
         _aliceState.speaking = _aliceTTSQueue.length > 0;
-        setTimeout(_aliceTTSFlush, 300);
+        setTimeout(_aliceTTSFlush, 150);
       }
     });
   }
@@ -2839,7 +2829,7 @@ function _aliceTTSFlush(){
     _aliceTTSQueue.unshift(text);
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
-    setTimeout(_aliceTTSFlush, 400);
+    setTimeout(_aliceTTSFlush, 180);
   });
 }
 
@@ -3141,11 +3131,7 @@ function jillAddMsg(text, sender, contentType){
 function jillSpeak(text){
   if(!text) return;
   jillStopMic();
-  splitTtsSentences(text).forEach(function(part){
-    var clean = part
-      .replace(/JILL:|ALICE:|CLAIRE:/gi,'')
-      .replace(/[*_#<>\[\]{}|~`^]/g,' ')
-      .replace(/\s+/g,' ').trim();
+  ttsSpeakLines(text, 900).forEach(function(clean){
     if(clean.length >= 3) jillQueueSpeak(clean);
   });
 }

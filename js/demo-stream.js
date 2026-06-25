@@ -79,7 +79,7 @@ async function demoStreamSend(sessionId, message, opts) {
 
   if (fullText.trim().length > 2 && typeof opts.onSentence === 'function') {
     var spoken = (typeof TutorReply !== 'undefined') ? TutorReply.extract(fullText) : fullText;
-    splitTtsSentences(spoken.split('\nALICE:')[0].split('\nJILL:')[0].trim()).forEach(function (sentence) {
+    ttsSpeakLines(spoken.split('\nALICE:')[0].split('\nJILL:')[0].trim(), 900).forEach(function (sentence) {
       opts.onSentence(sentence);
     });
   }

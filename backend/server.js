@@ -191,7 +191,7 @@ function extractOpeningSnippet(text) {
 app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v6-alice-coach-flex',
+  build: '2026-06-24-v6-tutor-pace',
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
   services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
@@ -1149,6 +1149,7 @@ app.post('/demo/tts', async (req, res) => {
 });
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
+const TUTOR_PACE_RULE = '\nPACING (spoken aloud): One flowing turn — prefer commas over heavy periods, no ellipses (...), no staccato fragments. Sound natural and brisk, not dramatic or theatrical.';
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -1362,7 +1363,7 @@ CRITICAL RULES:
   }
   const agentLabel = String(agentName || 'Agent').trim() || 'Agent';
   const agentIdentity = `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Never call them Byron, Johnny, or any other name.`;
-  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + agentIdentity, p, sc, scType };
+  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + TUTOR_PACE_RULE + agentIdentity, p, sc, scType };
 }
 
 function finishNexoraReply(raw, p, scType) {
@@ -1689,11 +1690,10 @@ function cleanTtsText(text) {
   return (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
-    .replace(/\.{2,}/g, '.')
-    .replace(/!+/g, '.')
-    .replace(/,/g, ' ')
-    .replace(/;/g, ' ')
-    .replace(/:/g, ' ')
+    .replace(/\.{2,}/g, ',')
+    .replace(/([.!?])\s+/g, ', ')
+    .replace(/[.!?;:]+$/g, '')
+    .replace(/[,;:/]+/g, ' ')
     .replace(/<br>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/[ ]{2,}/g, ' ')
@@ -1701,7 +1701,7 @@ function cleanTtsText(text) {
     .slice(0, 2500);
 }
 
-async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style }) {
+async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed }) {
   if (!text) return res.status(400).json({ error: 'Missing text' });
   if (!ELEVEN_KEY) return res.status(500).json({ error: 'ELEVENLABS_KEY not configured' });
   if (!voiceId) return res.status(503).json({ error: `${label} voice ID not configured` });
@@ -1734,10 +1734,11 @@ async function synthesizeSpeech(req, res, { text, voiceId, label, stability, sim
       text: clean,
       model_id: 'eleven_multilingual_v2',
       voice_settings: {
-        stability: stability ?? 0.5,
-        similarity_boost: similarityBoost ?? 0.75,
-        style: style ?? 0.3,
-        use_speaker_boost: true
+        stability: stability ?? 0.52,
+        similarity_boost: similarityBoost ?? 0.78,
+        style: style ?? 0.12,
+        use_speaker_boost: true,
+        speed: speed ?? 1.08
       }
     })
   });
@@ -1960,6 +1961,7 @@ RESPONSE STYLE:
 - React naturally to what the student said
 - Give ONE specific example when explaining something
 - Ask ONE follow-up question at the end
+- One flowing spoken turn — prefer commas over heavy periods; no ellipses or dramatic pauses
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}
 EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
@@ -2028,6 +2030,10 @@ GUION vs PREGUNTAS FOUNDATIONS (OBLIGATORIO):
 - Si preguntan algo de Foundations (gerundio/-ING, tiempos, Lego, chunking, modales, pronombres, vocab funcional, linkers, recovery, etc.) aunque NO sea el tema del bundle actual: NO digas "esperá a que lleguemos ahí". Explicá en miniatura (regla Nexus + ejemplo + 1 práctica), luego redirigí al bundle en una frase ("Ahora volvamos a [tema del bundle]").
 - Revisá el historial reciente: contá tangentes seguidas (preguntas válidas Foundations fuera del bundle sin volver al guion). Tangentes 1–3: atendé y redirigí. A partir de la 4ª tangente seguida: con calma decí que no podés abandonar el guion de hoy y ofrecé retomar el bundle o dejar esa profundidad para después.
 - Si preguntan Nexora, entrevistas STAR, customer service o simulaciones: eso es Alice Mode — redirigí en 1 frase, sin mini-clase.
+
+RITMO HABLADO:
+- Una sola respuesta fluida; preferí comas antes que muchos puntos seguidos.
+- Sin elipsis (...) ni frases teatrales con pausas dramáticas.
 
 IDIOMA — BILINGÜE:
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
@@ -2345,7 +2351,7 @@ PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
 ${ALICE_COACHING_RULES}
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
-RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish].
+RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. One flowing spoken turn — no ellipses or dramatic pauses.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSlice(message)}`;
     const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
@@ -2925,6 +2931,7 @@ YOUR ROLE:
     const msgStr = String(message || '');
     const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
     systemPrompt += `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Never call them Byron, Johnny, or any other name.`;
+    systemPrompt += TUTOR_PACE_RULE;
 
     const actorKey = resolveActorKey({ student, req, profile: p });
     const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;

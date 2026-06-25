@@ -35,6 +35,28 @@ function isCompleteSpokenLine(text, minWords) {
   return /[.!?]$/.test(t);
 }
 
+/** One flowing TTS line — softer punctuation, fewer dramatic pauses at periods. */
+function prepareTtsLine(text) {
+  return String(text || '')
+    .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
+    .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
+    .replace(/\.{2,}/g, ',')
+    .replace(/([.!?])\s+/g, ', ')
+    .replace(/[.!?;:]+$/g, '')
+    .replace(/[,;:/]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Prefer one TTS request; split only when text is very long. */
+function ttsSpeakLines(text, maxLen) {
+  maxLen = maxLen || 900;
+  var line = prepareTtsLine(text);
+  if (!line) return [];
+  if (line.length <= maxLen) return [line];
+  return splitTtsChunks(line, maxLen);
+}
+
 function splitTtsChunks(text, maxLen) {
   maxLen = maxLen || 450;
   var sentences = splitTtsSentences(text);

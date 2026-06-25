@@ -1931,7 +1931,7 @@ function nexoraInstantOpening(p, sc){
 }
 
 function nexoraReplyTtsReady(text){
-  var t = cleanForTTS(text);
+  var t = prepareTtsLine(text);
   if(t.length < 12) return false;
   if((t.match(/\b\w+\b/g) || []).length < 3) return false;
   return true;
@@ -2006,14 +2006,14 @@ function nexoraCancelSpeech(){
 }
 
 function cleanForTTS(text){
-  return stripStageDirections(text).replace(/ALICE:|CLAIRE:/gi,'').replace(/[*_#\[\]{}<>|~`^]/g,' ').replace(/,/g,' ').replace(/;/g,' ').replace(/:/g,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  return prepareTtsLine(stripStageDirections(text));
 }
 function _nxTTSFlush(){
   if(_nxTTSBusy||_nxTTSQueue.length===0) return;
   _nxTTSBusy=true;
   var gen=_nxSpeakGen;
   var chunk=_nxTTSQueue.shift();
-  var clean=cleanForTTS(chunk);
+  var clean=prepareTtsLine(chunk);
   if(!nexoraReplyTtsReady(chunk)){
     if(_nxTTSQueue.length){
       _nxTTSQueue[0]=chunk+' '+_nxTTSQueue[0];
@@ -2034,7 +2034,7 @@ function _nxTTSFlush(){
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlush, 400); return; }
+    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlush, 180); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(b, {
       onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
@@ -2042,20 +2042,20 @@ function _nxTTSFlush(){
         window._nxAudio=null;
         _nxTTSQueue.unshift(chunk);
         _nxTTSBusy=false;
-        setTimeout(_nxTTSFlush, 300);
+        setTimeout(_nxTTSFlush, 150);
       }
     });
   }).catch(function(){
     _nxTTSQueue.unshift(chunk);
     _nxTTSBusy=false;
-    setTimeout(_nxTTSFlush, 400);
+    setTimeout(_nxTTSFlush, 180);
   });
 }
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
 function speak(text){
   if(!text) return;
   nexoraCancelSpeech();
-  splitTtsChunks(text, 450).forEach(function(chunk){ queueSpeak(chunk); });
+  ttsSpeakLines(text, 900).forEach(function(chunk){ queueSpeak(chunk); });
 }
 
 // ── MIC (PTT) ───────────────────────────────────────────────────────
