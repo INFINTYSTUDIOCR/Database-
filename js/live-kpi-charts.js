@@ -37,15 +37,34 @@
     });
   }
 
+  function barScaleOpts(tickCfg) {
+    return {
+      offset: true,
+      ticks: Object.assign({ autoSkip: false, maxRotation: 0 }, tickCfg || {}),
+      grid: tickCfg && tickCfg.grid !== undefined ? tickCfg.grid : { display: false }
+    };
+  }
+
   function upsert(key, canvasId, config) {
     var ctx = getCanvas(canvasId);
     if (!ctx || !global.Chart) return null;
-    if (pool[key]) {
-      pool[key].data = config.data;
-      pool[key].update('none');
-      return pool[key];
+    var existing = pool[key];
+    if (existing) {
+      var newLabels = config.data.labels || [];
+      var oldLabels = existing.data.labels || [];
+      if (newLabels.length !== oldLabels.length) {
+        destroy(key);
+      } else {
+        existing.data.labels = newLabels;
+        existing.data.datasets = config.data.datasets;
+        existing.update('resize');
+        return existing;
+      }
     }
     pool[key] = new Chart(ctx, config);
+    requestAnimationFrame(function () {
+      if (pool[key]) pool[key].resize();
+    });
     return pool[key];
   }
 
@@ -95,7 +114,7 @@
       type: 'bar',
       data: {
         labels: keys,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6, categoryPercentage: 0.78, barPercentage: 0.85 }]
       },
       options: {
         responsive: true,
@@ -110,7 +129,7 @@
         },
         scales: {
           y: { min: 0, max: maxScale, ticks: { stepSize: step } },
-          x: { ticks: { font: { size: 11, weight: '700' } } }
+          x: barScaleOpts({ font: { size: 11, weight: '700' } })
         }
       }
     });
@@ -164,7 +183,7 @@
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6, categoryPercentage: 0.78, barPercentage: 0.85 }]
       },
       options: {
         responsive: true,
@@ -179,7 +198,7 @@
         },
         scales: {
           y: { min: 0, max: 100, ticks: { stepSize: 25 } },
-          x: { ticks: { font: { size: 10, weight: '700' } } }
+          x: barScaleOpts({ font: { size: 10, weight: '700' } })
         }
       }
     });
@@ -235,7 +254,7 @@
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 4 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 4, categoryPercentage: 0.78, barPercentage: 0.85 }]
       },
       options: {
         responsive: true,
@@ -255,10 +274,10 @@
             ticks: { stepSize: 25, color: tick },
             grid: { color: grid }
           },
-          x: {
-            ticks: { color: 'rgba(255,255,255,0.65)', font: { size: 10, weight: '700' } },
-            grid: { display: false }
-          }
+          x: barScaleOpts({
+            color: 'rgba(255,255,255,0.65)',
+            font: { size: 10, weight: '700' }
+          })
         }
       }
     });
@@ -328,7 +347,7 @@
   }
 
   global.LiveKpiCharts = {
-    VERSION: '20260625',
+    VERSION: '20260626',
     destroy: destroy,
     destroyPrefix: destroyPrefix,
     updateMacro: updateMacro,
