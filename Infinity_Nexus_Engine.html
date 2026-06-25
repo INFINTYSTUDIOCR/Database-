@@ -302,7 +302,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" onclick="showView('staffchat',this)"><i class="ti ti-messages"></i>Chat de Staff</div>
       <div class="sb-item" id="nav-dashboard" style="display:none;" onclick="showView('dashboard',this)"><i class="ti ti-chart-dots"></i>Dashboard</div>
       <div class="sb-item" id="nav-transcripts" onclick="showView('chattranscripts',this)"><i class="ti ti-shield-lock"></i>Transcripciones (Super Admin)</div>
-      <div class="sb-item" id="nav-new-student" onclick="showModal('modal-new-student')"><i class="ti ti-user-plus"></i>Nuevo estudiante</div>
+      <div class="sb-item" id="nav-new-student" onclick="openNewStudentModal()"><i class="ti ti-user-plus"></i>Nuevo estudiante</div>
       <div class="sb-section">Departamentos</div>
       <div class="sb-item" id="nav-dept-admin" onclick="showView('dept-admin',this)"><i class="ti ti-building"></i>Administration</div>
       <div class="sb-item" id="nav-dept-training" onclick="showView('dept-training',this)"><i class="ti ti-school"></i>Training Team</div>
@@ -1226,7 +1226,7 @@ function renderStudents(m){
     +'<select class="search-inp" style="width:140px;" onchange="filterStudents(this.value)" id="filter-level"><option value="">Todos los niveles</option><option>Advanced</option><option>Functional</option><option>Emerging</option><option>Survival</option></select>'
     +'<select class="search-inp" style="width:120px;" onchange="filterStudentsByPhase(this.value)" id="filter-phase"><option value="">Todas las fases</option><option value="1">Fase 1</option><option value="2">Fase 2</option><option value="3">Fase 3</option></select>'
     +'<input class="search-inp" style="width:200px;" placeholder="Buscar por nombre..." oninput="searchStudents(this.value)" id="search-inp" value="">'
-    +'<button class="btn btn-navy btn-sm" onclick="showModal(\'modal-new-student\')"><i class="ti ti-user-plus"></i>Nuevo</button>'
+    +'<button class="btn btn-navy btn-sm" onclick="openNewStudentModal()"><i class="ti ti-user-plus"></i>Nuevo</button>'
     +'</div>'
     +'<div id="students-table"></div>'
     +'</div>';
@@ -1702,6 +1702,16 @@ function deleteResource(id){
 }
 
 // ── CREATE STUDENT ────────────────────────────────────────
+function resetNewStudentForm(){
+  var ids = ['ns-fname','ns-lname','ns-email','ns-phone','ns-fee','ns-obs'];
+  ids.forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  var prog = document.getElementById('ns-program'); if(prog) prog.selectedIndex = 0;
+}
+function openNewStudentModal(){
+  resetNewStudentForm();
+  showModal('modal-new-student');
+}
+
 async function createStudent(){
   var fname=document.getElementById('ns-fname').value.trim();
   var lname=document.getElementById('ns-lname').value.trim();
@@ -1717,6 +1727,7 @@ async function createStudent(){
   await dbSet('infinity_students',id,student);
   DB[id]=student;
   closeModal('modal-new-student');
+  resetNewStudentForm();
   document.getElementById('sb-count').textContent=allStudents().length;
   showToast('Estudiante creado · Código: '+code);
   openStudent(id);
@@ -2736,7 +2747,13 @@ var OPERATIONAL_PARAMS = [
   'Pronunciación clara'
 ];
 
+function resetDiagnosticState(){
+  delete window._diagReport;
+  delete window._diagTypingResult;
+}
+
 function renderDiagnostic(m, leadId){
+  resetDiagnosticState();
   var trainerOptions = Object.values(TRAINERS).map(function(u){ return '<option value="'+u.name+'">'+u.name+'</option>'; }).join('');
   var lead = leadId ? DB[leadId] : null;
   var li = (lead&&lead.info)||{};
@@ -2981,8 +2998,7 @@ async function saveDiagnostic(){
     delete DB[leadId];
   }
 
-  delete window._diagReport;
-  delete window._diagTypingResult;
+  resetDiagnosticState();
   document.getElementById('sb-count').textContent=allStudents().length;
   await logAction('Creó diagnóstico inicial completo', fname+' '+lname+' — Score '+total+'/25 ('+level+')');
   showToast('Diagnóstico guardado · Código: '+code);
