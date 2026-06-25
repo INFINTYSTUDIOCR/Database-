@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="js/live-kpi-charts.js?v=20260626"></script>
+<script src="js/live-kpi-charts.js?v=20260627"></script>
 <script src="infinity-auth.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
@@ -93,7 +93,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ib-navy{background:var(--nl);border-left:4px solid var(--nm);color:var(--nd);}
 .ib-amber{background:var(--ab);border-left:4px solid var(--amber);color:var(--ad);}
 
-.chart-wrap{position:relative;height:220px;margin-bottom:1rem;}
+.chart-wrap{position:relative;height:220px;margin-bottom:1rem;min-width:0;width:100%;overflow:hidden;}
+.chart-wrap canvas{display:block;max-width:100%;}
+.chart-wrap-bars{background:rgba(255,255,255,0.05);border-radius:10px;padding:6px 8px;box-sizing:border-box;}
 
 .portal-wrap{max-width:700px;margin:0 auto;padding:1.25rem;padding-left:96px;}
 .portal-header{background:var(--navy);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem;text-align:center;}
@@ -984,9 +986,9 @@ function renderProgressBlock(s){
     +'<div style="font-size:10px;color:rgba(255,255,255,0.5);">/100'+(delta!=null?(' <span style="color:'+(delta>=0?'#3DDC97':'#FF5C5C')+';font-weight:700;">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div>'
     +'</div></div>'
 
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;" data-live-charts="canvas-v2">'
-    +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-radar"></canvas></div>'
-    +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-bar"></canvas></div>'
+    +'<div style="display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:1rem;align-items:stretch;margin-bottom:1rem;" data-live-charts="canvas-v2">'
+    +'<div class="chart-wrap" style="height:200px;min-width:0;"><canvas id="portal-progress-radar"></canvas></div>'
+    +'<div class="chart-wrap chart-wrap-bars" style="height:200px;min-width:0;"><canvas id="portal-progress-bar"></canvas></div>'
     +'</div>'
 
     +'<div style="margin-bottom:0.75rem;">'

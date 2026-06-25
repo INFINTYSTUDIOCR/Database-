@@ -40,20 +40,52 @@
   function barScaleOpts(tickCfg) {
     return {
       offset: true,
-      ticks: Object.assign({ autoSkip: false, maxRotation: 0 }, tickCfg || {}),
+      ticks: Object.assign({ autoSkip: false, maxRotation: 0, padding: 2 }, tickCfg || {}),
       grid: tickCfg && tickCfg.grid !== undefined ? tickCfg.grid : { display: false }
     };
   }
 
-  function upsert(key, canvasId, config) {
+  function areaBarChartOptions(yScale, xScale) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { left: 4, right: 4, top: 6, bottom: 2 } },
+      datasets: {
+        bar: {
+          categoryPercentage: 0.58,
+          barPercentage: 0.68,
+          maxBarThickness: 14
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) { return ctx.parsed.y + '%'; }
+          }
+        }
+      },
+      scales: {
+        y: yScale,
+        x: xScale
+      }
+    };
+  }
+
+  function upsert(key, canvasId, config, forceNew) {
     var ctx = getCanvas(canvasId);
     if (!ctx || !global.Chart) return null;
     var existing = pool[key];
-    if (existing) {
+    var isBar = key.indexOf('-bar') !== -1;
+    if (existing && (forceNew || isBar)) {
+      destroy(key);
+      existing = null;
+    } else if (existing) {
       var newLabels = config.data.labels || [];
       var oldLabels = existing.data.labels || [];
       if (newLabels.length !== oldLabels.length) {
         destroy(key);
+        existing = null;
       } else {
         existing.data.labels = newLabels;
         existing.data.datasets = config.data.datasets;
@@ -114,11 +146,14 @@
       type: 'bar',
       data: {
         labels: keys,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6, categoryPercentage: 0.78, barPercentage: 0.85 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6 }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        datasets: {
+          bar: { categoryPercentage: 0.72, barPercentage: 0.8, maxBarThickness: 22 }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -183,24 +218,12 @@
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6, categoryPercentage: 0.78, barPercentage: 0.85 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 6 }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) { return ctx.parsed.y + '%'; }
-            }
-          }
-        },
-        scales: {
-          y: { min: 0, max: 100, ticks: { stepSize: 25 } },
-          x: barScaleOpts({ font: { size: 10, weight: '700' } })
-        }
-      }
+      options: areaBarChartOptions(
+        { min: 0, max: 100, ticks: { stepSize: 25 } },
+        barScaleOpts({ font: { size: 10, weight: '700' } })
+      )
     });
   }
 
@@ -254,32 +277,20 @@
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 4, categoryPercentage: 0.78, barPercentage: 0.85 }]
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 4 }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) { return ctx.parsed.y + '%'; }
-            }
-          }
+      options: areaBarChartOptions(
+        {
+          min: 0,
+          max: 100,
+          ticks: { stepSize: 25, color: tick },
+          grid: { color: grid }
         },
-        scales: {
-          y: {
-            min: 0,
-            max: 100,
-            ticks: { stepSize: 25, color: tick },
-            grid: { color: grid }
-          },
-          x: barScaleOpts({
-            color: 'rgba(255,255,255,0.65)',
-            font: { size: 10, weight: '700' }
-          })
-        }
-      }
+        barScaleOpts({
+          color: 'rgba(255,255,255,0.65)',
+          font: { size: 9, weight: '700' }
+        })
+      )
     });
   }
 
@@ -295,6 +306,11 @@
       return;
     }
     fn();
+    setTimeout(function () {
+      Object.keys(pool).forEach(function (k) {
+        if (pool[k] && pool[k].resize) pool[k].resize();
+      });
+    }, 120);
   }
 
   function readMacroSliders(prefix) {
@@ -347,7 +363,7 @@
   }
 
   global.LiveKpiCharts = {
-    VERSION: '20260626',
+    VERSION: '20260627',
     destroy: destroy,
     destroyPrefix: destroyPrefix,
     updateMacro: updateMacro,
