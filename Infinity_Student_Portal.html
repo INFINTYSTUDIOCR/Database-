@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="js/live-kpi-charts.js"></script>
+<script src="js/live-kpi-charts.js?v=20260625"></script>
 <script src="infinity-auth.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
@@ -891,28 +891,44 @@ function portalKpiMax(s){
   return sample>5?10:5;
 }
 
+function resolvePortalAreaAverages(last){
+  if(!last) return [];
+  if(last.areaAverages && last.areaAverages.length) return last.areaAverages;
+  if(last.scores && typeof KPI_TRACKER_AREAS !== 'undefined'){
+    return KPI_TRACKER_AREAS.map(function(area){
+      var sum=0,max=0;
+      area.kpis.forEach(function(k){
+        if(last.scores[k.id]!==undefined){ sum+=last.scores[k.id]; max+=k.max; }
+      });
+      return { id:area.id, name:area.name, pct:max?Math.round(sum/max*100):0 };
+    });
+  }
+  return [];
+}
+
 function initPortalLiveCharts(s){
   if(typeof LiveKpiCharts==='undefined'||!s) return;
-  LiveKpiCharts.destroyPrefix('portal-');
-  var kpis=(s.kpis||{}).phase1||{};
-  var macroVals={};
-  var kMax=portalKpiMax(s);
-  Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k],10)||0; });
-  LiveKpiCharts.updateMacro('portal-macro','portal-macro-radar','portal-macro-bar',macroVals,kMax);
-  var hist=s.kpiTracker||[];
-  var last=hist.length?hist[hist.length-1]:null;
-  if(last&&last.areaAverages){
-    LiveKpiCharts.updateAreas('portal-prog','portal-progress-radar','portal-progress-bar',last.areaAverages);
-  }
-  var cals=(s.calibrations||[]).slice(-5);
-  if(cals.length>=2){
-    LiveKpiCharts.updateLine('portal-line','portal-chart',
-      cals.map(function(c){ return fmtDate(c.date); }),
-      Object.keys(KPI_NAMES).map(function(k,i){
-        var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
-        return { label:k, data:cals.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 };
-      }), kMax);
-  }
+  LiveKpiCharts.mountWhenReady(['portal-macro-radar','portal-macro-bar','portal-progress-radar','portal-progress-bar','portal-chart'], function(){
+    LiveKpiCharts.destroyPrefix('portal-');
+    var kpis=(s.kpis||{}).phase1||{};
+    var macroVals={};
+    var kMax=portalKpiMax(s);
+    Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k],10)||0; });
+    LiveKpiCharts.updateMacro('portal-macro','portal-macro-radar','portal-macro-bar',macroVals,kMax);
+    var hist=s.kpiTracker||[];
+    var last=hist.length?hist[hist.length-1]:null;
+    var areas=resolvePortalAreaAverages(last);
+    if(areas.length) LiveKpiCharts.updateAreasDark('portal-prog','portal-progress-radar','portal-progress-bar',areas);
+    var cals=(s.calibrations||[]).slice(-5);
+    if(cals.length>=2){
+      LiveKpiCharts.updateLine('portal-line','portal-chart',
+        cals.map(function(c){ return fmtDate(c.date); }),
+        Object.keys(KPI_NAMES).map(function(k,i){
+          var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
+          return { label:k, data:cals.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 };
+        }), kMax);
+    }
+  });
 }
 
 var _portalProgPoll=null;
@@ -948,7 +964,7 @@ function renderProgressBlock(s){
       +'</div>';
   }
 
-  var areaAverages = last.areaAverages;
+  var areaAverages = resolvePortalAreaAverages(last);
   var delta = prev ? last.overall - prev.overall : null;
   var strengths = areaAverages.filter(function(a){ return a.pct>=70; }).sort(function(a,b){return b.pct-a.pct;});
   var improvements = areaAverages.filter(function(a){ return a.pct<70; }).sort(function(a,b){return a.pct-b.pct;});
@@ -968,7 +984,7 @@ function renderProgressBlock(s){
     +'<div style="font-size:10px;color:rgba(255,255,255,0.5);">/100'+(delta!=null?(' <span style="color:'+(delta>=0?'#3DDC97':'#FF5C5C')+';font-weight:700;">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div>'
     +'</div></div>'
 
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;" data-live-charts="canvas-v2">'
     +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-radar"></canvas></div>'
     +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-bar"></canvas></div>'
     +'</div>'

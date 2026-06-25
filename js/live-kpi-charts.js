@@ -116,8 +116,17 @@
     });
   }
 
-  function updateAreas(key, radarId, barId, areaAverages) {
+  function areaBarColors(data) {
+    return data.map(function (p) {
+      if (p >= 80) return '#3DDC97';
+      if (p >= 60) return '#F5A623';
+      return '#FF5C5C';
+    });
+  }
+
+  function updateAreas(key, radarId, barId, areaAverages, dark) {
     if (!areaAverages || !areaAverages.length) return;
+    if (dark) return updateAreasDark(key, radarId, barId, areaAverages);
     var labels = areaAverages.map(function (a) { return a.id; });
     var data = areaAverages.map(function (a) { return a.pct; });
 
@@ -149,11 +158,7 @@
       }
     });
 
-    var barColors = data.map(function (p) {
-      if (p >= 80) return '#0F6E56';
-      if (p >= 60) return '#D97706';
-      return '#A32D2D';
-    });
+    var barColors = areaBarColors(data);
 
     upsert(key + '-area-bar', barId, {
       type: 'bar',
@@ -178,6 +183,99 @@
         }
       }
     });
+  }
+
+  function updateAreasDark(key, radarId, barId, areaAverages) {
+    if (!areaAverages || !areaAverages.length) return;
+    var labels = areaAverages.map(function (a) { return a.id; });
+    var data = areaAverages.map(function (a) { return a.pct; });
+    var barColors = areaBarColors(data);
+    var tick = 'rgba(255,255,255,0.35)';
+    var grid = 'rgba(255,255,255,0.08)';
+
+    upsert(key + '-area-radar', radarId, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Área %',
+          data: data,
+          borderColor: '#F5A623',
+          backgroundColor: 'rgba(245,166,35,0.35)',
+          pointBackgroundColor: '#F5A623',
+          pointRadius: 4,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 25, color: tick, backdropColor: 'transparent' },
+            grid: { color: grid },
+            angleLines: { color: grid },
+            pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 11, weight: '700' } }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return ctx.parsed.r + '%'; }
+            }
+          }
+        }
+      }
+    });
+
+    upsert(key + '-area-bar', barId, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ data: data, backgroundColor: barColors, borderRadius: 4 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return ctx.parsed.y + '%'; }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 25, color: tick },
+            grid: { color: grid }
+          },
+          x: {
+            ticks: { color: 'rgba(255,255,255,0.65)', font: { size: 10, weight: '700' } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  function mountWhenReady(canvasIds, fn, tries) {
+    tries = tries || 0;
+    if (typeof global.Chart === 'undefined' || typeof global.LiveKpiCharts === 'undefined') {
+      if (tries < 8) setTimeout(function () { mountWhenReady(canvasIds, fn, tries + 1); }, 150);
+      return;
+    }
+    var missing = canvasIds.some(function (id) { return !document.getElementById(id); });
+    if (missing && tries < 8) {
+      setTimeout(function () { mountWhenReady(canvasIds, fn, tries + 1); }, 150);
+      return;
+    }
+    fn();
   }
 
   function readMacroSliders(prefix) {
@@ -230,14 +328,17 @@
   }
 
   global.LiveKpiCharts = {
+    VERSION: '20260625',
     destroy: destroy,
     destroyPrefix: destroyPrefix,
     updateMacro: updateMacro,
     updateAreas: updateAreas,
+    updateAreasDark: updateAreasDark,
     updateLine: updateLine,
     readMacroSliders: readMacroSliders,
     computeKTAreaAverages: computeKTAreaAverages,
     liveChartCard: liveChartCard,
+    mountWhenReady: mountWhenReady,
     macroKeys: macroKeys
   };
 })(typeof window !== 'undefined' ? window : this);

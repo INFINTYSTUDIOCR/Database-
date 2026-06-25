@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="js/live-kpi-charts.js"></script>
+<script src="js/live-kpi-charts.js?v=20260625"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/tts-chunks.js"></script>
@@ -1463,27 +1463,29 @@ function openStudent(id){
     +'</div>';
 
   // Live + history charts
-  setTimeout(function(){
-    if(typeof LiveKpiCharts!=='undefined'){
-      var macroVals={};
-      Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k])||0; });
-      LiveKpiCharts.destroyPrefix('profile-');
-      LiveKpiCharts.destroyPrefix('engine-prog-');
-      LiveKpiCharts.updateMacro('profile-macro','profile-macro-radar','profile-macro-bar',macroVals,kpiMax(s));
-      var khist=s.kpiTracker||[];
-      var klast=khist.length?khist[khist.length-1]:null;
-      if(klast) LiveKpiCharts.updateAreas('engine-prog','engine-prog-radar','engine-prog-bar',resolveAreaAverages(klast));
-    }
-    if(history.length>=2){
-      var ctx=document.getElementById('chart-progress'); if(!ctx) return;
-      var labels=history.map(function(c){ return fmtDate(c.date); });
+  mountEngineProgressCharts(s, kpis, history);
+}
+
+function mountEngineProgressCharts(s, kpis, history){
+  if(typeof LiveKpiCharts==='undefined') return;
+  LiveKpiCharts.mountWhenReady(['profile-macro-radar','profile-macro-bar','engine-prog-radar','engine-prog-bar'], function(){
+    var macroVals={};
+    Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k])||0; });
+    LiveKpiCharts.destroyPrefix('profile-');
+    LiveKpiCharts.destroyPrefix('engine-prog-');
+    LiveKpiCharts.updateMacro('profile-macro','profile-macro-radar','profile-macro-bar',macroVals,kpiMax(s));
+    var khist=s.kpiTracker||[];
+    var klast=khist.length?khist[khist.length-1]:null;
+    if(klast) LiveKpiCharts.updateAreasDark('engine-prog','engine-prog-radar','engine-prog-bar',resolveAreaAverages(klast));
+    if(history&&history.length>=2){
       var yMax=kpiMax(s);
-      var datasets=Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
-        return { label:k, data:history.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:4 };
-      });
-      new Chart(ctx,{ type:'line', data:{labels,datasets}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ min:0, max:yMax, ticks:{ stepSize:yMax<=5?1:2 } } }, plugins:{ legend:{ position:'bottom' } } } });
+      LiveKpiCharts.updateLine('chart-progress-line','chart-progress',
+        history.map(function(c){ return fmtDate(c.date); }),
+        Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
+          return { label:k, data:history.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:4 };
+        }), yMax);
     }
-  },100);
+  });
 }
 
 function switchTab(id, btn){
@@ -1493,19 +1495,13 @@ function switchTab(id, btn){
   var pane=document.getElementById('pane-'+id);
   if(pane) pane.classList.add('active');
   if(id==='kpis'||id==='progress'){
-    setTimeout(function(){
-      if(typeof LiveKpiCharts==='undefined'||!currentView||currentView.indexOf('student-')!==0) return;
-      var sid=currentView.replace('student-','');
-      var s=DB[sid];
-      if(!s) return;
-      var kpis=(s.kpis||{}).phase1||{};
-      var macroVals={};
-      Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k])||0; });
-      LiveKpiCharts.updateMacro('profile-macro','profile-macro-radar','profile-macro-bar',macroVals,kpiMax(s));
-      var khist=s.kpiTracker||[];
-      var klast=khist.length?khist[khist.length-1]:null;
-      if(klast) LiveKpiCharts.updateAreas('engine-prog','engine-prog-radar','engine-prog-bar',resolveAreaAverages(klast));
-    },80);
+    var sid=currentView&&currentView.indexOf('student-')===0?currentView.replace('student-',''):null;
+    var st=sid?DB[sid]:null;
+    if(st){
+      var kp=(st.kpis||{}).phase1||{};
+      var hist=(st.calibrations||[]).slice(-8);
+      mountEngineProgressCharts(st,kp,hist);
+    }
   }
 }
 
@@ -5977,7 +5973,7 @@ function renderProgressBlock(s, id){
     +'<div style="font-size:10px;color:rgba(255,255,255,0.5);">/100'+(delta!=null?(' <span style="color:'+(delta>=0?'#3DDC97':'#FF5C5C')+';font-weight:700;">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div>'
     +'</div></div>'
 
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;" data-live-charts="canvas-v2">'
     +'<div class="chart-wrap" style="height:200px;"><canvas id="engine-prog-radar"></canvas></div>'
     +'<div class="chart-wrap" style="height:200px;"><canvas id="engine-prog-bar"></canvas></div>'
     +'</div>'
