@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/live-kpi-charts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/tts-chunks.js"></script>
@@ -1335,13 +1336,8 @@ function openStudent(id){
   var m=document.getElementById('main-content');
   currentView='student-'+id;
 
-  var kpiBars=Object.keys(KPI_NAMES).map(function(k){
-    var v=parseInt(kpis[k])||0; var kv=kpiVisual(v,s);
-    return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+kv.pct+'%;background:'+kv.col+';"></div></div>'
-      +'<span class="kbar-val" style="color:'+kv.col+';">'+kv.label+'</span>'
-      +'<span class="kbar-tag" style="background:'+kv.tag[0]+';color:'+kv.tag[1]+';">'+kv.tag[2]+'</span></div>';
-  }).join('');
+  var kpiChartHtml='<div class="grid2" style="gap:8px;"><div class="chart-wrap" style="height:180px;"><canvas id="profile-macro-radar"></canvas></div>'
+    +'<div class="chart-wrap" style="height:180px;"><canvas id="profile-macro-bar"></canvas></div></div>';
 
   var exercises=getExercises(s);
   var notes=(s.notes||[]).slice(-5).reverse();
@@ -1383,7 +1379,7 @@ function openStudent(id){
 
     +'<div class="tab-pane active" id="pane-kpis">'
     +'<div class="grid2">'
-    +'<div class="card" style="margin-bottom:0;"><div class="card-title"><i class="ti ti-chart-bar"></i>KPI Profile</div>'+kpiBars+'</div>'
+    +'<div class="card" style="margin-bottom:0;"><div class="card-title"><i class="ti ti-chart-bar"></i>KPI Profile</div>'+kpiChartHtml+'</div>'
     +'<div class="card" style="margin-bottom:0;"><div class="card-title"><i class="ti ti-dumbbell"></i>Ejercicios prioritarios</div>'
     +(exercises.length?exercises.map(function(ex){ return '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;margin-bottom:6px;">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
@@ -1466,17 +1462,28 @@ function openStudent(id){
     +renderPagosTab(s, id, isMaster)
     +'</div>';
 
-  // Progress chart
-  if(history.length>=2){
-    setTimeout(function(){
+  // Live + history charts
+  setTimeout(function(){
+    if(typeof LiveKpiCharts!=='undefined'){
+      var macroVals={};
+      Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k])||0; });
+      LiveKpiCharts.destroyPrefix('profile-');
+      LiveKpiCharts.destroyPrefix('engine-prog-');
+      LiveKpiCharts.updateMacro('profile-macro','profile-macro-radar','profile-macro-bar',macroVals,kpiMax(s));
+      var khist=s.kpiTracker||[];
+      var klast=khist.length?khist[khist.length-1]:null;
+      if(klast) LiveKpiCharts.updateAreas('engine-prog','engine-prog-radar','engine-prog-bar',resolveAreaAverages(klast));
+    }
+    if(history.length>=2){
       var ctx=document.getElementById('chart-progress'); if(!ctx) return;
       var labels=history.map(function(c){ return fmtDate(c.date); });
+      var yMax=kpiMax(s);
       var datasets=Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
         return { label:k, data:history.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:4 };
       });
-      new Chart(ctx,{ type:'line', data:{labels,datasets}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ min:0, max:5, ticks:{ stepSize:1 } } }, plugins:{ legend:{ position:'bottom' } } } });
-    },100);
-  }
+      new Chart(ctx,{ type:'line', data:{labels,datasets}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ min:0, max:yMax, ticks:{ stepSize:yMax<=5?1:2 } } }, plugins:{ legend:{ position:'bottom' } } } });
+    }
+  },100);
 }
 
 function switchTab(id, btn){
@@ -1485,6 +1492,21 @@ function switchTab(id, btn){
   if(btn) btn.classList.add('active');
   var pane=document.getElementById('pane-'+id);
   if(pane) pane.classList.add('active');
+  if(id==='kpis'||id==='progress'){
+    setTimeout(function(){
+      if(typeof LiveKpiCharts==='undefined'||!currentView||currentView.indexOf('student-')!==0) return;
+      var sid=currentView.replace('student-','');
+      var s=DB[sid];
+      if(!s) return;
+      var kpis=(s.kpis||{}).phase1||{};
+      var macroVals={};
+      Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k])||0; });
+      LiveKpiCharts.updateMacro('profile-macro','profile-macro-radar','profile-macro-bar',macroVals,kpiMax(s));
+      var khist=s.kpiTracker||[];
+      var klast=khist.length?khist[khist.length-1]:null;
+      if(klast) LiveKpiCharts.updateAreas('engine-prog','engine-prog-radar','engine-prog-bar',resolveAreaAverages(klast));
+    },80);
+  }
 }
 
 var STUDENT_PORTAL_URL = 'https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html';
@@ -2805,10 +2827,12 @@ function renderDiagnostic(m, leadId){
     +'<span id="dg-total" style="font-size:22px;font-weight:800;color:var(--navy);">15/25</span>'
     +'</div>'
     +'<div style="margin-top:6px;" id="dg-level-badge">'+getLevelBadge('Emerging')+'</div>'
+    +'<div class="grid2" style="gap:12px;margin-top:12px;"><div class="chart-wrap"><canvas id="dg-live-radar"></canvas></div>'
+    +'<div class="chart-wrap"><canvas id="dg-live-bar"></canvas></div></div>'
     +'</div>'
 
     +'<div class="card">'
-    +'<div class="card-title"><i class="ti ti-list-check"></i>Parámetros operacionales observados</div>'
+    +'<div class="card-title"><i class="ti ti-list-check"></i>Parámetros operacionales observados</div>
     +'<div class="ib ib-navy">Seleccioná todos los que apliquen. Influyen directamente en la selección de ejercicios y el plan de sesiones.</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
     +OPERATIONAL_PARAMS.map(function(p,i){
@@ -2827,6 +2851,9 @@ function renderDiagnostic(m, leadId){
 
     +'<div id="dg-report"></div>'
     +'</div>';
+  setTimeout(function(){
+    if(typeof LiveKpiCharts!=='undefined'){ LiveKpiCharts.destroyPrefix('dg-'); updateDiagnosticScore(); }
+  },80);
 }
 
 function updateDiagnosticScore(){
@@ -2834,6 +2861,9 @@ function updateDiagnosticScore(){
   Object.keys(KPI_NAMES).forEach(function(k){ total += parseInt(document.getElementById('dg-'+k).value)||0; });
   document.getElementById('dg-total').textContent = total+'/25';
   document.getElementById('dg-level-badge').innerHTML = getLevelBadge(getLevel(total));
+  if(typeof LiveKpiCharts!=='undefined'){
+    LiveKpiCharts.updateMacro('dg','dg-live-radar','dg-live-bar',LiveKpiCharts.readMacroSliders('dg-'),5);
+  }
 }
 
 function generateDiagnosticReport(){
@@ -2901,15 +2931,7 @@ function generateDiagnosticReport(){
   }).join('');
 
   document.getElementById('dg-report').innerHTML = '<div class="fade">'
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>KPI performance profile</div>'
-    +Object.keys(KPI_NAMES).map(function(k){
-      var v=kpis[k]; var col=KPI_COLORS[v]||'var(--border)';
-      return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-        +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+(v/5*100)+'%;background:'+col+';"></div></div>'
-        +'<span class="kbar-val" style="color:'+col+';">'+v+'/5</span></div>';
-    }).join('')
-    +'<div style="margin-top:10px;text-align:right;"><strong style="font-size:18px;color:var(--navy);">'+total+'/25</strong> '+getLevelBadge(level)+'</div>'
-    +'</div>'
+    +'<div class="ib ib-navy"><i class="ti ti-chart-radar"></i> Perfil KPI en la card de evaluación ('+total+'/25 · '+level+').</div>'
 
     +'<div class="card"><div class="card-title"><i class="ti ti-stethoscope"></i>Diagnóstico detallado por KPI</div>'+detailHtml+'</div>'
 
@@ -3828,6 +3850,8 @@ function renderWeeklyAssessment(m, sid){
     +'<span id="wa-total" style="font-size:22px;font-weight:800;color:var(--navy);">'+fmtScore(nowScore,s)+'</span>'
     +'</div>'
     +'<div style="margin-top:6px;" id="wa-level-badge">'+getLevelBadge(getLevelForStudent(nowScore,s))+'</div>'
+    +'<div class="grid2" style="gap:12px;margin-top:12px;"><div class="chart-wrap"><canvas id="wa-live-radar"></canvas></div>'
+    +'<div class="chart-wrap"><canvas id="wa-live-bar"></canvas></div></div>'
     +'</div>'
 
     +'<div class="card">'
@@ -3856,16 +3880,23 @@ function renderWeeklyAssessment(m, sid){
 
     +'<div id="wa-report"></div>'
     +'</div>';
+  setTimeout(function(){
+    if(typeof LiveKpiCharts!=='undefined'){ LiveKpiCharts.destroyPrefix('wa-'); updateWeeklyTotal(); }
+  },80);
 }
 
 function updateWeeklyTotal(){
   var sid = document.getElementById('wa-sid') && document.getElementById('wa-sid').value;
   var s = sid && DB[sid];
   var tMax = getScoreMax(s);
+  var kMax = kpiMax(s);
   var total=0;
   Object.keys(KPI_NAMES).forEach(function(k){ total+=parseInt(document.getElementById('wa-'+k).value)||0; });
   document.getElementById('wa-total').textContent = total+'/'+tMax;
   document.getElementById('wa-level-badge').innerHTML = getLevelBadge(getLevelForStudent(total,s));
+  if(typeof LiveKpiCharts!=='undefined' && s){
+    LiveKpiCharts.updateMacro('wa','wa-live-radar','wa-live-bar',LiveKpiCharts.readMacroSliders('wa-'),kMax);
+  }
 }
 
 function generateWeeklyReport(){
@@ -3935,15 +3966,7 @@ function generateWeeklyReport(){
   }).join('');
 
   document.getElementById('wa-report').innerHTML = '<div class="fade">'
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>KPI performance — esta sesión</div>'
-    +Object.keys(KPI_NAMES).map(function(k){
-      var v=kpis[k]; var kv=kpiVisual(v,s);
-      return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-        +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+kv.pct+'%;background:'+kv.col+';"></div></div>'
-        +'<span class="kbar-val" style="color:'+kv.col+';">'+kv.label+'</span></div>';
-    }).join('')
-    +'<div style="margin-top:10px;text-align:right;"><strong style="font-size:18px;color:var(--navy);">'+fmtScore(nowTotal,s)+'</strong> '+getLevelBadge(getLevelForStudent(nowTotal,s))+'</div>'
-    +'</div>'
+    +'<div class="ib ib-navy"><i class="ti ti-chart-radar"></i> Perfil KPI en la card de evaluación · '+fmtScore(nowTotal,s)+'.</div>'
 
     +'<div class="card"><div class="card-title"><i class="ti ti-table"></i>Before · Now · Prospect</div>'+bnpHtml+'</div>'
 
@@ -4124,7 +4147,9 @@ function renderKPITracker(m, sid){
     +'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;">'
     +'<span style="font-size:14px;font-weight:700;">Score global</span>'
     +'<span id="kt-total" style="font-size:24px;font-weight:800;color:var(--navy);">—/100</span>'
-    +'</div></div>'
+    +'</div>'
+    +'<div class="grid2" style="gap:12px;margin-top:12px;"><div class="chart-wrap"><canvas id="kt-live-radar"></canvas></div>'
+    +'<div class="chart-wrap"><canvas id="kt-live-bar"></canvas></div></div></div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-notes"></i>Notas generales de la sesión</div>'
     +'<textarea class="inp" id="kt-notes" placeholder="Resumen general, contexto de la sesión..."></textarea>'
     +'</div>'
@@ -4134,7 +4159,9 @@ function renderKPITracker(m, sid){
     +'<div id="kt-report"></div>'
     +'</div>';
 
-  setTimeout(updateKTTotal, 50);
+  setTimeout(function(){
+    if(typeof LiveKpiCharts!=='undefined'){ LiveKpiCharts.destroyPrefix('kt-'); updateKTTotal(); }
+  },80);
 }
 
 function toggleKTNA(kid){
@@ -4159,6 +4186,9 @@ function updateKTTotal(){
   }); });
   var pct = max ? Math.round(total/max*100) : 0;
   var el=document.getElementById('kt-total'); if(el) el.textContent = pct+'/100';
+  if(typeof LiveKpiCharts!=='undefined'){
+    LiveKpiCharts.updateAreas('kt','kt-live-radar','kt-live-bar',LiveKpiCharts.computeKTAreaAverages());
+  }
 }
 
 function generateKPITrackerReport(){
@@ -4199,16 +4229,6 @@ function generateKPITrackerReport(){
   var hist = getKPITrackerHistory(s);
   var last = hist.length ? hist[hist.length-1] : null;
 
-  var areaHtml = areaAverages.map(function(a){
-    var prevA = last ? last.areaAverages.find(function(x){return x.id===a.id;}) : null;
-    var delta = prevA ? a.pct - prevA.pct : 0;
-    var deltaTxt = delta>0?(' <span style="color:var(--gm);">▲+'+delta+'%</span>'):delta<0?(' <span style="color:var(--rm);">▼'+delta+'%</span>'):'';
-    var col = a.pct>=80?'var(--gm)':a.pct>=60?'var(--amber)':'var(--rm)';
-    return '<div class="kbar"><span class="kbar-name">'+a.id+' '+a.name+deltaTxt+'</span>'
-      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+a.pct+'%;background:'+col+';"></div></div>'
-      +'<span class="kbar-val" style="color:'+col+';">'+a.pct+'%</span></div>';
-  }).join('');
-
   // KPIs más débiles (top 5)
   var weakest = Object.keys(scores).map(function(id){
     var kpi=null; KPI_TRACKER_AREAS.forEach(function(area){ area.kpis.forEach(function(k){ if(k.id===id) kpi=k; }); });
@@ -4223,7 +4243,8 @@ function generateKPITrackerReport(){
   }).join('');
 
   document.getElementById('kt-report').innerHTML = '<div class="fade">'
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>Performance por área</div>'+areaHtml
+    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>Resumen de esta evaluación</div>'
+    +'<div class="ib ib-navy">Score global y gráficos por área en la card de abajo.</div>'
     +'<div style="margin-top:10px;text-align:right;"><strong style="font-size:20px;color:var(--navy);">'+overall+'/100</strong>'
     +(last?(' <span style="font-size:12px;color:var(--t3);">(anterior: '+last.overall+'/100)</span>'):'')+'</div>'
     +(typingNote?'<div style="font-size:11px;color:var(--t3);text-align:right;margin-top:2px;">Base: '+baseOverall+'/100 · '+typingNote+'</div>':'')
@@ -5957,8 +5978,8 @@ function renderProgressBlock(s, id){
     +'</div></div>'
 
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;">'
-    +'<div>'+buildRadarSVGDark(areaAverages)+'</div>'
-    +'<div>'+buildVerticalBarsSVG(areaAverages)+'</div>'
+    +'<div class="chart-wrap" style="height:200px;"><canvas id="engine-prog-radar"></canvas></div>'
+    +'<div class="chart-wrap" style="height:200px;"><canvas id="engine-prog-bar"></canvas></div>'
     +'</div>'
 
     +'<div style="margin-bottom:0.75rem;">'
@@ -6037,13 +6058,6 @@ function generateStudentVisualReport(sid){
   });
   while(tips.length<3){ tips.push('Seguir reforzando el framework Idea+Linker+Idea+Linker en cada sesión.'); }
 
-  var barsHtml = areaAverages.map(function(a){
-    var col = a.pct>=80?'var(--gm)':a.pct>=60?'var(--amber)':'var(--rm)';
-    return '<div class="kbar"><span class="kbar-name">'+a.id+' '+a.name+'</span>'
-      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+a.pct+'%;background:'+col+';"></div></div>'
-      +'<span class="kbar-val" style="color:'+col+';">'+a.pct+'%</span></div>';
-  }).join('');
-
   var glossaryHtml = areaAverages.map(function(a){
     return '<div style="margin-bottom:6px;font-size:12px;"><strong>'+a.id+' — '+a.name+':</strong> '+(KPI_AREA_GLOSSARY[a.id]||'')+'</div>';
   }).join('');
@@ -6056,8 +6070,9 @@ function generateStudentVisualReport(sid){
     +'<div class="card"><div style="font-size:16px;font-weight:700;color:var(--navy);">'+((s.info&&s.info.name)||'—')+'</div>'
     +'<div style="font-size:12px;color:var(--t2);">'+(last?('Última evaluación: '+fmtDate(last.date)+' · Score global: '+last.overall+'/100'):'Sin evaluaciones de KPI Tracker todavía')+'</div>'
     +'<div style="font-size:12px;color:var(--t2);">Nivel: '+getLevel(getScore(s))+' · Programa: '+((s.info&&s.info.program)||'—')+' · Trainer: '+((s.info&&s.info.trainer)||'—')+'</div></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>Perfil por área (radar)</div>'+buildRadarSVG(areaAverages)+'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Performance por área (barras)</div>'+barsHtml+'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-chart-radar"></i>Perfil por área</div>'
+    +'<div class="grid2" style="gap:12px;"><div class="chart-wrap"><canvas id="vr-area-radar"></canvas></div>'
+    +'<div class="chart-wrap"><canvas id="vr-area-bar"></canvas></div></div></div>'
     +((s.typingTests&&s.typingTests.length) ? (function(){
         var tt=s.typingTests[s.typingTests.length-1];
         return '<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test (más reciente — '+fmtDate(tt.date)+')</div>'
@@ -6095,6 +6110,12 @@ function generateStudentVisualReport(sid){
 
   document.getElementById('visual-report-content').innerHTML = html;
   showModal('modal-visual-report');
+  setTimeout(function(){
+    if(typeof LiveKpiCharts!=='undefined'){
+      LiveKpiCharts.destroyPrefix('vr-');
+      LiveKpiCharts.updateAreas('vr','vr-area-radar','vr-area-bar',areaAverages);
+    }
+  },80);
 }
 
 function sendVisualReportWA(sid){

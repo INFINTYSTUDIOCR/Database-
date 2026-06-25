@@ -148,6 +148,7 @@
     var NU = deps();
     var wk = NU.weekIdFromDate ? NU.weekIdFromDate() : '';
     var prof = computeAutoProfile(s);
+    global._pulseMacro = Object.assign({}, prof.macro);
     var track = (s.track && s.track.current) || 'jill';
     var macroKeys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
 
@@ -176,7 +177,9 @@
       + prof.stats.quizzes + ' quiz · ' + prof.stats.nemesis + ' nemesis · confianza ' + prof.confidence + '%</div>'
       + '<div class="card" style="margin-top:10px;"><div class="card-title">Resumen (calculado)</div>'
       + macroHtml
-      + '<div style="font-size:13px;font-weight:700;margin-top:8px;">Total: ' + fmtScore(prof.prevTotal, s) + ' → ' + fmtScore(prof.total, s) + '</div></div>'
+      + '<div style="font-size:13px;font-weight:700;margin-top:8px;">Total: ' + fmtScore(prof.prevTotal, s) + ' → ' + fmtScore(prof.total, s) + '</div>'
+      + '<div class="grid2" style="gap:8px;margin-top:10px;"><div class="chart-wrap" style="height:160px;"><canvas id="pulse-live-radar"></canvas></div>'
+      + '<div class="chart-wrap" style="height:160px;"><canvas id="pulse-live-bar"></canvas></div></div></div>'
       + '<div class="card"><div class="card-title">Profundidad — KPIs activos del track</div>' + microHtml + '</div>'
       + '<div class="card"><div class="card-title">Confirmación trainer</div>'
       + '<label style="font-size:12px;display:block;margin-bottom:8px;"><input type="checkbox" id="pulse-accept" checked> Acepto scores sugeridos (auto)</label>'
@@ -184,7 +187,7 @@
       + '<div id="pulse-adjust-area" style="display:none;margin-bottom:8px;">'
       + macroKeys.map(function (k) {
         return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="width:24px;">' + k + '</span>'
-          + '<input type="range" min="1" max="5" value="' + prof.macro[k] + '" id="pulse-adj-' + k + '" style="flex:1;">'
+          + '<input type="range" min="1" max="5" value="' + prof.macro[k] + '" id="pulse-adj-' + k + '" style="flex:1;" oninput="document.getElementById(\'pulse-adj-v-' + k + '\').textContent=this.value;NexusUI.refreshPulseCharts();">'
           + '<span id="pulse-adj-v-' + k + '">' + prof.macro[k] + '</span></div>';
       }).join('') + '</div>'
       + '<textarea class="inp" id="pulse-notes" placeholder="Notas trainer (opcional)" style="min-height:50px;margin-bottom:8px;"></textarea>'
@@ -195,7 +198,23 @@
 
     document.getElementById('pulse-adjust').addEventListener('change', function () {
       document.getElementById('pulse-adjust-area').style.display = this.checked ? 'block' : 'none';
+      refreshPulseCharts();
     });
+    setTimeout(function () { refreshPulseCharts(); }, 80);
+  }
+
+  function refreshPulseCharts() {
+    if (typeof global.LiveKpiCharts === 'undefined') return;
+    var keys = typeof KPI_NAMES !== 'undefined' ? Object.keys(KPI_NAMES) : ['IG', 'ST', 'RA', 'PS', 'R'];
+    var vals = Object.assign({}, global._pulseMacro || {});
+    var adjust = document.getElementById('pulse-adjust') && document.getElementById('pulse-adjust').checked;
+    if (adjust) {
+      keys.forEach(function (k) {
+        var el = document.getElementById('pulse-adj-' + k);
+        if (el) vals[k] = parseInt(el.value, 10) || 0;
+      });
+    }
+    global.LiveKpiCharts.updateMacro('pulse', 'pulse-live-radar', 'pulse-live-bar', vals, 5);
   }
 
   async function confirmWeeklyPulse(sid) {
@@ -320,6 +339,7 @@
     confirmWeeklyPulse: confirmWeeklyPulse,
     openWeeklyPulse: openWeeklyPulse,
     computeAutoProfile: computeAutoProfile,
-    journeyEvents: journeyEvents
+    journeyEvents: journeyEvents,
+    refreshPulseCharts: refreshPulseCharts
   };
 })(typeof window !== 'undefined' ? window : this);

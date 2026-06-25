@@ -225,7 +225,7 @@
       });
     });
     html += '</div>';
-    return html;
+    return html + liveChartsHtml();
   }
 
   function qRow(id, text, val, handler) {
@@ -253,7 +253,7 @@
       });
       html += '</div>';
     });
-    return html;
+    return html + liveChartsHtml();
   }
 
   function sliderRow(id, label, val, handler) {
@@ -277,6 +277,36 @@
       });
       return { id: area.id, name: area.name, pct: n ? Math.round((sum / (n * 10)) * 100) : 0 };
     });
+  }
+
+  function microAreaAverages() {
+    return areas().map(function (area) {
+      var sum = 0;
+      var n = 0;
+      area.kpis.forEach(function (k) {
+        if (state.micro[k.id] !== undefined) {
+          sum += state.micro[k.id];
+          n++;
+        }
+      });
+      return { id: area.id, name: area.name, pct: n ? Math.round((sum / (n * 10)) * 100) : 0 };
+    });
+  }
+
+  function refreshMcalCharts() {
+    if (typeof global.LiveKpiCharts === 'undefined') return;
+    global.LiveKpiCharts.updateMacro('mcal', 'mcal-live-radar', 'mcal-live-bar', state.macro, 10);
+    global.LiveKpiCharts.updateAreas('mcal-micro', 'mcal-live-area-radar', 'mcal-live-area-bar', microAreaAverages());
+  }
+
+  function liveChartsHtml() {
+    return '<div class="card" style="margin-top:10px;"><div class="card-title"><i class="ti ti-chart-radar"></i>Perfil KPI — radar y barras</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--t3);margin-bottom:4px;">Macro (5 KPIs)</div>'
+      + '<div class="grid2" style="gap:8px;margin-bottom:12px;"><div class="chart-wrap" style="height:160px;"><canvas id="mcal-live-radar"></canvas></div>'
+      + '<div class="chart-wrap" style="height:160px;"><canvas id="mcal-live-bar"></canvas></div></div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--t3);margin-bottom:4px;">Micro por área (26 KPIs)</div>'
+      + '<div class="grid2" style="gap:8px;"><div class="chart-wrap" style="height:160px;"><canvas id="mcal-live-area-radar"></canvas></div>'
+      + '<div class="chart-wrap" style="height:160px;"><canvas id="mcal-live-area-bar"></canvas></div></div></div>';
   }
 
   function macroTotal() {
@@ -326,7 +356,7 @@
     return '<div class="grid2" style="gap:12px;">'
       + '<div class="card"><div class="card-title">Macro · ' + total + '/50</div>'
       + '<div style="font-size:22px;font-weight:800;color:var(--navy);">' + (typeof global.getLevelBadge === 'function' ? getLevelBadge(level) : level) + '</div>'
-      + '<canvas id="mcal-radar" height="220"></canvas></div>'
+      + '</div>'
       + '<div class="card"><div class="card-title">Micro · ' + microPct + '/100</div>'
       + '<div style="font-size:12px;line-height:1.7;">'
       + (weakMacro.length ? '<div><strong>Macro débil:</strong> ' + weakMacro.join(', ') + '</div>' : '')
@@ -334,34 +364,8 @@
       + '</div>'
       + '<div class="card-title" style="margin-top:12px;">Historial manual</div>' + historyHtml(s)
       + '</div></div>'
+      + liveChartsHtml()
       + '<div class="ib ib-green" style="margin-top:10px;">Al guardar: Weekly Pulse completo · kpiFile IA · kpiTracker · Training Book rotado (top 5 débiles).</div>';
-  }
-
-  function drawRadar() {
-    if (!global.Chart) return;
-    var canvas = document.getElementById('mcal-radar');
-    if (!canvas) return;
-    if (state.chart) { state.chart.destroy(); state.chart = null; }
-    var names = kpiNames();
-    state.chart = new Chart(canvas, {
-      type: 'radar',
-      data: {
-        labels: MACRO_KEYS.map(function (k) { return k + ' ' + (names[k] || '').split(' ')[0]; }),
-        datasets: [{
-          label: 'Macro 1–10',
-          data: MACRO_KEYS.map(function (k) { return state.macro[k] || 0; }),
-          borderColor: '#5B21B6',
-          backgroundColor: 'rgba(91,33,182,0.15)',
-          pointBackgroundColor: '#5B21B6'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { r: { min: 0, max: 10, ticks: { stepSize: 2 } } },
-        plugins: { legend: { display: false } }
-      }
-    });
   }
 
   function render() {
@@ -383,7 +387,12 @@
       + (state.step === 4 ? '<button type="button" class="btn btn-outline" onclick="NexusManualCal.exportPdf()"><i class="ti ti-file-type-pdf"></i> PDF</button>'
         + '<button type="button" class="btn btn-navy" onclick="NexusManualCal.save()"><i class="ti ti-device-floppy"></i> Guardar calibración</button>' : '');
 
-    if (state.step === 4) setTimeout(drawRadar, 80);
+    if (state.step >= 2) {
+      setTimeout(function () {
+        if (typeof global.LiveKpiCharts !== 'undefined') global.LiveKpiCharts.destroyPrefix('mcal');
+        refreshMcalCharts();
+      }, 80);
+    }
   }
 
   function patchContext() {
@@ -407,6 +416,10 @@
     state.questionnaire[id] = clamp10(val);
     var el = document.getElementById('mcal-qv-' + id);
     if (el) el.textContent = state.questionnaire[id] + '/10 · ' + scaleLabel(state.questionnaire[id]);
+    if (state.step === 2) {
+      syncScoresFromQuestionnaire();
+      refreshMcalCharts();
+    }
   }
 
   function setMacro(k, val) {
@@ -414,12 +427,14 @@
     state.macro[k] = clamp10(val);
     var el = document.getElementById('mcal-sv-macro-' + k);
     if (el) el.textContent = state.macro[k] + '/10';
+    refreshMcalCharts();
   }
 
   function setMicro(k, val) {
     state.micro[k] = clamp10(val);
     var el = document.getElementById('mcal-sv-' + k);
     if (el) el.textContent = state.micro[k] + '/10';
+    refreshMcalCharts();
   }
 
   function setObs(k, val) {

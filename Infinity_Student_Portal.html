@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/live-kpi-charts.js"></script>
 <script src="infinity-auth.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
@@ -332,6 +333,10 @@ function switchPortalTab(tab){
   });
   if(tab==='alice') renderAlice();
   if(tab==='jill') renderJillTab(window._currentStudent || window._portalStudent);
+  if(tab==='progreso'){
+    var ps = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+    if(ps) setTimeout(function(){ initPortalLiveCharts(ps); },80);
+  }
 }
 
 function portalGoBack(){
@@ -472,13 +477,8 @@ function showPortal(s){
   var kpis=(s.kpis||{}).phase1||{};
   var exercises=getExercises(s);
 
-  var kpiBars=Object.keys(KPI_NAMES).map(function(k){
-    var v=parseInt(kpis[k])||0; var col=KPI_COLORS[v]||'var(--border)'; var tc=KPI_TAGS[v]||['var(--gray)','var(--t2)','—'];
-    return '<div class="kbar"><span class="kbar-name">'+KPI_NAMES[k]+'</span>'
-      +'<div class="kbar-bg"><div class="kbar-fill" style="width:'+(v/5*100)+'%;background:'+col+';"></div></div>'
-      +'<span class="kbar-val" style="color:'+col+';">'+v+'/5</span>'
-      +'<span class="kbar-tag" style="background:'+tc[0]+';color:'+tc[1]+';">'+tc[2]+'</span></div>';
-  }).join('');
+  var kpiChartHtml='<div class="grid2" style="gap:8px;"><div class="chart-wrap" style="height:180px;"><canvas id="portal-macro-radar"></canvas></div>'
+    +'<div class="chart-wrap" style="height:180px;"><canvas id="portal-macro-bar"></canvas></div></div>';
 
   var notes=(s.notes||[]).slice(-3).reverse();
   var cals=(s.calibrations||[]).slice(-5);
@@ -489,7 +489,7 @@ function showPortal(s){
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
     + renderProgressBlock(s)
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiBars+'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiChartHtml+'</div>'
     +(cals.length>=2?'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Mi progreso (diagnóstico)</div>'
       +'<div class="chart-wrap"><canvas id="portal-chart"></canvas></div></div>':'')
     +(function(){
@@ -589,12 +589,7 @@ function showPortal(s){
   applySystemMode(s);
   restoreAliceRuntimeStorage();
 
-  if(cals.length>=2){
-    setTimeout(function(){
-      var ctx=document.getElementById('portal-chart'); if(!ctx) return;
-      new Chart(ctx,{ type:'line', data:{ labels:cals.map(function(c){return fmtDate(c.date);}), datasets:Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED']; return { label:k, data:cals.map(function(c){return parseInt((c.kpis||{})[k])||0;}), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 }; }) }, options:{ responsive:true,maintainAspectRatio:false, scales:{ y:{min:0,max:5,ticks:{stepSize:1}} }, plugins:{legend:{position:'bottom'}} } });
-    },100);
-  }
+  setTimeout(function(){ initPortalLiveCharts(s); startPortalProgressPoll(); },100);
   afterPortalReady(s, opts);
 }
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
@@ -889,6 +884,58 @@ function buildVerticalBarsSVG(areaAverages){
   return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;display:block;">'+bars+'</svg>';
 }
 
+function portalKpiMax(s){
+  if(s&&s.kpiScale===10) return 10;
+  var kpis=(s&&s.kpis&&s.kpis.phase1)||{};
+  var sample=parseInt(kpis.IG,10)||0;
+  return sample>5?10:5;
+}
+
+function initPortalLiveCharts(s){
+  if(typeof LiveKpiCharts==='undefined'||!s) return;
+  LiveKpiCharts.destroyPrefix('portal-');
+  var kpis=(s.kpis||{}).phase1||{};
+  var macroVals={};
+  var kMax=portalKpiMax(s);
+  Object.keys(KPI_NAMES).forEach(function(k){ macroVals[k]=parseInt(kpis[k],10)||0; });
+  LiveKpiCharts.updateMacro('portal-macro','portal-macro-radar','portal-macro-bar',macroVals,kMax);
+  var hist=s.kpiTracker||[];
+  var last=hist.length?hist[hist.length-1]:null;
+  if(last&&last.areaAverages){
+    LiveKpiCharts.updateAreas('portal-prog','portal-progress-radar','portal-progress-bar',last.areaAverages);
+  }
+  var cals=(s.calibrations||[]).slice(-5);
+  if(cals.length>=2){
+    LiveKpiCharts.updateLine('portal-line','portal-chart',
+      cals.map(function(c){ return fmtDate(c.date); }),
+      Object.keys(KPI_NAMES).map(function(k,i){
+        var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
+        return { label:k, data:cals.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:3 };
+      }), kMax);
+  }
+}
+
+var _portalProgPoll=null;
+function startPortalProgressPoll(){
+  if(_portalProgPoll) clearInterval(_portalProgPoll);
+  _portalProgPoll=setInterval(function(){
+    if(window._activePortalTab!=='progreso') return;
+    var s=CURRENT_STUDENT||window._currentStudent;
+    if(!s||!s.id||typeof dbGet!=='function') return;
+    dbGet('infinity_students').then(function(rows){
+      var fresh=null;
+      rows.forEach(function(r){ if(r.id===s.id&&r.data) fresh=r.data; });
+      if(!fresh) return;
+      fresh.id=s.id;
+      ALL_STUDENTS[s.id]=fresh;
+      CURRENT_STUDENT=fresh;
+      window._currentStudent=fresh;
+      window._portalStudent=fresh;
+      initPortalLiveCharts(fresh);
+    }).catch(function(){});
+  },45000);
+}
+
 function renderProgressBlock(s){
   var hist = s.kpiTracker||[];
   var last = hist.length ? hist[hist.length-1] : null;
@@ -922,8 +969,8 @@ function renderProgressBlock(s){
     +'</div></div>'
 
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center;margin-bottom:1rem;">'
-    +'<div>'+buildRadarSVGDark(areaAverages)+'</div>'
-    +'<div>'+buildVerticalBarsSVG(areaAverages)+'</div>'
+    +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-radar"></canvas></div>'
+    +'<div class="chart-wrap" style="height:200px;"><canvas id="portal-progress-bar"></canvas></div>'
     +'</div>'
 
     +'<div style="margin-bottom:0.75rem;">'

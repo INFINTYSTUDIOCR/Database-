@@ -6,6 +6,8 @@
 <script src="js/site-urls.js"></script>
 <title>Infinity Studio — Operational English Diagnostic Tool</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/live-kpi-charts.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -207,6 +209,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--nm);"></i>KPI Assessment — 5 operational dimensions</div>
     <p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;">Rate each dimension from 1 to 5 based on direct observation. Add specific observations for each KPI — these feed directly into the diagnostic recommendations.</p>
     <div id="kpi-inputs"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem;">
+      <div style="height:200px;position:relative;"><canvas id="diag-tool-radar"></canvas></div>
+      <div style="height:200px;position:relative;"><canvas id="diag-tool-bar"></canvas></div>
+    </div>
   </div>
 
 
@@ -351,6 +357,8 @@ document.getElementById('kpi-inputs').innerHTML = KPIS.map(function(kpi){
     +'</div>';
 }).join('');
 
+setTimeout(function(){ refreshDiagToolCharts(); },80);
+
 // Render params
 document.getElementById('params-grid').innerHTML = PARAMS.map(function(p){
   return '<div class="param" id="param-'+p.id+'" onclick="toggleParam(\''+p.id+'\')">'
@@ -368,6 +376,12 @@ function setRating(kpi, val){
   var kpiDef = KPIS.find(function(k){return k.id===kpi;});
   var descEl = document.getElementById('kpi-desc-'+kpi);
   if(descEl&&kpiDef) descEl.textContent = kpiDef.descriptors[val]||'';
+  refreshDiagToolCharts();
+}
+
+function refreshDiagToolCharts(){
+  if(typeof LiveKpiCharts==='undefined') return;
+  LiveKpiCharts.updateMacro('diag-tool','diag-tool-radar','diag-tool-bar',ratings,5);
 }
 
 function toggleParam(id){
@@ -1070,24 +1084,13 @@ function generateDiagnostic(){
     +'<div class="lb-right"><div class="lb-score">'+total+'</div><div class="lb-score-label">out of 25</div></div>'
     +'</div>';
 
-  // KPI results
-  var kpiColors = {1:'var(--rm)',2:'#E05D44',3:'var(--amber)',4:'#5A9E6F',5:'var(--gm)'};
-  var kpiTagColors = {
-    1:['#FCEBEB','#791F1F','Critical'],2:['#FEF0ED','#7A2E1B','Weak'],
-    3:['#FAEEDA','#633806','Developing'],4:['#E8F5EE','#2D6A40','Good'],5:['#E1F5EE','#085041','Strong']
-  };
-  document.getElementById('kpi-results').innerHTML = KPIS.map(function(kpi){
-    var v = ratings[kpi.id];
-    var pct = (v/5*100)+'%';
-    var color = kpiColors[v]||'var(--border)';
-    var tc = kpiTagColors[v]||['#F4F6FB','#64748B','—'];
-    return '<div class="kpi-result-row">'
-      +'<span class="kri-name">'+kpi.name+'</span>'
-      +'<div class="kri-bar-bg"><div class="kri-bar-fill" style="width:'+pct+';background:'+color+';"></div></div>'
-      +'<span class="kri-val" style="color:'+color+';">'+v+'/5</span>'
-      +'<span class="kri-tag" style="background:'+tc[0]+';color:'+tc[1]+';">'+tc[2]+'</span>'
-      +'</div>';
-  }).join('');
+  // KPI results — Chart.js (mismo perfil que la evaluación)
+  document.getElementById('kpi-results').innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
+    +'<div style="height:200px;position:relative;"><canvas id="diag-result-radar"></canvas></div>'
+    +'<div style="height:200px;position:relative;"><canvas id="diag-result-bar"></canvas></div></div>';
+  if(typeof LiveKpiCharts!=='undefined'){
+    LiveKpiCharts.updateMacro('diag-result','diag-result-radar','diag-result-bar',ratings,5);
+  }
 
   // Diagnosis blocks
   var diagHtml = '';
