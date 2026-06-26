@@ -9,6 +9,8 @@
 <script src="nexora-profile.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
+<script src="js/nexora-scenario-library.js"></script>
+<script src="js/nexora-scenario-rotate.js"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628"></script>
 <style>
@@ -683,12 +685,22 @@ function mergeEngineConfig(sc, nxConfig){
   return merged;
 }
 
-function buildScenarioFromConfig(nxConfig){
+function buildScenarioFromConfig(nxConfig, variantIndex){
+  variantIndex = variantIndex || 0;
   var targetType=ENGINE_TYPE_MAP[nxConfig.type]||nxConfig.type||'customer_service';
+  var variants=[
+    { title:'', desc:'Professional simulation in '+(nxConfig.industryLabel||nxConfig.industry||'business')+' context. Review all CRM tabs before responding.' },
+    { title:' — Escalated case', desc:'The situation has escalated. Stay calm, verify account details, and follow policy while de-escalating.' },
+    { title:' — Repeat caller', desc:'This client has called before about a related issue. Acknowledge prior contact and resolve with clarity.' },
+    { title:' — Time-sensitive', desc:'The client is in a hurry and expects a fast resolution. Be efficient without skipping verification steps.' },
+    { title:' — Policy exception', desc:'The client is asking for an exception. Explain policy clearly and offer realistic alternatives.' },
+    { title:' — VIP handling', desc:'Treat this as a high-value client interaction. Professional tone, ownership, and clear next steps.' }
+  ];
+  var v=variants[variantIndex % variants.length];
   var sc={
-    id:'engine-'+nxConfig.type+'-'+(nxConfig.industry||'general'),
-    title:(nxConfig.typeLabel||targetType)+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:''),
-    desc:'Professional simulation in '+(nxConfig.industryLabel||nxConfig.industry||'business')+' context. Review all CRM tabs before responding.',
+    id:'engine-'+nxConfig.type+'-'+(nxConfig.industry||'general')+'-v'+variantIndex,
+    title:(nxConfig.typeLabel||targetType)+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:'')+v.title,
+    desc:v.desc,
     industry:normalizeCRMIndustry(null,nxConfig),
     diff:parseInt(nxConfig.difficulty,10)||3,
     mood:'professional'
@@ -725,25 +737,21 @@ function loadNexoraEngineConfig(){
 }
 
 function pickScenarioFromConfig(nxConfig,prevId){
-  if(!nxConfig||!nxConfig.type){
-    var pool=SCENARIOS.filter(function(s){return s.id!==prevId;});
-    return pool[Math.floor(Math.random()*pool.length)];
-  }
-  var targetType=ENGINE_TYPE_MAP[nxConfig.type]||nxConfig.type;
-  var difficulty=parseInt(nxConfig.difficulty,10)||3;
-  function matchesType(s){
-    var st=s.type||'customer_service';
-    if(targetType==='customer_service') return !s.type;
-    return st===targetType;
-  }
-  function matchesDiff(s){
-    var d=s.diff||s.difficulty||2;
-    return Math.abs(d-difficulty)<=1;
-  }
-  var candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s)&&matchesDiff(s);});
-  if(!candidates.length) candidates=SCENARIOS.filter(function(s){return s.id!==prevId&&matchesType(s);});
-  if(!candidates.length) return mergeEngineConfig(buildScenarioFromConfig(nxConfig),nxConfig);
-  return mergeEngineConfig(candidates[Math.floor(Math.random()*candidates.length)],nxConfig);
+  return NexoraScenarioRotate.pickNext(
+    SCENARIOS,
+    nxConfig,
+    prevId,
+    mergeEngineConfig,
+    buildScenarioFromConfig,
+    ENGINE_TYPE_MAP
+  );
+}
+
+function refreshNexoraScenario(prevId){
+  var nxConfig=loadNexoraEngineConfig();
+  _nx.scenario=pickScenarioFromConfig(nxConfig, prevId || (_nx.scenario && _nx.scenario.id) || null);
+  applyScenarioToUI(_nx.scenario);
+  return _nx.scenario;
 }
 
 function applyScenarioToUI(sc){
@@ -2318,10 +2326,7 @@ function renderQA(ev,talkTime,isTransfer){
 
 function nextCall(){
   document.getElementById('qa-screen').style.display='none';
-  var nxConfig=loadNexoraEngineConfig();
-  var prev=_nx.scenario?_nx.scenario.id:null;
-  _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
-  applyScenarioToUI(_nx.scenario);
+  refreshNexoraScenario(_nx.scenario ? _nx.scenario.id : null);
   document.getElementById('autoin-screen').style.display='flex';
   document.getElementById('crm-main').style.display='none';
   document.getElementById('empty-state').style.display='flex';
@@ -2333,6 +2338,7 @@ function closeQA(){
   document.getElementById('meeting-screen').style.display='none';
   document.getElementById('corporate-screen').style.display='none';
   document.getElementById('stakeholder-screen').style.display='none';
+  refreshNexoraScenario(_nx.scenario ? _nx.scenario.id : null);
   document.getElementById('autoin-screen').style.display='flex';
   document.getElementById('crm-main').style.display='none';
   document.getElementById('empty-state').style.display='flex';

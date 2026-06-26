@@ -1673,6 +1673,13 @@ function openNexoraLab(){
   if(nxConfig) localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
   localStorage.setItem('nexora_agent', nexoraAgentName(student));
   localStorage.setItem('nexora_student_id', (student&&student.id)||'');
+  if(student && student.nexoraSessions && student.nexoraSessions.length){
+    try{
+      localStorage.setItem('nexora_recent_scenarios', JSON.stringify(
+        student.nexoraSessions.slice(-8).map(function(x){ return x.scenarioId; }).filter(Boolean)
+      ));
+    }catch(e){}
+  }
   window.open('nexora.html','_blank');
 }
 
