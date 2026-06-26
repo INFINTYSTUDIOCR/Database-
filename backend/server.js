@@ -92,13 +92,27 @@ async function sbGet(table) {
 }
 
 async function sbSet(table, id, data) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-               'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-    body: JSON.stringify({ id, data, updated_at: new Date().toISOString() })
-  });
-  return r.ok;
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('sbSet: SUPABASE not configured');
+    return false;
+  }
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+                 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify({ id, data, updated_at: new Date().toISOString() })
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => '');
+      console.error(`sbSet ${table}/${id} failed: ${r.status} ${t.slice(0, 160)}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error(`sbSet ${table}/${id} error:`, err.message);
+    return false;
+  }
 }
 
 async function sbGetOne(table, id) {
@@ -148,8 +162,7 @@ function openingLogId(actorKey, product) {
 async function getRecentOpenings(actorKey, product) {
   if (!actorKey) return [];
   try {
-    const rows = await sbGet('infinity_sessions');
-    const row = rows.find(r => r.id === openingLogId(actorKey, product));
+    const row = await sbGetOne('infinity_sessions', openingLogId(actorKey, product));
     return (row?.data?.openings || []).slice(-OPENING_LOG_MAX);
   } catch (e) {
     return [];
@@ -162,9 +175,8 @@ async function recordOpening(actorKey, product, text, meta = {}) {
   if (snippet.length < 8) return;
   try {
     const id = openingLogId(actorKey, product);
-    const rows = await sbGet('infinity_sessions');
-    const existing = rows.find(r => r.id === id);
-    const data = existing?.data || { product, actorKey, openings: [] };
+    const row = await sbGetOne('infinity_sessions', id);
+    const data = row?.data || { product, actorKey, openings: [] };
     data.openings = [...(data.openings || []), { text: snippet, ts: new Date().toISOString(), ...meta }].slice(-OPENING_LOG_MAX);
     await sbSet('infinity_sessions', id, data);
   } catch (e) {
@@ -587,8 +599,7 @@ function todayKey() {
 async function getIpRecord(ip) {
   const id = ipStorageKey(ip);
   try {
-    const rows = await sbGet('infinity_sessions');
-    const row = rows.find(r => r.id === id);
+    const row = await sbGetOne('infinity_sessions', id);
     return { id, data: row?.data || {} };
   } catch (e) {
     return { id, data: {} };
@@ -731,9 +742,8 @@ async function saveDemoKb({ service, scenario, history, evaluation, consent, ip 
   const day = todayKey();
   const kbId = 'DEMO-KB-' + day;
   try {
-    const rows = await sbGet('infinity_sessions');
-    const existing = rows.find(r => r.id === kbId);
-    const data = existing?.data || { sessions: [] };
+    const row = await sbGetOne('infinity_sessions', kbId);
+    const data = row?.data || { sessions: [] };
     data.sessions.push({
       service, scenario,
       turns: (history || []).length,
@@ -749,19 +759,48 @@ async function saveDemoKb({ service, scenario, history, evaluation, consent, ip 
   }
 }
 
+const DEMO_SESSIONS_MEM = new Map();
+const DEMO_SESSION_TTL_MS = 60 * 60 * 1000;
+
+function demoMemKey(sessionId) {
+  return String(sessionId || '');
+}
+
+function pruneDemoSessionsMem() {
+  if (DEMO_SESSIONS_MEM.size <= 800) return;
+  const cutoff = Date.now() - DEMO_SESSION_TTL_MS;
+  for (const [k, v] of DEMO_SESSIONS_MEM) {
+    if (!v || v.at < cutoff) DEMO_SESSIONS_MEM.delete(k);
+  }
+}
+
 async function getDemoSession(sessionId) {
   if (!sessionId) return null;
+  const key = demoMemKey(sessionId);
+  const mem = DEMO_SESSIONS_MEM.get(key);
+  if (mem && Date.now() - mem.at < DEMO_SESSION_TTL_MS) return mem.data;
   try {
-    const rows = await sbGet('infinity_sessions');
-    const row = rows.find(r => r.id === 'DEMO-SESSION-' + sessionId);
-    return row?.data || null;
-  } catch (e) { return null; }
+    const row = await sbGetOne('infinity_sessions', 'DEMO-SESSION-' + sessionId);
+    if (row?.data) {
+      DEMO_SESSIONS_MEM.set(key, { data: row.data, at: Date.now() });
+      return row.data;
+    }
+  } catch (e) { /* fall through */ }
+  return null;
 }
 
 async function saveDemoSession(sessionId, data) {
+  if (!sessionId) return false;
+  const key = demoMemKey(sessionId);
+  DEMO_SESSIONS_MEM.set(key, { data, at: Date.now() });
+  pruneDemoSessionsMem();
   try {
-    await sbSet('infinity_sessions', 'DEMO-SESSION-' + sessionId, data);
-  } catch (e) {}
+    const ok = await sbSet('infinity_sessions', 'DEMO-SESSION-' + sessionId, data);
+    if (!ok) console.error('saveDemoSession supabase failed:', sessionId);
+  } catch (e) {
+    console.error('saveDemoSession error:', e.message);
+  }
+  return true;
 }
 
 app.post('/demo/start', async (req, res) => {
@@ -2608,9 +2647,8 @@ app.post('/track', async (req, res) => {
     if(!event) return res.status(400).json({error:'Missing event'});
     
     const trackKey = 'TRACK-' + new Date().toISOString().slice(0,10);
-    const rows = await sbGet('infinity_sessions');
-    const existing = rows.find(r => r.id === trackKey);
-    const data = existing?.data || { events: [] };
+    const row = await sbGetOne('infinity_sessions', trackKey);
+    const data = row?.data || { events: [] };
     
     data.events.push({ event, label, ts: ts || new Date().toISOString() });
     if(data.events.length > 1000) data.events = data.events.slice(-1000);
@@ -3362,8 +3400,7 @@ app.post('/webhook', async (req, res) => {
     const from = msg.from;
     const text = msg.text.body;
 
-    const rows = await sbGet('infinity_sessions');
-    const convRow = rows.find(r => r.id === `WA-${from}`);
+    const convRow = await sbGetOne('infinity_sessions', `WA-${from}`);
     let conv = convRow?.data || { history: [] };
     conv.history.push({ role:'user', content:text });
     if (conv.history.length > 20) conv.history = conv.history.slice(-20);

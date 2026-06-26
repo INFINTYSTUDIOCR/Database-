@@ -28,14 +28,19 @@ function pickNextNexoraCharacter(){
 
 function applyScenarioBillingToProfile(p, scenario) {
   if (!p) return p;
+  if (p.billingNotes && p.billingNotes.length && p.issueType) {
+    p.crmIssueSummary = (scenario && scenario.title ? scenario.title : 'Customer issue') + (scenario && scenario.desc ? ' — ' + scenario.desc : '');
+    return p;
+  }
   p.billingNotes = [];
   p.disputeAmount = null;
   p.lateFee = null;
   p.refundAmount = null;
+  p.issueType = null;
+  p.issueSummary = null;
   if (!scenario) return p;
 
-  var id = String(scenario.id || '');
-  var blob = (String(scenario.title || '') + ' ' + String(scenario.desc || '')).toLowerCase();
+  var issue = scenario.issueType || inferNexoraIssueType(scenario);
 
   function addNote(type, label, amount, note, daysAgo) {
     p.billingNotes.push({
@@ -47,50 +52,113 @@ function applyScenarioBillingToProfile(p, scenario) {
     });
   }
 
-  var isBillingDispute = id === 'cs1' || id === 'cs5' || id === 'cs10' || /billing|unexpected charge|dispute|complaint escalation|wrong information|vip complaint/.test(blob);
-  var isLateFee = id === 'cs7' || /late fee/.test(blob);
-  var isRefund = id === 'cs4' || /refund/.test(blob);
-  var isCancel = id === 'cs2' || /cancellation|cancel/.test(blob);
-  var isSecurity = id === 'cs6' || /security|unauthorized|suspicious access/.test(blob);
-  var isTechnical = id === 'cs3' || /technical|cannot access|online account|login issue/.test(blob);
-  var isUpgrade = id === 'cs8' || /upgrade/.test(blob);
+  p.issueType = issue;
 
-  if (isBillingDispute) {
-    p.disputeAmount = '$' + (15 + Math.floor(Math.random() * 85)) + '.00';
-    addNote('charge', 'Unexpected charge', p.disputeAmount, 'Not authorized by client — disputing on this call', 3);
-  }
-  if (isLateFee) {
-    p.lateFee = '$' + (25 + Math.floor(Math.random() * 15)) + '.00';
-    addNote('fee', 'Late payment fee', p.lateFee, 'Client disputes — claims payment was on time', 7);
-  }
-  if (isRefund) {
-    p.refundAmount = (p.services && p.services[0]
-      ? parseFloat(String(p.services[0].price).replace(/[^0-9.]/g, ''))
-      : 29).toFixed(2);
-    addNote('refund', 'Refund requested', '$' + p.refundAmount, 'Client says service did not work as expected', 5);
-  }
-  if (isCancel) {
-    addNote('cancel', 'Cancellation requested', '', 'Client initiated cancellation — retention opportunity', 0);
-  }
-  if (isSecurity) {
-    addNote('alert', 'Security alert', '', 'Failed login attempts from unknown device — review required', 2);
-    addNote('alert', 'Account access review', '', 'Client reports possible unauthorized access', 1);
-  }
-  if (isTechnical) {
-    addNote('ticket', 'Portal access failure', '', 'Online account locked after failed login attempts — reset pending', 1);
-    addNote('ticket', 'Support ticket #TKT-' + (7700 + Math.floor(Math.random() * 200)), '', 'Client cannot access online account', 2);
-  }
-  if (isUpgrade && !isCancel) {
-    addNote('request', 'Plan upgrade inquiry', '', 'Client comparing plan options — quote requested', 0);
+  switch (issue) {
+    case 'billing_dispute':
+      p.disputeAmount = '$' + (15 + Math.floor(Math.random() * 85)) + '.00';
+      addNote('charge', 'Unexpected charge', p.disputeAmount, scenario.desc || 'Not authorized by client — disputing on this call', 3);
+      break;
+    case 'late_fee':
+      p.lateFee = '$' + (25 + Math.floor(Math.random() * 15)) + '.00';
+      addNote('fee', 'Late payment fee', p.lateFee, scenario.desc || 'Client disputes — claims payment was on time', 7);
+      break;
+    case 'refund':
+      p.refundAmount = (p.services && p.services[0]
+        ? parseFloat(String(p.services[0].price).replace(/[^0-9.]/g, ''))
+        : 29).toFixed(2);
+      addNote('refund', 'Refund requested', '$' + p.refundAmount, scenario.desc || 'Client says service did not work as expected', 5);
+      break;
+    case 'cancellation':
+      addNote('cancel', 'Cancellation requested', '', scenario.desc || 'Client initiated cancellation — retention opportunity', 0);
+      break;
+    case 'security':
+      addNote('alert', 'Security alert', '', scenario.desc || 'Failed login attempts from unknown device — review required', 2);
+      addNote('alert', 'Account access review', '', 'Client reports possible unauthorized access', 1);
+      break;
+    case 'technical':
+      addNote('ticket', 'Portal access failure', '', scenario.desc || 'Online account locked after failed login attempts — reset pending', 1);
+      addNote('ticket', 'Support ticket #TKT-' + (7700 + Math.floor(Math.random() * 200)), '', scenario.desc || 'Client cannot access online account', 2);
+      break;
+    case 'upgrade':
+      addNote('request', 'Plan upgrade inquiry', '', scenario.desc || 'Client comparing plan options — quote requested', 0);
+      break;
+    case 'complaint_escalation':
+    case 'vip_complaint':
+      addNote('escalation', scenario.title || 'Escalated complaint', '', scenario.desc || 'Prior poor experience — client demanding resolution', 1);
+      break;
+    case 'wrong_information':
+      addNote('correction', 'Incorrect information provided', '', scenario.desc || 'Previous agent gave wrong guidance — client wants correction', 4);
+      break;
+    case 'insurance_claim':
+      addNote('claim', 'Insurance claim issue', '$' + (120 + Math.floor(Math.random() * 880)), scenario.desc || 'Claim denied or pending — client needs status', 5);
+      break;
+    case 'prior_auth':
+      addNote('auth', 'Prior authorization required', '', scenario.desc || 'Authorization not on file — specialist visit blocked', 2);
+      break;
+    case 'prescription':
+      addNote('rx', 'Prescription issue', '$' + (15 + Math.floor(Math.random() * 65)), scenario.desc || 'Pharmacy cannot fill prescription as written', 1);
+      break;
+    case 'copay_dispute':
+      p.disputeAmount = '$' + (10 + Math.floor(Math.random() * 40)) + '.00';
+      addNote('copay', 'Copay mismatch', p.disputeAmount, scenario.desc || 'Paid copay differs from plan on file', 3);
+      break;
+    case 'lab_results':
+      addNote('lab', 'Lab results pending', '', scenario.desc || 'Results overdue — patient waiting for callback', 10);
+      break;
+    case 'referral':
+      addNote('referral', 'Referral issue', '', scenario.desc || 'Referral expired or not processed', 6);
+      break;
+    case 'medical_billing':
+      p.disputeAmount = '$' + (250 + Math.floor(Math.random() * 1750)) + '.00';
+      addNote('claim', 'Out-of-network balance', p.disputeAmount, scenario.desc || 'Unexpected medical balance bill', 8);
+      break;
+    case 'records_request':
+      addNote('records', 'Medical records request', '', scenario.desc || 'Records needed by another provider', 2);
+      break;
+    case 'appointment':
+      addNote('appointment', 'Appointment issue', '', scenario.desc || 'Scheduling or no-show dispute on file', 1);
+      break;
+    case 'booking_issue':
+    case 'booking_change':
+      addNote('booking', scenario.title || 'Booking issue', '', scenario.desc || 'Reservation or travel booking problem', 2);
+      break;
+    default:
+      if (!scenario.type || scenario.type === 'customer_service') {
+        addNote('issue', scenario.title || 'Account issue', '', scenario.desc || 'Issue logged on account before inbound call', 2);
+      }
+      break;
   }
 
-  if (!p.billingNotes.length && (!scenario.type || scenario.type === 'customer_service')) {
-    p.disputeAmount = '$' + (20 + Math.floor(Math.random() * 60)) + '.00';
-    addNote('charge', 'Billing inquiry', p.disputeAmount, scenario.desc || 'Issue logged on account before inbound call', 3);
-  }
-
-  p.crmIssueSummary = (scenario.title || 'Customer issue') + (scenario.desc ? ' — ' + scenario.desc : '');
+  p.issueSummary = (scenario.title || 'Customer issue') + (scenario.desc ? ' — ' + scenario.desc : '');
+  p.crmIssueSummary = p.issueSummary;
   return p;
+}
+
+function inferNexoraIssueType(scenario) {
+  var id = String(scenario.id || '');
+  var blob = (String(scenario.title || '') + ' ' + String(scenario.desc || '')).toLowerCase();
+  if (id === 'cs1' || /billing dispute|unexpected charge/.test(blob)) return 'billing_dispute';
+  if (id === 'cs7' || /late fee|overdraft/.test(blob)) return 'late_fee';
+  if (id === 'cs4' || /refund/.test(blob)) return 'refund';
+  if (id === 'cs2' || /cancellation|cancel/.test(blob)) return 'cancellation';
+  if (id === 'cs6' || /security|unauthorized|fraud/.test(blob)) return 'security';
+  if (id === 'cs3' || /technical|cannot access|login|portal/.test(blob)) return 'technical';
+  if (id === 'cs8' || /upgrade/.test(blob)) return 'upgrade';
+  if (id === 'cs5' || /complaint escalation|escalat/.test(blob)) return 'complaint_escalation';
+  if (id === 'cs9' || /vip/.test(blob)) return 'vip_complaint';
+  if (id === 'cs10' || /wrong information|misled|incorrect/.test(blob)) return 'wrong_information';
+  if (/insurance|claim denied|coverage/.test(blob)) return 'insurance_claim';
+  if (/prior auth/.test(blob)) return 'prior_auth';
+  if (/prescription|medication|pharmacy|formulary/.test(blob)) return 'prescription';
+  if (/copay/.test(blob)) return 'copay_dispute';
+  if (/lab result/.test(blob)) return 'lab_results';
+  if (/referral/.test(blob)) return 'referral';
+  if (/out-of-network|medical bill/.test(blob)) return 'medical_billing';
+  if (/record/.test(blob)) return 'records_request';
+  if (/appointment|no-show/.test(blob)) return 'appointment';
+  if (/booking|reservation|flight|hotel/.test(blob)) return 'booking_issue';
+  return 'general';
 }
 
 function buildNexoraProfileFromCharacter(base, scenario){

@@ -1,10 +1,10 @@
 /**
- * Nexora scenario rotation — round-robin within role/type/industry pool; no immediate repeats.
+ * Nexora scenario rotation — strict single pool; no cross-industry fallback.
  */
 var NexoraScenarioRotate = (function () {
   'use strict';
 
-  var RECENT_MAX = 12;
+  var RECENT_MAX = 15;
 
   function studentKey() {
     try {
@@ -15,9 +15,8 @@ var NexoraScenarioRotate = (function () {
   }
 
   function storageKey(nxConfig) {
-    var type = (nxConfig && nxConfig.type) || 'customer_service';
-    var industry = (nxConfig && nxConfig.industry) || 'general';
-    return 'nexora_rotate_v3_' + studentKey() + '_' + type + '_' + industry;
+    var pk = NEXORA_SCENARIO_BANK.poolKey(nxConfig);
+    return 'nexora_rotate_v5_' + studentKey() + '_' + pk;
   }
 
   function loadState(key) {
@@ -34,9 +33,9 @@ var NexoraScenarioRotate = (function () {
     } catch (e) {}
   }
 
-  function loadSessionRecent() {
+  function loadSessionRecent(poolKey) {
     try {
-      var raw = localStorage.getItem('nexora_recent_scenarios');
+      var raw = localStorage.getItem('nexora_recent_' + poolKey);
       if (!raw) return [];
       var arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr.filter(Boolean) : [];
@@ -45,90 +44,30 @@ var NexoraScenarioRotate = (function () {
     }
   }
 
-  function saveSessionRecent(id) {
+  function saveSessionRecent(poolKey, id) {
     try {
-      var recent = loadSessionRecent().filter(function (x) { return x !== id; });
+      var recent = loadSessionRecent(poolKey).filter(function (x) { return x !== id; });
       recent.unshift(id);
-      localStorage.setItem('nexora_recent_scenarios', JSON.stringify(recent.slice(0, RECENT_MAX)));
+      localStorage.setItem('nexora_recent_' + poolKey, JSON.stringify(recent.slice(0, RECENT_MAX)));
     } catch (e) {}
   }
 
-  function resolveTargetTypes(nxConfig, engineTypeMap) {
-    if (!nxConfig || !nxConfig.type) return ['customer_service'];
-    var t = nxConfig.type;
-    if (t === 'mock_interview') return ['star_interview', 'interview'];
-    if (t === 'problem_solving') return ['customer_service'];
-    if (t === 'presentation') return ['corporate'];
-    var mapped = (engineTypeMap && engineTypeMap[t]) || t;
-    return [mapped];
-  }
-
-  function scenarioType(sc) {
-    return sc.type || 'customer_service';
-  }
-
-  function matchesType(sc, targetTypes) {
-    var st = scenarioType(sc);
-    for (var i = 0; i < targetTypes.length; i++) {
-      var tt = targetTypes[i];
-      if (tt === 'customer_service') {
-        if (!sc.type || st === 'customer_service') return true;
-      } else if (st === tt) return true;
-    }
-    return false;
-  }
-
-  function normalizeIndustry(raw) {
-    if (!raw) return '';
-    var key = String(raw).toLowerCase().replace(/[^a-z]/g, '');
-    var map = (typeof NEXORA_SCENARIO_LIBRARY !== 'undefined' && NEXORA_SCENARIO_LIBRARY.INDUSTRY_KEY_MAP) || {};
-    return map[key] || raw;
-  }
-
-  function matchesIndustry(sc, nxConfig) {
-    if (!nxConfig || !nxConfig.industry) return true;
-    var target = normalizeIndustry(nxConfig.industryLabel || nxConfig.industry);
-    if (!target) return true;
-    var scIndustry = normalizeIndustry(sc.industry);
-    if (!scIndustry) return true;
-    return String(scIndustry).toLowerCase() === String(target).toLowerCase();
-  }
-
-  function filterPool(scenarios, nxConfig, engineTypeMap) {
-    var targetTypes = resolveTargetTypes(nxConfig, engineTypeMap);
+  function filterPool(scenarios, nxConfig) {
+    var pool = scenarios || NEXORA_SCENARIO_BANK.getPool(nxConfig);
     var diff = parseInt(nxConfig && nxConfig.difficulty, 10) || 3;
-
-    function byType(list) {
-      return list.filter(function (sc) { return matchesType(sc, targetTypes); });
-    }
-
-    function byIndustry(list) {
-      var industryMatched = list.filter(function (sc) { return matchesIndustry(sc, nxConfig); });
-      return industryMatched.length ? industryMatched : list;
-    }
-
-    function byDiff(list) {
-      return list.filter(function (sc) {
-        var sd = sc.diff || sc.difficulty || 2;
-        return Math.abs(sd - diff) <= 1;
-      });
-    }
-
-    var typed = byType(scenarios);
-    var industryPool = byIndustry(typed);
-    var pool = byDiff(industryPool);
-    if (pool.length <= 1) pool = byDiff(typed);
-    if (pool.length <= 1) pool = industryPool;
-    if (pool.length <= 1) pool = typed;
-    return pool;
+    var byDiff = pool.filter(function (sc) {
+      var sd = sc.diff || sc.difficulty || 3;
+      return Math.abs(sd - diff) <= 1;
+    });
+    return byDiff.length >= Math.min(20, pool.length) ? byDiff : pool;
   }
 
-  function pickFromPool(pool, prevId, state) {
+  function pickFromPool(pool, poolKeyStr, prevId, state) {
     if (!pool.length) return null;
 
     var recent = {};
     (state.recent || []).forEach(function (id) { recent[id] = 1; });
-    loadSessionRecent().forEach(function (id) { recent[id] = 1; });
+    loadSessionRecent(poolKeyStr).forEach(function (id) { recent[id] = 1; });
 
     var candidates = pool.filter(function (sc) { return sc.id !== prevId; });
     if (!candidates.length) candidates = pool.slice();
@@ -152,26 +91,20 @@ var NexoraScenarioRotate = (function () {
 
     state.recent = [pick.id].concat((state.recent || []).filter(function (id) { return id !== pick.id; }));
     state.recent = state.recent.slice(0, Math.min(RECENT_MAX, pool.length));
-    saveSessionRecent(pick.id);
+    saveSessionRecent(poolKeyStr, pick.id);
     return Object.assign({}, pick);
   }
 
-  function pickNext(scenarios, nxConfig, prevId, mergeFn, buildFallbackFn, engineTypeMap) {
+  function pickNext(scenarios, nxConfig, prevId, mergeFn) {
+    var pk = NEXORA_SCENARIO_BANK.poolKey(nxConfig);
     var key = storageKey(nxConfig);
     var state = loadState(key);
-    var pool = filterPool(scenarios, nxConfig, engineTypeMap);
-    var picked = pickFromPool(pool, prevId, state);
+    var pool = filterPool(scenarios, nxConfig);
+    var picked = pickFromPool(pool, pk, prevId, state);
     saveState(key, state);
 
     if (picked) {
       return mergeFn ? mergeFn(picked, nxConfig) : picked;
-    }
-    if (typeof buildFallbackFn === 'function') {
-      var fb = buildFallbackFn(nxConfig, state.index || 0);
-      state.index = ((state.index || 0) + 1) % 20;
-      saveState(key, state);
-      saveSessionRecent(fb.id);
-      return mergeFn ? mergeFn(fb, nxConfig) : fb;
     }
     return null;
   }

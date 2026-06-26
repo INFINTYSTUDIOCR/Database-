@@ -17,6 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/live-kpi-charts.js?v=20260627"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/nexora-industry-map.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/tts-chunks.js"></script>
 <script src="js/ptt-mic.js"></script>
@@ -624,27 +625,20 @@ textarea.inp{resize:vertical;min-height:80px;}
     <div class="ib ib-navy">Seleccioná el escenario de simulación. Alice asumirá ese rol cuando el estudiante entre a Nexora en su portal.</div>
     <div class="form-group">
       <label class="form-label">Tipo de simulación</label>
-      <select class="inp" id="nexora-type">
-        <option value="mock_interview">Mock Interview — Entrevista de trabajo</option>
+      <select class="inp" id="nexora-type" onchange="syncNexoraEngineIndustryUI()">
+        <option value="mock_interview">STAR Mock Interview — Entrevista conductual (S→T→A→R)</option>
         <option value="customer_service">Customer Service — Atención al cliente</option>
-        <option value="team_meeting">Team Meeting — Reunión de equipo</option>
+        <option value="team_meeting">Team Meeting / Team Presentation — Reunión de equipo</option>
         <option value="problem_solving">Problem Solving — Resolución de crisis</option>
-        <option value="presentation">Presentation — Presentación ejecutiva</option>
+        <option value="presentation">Executive Presentation — Presentación a directivos</option>
         <option value="negotiation">Negotiation — Negociación</option>
-        <option value="stakeholder">Stakeholder Discussion — Con directivos</option>
+        <option value="stakeholder">Stakeholder Discussion — Alineación con directivos</option>
       </select>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="nexora-industry-group">
       <label class="form-label">Industria / Contexto</label>
-      <select class="inp" id="nexora-industry">
-        <option value="corporate">Corporate / Business</option>
-        <option value="tech">Technology</option>
-        <option value="healthcare">Healthcare / Medical</option>
-        <option value="education">Education</option>
-        <option value="finance">Finance / Banking</option>
-        <option value="hospitality">Hospitality / Tourism</option>
-        <option value="retail">Retail / Sales</option>
-      </select>
+      <select class="inp" id="nexora-industry" onchange="syncNexoraEngineIndustryUI()"></select>
+      <div id="nexora-industry-hint" style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.5;"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Dificultad</label>
@@ -4354,6 +4348,25 @@ function requestModeChange(sid){
   );
 }
 
+function syncNexoraEngineIndustryUI(){
+  var typeEl=document.getElementById('nexora-type');
+  var indEl=document.getElementById('nexora-industry');
+  var hintEl=document.getElementById('nexora-industry-hint');
+  var groupEl=document.getElementById('nexora-industry-group');
+  if(!typeEl||!indEl) return;
+  if(typeof NEXORA_INDUSTRY!=='undefined'&&indEl.options.length===0){
+    NEXORA_INDUSTRY.populateEngineIndustrySelect(indEl);
+  }
+  var type=typeEl.value;
+  var industry=indEl.value||'corporate';
+  if(hintEl&&typeof NEXORA_INDUSTRY!=='undefined'){
+    hintEl.textContent=NEXORA_INDUSTRY.describeSelection(type,industry);
+  }
+  if(groupEl){
+    groupEl.style.opacity= NEXORA_INDUSTRY&&NEXORA_INDUSTRY.industryAffectsScenarioPool(type)?'1':'0.85';
+  }
+}
+
 function toggleStudentNexora(sid){
   var s = DB[sid]; if(!s) return;
   if(s.nexoraEnabled){
@@ -4365,6 +4378,7 @@ function toggleStudentNexora(sid){
   } else {
     document.getElementById('nexora-sid').value = sid;
     document.getElementById('nexora-justify').value = '';
+    syncNexoraEngineIndustryUI();
     showModal('modal-nexora-justify');
   }
 }
@@ -4377,21 +4391,21 @@ async function confirmStudentNexora(){
   var difficulty = parseInt(document.getElementById('nexora-difficulty').value);
   var s = DB[sid]; if(!s) return;
 
-  var typeLabels = {mock_interview:'Mock Interview',customer_service:'Customer Service',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
-  var indLabels = {corporate:'Corporate/Business',tech:'Technology',healthcare:'Healthcare',education:'Education',finance:'Finance/Banking',hospitality:'Hospitality/Tourism',retail:'Retail/Sales'};
+  var typeLabels = {mock_interview:'STAR Mock Interview',customer_service:'Customer Service',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Executive Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
 
   s.nexoraEnabled = true;
   s.nexoraJustification = justification;
   s.nexoraConfig = {
     type, typeLabel: typeLabels[type]||type,
-    industry, industryLabel: indLabels[industry]||industry,
+    industry, industryLabel: (typeof NEXORA_INDUSTRY!=='undefined'?NEXORA_INDUSTRY.labelForEngineValue(industry):industry),
     difficulty,
+    poolKey: (typeof NEXORA_INDUSTRY!=='undefined'?NEXORA_INDUSTRY.scenarioPoolKey({type:type,industry:industry}):null),
     setAt: new Date().toISOString(),
     setBy: SESSION.name
   };
 
   if(!s.notes) s.notes=[];
-  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Nexora activado — Escenario: '+(typeLabels[type]||type)+' · '+(indLabels[industry]||industry)+' · Dificultad '+difficulty+'/5'+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
+  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Nexora activado — Escenario: '+(typeLabels[type]||type)+' · '+(s.nexoraConfig.industryLabel||industry)+' · Dificultad '+difficulty+'/5'+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
   await dbSet('infinity_students', sid, s); DB[sid]=s;
   await logAction('Activó Nexora individual', ((s.info&&s.info.name)||sid)+' — '+(typeLabels[type]||type));
   closeModal('modal-nexora-justify');
@@ -6680,5 +6694,21 @@ runAIAnalysis = async function(){
 <script src="nexus-unified-ui.js"></script>
 <script src="nexus-manual-calibration.js"></script>
 <script src="nexus-unified-mockup.js"></script>
+<script>
+(function(){
+  function initNexoraEngineIndustrySelect(){
+    var ind=document.getElementById('nexora-industry');
+    if(ind&&typeof NEXORA_INDUSTRY!=='undefined'&&ind.options.length===0){
+      NEXORA_INDUSTRY.populateEngineIndustrySelect(ind);
+    }
+    if(typeof syncNexoraEngineIndustryUI==='function') syncNexoraEngineIndustryUI();
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', initNexoraEngineIndustrySelect);
+  } else {
+    initNexoraEngineIndustrySelect();
+  }
+})();
+</script>
 </body>
 </html>

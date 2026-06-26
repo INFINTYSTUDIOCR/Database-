@@ -9,7 +9,9 @@
 <script src="nexora-profile.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
-<script src="js/nexora-scenario-library.js"></script>
+<script src="js/nexora-industry-map.js"></script>
+<script src="js/nexora-scenario-bank-data.js"></script>
+<script src="js/nexora-scenario-bank.js"></script>
 <script src="js/nexora-scenario-rotate.js"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628"></script>
@@ -285,7 +287,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 
 
 <!-- INTERVIEW DISPLAY -->
-<div id="interview-screen" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:50;display:none;flex-direction:column;">
+<div id="interview-screen" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:50;flex-direction:column;">
   <div style="background:#0f0f23;padding:12px 1.5rem;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:13px;font-weight:700;color:white;" id="iv-company">Company</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.4);" id="iv-role">Role</div>
@@ -488,120 +490,10 @@ function nexoraVoiceIdsForProfile(profile){
   return ids.length ? ids : ['r1KmysJdVYZjJCm4mL3b'];
 }
 
-var SCENARIOS = [
-  {id:'cs1',industry:'Banking',title:'Billing Dispute',desc:'Client received an unexpected charge and wants it reversed immediately.',mood:'frustrated',diff:2},
-  {id:'cs2',industry:'Telecom',title:'Service Cancellation',desc:'Client wants to cancel their account. You must retain them.',mood:'cold',diff:3},
-  {id:'cs3',industry:'Technology',title:'Technical Issue',desc:'Client cannot access their online account and is frustrated.',mood:'impatient',diff:2},
-  {id:'cs4',industry:'Retail',title:'Refund Request',desc:'Client demanding a refund for a service they claim did not work.',mood:'angry',diff:3},
-  {id:'cs5',industry:'Banking',title:'Complaint Escalation',desc:'Client had a terrible experience and threatens to leave publicly.',mood:'furious',diff:4},
-  {id:'cs6',industry:'Banking',title:'Account Security',desc:'Client suspects unauthorized access to their account.',mood:'worried',diff:3},
-  {id:'cs7',industry:'Telecom',title:'Late Fee Dispute',desc:'Client received a late fee and claims they paid on time.',mood:'indignant',diff:3},
-  {id:'cs8',industry:'Telecom',title:'Service Upgrade',desc:'Client wants to upgrade their plan and needs guidance.',mood:'pleasant',diff:1},
-  {id:'cs9',industry:'Retail',title:'VIP Complaint',desc:'High-value client threatening to move all accounts elsewhere.',mood:'very_angry',diff:5},
-  {id:'cs10',industry:'Healthcare',title:'Wrong Information',desc:'Client was given wrong information by another agent and feels misled.',mood:'disappointed',diff:3},
-
-  // ── INTERVIEW SCENARIOS ──────────────────────────────────────
-  {id:'iv1',title:'Job Interview — Customer Service Rep',type:'interview',desc:'Behavioral interview for a customer-facing role. Interviewer will ask STAR questions.',mood:'professional',diff:2,
-   interviewer:'Sarah Mitchell',role:'HR Manager',company:'NovaCorp'},
-  {id:'iv2',title:'Job Interview — Team Lead',type:'interview',desc:'Senior leadership interview. Expect strategic and behavioral questions.',mood:'demanding',diff:4,
-   interviewer:'James Okafor',role:'Director of Operations',company:'Apex Solutions'},
-  {id:'iv3',title:'Job Interview — BPO Agent',type:'interview',desc:'Fast-paced BPO interview testing English fluency, speed and professionalism.',mood:'neutral',diff:2,
-   interviewer:'Linda Torres',role:'Talent Acquisition',company:'GlobalLink BPO'},
-  {id:'iv4',title:'Panel Interview — Account Manager',type:'interview',desc:'Three interviewers. Answer to all of them professionally.',mood:'intense',diff:5,
-   interviewer:'Panel',role:'Multiple Interviewers',company:'Meridian Group',
-   panelists:['Carlos Vega — VP Sales','Rachel Kim — HR Director','Tom Walsh — Operations']},
-
-  // ── MEETING SCENARIOS ─────────────────────────────────────────
-  {id:'mt1',title:'Weekly Team Standup',type:'meeting',desc:'Present your weekly progress and blockers. Be concise and professional.',mood:'casual',diff:1,
-   participants:['Alex — Team Lead','Maria — Dev','Sam — QA','You']},
-  {id:'mt2',title:'Project Kickoff Meeting',type:'meeting',desc:'Lead the kickoff for a new project. Align stakeholders on goals and timeline.',mood:'formal',diff:3,
-   participants:['You','Diana — PM','Robert — Client','Linda — Design','Kevin — Dev']},
-  {id:'mt3',title:'Client Presentation',type:'meeting',desc:'Present quarterly results to an important client. Handle tough questions.',mood:'demanding',diff:4,
-   participants:['You','Mr. Chen — Client CEO','Sarah — Client CFO','Your Manager']},
-  {id:'mt4',title:'Conflict Resolution Meeting',type:'meeting',desc:'Mediate a disagreement between team members. Stay neutral and professional.',mood:'tense',diff:4,
-   participants:['You — Mediator','Jake','Priya','Team Lead — Observer']},
-
-  // ── NEGOTIATION SCENARIOS ─────────────────────────────────────
-  {id:'ng1',title:'Salary Negotiation',type:'negotiation',desc:'Negotiate a salary increase with your direct manager. Be confident but professional.',mood:'neutral',diff:3,
-   counterpart:'Your Manager'},
-  {id:'ng2',title:'Vendor Contract Negotiation',type:'negotiation',desc:'Negotiate pricing and terms with an external vendor.',mood:'firm',diff:4,
-   counterpart:'Vendor Representative'},
-  // CORPORATE
-  {id:'cp1', title:'Board Presentation', type:'corporate', industry:'Corporate',
-   desc:'Present your proposal to the board. A skeptical board director evaluates ROI and strategic fit.',
-   mood:'demanding', diff:5, role:'Board Director', company:'Meridian Holdings',
-   participants:['You','Sarah Chen — CFO','Robert Walsh — CEO','Eleanor Webb — Board Director'],
-   allowPDF:true, pdfPrompt:'Review the uploaded presentation and challenge the presenter on weak points, ROI assumptions, and strategic alignment.'},
-
-  {id:'cp2', title:'Executive Strategy Meeting', type:'corporate', industry:'Corporate',
-   desc:'Align on quarterly strategy with C-suite. The COO pushes back on execution plans.',
-   mood:'firm', diff:4, role:'COO', company:'Apex Group',
-   participants:['You','Victoria Hale — COO','Marcus Lee — CMO','Diana Ross — CTO'],
-   allowPDF:false},
-
-  {id:'cp3', title:'Investor Pitch', type:'corporate', industry:'Corporate',
-   desc:'Pitch your business to a VC firm. A sharp investor asks hard questions about traction and financials.',
-   mood:'skeptical', diff:5, role:'Lead Investor', company:'Venture Capital Partners',
-   participants:['You','Robert Chen — Lead Investor','James Park — Associate'],
-   allowPDF:true, pdfPrompt:'You are a VC investor reviewing this pitch deck. Ask tough questions about unit economics, market size, and competitive moat.'},
-
-  // STAKEHOLDER
-  {id:'sh1', title:'Multi-Stakeholder Alignment', type:'stakeholder', industry:'Corporate',
-   desc:'Align multiple departments on a new process change. Each stakeholder has different priorities.',
-   mood:'mixed', diff:4, role:'Department Head',
-   participants:['You — Project Lead','Patricia Kim — IT Director (resistant)','Mark — Finance (budget-focused)','Sandra — HR (people-first)'],
-   stakes:['IT: concerned about implementation timeline','Finance: focused on cost reduction','HR: worried about team impact']},
-
-  {id:'sh2', title:'Client Escalation — Stakeholder Call', type:'stakeholder', industry:'Corporate',
-   desc:'A major client is unhappy. You must manage the relationship with multiple client stakeholders on the call.',
-   mood:'tense', diff:5, role:'Account Director',
-   participants:['You — Account Manager','Alice — Client CEO (angry)','Tom — Client IT Lead','Your Manager — Observer'],
-   stakes:['Client threatens to leave','SLA breach occurred','Compensation expected']},
-
-  // MEDICAL
-  {id:'md1', title:'Patient Consultation', type:'medical', industry:'Healthcare',
-   desc:'Handle a concerned patient asking about their diagnosis and treatment plan. Be empathetic and clear.',
-   mood:'worried', diff:2, role:'Patient',
-   participants:['You — Healthcare Provider','Alice — Patient'],
-   display:'call'},
-
-  {id:'md2', title:'Difficult Patient — Refusing Treatment', type:'medical', industry:'Healthcare',
-   desc:'Patient is refusing recommended treatment. De-escalate and guide them professionally.',
-   mood:'resistant', diff:4, role:'Patient',
-   participants:['You — Healthcare Provider','Alice — Patient'],
-   display:'call'},
-
-  // NEGOTIATION
-  {id:'ng3', title:'Contract Renewal Negotiation', type:'negotiation', industry:'Business',
-   desc:'Renew a major contract with a client who wants significant price reductions.',
-   mood:'firm', diff:4, role:'Client Representative',
-   participants:['You — Sales Director','Alice — Client Procurement Lead'],
-   display:'call'},
-
-  {id:'ng4', title:'Partnership Deal Negotiation', type:'negotiation', industry:'Business',
-   desc:'Negotiate the terms of a new business partnership. Align on equity, responsibilities and timelines.',
-   mood:'professional', diff:3, role:'Business Partner',
-   participants:['You','Alice — Potential Partner CEO'],
-   display:'call'},
-
-  // STAR INTERVIEW
-  {id:'st1', title:'STAR Interview — Leadership', type:'star_interview', industry:'Corporate',
-   desc:'Structured behavioral interview focused on leadership, decision-making and conflict resolution.',
-   mood:'professional', diff:3, role:'Senior HR Manager',
-   company:'Global Corp', interviewer:'Diana Foster',
-   starFocus:['Tell me about a time you led a difficult team','Describe a situation where you had to make a decision with incomplete information','Give an example of a conflict you resolved professionally']},
-
-  {id:'st2', title:'STAR Interview — Customer Service', type:'star_interview', industry:'BPO',
-   desc:'STAR-based interview for a customer-facing role. Focus on empathy, problem-solving and communication.',
-   mood:'neutral', diff:2, role:'Talent Acquisition',
-   company:'ServiceFirst BPO', interviewer:'Carlos Mejia',
-   starFocus:['Describe a time you turned an angry customer into a satisfied one','Tell me about a situation where you had to handle multiple priorities','Give an example of how you adapted your communication style']},
-
-];
 var NAMES_F=['Margaret','Sofia','Patricia','Linda','Jennifer','Amanda','Sarah','Elizabeth','Karen','Lisa','Rachel','Sandra'];
 var NAMES_M=['James','David','Robert','Michael','William','Christopher','Carlos','Brian','Daniel','Kevin','Mark','Steven'];
 var LAST=['Thompson','Martinez','Johnson','Williams','Brown','Davis','Wilson','Moore','Taylor','Anderson','Thomas','Jackson'];
-var SERVICES_POOL=[
+var SERVICES_POOL_BANKING=[
   {name:'Personal Loan',price:'$189.50/mo',desc:'Fixed-rate personal financing',icon:'ti-coin'},
   {name:'Premium Account',price:'$45.00/mo',desc:'Full-service banking',icon:'ti-building-bank'},
   {name:'Credit Card Plus',price:'$29.99/mo',desc:'Rewards credit card',icon:'ti-credit-card'},
@@ -609,6 +501,39 @@ var SERVICES_POOL=[
   {name:'Savings Account',price:'$0/mo',desc:'High-yield savings',icon:'ti-piggy-bank'},
   {name:'Investment Portfolio',price:'$15.00/mo',desc:'Managed investments',icon:'ti-chart-line'},
 ];
+var SERVICES_POOL_HEALTHCARE=[
+  {name:'Primary Care Plan',price:'$125.00/mo',desc:'PCP visits and preventive care',icon:'ti-heart-rate-monitor'},
+  {name:'Specialist Rider',price:'$38.00/mo',desc:'Specialist visit coverage',icon:'ti-stethoscope'},
+  {name:'Prescription Plus',price:'$22.00/mo',desc:'Formulary prescription benefit',icon:'ti-pill'},
+  {name:'Telehealth Access',price:'$9.99/mo',desc:'24/7 virtual visits',icon:'ti-video'},
+];
+var SERVICES_POOL_TELECOM=[
+  {name:'Unlimited Mobile',price:'$79.99/mo',desc:'Unlimited talk, text and data',icon:'ti-device-mobile'},
+  {name:'Fiber Internet',price:'$59.99/mo',desc:'300 Mbps home internet',icon:'ti-wifi'},
+  {name:'TV Essentials',price:'$34.99/mo',desc:'120-channel cable package',icon:'ti-tv'},
+];
+var SERVICES_POOL_RETAIL=[
+  {name:'Rewards Membership',price:'$12.99/mo',desc:'Free shipping and member pricing',icon:'ti-award'},
+  {name:'Protection Plan',price:'$8.99/mo',desc:'Extended product protection',icon:'ti-shield-check'},
+];
+var SERVICES_POOL_TECH=[
+  {name:'Pro Suite License',price:'$49.00/mo',desc:'Team software subscription',icon:'ti-device-laptop'},
+  {name:'Cloud Storage 500GB',price:'$19.00/mo',desc:'Secure cloud backup',icon:'ti-cloud'},
+];
+var SERVICES_POOL_TOURISM=[
+  {name:'Travel Protection',price:'$18.00/mo',desc:'Trip cancellation coverage',icon:'ti-plane'},
+  {name:'Loyalty Gold',price:'$0/mo',desc:'Gold member travel perks',icon:'ti-star'},
+];
+var SERVICES_POOL_EDUCATION=[
+  {name:'Student Services Plan',price:'$35.00/mo',desc:'Campus services bundle',icon:'ti-school'},
+  {name:'Online Portal Access',price:'$0/mo',desc:'LMS and registration portal',icon:'ti-device-laptop'},
+  {name:'Meal Plan Standard',price:'$420.00/sem',desc:'Campus dining plan',icon:'ti-tools-kitchen-2'},
+];
+var SERVICES_POOL_CORPORATE=[
+  {name:'Enterprise Support',price:'$299.00/mo',desc:'Dedicated account team',icon:'ti-building'},
+  {name:'SaaS Platform',price:'$89.00/mo',desc:'Business platform license',icon:'ti-cloud'},
+];
+var SERVICES_POOL= SERVICES_POOL_BANKING;
 var STREETS=['Oak Street','Maple Avenue','Cedar Lane','Pine Road','Elm Boulevard','Washington Street'];
 var CITIES=['Portland OR','Seattle WA','Austin TX','Miami FL','Denver CO','Phoenix AZ','Atlanta GA'];
 
@@ -655,73 +580,37 @@ var ENGINE_TYPE_MAP={
   star_interview:'star_interview'
 };
 
-var ENGINE_INDUSTRY_CRM_MAP={
-  corporate:'Banking', tech:'Technology', technology:'Technology',
-  healthcare:'Healthcare', health:'Healthcare', medical:'Healthcare',
-  education:'Banking', finance:'Finance', banking:'Banking',
-  hospitality:'Tourism', tourism:'Tourism',
-  retail:'Retail', telecom:'Telecom', bpo:'Banking'
-};
-
 var NEXORA_MEETING_TYPES=['star_interview','interview','meeting','stakeholder','corporate','negotiation'];
 
-function normalizeCRMIndustry(sc, nxConfig){
-  var raw=(sc&&sc.industry)||(nxConfig&&nxConfig.industry)||'Banking';
-  var key=String(raw).toLowerCase().replace(/[^a-z]/g,'');
-  if(ENGINE_INDUSTRY_CRM_MAP[key]) return ENGINE_INDUSTRY_CRM_MAP[key];
-  if(ENGINE_INDUSTRY_CRM_MAP[String(raw).toLowerCase()]) return ENGINE_INDUSTRY_CRM_MAP[String(raw).toLowerCase()];
-  return raw;
+function crmIndustryFromConfig(nxConfig){
+  return NEXORA_SCENARIO_BANK.resolveCrmIndustry(nxConfig||loadNexoraEngineConfig());
+}
+
+function expectedScenarioPoolKey(nxConfig){
+  return NEXORA_SCENARIO_BANK.poolKey(nxConfig||loadNexoraEngineConfig());
+}
+
+function scenarioMatchesConfig(sc, nxConfig){
+  if(!nxConfig||!sc||!sc.poolKey) return false;
+  return sc.poolKey===expectedScenarioPoolKey(nxConfig);
 }
 
 function mergeEngineConfig(sc, nxConfig){
   if(!nxConfig||!sc) return sc;
   var merged=Object.assign({},sc);
-  merged.industry=normalizeCRMIndustry(sc,nxConfig);
+  var pk=expectedScenarioPoolKey(nxConfig);
+  merged.poolKey=pk;
+  merged.industry=NEXORA_SCENARIO_BANK.resolveIndustryLabel(nxConfig);
+  merged.crmIndustry=crmIndustryFromConfig(nxConfig);
   if(nxConfig.difficulty) merged.diff=parseInt(nxConfig.difficulty,10)||merged.diff;
-  if(nxConfig.typeLabel){
-    merged.title=nxConfig.typeLabel+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:'');
-  }
+  if(!merged.type&&nxConfig.type&&ENGINE_TYPE_MAP[nxConfig.type]) merged.type=ENGINE_TYPE_MAP[nxConfig.type];
+  merged.sessionLabel=(nxConfig.typeLabel||'')+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:'');
   if(nxConfig.industryLabel&&!merged.company) merged.company=nxConfig.industryLabel;
   return merged;
 }
 
 function buildScenarioFromConfig(nxConfig, variantIndex){
-  variantIndex = variantIndex || 0;
-  var targetType=ENGINE_TYPE_MAP[nxConfig.type]||nxConfig.type||'customer_service';
-  var variants=[
-    { title:'', desc:'Professional simulation in '+(nxConfig.industryLabel||nxConfig.industry||'business')+' context. Review all CRM tabs before responding.' },
-    { title:' — Escalated case', desc:'The situation has escalated. Stay calm, verify account details, and follow policy while de-escalating.' },
-    { title:' — Repeat caller', desc:'This client has called before about a related issue. Acknowledge prior contact and resolve with clarity.' },
-    { title:' — Time-sensitive', desc:'The client is in a hurry and expects a fast resolution. Be efficient without skipping verification steps.' },
-    { title:' — Policy exception', desc:'The client is asking for an exception. Explain policy clearly and offer realistic alternatives.' },
-    { title:' — VIP handling', desc:'Treat this as a high-value client interaction. Professional tone, ownership, and clear next steps.' }
-  ];
-  var v=variants[variantIndex % variants.length];
-  var sc={
-    id:'engine-'+nxConfig.type+'-'+(nxConfig.industry||'general')+'-v'+variantIndex,
-    title:(nxConfig.typeLabel||targetType)+(nxConfig.industryLabel?' — '+nxConfig.industryLabel:'')+v.title,
-    desc:v.desc,
-    industry:normalizeCRMIndustry(null,nxConfig),
-    diff:parseInt(nxConfig.difficulty,10)||3,
-    mood:'professional'
-  };
-  if(targetType==='star_interview'){
-    sc.type='star_interview';
-    sc.company=nxConfig.industryLabel||'Company';
-    sc.interviewer='Alex Morgan';
-    sc.role='Senior HR Manager';
-    sc.starFocus=['Tell me about a time you faced a significant challenge at work.','Describe a situation where you had to lead without formal authority.','Give an example of resolving a conflict with a colleague or client.'];
-  } else if(NEXORA_MEETING_TYPES.indexOf(targetType)>=0){
-    sc.type=targetType;
-    sc.participants=targetType==='stakeholder'
-      ?['You — Project Lead','Alice — Stakeholder','Tom — Finance Lead']
-      :['You','Alex — Team Lead','Maria — Colleague','Sam — Partner'];
-    if(targetType==='corporate') sc.company=nxConfig.industryLabel||'Company';
-    if(targetType==='negotiation') sc.counterpart='Alice — Counterpart';
-  } else {
-    sc.type=targetType==='customer_service'?undefined:targetType;
-  }
-  return sc;
+  return NEXORA_SCENARIO_BANK.getFromPool(nxConfig, variantIndex || 0);
 }
 
 var _crmTabsDefaultHtml=null;
@@ -736,15 +625,32 @@ function loadNexoraEngineConfig(){
   try{return JSON.parse(localStorage.getItem('nexora_scenario')||'null');}catch(e){return null;}
 }
 
+function invalidateNexoraLabIfConfigChanged(){
+  var nxConfig=loadNexoraEngineConfig();
+  try{
+    var raw=sessionStorage.getItem('nexora_lab_runtime');
+    if(!raw||!nxConfig) return;
+    var s=JSON.parse(raw);
+    if(s.scenario&&!scenarioMatchesConfig(s.scenario,nxConfig)) sessionStorage.removeItem('nexora_lab_runtime');
+  }catch(e){}
+}
+
 function pickScenarioFromConfig(nxConfig,prevId){
-  return NexoraScenarioRotate.pickNext(
-    SCENARIOS,
-    nxConfig,
-    prevId,
-    mergeEngineConfig,
-    buildScenarioFromConfig,
-    ENGINE_TYPE_MAP
-  );
+  if(!nxConfig){
+    showToast('No Nexora config — trainer must activate a session first');
+    return null;
+  }
+  var pool=NEXORA_SCENARIO_BANK.getPool(nxConfig);
+  if(!pool.length){
+    showToast('No scenarios for '+expectedScenarioPoolKey(nxConfig));
+    return null;
+  }
+  var picked=NexoraScenarioRotate.pickNext(pool,nxConfig,prevId,mergeEngineConfig);
+  if(!picked||!scenarioMatchesConfig(picked,nxConfig)){
+    showToast('Scenario pool mismatch — refreshing');
+    picked=mergeEngineConfig(NEXORA_SCENARIO_BANK.getFromPool(nxConfig,0),nxConfig);
+  }
+  return picked;
 }
 
 function refreshNexoraScenario(prevId){
@@ -756,7 +662,7 @@ function refreshNexoraScenario(prevId){
 
 function applyScenarioToUI(sc){
   var titleEl=document.getElementById('sp-title');
-  if(titleEl) titleEl.textContent=sc.title;
+  if(titleEl) titleEl.textContent=sc.title + (sc.sessionLabel ? ' · '+sc.sessionLabel : '');
   /* desc intentionally hidden from agent UI — issue emerges on the call */
 }
 
@@ -775,9 +681,10 @@ window.onload=function(){
   var savedAgent=localStorage.getItem('nexora_agent');
   if(savedAgent){_nx.agent=savedAgent.split(/\s+/)[0];document.getElementById('agent-inp').value=_nx.agent;}
   var nxConfig=loadNexoraEngineConfig();
-  var prev=_nx.scenario?_nx.scenario.id:null;
+  invalidateNexoraLabIfConfigChanged();
+  var prev=(_nx.scenario&&scenarioMatchesConfig(_nx.scenario,nxConfig))?_nx.scenario.id:null;
   _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
-  applyScenarioToUI(_nx.scenario);
+  if(_nx.scenario) applyScenarioToUI(_nx.scenario);
   if(restoreNexoraLabRuntime()) return;
   document.getElementById('autoin-screen').style.display='flex';
 };
@@ -794,7 +701,29 @@ function nexoraLabStudentPayload(){
 }
 
 // ── GENERATE PROFILE ──────────────────────────────────────────
+function servicesPoolForIndustry(nxConfig){
+  var crm=crmIndustryFromConfig(nxConfig);
+  if(crm==='Healthcare') return SERVICES_POOL_HEALTHCARE;
+  if(crm==='Education') return SERVICES_POOL_EDUCATION;
+  if(crm==='Telecom') return SERVICES_POOL_TELECOM;
+  if(crm==='Retail') return SERVICES_POOL_RETAIL;
+  if(crm==='Technology') return SERVICES_POOL_TECH;
+  if(crm==='Tourism') return SERVICES_POOL_TOURISM;
+  if(crm==='Finance') return SERVICES_POOL_BANKING;
+  if(crm==='Corporate') return SERVICES_POOL_CORPORATE;
+  return SERVICES_POOL_BANKING;
+}
+
 function genProfile(sc){
+  if(sc && sc.profileSeed){
+    var p=JSON.parse(JSON.stringify(sc.profileSeed));
+    p.name=p.firstName+' '+p.lastName;
+    p.scenario=sc;
+    p.crmIssueSummary=(sc.title||'Customer issue')+(sc.desc?' — '+sc.desc:'');
+    p.total=(p.services||[]).reduce(function(s,x){return s+parseFloat(String(x.price||'').replace(/[^0-9.]/g,'')||0);},0);
+    return p;
+  }
+  var nxConfig=loadNexoraEngineConfig();
   var id = pickRandomNexoraIdentity();
   var fn = id.firstName;
   var ln = id.lastName;
@@ -807,7 +736,7 @@ function genProfile(sc){
   var dob=yr+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-'+String(1+Math.floor(Math.random()*28)).padStart(2,'0');
   var myr=2017+Math.floor(Math.random()*7);
   var msince=myr+'-'+String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'-01';
-  var pool=[...SERVICES_POOL].sort(function(){return Math.random()-0.5;});
+  var pool=[...servicesPoolForIndustry(nxConfig)].sort(function(){return Math.random()-0.5;});
   var svcs=pool.slice(0,1+Math.floor(Math.random()*2));
 
   // Scenario-specific billing details — shared with portal via nexora-characters.js
@@ -837,7 +766,47 @@ function detectNexoraLabScreen(){
   if(document.getElementById('call-overlay')&&document.getElementById('call-overlay').style.display==='block') return 'call';
   if(document.getElementById('interview-screen')&&document.getElementById('interview-screen').style.display==='flex') return 'interview';
   if(document.getElementById('meeting-screen')&&document.getElementById('meeting-screen').style.display==='flex') return 'meeting';
+  if(document.getElementById('corporate-screen')&&document.getElementById('corporate-screen').style.display==='flex') return 'corporate';
+  if(document.getElementById('stakeholder-screen')&&document.getElementById('stakeholder-screen').style.display==='flex') return 'stakeholder';
   return 'call';
+}
+
+function restoreNexoraLabTimer(timerElId, talkSecs){
+  _nx.callStart=Date.now()-((talkSecs||0)*1000);
+  if(_nx.callTimer) clearInterval(_nx.callTimer);
+  _nx.callTimer=setInterval(function(){
+    if(!_nx.onHold) _nx.talkSecs++;
+    var total=Math.floor((Date.now()-_nx.callStart)/1000);
+    var el=document.getElementById(timerElId);
+    if(el) el.textContent=Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
+  },1000);
+}
+
+function restoreNexoraLabScreenUI(screen, sc){
+  document.getElementById('autoin-screen').style.display='none';
+  if(screen==='interview'){
+    document.getElementById('interview-screen').style.display='flex';
+    document.getElementById('iv-company').textContent=sc.company||sc.title||'Session';
+    document.getElementById('iv-role').textContent=(sc.type==='star_interview'?'STAR Interview — ':'Interview — ')+(sc.title||'');
+    restoreNexoraLabTimer('iv-timer', _nx.talkSecs);
+  } else if(screen==='meeting'){
+    document.getElementById('meeting-screen').style.display='flex';
+    if(document.getElementById('mt-title')) document.getElementById('mt-title').textContent=sc.title||'Meeting';
+    restoreNexoraLabTimer('mt-timer', _nx.talkSecs);
+  } else if(screen==='corporate'){
+    document.getElementById('corporate-screen').style.display='flex';
+    if(document.getElementById('corp-title')) document.getElementById('corp-title').textContent=sc.title||'Presentation';
+    restoreNexoraLabTimer('corp-timer', _nx.talkSecs);
+  } else if(screen==='stakeholder'){
+    document.getElementById('stakeholder-screen').style.display='flex';
+    if(document.getElementById('sh-title')) document.getElementById('sh-title').textContent=sc.title||'Stakeholder';
+    restoreNexoraLabTimer('sh-timer', _nx.talkSecs);
+  } else {
+    return false;
+  }
+  nexoraReadyHint();
+  showToast('Sesión restaurada — continuá donde quedaste');
+  return true;
 }
 
 function saveNexoraLabRuntime(){
@@ -860,6 +829,8 @@ function restoreNexoraLabRuntime(){
     if(!raw) return false;
     var s=JSON.parse(raw);
     if(!s.active||!s.profile||!s.scenario) return false;
+    var nxConfig=loadNexoraEngineConfig();
+    if(!scenarioMatchesConfig(s.scenario,nxConfig)) return false;
     _nx.profile=s.profile; _nx.scenario=s.scenario;
     _nx.history=s.history||[]; _nx.transcript=s.transcript||[];
     _nx.talkSecs=s.talkSecs||0; _nx.holdEvents=s.holdEvents||[];
@@ -868,6 +839,11 @@ function restoreNexoraLabRuntime(){
     _nx.callStart=Date.now()-(_nx.talkSecs*1000);
     applyScenarioToUI(_nx.scenario);
     document.getElementById('autoin-screen').style.display='none';
+    if(s.screen&&s.screen!=='call'){
+      if(restoreNexoraLabScreenUI(s.screen, s.scenario)) return true;
+      try{ sessionStorage.removeItem('nexora_lab_runtime'); }catch(e){}
+      return false;
+    }
     if(s.screen==='call'||!s.screen){
       document.getElementById('incoming-overlay').style.display='none';
       loadCRM(_nx.profile);
@@ -905,6 +881,7 @@ function resumeNexoraLab(){
 
 // ── AUTO-IN ────────────────────────────────────────────────────
 function nexoraAutoIn(){
+  refreshNexoraScenario(_nx.scenario ? _nx.scenario.id : null);
   var sc = _nx.scenario;
   if((sc.type||'')==='star_interview'){
     sc=personalizeStarInterviewer(sc);
@@ -1540,6 +1517,26 @@ function appendCrmScenarioContext(sc, p){
   if(notes && sc && sc.title && notes.innerHTML.indexOf('Call reason')===-1){
     notes.innerHTML='<div class="note-card"><div class="note-date">Call reason</div><div class="note-text"><strong>'+sc.title+'</strong> — '+(sc.desc||'')+'</div></div>'+notes.innerHTML;
   }
+  if(p && p.crmExtras){
+    var changes=document.getElementById('changes-content');
+    var extraRows=[];
+    if(p.crmExtras.policyId) extraRows.push({when:'On file',what:'Policy '+p.crmExtras.policyId,by:'Insurance'});
+    if(p.crmExtras.claimId) extraRows.push({when:'Recent',what:'Claim '+p.crmExtras.claimId,by:'Claims'});
+    if(p.crmExtras.memberId) extraRows.push({when:'Verified',what:'Member ID '+p.crmExtras.memberId,by:'Eligibility'});
+    if(p.crmExtras.providerName) extraRows.push({when:'Chart',what:'Provider: '+p.crmExtras.providerName,by:'Clinical'});
+    if(p.crmExtras.ticketId) extraRows.push({when:'Open',what:'Ticket '+p.crmExtras.ticketId,by:'Support'});
+    if(p.crmExtras.orderId) extraRows.push({when:'Recent',what:'Order '+p.crmExtras.orderId,by:'Fulfillment'});
+    if(p.crmExtras.bookingRef) extraRows.push({when:'Active',what:'Booking '+p.crmExtras.bookingRef,by:'Travel'});
+    if(p.crmExtras.studentId) extraRows.push({when:'Enrolled',what:'Student ID '+p.crmExtras.studentId,by:'Registrar'});
+    if(p.crmExtras.advisorName) extraRows.push({when:'Assigned',what:'Advisor: '+p.crmExtras.advisorName,by:'Academic'});
+    if(p.crmExtras.lineId) extraRows.push({when:'Active',what:'Line '+p.crmExtras.lineId,by:'Telecom'});
+    if(extraRows.length && changes){
+      changes.innerHTML=extraRows.map(function(r){
+        return '<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--gl);font-size:12px;">'
+          +'<div><div style="font-weight:700;">'+r.what+'</div><div style="color:var(--t3);">'+r.when+' · '+r.by+'</div></div></div>';
+      }).join('')+changes.innerHTML;
+    }
+  }
 }
 
 function crmNotesHtml(sc, p, extra){
@@ -1574,22 +1571,51 @@ function crmRenameTabs(map){
 }
 
 function getCRMByIndustry(sc, p){
-  var industry=normalizeCRMIndustry(sc,null);
+  var nxConfig=loadNexoraEngineConfig();
+  var industry=crmIndustryFromConfig(nxConfig);
 
-  if(industry==='Banking'||industry==='Finance'){
+  if(industry==='Education'){
+    crmRenameTabs({'Services':'Student Record','Billing':'Tuition & Fees','Payment methods':'Financial Aid','Notes':'Advisor Notes'});
     document.getElementById('tab-services').innerHTML=
-      '<div class="section-title">Accounts & Products</div>'
-      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">Checking Account</div><div class="svc-sub">'+p.account+' · Available balance reviewed</div></div><div class="svc-price badge-active">Active</div></div>'
-      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div><div class="svc-price badge-active">Active</div></div>';}).join('')
-      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-lock"></i></div><div class="svc-info"><div class="svc-name">Online Banking</div><div class="svc-sub">2-Factor Auth enabled</div></div><div class="svc-price badge-active">Secured</div></div>';
+      '<div class="section-title">Enrollment & Services</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-school"></i></div><div class="svc-info"><div class="svc-name">Student ID '+p.account+'</div><div class="svc-sub">Undergraduate · DOB '+p.dob+'</div></div><div class="svc-price badge-active">Enrolled</div></div>'
+      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti '+(s.icon||'ti-book')+'"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+(s.desc?' · '+s.desc:'')+'</div></div><div class="svc-price badge-active">Active</div></div>';}).join('')
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-calendar"></i></div><div class="svc-info"><div class="svc-name">Current term</div><div class="svc-sub">Fall 2025 · 12 credits registered</div></div><div class="svc-price badge-active">Active</div></div>';
+    document.getElementById('billing-content').innerHTML=
+      '<div class="billing-total">Term balance: $'+Math.max(p.total,1250).toFixed(2)+'</div>'
+      +'<div class="billing-row"><span>Financial aid applied</span><span style="color:var(--green);">Pending review</span></div>'
+      +'<div class="billing-row"><span>Payment plan</span><span>Active</span></div>';
+    document.getElementById('payments-content').innerHTML=
+      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Card on file ·'+p.ssn4+'</div><div class="svc-desc">Tuition installment payments</div></div><span class="badge-active">Active</span></div>'
+      +'<div class="svc-card"><div class="svc-icon"><i class="ti ti-file-invoice"></i></div><div class="svc-info"><div class="svc-name">FAFSA on file</div><div class="svc-desc">Award letter 2025-26</div></div><span class="badge-active">Verified</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Registrar</div><div class="note-text">Verify student ID and enrollment term before changing registration or billing.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
+
+  } else if(industry==='Finance'){
+    crmRenameTabs({'Services':'Accounts & Products','Billing':'Statements','Payment methods':'Payment','Notes':'Account Notes'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Financial Accounts</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">Primary Account</div><div class="svc-sub">'+p.account+' · Relationship reviewed</div></div><div class="svc-price badge-active">Active</div></div>'
+      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div><div class="svc-price badge-active">Active</div></div>';}).join('');
     document.getElementById('billing-content').innerHTML=
       '<div class="billing-total">Monthly total: $'+p.total.toFixed(2)+'</div>'
-      +'<div class="billing-row" style="margin-top:8px;"><span>Last payment</span><span style="color:var(--green);">Received</span></div>'
-      +'<div class="billing-row"><span>Next billing date</span><span>15th of next month</span></div>';
+      +'<div class="billing-row"><span>Last payment</span><span style="color:var(--green);">Received</span></div>';
     document.getElementById('payments-content').innerHTML=
-      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary debit card · Exp 08/27</div></div><span class="badge-active">Active</span></div>'
-      +'<div class="svc-card"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">ACH linked account</div><div class="svc-desc">Auto-pay enabled</div></div><span class="badge-active">Verified</span></div>';
-    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Compliance</div><div class="note-text">Verify last 4 SSN and recent transactions before discussing disputed charges.</div></div>');
+      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary payment method</div></div><span class="badge-active">Active</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Compliance</div><div class="note-text">Verify identity and account ownership before fee reversals or disputes.</div></div>');
+    document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
+
+  } else if(industry==='Corporate'){
+    crmRenameTabs({'Services':'Account & Contracts','Billing':'Invoices','Payment methods':'Payment','Notes':'Account Notes'});
+    document.getElementById('tab-services').innerHTML=
+      '<div class="section-title">Business Account</div>'
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building"></i></div><div class="svc-info"><div class="svc-name">Enterprise Account '+p.account+'</div><div class="svc-sub">Primary business relationship</div></div><div class="svc-price badge-active">Active</div></div>'
+      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti '+(s.icon||'ti-briefcase')+'"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'</div></div><div class="svc-price badge-active">Active</div></div>';}).join('');
+    document.getElementById('billing-content').innerHTML=
+      '<div class="billing-total">Open balance: $'+Math.max(p.total,499).toFixed(2)+'</div>'
+      +'<div class="billing-row"><span>Contract renewal</span><span>Q4 review pending</span></div>';
+    document.getElementById('payments-content').innerHTML='<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Corporate card ·'+p.ssn4+'</div><div class="svc-desc">AP verified</div></div><span class="badge-active">Active</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Account</div><div class="note-text">Verify contract terms and authorized contacts before exceptions.</div></div>');
     document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
   } else if(industry==='Telecom'){
@@ -1944,16 +1970,54 @@ function buildNexoraPayload(message, history, p, sc){
 }
 
 function nexoraInstantOpening(p, sc){
-  if(p.disputeAmount) return "Hi, I'm calling because there's a charge of "+p.disputeAmount+" on my account that I don't recognize.";
-  if(p.lateFee) return "Hello, I was charged a fee on my account and I need to talk to someone about it.";
-  if(p.refundAmount) return "Hi, I'm calling to follow up on a refund for my account.";
-  var openers=[
-    "Hello, I need some help with my account.",
-    "Hi there, I'm having an issue and was hoping you could help me.",
-    "Good morning, I'm calling about my account — something doesn't look right.",
-    "Hi, I've been trying to sort something out on my account and need assistance."
-  ];
-  return openers[Math.floor(Math.random()*openers.length)];
+  var issue = (p && p.issueType) || (sc && sc.issueType) || (typeof inferNexoraIssueType === 'function' ? inferNexoraIssueType(sc || {}) : 'general');
+  var title = (sc && sc.title) || 'my account';
+  var desc = (sc && sc.desc) || '';
+  switch (issue) {
+    case 'billing_dispute':
+      return "Hi, I'm calling because there's a charge of "+(p.disputeAmount||'an unexpected amount')+" on my account that I don't recognize.";
+    case 'late_fee':
+      return "Hello, I was charged a fee of "+(p.lateFee||'a penalty')+" and I need to dispute it.";
+    case 'refund':
+      return "Hi, I'm calling to follow up on a refund of $"+(p.refundAmount||'0')+" for my account.";
+    case 'cancellation':
+      return "Hello, I need to cancel my service and I want to make sure it's processed today.";
+    case 'security':
+      return "Hi, I'm worried someone accessed my account — I got alerts about activity I didn't do.";
+    case 'technical':
+      return "Hello, I can't access my account online and I've been locked out for two days.";
+    case 'upgrade':
+      return "Hi, I want to upgrade my plan but I need help choosing the right option.";
+    case 'complaint_escalation':
+      return "Hello, I've called three times already and I'm not getting anywhere — I need this fixed now.";
+    case 'vip_complaint':
+      return "This is unacceptable. I'm a long-time client and I'm seriously considering leaving.";
+    case 'wrong_information':
+      return "Hi, the last agent gave me wrong information and now I'm in a worse situation.";
+    case 'insurance_claim':
+      return "Hello, my insurance claim was denied and I need someone to explain why and fix it.";
+    case 'prior_auth':
+      return "Hi, my specialist says I need prior authorization and nothing is on file.";
+    case 'prescription':
+      return "Hello, the pharmacy won't fill my prescription and I need this resolved today.";
+    case 'copay_dispute':
+      return "Hi, I was charged the wrong copay at my visit and I want it corrected.";
+    case 'lab_results':
+      return "Hello, it's been over a week and I still don't have my lab results.";
+    case 'referral':
+      return "Hi, my referral to a specialist expired and I can't book an appointment.";
+    case 'medical_billing':
+      return "Hello, I got a huge bill I wasn't expecting — I thought the provider was in-network.";
+    case 'records_request':
+      return "Hi, I need my medical records sent to a new doctor before Friday.";
+    case 'appointment':
+      return "Hello, I was charged a no-show fee but I called to cancel my appointment.";
+    case 'booking_issue':
+    case 'booking_change':
+      return "Hi, there's a problem with my booking and I need it fixed before I travel.";
+    default:
+      return "Hello, I'm calling about "+title+(desc ? " — "+desc : "")+".";
+  }
 }
 
 function nexoraReplyTtsReady(text){
