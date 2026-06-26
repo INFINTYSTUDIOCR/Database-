@@ -185,8 +185,8 @@ var DemoVoice = (function () {
   function micStatusText(profile, on) {
     if (!on) return '';
     var lang = profileLang(profile);
-    if (lang.indexOf('es') === 0) return '🎙 Escuchando… hablá tranquilo, espero a que termines';
-    return '🎙 Listening… take your time, I wait until you finish';
+    if (lang.indexOf('es') === 0) return '🎙 Escuchando… hablá todo lo que necesites, espero a que termines';
+    return '🎙 Listening… take your time, say as much as you need';
   }
 
   function setMicUi(on, btn, statusEl, profile) {

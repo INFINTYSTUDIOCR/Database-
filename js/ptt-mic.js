@@ -1,13 +1,16 @@
 /**
  * Push-to-Talk mic — hold to speak, release to send.
  * Waits for speech recognition to finish before sending (no half words).
- * Tolerates rapid press/release cycles without locking the mic.
+ * Auto-restarts recognition while the button is held so long answers are not lost.
  */
 var PttMic = (function () {
   'use strict';
 
   var instances = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
   var fallbackInstances = {};
+  var RESTART_MS = 80;
+  var SEND_WAIT_MS = 280;
+  var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, 'audio-capture': 1, 'service-not-allowed': 1 };
 
   function getInst(btn) {
     if (!btn) return null;
@@ -34,11 +37,15 @@ var PttMic = (function () {
 
     var rec = null;
     var transcript = '';
+    var committed = [];
+    var lastFinalCount = 0;
+    var holding = false;
     var active = false;
     var sent = false;
     var stopLock = false;
     var wantSend = false;
     var sendTimer = null;
+    var restartTimer = null;
     var lastResults = null;
     var sessionId = 0;
 
@@ -46,15 +53,9 @@ var PttMic = (function () {
       if (typeof opts.onUi === 'function') opts.onUi(listening, btn);
     }
 
-    function rebuildTranscript(ev) {
-      if (!ev || !ev.results || !ev.results.length) return transcript;
-      var parts = [];
-      for (var i = 0; i < ev.results.length; i++) {
-        if (ev.results[i].isFinal) parts.push(String(ev.results[i][0].transcript || '').trim());
-      }
-      if (parts.length) return parts.join(' ').replace(/\s+/g, ' ').trim();
-      var last = ev.results[ev.results.length - 1];
-      return (last && last[0] && last[0].transcript) ? String(last[0].transcript).trim() : transcript;
+    function clearRestartTimer() {
+      clearTimeout(restartTimer);
+      restartTimer = null;
     }
 
     function clearSendTimer() {
@@ -67,14 +68,52 @@ var PttMic = (function () {
       wantSend = false;
     }
 
+    function commitFromEvent(ev) {
+      if (!ev || !ev.results || !ev.results.length) return;
+      for (var i = lastFinalCount; i < ev.results.length; i++) {
+        if (ev.results[i].isFinal) {
+          var part = String(ev.results[i][0].transcript || '').trim();
+          if (part) committed.push(part);
+          lastFinalCount = i + 1;
+        }
+      }
+    }
+
+    function rebuildTranscript(ev) {
+      commitFromEvent(ev);
+      var base = committed.join(' ').replace(/\s+/g, ' ').trim();
+      if (!ev || !ev.results || !ev.results.length) return base || transcript;
+      var last = ev.results[ev.results.length - 1];
+      if (last && !last.isFinal && last[0] && last[0].transcript) {
+        var interim = String(last[0].transcript).trim();
+        if (interim) return base ? (base + ' ' + interim).trim() : interim;
+      }
+      if (base) return base;
+      for (var i = 0; i < ev.results.length; i++) {
+        if (ev.results[i].isFinal) {
+          var t = String(ev.results[i][0].transcript || '').trim();
+          if (t) return t;
+        }
+      }
+      return (last && last[0] && last[0].transcript) ? String(last[0].transcript).trim() : transcript;
+    }
+
+    function syncTranscript() {
+      if (lastResults) transcript = rebuildTranscript(lastResults);
+      else transcript = committed.join(' ').replace(/\s+/g, ' ').trim();
+      return transcript;
+    }
+
     function flushSend() {
       clearSendTimer();
       if (sent || !wantSend) {
         unlockStop();
         return;
       }
-      var text = transcript.trim();
+      var text = syncTranscript().trim();
       transcript = '';
+      committed = [];
+      lastFinalCount = 0;
       unlockStop();
       sent = true;
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
@@ -83,13 +122,16 @@ var PttMic = (function () {
 
     function scheduleSend() {
       clearSendTimer();
+      var wait = SEND_WAIT_MS;
+      if (transcript.length > 120) wait += 120;
+      if (transcript.length > 400) wait += 180;
       sendTimer = setTimeout(function () {
-        if (lastResults) transcript = rebuildTranscript(lastResults);
+        syncTranscript();
         flushSend();
-      }, 220);
+      }, wait);
     }
 
-    function killRec() {
+    function killRec(abortOnly) {
       if (!rec) return;
       var r = rec;
       rec = null;
@@ -97,23 +139,110 @@ var PttMic = (function () {
         r.onresult = null;
         r.onend = null;
         r.onerror = null;
-        if (typeof r.abort === 'function') r.abort();
+        if (abortOnly && typeof r.abort === 'function') r.abort();
+        else if (typeof r.abort === 'function') r.abort();
         else r.stop();
       } catch (e) {}
     }
 
     function resetSession(cancelSend) {
+      clearRestartTimer();
       clearSendTimer();
-      killRec();
+      killRec(true);
       active = false;
+      holding = false;
       stopLock = false;
       if (cancelSend) wantSend = false;
+      committed = [];
+      lastFinalCount = 0;
+      transcript = '';
+      lastResults = null;
       ui(false);
     }
 
+    function shouldKeepListening() {
+      return holding && !wantSend;
+    }
+
+    function scheduleRestart(sid) {
+      clearRestartTimer();
+      restartTimer = setTimeout(function () {
+        restartTimer = null;
+        if (sid !== sessionId || !shouldKeepListening()) return;
+        spawnRec(sid);
+      }, RESTART_MS);
+    }
+
+    function handleRecFinished(sid) {
+      syncTranscript();
+      rec = null;
+      if (shouldKeepListening()) {
+        scheduleRestart(sid);
+        return;
+      }
+      if (wantSend) scheduleSend();
+      else unlockStop();
+    }
+
+    function spawnRec(sid) {
+      if (sid !== sessionId || !shouldKeepListening()) return false;
+
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        if (typeof opts.onError === 'function') opts.onError('no-sr');
+        return false;
+      }
+
+      killRec(true);
+      lastFinalCount = 0;
+      lastResults = null;
+      active = true;
+      ui(true);
+
+      var r = new SR();
+      rec = r;
+      r.lang = opts.lang || 'en-US';
+      r.interimResults = true;
+      r.continuous = true;
+      r.onresult = function (ev) {
+        if (sid !== sessionId) return;
+        lastResults = ev;
+        transcript = rebuildTranscript(ev);
+      };
+      r.onend = function () {
+        if (sid !== sessionId) return;
+        handleRecFinished(sid);
+      };
+      r.onerror = function (ev) {
+        if (sid !== sessionId) return;
+        if (ev && ev.error === 'aborted') return;
+        if (ev && !RECOVERABLE_ERRORS[ev.error] && !shouldKeepListening()) {
+          resetSession(false);
+          return;
+        }
+        handleRecFinished(sid);
+      };
+      try {
+        r.start();
+        return true;
+      } catch (err) {
+        rec = null;
+        if (shouldKeepListening()) {
+          scheduleRestart(sid);
+          return false;
+        }
+        active = false;
+        ui(false);
+        if (typeof opts.onError === 'function') opts.onError('start-failed');
+        return false;
+      }
+    }
+
     function stop(send) {
-      if (!active && !rec && !wantSend && !sendTimer) return;
+      if (!holding && !active && !rec && !wantSend && !sendTimer && !restartTimer) return;
       if (send && stopLock) return;
+
+      holding = false;
 
       if (send) {
         stopLock = true;
@@ -123,6 +252,7 @@ var PttMic = (function () {
         clearSendTimer();
       }
 
+      clearRestartTimer();
       active = false;
       ui(false);
 
@@ -131,22 +261,16 @@ var PttMic = (function () {
         var sid = sessionId;
         r.onend = function () {
           if (sid !== sessionId) return;
-          if (r === rec) rec = null;
-          if (lastResults) transcript = rebuildTranscript(lastResults);
-          if (wantSend) scheduleSend();
-          else unlockStop();
+          handleRecFinished(sid);
         };
         r.onerror = function (ev) {
           if (sid !== sessionId) return;
           if (ev && ev.error === 'aborted') return;
-          if (r === rec) rec = null;
-          if (wantSend) scheduleSend();
-          else unlockStop();
+          handleRecFinished(sid);
         };
         try { r.stop(); } catch (e) {
-          if (r === rec) rec = null;
-          if (wantSend) scheduleSend();
-          else unlockStop();
+          rec = null;
+          handleRecFinished(sid);
         }
       } else if (send) {
         scheduleSend();
@@ -164,43 +288,14 @@ var PttMic = (function () {
       clearSendTimer();
       unlockStop();
       sent = false;
+      holding = true;
 
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
-      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        if (typeof opts.onError === 'function') opts.onError('no-sr');
-        return;
-      }
-
-      active = true;
-      transcript = '';
-      lastResults = null;
       var sid = sessionId;
-      rec = new SR();
-      rec.lang = opts.lang || 'en-US';
-      rec.interimResults = true;
-      rec.continuous = true;
-      rec.onresult = function (ev) {
-        if (sid !== sessionId) return;
-        lastResults = ev;
-        transcript = rebuildTranscript(ev);
-      };
-      rec.onerror = function (ev) {
-        if (sid !== sessionId) return;
-        if (ev && ev.error === 'aborted') return;
-        resetSession(false);
-      };
-      try {
-        rec.start();
-      } catch (err) {
-        killRec();
-        active = false;
-        ui(false);
-        if (typeof opts.onError === 'function') opts.onError('start-failed');
-        return;
+      if (!spawnRec(sid)) {
+        if (!shouldKeepListening()) holding = false;
       }
-      ui(true);
     }
 
     function onPointerDown(e) {
@@ -219,7 +314,7 @@ var PttMic = (function () {
     }
 
     function onPointerLeave(e) {
-      if (active && e.pointerType !== 'mouse') stop(true);
+      if (holding && e.pointerType !== 'mouse') stop(true);
     }
 
     btn.addEventListener('pointerdown', onPointerDown);

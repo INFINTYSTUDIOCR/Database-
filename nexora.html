@@ -9,7 +9,8 @@
 <script src="nexora-profile.js"></script>
 <script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
-<script src="js/ptt-mic.js?v=20260627"></script>
+<script src="js/nexora-stream-voice.js"></script>
+<script src="js/ptt-mic.js?v=20260628"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1857,6 +1858,7 @@ async function nexoraAuthStreamReply(payload, onPartial){
   var fullText='';
   var nxPrefetchState={};
   var ctrl=new AbortController();
+  _nxStreamCtrl=ctrl;
   var tid=setTimeout(function(){ ctrl.abort(); }, 55000);
   var resp;
   try{
@@ -1895,6 +1897,7 @@ async function nexoraAuthStreamReply(payload, onPartial){
     }
   }finally{
     clearTimeout(tid);
+    _nxStreamCtrl=null;
     try{ reader.releaseLock(); }catch(e){}
   }
   fullText = fullText.trim();
@@ -1960,15 +1963,20 @@ async function aliceEnter(){
   _nx.history.push({role:'assistant',content:opener});
   _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+opener);
   try{
-    var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc),null);
+    NexoraStreamVoice.beginTurn();
+    var nxSan=function(raw){ return sanitizeNexoraReply(String(raw||''), p); };
+    var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc), function(partial){
+      NexoraStreamVoice.feed(partial, nxSan, queueSpeak, nexoraPrefetchTTS);
+    });
     var reply=sanitizeNexoraReply(fullRaw||'', p);
     var finalLine=(reply && reply.length > 15) ? reply : opener;
     if(reply && reply.length > 15 && reply !== opener){
       _nx.history[_nx.history.length-1]={role:'assistant',content:reply};
       _nx.transcript[_nx.transcript.length-1]='CLIENT ('+(p.firstName||'Client')+'): '+reply;
     }
-    if(isCompleteSpokenLine(finalLine) || nexoraReplyTtsReady(finalLine)) speak(finalLine);
-    else showToast('Client line was cut short — ask them to repeat.');
+    NexoraStreamVoice.finalize(fullRaw||finalLine, nxSan, queueSpeak, nexoraPrefetchTTS);
+    if(!_nxTTSQueue.length && !_nxTTSBusy && (isCompleteSpokenLine(finalLine) || nexoraReplyTtsReady(finalLine))) queueSpeak(prepareTtsLine(finalLine));
+    else if(!_nxTTSQueue.length && !nexoraReplyTtsReady(finalLine)) showToast('Client line was cut short — ask them to repeat.');
   }catch(e){
     if(nexoraReplyTtsReady(opener)) speak(opener);
     else showToast('Could not connect AI client — try speaking again.');
@@ -1976,11 +1984,22 @@ async function aliceEnter(){
 }
 
 var _nxSending=false;
+var _nxResumeTimer=null;
+var _nxStreamCtrl=null;
+
+function nexoraIsSpeaking(){
+  return _nxTTSBusy || _nxTTSQueue.length > 0 || !!window._nxAudio;
+}
+
 async function sendToAlice(text){
-  if(!text||!_nx.active||_nxSending) return;
+  if(!text||!_nx.active) return;
+  if(_nxSending){
+    if(!nexoraIsSpeaking()) return;
+    if(_nxStreamCtrl){ try{ _nxStreamCtrl.abort(); }catch(e){} _nxStreamCtrl=null; }
+  }
   _nxSending=true;
   var unwatchNx=voiceSendWatchdog(function(){ return _nxSending; }, function(){ _nxSending=false; });
-  nexoraCancelSpeech();
+  nexoraHardCancelSpeech();
   var p=_nx.profile||{name:'Client',firstName:'Client',account:'N/A',services:[],billingNotes:[]};
   var sc=_nx.scenario;
   _nx.history.push({role:'user',content:text});
@@ -1988,29 +2007,36 @@ async function sendToAlice(text){
   saveNexoraLabRuntime();
   var st=nexoraStatusEl();
   if(st) st.textContent=(p.firstName||'Client')+' is responding...';
+  NexoraStreamVoice.beginTurn();
+  var nxSan=function(raw){ return sanitizeNexoraReply(String(raw||''), p); };
   try{
-    var fullRaw=await nexoraGetReply(buildNexoraPayload(text,_nx.history.slice(-14),p,sc),null);
+    var fullRaw=await nexoraGetReply(buildNexoraPayload(text,_nx.history.slice(-14),p,sc), function(partial){
+      NexoraStreamVoice.feed(partial, nxSan, queueSpeak, nexoraPrefetchTTS);
+    });
     var reply=sanitizeNexoraReply(fullRaw||'', p);
     if(st) st.textContent='';
     if(reply){
       _nx.history.push({role:'assistant',content:reply});
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
-    if(reply && (isCompleteSpokenLine(reply) || nexoraReplyTtsReady(reply))) speak(reply);
-    else if(reply && !isCompleteSpokenLine(reply) && !nexoraReplyTtsReady(reply)) showToast('Client line was cut short — ask them to repeat.');
+    NexoraStreamVoice.finalize(fullRaw||'', nxSan, queueSpeak, nexoraPrefetchTTS);
+    if(!_nxTTSQueue.length && !_nxTTSBusy && reply && nexoraReplyTtsReady(reply)) queueSpeak(prepareTtsLine(reply));
+    else if(reply && !nexoraReplyTtsReady(reply) && !_nxTTSQueue.length) showToast('Client line was cut short — ask them to repeat.');
     else if(!reply) showToast('Client did not respond — try again.');
     saveNexoraLabRuntime();
   }catch(e){
+    NexoraStreamVoice.cancelTurn();
     if(st) st.textContent='';
     showToast('AI did not respond — check login and try again.');
   }finally{
     unwatchNx();
+    _nxStreamCtrl=null;
     _nxSending=false;
   }
 }
 
 // ── SPEAK ─────────────────────────────────────────────────────
-var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakGen=0;
+var _nxTTSQueue=[], _nxTTSBusy=false, _nxSpeakGen=0, _nxPlayingChunk=null;
 var _nexoraTtsPrefetch={};
 
 function nexoraPrefetchTTS(text){
@@ -2027,15 +2053,35 @@ function nexoraPrefetchTTS(text){
   .catch(function(){ delete _nexoraTtsPrefetch[clean]; });
 }
 
-function nexoraCancelSpeech(){
+function nexoraPauseSpeech(){
+  clearTimeout(_nxResumeTimer);
+  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
+  if(_nxPlayingChunk){
+    _nxTTSQueue.unshift(_nxPlayingChunk);
+    _nxPlayingChunk=null;
+  }
+  _nxTTSBusy=false;
+}
+
+function nexoraHardCancelSpeech(){
+  clearTimeout(_nxResumeTimer);
   _nxSpeakGen++;
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
   _nxTTSQueue=[];
   _nxTTSBusy=false;
+  _nxPlayingChunk=null;
+  if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
   if(typeof PttMic !== 'undefined'){
     document.querySelectorAll('[data-ptt-mic]').forEach(function(b){ PttMic.reset(b); });
   }
 }
+
+function nexoraTryResumeSpeech(){
+  if(_nxSending || !_nx.active) return;
+  if(_nxTTSQueue.length || _nxPlayingChunk) _nxTTSFlush();
+}
+
+function nexoraCancelSpeech(){ nexoraHardCancelSpeech(); }
 
 function cleanForTTS(text){
   return prepareTtsLine(stripStageDirections(text));
@@ -2045,8 +2091,10 @@ function _nxTTSFlush(){
   _nxTTSBusy=true;
   var gen=_nxSpeakGen;
   var chunk=_nxTTSQueue.shift();
+  _nxPlayingChunk=chunk;
   var clean=prepareTtsLine(chunk);
   if(!nexoraReplyTtsReady(chunk)){
+    _nxPlayingChunk=null;
     if(_nxTTSQueue.length){
       _nxTTSQueue[0]=chunk+' '+_nxTTSQueue[0];
       _nxTTSBusy=false;
@@ -2062,10 +2110,11 @@ function _nxTTSFlush(){
     delete _nexoraTtsPrefetch[clean];
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(cached, {
-      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
+      onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
       onError: function(){
         window._nxAudio=null;
         _nxTTSQueue.unshift(chunk);
+        _nxPlayingChunk=null;
         _nxTTSBusy=false;
         setTimeout(_nxTTSFlush, 150);
       }
@@ -2081,19 +2130,21 @@ function _nxTTSFlush(){
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxTTSBusy=false; setTimeout(_nxTTSFlush, 180); return; }
+    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxPlayingChunk=chunk; _nxTTSBusy=false; setTimeout(_nxTTSFlush, 180); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(b, {
-      onEnded: function(){ window._nxAudio=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
+      onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
       onError: function(){
         window._nxAudio=null;
         _nxTTSQueue.unshift(chunk);
+        _nxPlayingChunk=null;
         _nxTTSBusy=false;
         setTimeout(_nxTTSFlush, 150);
       }
     });
   }).catch(function(){
     _nxTTSQueue.unshift(chunk);
+    _nxPlayingChunk=chunk;
     _nxTTSBusy=false;
     setTimeout(_nxTTSFlush, 180);
   });
@@ -2101,8 +2152,10 @@ function _nxTTSFlush(){
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
 function speak(text){
   if(!text) return;
-  nexoraCancelSpeech();
+  nexoraHardCancelSpeech();
+  NexoraStreamVoice.beginTurn();
   ttsSpeakLines(text, 900).forEach(function(chunk){ queueSpeak(chunk); });
+  NexoraStreamVoice.endTurn();
 }
 
 // ── MIC (PTT) ───────────────────────────────────────────────────────
@@ -2114,10 +2167,29 @@ function bindAllNexoraPttMics(){
       PttMic.bind({
         btn: btn,
         lang: 'en-US',
-        canStart: function(){ return _nx.active && !_nxSending; },
-        onBeforeStart: function(){ nexoraCancelSpeech(); },
-        onUi: function(listening){ btn.classList.toggle('listening', !!listening); },
-        onSend: function(text){ if(text) sendToAlice(text); }
+        canStart: function(){
+          if(!_nx.active) return false;
+          if(!_nxSending) return true;
+          return nexoraIsSpeaking();
+        },
+        onBeforeStart: function(){ nexoraPauseSpeech(); },
+        onUi: function(listening){
+          btn.classList.toggle('listening', !!listening);
+          if(!listening){
+            clearTimeout(_nxResumeTimer);
+            _nxResumeTimer=setTimeout(function(){
+              _nxResumeTimer=null;
+              if(!_nxSending) nexoraTryResumeSpeech();
+            }, 320);
+          }
+        },
+        onSend: function(text){
+          clearTimeout(_nxResumeTimer);
+          if(text){
+            nexoraHardCancelSpeech();
+            sendToAlice(text);
+          }
+        }
       });
     } catch(e) { btn._pttBound = false; console.warn('Nexora PTT bind:', e); }
   });
