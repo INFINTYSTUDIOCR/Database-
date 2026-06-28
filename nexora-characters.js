@@ -26,10 +26,90 @@ function pickNextNexoraCharacter(){
   return JSON.parse(JSON.stringify(ch));
 }
 
+function resolveNexoraIssueType(scenario, profile) {
+  if (profile && profile.issueType) return profile.issueType;
+  if (scenario && scenario.issueType) return scenario.issueType;
+  return inferNexoraIssueType(scenario || {});
+}
+
+function nexoraScenarioBlob(scenario, profile) {
+  return (String((scenario && scenario.title) || '') + ' ' + String((scenario && scenario.desc) || '') + ' ' + String((profile && profile.issueSummary) || '')).toLowerCase();
+}
+
+function isAccessLockoutIssue(issue, scenario, profile) {
+  if (issue === 'technical') return true;
+  var blob = nexoraScenarioBlob(scenario, profile);
+  return issue === 'security' && /lockout|locked out|cannot access|portal access|login attempt|password reset/.test(blob);
+}
+
+function buildCrmScenarioState(scenario, profile) {
+  var issue = resolveNexoraIssueType(scenario, profile);
+  var blob = nexoraScenarioBlob(scenario, profile);
+  var locked = isAccessLockoutIssue(issue, scenario, profile);
+  var cardBlocked = issue === 'security' && /card|fraud|block|purchase|travel|debit|atm/.test(blob);
+  var state = {
+    issueType: issue,
+    sidebarStatus: 'Active',
+    sidebarIcon: 'ti-check',
+    sidebarBadgeClass: 'badge-active',
+    onlineAccess: {
+      label: 'Online banking',
+      status: locked ? 'Locked' : 'Active',
+      detail: locked ? 'Locked after failed login attempts · 2 days ago' : 'Last login: 3 days ago',
+      badgeClass: locked ? 'badge-locked' : 'badge-active'
+    },
+    showAccessTab: locked || cardBlocked || issue === 'security',
+    cardAccess: cardBlocked ? {
+      label: 'Debit card',
+      status: 'Blocked',
+      detail: 'Fraud hold — legitimate purchase flagged',
+      badgeClass: 'badge-locked'
+    } : null,
+    complianceNote: 'Verify identity and account ownership before changes.',
+    extraChanges: []
+  };
+
+  if (locked) {
+    state.sidebarStatus = 'Access locked';
+    state.sidebarIcon = 'ti-lock';
+    state.sidebarBadgeClass = 'badge-locked';
+    state.complianceNote = 'Verify identity before password reset or account unlock.';
+    state.extraChanges.push({ when: '2 days ago', what: 'Online access locked — failed login threshold', by: 'Security system' });
+  } else if (issue === 'security') {
+    state.sidebarStatus = 'Security alert';
+    state.sidebarIcon = 'ti-shield-exclamation';
+    state.sidebarBadgeClass = 'badge-warn';
+    state.complianceNote = 'Review security alerts and verify identity before account changes.';
+    state.extraChanges.push({ when: '1 day ago', what: 'Security alert triggered — review required', by: 'Fraud monitoring' });
+  } else if (issue === 'late_fee' || issue === 'billing_dispute') {
+    state.complianceNote = 'Verify identity and account ownership before fee reversals or disputes.';
+  } else if (issue === 'cancellation') {
+    state.sidebarStatus = 'Pending cancellation';
+    state.sidebarIcon = 'ti-clock';
+    state.sidebarBadgeClass = 'badge-warn';
+  }
+
+  return state;
+}
+
+function syncProfileWithScenario(p, scenario) {
+  if (!p) return p;
+  if (scenario) {
+    p.issueType = resolveNexoraIssueType(scenario, p);
+    p.scenario = scenario;
+  }
+  p.crmState = buildCrmScenarioState(scenario, p);
+  if (scenario) {
+    p.issueSummary = (scenario.title || 'Customer issue') + (scenario.desc ? ' — ' + scenario.desc : '');
+    p.crmIssueSummary = p.issueSummary;
+  }
+  return p;
+}
+
 function applyScenarioBillingToProfile(p, scenario) {
   if (!p) return p;
   if (p.billingNotes && p.billingNotes.length && p.issueType) {
-    p.crmIssueSummary = (scenario && scenario.title ? scenario.title : 'Customer issue') + (scenario && scenario.desc ? ' — ' + scenario.desc : '');
+    syncProfileWithScenario(p, scenario);
     return p;
   }
   p.billingNotes = [];
@@ -132,6 +212,7 @@ function applyScenarioBillingToProfile(p, scenario) {
 
   p.issueSummary = (scenario.title || 'Customer issue') + (scenario.desc ? ' — ' + scenario.desc : '');
   p.crmIssueSummary = p.issueSummary;
+  syncProfileWithScenario(p, scenario);
   return p;
 }
 
@@ -143,7 +224,7 @@ function inferNexoraIssueType(scenario) {
   if (id === 'cs4' || /refund/.test(blob)) return 'refund';
   if (id === 'cs2' || /cancellation|cancel/.test(blob)) return 'cancellation';
   if (id === 'cs6' || /security|unauthorized|fraud/.test(blob)) return 'security';
-  if (id === 'cs3' || /technical|cannot access|login|portal/.test(blob)) return 'technical';
+  if (id === 'cs3' || /lockout|locked out|cannot access|login|portal|access failure/.test(blob)) return 'technical';
   if (id === 'cs8' || /upgrade/.test(blob)) return 'upgrade';
   if (id === 'cs5' || /complaint escalation|escalat/.test(blob)) return 'complaint_escalation';
   if (id === 'cs9' || /vip/.test(blob)) return 'vip_complaint';
@@ -165,7 +246,11 @@ function buildNexoraProfileFromCharacter(base, scenario){
   var p = JSON.parse(JSON.stringify(base));
   p.name = p.firstName + ' ' + p.lastName;
   p.status = 'Active';
+  if (typeof assignNexoraProfile === 'function') assignNexoraProfile(p);
+  else if (typeof ensureProfileVoiceCongruency === 'function') ensureProfileVoiceCongruency(p);
+  else if (typeof syncNexoraVoiceWithName === 'function') syncNexoraVoiceWithName(p);
   applyScenarioBillingToProfile(p, scenario);
+  syncProfileWithScenario(p, scenario);
   p.scenario = scenario;
   p.generatedAt = new Date().toISOString();
   p.total = (p.services || []).reduce(function(s, x) {

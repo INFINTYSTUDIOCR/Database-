@@ -6,7 +6,8 @@
 <title>Nexora — Operational Simulation Lab</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="infinity-auth.js"></script>
-<script src="nexora-profile.js"></script>
+<script src="nexora-profile.js?v=voice-sync-6"></script>
+<script src="js/nexora-voice-lock.js?v=6"></script>
 <script src="nexora-characters.js"></script>
 <script src="js/tts-chunks.js"></script>
 <script src="js/nexora-industry-map.js"></script>
@@ -100,6 +101,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 .svc-desc{font-size:11px;color:var(--t3);}
 .svc-price{font-size:14px;font-weight:700;color:var(--navy);margin-right:8px;}
 .badge-active{background:#DCFCE7;color:#16A34A;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-warn{background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-locked{background:#FEE2E2;color:#DC2626;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
 .add-svc-btn{display:inline-flex;align-items:center;gap:6px;background:var(--nl);color:var(--navy);padding:8px 14px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;margin-top:4px;}
 
 /* BILLING */
@@ -227,7 +230,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
     <div class="sidebar-header">
       <div class="client-name-big" id="cl-name">—</div>
       <div class="client-acct-sm" id="cl-acct">—</div>
-      <div class="status-pill"><i class="ti ti-check" style="font-size:10px;"></i>Active</div>
+      <div class="status-pill" id="cl-status-pill"><i class="ti ti-check" style="font-size:10px;"></i><span id="cl-status-text">Active</span></div>
     <div id="cl-accent-badge" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
     </div>
     <div class="sidebar-body">
@@ -467,6 +470,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 
 <script>
 // ── NEXORA DATA ────────────────────────────────────────────────
+(function(){
+  var VOICE_SYNC_VERSION='6';
+  try{
+    if(localStorage.getItem('nexora_voice_sync_v')!==VOICE_SYNC_VERSION){
+      localStorage.setItem('nexora_voice_sync_v',VOICE_SYNC_VERSION);
+      sessionStorage.removeItem('nexora_lab_runtime');
+    }
+  }catch(e){}
+})();
 
 // ── NEXORA VOICE POOL (see nexora-profile.js) ─────────────────
 
@@ -478,16 +490,30 @@ function nexoraAccentKey(accent){
   return m ? m[1].toLowerCase().replace('latina','latino') : 'american';
 }
 function nexoraVoiceIdsForProfile(profile){
-  var ids = [];
-  if(profile && profile.voiceId) ids.push(profile.voiceId);
-  if(typeof pickNexoraVoiceForProfile === 'function'){
-    var v = pickNexoraVoiceForProfile(profile);
-    if(v && v.id && ids.indexOf(v.id) < 0) ids.push(v.id);
+  if(typeof nexoraVoiceIdsForProfileLocked==='function') return nexoraVoiceIdsForProfileLocked(profile);
+  if(typeof ensureNexoraClientVoice==='function'&&profile) ensureNexoraClientVoice(profile);
+  var ids=[];
+  if(typeof resolveNexoraTtsVoiceId==='function'&&profile) ids.push(resolveNexoraTtsVoiceId(profile));
+  else if(typeof pickNexoraVoiceForProfile==='function'){
+    var v=pickNexoraVoiceForProfile(profile);
+    if(v&&v.id) ids.push(v.id);
   }
-  if(typeof NEXORA_TTS_FALLBACKS !== 'undefined'){
-    NEXORA_TTS_FALLBACKS.forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); });
-  }
-  return ids.length ? ids : ['r1KmysJdVYZjJCm4mL3b'];
+  var female=profile&&profile.gender==='female';
+  var fallbacks=female?['r1KmysJdVYZjJCm4mL3b','NoOVOzCQFLOvtsMoNcdT']:['bfGb7JTLUnZebZRiFYyq'];
+  fallbacks.forEach(function(id){ if(ids.indexOf(id)<0) ids.push(id); });
+  return ids.length?ids:['r1KmysJdVYZjJCm4mL3b'];
+}
+
+function nexoraTtsPayload(text, profile){
+  if(typeof assignNexoraProfile==='function') assignNexoraProfile(profile);
+  var voiceId=(typeof resolveNexoraTtsVoiceId==='function'&&profile)
+    ? resolveNexoraTtsVoiceId(profile)
+    : (nexoraVoiceIdsForProfile(profile||{})[0]||'r1KmysJdVYZjJCm4mL3b');
+  return {
+    text:text,
+    voiceId:voiceId,
+    firstName:(profile&&profile.firstName)||''
+  };
 }
 
 var NAMES_F=['Margaret','Sofia','Patricia','Linda','Jennifer','Amanda','Sarah','Elizabeth','Karen','Lisa','Rachel','Sandra'];
@@ -614,11 +640,19 @@ function buildScenarioFromConfig(nxConfig, variantIndex){
 }
 
 var _crmTabsDefaultHtml=null;
+var _crmTabContentDefaultHtml=null;
 function resetCRMTabs(){
   var tabs=document.querySelector('#crm-main .tabs');
   if(!tabs) return;
   if(!_crmTabsDefaultHtml) _crmTabsDefaultHtml=tabs.innerHTML;
   tabs.innerHTML=_crmTabsDefaultHtml;
+  var accessTab=document.getElementById('tab-access');
+  if(accessTab) accessTab.remove();
+  var tabContent=document.querySelector('#crm-main .tab-content');
+  if(tabContent){
+    if(!_crmTabContentDefaultHtml) _crmTabContentDefaultHtml=tabContent.innerHTML;
+    tabContent.innerHTML=_crmTabContentDefaultHtml;
+  }
 }
 
 function loadNexoraEngineConfig(){
@@ -719,7 +753,10 @@ function genProfile(sc){
     var p=JSON.parse(JSON.stringify(sc.profileSeed));
     p.name=p.firstName+' '+p.lastName;
     p.scenario=sc;
-    p.crmIssueSummary=(sc.title||'Customer issue')+(sc.desc?' — '+sc.desc:'');
+    if(typeof assignNexoraProfile==='function') assignNexoraProfile(p);
+    if(!p.issueType && sc.issueType) p.issueType=sc.issueType;
+    if(!p.billingNotes || !p.billingNotes.length) applyScenarioBillingToProfile(p, sc);
+    else syncProfileWithScenario(p, sc);
     p.total=(p.services||[]).reduce(function(s,x){return s+parseFloat(String(x.price||'').replace(/[^0-9.]/g,'')||0);},0);
     return p;
   }
@@ -745,6 +782,8 @@ function genProfile(sc){
     memberSince:msince,services:svcs,
     gender:id.gender,ethnicity:id.ethnicity,voiceId:id.voiceId,voiceAccent:id.voiceAccent};
   applyScenarioBillingToProfile(profile, sc);
+  syncProfileWithScenario(profile, sc);
+  if(typeof assignNexoraProfile==='function') assignNexoraProfile(profile);
   profile.total=svcs.reduce(function(s,x){return s+parseFloat(x.price.replace(/[^0-9.]/g,'')||0);},0);
   return profile;
 }
@@ -832,6 +871,7 @@ function restoreNexoraLabRuntime(){
     var nxConfig=loadNexoraEngineConfig();
     if(!scenarioMatchesConfig(s.scenario,nxConfig)) return false;
     _nx.profile=s.profile; _nx.scenario=s.scenario;
+    if(typeof assignNexoraProfile==='function') assignNexoraProfile(_nx.profile);
     _nx.history=s.history||[]; _nx.transcript=s.transcript||[];
     _nx.talkSecs=s.talkSecs||0; _nx.holdEvents=s.holdEvents||[];
     _nx.onHold=!!s.onHold; _nx.active=true;
@@ -888,6 +928,7 @@ function nexoraAutoIn(){
     _nx.scenario=sc;
   }
   _nx.profile=genProfile(sc);
+  if(typeof assignNexoraProfile==='function') assignNexoraProfile(_nx.profile);
   _nx.profiles.push(_nx.profile);
   _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.talkSecs=0;_nx.onHold=false;
   document.getElementById('autoin-screen').style.display='none';
@@ -965,6 +1006,7 @@ function searchPhone(){
 
 // ── LOAD CRM ──────────────────────────────────────────────────
 function loadCRM(p){
+  if(typeof assignNexoraProfile==='function') assignNexoraProfile(p);
   document.getElementById('empty-state').style.display='none';
   document.getElementById('crm-main').style.display='grid';
   // Sidebar
@@ -1570,6 +1612,76 @@ function crmRenameTabs(map){
   });
 }
 
+function crmStatusBadgeHtml(label, badgeClass){
+  return '<div class="svc-price '+badgeClass+'">'+label+'</div>';
+}
+
+function crmAccessTabHtml(sc, p){
+  var st=p.crmState||buildCrmScenarioState(sc,p);
+  var rows='';
+  if(st.onlineAccess){
+    rows+='<div class="service-item"><div class="svc-icon"><i class="ti ti-world"></i></div>'
+      +'<div class="svc-info"><div class="svc-name">'+st.onlineAccess.label+'</div><div class="svc-sub">'+st.onlineAccess.detail+'</div></div>'
+      +crmStatusBadgeHtml(st.onlineAccess.status, st.onlineAccess.badgeClass)+'</div>';
+  }
+  if(st.cardAccess){
+    rows+='<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card-off"></i></div>'
+      +'<div class="svc-info"><div class="svc-name">'+st.cardAccess.label+'</div><div class="svc-sub">'+st.cardAccess.detail+'</div></div>'
+      +crmStatusBadgeHtml(st.cardAccess.status, st.cardAccess.badgeClass)+'</div>';
+  }
+  if((p.billingNotes||[]).length){
+    p.billingNotes.forEach(function(n){
+      if(n.type==='alert'||n.type==='ticket'){
+        rows+='<div class="service-item"><div class="svc-icon"><i class="ti ti-alert-triangle"></i></div>'
+          +'<div class="svc-info"><div class="svc-name">'+n.label+'</div><div class="svc-sub">'+n.note+' · '+n.date+'</div></div>'
+          +crmStatusBadgeHtml('Open', 'badge-warn')+'</div>';
+      }
+    });
+  }
+  return '<div class="section-title">Security & Access</div>'+rows
+    +'<div class="billing-row"><span>Failed login attempts</span><span>'+(st.onlineAccess&&st.onlineAccess.status==='Locked'?'5 (threshold reached)':'0')+'</span></div>'
+    +'<div class="billing-row"><span>Unlock available</span><span style="color:var(--green);">After identity verification</span></div>';
+}
+
+function applyCrmScenarioVisuals(sc, p){
+  if(!p) return;
+  syncProfileWithScenario(p, sc);
+  var st=p.crmState||buildCrmScenarioState(sc,p);
+  var pill=document.getElementById('cl-status-pill');
+  var pillText=document.getElementById('cl-status-text');
+  if(pill){
+    pill.innerHTML='<i class="ti '+st.sidebarIcon+'" style="font-size:10px;"></i><span id="cl-status-text">'+st.sidebarStatus+'</span>';
+  } else if(pillText){
+    pillText.textContent=st.sidebarStatus;
+  }
+  var tabs=document.querySelector('#crm-main .tabs');
+  var tabContent=document.querySelector('#crm-main .tab-content');
+  if(st.showAccessTab && tabs && tabContent && !document.getElementById('tab-access-btn')){
+    var notesTab=Array.prototype.find.call(tabs.querySelectorAll('.tab'), function(t){ return /notes|account notes|support notes|medical notes|advisor notes/i.test(t.textContent); });
+    var accessBtn=document.createElement('div');
+    accessBtn.className='tab';
+    accessBtn.id='tab-access-btn';
+    accessBtn.onclick=function(){ switchTab('access', accessBtn); };
+    accessBtn.innerHTML='<i class="ti ti-shield-lock"></i>Security & Access';
+    if(notesTab) tabs.insertBefore(accessBtn, notesTab);
+    else tabs.appendChild(accessBtn);
+    var pane=document.createElement('div');
+    pane.className='tab-pane';
+    pane.id='tab-access';
+    pane.innerHTML=crmAccessTabHtml(sc,p);
+    tabContent.appendChild(pane);
+  }
+  if(st.extraChanges&&st.extraChanges.length){
+    var changes=document.getElementById('changes-content');
+    if(changes){
+      changes.innerHTML=st.extraChanges.map(function(r){
+        return '<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--gl);font-size:12px;">'
+          +'<div><div style="font-weight:700;">'+r.what+'</div><div style="color:var(--t3);">'+r.when+' · '+r.by+'</div></div></div>';
+      }).join('')+changes.innerHTML;
+    }
+  }
+}
+
 function getCRMByIndustry(sc, p){
   var nxConfig=loadNexoraEngineConfig();
   var industry=crmIndustryFromConfig(nxConfig);
@@ -1593,16 +1705,32 @@ function getCRMByIndustry(sc, p){
 
   } else if(industry==='Finance'){
     crmRenameTabs({'Services':'Accounts & Products','Billing':'Statements','Payment methods':'Payment','Notes':'Account Notes'});
+    var st=p.crmState||buildCrmScenarioState(sc,p);
+    var acctBadge=st.onlineAccess&&st.onlineAccess.status==='Locked'?'badge-locked':'badge-active';
+    var acctLabel=st.onlineAccess&&st.onlineAccess.status==='Locked'?'Locked':'Active';
     document.getElementById('tab-services').innerHTML=
       '<div class="section-title">Financial Accounts</div>'
-      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">Primary Account</div><div class="svc-sub">'+p.account+' · Relationship reviewed</div></div><div class="svc-price badge-active">Active</div></div>'
-      +(p.services||[]).map(function(s){return '<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div><div class="svc-price badge-active">Active</div></div>';}).join('');
+      +'<div class="service-item"><div class="svc-icon"><i class="ti ti-building-bank"></i></div><div class="svc-info"><div class="svc-name">Primary Account</div><div class="svc-sub">'+p.account+' · Relationship reviewed</div></div>'
+      +crmStatusBadgeHtml(acctLabel, acctBadge)+'</div>'
+      +(p.services||[]).map(function(s){
+        var svcBadge='badge-active', svcLabel='Active';
+        if(st.cardAccess&&/card|debit|credit/i.test(s.name)){
+          svcBadge=st.cardAccess.badgeClass; svcLabel=st.cardAccess.status;
+        }
+        return '<div class="service-item"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">'+s.name+'</div><div class="svc-sub">'+s.price+'/mo</div></div>'
+          +crmStatusBadgeHtml(svcLabel, svcBadge)+'</div>';
+      }).join('')
+      +(st.showAccessTab?('<div class="service-item"><div class="svc-icon"><i class="ti ti-world"></i></div><div class="svc-info"><div class="svc-name">'+st.onlineAccess.label+'</div><div class="svc-sub">'+st.onlineAccess.detail+'</div></div>'
+        +crmStatusBadgeHtml(st.onlineAccess.status, st.onlineAccess.badgeClass)+'</div>'):'');
     document.getElementById('billing-content').innerHTML=
       '<div class="billing-total">Monthly total: $'+p.total.toFixed(2)+'</div>'
       +'<div class="billing-row"><span>Last payment</span><span style="color:var(--green);">Received</span></div>';
+    var payBadge=st.cardAccess?'badge-locked':'badge-active';
+    var payLabel=st.cardAccess?st.cardAccess.status:'Active';
+    var payDesc=st.cardAccess?st.cardAccess.detail:'Primary payment method';
     document.getElementById('payments-content').innerHTML=
-      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">Primary payment method</div></div><span class="badge-active">Active</span></div>';
-    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Compliance</div><div class="note-text">Verify identity and account ownership before fee reversals or disputes.</div></div>');
+      '<div class="svc-card"><div class="svc-icon"><i class="ti ti-credit-card"></i></div><div class="svc-info"><div class="svc-name">Visa ending in '+p.ssn4+'</div><div class="svc-desc">'+payDesc+'</div></div><span class="'+payBadge+'">'+payLabel+'</span></div>';
+    document.getElementById('notes-list').innerHTML=crmNotesHtml(sc,p,'<div class="note-card"><div class="note-date">Compliance</div><div class="note-text">'+(st.complianceNote||'Verify identity before account changes.')+'</div></div>');
     document.getElementById('changes-content').innerHTML=crmChangesHtml(sc,p);
 
   } else if(industry==='Corporate'){
@@ -1692,6 +1820,7 @@ function getCRMByIndustry(sc, p){
     }
   }
   appendCrmScenarioContext(sc, p);
+  applyCrmScenarioVisuals(sc, p);
 }
 
 
@@ -1962,7 +2091,12 @@ function buildNexoraPayload(message, history, p, sc){
       name:p.name,account:p.account,
       services:(p.services||[]).map(function(s){return s.name+(s.price?' '+s.price:'');}),
       billingAlerts:p.billingNotes||[],
-      disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null
+      disputeAmount:p.disputeAmount||null,lateFee:p.lateFee||null,refundAmount:p.refundAmount||null,
+      issueType:(p.issueType||(sc&&sc.issueType)||null),
+      issueTitle:(sc&&sc.title)||null,
+      issueDesc:(sc&&sc.desc)||null,
+      onlineAccessLocked:!!(p.crmState&&p.crmState.onlineAccess&&p.crmState.onlineAccess.status==='Locked'),
+      cardBlocked:!!(p.crmState&&p.crmState.cardAccess)
     }
   };
   if(student) payload.student=student;
@@ -1970,9 +2104,12 @@ function buildNexoraPayload(message, history, p, sc){
 }
 
 function nexoraInstantOpening(p, sc){
-  var issue = (p && p.issueType) || (sc && sc.issueType) || (typeof inferNexoraIssueType === 'function' ? inferNexoraIssueType(sc || {}) : 'general');
+  var issue = resolveNexoraIssueType(sc, p);
   var title = (sc && sc.title) || 'my account';
   var desc = (sc && sc.desc) || '';
+  if (isAccessLockoutIssue(issue, sc, p)) {
+    return "Hello, I can't access my account online and I've been locked out for two days.";
+  }
   switch (issue) {
     case 'billing_dispute':
       return "Hi, I'm calling because there's a charge of "+(p.disputeAmount||'an unexpected amount')+" on my account that I don't recognize.";
@@ -2034,25 +2171,9 @@ async function aliceEnter(){
   if(st) st.textContent='';
   _nx.history.push({role:'assistant',content:opener});
   _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+opener);
-  try{
-    NexoraStreamVoice.beginTurn();
-    var nxSan=function(raw){ return sanitizeNexoraReply(String(raw||''), p); };
-    var fullRaw=await nexoraGetReply(buildNexoraPayload('START_CALL',[],p,sc), function(partial){
-      NexoraStreamVoice.feed(partial, nxSan, queueSpeak, nexoraPrefetchTTS);
-    });
-    var reply=sanitizeNexoraReply(fullRaw||'', p);
-    var finalLine=(reply && reply.length > 15) ? reply : opener;
-    if(reply && reply.length > 15 && reply !== opener){
-      _nx.history[_nx.history.length-1]={role:'assistant',content:reply};
-      _nx.transcript[_nx.transcript.length-1]='CLIENT ('+(p.firstName||'Client')+'): '+reply;
-    }
-    NexoraStreamVoice.finalize(fullRaw||finalLine, nxSan, queueSpeak, nexoraPrefetchTTS);
-    if(!_nxTTSQueue.length && !_nxTTSBusy && (isCompleteSpokenLine(finalLine) || nexoraReplyTtsReady(finalLine))) queueSpeak(prepareTtsLine(finalLine));
-    else if(!_nxTTSQueue.length && !nexoraReplyTtsReady(finalLine)) showToast('Client line was cut short — ask them to repeat.');
-  }catch(e){
-    if(nexoraReplyTtsReady(opener)) speak(opener);
-    else showToast('Could not connect AI client — try speaking again.');
-  }
+  saveNexoraLabRuntime();
+  if(isCompleteSpokenLine(opener) || nexoraReplyTtsReady(opener)) speak(prepareTtsLine(opener));
+  else showToast('Client line was cut short — ask them to repeat.');
 }
 
 var _nxSending=false;
@@ -2113,16 +2234,19 @@ var _nexoraTtsPrefetch={};
 
 function nexoraPrefetchTTS(text){
   var clean=prepareTtsLine(text);
-  if(clean.length<12||_nexoraTtsPrefetch[clean]) return;
-  _nexoraTtsPrefetch[clean]='loading';
-  var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
+  if(clean.length<12) return;
+  if(typeof lockVoiceForProfile==='function') lockVoiceForProfile(_nx.profile||{});
+  var ttsBody=nexoraTtsPayload(clean,_nx.profile||{});
+  var cacheKey=ttsBody.voiceId+':'+clean;
+  if(_nexoraTtsPrefetch[cacheKey]) return;
+  _nexoraTtsPrefetch[cacheKey]='loading';
   var ttsPromise=isNexoraPublicDemo()
-    ? fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})})
-    : infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})});
+    ? fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ttsBody)})
+    : infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify(ttsBody)});
   ttsPromise
   .then(function(r){ return r.ok ? r.blob() : null; })
-  .then(function(b){ if(b) _nexoraTtsPrefetch[clean]=b; else delete _nexoraTtsPrefetch[clean]; })
-  .catch(function(){ delete _nexoraTtsPrefetch[clean]; });
+  .then(function(b){ if(b) _nexoraTtsPrefetch[cacheKey]=b; else delete _nexoraTtsPrefetch[cacheKey]; })
+  .catch(function(){ delete _nexoraTtsPrefetch[cacheKey]; });
 }
 
 function nexoraPauseSpeech(){
@@ -2176,10 +2300,11 @@ function _nxTTSFlush(){
     _nxTTSBusy=false;
     return;
   }
-  var voiceId=(nexoraVoiceIdsForProfile(_nx.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b';
-  var cached=_nexoraTtsPrefetch[clean];
+  var ttsBody=nexoraTtsPayload(clean,_nx.profile||{});
+  var cacheKey=ttsBody.voiceId+':'+clean;
+  var cached=_nexoraTtsPrefetch[cacheKey];
   if(cached && cached!=='loading'){
-    delete _nexoraTtsPrefetch[clean];
+    delete _nexoraTtsPrefetch[cacheKey];
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(cached, {
       onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
@@ -2195,9 +2320,9 @@ function _nxTTSFlush(){
   }
   var ttsPromise;
   if(isNexoraPublicDemo()){
-    ttsPromise=fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean,voiceId:voiceId})});
+    ttsPromise=fetch(ALICE_BACKEND+'/demo/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ttsBody)});
   } else {
-    ttsPromise=infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:voiceId})});
+    ttsPromise=infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify(ttsBody)});
   }
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})

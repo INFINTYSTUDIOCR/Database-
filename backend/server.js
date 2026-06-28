@@ -528,8 +528,56 @@ function getDemoTtsAllowlist() {
     ALICE_VOICE_ID, JILL_VOICE_ID, CLAIRE_VOICE_ID,
     p.nexora_star.voiceId, p.nexora_cs.voiceId,
     nd.star_interviewer?.voiceId,
-    nd.cs_client?.voiceId
+    nd.cs_client?.voiceId,
+    'r1KmysJdVYZjJCm4mL3b', 'NoOVOzCQFLOvtsMoNcdT', 'bfGb7JTLUnZebZRiFYyq',
+    '1a0nAYA3FcNQcMMfbddY', 'NyZqLdjqUb8SpOUKIlWT', 'ztyYYqlYMny7nllhThgo',
+    'NIkIuJZ8oQMuKZqwKtnm', '8WqHCYyrnUqoK70Px5EJ', 'b4XCIIupgo5eH7TxhBNk'
   ].filter(Boolean));
+}
+
+const NEXORA_MALE_VOICE_IDS = new Set([
+  'bfGb7JTLUnZebZRiFYyq', 'eVKQybPTL0poBPxBa8L6', '8WqHCYyrnUqoK70Px5EJ',
+  'b4XCIIupgo5eH7TxhBNk', 'Xh5OictnmgRO4dff7pLm', 'NIkIuJZ8oQMuKZqwKtnm', 'IP2syKL31S2JthzSSfZH'
+]);
+const NEXORA_FEMALE_VOICE_IDS = new Set([
+  'r1KmysJdVYZjJCm4mL3b', 'NoOVOzCQFLOvtsMoNcdT', 'KeMlo4IJd6GMKdqA5lLY',
+  'NyZqLdjqUb8SpOUKIlWT', 'ztyYYqlYMny7nllhThgo', 'J60xcCIM7ET7HMi7hMZu',
+  '1a0nAYA3FcNQcMMfbddY', 'k6aNMn2EN3T8vpJSBhQw'
+]);
+const NEXORA_FEMALE_FIRST_NAMES = new Set([
+  'Sarah', 'Jennifer', 'Elizabeth', 'Margaret', 'Emily', 'Ashley', 'Karen', 'Lisa',
+  'Amanda', 'Patricia', 'Linda', 'Rachel', 'Sandra', 'Jessica', 'Nicole', 'Maria',
+  'Diana', 'Victoria', 'Elena', 'Hannah', 'Olivia', 'Emma', 'Priya', 'Ananya',
+  'Sofia', 'Michelle', 'Angela', 'Laura', 'Rebecca', 'Stephanie', 'Melissa',
+  'Deborah', 'Nancy', 'Susan', 'Chloe', 'Grace', 'Natalie', 'Brooke', 'Charlotte',
+  'Sophie', 'Natasha', 'Olga', 'Irina', 'Mei', 'Li', 'Yan', 'Greta', 'Lena',
+  'Camila', 'Lucia', 'Valentina', 'Neha', 'Deepa', 'Katya', 'Anya', 'Anna'
+]);
+const NEXORA_MALE_FIRST_NAMES = new Set([
+  'James', 'Michael', 'William', 'David', 'Robert', 'John', 'Brian', 'Kevin',
+  'Mark', 'Steven', 'Daniel', 'Christopher', 'Carlos', 'Raj', 'Arjun', 'Vikram',
+  'Oliver', 'Harry', 'George', 'Jack', 'Thomas', 'Wei', 'Jun', 'Miguel', 'Diego',
+  'Luis', 'Pablo', 'Andres', 'Hans', 'Klaus', 'Dmitri', 'Ivan', 'Aiden', 'Ethan',
+  'Noah', 'Liam', 'Jacob', 'Nathan', 'Tyler', 'Ryan', 'Eric', 'Adam', 'Jason',
+  'Andrew', 'Joshua', 'Benjamin', 'Samuel', 'Gabriel', 'Lucas', 'Henry', 'Leo'
+]);
+
+function enforceNexoraTtsVoice(firstName, voiceId) {
+  const first = String(firstName || '').trim().split(/\s+/)[0];
+  if (!first) return voiceId;
+  const female = NEXORA_FEMALE_FIRST_NAMES.has(first);
+  const male = NEXORA_MALE_FIRST_NAMES.has(first);
+  const vid = String(voiceId || '').trim();
+  if (female) {
+    if (!vid || NEXORA_MALE_VOICE_IDS.has(vid)) {
+      return process.env.NEXORA_DEMO_FEMALE_VOICE_ID || JILL_VOICE_ID || ALICE_VOICE_ID;
+    }
+    return vid;
+  }
+  if (male && NEXORA_FEMALE_VOICE_IDS.has(vid)) {
+    return process.env.NEXORA_DEMO_MALE_VOICE_ID || 'bfGb7JTLUnZebZRiFYyq';
+  }
+  return vid || voiceId;
 }
 
 function getDemoVoiceProfileFor(service, scenario) {
@@ -1207,7 +1255,8 @@ app.get('/demo/voices', (req, res) => {
 
 app.post('/demo/tts', async (req, res) => {
   try {
-    const { text, voiceId: bodyVoiceId } = req.body || {};
+    const { text, voiceId: bodyVoiceId, firstName } = req.body || {};
+    const voiceId = enforceNexoraTtsVoice(firstName, bodyVoiceId);
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
     if (!ipLimit.ok) {
@@ -1215,12 +1264,15 @@ app.post('/demo/tts', async (req, res) => {
     }
 
     const allowlist = getDemoTtsAllowlist();
-    if (!bodyVoiceId || !allowlist.has(bodyVoiceId)) {
-      return res.status(400).json({ error: 'Voice not allowed for demo. Use voiceId from GET /demo/voices (your ElevenLabs account only).' });
+    if (!voiceId || !allowlist.has(voiceId)) {
+      const fallback = NEXORA_FEMALE_FIRST_NAMES.has(String(firstName || '').trim().split(/\s+/)[0])
+        ? (JILL_VOICE_ID || ALICE_VOICE_ID)
+        : (getDemoVoiceProfiles().nexora_star?.voiceId || 'bfGb7JTLUnZebZRiFYyq');
+      return await synthesizeSpeech(req, res, { text, voiceId: fallback, label: 'Nexora demo' });
     }
 
-    const label = bodyVoiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
-    return await synthesizeSpeech(req, res, { text, voiceId: bodyVoiceId, label });
+    const label = voiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
+    return await synthesizeSpeech(req, res, { text, voiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
@@ -1298,6 +1350,11 @@ function buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext,
     if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
     if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
     if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: ${accountContext.refundAmount}`;
+    if (accountContext.issueType) accountDetails += `\n- Issue type (ONLY discuss this): ${accountContext.issueType}`;
+    if (accountContext.issueTitle) accountDetails += `\n- Call reason title: ${accountContext.issueTitle}`;
+    if (accountContext.issueDesc) accountDetails += `\n- Call reason detail: ${accountContext.issueDesc}`;
+    if (accountContext.onlineAccessLocked) accountDetails += `\n- Online banking access: LOCKED — client cannot log in`;
+    if (accountContext.cardBlocked) accountDetails += `\n- Card status: BLOCKED by fraud hold`;
   }
   const scType = sc.type || 'customer_service';
   let systemPrompt = '';
@@ -1424,11 +1481,20 @@ YOUR ROLE:
 - NEVER break character. You are evaluating ${agentName}'s patient communication skills.`;
   } else {
     const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'the client');
+    const issueType = accountContext?.issueType || sc.issueType || '';
+    const issueGuard = issueType
+      ? `\nISSUE ALIGNMENT (mandatory):
+- Your ONLY reason for calling is: ${sc.title} — ${sc.desc}
+- Issue type: ${issueType}. Do NOT change topics.
+- Do NOT mention account lockout, login problems, or portal access unless issue type is "technical" or online access is listed as LOCKED above.
+- Do NOT mention fees, charges, or billing disputes unless issue type is billing_dispute, late_fee, or amounts are listed above.
+- Do NOT invent problems that are not in YOUR ISSUE or account details above.`
+      : '';
     systemPrompt = `You are ${p.name || 'a customer'} (first name: ${clientFirst}), account ${p.account || 'unknown'}, calling customer service.
 
 YOUR ISSUE: ${sc.title} — ${sc.desc}
 YOUR MOOD: ${mood}
-${accountDetails}
+${accountDetails}${issueGuard}
 
 CRITICAL RULES:
 - Your name is ${p.name}. Your first name is ${clientFirst}. NEVER use any other name — not Sarah, Patricia, Linda, or any other name.
@@ -2803,10 +2869,11 @@ app.get('/nexora/characters', requireProductAuth, (req, res) => {
 // ── NEXORA VOICE PROFILES ─────────────────────────────────────
 app.post('/nexora-tts', requireProductAuth, async (req, res) => {
   try {
-    const { text, voiceId } = req.body || {};
+    const { text, voiceId, firstName } = req.body || {};
+    const resolved = enforceNexoraTtsVoice(firstName, voiceId || ALICE_VOICE_ID);
     return await synthesizeSpeech(req, res, {
       text,
-      voiceId: voiceId || ALICE_VOICE_ID,
+      voiceId: resolved,
       label: 'Nexora'
     });
   } catch (err) {
@@ -2909,6 +2976,11 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
       if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
       if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
       if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: $${accountContext.refundAmount}`;
+      if (accountContext.issueType) accountDetails += `\n- Issue type (ONLY discuss this): ${accountContext.issueType}`;
+      if (accountContext.issueTitle) accountDetails += `\n- Call reason title: ${accountContext.issueTitle}`;
+      if (accountContext.issueDesc) accountDetails += `\n- Call reason detail: ${accountContext.issueDesc}`;
+      if (accountContext.onlineAccessLocked) accountDetails += `\n- Online banking access: LOCKED — client cannot log in`;
+      if (accountContext.cardBlocked) accountDetails += `\n- Card status: BLOCKED by fraud hold`;
     }
 
     // Determine scenario type
@@ -3043,12 +3115,18 @@ YOUR ROLE:
     } else {
       // Default: customer service — compact prompt for speed
       const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'Client');
+      const issueType = accountContext?.issueType || sc.issueType || '';
       const extras = [
         p.disputeAmount ? 'Disputing ' + p.disputeAmount : '',
         p.lateFee ? 'Disputing late fee ' + p.lateFee : '',
-        p.refundAmount ? 'Refund $' + p.refundAmount : ''
+        p.refundAmount ? 'Refund $' + p.refundAmount : '',
+        accountContext?.onlineAccessLocked ? 'Online banking LOCKED' : '',
+        accountContext?.cardBlocked ? 'Card BLOCKED by fraud hold' : ''
       ].filter(Boolean).join('. ');
-      systemPrompt = `You are ${p.name} (${clientFirst}), the CUSTOMER on a live call. Issue: ${sc.title} — ${sc.desc}. Mood: ${sc.mood || 'frustrated'}. Account ${p.account || 'unknown'}.${extras ? ' ' + extras + '.' : ''} Rules: 1-2 short sentences. Never break character. Never tutor. Name is ${p.name} only. React to agent ${agentName || ''}.`;
+      const issueGuard = issueType
+        ? ` Issue type ${issueType} ONLY — do not change topics. No lockout talk unless technical/LOCKED. No fee talk unless billing_dispute/late_fee.`
+        : '';
+      systemPrompt = `You are ${p.name} (${clientFirst}), the CUSTOMER on a live call. Issue: ${sc.title} — ${sc.desc}. Mood: ${sc.mood || 'frustrated'}. Account ${p.account || 'unknown'}.${extras ? ' ' + extras + '.' : ''}${issueGuard} Rules: 1-2 short sentences. Never break character. Never tutor. Name is ${p.name} only. React to agent ${agentName || ''}.`;
     }
 
     const msgStr = String(message || '');

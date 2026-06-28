@@ -109,10 +109,31 @@
     Raj: 'indian', Arjun: 'indian', Vikram: 'indian', Priya: 'indian', Ananya: 'indian', Patel: 'indian',
     Dmitri: 'russian', Ivan: 'russian', Natasha: 'russian', Olga: 'russian', Irina: 'russian',
     Wei: 'chinese', Mei: 'chinese', Chen: 'chinese', Wang: 'chinese', Liu: 'chinese',
+    Hiro: 'chinese', Ken: 'chinese', Yuki: 'chinese', Min: 'chinese', Soo: 'chinese', Jin: 'chinese',
     Hans: 'german', Klaus: 'german', Anna: 'german', Greta: 'german', Mueller: 'german',
     Oliver: 'british', Harry: 'british', Emily: 'british', Charlotte: 'british',
     James: 'american', Michael: 'american', Sarah: 'american', Jennifer: 'american'
   };
+
+  // Scenario-bank first names (scripts/build-nexora-scenario-bank.mjs FIRST / FEMALE_FIRST)
+  var NEXORA_BANK_FEMALE = {
+    Margaret: 1, Sarah: 1, Elizabeth: 1, Jennifer: 1, Linda: 1, Patricia: 1, Sofia: 1, Lisa: 1,
+    Amanda: 1, Karen: 1, Priya: 1, Ananya: 1, Emily: 1, Jessica: 1, Ashley: 1, Nicole: 1, Stephanie: 1,
+    Rebecca: 1, Laura: 1, Angela: 1, Michelle: 1, Melissa: 1, Deborah: 1, Rachel: 1, Nancy: 1, Susan: 1,
+    Maria: 1, Diana: 1, Victoria: 1, Elena: 1, Hannah: 1, Olivia: 1, Emma: 1, Ava: 1, Mia: 1, Chloe: 1,
+    Grace: 1, Natalie: 1, Brooke: 1, Charlotte: 1, Sophie: 1, Natasha: 1, Olga: 1, Irina: 1, Mei: 1, Li: 1,
+    Yan: 1, Greta: 1, Lena: 1, Camila: 1, Lucia: 1, Valentina: 1, Neha: 1, Deepa: 1, Katya: 1, Anya: 1,
+    Anna: 1, Sabine: 1, Heike: 1, Katrin: 1, Ingrid: 1, Petra: 1, Monika: 1, Claudia: 1, Svetlana: 1,
+    Tatiana: 1, Marina: 1, Daria: 1, Fang: 1, Jing: 1, Hui: 1, Lan: 1, Xia: 1, Gabriela: 1, Daniela: 1,
+    Carmen: 1, Isabella: 1, Pooja: 1, Shreya: 1, Nisha: 1, Divya: 1, Meera: 1, Kavya: 1, Amelia: 1,
+    Kate: 1, Lucy: 1
+  };
+
+  function nexoraHashSeed(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
 
   function nexoraAccentKey(accent) {
     var s = String(accent || '').toLowerCase();
@@ -128,7 +149,14 @@
   }
 
   function pickNexoraVoiceForProfile(profile, femaleOverride) {
-    var female = (typeof femaleOverride === 'boolean') ? femaleOverride : (profile && profile.gender === 'female');
+    var female;
+    if (typeof femaleOverride === 'boolean') {
+      female = femaleOverride;
+    } else if (profile && profile.firstName) {
+      female = isFemaleFirstName(profile.firstName);
+    } else {
+      female = profile && profile.gender === 'female';
+    }
     var fullPool = female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
     var pool = nexoraVoicesForAccent(fullPool, (profile && profile.voiceAccent) || 'American');
     if (profile && profile.voiceId) {
@@ -136,7 +164,17 @@
         if (pool[i].id === profile.voiceId) return pool[i];
       }
     }
-    return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+    var seed = String((profile && profile.firstName) || '') + '|' + String((profile && profile.lastName) || '') + '|' + String((profile && profile.voiceAccent) || '');
+    var idx = nexoraHashSeed(seed) % pool.length;
+    return pool[idx] || pool[0];
+  }
+
+  function nexoraVoiceGenderMatchesProfile(profile, female) {
+    if (!profile || !profile.voiceAccent) return false;
+    var va = String(profile.voiceAccent);
+    var voiceFemale = va.indexOf('Female') >= 0 || va.indexOf('Latina') >= 0;
+    var voiceMale = va.indexOf('Male') >= 0 && !voiceFemale;
+    return female ? voiceFemale : voiceMale;
   }
 
   function nexoraEthnicityForFirstName(first) {
@@ -176,9 +214,65 @@
     return ethnicity === 'filipino' ? 'latino' : ethnicity;
   }
 
+  function isFemaleFirstName(first) {
+    if (!first) return false;
+    var fn = String(first).trim();
+    if (NEXORA_BANK_FEMALE[fn]) return true;
+    for (var eth in NEXORA_FIRST_NAMES) {
+      if (!NEXORA_FIRST_NAMES[eth]) continue;
+      if (NEXORA_FIRST_NAMES[eth].female.indexOf(fn) >= 0) return true;
+      if (NEXORA_FIRST_NAMES[eth].male.indexOf(fn) >= 0) return false;
+    }
+    if (global.isFemaleByName) return global.isFemaleByName(fn);
+    return false;
+  }
+
+  function isFemaleFullName(fullName) {
+    var p = parseNexoraFullName(fullName);
+    return isFemaleFirstName(p.firstName);
+  }
+
+  function syncNexoraVoiceWithName(profile) {
+    if (!profile || !profile.firstName) return profile;
+    var fullName = profile.name || (profile.firstName + ' ' + (profile.lastName || '')).trim();
+    var female = isFemaleFullName(fullName);
+    var expectedGender = female ? 'female' : 'male';
+    if (profile.gender === expectedGender && profile.voiceId && nexoraVoiceGenderMatchesProfile(profile, female)) {
+      if (!profile.ethnicity) profile.ethnicity = nexoraEthnicityForName(fullName);
+      return profile;
+    }
+    var id = buildNexoraIdentityFromName(fullName);
+    profile.gender = id.gender;
+    profile.voiceId = id.voiceId;
+    profile.voiceAccent = id.voiceAccent;
+    profile.ethnicity = id.ethnicity;
+    return profile;
+  }
+
+  function ensureNexoraClientVoice(profile) {
+    return assignNexoraProfile(profile);
+  }
+
+  /** Assign / fix profile identity: name → gender → voice (always congruent). */
+  function assignNexoraProfile(profile) {
+    if (!profile) return profile;
+    if (!profile.firstName && profile.name) {
+      var parsed = parseNexoraFullName(profile.name);
+      profile.firstName = parsed.firstName;
+      profile.lastName = parsed.lastName;
+      profile.name = parsed.name;
+    }
+    if (typeof global.ensureProfileVoiceCongruency === 'function') {
+      global.ensureProfileVoiceCongruency(profile);
+    } else {
+      syncNexoraVoiceWithName(profile);
+    }
+    return profile;
+  }
+
   function buildNexoraIdentityFromName(fullName) {
     var p = parseNexoraFullName(fullName);
-    var female = global.isFemaleByName ? global.isFemaleByName(fullName) : false;
+    var female = isFemaleFullName(fullName);
     var gender = female ? 'female' : 'male';
     var ethnicity = nexoraEthnicityForName(fullName);
     var voiceEth = nexoraVoiceEthnicity(ethnicity);
@@ -264,6 +358,10 @@
   global.nexoraEthnicityForName = nexoraEthnicityForName;
   global.buildNexoraIdentityFromName = buildNexoraIdentityFromName;
   global.applyNexoraIdentityFromName = applyNexoraIdentityFromName;
+  global.syncNexoraVoiceWithName = syncNexoraVoiceWithName;
+  global.ensureNexoraClientVoice = ensureNexoraClientVoice;
+  global.assignNexoraProfile = assignNexoraProfile;
+  global.isFemaleFirstName = isFemaleFirstName;
   global.getNexoraVoiceCatalog = getNexoraVoiceCatalog;
   global.applyNexoraVoicesPayload = applyNexoraVoicesPayload;
 })(typeof window !== 'undefined' ? window : globalThis);

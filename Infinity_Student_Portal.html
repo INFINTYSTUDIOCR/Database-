@@ -16,6 +16,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/live-kpi-charts.js?v=20260627"></script>
 <script src="infinity-auth.js"></script>
+<script src="nexora-profile.js?v=voice-sync-6"></script>
+<script src="js/nexora-voice-lock.js?v=6"></script>
 <script src="nexora-characters.js"></script>
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
@@ -1874,18 +1876,27 @@ function nexoraVoicesForAccent(pool, accent){
   return filtered.length ? filtered : (pool || []);
 }
 function nexoraVoiceIdsForProfile(profile){
-  var fullPool = (profile && profile.gender === 'female') ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
-  var accentPool = nexoraVoicesForAccent(fullPool, profile && profile.voiceAccent);
-  var ids = [];
-  if(profile && profile.voiceId) ids.push(profile.voiceId);
-  accentPool.forEach(function(v){ if(ids.indexOf(v.id) < 0) ids.push(v.id); });
-  NEXORA_TTS_FALLBACKS.forEach(function(id){
-    if(accentPool.some(function(v){ return v.id === id; }) && ids.indexOf(id) < 0) ids.push(id);
-  });
-  return ids.length ? ids : accentPool.map(function(v){ return v.id; });
+  if(typeof nexoraVoiceIdsForProfileLocked==='function') return nexoraVoiceIdsForProfileLocked(profile);
+  if(typeof lockVoiceForProfile==='function') lockVoiceForProfile(profile);
+  var female=(profile&&profile.firstName&&typeof isFemaleClientName==='function')
+    ? isFemaleClientName(profile.firstName)
+    : (profile&&profile.gender==='female');
+  var fullPool=female?NEXORA_VOICES_FEMALE:NEXORA_VOICES_MALE;
+  var accentPool=nexoraVoicesForAccent(fullPool, profile&&profile.voiceAccent);
+  var ids=[];
+  if(typeof pickNexoraVoiceForProfile==='function'){
+    var v=pickNexoraVoiceForProfile(profile, female);
+    if(v&&v.id) ids.push(v.id);
+  }
+  var fallbacks=female?['r1KmysJdVYZjJCm4mL3b','NoOVOzCQFLOvtsMoNcdT']:['bfGb7JTLUnZebZRiFYyq'];
+  fallbacks.forEach(function(id){ if(ids.indexOf(id)<0) ids.push(id); });
+  return ids.length?ids:['r1KmysJdVYZjJCm4mL3b'];
 }
+var _corePickNexoraVoice = (typeof window !== 'undefined' && window.pickNexoraVoiceForProfile) ? window.pickNexoraVoiceForProfile : null;
 function pickNexoraVoiceForProfile(profile, femaleOverride){
-  var female = (typeof femaleOverride === 'boolean') ? femaleOverride : (profile && profile.gender === 'female');
+  if(_corePickNexoraVoice) return _corePickNexoraVoice(profile, femaleOverride);
+  var female=(typeof femaleOverride==='boolean')?femaleOverride
+    :((profile&&profile.firstName&&typeof isFemaleClientName==='function')?isFemaleClientName(profile.firstName):(profile&&profile.gender==='female'));
   var fullPool = female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE;
   var pool = nexoraVoicesForAccent(fullPool, (profile && profile.voiceAccent) || 'American');
   if(profile && profile.voiceId){
@@ -1893,7 +1904,11 @@ function pickNexoraVoiceForProfile(profile, femaleOverride){
       if(pool[i].id === profile.voiceId) return pool[i];
     }
   }
-  return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+  var seed = String((profile && profile.firstName) || '') + '|' + String((profile && profile.lastName) || '') + '|' + String((profile && profile.voiceAccent) || '');
+  var h = 0;
+  for(var j = 0; j < seed.length; j++) h = ((h << 5) - h + seed.charCodeAt(j)) | 0;
+  var idx = Math.abs(h) % pool.length;
+  return pool[idx] || pool[0];
 }
 function pickNexoraVoice(female){
   var pool = nexoraVoicesForAccent(female ? NEXORA_VOICES_FEMALE : NEXORA_VOICES_MALE, 'American');
@@ -2109,6 +2124,7 @@ function restoreNexoraRuntimeStorage(){
     _nxState.active = true;
     _nxState.onHold = !!s.onHold;
     _nxState.profile = s.profile;
+    if(typeof assignNexoraProfile==='function') assignNexoraProfile(_nxState.profile);
     _nxState.scenario = s.scenario;
     _nxState.history = s.history || [];
     _nxState.transcript = s.transcript || [];
@@ -2740,11 +2756,25 @@ var _nxSpeakGen = 0;
 var _nxPlayingChunk = null;
 var _nexoraTtsPrefetch = {};
 
+function nexoraTtsPayload(text, profile){
+  if(typeof assignNexoraProfile==='function') assignNexoraProfile(profile);
+  else if(typeof lockVoiceForProfile==='function') lockVoiceForProfile(profile);
+  var voiceId=(typeof resolveNexoraTtsVoiceId==='function'&&profile)
+    ? resolveNexoraTtsVoiceId(profile)
+    : (nexoraVoiceIdsForProfile(profile||{})[0]||'r1KmysJdVYZjJCm4mL3b');
+  return {
+    text:text,
+    voiceId:voiceId,
+    firstName:(profile&&profile.firstName)||''
+  };
+}
+
 function nexoraPrefetchTTS(text){
   var clean = prepareTtsLine(text);
   if(clean.length < 12 || _nexoraTtsPrefetch[clean]) return;
   _nexoraTtsPrefetch[clean] = 'loading';
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
+  var ttsBody = nexoraTtsPayload(clean, _nxState.profile || {});
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify(ttsBody)})
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){ if(b) _nexoraTtsPrefetch[clean] = b; else delete _nexoraTtsPrefetch[clean]; })
   .catch(function(){ delete _nexoraTtsPrefetch[clean]; });
@@ -2831,7 +2861,8 @@ function _nxTTSFlushPortal(){
     });
     return;
   }
-  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:clean,voiceId:(nexoraVoiceIdsForProfile(_nxState.profile||{})[0])||'r1KmysJdVYZjJCm4mL3b'})})
+  var ttsBody = nexoraTtsPayload(clean, _nxState.profile || {});
+  infinityFetch('/nexora-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify(ttsBody)})
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
     if(!b || gen !== _nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxPlayingChunk = chunk; _nxTTSBusy=false; setTimeout(_nxTTSFlushPortal, 180); return; }

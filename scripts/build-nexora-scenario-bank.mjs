@@ -64,11 +64,82 @@ function nameAt(i) {
   return { firstName: FIRST[i % FIRST.length], lastName: LAST[(i * 7 + 13) % LAST.length] };
 }
 
+const FEMALE_FIRST = new Set(['Margaret','Sarah','Elizabeth','Jennifer','Linda','Patricia','Sofia','Lisa','Amanda','Karen','Priya','Ananya','Emily','Jessica','Ashley','Nicole','Stephanie','Rebecca','Laura','Angela','Michelle','Melissa','Deborah','Rachel','Nancy','Susan','Maria','Diana','Victoria','Elena','Hannah','Olivia','Emma','Ava','Mia','Chloe','Grace','Natalie','Brooke','Olivia','Charlotte','Sophie','Natasha','Olga','Irina','Mei','Li','Yan','Greta','Lena','Camila','Lucia','Valentina','Neha','Deepa','Katya','Anya','Anna','Sabine','Heike','Katrin','Ingrid','Petra','Monika','Claudia','Svetlana','Tatiana','Marina','Daria','Fang','Jing','Hui','Lan','Xia','Gabriela','Daniela','Carmen','Isabella','Pooja','Shreya','Nisha','Divya','Meera','Kavya','Amelia','Kate','Lucy','Victoria']);
+
+const LAST_NAME_ETHNICITY = {
+  Torres: 'latino', Rodriguez: 'latino', Martinez: 'latino', Hernandez: 'latino', Garcia: 'latino',
+  Lopez: 'latino', Mendoza: 'latino', Silva: 'latino', Ramirez: 'latino', Castillo: 'latino', Mejia: 'latino',
+  Santos: 'latino', Reyes: 'latino', Cruz: 'latino', Ramos: 'latino', Bautista: 'latino', Aquino: 'latino',
+  Patel: 'indian', Sharma: 'indian', Singh: 'indian', Nair: 'indian', Gupta: 'indian', Reddy: 'indian',
+  Mueller: 'german', Schmidt: 'german', Weber: 'german', Fischer: 'german', Becker: 'german', Hoffmann: 'german',
+  Petrov: 'russian', Ivanov: 'russian', Smirnov: 'russian', Kuznetsov: 'russian', Volkov: 'russian',
+  Chen: 'chinese', Wang: 'chinese', Liu: 'chinese', Zhang: 'chinese', Huang: 'chinese', Li: 'chinese',
+  Clarke: 'british', Davies: 'british', Wright: 'british', Morgan: 'british', Evans: 'british',
+  Thompson: 'american', Johnson: 'american', Williams: 'american', Brown: 'american', Davis: 'american',
+  Wilson: 'american', Anderson: 'american', Taylor: 'american', Moore: 'american', Clark: 'american',
+  Mitchell: 'american', Foster: 'american', Okafor: 'american'
+};
+
+const NAME_ETHNICITY = {
+  Linda: 'latino', Carlos: 'latino', Diego: 'latino', Luis: 'latino', Marco: 'latino', Pablo: 'latino', Andres: 'latino',
+  Sofia: 'latino', Maria: 'latino', Elena: 'latino', Camila: 'latino', Lucia: 'latino', Valentina: 'latino',
+  Gabriela: 'latino', Carmen: 'latino', Daniela: 'latino', Isabella: 'latino',
+  Raj: 'indian', Arjun: 'indian', Vikram: 'indian', Priya: 'indian', Ananya: 'indian',
+  Wei: 'chinese', Mei: 'chinese', Hiro: 'chinese', Ken: 'chinese', Yuki: 'chinese', Min: 'chinese', Soo: 'chinese', Jin: 'chinese',
+  Hans: 'german', Klaus: 'german', Anna: 'german', Greta: 'german',
+  Oliver: 'british', Harry: 'british', Emily: 'british', Charlotte: 'british',
+  James: 'american', Michael: 'american', Sarah: 'american', Jennifer: 'american'
+};
+
+const ETH_ACCENT = {
+  american: { male: 'American Male', female: 'American Female' },
+  british: { male: 'British Male', female: 'British Female' },
+  indian: { male: 'Indian Male', female: 'Indian Female' },
+  german: { male: 'German Male', female: 'German Female' },
+  russian: { male: 'Russian Male', female: 'Russian Female' },
+  chinese: { male: 'Chinese Male', female: 'Chinese Female' },
+  latino: { male: 'Latino Male', female: 'Latina Female' }
+};
+
+function ethnicityForName(firstName, lastName) {
+  const token = String(lastName || '').trim().split(/\s+/).pop();
+  const lastEth = LAST_NAME_ETHNICITY[token];
+  const firstEth = NAME_ETHNICITY[firstName] || 'american';
+  if (lastEth === 'filipino' || lastEth === 'latino') return lastEth;
+  if (firstEth === 'filipino' || firstEth === 'latino') return firstEth;
+  if (lastEth) return lastEth;
+  if (firstEth) return firstEth;
+  return 'american';
+}
+
+function accentKey(accent) {
+  const s = String(accent || '').toLowerCase();
+  if (s.includes('latina') || s.includes('latino')) return 'latino';
+  const m = String(accent || '').match(/^(American|British|Chinese|German|Indian|Russian|Latino|Latina)/i);
+  return m ? m[1].toLowerCase().replace('latina', 'latino') : 'american';
+}
+
+function voicesForAccent(pool, accentLabel) {
+  const key = accentKey(accentLabel);
+  const filtered = pool.filter((v) => accentKey(v.accent) === key);
+  return filtered.length ? filtered : pool;
+}
+
+function identityFromName(firstName, lastName) {
+  const female = FEMALE_FIRST.has(firstName);
+  const gender = female ? 'female' : 'male';
+  const ethnicity = ethnicityForName(firstName, lastName);
+  const voiceEth = ethnicity === 'filipino' ? 'latino' : ethnicity;
+  const accentLabel = (ETH_ACCENT[voiceEth] || ETH_ACCENT.american)[gender];
+  const pool = voicesForAccent(female ? VOICES_F : VOICES_M, accentLabel);
+  const h = hash(firstName + '|' + lastName + '|' + accentLabel);
+  const v = pool[h % pool.length] || pool[0];
+  return { gender, voiceId: v.id, voiceAccent: v.accent, ethnicity };
+}
+
 function voiceAt(i) {
-  const female = i % 2 === 1;
-  const pool = female ? VOICES_F : VOICES_M;
-  const v = pool[(i >> 1) % pool.length];
-  return { gender: v.gender, voiceId: v.id, voiceAccent: v.accent };
+  const nm = nameAt(i);
+  return identityFromName(nm.firstName, nm.lastName);
 }
 
 function servicesFor(industry, i) {
@@ -183,7 +254,7 @@ function billingFor(issueType, i, title, desc) {
 
 function buildProfileSeed(id, industry, i, issueType, title, desc) {
   const nm = nameAt(i);
-  const voice = voiceAt(i);
+  const voice = identityFromName(nm.firstName, nm.lastName);
   const acctPrefix = industry === 'Healthcare' ? '#P' : industry === 'Tourism' ? '#T' : '#N';
   const bill = billingFor(issueType, i, title, desc);
   const h = hash(id);
@@ -205,6 +276,7 @@ function buildProfileSeed(id, industry, i, issueType, title, desc) {
     gender: voice.gender,
     voiceId: voice.voiceId,
     voiceAccent: voice.voiceAccent,
+    ethnicity: voice.ethnicity,
     billingNotes: bill.billingNotes,
     disputeAmount: bill.disputeAmount,
     lateFee: bill.lateFee,
@@ -496,6 +568,23 @@ pools['team_meeting:all'] = buildMeetingPool('team_meeting:all');
 pools['negotiation:all'] = buildNegotiationPool('negotiation:all');
 pools['stakeholder:all'] = buildStakeholderPool('stakeholder:all');
 pools['presentation:all'] = buildCorporatePool('presentation:all');
+
+let voiceMismatches = 0;
+for (const pk of Object.keys(pools)) {
+  for (const s of pools[pk]) {
+    const p = s.profileSeed;
+    if (!p) continue;
+    const female = FEMALE_FIRST.has(p.firstName);
+    const va = String(p.voiceAccent || '');
+    const vf = va.includes('Female') || va.includes('Latina');
+    const vm = va.includes('Male') && !vf;
+    if ((female && !vf) || (!female && vf)) voiceMismatches++;
+  }
+}
+if (voiceMismatches > 0) {
+  console.error('Voice/gender mismatches in bank:', voiceMismatches);
+  process.exit(1);
+}
 
 const outJs = `/** Auto-generated — 100 scenarios per pool. Run: node scripts/build-nexora-scenario-bank.mjs */\nvar NEXORA_SCENARIO_BANK_DATA = ${JSON.stringify({ pools, POOL_SIZE: POOL })};
 `;
