@@ -25,7 +25,7 @@
 <script src="js/tutor-reply.js"></script>
 <script src="js/tts-chunks.js"></script>
 <script src="js/nexora-stream-voice.js"></script>
-<script src="js/ptt-mic.js?v=20260628"></script>
+<script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -72,6 +72,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-login.is-loading:disabled{opacity:0.95;}
 .inp:disabled{background:#F3F0FF;color:var(--t3);}
 @keyframes loginPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,33,182,0.35)}50%{box-shadow:0 0 0 8px rgba(91,33,182,0)}}
+@keyframes alicePulse{0%,100%{opacity:1}50%{opacity:0.55}}
+#alice-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
+#alice-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
+#alice-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
+@media (max-width:640px){
+  #alice-messages{max-height:min(52vh,320px)!important;}
+  #alice-mic-btn,#alice-input{min-height:48px;}
+}
 
 .card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
 .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
@@ -289,7 +297,7 @@ async function doLogin(){
     }
 
     try { await infinityLogin(user, pass, 'student', { silent: true }); } catch(e) {}
-    nexoraWarmApi();
+    warmInfinityApi();
 
     CURRENT_STUDENT = student;
     if(typeof AiProfile !== 'undefined'){
@@ -1257,7 +1265,7 @@ function pauseAliceMedia(){
   _aliceState.listening = false;
   _aliceState.micRunning = false;
   aliceClearSilenceTimer();
-  if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('alice-mic-btn'));
+  if(typeof PttMic !== 'undefined') PttMic.reset(document.getElementById('alice-mic-btn'));
   saveAliceRuntimeStorage();
 }
 
@@ -1367,6 +1375,7 @@ function renderAlice(){
     +'</div>';
   if(_aliceState.sessionActive){
     _aliceSpeakEnabled = true;
+    warmInfinityApi();
     scrollAliceMessages();
     try { bindAlicePttMic(); } catch(e) { console.warn('Alice PTT bind:', e); }
   }
@@ -1449,6 +1458,7 @@ async function startAliceSession(){
   var returning = mode === 'return_session';
   var statusEl = document.getElementById('alice-status');
   if(statusEl) statusEl.textContent = 'Alice se conecta…';
+  warmInfinityApi();
   _aliceSpeakEnabled = true;
   _aliceState.history.push({ role:'assistant', content:'▋' });
   aliceRenderHistoryMessages();
@@ -1586,10 +1596,14 @@ async function sendAliceMessage(micText){
   var text = (micText || (input ? input.value : '') || '').trim();
   if(!text) return;
   _aliceSending = true;
+  var micBtn = document.getElementById('alice-mic-btn');
+  if(micBtn) micBtn.classList.add('ptt-busy');
+  var statusEl = document.getElementById('alice-status');
+  if(statusEl) statusEl.textContent = 'Alice está pensando…';
   var unwatchAlice = voiceSendWatchdog(function(){ return _aliceSending; }, function(){
-    _aliceSending = false;
-    _aliceSpeakEnabled = true;
-  });
+    aliceUnlockMicAndSend(false);
+    if(statusEl) statusEl.textContent = 'Tardó demasiado — intentá de nuevo o escribí tu respuesta.';
+  }, 38000);
   aliceCancelSpeech();
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('alice-mic-btn'));
   aliceStopMic();
@@ -1597,8 +1611,7 @@ async function sendAliceMessage(micText){
   if(input) input.value = '';
   _aliceState.history.push({ role:'user', content:text });
   aliceRenderHistoryMessages();
-  var statusEl = document.getElementById('alice-status');
-  if(statusEl) statusEl.textContent='';
+  if(statusEl) statusEl.textContent = 'Alice está pensando…';
 
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'alice', dbSet).catch(function(){});
 
@@ -1655,16 +1668,16 @@ async function sendAliceMessage(micText){
     if(fullText && fullText.trim().length > 2) aliceSpeak(fullText);
     aliceRenderHistoryMessages();
     saveAliceRuntimeStorage();
+    if(statusEl) statusEl.textContent = '';
 
   } catch(e){
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
     aliceRenderHistoryMessages();
-    if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez.';
+    if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez o escribí tu mensaje.';
   } finally {
     clearTimeout(tid);
     unwatchAlice();
-    _aliceSending = false;
-    _aliceSpeakEnabled = true;
+    aliceUnlockMicAndSend(false);
   }
 }
 
@@ -1787,27 +1800,46 @@ function bindAlicePttMic(){
   var btn = document.getElementById('alice-mic-btn');
   if(!btn || typeof PttMic === 'undefined') return;
   if(btn._pttBound) return;
+  var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   PttMic.bind({
     btn: btn,
     lang: (ALICE_ACCENTS[_aliceState.accent] && ALICE_ACCENTS[_aliceState.accent].lang) || 'en-US',
-    canStart: function(){ return _aliceState.sessionActive && !_aliceSending; },
+    canStart: function(){
+      if(!_aliceState.sessionActive) return false;
+      if(_aliceSending){
+        var st = document.getElementById('alice-status');
+        if(st && !st.textContent) st.textContent = 'Esperá a que Alice termine de responder…';
+        return false;
+      }
+      return true;
+    },
     onBeforeStart: function(){
       aliceInterruptSpeaking();
       aliceStopMic();
+      btn.classList.remove('ptt-busy');
     },
     onUi: function(listening){
       var b = document.getElementById('alice-mic-btn');
       var statusEl = document.getElementById('alice-status');
       if(b){
+        b.classList.toggle('ptt-active', !!listening);
         if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
         else { b.style.background='rgba(192,132,252,0.1)'; b.style.borderColor='rgba(192,132,252,0.3)'; b.style.color='#C084FC'; }
       }
-      if(statusEl) statusEl.textContent = listening ? '🎤 Escuchando… podés hablar todo lo que necesites' : '';
+      if(statusEl) statusEl.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
     },
     onSend: function(text){ if(text) sendAliceMessage(text); },
-    onError: function(){
+    onError: function(code){
+      btn.classList.remove('ptt-active','ptt-busy');
       var st = document.getElementById('alice-status');
-      if(st) st.textContent = 'Usá Chrome o Edge para voz.';
+      if(!st) return;
+      if(code === 'no-sr' || code === 'start-failed'){
+        st.textContent = isMobile
+          ? 'Voz no disponible en este navegador — escribí tu respuesta abajo.'
+          : 'Usá Chrome o Edge para voz, o escribí tu respuesta.';
+      } else {
+        st.textContent = 'Micrófono interrumpido — mantené presionado de nuevo o escribí tu respuesta.';
+      }
     }
   });
 }
@@ -2022,8 +2054,34 @@ function nexoraReplyTtsReady(text){
   return true;
 }
 
-function nexoraWarmApi(){
+function aliceUnlockMicAndSend(clearStatus){
+  _aliceSending = false;
+  _aliceSpeakEnabled = true;
+  var btn = document.getElementById('alice-mic-btn');
+  if(btn){ btn.classList.remove('ptt-busy','ptt-active'); }
+  if(typeof PttMic !== 'undefined'){
+    if(btn) PttMic.reset(btn);
+    else PttMic.resetAll();
+  }
+  aliceStopMic();
+  if(clearStatus !== false){
+    var st = document.getElementById('alice-status');
+    if(st && (st.textContent.indexOf('Escuchando') >= 0 || st.textContent.indexOf('pensando') >= 0 || st.textContent.indexOf('conecta') >= 0)) st.textContent = '';
+  }
+}
+
+function warmInfinityApi(){
   fetch(INFINITY_API+'/').catch(function(){});
+  infinityFetch('/health',{headers:authHeaders()}).catch(function(){});
+  aliceWarmApi();
+  nexoraWarmApi();
+}
+
+function aliceWarmApi(){
+  infinityFetch('/alice-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:'Hi'})}).catch(function(){});
+}
+
+function nexoraWarmApi(){
   infinityFetch('/nexora/voices',{headers:authHeaders()})
   .then(function(r){return r.ok?r.json():null;})
   .then(function(d){
@@ -2902,11 +2960,12 @@ document.addEventListener('visibilitychange', function(){
     alicePauseAudio();
     jillPauseAudio();
     if(window._nxAudio) try{ window._nxAudio.pause(); }catch(e){}
-    if(typeof PttMic !== 'undefined') PttMic.stopAll();
+    if(typeof PttMic !== 'undefined') PttMic.resetAll();
+    aliceStopMic();
   } else {
     if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
-      _aliceSpeakEnabled = true;
-      _aliceSending = false;
+      aliceUnlockMicAndSend(false);
+      try { bindAlicePttMic(); } catch(e) {}
       if(_aliceTTSQueue.length && !_aliceTTSBusy) _aliceTTSFlush();
     }
     if(window._activePortalTab === 'nexora' && _nxState.active) resumeNexoraRuntime();
@@ -3051,6 +3110,8 @@ function alicePrefetchTTS(text){
   .catch(function(){ delete _aliceTtsPrefetch[clean]; });
 }
 
+var _aliceTtsRetry = {};
+
 function _aliceTTSFlush(){
   if(_aliceTTSBusy || _aliceTTSQueue.length===0 || !_aliceSpeakEnabled) return;
   _aliceTTSBusy = true;
@@ -3062,6 +3123,7 @@ function _aliceTTSFlush(){
 
   function playBlob(b){
     if(!b || !_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+    delete _aliceTtsRetry[clean];
     if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} }
     window._aliceAudio = playAudioBlob(b, {
       onEnded: function(){
@@ -3072,7 +3134,9 @@ function _aliceTTSFlush(){
       },
       onError: function(){
         window._aliceAudio = null;
-        _aliceTTSQueue.unshift(text);
+        _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
+        if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
+        else delete _aliceTtsRetry[clean];
         _aliceTTSBusy = false;
         _aliceState.speaking = _aliceTTSQueue.length > 0;
         setTimeout(_aliceTTSFlush, 150);
@@ -3090,7 +3154,9 @@ function _aliceTTSFlush(){
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(playBlob)
   .catch(function(){
-    _aliceTTSQueue.unshift(text);
+    _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
+    if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
+    else delete _aliceTtsRetry[clean];
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
     setTimeout(_aliceTTSFlush, 180);

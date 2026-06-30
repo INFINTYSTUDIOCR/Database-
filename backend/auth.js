@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
 const JWT_EXPIRY_SEC = parseInt(process.env.JWT_EXPIRY_SEC || '86400', 10); // 24h
+const JWT_EXPIRY_STUDENT_SEC = parseInt(process.env.JWT_EXPIRY_STUDENT_SEC || String(90 * 86400), 10); // 90d
 const JWT_SECRET = process.env.JWT_SECRET || process.env.ANALYZE_SECRET || '';
 
 function b64url(input) {
@@ -62,6 +63,7 @@ function optionalAuth(req, res, next) {
 
 module.exports = {
   JWT_EXPIRY_SEC,
+  JWT_EXPIRY_STUDENT_SEC,
   JWT_SECRET,
   signToken,
   verifyToken,

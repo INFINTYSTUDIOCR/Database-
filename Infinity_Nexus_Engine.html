@@ -836,7 +836,15 @@ var EXERCISES = {
 // ── DB ────────────────────────────────────────────────────
 async function dbGet(table){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbGet '+table+' failed: '+r.status+' '+t); showToast('Error leyendo '+table+': '+r.status,'err'); return []; } return await r.json(); }
 async function dbSet(table,id,data){
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})});
+  var payload = data;
+  if(table === 'infinity_students' && payload){
+    payload = Object.assign({}, payload);
+    if(!payload._portalCredOverwrite){
+      copyPortalCredentials(payload, await dbGetStudent(id));
+    }
+    delete payload._portalCredOverwrite;
+  }
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data:payload,updated_at:new Date().toISOString()})});
   if(!r.ok){
     var t=await r.text();
     console.error('dbSet '+table+' failed: '+r.status+' '+t);
@@ -846,6 +854,31 @@ async function dbSet(table,id,data){
   return true;
 }
 async function dbDel(table,id){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbDel '+table+' failed: '+r.status+' '+t); showToast('Error eliminando: '+r.status,'err'); return false; } return true; }
+
+async function dbGetStudent(sid){
+  var r = await fetch(SUPA_URL+'/rest/v1/infinity_students?id=eq.'+encodeURIComponent(sid)+'&select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  if(!r.ok) return null;
+  var rows = await r.json();
+  return rows[0] && rows[0].data ? rows[0].data : null;
+}
+function copyPortalCredentials(target, source){
+  if(!source || !source.portalUser || !source.portalPass) return target;
+  target.portalUser = source.portalUser;
+  target.portalPass = source.portalPass;
+  if(source.portalCredsCreatedAt) target.portalCredsCreatedAt = source.portalCredsCreatedAt;
+  return target;
+}
+async function ensurePortalCredentialsForStudent(sid, s){
+  copyPortalCredentials(s, await dbGetStudent(sid));
+  if(s.portalUser && s.portalPass) return { s: s, created: false };
+  var name = (s.info&&s.info.name)||'';
+  var parts = name.split(' ');
+  s.portalUser = ((parts[0]||'')+(parts[1]?'.'+parts[1]:'')).toLowerCase().replace(/[^a-z.]/g,'') || ('estudiante'+sid);
+  var chars='abcdefghjkmnpqrstuvwxyz23456789';
+  s.portalPass=''; for(var i=0;i<8;i++) s.portalPass+=chars[Math.floor(Math.random()*chars.length)];
+  s.portalCredsCreatedAt = new Date().toISOString();
+  return { s: s, created: true };
+}
 
 // ── INIT ──────────────────────────────────────────────────
 window.addEventListener('error', function(e){
@@ -3569,34 +3602,35 @@ async function closeDeal(){
   var sid = document.getElementById('ps-sid').value;
   var s = r.s;
 
-  // 1. Generar credenciales del portal automáticamente
-  var name = (s.info&&s.info.name)||'';
-  var parts = name.split(' ');
-  var portalUser = ((parts[0]||'')+(parts[1]?'.'+parts[1]:'')).toLowerCase().replace(/[^a-z.]/g,'') || ('estudiante'+sid);
-  var chars='abcdefghjkmnpqrstuvwxyz23456789';
-  var portalPass=''; for(var i=0;i<8;i++) portalPass+=chars[Math.floor(Math.random()*chars.length)];
-  s.portalUser = portalUser;
-  s.portalPass = portalPass;
+  // 1. Credenciales — solo si no existen (local o en Supabase)
+  var credResult = await ensurePortalCredentialsForStudent(sid, s);
+  s = credResult.s;
+  var credsCreated = credResult.created;
+  var portalUser = s.portalUser;
+  var portalPass = s.portalPass;
 
-  // 2. Cargar Basic Training (1 ejercicio "developing" por KPI)
-  if(!s.trainingBook) s.trainingBook=[];
-  Object.keys(KPI_NAMES).forEach(function(k){
-    var ex = EXERCISES[k+'_developing'];
-    if(ex){
-      s.trainingBook.push({
-        id:'TB-'+Date.now()+'-'+k, title:ex.title, kpi:ex.kpi, objective:ex.objective, script:ex.script,
-        note:'Basic Training — paquete inicial asignado automáticamente al cerrar el trato.',
-        studentTask: ex.studentTask || ('Practicá el ejercicio "'+ex.title+'" — tu trainer te va a explicar la dinámica en la próxima sesión.'),
-        freq:'2x por semana', week:1, assignedBy:'Sistema (Basic Training)', date:new Date().toISOString()
-      });
-    }
-  });
+  // 2. Basic Training — solo una vez
+  if(!s.basicTrainingAssigned){
+    if(!s.trainingBook) s.trainingBook=[];
+    Object.keys(KPI_NAMES).forEach(function(k){
+      var ex = EXERCISES[k+'_developing'];
+      if(ex){
+        s.trainingBook.push({
+          id:'TB-'+Date.now()+'-'+k, title:ex.title, kpi:ex.kpi, objective:ex.objective, script:ex.script,
+          note:'Basic Training — paquete inicial asignado automáticamente al cerrar el trato.',
+          studentTask: ex.studentTask || ('Practicá el ejercicio "'+ex.title+'" — tu trainer te va a explicar la dinámica en la próxima sesión.'),
+          freq:'2x por semana', week:1, assignedBy:'Sistema (Basic Training)', date:new Date().toISOString()
+        });
+      }
+    });
+    s.basicTrainingAssigned = true;
+  }
 
   await dbSet('infinity_students', sid, s);
   DB[sid]=s;
 
-  await logAction('Cerró trato', (s.info&&s.info.name)+' — CRC '+r.price.toLocaleString()+' / '+(s.info.paymentFrequency)+' · Próx. pago: '+s.info.nextDue+' · Credenciales y Basic Training generados');
-  showToast('Trato cerrado · Basic Training asignado · Credenciales generadas');
+  await logAction('Cerró trato', (s.info&&s.info.name)+' — CRC '+r.price.toLocaleString()+' / '+(s.info.paymentFrequency)+' · Próx. pago: '+s.info.nextDue+(credsCreated?' · Credenciales generadas':' · Credenciales conservadas'));
+  showToast(credsCreated ? 'Trato cerrado · Basic Training asignado · Credenciales generadas' : 'Trato cerrado · Credenciales existentes conservadas');
 
   // 3. Abrir WhatsApp con link + credenciales + bienvenida
   var text = '¡Bienvenido/a a Infinity Studio CR, '+(s.info.name||'')+'!\\n\\n'
@@ -3679,10 +3713,13 @@ async function generatePortalCredentials(id){
   var chars='abcdefghjkmnpqrstuvwxyz23456789';
   var pass=''; for(var i=0;i<8;i++) pass+=chars[Math.floor(Math.random()*chars.length)];
 
-  confirmAction('Generar credenciales', '¿Generar nuevas credenciales de acceso para "'+name+'"? Si ya tenía credenciales, las anteriores dejarán de funcionar.', async function(){
+  confirmAction('Regenerar credenciales', '¿Generar NUEVAS credenciales para "'+name+'"? La contraseña actual dejará de funcionar. Usá esto solo si el estudiante la perdió — no al registrar pagos.', async function(){
     s.portalUser = user;
     s.portalPass = pass;
+    s.portalCredsCreatedAt = new Date().toISOString();
+    s._portalCredOverwrite = true;
     await dbSet('infinity_students', id, s);
+    delete s._portalCredOverwrite;
     DB[id]=s;
     await logAction('Generó credenciales de portal', name+' — usuario: '+user);
     showToast('Credenciales generadas');

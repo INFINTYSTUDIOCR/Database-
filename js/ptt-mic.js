@@ -10,7 +10,9 @@ var PttMic = (function () {
   var fallbackInstances = {};
   var RESTART_MS = 80;
   var SEND_WAIT_MS = 280;
-  var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, 'audio-capture': 1, 'service-not-allowed': 1 };
+  var STOP_LOCK_MS = 1200;
+  var MAX_RESTART_FAILS = 4;
+  var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, 'audio-capture': 1, 'service-not-allowed': 1, aborted: 1 };
 
   function getInst(btn) {
     if (!btn) return null;
@@ -26,6 +28,10 @@ var PttMic = (function () {
   function delInst(btn) {
     if (instances) instances.delete(btn);
     else delete fallbackInstances[btn.id || 'btn'];
+  }
+
+  function isTouchPointer(e) {
+    return !!(e && (e.pointerType === 'touch' || e.pointerType === 'pen'));
   }
 
   function bind(opts) {
@@ -46,8 +52,16 @@ var PttMic = (function () {
     var wantSend = false;
     var sendTimer = null;
     var restartTimer = null;
+    var stopLockTimer = null;
     var lastResults = null;
     var sessionId = 0;
+    var restartFails = 0;
+    var srSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    btn.style.touchAction = 'none';
+    btn.style.webkitTouchCallout = 'none';
+    btn.style.webkitUserSelect = 'none';
+    btn.style.userSelect = 'none';
 
     function ui(listening) {
       if (typeof opts.onUi === 'function') opts.onUi(listening, btn);
@@ -63,9 +77,44 @@ var PttMic = (function () {
       sendTimer = null;
     }
 
+    function clearStopLockTimer() {
+      clearTimeout(stopLockTimer);
+      stopLockTimer = null;
+    }
+
     function unlockStop() {
       stopLock = false;
       wantSend = false;
+      clearStopLockTimer();
+    }
+
+    function armStopLockTimeout() {
+      clearStopLockTimer();
+      stopLockTimer = setTimeout(function () {
+        syncTranscript();
+        if (wantSend) flushSend();
+        else {
+          unlockStop();
+          killRec(true);
+          active = false;
+          holding = false;
+          ui(false);
+        }
+      }, STOP_LOCK_MS);
+    }
+
+    function failStartPermanent(code) {
+      clearRestartTimer();
+      clearSendTimer();
+      killRec(true);
+      holding = false;
+      active = false;
+      wantSend = false;
+      stopLock = false;
+      restartFails = 0;
+      clearStopLockTimer();
+      ui(false);
+      if (typeof opts.onError === 'function') opts.onError(code || 'start-failed');
     }
 
     function commitFromEvent(ev) {
@@ -106,6 +155,7 @@ var PttMic = (function () {
 
     function flushSend() {
       clearSendTimer();
+      clearStopLockTimer();
       if (sent || !wantSend) {
         unlockStop();
         return;
@@ -114,21 +164,23 @@ var PttMic = (function () {
       transcript = '';
       committed = [];
       lastFinalCount = 0;
+      lastResults = null;
       unlockStop();
       sent = true;
+      holding = false;
+      active = false;
+      ui(false);
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
       setTimeout(function () { sent = false; }, 120);
     }
 
     function scheduleSend() {
       clearSendTimer();
+      syncTranscript();
       var wait = SEND_WAIT_MS;
       if (transcript.length > 120) wait += 120;
       if (transcript.length > 400) wait += 180;
-      sendTimer = setTimeout(function () {
-        syncTranscript();
-        flushSend();
-      }, wait);
+      sendTimer = setTimeout(flushSend, wait);
     }
 
     function killRec(abortOnly) {
@@ -148,10 +200,12 @@ var PttMic = (function () {
     function resetSession(cancelSend) {
       clearRestartTimer();
       clearSendTimer();
+      clearStopLockTimer();
       killRec(true);
       active = false;
       holding = false;
       stopLock = false;
+      restartFails = 0;
       if (cancelSend) wantSend = false;
       committed = [];
       lastFinalCount = 0;
@@ -169,7 +223,10 @@ var PttMic = (function () {
       restartTimer = setTimeout(function () {
         restartTimer = null;
         if (sid !== sessionId || !shouldKeepListening()) return;
-        spawnRec(sid);
+        if (!spawnRec(sid)) {
+          restartFails++;
+          if (restartFails >= MAX_RESTART_FAILS) failStartPermanent('restart-failed');
+        }
       }, RESTART_MS);
     }
 
@@ -177,6 +234,7 @@ var PttMic = (function () {
       syncTranscript();
       rec = null;
       if (shouldKeepListening()) {
+        restartFails = 0;
         scheduleRestart(sid);
         return;
       }
@@ -189,7 +247,7 @@ var PttMic = (function () {
 
       var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SR) {
-        if (typeof opts.onError === 'function') opts.onError('no-sr');
+        failStartPermanent('no-sr');
         return false;
       }
 
@@ -216,22 +274,34 @@ var PttMic = (function () {
       r.onerror = function (ev) {
         if (sid !== sessionId) return;
         if (ev && ev.error === 'aborted') return;
-        if (ev && !RECOVERABLE_ERRORS[ev.error] && !shouldKeepListening()) {
+        if (ev && RECOVERABLE_ERRORS[ev.error]) {
+          handleRecFinished(sid);
+          return;
+        }
+        if (!shouldKeepListening()) {
           resetSession(false);
           return;
         }
-        handleRecFinished(sid);
+        restartFails++;
+        if (restartFails >= MAX_RESTART_FAILS) failStartPermanent(ev && ev.error ? ev.error : 'recognition-error');
+        else handleRecFinished(sid);
       };
       try {
         r.start();
+        restartFails = 0;
         return true;
       } catch (err) {
         rec = null;
+        active = false;
         if (shouldKeepListening()) {
+          restartFails++;
+          if (restartFails >= MAX_RESTART_FAILS) {
+            failStartPermanent('start-failed');
+            return false;
+          }
           scheduleRestart(sid);
           return false;
         }
-        active = false;
         ui(false);
         if (typeof opts.onError === 'function') opts.onError('start-failed');
         return false;
@@ -239,7 +309,7 @@ var PttMic = (function () {
     }
 
     function stop(send) {
-      if (!holding && !active && !rec && !wantSend && !sendTimer && !restartTimer) return;
+      if (!holding && !active && !rec && !wantSend && !sendTimer && !restartTimer && !stopLock) return;
       if (send && stopLock) return;
 
       holding = false;
@@ -247,9 +317,11 @@ var PttMic = (function () {
       if (send) {
         stopLock = true;
         wantSend = true;
+        armStopLockTimeout();
       } else {
         wantSend = false;
         clearSendTimer();
+        clearStopLockTimer();
       }
 
       clearRestartTimer();
@@ -282,6 +354,10 @@ var PttMic = (function () {
     function start(e) {
       if (e) e.preventDefault();
       if (typeof opts.canStart === 'function' && !opts.canStart()) return;
+      if (!srSupported) {
+        failStartPermanent('no-sr');
+        return;
+      }
 
       sessionId++;
       resetSession(true);
@@ -289,13 +365,12 @@ var PttMic = (function () {
       unlockStop();
       sent = false;
       holding = true;
+      restartFails = 0;
 
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
       var sid = sessionId;
-      if (!spawnRec(sid)) {
-        if (!shouldKeepListening()) holding = false;
-      }
+      if (!spawnRec(sid) && !shouldKeepListening()) holding = false;
     }
 
     function onPointerDown(e) {
@@ -314,7 +389,9 @@ var PttMic = (function () {
     }
 
     function onPointerLeave(e) {
-      if (holding && e.pointerType !== 'mouse') stop(true);
+      // Touch: only pointerup ends the take — leaving the button must not cut off speech.
+      if (isTouchPointer(e)) return;
+      if (holding && e.pointerType === 'mouse') stop(true);
     }
 
     btn.addEventListener('pointerdown', onPointerDown);
@@ -361,5 +438,12 @@ var PttMic = (function () {
     });
   }
 
-  return { bind: bind, stop: stop, reset: reset, stopAll: stopAll };
+  function resetAll() {
+    document.querySelectorAll('[data-ptt-mic], [id$="-mic-btn"]').forEach(function (b) {
+      var inst = getInst(b);
+      if (inst && inst.reset) inst.reset();
+    });
+  }
+
+  return { bind: bind, stop: stop, reset: reset, stopAll: stopAll, resetAll: resetAll };
 })();

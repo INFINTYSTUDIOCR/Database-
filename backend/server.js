@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const Anthropic = require('@anthropic-ai/sdk');
-const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_SECRET } = require('./auth');
+const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_EXPIRY_STUDENT_SEC, JWT_SECRET } = require('./auth');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -357,10 +357,10 @@ app.post('/auth/login', async (req, res) => {
         role: 'student',
         studentId: match.id,
         name: match.data.info?.name || loginUser
-      });
+      }, JWT_EXPIRY_STUDENT_SEC);
       return res.json({
         token,
-        expiresIn: JWT_EXPIRY_SEC,
+        expiresIn: JWT_EXPIRY_STUDENT_SEC,
         role: 'student',
         studentId: match.id,
         name: match.data.info?.name || loginUser
