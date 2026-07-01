@@ -537,12 +537,12 @@ textarea.inp{resize:vertical;min-height:80px;}
 
 
 <!-- MODAL COMPARTIR LINK -->
-<div class="modal-bg" id="modal-share">
+<div class="modal-bg" id="modal-share" style="z-index:6000;">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-share"></i><span id="share-modal-title">Compartir</span></div>
     <textarea class="inp" id="share-text" readonly style="min-height:120px;font-family:monospace;font-size:12px;" onclick="this.select()"></textarea>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-share')">Cerrar</button>
+      <button class="btn btn-outline" onclick="closeShareModal()">Cerrar</button>
       <button class="btn btn-green" id="share-whatsapp-btn"><i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp</button>
       <button class="btn btn-navy" onclick="copyShareText()"><i class="ti ti-copy"></i>Copiar</button>
     </div>
@@ -1535,6 +1535,13 @@ function switchTab(id, btn){
 }
 
 var STUDENT_PORTAL_URL = 'https://www.studioinfinitycr.com/Infinity_Student_Portal.html';
+var _pendingPaymentAfterShare = null;
+
+function normalizeWaPhone(phone){
+  var p = String(phone||'').replace(/\D/g,'');
+  if(p.length === 8) p = '506' + p;
+  return p;
+}
 
 function copyStudentLink(id){
   var s=DB[id]; if(!s) return;
@@ -1556,13 +1563,28 @@ function copyMeetLink(id){
   showShareModal('Link de sesión', link, ((s.info&&s.info.phone)||''));
 }
 
-function showShareModal(title, text, phone){
+function showShareModal(title, text, phone, opts){
+  opts = opts || {};
+  _pendingPaymentAfterShare = opts.pendingPaymentSid || null;
   document.getElementById('share-modal-title').textContent = title;
   document.getElementById('share-text').value = text;
   var waBtn = document.getElementById('share-whatsapp-btn');
-  var waUrl = 'https://wa.me/'+(phone?phone.replace(/[^0-9]/g,''):'')+'?text='+encodeURIComponent(text);
-  waBtn.onclick = function(){ window.open(waUrl,'_blank'); };
+  var waPhone = normalizeWaPhone(phone);
+  var waUrl = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(text);
+  waBtn.onclick = function(){
+    if(!waPhone){ showToast('Agregá el teléfono del estudiante en Información','err'); return; }
+    window.open(waUrl, '_blank');
+  };
   showModal('modal-share');
+}
+
+function closeShareModal(){
+  closeModal('modal-share');
+  if(_pendingPaymentAfterShare){
+    var sid = _pendingPaymentAfterShare;
+    _pendingPaymentAfterShare = null;
+    setTimeout(function(){ openPaymentModal(sid); }, 200);
+  }
 }
 
 function copyShareText(){
@@ -3633,17 +3655,16 @@ async function closeDeal(){
   showToast(credsCreated ? 'Trato cerrado · Basic Training asignado · Credenciales generadas' : 'Trato cerrado · Credenciales existentes conservadas');
 
   // 3. Abrir WhatsApp con link + credenciales + bienvenida
-  var text = '¡Bienvenido/a a Infinity Studio CR, '+(s.info.name||'')+'!\\n\\n'
-    + 'Tu Portal del Estudiante (Training Book, KPIs y horario):\\n'+STUDENT_PORTAL_URL+'\\n\\n'
-    + 'Usuario: '+portalUser+'\\nContraseña: '+portalPass+'\\n\\n'
-    + 'Tu trainer asignado es '+(s.info.trainer||'—')+' y tu horario es '+(Array.isArray(s.info.scheduleDays)?s.info.scheduleDays.join(' y '):'')+' de '+(s.info.scheduleTime||'')+' a '+(s.info.scheduleEndTime||'')+'.\\n\\n'
+  var text = '¡Bienvenido/a a Infinity Studio CR, '+(s.info.name||'')+'!\n\n'
+    + 'Tu Portal del Estudiante (Training Book, KPIs y horario):\n'+STUDENT_PORTAL_URL+'\n\n'
+    + 'Usuario: '+portalUser+'\nContraseña: '+portalPass+'\n\n'
+    + 'Tu trainer asignado es '+(s.info.trainer||'—')+' y tu horario es '+(Array.isArray(s.info.scheduleDays)?s.info.scheduleDays.join(' y '):'')+' de '+(s.info.scheduleTime||'')+' a '+(s.info.scheduleEndTime||'')+'.\n\n'
     + 'Tu paquete inicial de ejercicios (Basic Training) ya está disponible en tu Training Book. ¡Nos vemos en la primera sesión!';
 
   openStudent(sid);
   setTimeout(function(){
-    showShareModal('Mensaje de bienvenida — Basic Training + Portal', text, ((s.info&&s.info.phone)||''));
+    showShareModal('Mensaje de bienvenida — Basic Training + Portal', text, ((s.info&&s.info.phone)||''), { pendingPaymentSid: sid });
   }, 300);
-  setTimeout(function(){ openPaymentModal(sid); }, 600);
 }
 
 
