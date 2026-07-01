@@ -12,6 +12,7 @@
 <link rel="manifest" href="manifest-engine.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="css/pwa-install.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -782,6 +783,13 @@ textarea.inp{resize:vertical;min-height:80px;}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="pwa-install-bar" class="pwa-install-bar" hidden>
+  <span>Instalá Nexus Engine en tu dispositivo</span>
+  <button type="button" class="pwa-install-btn" onclick="infinityPwaInstall()">Instalar</button>
+  <button type="button" class="pwa-dismiss-btn" onclick="document.getElementById('pwa-install-bar').hidden=true" aria-label="Cerrar">×</button>
+</div>
+<script src="js/pwa-register.js"></script>
 
 <script>
 const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
@@ -6457,12 +6465,6 @@ function showToast(msg,type){
 }
 </script>
 <script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/Database-/sw.js').catch(function(){});
-  });
-}
-
 // ── DASHBOARD INTERNO ─────────────────────────────────────────
 async function renderDashboard_Admin(m){
   m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;margin-bottom:1rem;"><i class="ti ti-chart-dots" style="color:#7C3AED;"></i> Dashboard interno</h2>'

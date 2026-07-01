@@ -10,7 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SI Portal">
 <link rel="manifest" href="manifest-portal.json">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="css/pwa-install.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -196,6 +198,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="pwa-install-bar" class="pwa-install-bar" hidden>
+  <span>Instalá el Portal en tu celular para acceso rápido</span>
+  <button type="button" class="pwa-install-btn" onclick="infinityPwaInstall()">Instalar</button>
+  <button type="button" class="pwa-dismiss-btn" onclick="document.getElementById('pwa-install-bar').hidden=true" aria-label="Cerrar">×</button>
+</div>
+<script src="js/pwa-register.js"></script>
 
 <script>
 const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
