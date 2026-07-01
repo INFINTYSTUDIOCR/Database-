@@ -225,6 +225,28 @@ async function dbGet(table){
   const data = await r.json();
   return Array.isArray(data) ? data : [];
 }
+async function dbQuery(pathAndQuery){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+pathAndQuery,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  if(!r.ok){ console.error('dbQuery failed: '+r.status); return []; }
+  const data = await r.json();
+  return Array.isArray(data) ? data : [];
+}
+async function dbGetStudentRow(sid){
+  if(!sid) return null;
+  var rows = await dbQuery('infinity_students?id=eq.'+encodeURIComponent(sid)+'&select=id,data&limit=1');
+  return rows[0] || null;
+}
+async function dbFindStudentByPortalLogin(user, pass){
+  var rows = await dbQuery('infinity_students?select=id,data&data->>portalUser=eq.'+encodeURIComponent(user)+'&limit=5');
+  for(var i=0;i<rows.length;i++){
+    var r = rows[i];
+    if(r.data && r.data.portalPass === pass){
+      r.data.id = r.id;
+      return r.data;
+    }
+  }
+  return null;
+}
 async function dbSet(table,id,data){
   const r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})});
   if(!r.ok){ console.error('dbSet '+table+' failed: '+r.status); return false; }
@@ -273,15 +295,7 @@ async function doLogin(){
   setLoginLoading(true);
 
   try{
-    var rows = await dbGet('infinity_students');
-    var student = null;
-    rows.forEach(function(r){
-      if(r.data){
-        ALL_STUDENTS[r.id]=r.data;
-        var u = String(r.data.portalUser||'').trim().toLowerCase();
-        if(u === user && r.data.portalPass === pass){ student = r.data; student.id = r.id; }
-      }
-    });
+    var student = await dbFindStudentByPortalLogin(user, pass);
 
     if(!student){
       err.textContent='Usuario o contraseña incorrectos.';
@@ -300,13 +314,14 @@ async function doLogin(){
     warmInfinityApi();
 
     CURRENT_STUDENT = student;
+    ALL_STUDENTS[student.id] = student;
     if(typeof AiProfile !== 'undefined'){
       AiProfile.purgeBadPreferredName(student);
       AiProfile.repairPoisonedProfile(dbSet, student).catch(function(){});
     }
 
     // cargar calendario
-    var cRows = await dbGet('infinity_sessions');
+    var cRows = await dbQuery('infinity_sessions?select=id,data&id=like.EVT-*');
     cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
 
     // log de acceso
@@ -365,11 +380,11 @@ async function portalRefresh(){
   if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader spin"></i>'; }
   try{
     if(s && s.id){
-      var rows = await dbGet('infinity_students');
-      rows.forEach(function(r){ if(r.data) ALL_STUDENTS[r.id] = r.data; });
-      var fresh = ALL_STUDENTS[s.id];
-      if(fresh){
+      var row = await dbGetStudentRow(s.id);
+      if(row && row.data){
+        var fresh = row.data;
         fresh.id = s.id;
+        ALL_STUDENTS[s.id] = fresh;
         CURRENT_STUDENT = fresh;
         window._currentStudent = fresh;
         window._portalStudent = fresh;
@@ -787,7 +802,7 @@ async function checkNexoraAccess(s){
   var trainerName = (s.info&&s.info.trainer)||'';
   if(!trainerName) return;
   try{
-    var rows = await dbGet('infinity_sessions');
+    var rows = await dbQuery('infinity_sessions?select=id,data&id=like.ROSTER-*');
     for(var i=0;i<rows.length;i++){
       var r = rows[i];
       if(r.id && r.id.indexOf('ROSTER-')===0 && r.data){
@@ -951,18 +966,17 @@ function startPortalProgressPoll(){
     if(window._activePortalTab!=='progreso') return;
     var s=CURRENT_STUDENT||window._currentStudent;
     if(!s||!s.id||typeof dbGet!=='function') return;
-    dbGet('infinity_students').then(function(rows){
-      var fresh=null;
-      rows.forEach(function(r){ if(r.id===s.id&&r.data) fresh=r.data; });
-      if(!fresh) return;
-      fresh.id=s.id;
+    dbGetStudentRow(s.id).then(function(row){
+      if(!row || !row.data) return;
+      var fresh = row.data;
+      fresh.id = s.id;
       ALL_STUDENTS[s.id]=fresh;
       CURRENT_STUDENT=fresh;
       window._currentStudent=fresh;
       window._portalStudent=fresh;
       initPortalLiveCharts(fresh);
     }).catch(function(){});
-  },45000);
+  },120000);
 }
 
 function renderProgressBlock(s){
@@ -1754,8 +1768,7 @@ async function saveKB(){
   if(!student || !student.id){ st.textContent = 'Error: no student loaded.'; return; }
 
   try {
-    var rows = await dbGet('infinity_students');
-    var row = rows.find(function(r){ return r.id === student.id; });
+    var row = await dbGetStudentRow(student.id);
     if(!row){ st.textContent = 'Error loading student.'; return; }
     var data = row.data || {};
     if(!data.kb) data.kb = [];

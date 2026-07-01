@@ -851,15 +851,43 @@ async function dbSet(table,id,data){
     showToast('NO SE GUARDÓ ('+table+'): '+r.status+' — '+t.substring(0,120),'err');
     return false;
   }
+  if(table === 'infinity_sessions') invalidateSessionsCache();
   return true;
 }
-async function dbDel(table,id){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbDel '+table+' failed: '+r.status+' '+t); showToast('Error eliminando: '+r.status,'err'); return false; } return true; }
+async function dbDel(table,id){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); if(!r.ok){ var t=await r.text(); console.error('dbDel '+table+' failed: '+r.status+' '+t); showToast('Error eliminando: '+r.status,'err'); return false; } if(table === 'infinity_sessions') invalidateSessionsCache(); return true; }
 
 async function dbGetStudent(sid){
   var r = await fetch(SUPA_URL+'/rest/v1/infinity_students?id=eq.'+encodeURIComponent(sid)+'&select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
   if(!r.ok) return null;
   var rows = await r.json();
   return rows[0] && rows[0].data ? rows[0].data : null;
+}
+var _sessionsCache = { at: 0, rows: null };
+var SESSIONS_CACHE_TTL = 90000;
+async function dbQuery(pathAndQuery){
+  var r = await fetch(SUPA_URL+'/rest/v1/'+pathAndQuery,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  if(!r.ok){ console.error('dbQuery failed: '+r.status); return []; }
+  var data = await r.json();
+  return Array.isArray(data) ? data : [];
+}
+async function dbGetSessionsCached(forceRefresh){
+  var now = Date.now();
+  if(!forceRefresh && _sessionsCache.rows && (now - _sessionsCache.at) < SESSIONS_CACHE_TTL) return _sessionsCache.rows;
+  var rows = await dbGet('infinity_sessions');
+  _sessionsCache.rows = rows;
+  _sessionsCache.at = now;
+  return rows;
+}
+function invalidateSessionsCache(){ _sessionsCache.rows = null; _sessionsCache.at = 0; }
+async function dbGetSessionOne(id){
+  if(!id) return null;
+  var rows = await dbQuery('infinity_sessions?id=eq.'+encodeURIComponent(id)+'&select=id,data&limit=1');
+  return rows[0] || null;
+}
+async function dbGetStudentRow(sid){
+  if(!sid) return null;
+  var rows = await dbQuery('infinity_students?id=eq.'+encodeURIComponent(sid)+'&select=id,data&limit=1');
+  return rows[0] || null;
 }
 function copyPortalCredentials(target, source){
   if(!source || !source.portalUser || !source.portalPass) return target;
@@ -919,13 +947,14 @@ async function hydrateFromSessionRows(rows){
     else if(id.indexOf('ACACHE-')===0 && r.data) ALICE_CACHE[id] = r.data;
   });
   AUDIT_LOG.sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
+  if(AUDIT_LOG.length > 400) AUDIT_LOG = AUDIT_LOG.slice(0, 400);
   KB_UPLOADS.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
 }
 
 async function loadCoreData(){
   var sessionRows, studentRows, videoRows;
   [sessionRows, studentRows, videoRows] = await Promise.all([
-    dbGet('infinity_sessions'),
+    dbGetSessionsCached(true),
     dbGet('infinity_students'),
     dbGet('infinity_videos')
   ]);
@@ -2031,7 +2060,7 @@ async function saveAssignResource(){
 var ROSTER = {};
 
 async function loadRoster(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){}
 }
 
 function renderRoster(m){
@@ -2182,7 +2211,7 @@ function deleteRosterProfile(userId){
 var CALENDAR_EVENTS = {};
 
 async function loadCalendar(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){}
 }
 
 function renderCalendar(m){
@@ -2614,7 +2643,7 @@ function goHome(){
 var AUDIT_LOG = [];
 
 async function loadAuditLog(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ AUDIT_LOG=[]; }
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ AUDIT_LOG=[]; }
 }
 
 async function logAction(action, details){
@@ -2632,8 +2661,9 @@ async function logAction(action, details){
 
 function renderAuditLog(m){
   m.innerHTML = '<div class="fade">'
-    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;">Log de auditoría ('+AUDIT_LOG.length+')</h2>'
+    +(hasMasterAccess()?'<button class="btn btn-outline btn-sm" onclick="pruneOldSupabaseLogs()"><i class="ti ti-trash"></i>Limpiar logs viejos</button>':'')
     +'</div>'
     +(AUDIT_LOG.length ? '<table class="tbl"><thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr></thead><tbody>'
       +AUDIT_LOG.slice(0,200).map(function(e){
@@ -2643,12 +2673,37 @@ function renderAuditLog(m){
     +'</div>';
 }
 
+async function pruneOldSupabaseLogs(){
+  if(!hasMasterAccess()) return;
+  if(!confirm('¿Eliminar logs de auditoría de más de 120 días y caché Alice de más de 14 días?')) return;
+  showToast('Limpiando registros viejos…');
+  var logCutoff = Date.now() - 120 * 86400000;
+  var cacheCutoff = Date.now() - 14 * 86400000;
+  var rows = await dbGetSessionsCached(true);
+  var deleted = 0;
+  for(var i=0;i<rows.length;i++){
+    var row = rows[i];
+    if(!row || !row.id || !row.data) continue;
+    var ts = row.data.ts ? new Date(row.data.ts).getTime() : 0;
+    if(!ts) continue;
+    if(row.id.indexOf('LOG-')===0 && ts < logCutoff){
+      if(await dbDel('infinity_sessions', row.id)) deleted++;
+    } else if(row.id.indexOf('ACACHE-')===0 && ts < cacheCutoff){
+      if(await dbDel('infinity_sessions', row.id)) deleted++;
+    }
+  }
+  invalidateSessionsCache();
+  try{ hydrateFromSessionRows(await dbGetSessionsCached(true)); }catch(e){}
+  showToast(deleted ? ('Listo — '+deleted+' registros viejos eliminados') : 'No había registros viejos para borrar');
+  renderAuditLog(document.getElementById('main-content'));
+}
+
 
 // ── DEPARTAMENTOS ─────────────────────────────────────────
 var NEWS_ITEMS = {};
 
 async function loadNews(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){}
 }
 
 var DEPT_LABELS = {admin:'Administration',training:'Training Team',marketing:'Marketing',misc:'Misceláneos'};
@@ -4791,7 +4846,7 @@ function renderAvailabilityOverview(m){
 var SWAPS = {};
 
 async function loadSwaps(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){}
 }
 
 function openSwapModal(evtId){
@@ -5109,7 +5164,7 @@ function findKPI26Meta(id){
 var NEXUS_KB = { entries: [] };
 
 async function loadNexusKB(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ NEXUS_KB = { entries: [] }; }
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ NEXUS_KB = { entries: [] }; }
 }
 
 async function saveNexusKB(){
@@ -5673,7 +5728,7 @@ var ATTENDANCE = {};
 var PORTAL_ACCESS = {}; // key: studentId+'_'+YYYY-MM-DD -> {time}
 
 async function loadAttendance(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){}
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){}
 }
 
 function getActiveClassFor(sid){
@@ -5806,7 +5861,7 @@ function renderOpsTrainerDetail(students){
 var STAFF_CHAT = { messages: [] };
 
 async function loadStaffChat(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ STAFF_CHAT = { messages: [] }; }
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ STAFF_CHAT = { messages: [] }; }
 }
 
 // ── CHAT PRIVADO ENTRE TRAINERS + TRANSCRIPCIONES ─────────
@@ -5820,8 +5875,7 @@ function dmKey(emailA, emailB){
 
 async function loadDM(key){
   try{
-    var rows = await dbGet('infinity_sessions');
-    var row = rows.find(function(r){ return r.id===key; });
+    var row = await dbGetSessionOne(key);
     DM_CHATS[key] = (row&&row.data) ? row.data : { messages: [] };
   }catch(e){ DM_CHATS[key] = { messages: [] }; }
 }
@@ -5913,7 +5967,7 @@ async function sendStaffMessage(){
 function renderChatTranscripts(m){
   if(!SESSION || SESSION.role!=='superadmin'){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Super Admin.</div></div>'; return; }
 
-  dbGet('infinity_sessions').then(function(rows){
+  dbQuery('infinity_sessions?select=id,data&or=(id.eq.STAFF-CHAT,id.like.STAFFDM-*)').then(function(rows){
     var dmRows = rows.filter(function(r){ return r.id && r.id.indexOf('STAFFDM-')===0; });
     var groupRow = rows.find(function(r){ return r.id==='STAFF-CHAT'; });
 
@@ -5943,8 +5997,7 @@ function renderChatTranscripts(m){
 }
 
 function viewDMTranscript(id){
-  dbGet('infinity_sessions').then(function(rows){
-    var row = rows.find(function(r){ return r.id===id; });
+  dbGetSessionOne(id).then(function(row){
     var msgs = (row&&row.data&&row.data.messages)||[];
     var parts = id.replace('STAFFDM-','').split('__');
     var n1 = (TRAINERS[parts[0]]&&TRAINERS[parts[0]].name)||parts[0];
@@ -6275,9 +6328,9 @@ async function renderNetworkTraffic(m){
         return;
       }
     }catch(e){}
-    // Fallback: datos desde Supabase (audit log + stats)
+    // Fallback: audit log en memoria + solo filas TRACK (no toda infinity_sessions)
     try{
-      var rows = await dbGet('infinity_sessions');
+      var rows = await dbQuery('infinity_sessions?select=id,data&id=like.TRACK-*');
       var ts = Date.now();
       // Contar eventos de hoy desde audit log
       var today = new Date().toDateString();
@@ -6381,7 +6434,7 @@ async function renderNetworkTraffic(m){
   }
 
   fetchNetworkData();
-  _netInterval = setInterval(fetchNetworkData, 5000);
+  _netInterval = setInterval(fetchNetworkData, 15000);
   // Limpiar intervalo si el usuario navega a otra sección
   var origShowView = window._origShowView;
   if(!origShowView){
@@ -6484,7 +6537,7 @@ function previewNexora(s){
 var KB_UPLOADS = [];
 
 async function loadKBUploads(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ KB_UPLOADS=[]; }
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ KB_UPLOADS=[]; }
 }
 
 function renderKBUpload(m){
@@ -6671,7 +6724,7 @@ async function kbuDelete(id){
 var ALICE_CACHE = {};
 
 async function loadAliceCache(){
-  try{ hydrateFromSessionRows(await dbGet('infinity_sessions')); }catch(e){ ALICE_CACHE={}; }
+  try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ ALICE_CACHE={}; }
 }
 
 function _cacheKey(prompt){

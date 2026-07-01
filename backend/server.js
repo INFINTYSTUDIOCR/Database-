@@ -130,6 +130,45 @@ async function sbGetOne(table, id) {
   }
 }
 
+async function sbQuery(table, queryString) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return [];
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${queryString}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    if (!r.ok) return [];
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn(`sbQuery ${table}:`, err.message);
+    return [];
+  }
+}
+
+async function sbDelete(table, id) {
+  if (!SUPABASE_URL || !SUPABASE_KEY || !id) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    return r.ok;
+  } catch (err) {
+    console.warn(`sbDelete ${table}/${id}:`, err.message);
+    return false;
+  }
+}
+
+async function sbFindStudentByPortalLogin(portalUser, password) {
+  const loginUser = String(portalUser || '').trim().toLowerCase();
+  if (!loginUser) return null;
+  const rows = await sbQuery(
+    'infinity_students',
+    `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`
+  );
+  return rows.find(r => r.data && r.data.portalPass === password) || null;
+}
+
 const Brain = require('./nexus-brain');
 Brain.initNexusBrain({ sbGetOne, sbSet });
 
@@ -338,12 +377,7 @@ app.post('/auth/login', async (req, res) => {
     const loginUser = String(user).trim().toLowerCase();
 
     if (role === 'student') {
-      const rows = await sbGet('infinity_students');
-      const match = rows.find(r =>
-        r.data &&
-        String(r.data.portalUser || '').trim().toLowerCase() === loginUser &&
-        r.data.portalPass === password
-      );
+      const match = await sbFindStudentByPortalLogin(user, password);
       if (!match) {
         recordLoginFailure(ip);
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -3459,6 +3493,32 @@ app.post('/analyze', async (req, res) => {
     return res.json({ result: text, text });
   } catch(err) {
     return res.status(500).json({ error: 'Analyze no disponible.' });
+  }
+});
+
+// ── SUPABASE MAINTENANCE ──────────────────────────────────────
+app.post('/admin/prune-sessions', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const logDays = Math.max(30, Math.min(365, parseInt(req.body?.logDays, 10) || 120));
+    const cacheDays = Math.max(3, Math.min(90, parseInt(req.body?.cacheDays, 10) || 14));
+    const logCutoff = Date.now() - logDays * 86400000;
+    const cacheCutoff = Date.now() - cacheDays * 86400000;
+    const rows = await sbGet('infinity_sessions');
+    let deleted = 0;
+    for (const row of rows) {
+      if (!row?.id || !row.data) continue;
+      const ts = row.data.ts ? new Date(row.data.ts).getTime() : 0;
+      if (!ts) continue;
+      if (row.id.startsWith('LOG-') && ts < logCutoff) {
+        if (await sbDelete('infinity_sessions', row.id)) deleted++;
+      } else if (row.id.startsWith('ACACHE-') && ts < cacheCutoff) {
+        if (await sbDelete('infinity_sessions', row.id)) deleted++;
+      }
+    }
+    return res.json({ ok: true, deleted, logDays, cacheDays });
+  } catch (err) {
+    console.error('prune-sessions:', err.message);
+    return res.status(500).json({ error: 'Prune failed' });
   }
 });
 
