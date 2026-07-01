@@ -1555,9 +1555,8 @@ function normalizeWaPhone(phone){
 function studentPortalAccessInstructions(){
   return 'CÓMO INGRESAR AL PORTAL\n'
     + '1. Entrá a www.studioinfinitycr.com\n'
-    + '2. En el home, dale click al ícono de candado 🔒 (en medio de los botones debajo del hero)\n'
-    + '   Guía visual: '+STUDENT_PORTAL_GUIDE_PAGE+'\n'
-    + '3. Click en Portal del Estudiante e ingresá usuario y contraseña';
+    + '2. En el home, click en el candado 🔒 (centro, debajo del hero)\n'
+    + '3. Portal del Estudiante → ingresá usuario y contraseña';
 }
 
 function buildStudentPortalCredentialsMessage(opts){
@@ -1579,7 +1578,7 @@ function copyStudentLink(id){
   var s=DB[id]; if(!s) return;
   if(!s.portalUser||!s.portalPass){ showToast('Generá las credenciales del portal primero (tab Información)','err'); return; }
   var text = buildStudentPortalCredentialsMessage({ user: s.portalUser, pass: s.portalPass });
-  showShareModal('Link y credenciales del portal', text, ((s.info&&s.info.phone)||''), { showPortalGuide: true, studentId: id });
+  showShareModal('Link y credenciales del portal', text, ((s.info&&s.info.phone)||''), { showPortalGuide: true, studentId: id, autoSendWhatsApp: true });
 }
 
 function copyMeetLink(id){
@@ -1621,9 +1620,16 @@ function showShareModal(title, text, phone, opts){
       if(opts.showPortalGuide) sharePortalCredentialsWhatsApp(_shareModalState.phone, _shareModalState.text, _shareModalState.studentId);
       else window.open('https://wa.me/'+normalizeWaPhone(_shareModalState.phone)+'?text='+encodeURIComponent(_shareModalState.text), '_blank');
     };
-    waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp';
+    waBtn.innerHTML = opts.showPortalGuide
+      ? '<i class="ti ti-brand-whatsapp"></i>Enviar imagen + credenciales'
+      : '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp';
   }
   showModal('modal-share');
+  if(opts.autoSendWhatsApp && opts.showPortalGuide){
+    setTimeout(function(){
+      sharePortalCredentialsWhatsApp(_shareModalState.phone, _shareModalState.text, _shareModalState.studentId);
+    }, 200);
+  }
 }
 
 function closeShareModal(){
@@ -1635,54 +1641,38 @@ function closeShareModal(){
   }
 }
 
-async function fetchPortalGuideBlob(){
-  var r = await fetch(STUDENT_PORTAL_GUIDE_IMAGE + '?v=2', { cache: 'no-store' });
-  if(!r.ok) throw new Error('No se pudo cargar la imagen guía');
-  return await r.blob();
-}
-
 async function sharePortalCredentialsWhatsApp(phone, text, studentId){
   phone = normalizeWaPhone(phone || _shareModalState.phone);
   studentId = studentId || _shareModalState.studentId;
-  if(!phone){ showToast('Sin teléfono del estudiante','err'); return; }
+  if(!phone){ showToast('Agregá el teléfono del estudiante en Información','err'); return; }
+  if(!studentId){ showToast('Estudiante no identificado','err'); return; }
   var waBtn = document.getElementById('share-whatsapp-btn');
-  if(waBtn){ waBtn.disabled = true; waBtn.innerHTML = '<i class="ti ti-loader spin"></i> Enviando…'; }
-  function resetBtn(){
-    if(waBtn){ waBtn.disabled = false; waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp'; }
-  }
-
-  if(studentId){
-    try{
-      var r = await fetch(INFINITY_API + '/whatsapp/send-portal-credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone, text: text, studentId: studentId })
-      });
-      var data = await r.json().catch(function(){ return {}; });
-      if(r.ok && data.ok){
-        showToast('Enviado automáticamente por WhatsApp al estudiante');
-        resetBtn();
-        return;
-      }
-    }catch(e){}
-  }
+  if(waBtn){ waBtn.disabled = true; waBtn.innerHTML = '<i class="ti ti-loader spin"></i> Enviando imagen + credenciales…'; }
 
   try{
-    var blob = await fetchPortalGuideBlob();
-    var file = new File([blob], 'guia-portal-infinity.png', { type: 'image/png' });
-    if(navigator.canShare && navigator.canShare({ files: [file], text: text })){
-      await navigator.share({ files: [file], text: text, title: 'Portal del Estudiante' });
-      showToast('Enviado — elegí WhatsApp en el menú');
-      resetBtn();
+    var r = await fetch(INFINITY_API + '/whatsapp/send-portal-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, text: text, studentId: studentId })
+    });
+    var data = await r.json().catch(function(){ return {}; });
+    if(r.ok && data.ok){
+      showToast('Enviado — imagen y credenciales en un solo mensaje de WhatsApp');
+      if(waBtn){ waBtn.innerHTML = '<i class="ti ti-check"></i> Enviado'; }
       return;
     }
+    var errMsg = data.error || ('HTTP '+r.status);
+    if(data.detail && data.detail.error && data.detail.error.message) errMsg = data.detail.error.message;
+    else if(typeof data.detail === 'string') errMsg = data.detail;
+    showToast('WhatsApp no envió: '+errMsg,'err');
   }catch(e){
-    if(e && e.name === 'AbortError'){ resetBtn(); return; }
+    showToast('Sin conexión al servidor — reintentá en unos segundos','err');
+  }finally{
+    if(waBtn && waBtn.innerHTML.indexOf('Enviado') === -1){
+      waBtn.disabled = false;
+      waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Reintentar envío';
+    }
   }
-
-  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(STUDENT_PORTAL_GUIDE_PAGE + '\n\n' + text), '_blank');
-  showToast('WhatsApp abierto — la guía aparece como imagen al enviar');
-  resetBtn();
 }
 
 function copyShareText(){
@@ -3762,7 +3752,7 @@ async function closeDeal(){
 
   openStudent(sid);
   setTimeout(function(){
-    showShareModal('Mensaje de bienvenida — Basic Training + Portal', text, ((s.info&&s.info.phone)||''), { showPortalGuide: true, studentId: sid, pendingPaymentSid: sid });
+    showShareModal('Mensaje de bienvenida — Basic Training + Portal', text, ((s.info&&s.info.phone)||''), { showPortalGuide: true, studentId: sid, pendingPaymentSid: sid, autoSendWhatsApp: true });
   }, 300);
 }
 

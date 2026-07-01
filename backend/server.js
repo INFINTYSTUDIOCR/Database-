@@ -3464,6 +3464,7 @@ app.post('/analyze', async (req, res) => {
 
 // ── WHATSAPP OUTBOUND (portal credentials) ────────────────────
 const PORTAL_GUIDE_IMAGE_URL = 'https://www.studioinfinitycr.com/assets/portal-access-guide.png';
+const WHATSAPP_PORTAL_TEMPLATE = process.env.WHATSAPP_PORTAL_TEMPLATE || '';
 
 function normalizeWaPhone(phone) {
   let p = String(phone || '').replace(/\D/g, '');
@@ -3480,6 +3481,10 @@ function phonesMatch(a, b) {
   return pa.length >= 8 && pb.length >= 8 && pa.slice(-8) === pb.slice(-8);
 }
 
+function waApiError(data) {
+  return data?.error?.message || data?.error?.error_user_msg || JSON.stringify(data?.error || data).slice(0, 200);
+}
+
 async function sendWhatsAppCloud(to, payload) {
   if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
     return { ok: false, error: 'whatsapp_not_configured' };
@@ -3493,6 +3498,38 @@ async function sendWhatsAppCloud(to, payload) {
   return { ok: r.ok, data };
 }
 
+async function sendPortalGuideImageMessage(phone, caption) {
+  return sendWhatsAppCloud(phone, {
+    type: 'image',
+    image: { link: PORTAL_GUIDE_IMAGE_URL, caption: String(caption).slice(0, 1024) }
+  });
+}
+
+async function sendPortalGuideTemplate(phone, user, pass, name) {
+  if (!WHATSAPP_PORTAL_TEMPLATE) return { ok: false, error: 'template_not_configured' };
+  return sendWhatsAppCloud(phone, {
+    type: 'template',
+    template: {
+      name: WHATSAPP_PORTAL_TEMPLATE,
+      language: { code: 'es' },
+      components: [
+        {
+          type: 'header',
+          parameters: [{ type: 'image', image: { link: PORTAL_GUIDE_IMAGE_URL } }]
+        },
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', text: String(name || 'Estudiante').slice(0, 60) },
+            { type: 'text', text: String(user || '').slice(0, 60) },
+            { type: 'text', text: String(pass || '').slice(0, 60) }
+          ]
+        }
+      ]
+    }
+  });
+}
+
 app.post('/whatsapp/send-portal-credentials', async (req, res) => {
   try {
     const { phone, text, studentId } = req.body || {};
@@ -3500,38 +3537,45 @@ app.post('/whatsapp/send-portal-credentials', async (req, res) => {
       return res.status(400).json({ error: 'Missing phone, text, or studentId' });
     }
     if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-      return res.status(503).json({ error: 'whatsapp_not_configured' });
+      return res.status(503).json({ error: 'WhatsApp no configurado en el servidor' });
     }
 
     const row = await sbGetOne('infinity_students', studentId);
-    if (!row?.data) return res.status(404).json({ error: 'Student not found' });
-    if (!phonesMatch(row.data.info?.phone, phone)) {
-      return res.status(403).json({ error: 'Phone mismatch' });
+    if (!row?.data) return res.status(404).json({ error: 'Estudiante no encontrado' });
+    const storedPhone = row.data.info?.phone;
+    if (storedPhone && !phonesMatch(storedPhone, phone)) {
+      return res.status(403).json({ error: 'El teléfono no coincide con el del estudiante' });
     }
 
+    const toPhone = normalizeWaPhone(storedPhone || phone);
     const caption = String(text).slice(0, 1024);
-    const img = await sendWhatsAppCloud(phone, {
-      type: 'image',
-      image: { link: PORTAL_GUIDE_IMAGE_URL, caption }
-    });
-    if (!img.ok) {
-      console.error('WhatsApp image send failed:', JSON.stringify(img.data).slice(0, 300));
-      return res.status(502).json({ error: 'whatsapp_send_failed', detail: img.data });
-    }
 
-    if (String(text).length > 1024) {
-      await new Promise(r => setTimeout(r, 500));
-      const txt = await sendWhatsAppCloud(phone, { type: 'text', text: { body: text } });
-      if (!txt.ok) {
-        console.error('WhatsApp text send failed:', JSON.stringify(txt.data).slice(0, 300));
-        return res.status(502).json({ error: 'whatsapp_text_failed', detail: txt.data });
+    let result = await sendPortalGuideImageMessage(toPhone, caption);
+    if (!result.ok) {
+      const errCode = result.data?.error?.code;
+      const needsTemplate = errCode === 131047 || errCode === 131026 || errCode === 470;
+      if (needsTemplate || WHATSAPP_PORTAL_TEMPLATE) {
+        result = await sendPortalGuideTemplate(
+          toPhone,
+          row.data.portalUser,
+          row.data.portalPass,
+          row.data.info?.name
+        );
       }
     }
 
-    return res.json({ ok: true });
+    if (!result.ok) {
+      console.error('WhatsApp portal send failed:', JSON.stringify(result.data).slice(0, 400));
+      return res.status(502).json({
+        error: waApiError(result.data) || 'No se pudo enviar por WhatsApp',
+        detail: result.data
+      });
+    }
+
+    return res.json({ ok: true, to: toPhone });
   } catch (err) {
     console.error('send-portal-credentials:', err.message);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
