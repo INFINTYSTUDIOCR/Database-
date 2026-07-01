@@ -1620,9 +1620,7 @@ function showShareModal(title, text, phone, opts){
       if(opts.showPortalGuide) sharePortalCredentialsWhatsApp(_shareModalState.phone, _shareModalState.text, _shareModalState.studentId);
       else window.open('https://wa.me/'+normalizeWaPhone(_shareModalState.phone)+'?text='+encodeURIComponent(_shareModalState.text), '_blank');
     };
-    waBtn.innerHTML = opts.showPortalGuide
-      ? '<i class="ti ti-brand-whatsapp"></i>Enviar imagen + credenciales'
-      : '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp';
+    waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp';
   }
   showModal('modal-share');
   if(opts.autoSendWhatsApp && opts.showPortalGuide){
@@ -1641,14 +1639,11 @@ function closeShareModal(){
   }
 }
 
-async function sharePortalCredentialsWhatsApp(phone, text, studentId){
-  phone = normalizeWaPhone(phone || _shareModalState.phone);
-  studentId = studentId || _shareModalState.studentId;
-  if(!phone){ showToast('Agregá el teléfono del estudiante en Información','err'); return; }
-  if(!studentId){ showToast('Estudiante no identificado','err'); return; }
-  var waBtn = document.getElementById('share-whatsapp-btn');
-  if(waBtn){ waBtn.disabled = true; waBtn.innerHTML = '<i class="ti ti-loader spin"></i> Enviando imagen + credenciales…'; }
+function buildWhatsAppPortalPayload(text){
+  return STUDENT_PORTAL_GUIDE_PAGE + '\n\n' + text;
+}
 
+async function trySendPortalViaServer(phone, text, studentId){
   try{
     var r = await fetch(INFINITY_API + '/whatsapp/send-portal-credentials', {
       method: 'POST',
@@ -1656,23 +1651,64 @@ async function sharePortalCredentialsWhatsApp(phone, text, studentId){
       body: JSON.stringify({ phone: phone, text: text, studentId: studentId })
     });
     var data = await r.json().catch(function(){ return {}; });
-    if(r.ok && data.ok){
-      showToast('Enviado — imagen y credenciales en un solo mensaje de WhatsApp');
-      if(waBtn){ waBtn.innerHTML = '<i class="ti ti-check"></i> Enviado'; }
+    if(r.ok && data.ok) return { ok: true, mode: 'cloud' };
+    return { ok: false, useTrainer: data.useTrainer !== false, error: data.error || '' };
+  }catch(e){
+    return { ok: false, useTrainer: true, error: '' };
+  }
+}
+
+async function sendPortalViaTrainerWhatsApp(phone, text){
+  phone = normalizeWaPhone(phone);
+  var payload = buildWhatsAppPortalPayload(text);
+  try{
+    var imgRes = await fetch(STUDENT_PORTAL_GUIDE_IMAGE + '?v=3', { cache: 'no-store' });
+    if(imgRes.ok){
+      var blob = await imgRes.blob();
+      var file = new File([blob], 'guia-portal-infinity.png', { type: 'image/png' });
+      if(navigator.share && (!navigator.canShare || navigator.canShare({ files: [file], text: payload }))){
+        await navigator.share({ files: [file], text: payload, title: 'Portal del Estudiante' });
+        return { ok: true, mode: 'native-share' };
+      }
+    }
+  }catch(e){
+    if(e && e.name === 'AbortError') return { ok: false, cancelled: true };
+  }
+  window.open('https://api.whatsapp.com/send/?phone=' + encodeURIComponent(phone) + '&text=' + encodeURIComponent(payload), '_blank');
+  return { ok: true, mode: 'whatsapp-link' };
+}
+
+function markPortalWhatsAppSent(waBtn){
+  if(!waBtn) return;
+  waBtn.disabled = false;
+  waBtn.innerHTML = '<i class="ti ti-check"></i> Listo';
+}
+
+async function sharePortalCredentialsWhatsApp(phone, text, studentId){
+  phone = normalizeWaPhone(phone || _shareModalState.phone);
+  studentId = studentId || _shareModalState.studentId;
+  if(!phone){ showToast('Agregá el teléfono del estudiante en Información','err'); return; }
+
+  var waBtn = document.getElementById('share-whatsapp-btn');
+  if(waBtn){ waBtn.disabled = true; waBtn.innerHTML = '<i class="ti ti-loader spin"></i> Enviando…'; }
+
+  if(studentId){
+    var server = await trySendPortalViaServer(phone, text, studentId);
+    if(server.ok){
+      showToast('Enviado al estudiante — imagen y credenciales juntos');
+      markPortalWhatsAppSent(waBtn);
       return;
     }
-    var errMsg = data.error || ('HTTP '+r.status);
-    if(data.detail && data.detail.error && data.detail.error.message) errMsg = data.detail.error.message;
-    else if(typeof data.detail === 'string') errMsg = data.detail;
-    showToast('WhatsApp no envió: '+errMsg,'err');
-  }catch(e){
-    showToast('Sin conexión al servidor — reintentá en unos segundos','err');
-  }finally{
-    if(waBtn && waBtn.innerHTML.indexOf('Enviado') === -1){
-      waBtn.disabled = false;
-      waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Reintentar envío';
-    }
   }
+
+  var local = await sendPortalViaTrainerWhatsApp(phone, text);
+  if(local.cancelled){
+    if(waBtn){ waBtn.disabled = false; waBtn.innerHTML = '<i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp'; }
+    return;
+  }
+  if(local.mode === 'native-share') showToast('Elegí WhatsApp — imagen y credenciales juntos');
+  else showToast('WhatsApp abierto — tocá Enviar (incluye guía con imagen)');
+  markPortalWhatsAppSent(waBtn);
 }
 
 function copyShareText(){

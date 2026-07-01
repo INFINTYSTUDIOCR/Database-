@@ -3534,20 +3534,22 @@ app.post('/whatsapp/send-portal-credentials', async (req, res) => {
   try {
     const { phone, text, studentId } = req.body || {};
     if (!phone || !text || !studentId) {
-      return res.status(400).json({ error: 'Missing phone, text, or studentId' });
-    }
-    if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-      return res.status(503).json({ error: 'WhatsApp no configurado en el servidor' });
+      return res.status(400).json({ error: 'Faltan teléfono, texto o estudiante', useTrainer: true });
     }
 
     const row = await sbGetOne('infinity_students', studentId);
-    if (!row?.data) return res.status(404).json({ error: 'Estudiante no encontrado' });
+    if (!row?.data) return res.status(404).json({ error: 'Estudiante no encontrado', useTrainer: true });
     const storedPhone = row.data.info?.phone;
     if (storedPhone && !phonesMatch(storedPhone, phone)) {
-      return res.status(403).json({ error: 'El teléfono no coincide con el del estudiante' });
+      return res.status(403).json({ error: 'El teléfono no coincide con el del estudiante', useTrainer: true });
     }
 
     const toPhone = normalizeWaPhone(storedPhone || phone);
+
+    if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+      return res.json({ ok: false, configured: false, useTrainer: true, to: toPhone });
+    }
+
     const caption = String(text).slice(0, 1024);
 
     let result = await sendPortalGuideImageMessage(toPhone, caption);
@@ -3566,17 +3568,28 @@ app.post('/whatsapp/send-portal-credentials', async (req, res) => {
 
     if (!result.ok) {
       console.error('WhatsApp portal send failed:', JSON.stringify(result.data).slice(0, 400));
-      return res.status(502).json({
-        error: waApiError(result.data) || 'No se pudo enviar por WhatsApp',
-        detail: result.data
+      return res.json({
+        ok: false,
+        configured: true,
+        useTrainer: true,
+        error: waApiError(result.data) || 'No se pudo enviar por WhatsApp Cloud',
+        to: toPhone
       });
     }
 
-    return res.json({ ok: true, to: toPhone });
+    return res.json({ ok: true, configured: true, mode: 'cloud', to: toPhone });
   } catch (err) {
     console.error('send-portal-credentials:', err.message);
-    return res.status(500).json({ error: 'Error del servidor' });
+    return res.status(500).json({ error: 'Error del servidor', useTrainer: true });
   }
+});
+
+app.get('/whatsapp/status', (req, res) => {
+  res.json({
+    configured: Boolean(WHATSAPP_TOKEN && WHATSAPP_PHONE_NUMBER_ID),
+    cloud: Boolean(WHATSAPP_TOKEN && WHATSAPP_PHONE_NUMBER_ID),
+    template: WHATSAPP_PORTAL_TEMPLATE || null
+  });
 });
 
 // ── WHATSAPP WEBHOOK ──────────────────────────────────────────
