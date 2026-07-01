@@ -3462,6 +3462,79 @@ app.post('/analyze', async (req, res) => {
   }
 });
 
+// ── WHATSAPP OUTBOUND (portal credentials) ────────────────────
+const PORTAL_GUIDE_IMAGE_URL = 'https://www.studioinfinitycr.com/assets/portal-access-guide.png';
+
+function normalizeWaPhone(phone) {
+  let p = String(phone || '').replace(/\D/g, '');
+  if (p.length === 8) p = '506' + p;
+  if (p.startsWith('00')) p = p.slice(2);
+  return p;
+}
+
+function phonesMatch(a, b) {
+  const pa = normalizeWaPhone(a);
+  const pb = normalizeWaPhone(b);
+  if (!pa || !pb) return false;
+  if (pa === pb) return true;
+  return pa.length >= 8 && pb.length >= 8 && pa.slice(-8) === pb.slice(-8);
+}
+
+async function sendWhatsAppCloud(to, payload) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    return { ok: false, error: 'whatsapp_not_configured' };
+  }
+  const r = await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messaging_product: 'whatsapp', to: normalizeWaPhone(to), ...payload })
+  });
+  const data = await r.json().catch(() => ({}));
+  return { ok: r.ok, data };
+}
+
+app.post('/whatsapp/send-portal-credentials', async (req, res) => {
+  try {
+    const { phone, text, studentId } = req.body || {};
+    if (!phone || !text || !studentId) {
+      return res.status(400).json({ error: 'Missing phone, text, or studentId' });
+    }
+    if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+      return res.status(503).json({ error: 'whatsapp_not_configured' });
+    }
+
+    const row = await sbGetOne('infinity_students', studentId);
+    if (!row?.data) return res.status(404).json({ error: 'Student not found' });
+    if (!phonesMatch(row.data.info?.phone, phone)) {
+      return res.status(403).json({ error: 'Phone mismatch' });
+    }
+
+    const caption = String(text).slice(0, 1024);
+    const img = await sendWhatsAppCloud(phone, {
+      type: 'image',
+      image: { link: PORTAL_GUIDE_IMAGE_URL, caption }
+    });
+    if (!img.ok) {
+      console.error('WhatsApp image send failed:', JSON.stringify(img.data).slice(0, 300));
+      return res.status(502).json({ error: 'whatsapp_send_failed', detail: img.data });
+    }
+
+    if (String(text).length > 1024) {
+      await new Promise(r => setTimeout(r, 500));
+      const txt = await sendWhatsAppCloud(phone, { type: 'text', text: { body: text } });
+      if (!txt.ok) {
+        console.error('WhatsApp text send failed:', JSON.stringify(txt.data).slice(0, 300));
+        return res.status(502).json({ error: 'whatsapp_text_failed', detail: txt.data });
+      }
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('send-portal-credentials:', err.message);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── WHATSAPP WEBHOOK ──────────────────────────────────────────
 app.get('/webhook', (req, res) => {
   if (req.query['hub.mode']==='subscribe' && req.query['hub.verify_token']===VERIFY_TOKEN)
