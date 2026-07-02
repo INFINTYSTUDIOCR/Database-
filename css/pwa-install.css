@@ -16,7 +16,7 @@
   line-height:1.35;
 }
 .pwa-install-bar[hidden]{display:none!important;}
-.pwa-install-bar span{flex:1;font-weight:600;}
+.pwa-install-bar .pwa-install-msg{flex:1;font-weight:600;}
 .pwa-install-bar button{
   border:none;
   border-radius:999px;
@@ -24,10 +24,45 @@
   font-size:12px;
   font-weight:700;
   cursor:pointer;
+  white-space:nowrap;
 }
 .pwa-install-bar .pwa-install-btn{background:#fff;color:#5B21B6;}
 .pwa-install-bar .pwa-dismiss-btn{background:rgba(255,255,255,.18);color:#fff;padding:8px 10px;}
 
+.pwa-ios-help{
+  position:fixed;
+  inset:0;
+  z-index:10060;
+  background:rgba(15,23,42,.88);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+.pwa-ios-help.show{display:flex;}
+.pwa-ios-help[hidden]{display:none!important;}
+.pwa-ios-help-card{
+  background:#fff;
+  border-radius:16px;
+  max-width:360px;
+  width:100%;
+  padding:20px 18px;
+  color:var(--text,#1E1E2E);
+}
+.pwa-ios-help-card h3{
+  font-size:17px;
+  font-weight:800;
+  color:#5B21B6;
+  margin:0 0 12px;
+}
+.pwa-ios-help-card ol{
+  margin:0 0 16px 18px;
+  font-size:14px;
+  line-height:1.55;
+}
+.pwa-ios-help-card li{margin-bottom:8px;}
+.pwa-ios-help-card .btn{width:100%;justify-content:center;}
+
 @media (display-mode: standalone){
-  .pwa-install-bar{display:none!important;}
+  .pwa-install-bar,.pwa-ios-help{display:none!important;}
 }

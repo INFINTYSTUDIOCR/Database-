@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-title" content="SI Portal">
 <link rel="manifest" href="manifest-portal.json">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="css/pwa-install.css">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="stylesheet" href="css/pwa-install.css?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -163,6 +163,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input class="inp" id="l-user" placeholder="Usuario" autocomplete="username">
       <input class="inp" id="l-pass" placeholder="Contraseña" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <button type="button" class="btn btn-navy btn-block btn-login" id="btn-login" onclick="doLogin()"><i class="ti ti-login"></i>Ingresar</button>
+      <button type="button" class="btn btn-outline btn-block" style="margin-top:10px;border-color:var(--nm);color:var(--navy);" onclick="infinityPwaInstall()"><i class="ti ti-device-mobile"></i>Instalar app en el celular</button>
       <div id="login-err" style="font-size:12px;color:var(--rm);margin-top:0.75rem;display:none;"></div>
       <div style="font-size:11px;color:var(--t3);margin-top:1rem;">¿No tenés credenciales? Pedíselas a tu trainer.</div>
     </div>
@@ -200,12 +201,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="toast" id="toast"></div>
 
 <div id="pwa-install-bar" class="pwa-install-bar" hidden>
-  <span>Instalá el Portal en tu celular para acceso rápido</span>
+  <span class="pwa-install-msg">Instalá el Portal en tu celular</span>
   <button type="button" class="pwa-install-btn" onclick="infinityPwaInstall()">Instalar</button>
   <button type="button" class="pwa-dismiss-btn" onclick="document.getElementById('pwa-install-bar').hidden=true" aria-label="Cerrar">×</button>
 </div>
-<script src="js/pwa-register.js"></script>
 
+<div id="pwa-ios-help" class="pwa-ios-help" hidden>
+  <div class="pwa-ios-help-card">
+    <h3><i class="ti ti-brand-apple"></i> Instalar en iPhone</h3>
+    <ol>
+      <li>Asegurate de estar en <strong>Safari</strong> (no Chrome).</li>
+      <li>Tocá <strong>Compartir</strong> (cuadrado con flecha hacia arriba).</li>
+      <li>Elegí <strong>Agregar a pantalla de inicio</strong> → <strong>Agregar</strong>.</li>
+    </ol>
+    <button type="button" class="btn btn-navy" onclick="infinityPwaHideIosHelp()">Entendido</button>
+  </div>
+</div>
 <script>
 const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';

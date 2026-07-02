@@ -1,9 +1,10 @@
 /* Infinity Studio CR — PWA service worker (network-first HTML, cache static assets) */
-var CACHE = 'infinity-pwa-v3';
+var CACHE = 'infinity-pwa-v4';
 var PRECACHE = [
-  './icon-192.png',
-  './icon-512.png',
-  './css/daily-inspiration.css'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/css/daily-inspiration.css',
+  '/css/pwa-install.css'
 ];
 
 var SKIP_HOSTS = [
