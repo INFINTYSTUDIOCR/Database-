@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SI Portal">
 <link rel="manifest" href="manifest-portal.json">
-<link rel="icon" href="icon-192.png?v=20260702" type="image/png">
-<link rel="apple-touch-icon" href="/icon-512.png?v=20260702">
+<link rel="icon" href="icon-192.png?v=20260703" type="image/png">
+<link rel="apple-touch-icon" href="/icon-512.png?v=20260703">
 <link rel="stylesheet" href="css/pwa-install.css?v=2">
 <script src="js/pwa-register.js?v=2" defer></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -25,7 +25,7 @@
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/ai-profile.js"></script>
-<script src="js/alice-progress.js?v=20260702"></script>
+<script src="js/alice-progress.js?v=20260703"></script>
 <script src="js/alice-badges-cefr.js"></script>
 <script src="js/alice-pronunciation.js"></script>
 <script src="js/alice-reminders.js"></script>
@@ -52,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fade{animation:fadeIn 0.2s ease;}
 
 .topbar{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
-.tb-logo{height:36px;width:36px;object-fit:cover;border-radius:8px;}
+.tb-logo{height:36px;width:36px;object-fit:contain;border-radius:8px;image-rendering:auto;}
 .tb-div{width:1px;height:26px;background:rgba(255,255,255,0.2);}
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
@@ -65,7 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .login-wrap{max-width:420px;margin:5rem auto;padding:1.5rem;}
 .login-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
-.login-logo{height:72px;width:72px;max-width:72px;object-fit:cover;border-radius:16px;margin-bottom:1rem;}
+.login-logo{height:72px;width:72px;max-width:72px;object-fit:contain;border-radius:16px;margin-bottom:1rem;image-rendering:auto;}
 .login-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
 .inp{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;margin-bottom:0.75rem;}
@@ -145,7 +145,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 
 <div class="topbar" id="topbar" style="display:none;">
-  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png?v=20260702" alt="Infinity Studio CR">
+  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR">
   <div class="tb-div"></div>
   <div>
     <div class="tb-title">Portal del Estudiante</div>
@@ -163,7 +163,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260702" alt="Infinity Studio CR">
+      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260703" alt="Infinity Studio CR">
       <div class="login-title">Portal del Estudiante</div>
       <div class="login-sub">Infinity Studio CR · Tu Training Book, KPIs, horario y progreso, sincronizados en tiempo real.</div>
       <input class="inp" id="l-user" placeholder="Usuario" autocomplete="username">

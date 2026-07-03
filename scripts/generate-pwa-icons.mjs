@@ -1,9 +1,9 @@
 /**
- * Generate PWA icons (192 + 512) from Infinity PWA artwork.
+ * Generate crisp square brand logos + PWA icons from PWA artwork.
  * Run: node scripts/generate-pwa-icons.mjs
  */
 import { createRequire } from 'module';
-import { writeFileSync, copyFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -22,27 +22,39 @@ try {
 const LOGO = join(root, 'assets/pwa/infinity-pwa-icon-source.png');
 const OUT192 = join(root, 'icon-192.png');
 const OUT512 = join(root, 'icon-512.png');
-const BRAND_LOGOS = [
-  'assets/logos/infinity-studio-cr-nav.png',
-  'assets/logos/infinity-studio-cr.png',
-  'assets/logos/infinity-studio-cr-logo.png',
-  'assets/logos/infinity-studio-cr-transparent.png',
-  'assets/logos/infinity-logo.png',
+
+const BRAND_EXPORTS = [
+  { rel: 'assets/logos/infinity-studio-cr-nav.png', size: 256 },
+  { rel: 'assets/logos/infinity-studio-cr-nav@2x.png', size: 512 },
+  { rel: 'assets/logos/infinity-studio-cr.png', size: 512 },
+  { rel: 'assets/logos/infinity-studio-cr-logo.png', size: 1024 },
+  { rel: 'assets/logos/infinity-studio-cr-transparent.png', size: 512 },
+  { rel: 'assets/logos/infinity-logo.png', size: 512 },
 ];
 
-for (const rel of BRAND_LOGOS) {
-  const dest = join(root, rel);
-  copyFileSync(LOGO, dest);
-  console.log('Synced brand logo ->', rel);
-}
-
-async function buildIcon(size) {
+async function squareMaster() {
+  const meta = await sharp(LOGO).metadata();
+  const side = Math.min(meta.width, meta.height);
+  const left = Math.max(0, Math.floor((meta.width - side) / 2));
+  const top = Math.max(0, Math.floor((meta.height - side) / 2));
   return sharp(LOGO)
-    .resize(size, size, { fit: 'cover' })
-    .png({ compressionLevel: 9 })
-    .toBuffer();
+    .extract({ left, top, width: side, height: side })
+    .png({ compressionLevel: 6, adaptiveFiltering: true });
 }
 
-writeFileSync(OUT192, await buildIcon(192));
-writeFileSync(OUT512, await buildIcon(512));
-console.log('Wrote', OUT192, OUT512);
+async function exportSquare(base, size, dest) {
+  const buf = await base
+    .clone()
+    .resize(size, size, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 6, adaptiveFiltering: true })
+    .toBuffer();
+  writeFileSync(dest, buf);
+  console.log('Wrote', dest, `(${size}x${size}, ${buf.length} bytes)`);
+}
+
+const master = await squareMaster();
+for (const { rel, size } of BRAND_EXPORTS) {
+  await exportSquare(master, size, join(root, rel));
+}
+await exportSquare(master, 192, OUT192);
+await exportSquare(master, 512, OUT512);
