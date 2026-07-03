@@ -108,11 +108,22 @@
   --page-bg:#F6F0FF;--page-warm:#FFF9F0;
   --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;--gray-light:#E2E8F0;
   --r:8px;--rl:16px;--rxl:24px;
+  --companion-ribbon-h:56px;
 }
 html{scroll-behavior:smooth;}
 body{font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden;background:var(--page-bg);background-image:radial-gradient(ellipse 90% 55% at 0% 0%,rgba(91,33,182,0.09),transparent 58%),radial-gradient(ellipse 75% 50% at 100% 8%,rgba(245,166,35,0.08),transparent 52%),linear-gradient(180deg,#F5EEFF 0%,#FFF8F0 38%,#F3EBFF 100%);background-attachment:fixed;}
 
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.12);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
+.companion-ribbon{position:fixed;top:0;left:0;right:0;z-index:110;min-height:var(--companion-ribbon-h);display:flex;align-items:center;background:linear-gradient(90deg,#4C1D95 0%,#6D28D9 38%,#7C3AED 62%,#D97706 100%);color:#fff;text-decoration:none;border-bottom:2px solid rgba(251,191,36,0.45);box-shadow:0 6px 24px rgba(91,33,182,0.28);transition:filter .2s;}
+.companion-ribbon:hover{filter:brightness(1.06);color:#fff;}
+.companion-ribbon-inner{width:100%;max-width:1240px;margin:0 auto;padding:8px 1.25rem;display:flex;align-items:center;justify-content:center;gap:10px 14px;flex-wrap:wrap;text-align:center;}
+.companion-ribbon-badge{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);padding:4px 10px;border-radius:20px;}
+.companion-ribbon-text{font-size:13px;line-height:1.45;font-weight:500;max-width:52rem;}
+.companion-ribbon-text strong{font-weight:800;}
+.companion-ribbon-text .ribbon-detail{display:inline;}
+.companion-ribbon-cta{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#FBBF24,#F5A623);color:#1E1E2E;padding:8px 16px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:nowrap;}
+.companion-ribbon-cta i{font-size:16px;}
+
+nav{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:100;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.12);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
 .nav-logo{height:52px;width:52px;object-fit:contain;border-radius:12px;display:block;image-rendering:auto;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 .nav-links{display:flex;align-items:center;gap:2rem;}
 .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--t2);transition:color 0.2s;}
@@ -120,7 +131,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,251,255,
 .nav-cta{background:var(--purple);color:white !important;padding:10px 22px;border-radius:var(--r);font-size:14px;font-weight:700;text-decoration:none;transition:all 0.2s;}
 .nav-cta:hover{background:var(--purple-light);box-shadow:0 4px 20px rgba(91,33,182,0.35);}
 
-.hero{min-height:100vh;padding:120px 2rem 80px;display:flex;align-items:center;background:linear-gradient(135deg,rgba(245,238,255,0.95) 0%,rgba(237,233,254,0.92) 48%,rgba(255,248,238,0.9) 100%);position:relative;overflow:hidden;}
+.hero{min-height:100vh;padding:calc(120px + var(--companion-ribbon-h)) 2rem 80px;display:flex;align-items:center;background:linear-gradient(135deg,rgba(245,238,255,0.95) 0%,rgba(237,233,254,0.92) 48%,rgba(255,248,238,0.9) 100%);position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(91,33,182,0.14) 0%,transparent 70%);pointer-events:none;}
 .hero::after{content:'';position:absolute;bottom:-120px;left:-80px;width:480px;height:480px;background:radial-gradient(circle,rgba(245,166,35,0.12) 0%,transparent 68%);pointer-events:none;}
 .hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.05fr 0.95fr;gap:3.5rem;align-items:center;width:100%;}
@@ -414,6 +425,9 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 .fade-up.visible{opacity:1;transform:none;}
 
 @media(max-width:768px){
+  :root{--companion-ribbon-h:72px;}
+  .companion-ribbon-text{font-size:12px;}
+  .companion-ribbon-text .ribbon-detail{display:none;}
   .hero-inner,.problem-grid,.alice-inner,.jill-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
   .hero-headline{max-width:none;font-size:clamp(1.85rem,7vw,2.35rem);}
   .hero-photo-single,.hero-photo-single img{min-height:280px;}
@@ -427,6 +441,17 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <script src="js/site-analytics.js"></script>
 </head>
 <body>
+
+<a href="try-alice.html" class="companion-ribbon" id="companion-ribbon" aria-label="Probar Alice Companion gratis">
+  <div class="companion-ribbon-inner">
+    <span class="companion-ribbon-badge"><i class="ti ti-sparkles"></i> Nuevo</span>
+    <p class="companion-ribbon-text">
+      <strong>Alice Companion</strong> — la primera IA que realmente te escucha, corrige, guía y te acompaña en inglés.
+      <span class="ribbon-detail"> Cualquier tema, cualquier momento, cualquier lugar — carro, bus, restaurante. Mejorá listening y fluidez casi sin darte cuenta.</span>
+    </p>
+    <span class="companion-ribbon-cta">Probar Alice Companion <i class="ti ti-arrow-right"></i></span>
+  </div>
+</a>
 
 <nav>
   <a href="index.html" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" srcset="assets/logos/infinity-studio-cr-nav.png?v=20260703 1x, assets/logos/infinity-studio-cr-nav@2x.png?v=20260703 2x" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo" width="52" height="52"></a>
@@ -911,12 +936,12 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="section-inner">
     <div class="alice-inner">
       <div>
-        <div class="alice-badge"><i class="ti ti-messages"></i>Alice Companion · Premium</div>
-        <h2 class="alice-title">Tu compañera de práctica personal — 24/7</h2>
+        <div class="alice-badge"><i class="ti ti-messages"></i>Alice Companion · Prueba gratis</div>
+        <h2 class="alice-title">La primera IA que realmente te escucha — 24/7</h2>
         <p class="alice-legend">
-          Imagina tener una tutora que te escuche <strong>24/7</strong>, con la que puedes hablar de <strong>lo que quieras en inglés</strong> — y que te corrija, te dé feedback y te evalúe constantemente.
-          Imagina practicar en el <strong>bus</strong> hacia el trabajo, en el <strong>carro</strong>, en la <strong>hora de almuerzo</strong> y recibir <strong>retroalimentación diaria</strong>.
-          <span class="alice-legend-tagline">Un compañero de práctica solo para ti. Eso es <strong>Alice Companion</strong> — tu tutora personal y compañera de práctica.</span>
+          <strong>Alice Companion</strong> no solo responde: <strong>te escucha</strong>, te <strong>corrige</strong> con cariño, te <strong>guía</strong> en tus tareas diarias y te <strong>acompaña</strong> mientras mejorás listening y fluidez — hablando de lo que <strong>a vos te importa</strong>, casi sin darte cuenta.
+          Podés hablar de <strong>cualquier tema</strong>, en <strong>cualquier momento</strong> y en <strong>cualquier lugar</strong>: en el <strong>carro</strong>, en el <strong>bus</strong>, en el <strong>restaurante</strong> o en la pausa del almuerzo. No hay excusa para dejar de practicar inglés.
+          <span class="alice-legend-tagline">Probalá Alice Companion hoy — tu compañera de práctica personal, solo para ti.</span>
         </p>
         <div class="alice-caps">
           <div class="alice-cap"><i class="ti ti-microphone"></i>Charla libre por voz</div>
