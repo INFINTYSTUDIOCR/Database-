@@ -369,6 +369,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
       <div id="sh-stakes" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
   </div>
+  <div id="sh-pdf-section" style="display:none;background:rgba(255,255,255,0.05);margin:0 1.5rem;border-radius:12px;padding:12px;margin-bottom:8px;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;"><i class="ti ti-file-upload"></i> Subí tu análisis financiero (PDF/TXT). El stakeholder lo lee y decide si aprueba el ROI:</div>
+    <input type="file" accept=".pdf,.txt,.md,.csv" onchange="uploadPDFForNexora(this,'sh-pdf-status')" style="font-size:12px;color:rgba(255,255,255,0.7);">
+    <div id="sh-pdf-status" style="font-size:11px;margin-top:4px;color:rgba(255,255,255,0.5);"></div>
+  </div>
   <div style="background:#161b22;padding:10px 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="sh-status"></div>
     <div style="margin-left:auto;display:flex;gap:8px;">
@@ -670,6 +675,13 @@ function invalidateNexoraLabIfConfigChanged(){
 }
 
 function pickScenarioFromConfig(nxConfig,prevId){
+  try{
+    var forced=JSON.parse(localStorage.getItem('nexora_force_scenario')||'null');
+    if(forced&&forced.id&&forced.type){
+      localStorage.removeItem('nexora_force_scenario');
+      return mergeEngineConfig(forced,nxConfig||{type:forced.type,industry:forced.industry||'Corporate',difficulty:forced.diff||5});
+    }
+  }catch(e){}
   if(!nxConfig){
     showToast('No Nexora config — trainer must activate a session first');
     return null;
@@ -1360,18 +1372,26 @@ function endCorporate(){
   stopMic(); generateQA(false);
 }
 
-async function uploadPDFForNexora(input){
+async function uploadPDFForNexora(input, statusId){
   var file = input.files[0];
   if(!file) return;
-  var st = document.getElementById('corp-pdf-status');
-  if(st) st.textContent = 'Reading PDF...';
-  var text = await new Promise(function(res){
-    var reader = new FileReader();
-    reader.onload = function(e){ res(e.target.result); };
-    reader.readAsText(file);
-  });
-  window._nxPDFContent = text.slice(0, 4000);
-  if(st){ st.style.color='#34a853'; st.textContent = 'PDF loaded — Alice will use this content.'; }
+  var st = document.getElementById(statusId || 'corp-pdf-status') || document.getElementById('sh-pdf-status');
+  if(st){ st.style.color='rgba(255,255,255,0.5)'; st.textContent = 'Reading document...'; }
+  var text = '';
+  try{
+    text = await new Promise(function(res, rej){
+      var reader = new FileReader();
+      reader.onload = function(e){ res(e.target.result || ''); };
+      reader.onerror = function(){ rej(new Error('read_failed')); };
+      reader.readAsText(file);
+    });
+  }catch(e){
+    if(st){ st.style.color='#EF4444'; st.textContent = 'No se pudo leer el archivo. Usá TXT/MD o PDF de texto.'; }
+    return;
+  }
+  window._nxPDFContent = String(text).slice(0, 6000);
+  if(st){ st.style.color='#34a853'; st.textContent = 'Documento cargado — el stakeholder lo usará para evaluar el ROI.'; }
+  showToast('Documento listo para la simulación');
 }
 
 // ── STAKEHOLDER DISPLAY ───────────────────────────────────────
@@ -1406,6 +1426,9 @@ function showStakeholderDisplay(sc){
     }).join('');
   }
 
+  var shPdf = document.getElementById('sh-pdf-section');
+  if(shPdf) shPdf.style.display = sc.allowPDF ? 'block' : 'none';
+
   _nx.callStart = Date.now(); _nx.active = true;
   _nx.callTimer = setInterval(function(){
     if(!_nx.onHold) _nx.talkSecs++;
@@ -1420,7 +1443,10 @@ function showStakeholderDisplay(sc){
     aliceEnterMode(sc, 'sh-status', personName, 'START_STAKEHOLDER', {
       stakes: sc.stakes || [],
       participants: sc.participants,
-      role: sc.role
+      role: sc.role,
+      company: sc.company,
+      pdfContent: window._nxPDFContent || null,
+      pdfPrompt: sc.pdfPrompt || null
     });
   }, 2000);
 }

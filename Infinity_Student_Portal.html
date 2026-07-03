@@ -89,7 +89,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #alice-mic-btn,#alice-input{min-height:48px;}
 }
 
-.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
+.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;overflow:hidden;min-width:0;max-width:100%;}
+#tt-target,#tt-target span{max-width:100%;}
+#tt-target{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;}
 .card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
 
 .badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;display:inline-block;}
@@ -609,9 +611,14 @@ function showPortal(s){
     +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
+  var lastTt = (s.typingTests&&s.typingTests.length)?s.typingTests[s.typingTests.length-1]:null;
   var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
-    +'<div id="portal-typing-container"><button class="btn btn-navy" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)"><i class="ti ti-keyboard"></i>Iniciar Typing Test (60s)</button></div>'
-    +((s.typingTests&&s.typingTests.length)?'<div style="margin-top:10px;font-size:12px;color:var(--t2);">Último resultado: '+s.typingTests[s.typingTests.length-1].wpm+' WPM · '+s.typingTests[s.typingTests.length-1].accuracy+'% accuracy · Coordination '+s.typingTests[s.typingTests.length-1].coordination+' ('+fmtDate(s.typingTests[s.typingTests.length-1].date)+')</div>':'')
+    +'<div id="portal-typing-container" style="max-width:100%;overflow:hidden;">'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+    +'<button class="btn btn-navy" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)"><i class="ti ti-keyboard"></i>Iniciar Typing Test (60s)</button>'
+    +'<button class="btn btn-outline" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult, null, {transcription:true})"><i class="ti ti-ear"></i>Transcripción por audio</button>'
+    +'</div></div>'
+    +(lastTt?'<div style="margin-top:10px;font-size:12px;color:var(--t2);word-break:break-word;">Último resultado'+(lastTt.mode==='transcription'?' (transcripción)':'')+': '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% accuracy · Coordination '+lastTt.coordination+' ('+fmtDate(lastTt.date)+')</div>':'')
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Typing por escenario</div>'
     +'<div id="portal-persona-container"></div>'
@@ -715,25 +722,65 @@ function generateTypingTestText(wordCount, bank){
   return result.slice(0, 280);
 }
 
-function renderTypingTestWidget(containerId, onComplete, wordBank){
+function speakTypingTarget(text, btn){
+  if(!text) return;
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  if(!window.speechSynthesis){ showToast('Tu navegador no soporta audio de voz'); return; }
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.92;
+  var voices = speechSynthesis.getVoices() || [];
+  var en = voices.find(function(v){ return /^en(-|_)/i.test(v.lang); });
+  if(en) u.voice = en;
+  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-volume"></i> Reproduciendo…'; }
+  u.onend = u.onerror = function(){
+    if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-volume"></i> Escuchar audio'; }
+  };
+  speechSynthesis.speak(u);
+}
+
+function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   var container = document.getElementById(containerId);
+  if(!container) return;
+  var transcriptionMode = !!(opts && opts.transcription);
   var targetText = generateTypingTestText(45, wordBank);
   var DURATION = 60;
 
-  container.innerHTML = '<div class="ib ib-navy" style="font-size:12px;"><strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos. Cada carácter incorrecto reduce tu accuracy.</div>'
-    +'<div id="tt-target" style="font-family:monospace;font-size:13px;line-height:2;background:var(--gray);border-radius:var(--r);padding:12px;margin-bottom:10px;word-break:break-word;white-space:normal;user-select:none;"></div>'
-    +'<textarea id="tt-input" class="inp" placeholder="Empezá a escribir aquí..." style="min-height:80px;font-family:monospace;font-size:13px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'
-    +'<span id="tt-timer" style="font-size:16px;font-weight:700;color:var(--navy);">60s</span>'
-    +'<span id="tt-status" style="font-size:12px;color:var(--t3);">Listo para empezar</span>'
+  container.innerHTML = '<div class="ib ib-navy" style="font-size:12px;max-width:100%;box-sizing:border-box;">'
+    +(transcriptionMode
+      ? '<strong>Transcripción por audio:</strong> escuchá el audio y escribí exactamente lo que oís (mayúsculas, puntuación y apóstrofes). 60 segundos. Se evalúa accuracy de transcripción.'
+      : '<strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos. Cada carácter incorrecto reduce tu accuracy.')
     +'</div>'
-    +'<div id="tt-result" style="margin-top:10px;"></div>';
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;">'
+    +'<button type="button" class="btn btn-outline" id="tt-listen-btn" style="font-size:12px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
+    +(transcriptionMode
+      ? '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:12px;"><i class="ti ti-keyboard"></i> Modo texto visible</button>'
+      : '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:12px;"><i class="ti ti-ear"></i> Modo transcripción (audio)</button>')
+    +'</div>'
+    +'<div id="tt-target" style="font-family:monospace;font-size:13px;line-height:1.85;background:var(--gray);border-radius:var(--r);padding:12px;margin-bottom:10px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;'
+    +(transcriptionMode?'filter:blur(5px);opacity:0.35;':'')+'"></div>'
+    +(transcriptionMode?'<div id="tt-audio-hint" style="font-size:12px;color:var(--t2);margin:-4px 0 10px;">El texto está oculto. Usá <strong>Escuchar audio</strong> y transcribí abajo.</div>':'')
+    +'<textarea id="tt-input" class="inp" placeholder="'+(transcriptionMode?'Escribí lo que escuchás…':'Empezá a escribir aquí...')+'" style="min-height:80px;font-family:monospace;font-size:13px;max-width:100%;box-sizing:border-box;width:100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:6px;">'
+    +'<span id="tt-timer" style="font-size:16px;font-weight:700;color:var(--navy);">60s</span>'
+    +'<span id="tt-status" style="font-size:12px;color:var(--t3);">'+(transcriptionMode?'Listo — escuchá el audio':'Listo para empezar')+'</span>'
+    +'</div>'
+    +'<div id="tt-result" style="margin-top:10px;max-width:100%;overflow:hidden;"></div>';
 
   var targetEl = document.getElementById('tt-target');
   targetEl.innerHTML = targetText.split('').map(function(ch,i){
-    var display = ch === ' ' ? '&nbsp;' : ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return '<span id="tt-ch-'+i+'" style="white-space:pre;">'+display+'</span>';
+    var display = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<span id="tt-ch-'+i+'">'+display+'</span>';
   }).join('');
+
+  var listenBtn = document.getElementById('tt-listen-btn');
+  if(listenBtn) listenBtn.addEventListener('click', function(){ speakTypingTarget(targetText, listenBtn); });
+  var modeBtn = document.getElementById('tt-mode-btn');
+  if(modeBtn) modeBtn.addEventListener('click', function(){
+    try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+    renderTypingTestWidget(containerId, onComplete, wordBank, { transcription: !transcriptionMode });
+  });
+  if(transcriptionMode) setTimeout(function(){ speakTypingTarget(targetText, listenBtn); }, 400);
 
   var input = document.getElementById('tt-input');
   var timerEl = document.getElementById('tt-timer');
@@ -783,13 +830,15 @@ function renderTypingTestWidget(containerId, onComplete, wordBank){
     }
 
     var result = { wpm:wpm, accuracy:accuracy, coordination:coordination, date:new Date().toISOString(),
+      mode: transcriptionMode ? 'transcription' : 'typing',
       errors:{ caps:capsErrors, punctuation:punctErrors, apostrophes:apostropheErrors, spaces:spaceErrors, letters:letterErrors } };
 
     statusEl.textContent = 'Finalizado';
+    if(transcriptionMode && targetEl){ targetEl.style.filter='none'; targetEl.style.opacity='1'; }
     var accCol = accuracy>=95?'var(--gm)':accuracy>=80?'var(--amber)':'var(--rm)';
     var wpmCol = wpm>=40?'var(--gm)':wpm>=25?'var(--amber)':'var(--rm)';
-    document.getElementById('tt-result').innerHTML = '<div class="card">'
-      +'<div class="card-title"><i class="ti ti-keyboard"></i>Resultado</div>'
+    document.getElementById('tt-result').innerHTML = '<div class="card" style="overflow:hidden;max-width:100%;">'
+      +'<div class="card-title"><i class="ti ti-keyboard"></i>'+(transcriptionMode?'Resultado — Transcripción':'Resultado')+'</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:12px;">'
       +'<div><div style="font-size:28px;font-weight:800;color:'+wpmCol+';">'+wpm+'</div><div style="font-size:11px;color:var(--t3);">WPM</div></div>'
       +'<div><div style="font-size:28px;font-weight:800;color:'+accCol+';">'+accuracy+'%</div><div style="font-size:11px;color:var(--t3);">Accuracy</div></div>'
@@ -873,7 +922,35 @@ async function savePortalTypingResult(result){
   if(!s.typingTests) s.typingTests=[];
   s.typingTests.push(result);
   await dbSet('infinity_students', s.id, s);
-  showToast('Resultado guardado: '+result.wpm+' WPM · '+result.accuracy+'% accuracy');
+  var modeLabel = result.mode === 'transcription' ? 'Transcripción' : 'Typing';
+  showToast(modeLabel+' guardada: '+result.wpm+' WPM · '+result.accuracy+'% accuracy');
+}
+
+function openNexoraFinancialRoiScenario(){
+  var sc = {
+    id: 'sh-fin-roi',
+    type: 'stakeholder',
+    industry: 'Corporate',
+    title: 'Financial Analysis Presentation — ROI Review',
+    desc: 'Present your financial analysis and project ROI to a skeptical finance stakeholder. Explain numbers clearly, defend assumptions, and earn approval or face rejection.',
+    mood: 'skeptical',
+    diff: 5,
+    role: 'VP of Finance',
+    company: 'Meridian Holdings',
+    participants: ['You — Project Lead', 'Diana Morales — VP of Finance (skeptical)', 'James Okonkwo — Strategy Advisor'],
+    stakes: [
+      'Finance will only approve if ROI is clear and defensible',
+      'Weak explanations or vague numbers lead to rejection',
+      'Stakeholder evaluates clarity of expression and ROI narrative'
+    ],
+    allowPDF: true,
+    pdfPrompt: 'You are Diana Morales, VP of Finance. The candidate uploaded a financial document. Read it carefully. Challenge ROI assumptions, payback period, risks and clarity of explanation. At the end of the meeting you MUST decide: APPROVE the project, REJECT it, or REQUEST REVISION — and say so explicitly.'
+  };
+  try{
+    localStorage.setItem('nexora_force_scenario', JSON.stringify(sc));
+    localStorage.setItem('nexora_scenario', JSON.stringify({ type:'stakeholder', industry:'Corporate', industryLabel:'Corporate', difficulty:5 }));
+  }catch(e){}
+  openNexoraLab();
 }
 
 // ── ENCUESTA MENSUAL ──────────────────────────────────────
@@ -2481,7 +2558,9 @@ function renderNexoraTab(s, force){
     +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
     +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);margin-bottom:10px;"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
+    +'<button onclick="openNexoraFinancialRoiScenario()" style="width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);color:#FFFFFF;padding:12px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-chart-bar"></i>Análisis financiero + ROI (stakeholder)</button>'
+    +'<p style="font-size:11px;color:rgba(255,255,255,0.85);margin:8px 0 0;line-height:1.5;">Subí tu documento en el lab. El stakeholder evalúa cómo explicás el ROI y decide aprobar o rechazar.</p>'
     +'</div>';
   root.setAttribute('data-nx-init', '1');
 }

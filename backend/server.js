@@ -1631,19 +1631,23 @@ YOUR ROLE:
   } else if (scType === 'stakeholder') {
     const ctx = accountContext || {};
     const stakesStr = ctx.stakes?.length ? '\nKey tensions:\n' + ctx.stakes.map(s => '- ' + s).join('\n') : '';
+    const pdfContext = ctx.pdfContent ? `\n\nUPLOADED DOCUMENT (review carefully):\n${ctx.pdfContent.slice(0, 2500)}` : '';
+    const pdfExtra = ctx.pdfPrompt ? `\nEXTRA REVIEW INSTRUCTIONS: ${ctx.pdfPrompt}` : '';
     systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
 Meeting: ${sc.title}
 Context: ${sc.desc}${stakesStr}
-Participants: ${(ctx.participants || []).join(', ')}
+Participants: ${(ctx.participants || []).join(', ')}${pdfContext}${pdfExtra}
 
 YOUR ROLE:
 - YOU are the stakeholder with a specific agenda. ${agentName} must manage YOU and align you.
-- Push for YOUR priorities and create realistic friction.
-- ${agentName} is being evaluated on their ability to handle difficult stakeholders.
-- If ${agentName} addresses your concerns clearly and professionally → gradually align.
-- If ${agentName} is vague, dismissive or unprepared → escalate your resistance.
-- Use stakeholder language: "From our department's perspective...", "We need to ensure..."
-- 1-3 sentences. You are testing ${agentName}'s stakeholder management skills.
+- Evaluate HOW ${agentName} expresses ideas and HOW they explain ROI / financial impact of the project.
+- Push for clarity on numbers, assumptions, risks, payback and strategic fit.
+- If a document was uploaded, reference it and challenge weak ROI claims.
+- If ${agentName} is clear, structured and data-driven → gradually align.
+- If ${agentName} is vague, dismissive or unprepared → escalate resistance.
+- Before the meeting ends you MUST decide explicitly: APPROVE, REJECT, or REQUEST REVISION — and say so out loud.
+- Use stakeholder language: "From our department's perspective...", "Walk me through the ROI..."
+- 1-3 sentences. You are testing ${agentName}'s stakeholder communication and financial storytelling.
 - NEVER break character.`;
   } else if (scType === 'medical') {
     systemPrompt = `You are ${p.name || 'a patient'} speaking with a healthcare provider.
@@ -3355,19 +3359,23 @@ YOUR ROLE:
     } else if(scType === 'stakeholder'){
       const ctx = accountContext || {};
       const stakesStr = ctx.stakes && ctx.stakes.length ? '\nKey tensions:\n'+ctx.stakes.map(s=>'- '+s).join('\n') : '';
+      const pdfContext = ctx.pdfContent ? `\n\nUPLOADED DOCUMENT (review carefully):\n${String(ctx.pdfContent).slice(0, 2500)}` : '';
+      const pdfExtra = ctx.pdfPrompt ? `\nEXTRA REVIEW INSTRUCTIONS: ${ctx.pdfPrompt}` : '';
       systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
 Meeting: ${sc.title}
 Context: ${sc.desc}${stakesStr}
-Participants: ${(ctx.participants||[]).join(', ')}
+Participants: ${(ctx.participants||[]).join(', ')}${pdfContext}${pdfExtra}
 
 YOUR ROLE:
 - YOU are the stakeholder with a specific agenda. ${agentName} must manage YOU and align you.
-- Push for YOUR priorities and create realistic friction.
-- ${agentName} is being evaluated on their ability to handle difficult stakeholders.
-- If ${agentName} addresses your concerns clearly and professionally → gradually align.
-- If ${agentName} is vague, dismissive or unprepared → escalate your resistance.
-- Use stakeholder language: "From our department's perspective...", "We need to ensure..."
-- 1-3 sentences. You are testing ${agentName}'s stakeholder management skills.
+- Evaluate HOW ${agentName} expresses ideas and HOW they explain ROI / financial impact of the project.
+- Push for clarity on numbers, assumptions, risks, payback and strategic fit.
+- If a document was uploaded, reference it and challenge weak ROI claims.
+- If ${agentName} is clear, structured and data-driven → gradually align.
+- If ${agentName} is vague, dismissive or unprepared → escalate resistance.
+- Before the meeting ends you MUST decide explicitly: APPROVE, REJECT, or REQUEST REVISION — and say so out loud.
+- Use stakeholder language: "From our department's perspective...", "Walk me through the ROI..."
+- 1-3 sentences. You are testing ${agentName}'s stakeholder communication and financial storytelling.
 - NEVER break character.`;
 
     } else if(scType === 'medical'){
