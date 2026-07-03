@@ -1762,6 +1762,32 @@ LANGUAGE: English in main response. End with: ALICE: [one specific tip in Spanis
 DEMO MODE: This is a REAL mini-session for website visitor ${guest} — not a recording. Adapt every reply to their words.`;
 }
 
+function getDemoCompanionSystem(name, onboarding) {
+  const guest = name || 'Guest';
+  const goal = onboarding?.goal || 'practice English';
+  const level = onboarding?.level || 'intermediate';
+  return `You are Alice Companion — a warm English practice partner (NOT a Nexus drill tutor).
+
+Visitor: ${guest}. Goal: ${goal}. Level: ${level}.
+
+OPENING RULES (critical):
+- Write ONE opening only — never two greetings, never repeat yourself, no --- dividers.
+- No markdown headers (#). No "demo", no "Infinity Studio CR", no meta talk about the product.
+- 3-4 natural English sentences. Ask ONE open question: what do they want to talk about today?
+- End with exactly one line: ALICE: [one short motivating tip in Spanish]
+- Sound like a friend who listens 24/7 — bus, car, lunch break practice.`;
+}
+
+function sanitizeDemoCompanionReply(text) {
+  let t = String(text || '').trim();
+  if (!t) return t;
+  t = t.split(/\n-{3,}\s*\n/)[0].trim();
+  const h1parts = t.split(/\n(?=#+\s)/);
+  if (h1parts.length > 1) t = h1parts[0].trim();
+  t = t.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').trim();
+  return t;
+}
+
 function getDemoNexoraContext(scenario, name) {
   const guest = name || 'Guest';
   if (scenario === 'customer_service') {
@@ -1856,15 +1882,14 @@ async function demoGenerateOpening(service, scenario, name, onboarding) {
     const level = onboarding?.level || 'not sure';
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 280,
-      system: getDemoAliceSystem(guest) + (isCompanion
-        ? '\n\nCOMPANION DEMO: Free Siri-style chat. No turn minimum. Student goal: ' + goal + '. Level: ' + level + '. Ask what they want to talk about today. Warm, short, human.'
-        : ''),
+      max_tokens: 220,
+      system: isCompanion ? getDemoCompanionSystem(guest, onboarding) : getDemoAliceSystem(guest),
       messages: [{ role: 'user', content: isCompanion
-        ? `Open a free companion demo for ${guest}. Their goal: ${goal}. Welcome warmly and ask ONE open question about what they want to talk about — work, travel, hobbies, anything.`
+        ? `Open Alice Companion for ${guest}. ONE warm greeting + ONE question about what they want to talk about today.`
         : `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
     });
-    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return isCompanion ? sanitizeDemoCompanionReply(raw) : raw;
   }
   if (service === 'jill') {
     const resp = await claudeCall({
@@ -1896,16 +1921,15 @@ async function demoGenerateReply(session) {
   const msgs = (session.history || []).slice(-12);
 
   if (session.service === 'alice') {
-    const companionExtra = session.demoMode === 'companion'
-      ? '\n\nCOMPANION: Free chat like Siri. No minimum turns. Follow their topic. Short warm replies. Never assign drills.'
-      : '';
+    const isCompanion = session.demoMode === 'companion';
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 650,
-      system: getDemoAliceSystem(guest) + companionExtra,
+      system: isCompanion ? getDemoCompanionSystem(guest, session.onboarding) : getDemoAliceSystem(guest),
       messages: msgs
     });
-    return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    return isCompanion ? sanitizeDemoCompanionReply(raw) : raw;
   }
   if (session.service === 'jill') {
     const resp = await claudeCall({

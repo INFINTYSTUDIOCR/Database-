@@ -1,14 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Try Alice Companion — Free Trial | Infinity Studio CR</title>
+<title>Probar Alice Companion — Prueba gratis | Infinity Studio CR</title>
+<link rel="canonical" href="https://studioinfinitycr.com/try-alice.html">
 <link rel="manifest" href="manifest-alice.json">
 <link rel="icon" href="icon-192.png?v=20260704" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png?v=20260704">
 <meta name="theme-color" content="#5B21B6">
-<meta name="description" content="Free trial of Alice Companion — talk about anything in English, like a voice assistant. Alice the tutor is separate; Companion is the premium product.">
+<meta name="description" content="Prueba gratis Alice Companion — habla de lo que quieras en inglés por voz, 24/7. Corrección y feedback al instante. Para Latinoamérica. 1 sesión/día, 6 mensajes.">
+<meta name="keywords" content="Alice Companion, practicar inglés conversación IA, inglés por voz Latinoamérica, compañero práctica inglés, Infinity Studio CR">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://studioinfinitycr.com/try-alice.html">
+<meta property="og:title" content="Probar Alice Companion — Prueba gratis">
+<meta property="og:description" content="Tu compañera de práctica personal en inglés — charla libre por voz, cualquier tema. Prueba limitada gratis desde toda Latinoamérica.">
+<meta property="og:image" content="https://studioinfinitycr.com/assets/logos/infinity-studio-cr-logo.png?v=20260704">
+<meta property="og:locale" content="es_419">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Alice Companion — Prueba gratis">
+<meta name="twitter:description" content="Habla en inglés cuando quieras: bus, carro, almuerzo. Corrección y evaluación diaria con IA.">
+<script src="js/site-config.js"></script>
+<script src="js/site-analytics.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css">
@@ -254,6 +267,7 @@
   }
 
   async function start() {
+    if (busy || sessionId) return;
     if (!document.getElementById('demo-consent').checked) {
       alert('Please accept consent to start.');
       return;
@@ -261,6 +275,7 @@
     onboard.name = (document.getElementById('user-name').value || 'Guest').trim() || 'Guest';
     onboard.level = document.getElementById('level-pick').value;
     setBusy(true);
+    msgs.innerHTML = '';
     demoTrack('demo_alice_companion_trial_start', onboard.goal);
     try {
       var d = await demoStart('alice', 'companion', onboard.name, onboard);
@@ -275,8 +290,12 @@
       document.getElementById('sessions-left').textContent = d.premium
         ? 'Premium · unlimited'
         : 'Free trial · 1/day';
-      demoAddMsg(msgs, d.reply, 'assistant', 'COMPANION');
-      DemoVoice.queueSpeak(d.reply, voiceProfile);
+      var reply = d.reply || '';
+      if (typeof TutorReply !== 'undefined' && TutorReply.companionOpeningText) {
+        reply = TutorReply.companionOpeningText(reply);
+      }
+      demoAddMsg(msgs, reply, 'assistant', 'COMPANION');
+      DemoVoice.queueSpeak(reply, voiceProfile);
       step = d.step;
       updateMeta();
     } catch (e) {

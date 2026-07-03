@@ -463,7 +463,7 @@ function handlePortalDeepLink(s){
     if(tab) switchPortalTab(tab);
     if(quick === 'companion' && typeof startAliceCompanionQuick === 'function'){
       setTimeout(function(){
-        if(aliceCompanionEnabled()) startAliceCompanionQuick();
+        if(aliceCompanionEnabled() && !_aliceState.sessionActive && !_aliceStarting) startAliceCompanionQuick();
       }, 600);
     }
   }catch(e){}
@@ -1303,6 +1303,8 @@ var _aliceState = {
   autoMic: false,
   micRunning: false
 };
+var _aliceStartGen = 0;
+var _aliceStarting = false;
 
 // ── ALICE: pausa vs stop completo ─────────────────────────
 function aliceClearSilenceTimer(){ /* PTT — no auto-silence timer */ }
@@ -1571,7 +1573,10 @@ async function startAliceCompanionQuick(continueTopic){
 }
 
 async function startAliceSession(sessionType, opts){
+  if(_aliceStarting) return;
   opts = opts || {};
+  _aliceStarting = true;
+  var startGen = ++_aliceStartGen;
   stopAlice();
   _aliceState.history = [];
   _aliceState.evaluation = null;
@@ -1599,28 +1604,30 @@ async function startAliceSession(sessionType, opts){
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET, sessionType:_aliceState.sessionType, companionTopic:_aliceState.companionTopic || '' })
     });
+    if(startGen !== _aliceStartGen) return;
     var data = await r.json();
     var opening = (typeof TutorReply !== 'undefined') ? TutorReply.extract(data.opening || '') : (data.opening || '');
     if(!opening || opening.length < 8) opening = aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType);
-    var parts = opening.split(/\nALICE:\s*/);
-    var aliceLine = parts[0].trim();
-    var aliceTip = parts[1] ? parts[1].trim() : '';
-    _aliceState.history = [];
-    if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
-    if(aliceLine) _aliceState.history.push({ role:'assistant', content:aliceLine });
+    var hist = applyAliceOpening(opening, _aliceState.sessionType);
+    if(!hist.length) hist = [{ role:'assistant', content: aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType) }];
+    _aliceState.history = hist;
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
-    if(aliceLine) aliceSpeak(aliceLine);
+    var speakLine = hist.filter(function(m){ return m.role === 'assistant' && !/^💬\s*/.test(m.content); }).pop();
+    if(speakLine && speakLine.content) aliceSpeak(speakLine.content);
     if(typeof AiProfile !== 'undefined'){
       await AiProfile.saveAiProfilePatch({ firstGreetingAlice: true }, dbSet, CURRENT_STUDENT);
     }
     saveAliceRuntimeStorage();
   }catch(e){
+    if(startGen !== _aliceStartGen) return;
     var fallback = aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType);
     _aliceState.history = [{ role:'assistant', content: fallback }];
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
     aliceSpeak(fallback);
+  }finally{
+    if(startGen === _aliceStartGen) _aliceStarting = false;
   }
 }
 
@@ -1644,14 +1651,10 @@ async function resumeAliceSession(){
       });
       var data = await r.json();
       var opening = (typeof TutorReply !== 'undefined') ? TutorReply.extract(data.opening || '') : (data.opening || '');
-      var parts = opening.split(/\nALICE:\s*/);
-      var aliceLine = parts[0].trim();
-      var aliceTip = parts[1] ? parts[1].trim() : '';
-      if(aliceTip) _aliceState.history.push({ role:'assistant', content:'💬 '+aliceTip });
-      if(aliceLine){
-        _aliceState.history.push({ role:'assistant', content:aliceLine });
-        aliceSpeak(aliceLine);
-      }
+      var hist = applyAliceOpening(opening, _aliceState.sessionType);
+      hist.forEach(function(m){ _aliceState.history.push(m); });
+      var speakLine = hist.filter(function(m){ return m.role === 'assistant' && !/^💬\s*/.test(m.content); }).pop();
+      if(speakLine && speakLine.content) aliceSpeak(speakLine.content);
       renderAlice();
       scrollAliceMessages();
       saveAliceRuntimeStorage();
@@ -2048,6 +2051,35 @@ function aliceStopMic(){
 }
 
 var _aliceSpeakGen = 0;
+
+function applyAliceOpening(rawOpening, sessionType) {
+  var opening = String(rawOpening || '').trim();
+  if (!opening) return [];
+  if (typeof TutorReply !== 'undefined' && TutorReply.parseOpening) {
+    if (sessionType === 'companion') {
+      var one = TutorReply.companionOpeningText(opening);
+      return one ? [{ role: 'assistant', content: one }] : [];
+    }
+    var p = TutorReply.parseOpening(opening);
+    var hist = [];
+    if (p.tip) hist.push({ role: 'assistant', content: '💬 ' + p.tip });
+    if (p.main) hist.push({ role: 'assistant', content: p.main });
+    return hist;
+  }
+  var parts = opening.split(/\nALICE:\s*/i);
+  var aliceLine = parts[0].trim();
+  var aliceTip = parts[1] ? parts[1].trim() : '';
+  var out = [];
+  if (sessionType === 'companion') {
+    if (aliceLine && aliceTip) out.push({ role: 'assistant', content: aliceLine + '\n\nALICE: ' + aliceTip });
+    else if (aliceLine) out.push({ role: 'assistant', content: aliceLine });
+    else if (aliceTip) out.push({ role: 'assistant', content: 'ALICE: ' + aliceTip });
+    return out;
+  }
+  if (aliceTip) out.push({ role: 'assistant', content: '💬 ' + aliceTip });
+  if (aliceLine) out.push({ role: 'assistant', content: aliceLine });
+  return out;
+}
 
 function scrollAliceMessages(){
   setTimeout(function(){ var el=document.getElementById('alice-messages'); if(el) el.scrollTop=el.scrollHeight; },50);

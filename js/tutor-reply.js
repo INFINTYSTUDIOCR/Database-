@@ -46,9 +46,35 @@
     return t.indexOf('{"reply"') === 0 || t.indexOf('{\"reply\"') === 0 || JSON_PREFIX.test(t);
   }
 
+  /** One opening turn — strips duplicate sections, markdown headers, and ALICE tip line. */
+  function parseAliceOpening(raw) {
+    var text = extractTutorReply(raw);
+    if (!text) return { main: '', tip: '' };
+    text = String(text).replace(/\r/g, '').trim();
+    text = text.split(/\n-{3,}\s*\n/)[0].trim();
+    var h1parts = text.split(/\n(?=#+\s)/);
+    if (h1parts.length > 1) text = h1parts[0].trim();
+    text = text.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').trim();
+    var idx = text.search(/\n?\s*ALICE:\s*/i);
+    if (idx < 0) return { main: text.trim(), tip: '' };
+    return {
+      main: text.slice(0, idx).trim(),
+      tip: text.slice(idx).replace(/^\s*ALICE:\s*/i, '').replace(/^\*+|\*+$/g, '').trim()
+    };
+  }
+
+  function companionOpeningText(raw) {
+    var p = parseAliceOpening(raw);
+    if (!p.main && p.tip) return 'ALICE: ' + p.tip;
+    if (p.tip) return p.main + '\n\nALICE: ' + p.tip;
+    return p.main;
+  }
+
   global.TutorReply = {
     extract: extractTutorReply,
     streamPlain: streamPlainText,
-    looksLikeJson: looksLikeJsonLeak
+    looksLikeJson: looksLikeJsonLeak,
+    parseOpening: parseAliceOpening,
+    companionOpeningText: companionOpeningText
   };
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
