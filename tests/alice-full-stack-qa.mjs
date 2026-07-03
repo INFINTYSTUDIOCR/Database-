@@ -75,6 +75,9 @@ else fail('engine B2B export', 'MISSING');
 if (server.includes("scenario === 'companion'") && server.includes('onboarding')) pass('demo companion API', 'ok');
 else fail('demo companion API', 'incomplete');
 
+if (server.includes('demoSessionMaxSteps') && server.includes('demoSessionDone') && server.includes('APP1_BUILD')) pass('companion demo unlimited turns', 'ok');
+else fail('companion demo unlimited turns', 'incomplete');
+
 if (read('manifest-portal.json').includes('shortcuts')) pass('portal manifest shortcuts', 'ok');
 else fail('portal manifest shortcuts', 'MISSING');
 

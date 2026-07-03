@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Try Alice — Free English Practice | Infinity Studio CR</title>
 <link rel="manifest" href="manifest-alice.json">
-<link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png?v=20260703" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png?v=20260703">
 <meta name="theme-color" content="#5B21B6">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -179,7 +179,7 @@
     try {
       var d = await demoStart('alice', 'companion', onboard.name, onboard);
       sessionId = d.sessionId;
-      maxSteps = d.maxSteps || 12;
+      maxSteps = d.maxSteps != null ? d.maxSteps : 0;
       if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
       onboardEl.style.display = 'none';
       panel.style.display = 'block';
@@ -201,7 +201,8 @@
   }
 
   function updateMeta() {
-    document.getElementById('step-meta').textContent = 'Free companion · turn ' + step + ' · talk as long as you want';
+    var turn = maxSteps > 0 ? ('turn ' + step + '/' + maxSteps) : ('turn ' + step + ' · free chat');
+    document.getElementById('step-meta').textContent = 'Free companion · ' + turn;
   }
 
   async function send(micText) {

@@ -240,13 +240,14 @@ function extractOpeningSnippet(text) {
 }
 
 // ── HEALTHCHECK ──────────────────────────────────────────────
-app.get('/', (req, res) => res.send('Infinity AI — Jill · Alice · Nexora — OK (build 2026-06-24-nexus-brain)'));
+app.get('/', (req, res) => res.send(`Infinity AI — Jill · Alice · Nexora — OK (${APP1_BUILD})`));
 app.get('/health', (req, res) => res.json({
   ok: true,
-  build: '2026-06-24-v6-alice-eval-score',
+  build: APP1_BUILD,
+  companion: true,
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
-  services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain']
+  services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain', 'companion']
 }));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
@@ -475,6 +476,24 @@ const DEMO_LIMITS = {
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
+
+const APP1_BUILD = '20260703-app1-companion-free';
+
+function isCompanionDemoSession(session) {
+  return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
+}
+
+/** 0 = unlimited turns (companion B2C — Siri-style free chat). */
+function demoSessionMaxSteps(session) {
+  if (typeof session?.maxSteps === 'number') return session.maxSteps;
+  if (isCompanionDemoSession(session)) return 0;
+  return (DEMO_LIMITS[session?.service] || DEMO_LIMITS.alice).maxSteps;
+}
+
+function demoSessionDone(session) {
+  const max = demoSessionMaxSteps(session);
+  return max > 0 && session.step >= max;
+}
 const IP_DAY_MS = 24 * 60 * 60 * 1000;
 const demoResponseCache = new Map();
 const DEMO_CACHE_MAX = 300;
@@ -910,13 +929,16 @@ app.post('/demo/start', async (req, res) => {
     const reply = await demoGenerateOpening(service, sc, guest, onboarding);
 
     const sessionId = crypto.randomUUID();
+    const companionDemo = sc === 'companion';
+    const sessionMaxSteps = companionDemo ? 0 : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps;
     const session = {
       service,
       scenario: sc,
       step: 0,
       name: guest,
       onboarding: onboarding || null,
-      demoMode: sc === 'companion' ? 'companion' : 'standard',
+      demoMode: companionDemo ? 'companion' : 'standard',
+      maxSteps: sessionMaxSteps,
       consent: true,
       ip,
       history: [{ role: 'assistant', content: reply }],
@@ -929,7 +951,7 @@ app.post('/demo/start', async (req, res) => {
       sessionId,
       reply,
       step: 0,
-      maxSteps: sc === 'companion' ? 12 : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
+      maxSteps: sessionMaxSteps,
       buffered: false,
       live: true,
       sessionsLeft: ipLimit.sessionsLeft,
@@ -959,12 +981,12 @@ app.post('/demo/message', async (req, res) => {
       return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
     }
 
-    const maxSteps = (DEMO_LIMITS[session.service] || DEMO_LIMITS.alice).maxSteps;
+    const maxSteps = demoSessionMaxSteps(session);
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
     session.apiCalls = (session.apiCalls || 0) + 1;
 
-    const done = session.step >= maxSteps;
+    const done = demoSessionDone(session);
     let reply;
 
     if (done) {
@@ -1013,11 +1035,11 @@ app.post('/demo/stream', async (req, res) => {
       return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
     }
 
-    const maxSteps = (DEMO_LIMITS[session.service] || DEMO_LIMITS.alice).maxSteps;
+    const maxSteps = demoSessionMaxSteps(session);
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
     session.apiCalls = (session.apiCalls || 0) + 1;
-    const done = session.step >= maxSteps;
+    const done = demoSessionDone(session);
 
     const streamCfg = getDemoStreamConfig(session, done);
     let fullText = '';
