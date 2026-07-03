@@ -1,5 +1,6 @@
 /* Path journey subpages — reuses site tokens from pages.css */
-.path-page{max-width:800px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.path-page{max-width:920px;margin:0 auto;padding:120px 2rem 4rem;}
+@media(max-width:768px){.path-page{padding:100px 1.25rem 3rem;}}
 .path-motivo-banner{display:none;margin:0 auto 1.5rem;max-width:800px;padding:12px 16px;border-radius:var(--r);background:var(--purple-glow);border:1px solid rgba(91,33,182,0.2);font-size:13px;color:var(--text);line-height:1.55;}
 .path-motivo-banner.show{display:block;}
 .path-motivo-banner strong{color:var(--purple);}
@@ -13,7 +14,7 @@
 .path-timeline strong{display:block;font-size:14px;color:var(--text);margin-bottom:4px;}
 .path-timeline span{font-size:13px;color:var(--t2);line-height:1.6;}
 .path-reason-grid{display:grid;gap:1rem;}
-.path-reason-card{border:1px solid var(--line);border-radius:var(--r);padding:1.15rem;background:white;font-size:14px;color:var(--t2);line-height:1.65;}
+.path-reason-card{border:1px solid rgba(91,33,182,0.12);border-radius:var(--rl);padding:1.15rem;background:white;font-size:14px;color:var(--t2);line-height:1.65;box-shadow:0 8px 24px rgba(91,33,182,0.07);}
 .path-result{padding:1.25rem;border-radius:var(--rl);background:linear-gradient(135deg,rgba(91,33,182,0.06),rgba(245,166,35,0.08));border:1px solid rgba(91,33,182,0.15);font-size:14px;line-height:1.65;color:var(--text);}
 .path-result strong{color:var(--purple);}
 .path-cta-row{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:2rem;}
