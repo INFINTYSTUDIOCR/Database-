@@ -49,6 +49,9 @@
 .trial-end-card{margin:16px 12px;padding:20px;border-radius:16px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:white;text-align:center;}
 .trial-end-card h3{margin:0 0 8px;font-size:18px;}
 .trial-end-card p{margin:0 0 14px;font-size:13px;opacity:.92;line-height:1.6;}
+.demo-consent-band{max-width:520px;margin:0 auto 20px;padding:14px 16px;border-radius:12px;background:#EDE9FE;border:1px solid rgba(91,33,182,0.2);}
+.demo-consent-band .demo-note{font-size:12px;color:#4A4A6A;line-height:1.65;margin:0 0 12px;text-align:left;}
+.demo-consent-band .consent-label{font-size:12px;color:#3B3B5C;line-height:1.55;}
 </style>
 </head>
 <body>
@@ -70,6 +73,14 @@
       <span class="trial-hero-tagline">No hay excusa para dejar de hablar inglés. Probalá Alice Companion ya.</span>
     </p>
     <p style="font-size:12px;color:#8888AA;margin-bottom:0;">Prueba limitada hoy · 1 sesión · 6 mensajes · luego desbloquea acceso completo.</p>
+  </div>
+
+  <div class="demo-consent-band" id="demo-consent-band">
+    <p class="demo-note">Real mini-sessions with live AI — same engine as the full product, limited to one try per day per connection. With your consent, anonymized patterns may improve Jill, Alice and Nexora.</p>
+    <label class="consent-label" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;">
+      <input type="checkbox" id="demo-consent" checked>
+      <span>I agree that my demo may be used in anonymized form to improve coaching and simulations. No personal data is sold or shared.</span>
+    </label>
   </div>
 
   <div id="onboarding">
@@ -103,10 +114,6 @@
       <h2>Start your free trial</h2>
       <p><strong>1 session per day</strong> · <strong>6 messages</strong> to taste Companion. Then unlock 30 days unlimited.</p>
       <input class="onboard-inp" id="user-name" placeholder="Your first name" maxlength="24" autocomplete="given-name">
-      <label class="consent-label" style="display:flex;gap:8px;font-size:12px;color:#4A4A6A;margin-bottom:12px;">
-        <input type="checkbox" id="demo-consent" checked>
-        <span>Anonymized demo data may improve Alice coaching.</span>
-      </label>
       <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-2">← Back</button><button type="button" class="btn-companion-trial" id="btn-start"><i class="ti ti-microphone"></i> Probar Alice Companion</button></div>
     </div>
   </div>
@@ -285,6 +292,8 @@
       if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
       onboardEl.style.display = 'none';
       document.getElementById('trial-hero').style.display = 'none';
+      var consentBand = document.getElementById('demo-consent-band');
+      if (consentBand) consentBand.style.display = 'none';
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = d.premium
