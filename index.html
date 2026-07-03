@@ -120,9 +120,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 
 .hero{min-height:100vh;padding:120px 2rem 80px;display:flex;align-items:center;background:linear-gradient(135deg,#FFFFFF 0%,#F3EFFE 50%,#EDE9FE 100%);position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(91,33,182,0.1) 0%,transparent 70%);pointer-events:none;}
-.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;width:100%;}
-.hero-logo{height:160px;width:160px;max-width:100%;object-fit:cover;border-radius:28px;display:block;margin-bottom:1.5rem;box-shadow:0 12px 40px rgba(91,33,182,0.22);}
-.hero-headline{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:800;color:var(--text);line-height:1.15;margin-bottom:0.75rem;letter-spacing:-0.02em;}
+.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.05fr 0.95fr;gap:3.5rem;align-items:center;width:100%;}
+.hero-brand{margin-bottom:1.25rem;}
+.hero-logo{height:96px;width:96px;max-width:100%;object-fit:cover;border-radius:22px;display:block;box-shadow:0 14px 44px rgba(91,33,182,0.24);border:3px solid rgba(255,255,255,0.95);}
+.hero-headline{font-family:'Space Grotesk',sans-serif;font-size:clamp(2rem,4.2vw,3.15rem);font-weight:800;color:var(--text);line-height:1.08;margin-bottom:0.85rem;letter-spacing:-0.03em;max-width:16ch;}
 .hero-sub{font-size:20px;font-weight:600;color:var(--t2);line-height:1.55;margin-bottom:1rem;}
 .hero-sub strong{color:var(--purple);font-weight:800;}
 .hero-lead{font-size:16px;color:var(--t3);line-height:1.75;margin-bottom:1rem;max-width:540px;}
@@ -138,7 +139,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 .btn-primary:hover{background:var(--purple-light);transform:translateY(-2px);}
 .btn-secondary{background:white;color:var(--purple);padding:14px 28px;border-radius:var(--r);font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--purple);transition:all 0.2s;}
 .btn-secondary:hover{background:var(--purple-glow);}
-.hero-card{background:white;border-radius:var(--rxl);padding:1.5rem;box-shadow:0 20px 60px rgba(91,33,182,0.12);border:1px solid rgba(91,33,182,0.08);}
+.hero-card{background:white;border-radius:var(--rxl);padding:1.5rem;box-shadow:0 24px 64px rgba(91,33,182,0.16);border:1px solid rgba(91,33,182,0.1);}
+.hero-visual{position:relative;padding-bottom:1rem;}
+.hero-photo-grid{display:grid;grid-template-columns:1.12fr 0.88fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:14px;min-height:420px;}
+.hero-photo{position:relative;border-radius:22px;overflow:hidden;border:3px solid rgba(255,255,255,0.96);box-shadow:0 18px 48px rgba(91,33,182,0.18);min-height:0;background:var(--lavender);}
+.hero-photo--main{grid-row:1 / span 2;}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block;min-height:150px;filter:saturate(1.04) contrast(1.02);}
+.hero-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(91,33,182,0.12),transparent 42%,rgba(59,14,140,0.28));pointer-events:none;}
+.hero-photo-tag{position:absolute;left:14px;bottom:14px;z-index:1;background:rgba(255,255,255,0.94);color:var(--purple);font-size:11px;font-weight:700;padding:7px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 8px 24px rgba(91,33,182,0.14);}
+.hero-card-wrap{position:relative;margin-top:-3.25rem;margin-left:1.25rem;z-index:2;max-width:calc(100% - 0.5rem);}
+.human-strip{padding:2.5rem 2rem 3.5rem;background:linear-gradient(180deg,#F3EFFE 0%,#FFFFFF 100%);}
+.human-strip-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.human-card{background:white;border-radius:20px;overflow:hidden;border:1px solid rgba(91,33,182,0.1);box-shadow:0 14px 40px rgba(91,33,182,0.08);transition:transform .25s,box-shadow .25s;}
+.human-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(91,33,182,0.14);}
+.human-card img{width:100%;height:210px;object-fit:cover;display:block;}
+.human-card figcaption{padding:1rem 1.15rem 1.15rem;font-size:13px;color:var(--t2);line-height:1.55;}
+.human-card strong{display:block;font-size:14px;color:var(--purple);margin-bottom:4px;}
 .kpi-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
 .kpi-label{font-size:12px;font-weight:600;color:var(--t2);width:140px;flex-shrink:0;}
 .kpi-bar-bg{flex:1;height:8px;background:var(--gray-light);border-radius:4px;overflow:hidden;}
@@ -149,9 +165,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 .score-label{font-size:11px;color:var(--t3);}
 .score-badge{background:var(--purple-glow);color:var(--purple);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 .fb{position:absolute;background:white;border-radius:var(--rl);padding:10px 14px;box-shadow:0 8px 30px rgba(0,0,0,0.1);font-size:12px;font-weight:600;border:1px solid var(--gray-light);}
-.fb-1{top:-16px;right:-10px;color:var(--purple);}
-.fb-2{bottom:-10px;left:-16px;color:var(--gold-dark);}
-.hero-visual{position:relative;}
+.fb-1{top:8px;right:8px;color:var(--purple);}
 
 .stats-bar{background:var(--purple);padding:1.5rem 2rem;}
 .stats-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-around;gap:2rem;flex-wrap:wrap;}
@@ -332,14 +346,11 @@ a.cc-link .cc-value{color:var(--purple);}
 .success-link.official{color:var(--gold-dark);}
 .success-source{margin-top:12px;font-size:11px;color:var(--t3);line-height:1.55;}
 .success-cases{display:flex;flex-direction:column;gap:2rem;margin-top:2.5rem;}
-.success-showcase--kamuk{border-color:rgba(27,155,209,0.22);background:linear-gradient(135deg,rgba(27,155,209,0.04),rgba(91,33,182,0.03));grid-template-columns:1fr;}
-.success-badge--kamuk{color:#0E7490;background:rgba(27,155,209,0.12);}
 .success-resume{font-size:14px;color:var(--t2);line-height:1.75;margin-bottom:1rem;}
 .success-features{list-style:none;margin:0 0 1.25rem;padding:0;font-size:13px;color:var(--t2);line-height:1.55;}
 .success-features li{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);}
 .success-features li:last-child{border-bottom:none;}
 .success-features li i{color:#1B9BD1;font-size:16px;margin-top:2px;flex-shrink:0;}
-.success-link--kamuk{color:#0E7490;}
 @media(max-width:960px){.success-showcase{grid-template-columns:1fr;}}
 .who-section{background:var(--off-white);padding:100px 2rem;}
 .who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:2rem;}
@@ -357,12 +368,10 @@ a.cc-link .cc-value{color:var(--purple);}
 .portal-card:hover{transform:translateY(-4px);}
 .pc-engine{border-color:var(--purple);background:linear-gradient(135deg,rgba(91,33,182,0.04),rgba(91,33,182,0.08));}
 .pc-student{border-color:var(--gold-dark);background:linear-gradient(135deg,rgba(245,166,35,0.04),rgba(245,166,35,0.08));}
-.pc-kamuk{border-color:#1B9BD1;background:linear-gradient(135deg,rgba(27,155,209,0.04),rgba(27,155,209,0.08));}
 .pc-icon{font-size:36px;margin-bottom:10px;}
 .pc-title{font-size:16px;font-weight:800;margin-bottom:4px;}
 .pc-engine .pc-title{color:var(--purple);}
 .pc-student .pc-title{color:var(--gold-dark);}
-.pc-kamuk .pc-title{color:#1B9BD1;}
 .pc-desc{font-size:13px;color:var(--t3);}
 
 .final-cta{background:linear-gradient(135deg,var(--purple-dark),var(--purple));padding:120px 2rem;text-align:center;}
@@ -400,7 +409,11 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
 @media(max-width:768px){
   .hero-inner,.problem-grid,.alice-inner,.jill-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
-  .hero-visual{display:none;}
+  .hero-headline{max-width:none;font-size:clamp(1.85rem,7vw,2.35rem);}
+  .hero-photo-grid{grid-template-columns:1fr 1fr;min-height:300px;}
+  .hero-photo--main{grid-column:1 / -1;grid-row:auto;min-height:220px;}
+  .hero-card-wrap{margin:1rem 0 0;}
+  .human-strip-inner{grid-template-columns:1fr;}
   .nav-links{display:none;}
 }
 </style>
@@ -448,8 +461,10 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
 <section class="hero">
   <div class="hero-inner">
-    <div>
-            <img src="assets/logos/infinity-studio-cr.png?v=20260702" alt="Infinity Studio CR — Operational Communication Systems" class="hero-logo">
+    <div class="hero-copy">
+      <div class="hero-brand">
+        <img src="assets/logos/infinity-studio-cr.png?v=20260702" alt="Infinity Studio CR" class="hero-logo" width="96" height="96">
+      </div>
       <h1 class="hero-headline">You don't need more English classes. You need to stop freezing.</h1>
       <p class="hero-sub"><strong>Private one-on-one coaching</strong> — we target your exact pain point with AI, live sessions and real-time metrics.</p>
       <p class="hero-lead">No group classes. No generic syllabus. Infinity Studio CR builds your path around the moments that paralyze you — interviews, client calls, meetings — until you operate under pressure.</p>
@@ -470,6 +485,19 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       </div>
     </div>
     <div class="hero-visual">
+      <div class="hero-photo-grid" aria-hidden="false">
+        <figure class="hero-photo hero-photo--main">
+          <img src="assets/photos/hero-coaching.jpg" alt="Student in a private coaching session" width="540" height="720" loading="eager" decoding="async">
+          <span class="hero-photo-tag"><i class="ti ti-user-heart"></i> Private 1-on-1</span>
+        </figure>
+        <figure class="hero-photo">
+          <img src="assets/photos/hero-team.jpg" alt="Students collaborating and smiling" width="420" height="320" loading="lazy" decoding="async">
+        </figure>
+        <figure class="hero-photo">
+          <img src="assets/photos/hero-session.jpg" alt="Live practice and participation" width="420" height="320" loading="lazy" decoding="async">
+        </figure>
+      </div>
+      <div class="hero-card-wrap">
       <div class="hero-card">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;margin-bottom:1rem;">Live Performance Dashboard</div>
         <div class="kpi-row"><span class="kpi-label">Idea Generation</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:72%"></div></div><span class="kpi-val">3.6</span></div>
@@ -482,9 +510,27 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
           <div class="score-badge">Functional Level</div>
         </div>
       </div>
+      </div>
       <div class="fb fb-1"><i class="ti ti-robot"></i> Alice is coaching now...</div>
       <div class="fb fb-2"><i class="ti ti-sparkles"></i> Nexora Simulation Active</div>
     </div>
+  </div>
+</section>
+
+<section class="human-strip" aria-label="Real coaching moments">
+  <div class="human-strip-inner">
+    <figure class="human-card fade-up">
+      <img src="assets/photos/hero-coaching.jpg" alt="Focused coaching session" width="400" height="210" loading="lazy" decoding="async">
+      <figcaption><strong>Private coaching</strong>Real pressure, real feedback — not a crowded classroom.</figcaption>
+    </figure>
+    <figure class="human-card fade-up">
+      <img src="assets/photos/hero-team.jpg" alt="Students learning together" width="400" height="210" loading="lazy" decoding="async">
+      <figcaption><strong>Confidence building</strong>Practice until responding in English feels natural.</figcaption>
+    </figure>
+    <figure class="human-card fade-up">
+      <img src="assets/photos/hero-session.jpg" alt="Active participation in session" width="400" height="210" loading="lazy" decoding="async">
+      <figcaption><strong>Live participation</strong>Simulations, voice, mic — the same tools you use on the job.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -578,7 +624,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <article class="who-card">
         <h3><i class="ti ti-school"></i> Bilingual schools &amp; institutions</h3>
         <p>ORT pilots for high-performance bilingual employability — KPIs, not grammar scores.</p>
-        <a href="casos-de-exito.html#kamuk">Kamuk case →</a>
+        <a href="hablemos.html">Institutional inquiry →</a>
       </article>
       <article class="who-card">
         <h3><i class="ti ti-building-community"></i> Public sector &amp; municipalities</h3>
@@ -1045,7 +1091,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="section-inner">
     <div class="section-tag">Success Stories</div>
     <h2 class="section-title">Documented Impact — <span style="color:var(--purple)">Not Marketing Claims</span></h2>
-    <p class="section-sub">Public-sector and institutional pilots with measurable outcomes — municipal transparency reports and bilingual school partnerships.</p>
+    <p class="section-sub">Public-sector pilots with measurable outcomes — municipal transparency reports and documented employability results.</p>
     <div class="success-cases">
     <article class="success-showcase fade-up">
       <div class="success-media">
@@ -1077,25 +1123,6 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
           <a href="https://transparencia.munigoicoechea.go.cr/" target="_blank" rel="noopener noreferrer" class="success-link"><i class="ti ti-building-community"></i> Portal Transparencia · Municipalidad de Goicoechea <i class="ti ti-external-link" style="font-size:12px;"></i></a>
         </div>
         <p class="success-source">Video title and coverage published by the Municipality on Facebook. Report text quoted verbatim from the transparency portal PDF.</p>
-      </div>
-    </article>
-
-    <article class="success-showcase success-showcase--kamuk fade-up">
-      <div class="success-document">
-        <span class="success-badge success-badge--kamuk">Institutional · Kamuk School</span>
-        <h3>Kamuk School — ORT Pilot for High-Performance Bilingual Employability</h3>
-        <p class="success-resume">Institutional <strong>Operational Readiness Training (ORT)</strong> pilot with <strong>Kamuk School</strong> (Tibás, San José) — focused on high-performance bilingual employability, not classroom English. Infinity Studio CR integrated ORT into Kamuk's environment: execution under pressure, KPI-driven feedback, Training Book paths, and Alice &amp; Nexora simulations — aligned with Kamuk's bilingual neuroeducational model, led by our founder.</p>
-        <ul class="success-features">
-          <li><i class="ti ti-flame"></i><span>ORT methodology — readiness for interviews, client calls and real workplace execution</span></li>
-          <li><i class="ti ti-chart-radar"></i><span>5 operational KPIs per student — employability measured, not grammar scores</span></li>
-          <li><i class="ti ti-headset"></i><span>Nexora + Alice for bilingual high-performance practice between sessions</span></li>
-          <li><i class="ti ti-school"></i><span>Institutional track in Infinity Engine — dedicated cohort (KAM- students)</span></li>
-        </ul>
-        <div class="success-links">
-          <a href="https://kamukschool.ed.cr/" target="_blank" rel="noopener noreferrer" class="success-link success-link--kamuk"><i class="ti ti-school"></i> Kamuk School — sitio oficial <i class="ti ti-external-link" style="font-size:12px;"></i></a>
-          <a href="https://kamukschool.ed.cr/educacion_integral/" target="_blank" rel="noopener noreferrer" class="success-link success-link--kamuk"><i class="ti ti-world"></i> Programa bilingüe · Educación integral <i class="ti ti-external-link" style="font-size:12px;"></i></a>
-        </div>
-        <p class="success-source">ORT institutional partnership — high-performance bilingual employability inside Kamuk School.</p>
       </div>
     </article>
     </div>
