@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Try Alice — Free English Practice | Infinity Studio CR</title>
+<title>Try Alice Companion — Free Trial | Infinity Studio CR</title>
 <link rel="manifest" href="manifest-alice.json">
-<link rel="icon" href="icon-192.png?v=20260703" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png?v=20260703">
+<link rel="icon" href="icon-192.png?v=20260704" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png?v=20260704">
 <meta name="theme-color" content="#5B21B6">
+<meta name="description" content="Free trial of Alice Companion — talk about anything in English, like a voice assistant. Alice the tutor is separate; Companion is the premium product.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css">
@@ -25,25 +26,45 @@
 .step-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
 .step-dots span{width:8px;height:8px;border-radius:50%;background:#E2E8F0;}
 .step-dots span.on{background:#7C3AED;}
+.trial-hero-legend{font-size:15px;line-height:1.8;color:#4A4A6A;margin-bottom:1.25rem;}
+.trial-hero-legend strong{color:#5B21B6;}
+.trial-hero-tagline{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #E9D5FF;font-weight:700;color:#5B21B6;font-size:14px;line-height:1.65;}
+.btn-companion-trial{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#F5A623,#FBBF24);color:#1E1E2E;border:none;font-weight:800;padding:14px 28px;border-radius:12px;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(245,166,35,0.35);}
+.btn-companion-trial:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(245,166,35,0.45);}
+.trial-banner{display:none;margin:0 12px 12px;padding:10px 14px;border-radius:10px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:12px;font-weight:600;text-align:center;}
+.trial-banner.show{display:block;}
+.trial-end-card{margin:16px 12px;padding:20px;border-radius:16px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:white;text-align:center;}
+.trial-end-card h3{margin:0 0 8px;font-size:18px;}
+.trial-end-card p{margin:0 0 14px;font-size:13px;opacity:.92;line-height:1.6;}
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR" class="nav-logo-page"></a>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260704" alt="Infinity Studio CR" class="nav-logo-page"></a>
   <div class="nav-links">
     <a href="try-demo.html">← All demos</a>
-    <a href="Infinity_Student_Portal.html" style="font-weight:700;color:#5B21B6;">Full portal →</a>
+    <a href="Infinity_Student_Portal.html" style="font-weight:700;color:#5B21B6;">Student portal →</a>
   </div>
 </nav>
 
 <div class="demo-session" id="app">
+  <div class="onboard-step" id="trial-hero" style="max-width:520px;margin:0 auto 24px;text-align:center;">
+    <div class="alice-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(91,33,182,0.1);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:12px;"><i class="ti ti-messages"></i> Alice Companion · Prueba gratis</div>
+    <p class="trial-hero-legend">
+      Imagina tener una tutora que te escuche <strong>24/7</strong>, con la que puedes hablar de <strong>lo que quieras en inglés</strong> — y que te corrija, te dé feedback y te evalúe constantemente.
+      Imagina practicar en el <strong>bus</strong>, en el <strong>carro</strong>, en la <strong>hora de almuerzo</strong> y recibir <strong>retroalimentación diaria</strong>.
+      <span class="trial-hero-tagline">Eso es Alice Companion — tu compañera de práctica personal, solo para ti.</span>
+    </p>
+    <p style="font-size:12px;color:#8888AA;margin-bottom:0;">Prueba limitada hoy · 1 sesión · 6 mensajes · luego desbloquea acceso completo.</p>
+  </div>
+
   <div id="onboarding">
     <div class="step-dots"><span class="on" id="dot-0"></span><span id="dot-1"></span><span id="dot-2"></span></div>
 
     <div class="onboard-step" id="step-0">
-      <h2>What's your goal?</h2>
-      <p>Alice adapts to you — free conversation, like talking to a smart assistant in English.</p>
+      <h2>Try Alice Companion</h2>
+      <p>Talk about work, travel, hobbies — whatever you want. Voice + mic, like a smart assistant in English. <strong>Not</strong> the structured Alice tutor lesson.</p>
       <div class="goal-grid" id="goal-grid">
         <button type="button" class="goal-btn selected" data-goal="work">💼 Work & career</button>
         <button type="button" class="goal-btn" data-goal="travel">✈️ Travel</button>
@@ -55,7 +76,7 @@
 
     <div class="onboard-step" id="step-1" style="display:none;">
       <h2>Your level?</h2>
-      <p>No test — pick what feels closest. Alice adjusts automatically.</p>
+      <p>No test — pick what feels closest. Companion adjusts to you.</p>
       <select class="onboard-inp" id="level-pick">
         <option value="beginner">Beginner — I freeze when I speak</option>
         <option value="elementary">Elementary — short sentences OK</option>
@@ -66,14 +87,14 @@
     </div>
 
     <div class="onboard-step" id="step-2" style="display:none;">
-      <h2>What should Alice call you?</h2>
-      <p>Free companion chat — talk about anything, as long as you want.</p>
+      <h2>Start your free trial</h2>
+      <p><strong>1 session per day</strong> · <strong>6 messages</strong> to taste Companion. Then unlock 30 days unlimited.</p>
       <input class="onboard-inp" id="user-name" placeholder="Your first name" maxlength="24" autocomplete="given-name">
       <label class="consent-label" style="display:flex;gap:8px;font-size:12px;color:#4A4A6A;margin-bottom:12px;">
         <input type="checkbox" id="demo-consent" checked>
         <span>Anonymized demo data may improve Alice coaching.</span>
       </label>
-      <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-2">← Back</button><button type="button" class="btn-primary" id="btn-start"><i class="ti ti-microphone"></i> Start free chat</button></div>
+      <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-2">← Back</button><button type="button" class="btn-companion-trial" id="btn-start"><i class="ti ti-microphone"></i> Probar Alice Companion</button></div>
     </div>
   </div>
 
@@ -81,29 +102,31 @@
     <div class="demo-panel-head">
       <div>
         <h1>Alice Companion</h1>
-        <div class="meta" id="step-meta">Free conversation · no minimum turns</div>
+        <div class="meta" id="step-meta">Free trial · 6 messages</div>
       </div>
       <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
     </div>
+    <div class="trial-banner" id="trial-nudge"></div>
     <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status" id="typing" style="display:none;font-style:italic;">Alice is typing…</div>
-    <div class="demo-voice-hint" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Hold <strong>mic</strong> (PTT) or type — chat freely like Siri.</div>
+    <div class="demo-voice-hint" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Hold <strong>mic</strong> (PTT) or type — Companion follows your topic.</div>
     <div class="demo-input-row" id="input-row">
-      <button type="button" class="demo-mic" id="btn-mic" title="Speak to Alice" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
+      <button type="button" class="demo-mic" id="btn-mic" title="Speak to Alice Companion" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
       <input class="demo-input" id="inp" placeholder="Talk about anything in English…" autocomplete="off">
       <button type="button" class="demo-send" id="btn-send" title="Send"><i class="ti ti-send"></i></button>
     </div>
     <div class="demo-status" id="mic-status" style="display:none;"></div>
     <div id="eval-wrap"></div>
+    <div id="trial-end-wrap"></div>
     <div style="text-align:center;padding:16px;font-size:13px;">
       <div id="panel-paywall"></div>
-      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20completo" target="_blank" rel="noopener" style="color:#5B21B6;font-weight:700;">Full program + human trainer → WhatsApp</a>
+      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20Companion%20Premium" target="_blank" rel="noopener" style="color:#5B21B6;font-weight:700;">Full program + human trainer → WhatsApp</a>
     </div>
   </div>
 
   <div class="demo-limit" id="limit-view" style="display:none;">
     <i class="ti ti-clock-pause"></i>
-    <p><strong>Free demo used for today</strong> — unlock 30 days unlimited or book your assessment.</p>
+    <p><strong>Today's free trial is used</strong> — unlock Alice Companion for 30 days or book your assessment.</p>
     <div id="limit-paywall"></div>
   </div>
 </div>
@@ -123,11 +146,13 @@
 <script src="js/demo-stream.js"></script>
 <script>
 (function () {
+  var TRIAL_TURNS = 6;
   var sessionId = null;
   var step = 0;
-  var maxSteps = 12;
+  var maxSteps = TRIAL_TURNS;
   var busy = false;
   var done = false;
+  var isPremium = false;
   var onboard = { goal: 'work', level: 'intermediate', name: 'Guest' };
   var voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
   syncDemoVoicesFromServer().then(function () {
@@ -139,16 +164,28 @@
   var msgs = document.getElementById('msgs');
   var inp = document.getElementById('inp');
   var limitView = document.getElementById('limit-view');
+  var trialNudge = document.getElementById('trial-nudge');
+
+  function showPaywalls() {
+    AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), {
+      checkoutLabel: 'Unlock Alice Companion — 30 days',
+      waLabel: 'Pay via WhatsApp'
+    });
+    AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), {
+      checkoutLabel: 'Unlock Alice Companion — 30 days',
+      waLabel: 'Pay via WhatsApp'
+    });
+  }
 
   AliceBilling.activateFromUrl().then(function (activated) {
     if (activated) demoTrack('demo_alice_premium_activated', 'checkout');
     return AliceBilling.verifyRemote();
   }).then(function (active) {
+    isPremium = !!active;
     if (active) {
-      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), { checkoutLabel: 'Renew Alice Premium' });
+      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), { checkoutLabel: 'Renew Alice Companion Premium' });
     } else {
-      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'));
-      AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
+      showPaywalls();
     }
   });
 
@@ -181,6 +218,41 @@
     document.getElementById('typing').style.display = v ? 'block' : 'none';
   }
 
+  function turnsLeft() {
+    if (!maxSteps || maxSteps <= 0) return null;
+    return Math.max(0, maxSteps - step);
+  }
+
+  function updateMeta() {
+    var left = turnsLeft();
+    if (isPremium || !maxSteps) {
+      document.getElementById('step-meta').textContent = 'Alice Companion Premium · unlimited';
+      trialNudge.classList.remove('show');
+      return;
+    }
+    document.getElementById('step-meta').textContent = 'Free trial · ' + (left != null ? left + ' message' + (left === 1 ? '' : 's') + ' left' : 'active');
+    if (left != null && left <= 2 && left > 0) {
+      trialNudge.textContent = '🔥 ' + left + ' trial message' + (left === 1 ? '' : 's') + ' left — unlock unlimited Companion after this chat.';
+      trialNudge.classList.add('show');
+    } else {
+      trialNudge.classList.remove('show');
+    }
+  }
+
+  function showTrialEndPaywall() {
+    var wrap = document.getElementById('trial-end-wrap');
+    if (!wrap || isPremium) return;
+    wrap.innerHTML = '<div class="trial-end-card">' +
+      '<h3>Your trial just ended</h3>' +
+      '<p>You tasted Alice Companion — free conversation in English, any topic. Unlock 30 days unlimited or join the full Infinity program with Alice tutor + trainer.</p>' +
+      '<div id="trial-end-paywall"></div></div>';
+    AliceBilling.renderUpgradeButton(document.getElementById('trial-end-paywall'), {
+      checkoutLabel: 'Unlock Alice Companion — 30 days',
+      waLabel: 'WhatsApp — get Premium today'
+    });
+    demoTrack('demo_alice_trial_end', 'paywall');
+  }
+
   async function start() {
     if (!document.getElementById('demo-consent').checked) {
       alert('Please accept consent to start.');
@@ -189,19 +261,21 @@
     onboard.name = (document.getElementById('user-name').value || 'Guest').trim() || 'Guest';
     onboard.level = document.getElementById('level-pick').value;
     setBusy(true);
-    demoTrack('demo_alice_b2c_start', onboard.goal);
+    demoTrack('demo_alice_companion_trial_start', onboard.goal);
     try {
       var d = await demoStart('alice', 'companion', onboard.name, onboard);
       sessionId = d.sessionId;
-      maxSteps = d.maxSteps != null ? d.maxSteps : 0;
+      isPremium = !!(d.premium || isPremium);
+      maxSteps = d.maxSteps != null ? d.maxSteps : TRIAL_TURNS;
       if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
       onboardEl.style.display = 'none';
+      document.getElementById('trial-hero').style.display = 'none';
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = d.premium
-        ? 'Alice Premium · unlimited'
-        : ((d.sessionsLeft != null ? d.sessionsLeft : '') + ' free demos left today');
-      demoAddMsg(msgs, d.reply, 'assistant', 'ALICE');
+        ? 'Premium · unlimited'
+        : 'Free trial · 1/day';
+      demoAddMsg(msgs, d.reply, 'assistant', 'COMPANION');
       DemoVoice.queueSpeak(d.reply, voiceProfile);
       step = d.step;
       updateMeta();
@@ -210,17 +284,13 @@
         onboardEl.style.display = 'none';
         panel.style.display = 'none';
         limitView.style.display = 'block';
-        AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
+        showPaywalls();
+        demoTrack('demo_alice_trial_blocked', 'daily_limit');
       } else {
         alert(e.message || 'Demo unavailable. Try again later.');
       }
     }
     setBusy(false);
-  }
-
-  function updateMeta() {
-    var turn = maxSteps > 0 ? ('turn ' + step + '/' + maxSteps) : ('turn ' + step + ' · free chat');
-    document.getElementById('step-meta').textContent = 'Free companion · ' + turn;
   }
 
   async function send(micText) {
@@ -230,13 +300,13 @@
     inp.value = '';
     demoAddMsg(msgs, text, 'user', 'YOU');
     setBusy(true);
-    demoTrack('demo_alice_message', 'step_' + (step + 1));
+    demoTrack('demo_alice_companion_message', 'step_' + (step + 1));
     DemoVoice.clearQueue();
 
     var bubbleId = 'stream-' + Date.now();
     var wrap = document.createElement('div');
     wrap.className = 'demo-msg assistant';
-    wrap.innerHTML = '<div class="demo-msg-label">ALICE</div><div class="demo-bubble" id="' + bubbleId + '">▋</div>';
+    wrap.innerHTML = '<div class="demo-msg-label">COMPANION</div><div class="demo-bubble" id="' + bubbleId + '">▋</div>';
     msgs.appendChild(wrap);
     var bubble = document.getElementById(bubbleId);
 
@@ -250,13 +320,15 @@
       bubble.innerHTML = String(d.reply || '').replace(/\n/g, '<br>');
       if (d.reply && d.reply.trim().length > 2) DemoVoice.queueSpeak(d.reply, voiceProfile);
       step = d.meta ? d.meta.step : step + 1;
-      maxSteps = d.meta && d.meta.maxSteps ? d.meta.maxSteps : maxSteps;
+      if (d.meta && d.meta.maxSteps != null) maxSteps = d.meta.maxSteps;
       updateMeta();
       if (d.meta && d.meta.done) {
         done = true;
         document.getElementById('input-row').style.display = 'none';
-        demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Alice');
-        demoTrack('demo_alice_complete', 'evaluation');
+        trialNudge.classList.remove('show');
+        demoRenderEval(document.getElementById('eval-wrap'), d.evaluation, 'Alice Companion');
+        demoTrack('demo_alice_companion_trial_complete', 'evaluation');
+        if (d.meta.trialEnd || (!isPremium && maxSteps > 0)) showTrialEndPaywall();
       }
     } catch (e) {
       if (bubble.parentNode) bubble.parentNode.remove();
@@ -265,7 +337,7 @@
         document.getElementById('input-row').style.display = 'none';
         limitView.style.display = 'block';
         panel.style.display = 'none';
-        AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
+        showPaywalls();
         demoTrack('demo_alice_paywall', 'limit_mid_chat');
       } else {
         demoAddMsg(msgs, e.message || 'Connection issue — try again.', 'assistant', 'SYSTEM');

@@ -109,12 +109,12 @@
     fetchConfig().then(function (cfg) {
       var active = isActiveLocal();
       if (active) {
-        container.innerHTML = '<div class="alice-premium-badge"><i class="ti ti-crown"></i> Alice Premium active</div>';
+        container.innerHTML = '<div class="alice-premium-badge"><i class="ti ti-crown"></i> Alice Companion Premium active</div>';
         return;
       }
       var price = cfg.priceLabel || '$19.99';
       var html = '<div class="alice-premium-offer">' +
-        '<strong>Alice Premium</strong> · ' + cfg.days + ' days unlimited · ' + price +
+        '<strong>Alice Companion Premium</strong> · ' + cfg.days + ' days unlimited · ' + price +
         '<span class="alice-premium-hint">' + (cfg.crcHint || '') + '</span>' +
         '</div>';
       if (cfg.enabled) {

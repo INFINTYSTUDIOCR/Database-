@@ -484,23 +484,42 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
   alice:  { sessionsPerDay: 5, maxSteps: 4 },
+  /** Website trial for Alice Companion (paid product) — taste then paywall. */
+  alice_companion: { sessionsPerDay: 1, maxSteps: 6, messagesPerDay: 12 },
   jill:   { sessionsPerDay: 5, maxSteps: 4 },
   nexora: { sessionsPerDay: 5, maxSteps: 3 },
   claire: { sessionsPerDay: 8, messagesPerDay: 30 },
   tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
 };
 
-const APP1_BUILD = '20260703-app1-companion-free';
+const APP1_BUILD = '20260704-companion-trial';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
 }
 
-/** 0 = unlimited turns (companion B2C — Siri-style free chat). */
+function demoLimitService(session) {
+  if (isCompanionDemoSession(session)) return 'alice_companion';
+  return session?.service || 'alice';
+}
+
+/** 0 = unlimited (Alice Companion Premium). Otherwise session.maxSteps from trial/paid tier. */
 function demoSessionMaxSteps(session) {
   if (typeof session?.maxSteps === 'number') return session.maxSteps;
-  if (isCompanionDemoSession(session)) return 0;
+  if (isCompanionDemoSession(session)) return DEMO_LIMITS.alice_companion.maxSteps;
   return (DEMO_LIMITS[session?.service] || DEMO_LIMITS.alice).maxSteps;
+}
+
+function demoStreamMeta(session, done, maxSteps, extra) {
+  return Object.assign({
+    step: session.step,
+    done,
+    maxSteps,
+    live: true,
+    trialEnd: !!(done && isCompanionDemoSession(session) && !session.premium),
+    product: isCompanionDemoSession(session) ? 'alice_companion' : session.service,
+    turnsLeft: maxSteps > 0 ? Math.max(0, maxSteps - session.step) : null
+  }, extra || {});
 }
 
 function demoSessionDone(session) {
@@ -930,23 +949,31 @@ app.post('/demo/start', async (req, res) => {
       return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
     }
 
+    const sc = scenario || (service === 'nexora' ? 'star' : 'default');
+    const companionDemo = service === 'alice' && sc === 'companion';
+    const limitService = companionDemo ? 'alice_companion' : service;
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, service, { action: 'session', premiumToken });
+    const ipLimit = await checkDemoIpLimit(ip, limitService, { action: 'session', premiumToken });
     if (!ipLimit.ok) {
       return res.status(429).json({
         error: 'limit',
-        message: `Demo limit reached for today. Try again in ${ipLimit.wait}.`,
-        wait: ipLimit.wait
+        message: companionDemo
+          ? 'Your free Alice Companion trial for today is used. Unlock 30 days unlimited or try again tomorrow.'
+          : `Demo limit reached for today. Try again in ${ipLimit.wait}.`,
+        wait: ipLimit.wait,
+        product: companionDemo ? 'alice_companion' : service
       });
     }
 
-    const sc = scenario || (service === 'nexora' ? 'star' : 'default');
     const guest = name || 'Guest';
     const reply = await demoGenerateOpening(service, sc, guest, onboarding);
 
     const sessionId = crypto.randomUUID();
-    const companionDemo = sc === 'companion';
-    const sessionMaxSteps = companionDemo ? 0 : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps;
+    const isPremium = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
+    const trialLimits = DEMO_LIMITS.alice_companion;
+    const sessionMaxSteps = companionDemo
+      ? (isPremium ? 0 : trialLimits.maxSteps)
+      : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps;
     const session = {
       service,
       scenario: sc,
@@ -955,6 +982,7 @@ app.post('/demo/start', async (req, res) => {
       onboarding: onboarding || null,
       demoMode: companionDemo ? 'companion' : 'standard',
       maxSteps: sessionMaxSteps,
+      premium: isPremium,
       consent: true,
       ip,
       history: [{ role: 'assistant', content: reply }],
@@ -970,6 +998,9 @@ app.post('/demo/start', async (req, res) => {
       maxSteps: sessionMaxSteps,
       buffered: false,
       live: true,
+      premium: isPremium,
+      trial: companionDemo && !isPremium,
+      product: companionDemo ? 'alice_companion' : service,
       sessionsLeft: ipLimit.sessionsLeft,
       whitelisted: !!ipLimit.whitelisted,
       voiceProfile: getDemoVoiceProfileFor(service, sc)
@@ -992,9 +1023,16 @@ app.post('/demo/message', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
 
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message', premiumToken });
+    const ipLimit = await checkDemoIpLimit(ip, demoLimitService(session), { action: 'message', premiumToken });
     if (!ipLimit.ok) {
-      return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
+      return res.status(429).json({
+        error: 'limit',
+        message: isCompanionDemoSession(session)
+          ? 'Alice Companion trial limit reached for today.'
+          : 'Daily demo message limit reached.',
+        wait: ipLimit.wait,
+        product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
+      });
     }
 
     const maxSteps = demoSessionMaxSteps(session);
@@ -1014,7 +1052,11 @@ app.post('/demo/message', async (req, res) => {
     session.history.push({ role: 'assistant', content: reply });
     await saveDemoSession(sessionId, session);
 
-    const payload = { reply, step: session.step, done, buffered: false, live: true, maxSteps };
+    const payload = {
+      reply, step: session.step, done, buffered: false, live: true, maxSteps,
+      trialEnd: done && isCompanionDemoSession(session) && !session.premium,
+      product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
+    };
     if (done) {
       payload.evaluation = await demoGenerateEvaluation(session);
       await saveDemoKb({
@@ -1046,9 +1088,16 @@ app.post('/demo/stream', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
 
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message', premiumToken });
+    const ipLimit = await checkDemoIpLimit(ip, demoLimitService(session), { action: 'message', premiumToken });
     if (!ipLimit.ok) {
-      return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
+      return res.status(429).json({
+        error: 'limit',
+        message: isCompanionDemoSession(session)
+          ? 'Alice Companion trial limit reached for today.'
+          : 'Daily demo message limit reached.',
+        wait: ipLimit.wait,
+        product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
+      });
     }
 
     const maxSteps = demoSessionMaxSteps(session);
@@ -1080,7 +1129,7 @@ app.post('/demo/stream', async (req, res) => {
       res.write(`data: ${JSON.stringify({ t: fullText })}\n\n`);
       session.history.push({ role: 'assistant', content: fullText.trim() });
       await saveDemoSession(sessionId, session);
-      res.write(`data: ${JSON.stringify({ meta: { step: session.step, done, maxSteps, live: true, brainCache: true } })}\n\n`);
+      res.write(`data: ${JSON.stringify({ meta: demoStreamMeta(session, done, maxSteps, { brainCache: true }) })}\n\n`);
       if (done) {
         const evaluation = await demoGenerateEvaluation(session);
         res.write(`data: ${JSON.stringify({ evaluation })}\n\n`);
@@ -1160,7 +1209,7 @@ app.post('/demo/stream', async (req, res) => {
     session.history.push({ role: 'assistant', content: fullText.trim() });
     await saveDemoSession(sessionId, session);
 
-    const meta = { step: session.step, done, maxSteps, live: true };
+    const meta = demoStreamMeta(session, done, maxSteps);
     res.write(`data: ${JSON.stringify({ meta })}\n\n`);
 
     if (done) {

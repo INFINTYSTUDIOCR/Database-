@@ -1487,12 +1487,12 @@ function renderAliceStart(){
   var modePicker = companionOn
     ? '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
       +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Práctica Nexus</button>'
-      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:rgba(134,239,172,0.2);border:2px solid #86EFAC;color:#86EFAC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo companion</button>'
+      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:rgba(134,239,172,0.2);border:2px solid #86EFAC;color:#86EFAC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Alice Companion</button>'
       +'</div>'
     : '';
   var intro = companionOn
-    ? 'Alice practica inglés contigo. Elegí <strong style="color:#C084FC;">Práctica Nexus</strong> (ejercicios y conectores) o <strong style="color:#86EFAC;">Modo companion</strong> (charla libre — como un asistente de voz: hablá lo que quieras, cuando quieras, sin mínimo de turnos).'
-    : 'Alice practica inglés contigo con el <strong style="color:#C084FC;">Método Nexus</strong> — Idea + Linker + Idea.';
+    ? '<strong>Alice</strong> (tutora) = práctica Nexus con ejercicios y conectores. <strong>Alice Companion</strong> (premium) = charla libre ilimitada — producto incluido en tu plan.'
+    : '<strong>Alice</strong> es tu tutora de inglés con el <strong>Método Nexus</strong> — Idea + Linker + Idea. <span style="opacity:.85;">Alice Companion (charla libre) es premium — pedí a tu trainer activarlo.</span>';
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.15);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
     +intro
@@ -1518,7 +1518,7 @@ function renderAliceSession(){
         +'<span><i class="ti ti-user"></i> '+scn.customer_personality+'</span>'
         +'<span><i class="ti ti-flame" style="color:#FB923C;"></i> Dificultad '+scn.difficulty+'/10</span>'
         +'</div>'
-      :'<div style="background:rgba(192,132,252,0.07);border:1px solid rgba(192,132,252,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(192,132,252,0.8);font-weight:600;">'+((_aliceState.sessionType==='companion')?'💬 Companion · Charla libre (sin mínimo de turnos)':'🎓 Sesión de práctica · Método Nexus · Idea + Linker + Idea')+'</div>'
+      :'<div style="background:rgba(192,132,252,0.07);border:1px solid rgba(192,132,252,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(192,132,252,0.8);font-weight:600;">'+((_aliceState.sessionType==='companion')?'💬 Alice Companion · Charla libre ilimitada':'🎓 Alice · Tutora · Método Nexus')+'</div>'
     )
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
     +'<div id="alice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'

@@ -283,7 +283,13 @@ a.cc-link .cc-value{color:var(--purple);}
 .alice-inner{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
 .alice-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(245,166,35,0.2);border:1px solid rgba(245,166,35,0.4);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:1rem;}
 .alice-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:white;margin-bottom:1rem;}
-.alice-sub{font-size:16px;color:rgba(255,255,255,0.7);line-height:1.7;margin-bottom:2rem;}
+.alice-legend{font-size:clamp(1rem,2.2vw,1.125rem);line-height:1.85;color:rgba(255,255,255,0.92);margin-bottom:1.5rem;font-weight:500;max-width:36rem;}
+.alice-legend strong{color:white;font-weight:700;}
+.alice-legend-tagline{margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.15);font-size:1.05rem;font-weight:700;color:var(--gold);line-height:1.55;}
+.btn-companion{display:inline-flex;align-items:center;gap:10px;padding:16px 32px;border-radius:var(--r);font-size:16px;font-weight:800;text-decoration:none;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);box-shadow:0 8px 28px rgba(245,166,35,0.45);transition:all .2s;border:none;cursor:pointer;}
+.btn-companion:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(245,166,35,0.55);color:var(--dark);}
+.alice-note-tutor{font-size:13px;color:rgba(255,255,255,0.55);margin-top:1rem;line-height:1.6;max-width:32rem;}
+.alice-note-tutor a{color:rgba(255,255,255,0.85);font-weight:700;}
 .alice-caps{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .alice-cap{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:var(--r);padding:10px 14px;font-size:13px;font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
 .alice-cap i{color:var(--gold);}
@@ -447,7 +453,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     </div>
     <a href="#programs">All Programs</a>
     <a href="#jill">Jill</a>
-    <a href="#alice">Alice</a>
+    <a href="#alice-companion">Alice Companion</a>
     <a href="#who-its-for">Who It's For</a>
     <a href="#pricing">Pricing</a>
     <a href="#about">About</a>
@@ -671,17 +677,17 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <div class="deliverable-head">
         <div class="deliverable-logo-wrap"><img class="deliverable-logo" src="assets/logos/alice.png" alt="Alice by Infinity"></div>
         <div class="deliverable-intro">
-          <h3>Alice — Your 24/7 AI Coach</h3>
-          <p>Alice doesn't give textbook answers. She coaches your connectors, structure and recovery — aligned to your KPIs and Training Book, available any time by voice or text.</p>
+          <h3>Alice — Tutora Nexus (programa)</h3>
+          <p>Coaching estructurado: conectores, recuperación y ejercicios de tu Training Book — alineado a tus KPIs. Distinta de <strong>Alice Companion</strong> (charla libre premium).</p>
         </div>
       </div>
       <div class="deliverable-features">
         <div class="deliverable-feat"><i class="ti ti-microphone"></i><span>Speak or type — Alice listens</span></div>
-        <div class="deliverable-feat"><i class="ti ti-bolt"></i><span>Real-time correction</span></div>
-        <div class="deliverable-feat"><i class="ti ti-clock"></i><span>24/7 availability</span></div>
+        <div class="deliverable-feat"><i class="ti ti-bolt"></i><span>Nexus Method · Idea + Linker + Idea</span></div>
+        <div class="deliverable-feat"><i class="ti ti-book"></i><span>Training Book integrado</span></div>
       </div>
       <div class="deliverable-actions">
-        <a href="try-alice.html" class="btn-primary"><i class="ti ti-player-play"></i>Try Alice — 5 min demo</a>
+        <a href="#alice-companion" class="btn-primary"><i class="ti ti-messages"></i>Probar Alice Companion</a>
         <a href="#contact" class="btn-secondary"><i class="ti ti-calendar-check"></i>Book full assessment</a>
       </div>
     </div>
@@ -904,33 +910,37 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   </div>
 </section>
 
-<section class="alice-wrap" id="alice">
+<section class="alice-wrap" id="alice-companion">
   <div class="section-inner">
     <div class="alice-inner">
       <div>
-        <div class="alice-badge"><i class="ti ti-robot"></i>Powered by AI</div>
-        <h2 class="alice-title">Meet Alice — Your 24/7 Virtual Coach</h2>
-        <p class="alice-sub">Alice doesn't just answer questions. She coaches, corrects, challenges, and pushes you to operate in English — any time, anywhere. She knows your KPIs, your Training Book, and your weaknesses.</p>
+        <div class="alice-badge"><i class="ti ti-messages"></i>Alice Companion · Premium</div>
+        <h2 class="alice-title">Tu compañera de práctica personal — 24/7</h2>
+        <p class="alice-legend">
+          Imagina tener una tutora que te escuche <strong>24/7</strong>, con la que puedes hablar de <strong>lo que quieras en inglés</strong> — y que te corrija, te dé feedback y te evalúe constantemente.
+          Imagina practicar en el <strong>bus</strong> hacia el trabajo, en el <strong>carro</strong>, en la <strong>hora de almuerzo</strong> y recibir <strong>retroalimentación diaria</strong>.
+          <span class="alice-legend-tagline">Un compañero de práctica solo para ti. Eso es <strong>Alice Companion</strong> — tu tutora personal y compañera de práctica.</span>
+        </p>
         <div class="alice-caps">
-          <div class="alice-cap"><i class="ti ti-check"></i>Real-time correction</div>
-          <div class="alice-cap"><i class="ti ti-check"></i>Nexus Method coaching</div>
-          <div class="alice-cap"><i class="ti ti-check"></i>Nexora simulations</div>
-          <div class="alice-cap"><i class="ti ti-check"></i>Voice & text</div>
-          <div class="alice-cap"><i class="ti ti-check"></i>Progress tracking</div>
-          <div class="alice-cap"><i class="ti ti-check"></i>24/7 availability</div>
+          <div class="alice-cap"><i class="ti ti-microphone"></i>Charla libre por voz</div>
+          <div class="alice-cap"><i class="ti ti-message-circle"></i>Cualquier tema</div>
+          <div class="alice-cap"><i class="ti ti-bolt"></i>Corrección al instante</div>
+          <div class="alice-cap"><i class="ti ti-chart-line"></i>Evaluación diaria</div>
+          <div class="alice-cap"><i class="ti ti-bus"></i>Practica en movimiento</div>
+          <div class="alice-cap"><i class="ti ti-clock"></i>Disponible 24/7</div>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:1.5rem;">
-          <a href="try-alice.html" class="btn-primary" style="display:inline-flex;"><i class="ti ti-player-play"></i>Try Alice — 5 min</a>
-          <a href="try-nexora.html" class="btn-secondary" style="margin-top:0;border-color:rgba(255,255,255,0.4);color:white;background:transparent;"><i class="ti ti-headset"></i>Try Nexora demo</a>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:1.75rem;align-items:center;">
+          <a href="try-alice.html" class="btn-companion"><i class="ti ti-player-play"></i>Probar Alice Companion</a>
+          <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20Companion%20Premium" class="btn-secondary" style="margin-top:0;border-color:rgba(255,255,255,0.4);color:white;background:rgba(255,255,255,0.08);" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i>Obtener acceso completo</a>
         </div>
-        <a href="#contact" class="btn-primary" style="margin-top:1rem;display:inline-flex;background:transparent;border:2px solid rgba(255,255,255,0.35);box-shadow:none;"><i class="ti ti-calendar-check"></i>Book Your Assessment</a>
+        <p class="alice-note-tutor"><strong>Alice</strong> (tutora Nexus) es distinta: ejercicios, conectores y Training Book — incluida en el programa ORT. <a href="#ecosystem">Ver Alice tutora →</a></p>
       </div>
       <div class="alice-visual">
-        <div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.5);margin-bottom:12px;">ALICE · LIVE SESSION</div>
-        <div class="chat-msg from-alice"><div><div class="cname">ALICE</div><div class="bubble">Tell me about a challenge you faced at work recently. Use "however" when you switch ideas.</div></div></div>
-        <div class="chat-msg from-student"><div><div class="cname right">STUDENT</div><div class="bubble">I had a problem with a client. However, I tried to explain the situation clearly.</div></div></div>
-        <div class="chat-msg from-alice"><div><div class="cname">ALICE</div><div class="bubble">Excellent use of "however"! Now expand — what exactly happened? Give me Situation → Action → Result.</div></div></div>
-        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.4);text-align:center;">Analyzing KPI: Structural Thinking · Score update incoming</div>
+        <div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.5);margin-bottom:12px;">ALICE COMPANION · FREE TRIAL</div>
+        <div class="chat-msg from-alice"><div><div class="cname">COMPANION</div><div class="bubble">Hi! What would you like to talk about today? Work, travel, hobbies — you choose the topic.</div></div></div>
+        <div class="chat-msg from-student"><div><div class="cname right">YOU</div><div class="bubble">I want to practice for my lunch meeting tomorrow. I'm nervous about small talk.</div></div></div>
+        <div class="chat-msg from-alice"><div><div class="cname">COMPANION</div><div class="bubble">That's a great topic. Tell me one thing you'd like to say if the conversation goes quiet — I'll help you polish it.</div></div></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.45);text-align:center;">Daily feedback · Streak · Spoken score</div>
       </div>
     </div>
   </div>

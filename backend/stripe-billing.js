@@ -40,7 +40,7 @@ function publicConfig() {
     priceLabel: '$' + usd.toFixed(2),
     crcHint: '≈ ₡67.500 valor programa',
     features: [
-      'Unlimited Alice companion chat (30 days)',
+      'Unlimited Alice Companion chat (30 days)',
       'No daily demo session cap',
       'Voice + mic practice',
       'Progress saved on this device'
@@ -139,8 +139,8 @@ async function createCheckoutSession({ email, successUrl, cancelUrl }) {
         currency: (process.env.ALICE_PREMIUM_CURRENCY || 'usd').toLowerCase(),
         unit_amount: PREMIUM_USD_CENTS,
         product_data: {
-          name: 'Alice Premium — 30 days unlimited practice',
-          description: 'Free companion chat with voice. Infinity Studio CR.',
+          name: 'Alice Companion Premium — 30 days unlimited',
+          description: 'Unlimited free-flow English conversation with voice. Infinity Studio CR.',
           images: process.env.ALICE_PREMIUM_IMAGE ? [process.env.ALICE_PREMIUM_IMAGE] : undefined
         }
       },
