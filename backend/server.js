@@ -7,9 +7,22 @@ const crypto = require('crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_EXPIRY_STUDENT_SEC, JWT_SECRET } = require('./auth');
 const Companion = require('./alice-companion');
+const Billing = require('./stripe-billing');
 
 const app = express();
 app.set('trust proxy', 1);
+
+app.post('/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const sig = req.headers['stripe-signature'];
+    const result = await Billing.handleWebhook(req.body, sig, sbSet);
+    return res.status(result.status || 200).json(result);
+  } catch (err) {
+    console.error('Billing webhook error:', err.message);
+    return res.status(500).json({ error: 'webhook_failed' });
+  }
+});
+
 app.use(express.json({ limit: '2mb' }));
 
 // ── SECURITY HEADERS ─────────────────────────────────────────
@@ -712,7 +725,10 @@ async function saveIpRecord(id, data) {
   try { await sbSet('infinity_sessions', id, data); } catch (e) {}
 }
 
-async function checkDemoIpLimit(ip, service, { action } = {}) {
+async function checkDemoIpLimit(ip, service, { action, premiumToken } = {}) {
+  if (premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne)) {
+    return { ok: true, sessionsLeft: 999, premium: true };
+  }
   if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 5 };
   if (isDemoIpWhitelisted(ip)) {
     return { ok: true, sessionsLeft: 999, whitelisted: true };
@@ -907,7 +923,7 @@ async function saveDemoSession(sessionId, data) {
 
 app.post('/demo/start', async (req, res) => {
   try {
-    const { service, scenario, consent, name, onboarding } = req.body || {};
+    const { service, scenario, consent, name, onboarding, premiumToken } = req.body || {};
     if (!consent) return res.status(400).json({ error: 'Consent required' });
     if (!['alice', 'jill', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -915,7 +931,7 @@ app.post('/demo/start', async (req, res) => {
     }
 
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, service, { action: 'session' });
+    const ipLimit = await checkDemoIpLimit(ip, service, { action: 'session', premiumToken });
     if (!ipLimit.ok) {
       return res.status(429).json({
         error: 'limit',
@@ -966,7 +982,7 @@ app.post('/demo/start', async (req, res) => {
 
 app.post('/demo/message', async (req, res) => {
   try {
-    const { sessionId, message } = req.body || {};
+    const { sessionId, message, premiumToken } = req.body || {};
     if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
     if (!process.env.ANTHROPIC_API_KEY) {
       return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
@@ -976,7 +992,7 @@ app.post('/demo/message', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
 
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message' });
+    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message', premiumToken });
     if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
     }
@@ -1020,7 +1036,7 @@ app.post('/demo/message', async (req, res) => {
 
 app.post('/demo/stream', async (req, res) => {
   try {
-    const { sessionId, message } = req.body || {};
+    const { sessionId, message, premiumToken } = req.body || {};
     if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
     if (!process.env.ANTHROPIC_API_KEY) {
       return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
@@ -1030,7 +1046,7 @@ app.post('/demo/stream', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
 
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message' });
+    const ipLimit = await checkDemoIpLimit(ip, session.service, { action: 'message', premiumToken });
     if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Daily demo message limit reached.', wait: ipLimit.wait });
     }
@@ -1301,6 +1317,61 @@ app.get('/demo/status', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Status unavailable' });
+  }
+});
+
+app.get('/billing/config', (req, res) => {
+  try {
+    return res.json(Billing.publicConfig());
+  } catch (err) {
+    return res.status(500).json({ error: 'config_unavailable' });
+  }
+});
+
+app.get('/billing/status', async (req, res) => {
+  try {
+    const token = String(req.query.token || '').trim();
+    if (!token) return res.json({ active: false });
+    const active = await Billing.isPremiumActive(token, sbGetOne);
+    const row = await sbGetOne('infinity_sessions', 'ALICE-PREMIUM-' + token);
+    return res.json({
+      active,
+      expiresAt: row?.data?.expiresAt || null,
+      plan: active ? 'alice_premium_30d' : null
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'status_unavailable' });
+  }
+});
+
+app.post('/billing/checkout', async (req, res) => {
+  try {
+    if (!Billing.isConfigured()) {
+      return res.status(503).json({
+        error: 'billing_unconfigured',
+        message: 'Card checkout not configured yet. Contact us on WhatsApp.',
+        ...Billing.publicConfig()
+      });
+    }
+    const { email, successUrl, cancelUrl } = req.body || {};
+    const result = await Billing.createCheckoutSession({ email, successUrl, cancelUrl });
+    if (result.error) return res.status(503).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Checkout error:', err.message);
+    return res.status(500).json({ error: 'checkout_failed', message: err.message });
+  }
+});
+
+app.get('/billing/activate', async (req, res) => {
+  try {
+    const checkout = req.query.checkout;
+    const result = await Billing.activateFromCheckout(checkout, sbGetOne, sbSet);
+    if (result.error) return res.status(400).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Activate error:', err.message);
+    return res.status(500).json({ error: 'activate_failed' });
   }
 });
 

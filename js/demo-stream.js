@@ -26,7 +26,7 @@ async function demoStreamSend(sessionId, message, opts) {
     resp = await fetch(DEMO_BACKEND + '/demo/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sessionId, message: message })
+      body: JSON.stringify(Object.assign({ sessionId: sessionId, message: message }, typeof demoPremiumFields === 'function' ? demoPremiumFields() : {}))
     });
   } catch (netErr) {
     resp = null;

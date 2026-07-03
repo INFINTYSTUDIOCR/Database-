@@ -210,8 +210,21 @@ function demoCanUseLocalFallback(service, scenario) {
   return !!getLocalBuffer(service, scenario);
 }
 
+function demoPremiumFields() {
+  if (typeof AliceBilling !== 'undefined' && AliceBilling.payload) {
+    return AliceBilling.payload();
+  }
+  try {
+    var t = localStorage.getItem('alice_premium_token');
+    return t ? { premiumToken: t } : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 async function demoStart(service, scenario, name, onboarding) {
   await demoFetchMyIp();
+  var premium = demoPremiumFields();
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/start', {
       method: 'POST',
@@ -221,7 +234,8 @@ async function demoStart(service, scenario, name, onboarding) {
         scenario: scenario,
         consent: true,
         name: name || 'Guest',
-        onboarding: onboarding || null
+        onboarding: onboarding || null,
+        premiumToken: premium.premiumToken
       })
     });
     var parsed = await demoParseResponse(r);
@@ -277,7 +291,7 @@ async function demoSend(sessionId, message) {
     var r = await fetch(DEMO_BACKEND + '/demo/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sessionId, message: message })
+      body: JSON.stringify(Object.assign({ sessionId: sessionId, message: message }, demoPremiumFields()))
     });
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;

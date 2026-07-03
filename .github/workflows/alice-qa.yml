@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/**'
       - 'js/alice-*.js'
+      - 'js/demo-api.js'
+      - 'js/demo-stream.js'
       - 'js/b2b-alice-report.js'
       - 'Infinity_Student_Portal.html'
       - 'Infinity_Nexus_Engine.html'

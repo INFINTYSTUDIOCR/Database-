@@ -96,14 +96,15 @@
     <div class="demo-status" id="mic-status" style="display:none;"></div>
     <div id="eval-wrap"></div>
     <div style="text-align:center;padding:16px;font-size:13px;">
-      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20completo" target="_blank" rel="noopener" style="color:#5B21B6;font-weight:700;">Get full Alice + trainer → WhatsApp</a>
+      <div id="panel-paywall"></div>
+      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20completo" target="_blank" rel="noopener" style="color:#5B21B6;font-weight:700;">Full program + human trainer → WhatsApp</a>
     </div>
   </div>
 
   <div class="demo-limit" id="limit-view" style="display:none;">
     <i class="ti ti-clock-pause"></i>
-    <p><strong>Daily demo limit reached</strong> — come back tomorrow or get full access with a trainer.</p>
-    <a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20mi%20evaluaci%C3%B3n%20gratuita" target="_blank" rel="noopener">WhatsApp — free assessment</a>
+    <p><strong>Free demo used for today</strong> — unlock 30 days unlimited or book your assessment.</p>
+    <div id="limit-paywall"></div>
   </div>
 </div>
 
@@ -111,6 +112,7 @@
   <a href="try-demo.html">Other demos</a> · <a href="index.html">Home</a>
 </footer>
 
+<script src="js/alice-billing.js"></script>
 <script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
 <script src="js/demo-voices.js"></script>
@@ -137,6 +139,18 @@
   var msgs = document.getElementById('msgs');
   var inp = document.getElementById('inp');
   var limitView = document.getElementById('limit-view');
+
+  AliceBilling.activateFromUrl().then(function (activated) {
+    if (activated) demoTrack('demo_alice_premium_activated', 'checkout');
+    return AliceBilling.verifyRemote();
+  }).then(function (active) {
+    if (active) {
+      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), { checkoutLabel: 'Renew Alice Premium' });
+    } else {
+      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'));
+      AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
+    }
+  });
 
   document.querySelectorAll('.goal-btn').forEach(function (btn) {
     btn.onclick = function () {
@@ -184,7 +198,9 @@
       onboardEl.style.display = 'none';
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';
-      document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
+      document.getElementById('sessions-left').textContent = d.premium
+        ? 'Alice Premium · unlimited'
+        : ((d.sessionsLeft != null ? d.sessionsLeft : '') + ' free demos left today');
       demoAddMsg(msgs, d.reply, 'assistant', 'ALICE');
       DemoVoice.queueSpeak(d.reply, voiceProfile);
       step = d.step;
@@ -192,7 +208,9 @@
     } catch (e) {
       if (e.error === 'limit') {
         onboardEl.style.display = 'none';
+        panel.style.display = 'none';
         limitView.style.display = 'block';
+        AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
       } else {
         alert(e.message || 'Demo unavailable. Try again later.');
       }
@@ -245,7 +263,10 @@
       if (e.error === 'limit') {
         done = true;
         document.getElementById('input-row').style.display = 'none';
-        demoAddMsg(msgs, 'Daily limit reached for this connection.', 'assistant', 'SYSTEM');
+        limitView.style.display = 'block';
+        panel.style.display = 'none';
+        AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), { checkoutLabel: 'Unlock 30 days — pay now' });
+        demoTrack('demo_alice_paywall', 'limit_mid_chat');
       } else {
         demoAddMsg(msgs, e.message || 'Connection issue — try again.', 'assistant', 'SYSTEM');
       }

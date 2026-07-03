@@ -11,6 +11,7 @@ const suites = [
   'tests/companion-qa.mjs',
   'tests/alice-growth-qa.mjs',
   'tests/alice-full-stack-qa.mjs',
+  'tests/alice-billing-qa.mjs',
 ];
 
 let failed = 0;
