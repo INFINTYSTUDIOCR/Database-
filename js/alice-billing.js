@@ -112,7 +112,7 @@
         container.innerHTML = '<div class="alice-premium-badge"><i class="ti ti-crown"></i> Alice Premium active</div>';
         return;
       }
-      var price = cfg.priceLabel || '$12.99';
+      var price = cfg.priceLabel || '$19.99';
       var html = '<div class="alice-premium-offer">' +
         '<strong>Alice Premium</strong> · ' + cfg.days + ' days unlimited · ' + price +
         '<span class="alice-premium-hint">' + (cfg.crcHint || '') + '</span>' +

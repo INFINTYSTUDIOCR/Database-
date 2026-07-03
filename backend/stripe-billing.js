@@ -4,7 +4,7 @@
 const crypto = require('crypto');
 
 const PREMIUM_DAYS = parseInt(process.env.ALICE_PREMIUM_DAYS || '30', 10);
-const PREMIUM_USD_CENTS = parseInt(process.env.ALICE_PREMIUM_USD_CENTS || '1299', 10);
+const PREMIUM_USD_CENTS = parseInt(process.env.ALICE_PREMIUM_USD_CENTS || '1999', 10);
 const PREMIUM_TABLE = 'infinity_sessions';
 
 function getStripe() {
