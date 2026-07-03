@@ -397,36 +397,50 @@ a.cc-link .cc-value{color:var(--purple);}
 .success-features li:last-child{border-bottom:none;}
 .success-features li i{color:#1B9BD1;font-size:16px;margin-top:2px;flex-shrink:0;}
 @media(max-width:960px){.success-showcase{grid-template-columns:1fr;}}
-.who-section{background:linear-gradient(165deg,rgba(248,248,255,0.85) 0%,rgba(255,249,240,0.82) 100%);padding:100px 2rem;}
-.who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:2rem;}
-.who-card{background:white;border:1px solid var(--gray-light);border-radius:var(--r);padding:1.25rem;}
-.who-card h3{font-size:1rem;margin:0 0 .5rem;display:flex;align-items:center;gap:.4rem;color:var(--purple);}
-.who-card p{font-size:.88rem;color:var(--t2);line-height:1.55;margin:0 0 .75rem;}
+.who-section{background:linear-gradient(165deg,#F3EBFF 0%,#FFF8F0 55%,#F8F8FF 100%);padding:100px 2rem;}
+.who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.35rem;margin-top:2rem;}
+.who-card{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:var(--rl);padding:0;overflow:hidden;box-shadow:0 12px 32px rgba(91,33,182,0.1);}
+.who-card-media{position:relative;height:168px;min-height:168px;overflow:hidden;background:#1a1028;display:block;}
+.who-card-media img{width:100%;height:100%;min-height:168px;object-fit:cover;object-position:center top;display:block;transition:transform .35s ease;}
+.path-card-link:hover .who-card-media img{transform:scale(1.06);}
+.who-card-media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,10,40,0.12) 0%,rgba(20,10,40,0.55) 100%);pointer-events:none;}
+.who-card-body{padding:1.25rem 1.35rem 1.4rem;}
+.who-card h3{font-size:1.1rem;margin:0 0 .55rem;display:flex;align-items:flex-start;gap:.65rem;color:var(--text);font-weight:800;line-height:1.3;}
+.who-card h3 i{flex-shrink:0;width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:var(--purple-glow);color:var(--purple);font-size:18px;}
+.who-card p{font-size:.9rem;color:var(--t2);line-height:1.6;margin:0 0 .85rem;}
 .who-card a{font-size:.82rem;font-weight:700;color:var(--purple);text-decoration:none;}
-.who-more{text-align:center;margin-top:2rem;font-size:.9rem;}
-.who-more a{color:var(--purple);font-weight:600;}
-.path-card-link{display:block;text-decoration:none;color:inherit;transition:transform .25s,box-shadow .25s;cursor:pointer;}
-.path-card-link:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(91,33,182,0.12);}
-.path-card-meta{font-size:.78rem;font-weight:700;color:var(--gold-dark);margin-top:.5rem;display:flex;align-items:center;gap:6px;}
+.who-more{text-align:center;margin-top:2rem;font-size:.95rem;}
+.who-more a{color:var(--purple);font-weight:700;}
+.path-card-link{display:block;text-decoration:none;color:inherit;transition:transform .25s,box-shadow .25s,border-color .25s;cursor:pointer;border-top:4px solid var(--purple);}
+.path-card-link:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(91,33,182,0.16);border-color:rgba(91,33,182,0.2);}
+.path-card-link.path-foundations{border-top-color:var(--gold);}
+.path-card-link.path-ort{border-top-color:var(--purple);}
+.path-card-link.path-nexora{border-top-color:#DB2777;}
+.path-card-meta{font-size:.82rem;font-weight:800;color:var(--gold-dark);margin-top:.85rem;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:rgba(245,166,35,0.12);}
 .path-card-meta i{font-size:14px;color:var(--purple);}
-.motiv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-top:2rem;}
-.motiv-card{background:white;border:1px solid var(--gray-light);border-radius:var(--r);padding:1.25rem;text-decoration:none;color:inherit;display:block;transition:transform .25s,box-shadow .25s,border-color .25s;}
-.motiv-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(91,33,182,0.1);border-color:rgba(91,33,182,0.25);}
-.motiv-card h3{font-size:1rem;margin:0 0 .5rem;display:flex;align-items:center;gap:.4rem;color:var(--purple);}
+.path-card-go{display:inline-flex;align-items:center;gap:4px;margin-top:1rem;font-size:.85rem;font-weight:800;color:var(--purple);}
+.motiv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.35rem;margin-top:2rem;}
+.motiv-card{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:var(--rl);overflow:hidden;text-decoration:none;color:inherit;display:block;transition:transform .25s,box-shadow .25s,border-color .25s;box-shadow:0 12px 32px rgba(91,33,182,0.1);}
+.motiv-card:hover{transform:translateY(-6px);box-shadow:0 22px 48px rgba(91,33,182,0.18);border-color:rgba(91,33,182,0.28);}
+.motiv-card-media{position:relative;height:156px;min-height:156px;overflow:hidden;background:#1a1028;display:block;}
+.motiv-card-media img{width:100%;height:100%;min-height:156px;object-fit:cover;object-position:center top;display:block;transition:transform .35s ease;}
+.motiv-card:hover .motiv-card-media img{transform:scale(1.06);}
+.motiv-card-media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,10,40,0.15) 0%,rgba(20,10,40,0.55) 100%);pointer-events:none;}
+.motiv-card .motiv-icon{position:absolute;left:14px;bottom:12px;z-index:1;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple-light));color:white;font-size:20px;box-shadow:0 8px 20px rgba(0,0,0,0.35);}
+.motiv-card-body{padding:1.15rem 1.25rem 1.35rem;}
+.motiv-card h3{font-size:1.05rem;margin:0 0 .45rem;display:block;color:var(--text);font-weight:800;line-height:1.3;}
+.motiv-card h3 i{display:none;}
 .motiv-card p{font-size:.88rem;color:var(--t2);line-height:1.55;margin:0;}
-.motiv-card .motiv-go{font-size:.8rem;font-weight:700;color:var(--purple);margin-top:.75rem;display:inline-flex;align-items:center;gap:4px;}
+.motiv-card .motiv-go{font-size:.85rem;font-weight:800;color:var(--purple);margin-top:.9rem;display:inline-flex;align-items:center;gap:4px;}
 .hero-mirror{min-height:3.4rem;margin-bottom:.85rem;}
 .hero-mirror-q{font-size:clamp(1.1rem,2.4vw,1.4rem);font-weight:700;color:var(--purple);line-height:1.45;transition:opacity .35s ease;}
 .hero-mirror-q.is-fading{opacity:0;}
 .hero-mirror-hope{font-size:16px;font-weight:600;color:var(--t2);line-height:1.5;margin-bottom:1rem;}
 .hero-tagline{font-size:14px;color:var(--purple);font-weight:700;line-height:1.5;margin-bottom:1.1rem;}
 .hero-inclusion,.hero-human-first,.hero-lead,.hero-seo{display:none;}
-.section-compact{padding:64px 2rem;}
-.motiv-card p,.motiv-card .motiv-go{display:none;}
-.motiv-card{padding:1rem 1.15rem;}
-.motiv-card h3{margin:0;font-size:.95rem;}
-.path-card-link p{display:none;}
-.path-card-link h3{margin-bottom:.35rem;}
+.section-compact{padding:88px 2rem;}
+#elegi-tu-vida{background:linear-gradient(165deg,#FFF8F0 0%,#F5EEFF 100%);}
+#elegi-tu-vida .section-sub,#donde-estas .section-sub{max-width:36rem;margin-bottom:0;}
 .trust-proof--compact{padding:2rem;}
 .trust-proof-inline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 20px;font-size:14px;color:var(--t2);}
 .trust-proof-inline a{color:var(--purple);font-weight:700;text-decoration:none;}
@@ -623,25 +637,58 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   </div>
 </div>
 
-<section id="elegi-tu-vida" class="s-warm section-compact">
+<section id="elegi-tu-vida" class="section-compact">
   <div class="section-inner">
     <div class="section-tag">Tu motivación</div>
     <h2 class="section-title">¿Qué te trae <span style="color:var(--purple)">aquí?</span></h2>
+    <p class="section-sub">Elige el motivo real — te llevamos al camino correcto, no a un curso genérico.</p>
     <div class="motiv-grid">
       <a href="ort-path.html?motivo=trabajo" class="motiv-card fade-up">
-        <h3><i class="ti ti-briefcase"></i> Trabajo o entrevista</h3>
+        <div class="motiv-card-media">
+          <img src="assets/photos/pain-interview.jpg" alt="Ansiedad en entrevista en inglés" width="480" height="300" loading="lazy" decoding="async">
+          <div class="motiv-icon"><i class="ti ti-briefcase"></i></div>
+        </div>
+        <div class="motiv-card-body">
+          <h3>Trabajo o entrevista</h3>
+          <p>Pasar la entrevista, el cliente o la reunión en inglés — sin quedarte en blanco.</p>
+          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
       <a href="advanced-path.html?motivo=negocio" class="motiv-card fade-up">
-        <h3><i class="ti ti-building-store"></i> Negocio sin traductores</h3>
+        <div class="motiv-card-media">
+          <img src="assets/photos/pain-business.jpg" alt="Negocio sin traductores — presión en inglés" width="480" height="300" loading="lazy" decoding="async">
+          <div class="motiv-icon"><i class="ti ti-building-store"></i></div>
+        </div>
+        <div class="motiv-card-body">
+          <h3>Negocio sin traductores</h3>
+          <p>Negociar, vender y liderar en inglés sin depender de alguien más.</p>
+          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
       <a href="foundations-path.html?motivo=familia" class="motiv-card fade-up">
-        <h3><i class="ti ti-heart"></i> Familia en EE.UU.</h3>
+        <div class="motiv-card-media">
+          <img src="assets/photos/pain-family.jpg" alt="Familia en el exterior — barrera del idioma" width="480" height="300" loading="lazy" decoding="async">
+          <div class="motiv-icon"><i class="ti ti-heart"></i></div>
+        </div>
+        <div class="motiv-card-body">
+          <h3>Familia en EE.UU.</h3>
+          <p>Hablar con familia, viajes y vida real — con estructura, no con vergüenza.</p>
+          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
       <a href="ort-path.html?motivo=bloqueo" class="motiv-card fade-up">
-        <h3><i class="ti ti-mood-sad"></i> Me bloqueo al hablar</h3>
+        <div class="motiv-card-media">
+          <img src="assets/photos/pain-freeze.jpg" alt="Bloqueo al hablar inglés bajo presión" width="480" height="300" loading="lazy" decoding="async">
+          <div class="motiv-icon"><i class="ti ti-mood-sad"></i></div>
+        </div>
+        <div class="motiv-card-body">
+          <h3>Me bloqueo al hablar</h3>
+          <p>Entiendes todo, pero cuando tienes que responder… nada. Eso se entrena.</p>
+          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
     </div>
-    <p class="who-more" style="margin-top:1.25rem;"><a href="try-alice.html">Alice Companion gratis →</a></p>
+    <p class="who-more" style="margin-top:1.75rem;"><a href="try-alice.html">Probar Alice Companion gratis →</a></p>
   </div>
 </section>
 
@@ -649,21 +696,43 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="section-inner">
     <div class="section-tag">Tu nivel</div>
     <h2 class="section-title">¿Dónde estás <span style="color:var(--purple)">tú?</span></h2>
+    <p class="section-sub">Tres caminos claros. Mismo precio promo. Elige según dónde te duele hoy.</p>
     <div class="who-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
-      <a href="foundations-path.html" class="who-card path-card-link">
-        <h3><i class="ti ti-seedling"></i> No arranco</h3>
-        <span class="path-card-meta"><i class="ti ti-tag"></i> Fundamentos estructurales (Foundations) · ₡67.500/mes</span>
+      <a href="foundations-path.html" class="who-card path-card-link path-foundations">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-zero.jpg" alt="Empezar desde cero en inglés" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-seedling"></i> No arranco</h3>
+          <p>Base débil o casi cero. Instalamos la estructura del idioma antes de la presión.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> Fundamentos estructurales (Foundations) · ₡67.500/mes</span>
+          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
-      <a href="ort-path.html" class="who-card path-card-link">
-        <h3><i class="ti ti-bolt"></i> Me bloqueo al hablar</h3>
-        <span class="path-card-meta"><i class="ti ti-tag"></i> ORT · ₡67.500/mes</span>
+      <a href="ort-path.html" class="who-card path-card-link path-ort">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-freeze.jpg" alt="Parálisis al hablar inglés" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-bolt"></i> Me bloqueo al hablar</h3>
+          <p>Entiendes inglés pero te paralizas bajo presión real. ORT te obliga a ejecutar.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> ORT · ₡67.500/mes</span>
+          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
-      <a href="advanced-path.html" class="who-card path-card-link">
-        <h3><i class="ti ti-microphone"></i> Necesito volumen</h3>
-        <span class="path-card-meta"><i class="ti ti-tag"></i> Nexora Pro · ₡67.500 / 30 días</span>
+      <a href="advanced-path.html" class="who-card path-card-link path-nexora">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-volume.jpg" alt="Práctica intensiva bajo presión" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-microphone"></i> Necesito volumen</h3>
+          <p>Ya hablas — necesitas velocidad, precisión y simulaciones antes del momento real.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> Nexora Pro · ₡67.500 / 30 días</span>
+          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
       </a>
     </div>
-    <p class="who-more"><a href="casos-de-exito.html">Caso Goicoechea →</a></p>
+    <p class="who-more"><a href="casos-de-exito.html">Ver caso Goicoechea documentado →</a></p>
   </div>
 </section>
 
@@ -692,7 +761,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <section id="comparison" class="s-warm">
   <div class="section-inner">
     <div class="section-tag">Esto es diferente</div>
-    <h2 class="section-title">Esto <span style="color:var(--purple)">no</span> es una academia de inglés.</h2>
+    <h2 class="section-title">Esto <span style="color:var(--purple)">no</span> es una academia más de inglés.</h2>
     <p class="section-sub">Sesiones privadas para una persona: tú. Sin aulas llenas en ningún país — solo tu dolor, tu Training Book, tus resultados.</p>
     <figure class="section-photo fade-up">
       <img src="assets/photos/hero-session.jpg" alt="Práctica de inglés en vivo — participación bajo presión real" width="1200" height="400" loading="lazy" decoding="async">
