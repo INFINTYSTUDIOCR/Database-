@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SI Portal">
 <link rel="manifest" href="manifest-portal.json">
-<link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="icon" href="icon-192.png?v=20260702" type="image/png">
+<link rel="apple-touch-icon" href="/icon-512.png?v=20260702">
 <link rel="stylesheet" href="css/pwa-install.css?v=2">
 <script src="js/pwa-register.js?v=2" defer></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -25,8 +25,13 @@
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/ai-profile.js"></script>
+<script src="js/alice-progress.js?v=20260702"></script>
+<script src="js/alice-badges-cefr.js"></script>
+<script src="js/alice-pronunciation.js"></script>
+<script src="js/alice-reminders.js"></script>
+<script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/tts-chunks.js"></script>
+<script src="js/tts-chunks.js?v=20260703"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -47,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fade{animation:fadeIn 0.2s ease;}
 
 .topbar{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
-.tb-logo{height:36px;object-fit:contain;}
+.tb-logo{height:36px;width:36px;object-fit:cover;border-radius:8px;}
 .tb-div{width:1px;height:26px;background:rgba(255,255,255,0.2);}
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
@@ -60,7 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .login-wrap{max-width:420px;margin:5rem auto;padding:1.5rem;}
 .login-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
-.login-logo{height:72px;max-width:280px;object-fit:contain;margin-bottom:1rem;}
+.login-logo{height:72px;width:72px;max-width:72px;object-fit:cover;border-radius:16px;margin-bottom:1rem;}
 .login-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
 .inp{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;margin-bottom:0.75rem;}
@@ -140,7 +145,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 
 <div class="topbar" id="topbar" style="display:none;">
-  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png" alt="Infinity Studio CR">
+  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png?v=20260702" alt="Infinity Studio CR">
   <div class="tb-div"></div>
   <div>
     <div class="tb-title">Portal del Estudiante</div>
@@ -158,7 +163,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png" alt="Infinity Studio CR">
+      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260702" alt="Infinity Studio CR">
       <div class="login-title">Portal del Estudiante</div>
       <div class="login-sub">Infinity Studio CR · Tu Training Book, KPIs, horario y progreso, sincronizados en tiempo real.</div>
       <input class="inp" id="l-user" placeholder="Usuario" autocomplete="username">
@@ -440,12 +445,37 @@ function queuePortalDailyInspiration(onClose){
 
 function afterPortalReady(s, opts){
   opts = opts || {};
+  if(typeof AliceReminders !== 'undefined') AliceReminders.startReminderLoop(s);
+  handlePortalDeepLink(s);
   if(s.infinityTermsAccepted !== true) return;
   if(opts.skipInspiration){
     checkMonthlySurvey(s);
     return;
   }
   queuePortalDailyInspiration(function(){ checkMonthlySurvey(s); });
+}
+
+function handlePortalDeepLink(s){
+  try{
+    var params = new URLSearchParams(location.search);
+    var tab = params.get('tab');
+    var quick = params.get('quick');
+    if(tab) switchPortalTab(tab);
+    if(quick === 'companion' && typeof startAliceCompanionQuick === 'function'){
+      setTimeout(function(){
+        if(aliceCompanionEnabled()) startAliceCompanionQuick();
+      }, 600);
+    }
+  }catch(e){}
+}
+
+function showPortalToast(msg){
+  if(!msg) return;
+  var t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#5B21B6;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 4000);
 }
 
 function logout(){
@@ -537,6 +567,7 @@ function showPortal(s){
   var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
+    + (typeof AliceProgress !== 'undefined' ? AliceProgress.renderProgressAddon(s) : '')
     + renderProgressBlock(s)
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i>Mis KPIs</div>'+kpiChartHtml+'</div>'
     +(cals.length>=2?'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Mi progreso (diagnóstico)</div>'
@@ -1260,6 +1291,8 @@ var _aliceState = {
   scenario: null,
   history: [],
   sessionActive: false,
+  sessionType: 'practice',
+  companionTopic: '',
   evaluation: null,
   speaking: false,
   listening: false,
@@ -1332,6 +1365,8 @@ function saveAliceRuntimeStorage(){
       history: _aliceState.history,
       scenario: _aliceState.scenario,
       accent: _aliceState.accent,
+      sessionType: _aliceState.sessionType || 'practice',
+      companionTopic: _aliceState.companionTopic || '',
       sessionActive: true
     }));
   }catch(e){}
@@ -1346,6 +1381,8 @@ function restoreAliceRuntimeStorage(){
     _aliceState.history = s.history || [];
     _aliceState.scenario = s.scenario || null;
     if(s.accent) _aliceState.accent = s.accent;
+    if(s.sessionType) _aliceState.sessionType = s.sessionType;
+    if(s.companionTopic) _aliceState.companionTopic = s.companionTopic;
     _aliceState.sessionActive = true;
     _aliceState.evaluation = null;
     return true;
@@ -1362,6 +1399,8 @@ function getAliceStudentPayload(){
       level: getLevel(getScore(s), s),
       program: (s.info && s.info.program) || 'Individual',
       sessionsCompleted: (s.kpiTracker || []).length,
+      companionEnabled: !!s.companionEnabled,
+      companionConfig: s.companionConfig || null,
       trainingBook: (s.trainingBook || []).map(function(ex){
         return { title: ex.title, kpi: ex.kpi, studentTask: ex.studentTask, freq: ex.freq };
       }),
@@ -1384,6 +1423,8 @@ function getAliceStudentPayload(){
     program:(s.info&&s.info.program)||'Individual', sessionsCompleted:(s.kpiTracker||[]).length,
     kpiProfile, weakAreas, trainingBook,
     kpiFile: s.kpiFile || null,
+    companionEnabled: !!s.companionEnabled,
+    companionConfig: s.companionConfig || null,
     kpiScale: s.kpiScale || (s.kpiFile && s.kpiFile.scale) || null,
     info: s.info,
     aiProfile: (typeof AiProfile !== 'undefined') ? AiProfile.getAiProfile(s) : (s.aiProfile || {})
@@ -1409,6 +1450,9 @@ function renderAlice(){
     +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select>'
     +'</div>'
     +'</div>'
+    +((!_aliceState.sessionActive && typeof AliceProgress !== 'undefined') ? AliceProgress.renderHabitStrip(CURRENT_STUDENT) : '')
+    +((!_aliceState.sessionActive && typeof AliceBadgesCefr !== 'undefined') ? AliceBadgesCefr.renderBadgesRow(CURRENT_STUDENT) : '')
+    +((!_aliceState.sessionActive && typeof AliceReminders !== 'undefined') ? AliceReminders.renderReminderPrompt() : '')
     +(!_aliceState.sessionActive ? renderAliceStart() : renderAliceSession())
     +'</div>';
   if(_aliceState.sessionActive){
@@ -1419,14 +1463,44 @@ function renderAlice(){
   }
 }
 
+function aliceCompanionEnabled(){
+  var s = CURRENT_STUDENT;
+  return !!(s && s.companionEnabled === true);
+}
+
+function aliceApplyCompanionDefaults(){
+  if(!aliceCompanionEnabled()) {
+    _aliceState.sessionType = 'practice';
+    return;
+  }
+  var cfg = CURRENT_STUDENT.companionConfig || {};
+  if(cfg.defaultSessionType === 'companion' || cfg.defaultSessionType === 'practice'){
+    _aliceState.sessionType = cfg.defaultSessionType;
+  }
+}
+
 function renderAliceStart(){
+  aliceApplyCompanionDefaults();
   var hasSaved = !!_aliceState.savedSession;
+  var mode = _aliceState.sessionType || 'practice';
+  var companionOn = aliceCompanionEnabled();
+  var modePicker = companionOn
+    ? '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
+      +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Práctica Nexus</button>'
+      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:rgba(134,239,172,0.2);border:2px solid #86EFAC;color:#86EFAC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo companion</button>'
+      +'</div>'
+    : '';
+  var intro = companionOn
+    ? 'Alice practica inglés contigo. Elegí <strong style="color:#C084FC;">Práctica Nexus</strong> (ejercicios y conectores) o <strong style="color:#86EFAC;">Modo companion</strong> (charla libre — como un asistente de voz: hablá lo que quieras, cuando quieras, sin mínimo de turnos).'
+    : 'Alice practica inglés contigo con el <strong style="color:#C084FC;">Método Nexus</strong> — Idea + Linker + Idea.';
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.15);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
-    +'Alice practica inglés contigo usando tu Training Book como guía. Cada sesión refuerza tus ejercicios asignados. Podés hablar o escribir.'
+    +intro
     +'</div>'
+    +modePicker
+    +(companionOn && typeof AliceProgress !== 'undefined' ? AliceProgress.renderQuickStart(CURRENT_STUDENT, true) : '')
     +'<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(192,132,252,0.4);width:100%;justify-content:center;" onclick="startAliceSession()"><i class="ti ti-player-play"></i> Iniciar nueva sesión</button>'
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(192,132,252,0.4);width:100%;justify-content:center;" onclick="startAliceSession(_aliceState.sessionType||\'practice\')"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
     +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);color:#C084FC;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
@@ -1444,7 +1518,7 @@ function renderAliceSession(){
         +'<span><i class="ti ti-user"></i> '+scn.customer_personality+'</span>'
         +'<span><i class="ti ti-flame" style="color:#FB923C;"></i> Dificultad '+scn.difficulty+'/10</span>'
         +'</div>'
-      :'<div style="background:rgba(192,132,252,0.07);border:1px solid rgba(192,132,252,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(192,132,252,0.8);font-weight:600;">🎓 Sesión de práctica · Método Nexus · Idea + Linker + Idea</div>'
+      :'<div style="background:rgba(192,132,252,0.07);border:1px solid rgba(192,132,252,0.15);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(192,132,252,0.8);font-weight:600;">'+((_aliceState.sessionType==='companion')?'💬 Companion · Charla libre (sin mínimo de turnos)':'🎓 Sesión de práctica · Método Nexus · Idea + Linker + Idea')+'</div>'
     )
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
     +'<div id="alice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
@@ -1472,6 +1546,13 @@ function renderAliceEvaluation(){
     +'</div>'
     +(ev.alice_message?'<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:12px;background:rgba(192,132,252,0.08);border-left:3px solid #7C3AED;padding:10px 12px;border-radius:0 10px 10px 0;">'+ev.alice_message+'</div>':'')
     +(ev.best_moment?'<div style="font-size:12px;color:#86EFAC;margin-bottom:6px;">✓ '+ev.best_moment+'</div>':'')
+    +(ev.dimensions?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:11px;">'
+      +'<span style="background:rgba(255,255,255,0.06);padding:4px 8px;border-radius:8px;">Fluidez '+ev.dimensions.fluency+'</span>'
+      +'<span style="background:rgba(255,255,255,0.06);padding:4px 8px;border-radius:8px;">Estructura '+ev.dimensions.structure+'</span>'
+      +'<span style="background:rgba(255,255,255,0.06);padding:4px 8px;border-radius:8px;">Vocabulario '+ev.dimensions.vocabulary+'</span>'
+      +'</div>':'')
+    +((ev.clarity && typeof AlicePronunciation !== 'undefined') ? AlicePronunciation.renderClarityHtml(ev.clarity) : '')
+    +(ev.topic_follow_up?'<div style="font-size:12px;color:#C084FC;margin-bottom:8px;">→ '+ev.topic_follow_up+'</div>':'')
     +(ev.main_improvement?'<div style="font-size:12px;color:#FCA5A5;margin-bottom:10px;">▴ '+ev.main_improvement+'</div>':'')
     +(ev.connectors_used&&ev.connectors_used.length?'<div style="margin-bottom:8px;"><div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">CONECTORES USADOS</div>'
       +ev.connectors_used.map(function(c){return '<span style="display:inline-block;background:rgba(134,239,172,0.12);color:#86EFAC;border:1px solid rgba(134,239,172,0.25);border-radius:20px;padding:3px 10px;margin:2px;font-size:11px;font-weight:600;">'+c+'</span>';}).join('')+'</div>':'')
@@ -1484,13 +1565,25 @@ function renderAliceEvaluation(){
 }
 
 // ── ACCIONES ──────────────────────────────────────────────
-async function startAliceSession(){
+async function startAliceCompanionQuick(continueTopic){
+  if(!aliceCompanionEnabled()) return;
+  await startAliceSession('companion', { continueTopic: continueTopic || '' });
+}
+
+async function startAliceSession(sessionType, opts){
+  opts = opts || {};
   stopAlice();
   _aliceState.history = [];
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
+  _aliceState.sessionType = sessionType || _aliceState.sessionType || 'practice';
+  if(!aliceCompanionEnabled()) _aliceState.sessionType = 'practice';
+  if(opts.continueTopic) _aliceState.companionTopic = String(opts.continueTopic).slice(0, 80);
+  else _aliceState.companionTopic = '';
+  _aliceState.sessionStartedAt = Date.now();
   _aliceState.savedSession = null;
   _aliceState.scenario = null;
+  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   renderAlice();
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   var returning = mode === 'return_session';
@@ -1498,16 +1591,17 @@ async function startAliceSession(){
   if(statusEl) statusEl.textContent = 'Alice se conecta…';
   warmInfinityApi();
   _aliceSpeakEnabled = true;
+  _aliceSending = false;
   _aliceState.history.push({ role:'assistant', content:'▋' });
   aliceRenderHistoryMessages();
   try{
     var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET })
+      body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET, sessionType:_aliceState.sessionType, companionTopic:_aliceState.companionTopic || '' })
     });
     var data = await r.json();
     var opening = (typeof TutorReply !== 'undefined') ? TutorReply.extract(data.opening || '') : (data.opening || '');
-    if(!opening || opening.length < 8) opening = aliceInstantOpening(CURRENT_STUDENT, returning);
+    if(!opening || opening.length < 8) opening = aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType);
     var parts = opening.split(/\nALICE:\s*/);
     var aliceLine = parts[0].trim();
     var aliceTip = parts[1] ? parts[1].trim() : '';
@@ -1522,7 +1616,7 @@ async function startAliceSession(){
     }
     saveAliceRuntimeStorage();
   }catch(e){
-    var fallback = aliceInstantOpening(CURRENT_STUDENT, returning);
+    var fallback = aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType);
     _aliceState.history = [{ role:'assistant', content: fallback }];
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
@@ -1534,6 +1628,7 @@ async function resumeAliceSession(){
   if(!_aliceState.savedSession) return;
   _aliceState.history = _aliceState.savedSession.history || [];
   _aliceState.scenario = _aliceState.savedSession.scenario || null;
+  _aliceState.sessionType = _aliceState.savedSession.sessionType || 'practice';
   _aliceState.sessionActive = true;
   _aliceState.evaluation = null;
   renderAlice();
@@ -1545,7 +1640,7 @@ async function resumeAliceSession(){
     try{
       var r = await infinityFetch('/alice', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ mode:'return_session', student:getAliceStudentPayload(), secret:ALICE_SECRET })
+        body: JSON.stringify({ mode:'return_session', student:getAliceStudentPayload(), secret:ALICE_SECRET, sessionType:_aliceState.sessionType || 'practice', companionTopic:_aliceState.companionTopic || '' })
       });
       var data = await r.json();
       var opening = (typeof TutorReply !== 'undefined') ? TutorReply.extract(data.opening || '') : (data.opening || '');
@@ -1579,6 +1674,7 @@ function saveAliceSession(){
   _aliceState.savedSession = {
     history: _aliceState.history.slice(),
     scenario: _aliceState.scenario,
+    sessionType: _aliceState.sessionType,
     savedAt: new Date().toISOString()
   };
   _aliceState.sessionActive = false;
@@ -1653,6 +1749,9 @@ async function sendAliceMessage(micText){
   _aliceMicText = '';
   if(input) input.value = '';
   _aliceState.history.push({ role:'user', content:text });
+  if(_aliceState.sessionType === 'companion' && !_aliceState.companionTopic){
+    _aliceState.companionTopic = text.slice(0, 80);
+  }
   aliceRenderHistoryMessages();
   if(statusEl) statusEl.textContent = 'Alice está pensando…';
 
@@ -1664,7 +1763,6 @@ async function sendAliceMessage(micText){
 
   var fullText = '';
   var alicePrefetchState = {};
-  if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.beginTurn();
   var ctrl = new AbortController();
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
@@ -1674,7 +1772,9 @@ async function sendAliceMessage(micText){
       body: JSON.stringify({
         student:getAliceStudentPayload(), scenario:_aliceState.scenario,
         history:_aliceState.history.slice(0, streamIdx).slice(-10),
-        message:text, secret:ALICE_SECRET
+        message:text, secret:ALICE_SECRET,
+        sessionType: _aliceState.sessionType || 'practice',
+        companionTopic: _aliceState.companionTopic || ''
       }),
       signal: ctrl.signal
     });
@@ -1701,13 +1801,7 @@ async function sendAliceMessage(micText){
             var displayAlice = aliceStreamPlainText(fullText);
             _aliceState.history[streamIdx] = { role:'assistant', content: displayAlice+'▋' };
             aliceRenderHistoryMessages();
-            if(typeof NexoraStreamVoice !== 'undefined'){
-              NexoraStreamVoice.feed(fullText, aliceCleanTtsText, function(line){
-                if(line && line.length >= 3) aliceQueueSpeak(line);
-              }, alicePrefetchTTS);
-            } else {
-              scheduleTtsPrefetch(aliceExtractReply(fullText), alicePrefetchTTS, alicePrefetchState);
-            }
+            scheduleTtsPrefetch(aliceExtractReply(fullText), alicePrefetchTTS, alicePrefetchState);
           }
         } catch(e){}
       }
@@ -1716,13 +1810,7 @@ async function sendAliceMessage(micText){
     fullText = aliceExtractReply(fullText);
     _aliceState.history[streamIdx] = { role:'assistant', content: fullText || 'I did not get that — could you try again?' };
     if(fullText && fullText.trim().length > 2){
-      if(typeof NexoraStreamVoice !== 'undefined'){
-        NexoraStreamVoice.finalize(fullText, aliceCleanTtsText, function(line){
-          if(line && line.length >= 3) aliceQueueSpeak(line);
-        }, alicePrefetchTTS);
-      } else {
-        aliceSpeak(fullText);
-      }
+      aliceQueueFullReply(fullText);
     }
     aliceRenderHistoryMessages();
     saveAliceRuntimeStorage();
@@ -1823,15 +1911,54 @@ async function endAliceSession(){
   try{
     var r = await infinityFetch('/alice', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode:'evaluate', student:getAliceStudentPayload(), scenario:_aliceState.scenario, history:_aliceState.history, secret:ALICE_SECRET })
+      body: JSON.stringify({ mode:'evaluate', student:getAliceStudentPayload(), scenario:_aliceState.scenario, history:_aliceState.history, secret:ALICE_SECRET, sessionType:_aliceState.sessionType, companionTopic:_aliceState.companionTopic || '' })
     });
     var data = await r.json();
     _aliceState.evaluation = data.evaluation;
     _aliceState.sessionActive = false;
     var s = CURRENT_STUDENT;
     if(s){
+      if(_aliceState.sessionType === 'companion'){
+        if(!s.companionSessions) s.companionSessions=[];
+        s.companionSessions.push({
+          date:new Date().toISOString(),
+          topic:_aliceState.companionTopic || '',
+          score:_aliceState.evaluation.overall_score,
+          dimensions:_aliceState.evaluation.dimensions || null,
+          focus_kpi_scores:_aliceState.evaluation.focus_kpi_scores || null,
+          eval_mode:_aliceState.evaluation.eval_mode || null,
+          turns:_aliceState.history.filter(function(m){ return m.role==='user'; }).length
+        });
+      }
       if(!s.aliceSessions) s.aliceSessions=[];
       s.aliceSessions.push({ date:new Date().toISOString(), scenario:_aliceState.scenario, score:_aliceState.evaluation.overall_score, connectorsUsed:_aliceState.evaluation.connectors_used, turns:_aliceState.history.length });
+      if(typeof AliceProgress !== 'undefined'){
+        var turns = AliceProgress.countUserTurns(_aliceState.history);
+        var clarity = (typeof AlicePronunciation !== 'undefined') ? AlicePronunciation.scoreClarityFromHistory(_aliceState.history) : null;
+        var mins = _aliceState.sessionStartedAt
+          ? Math.max(0.5, Math.round((Date.now() - _aliceState.sessionStartedAt) / 60000 * 10) / 10)
+          : AliceProgress.estimateMinutes(turns, AliceProgress.countWords(_aliceState.history));
+        AliceProgress.recordSessionEnd(s, {
+          sessionType: _aliceState.sessionType,
+          score: _aliceState.evaluation.overall_score,
+          topic: _aliceState.companionTopic || '',
+          turns: turns,
+          minutes: mins,
+          wordCount: AliceProgress.countWords(_aliceState.history),
+          dimensions: _aliceState.evaluation.dimensions || null,
+          focus_kpi_scores: _aliceState.evaluation.focus_kpi_scores || null,
+          clarity_score: clarity ? clarity.clarity_score : null
+        });
+        if(clarity) _aliceState.evaluation.clarity = clarity;
+        if(typeof AliceBadgesCefr !== 'undefined'){
+          var unlocked = AliceBadgesCefr.checkBadges(s, {
+            dailyGoalMet: AliceProgress.dailyGoalMet(s),
+            clarityScore: clarity ? clarity.clarity_score : 0
+          });
+          var toast = AliceBadgesCefr.renderNewBadgeToast(unlocked);
+          if(toast) showPortalToast(toast.split('\n')[0]);
+        }
+      }
       await dbSet('infinity_students', s.id, s);
     }
     if(_aliceState.evaluation&&_aliceState.evaluation.alice_message) aliceSpeak(_aliceState.evaluation.alice_message);
@@ -1860,17 +1987,7 @@ function aliceSpeak(text){
   _aliceLastSpokenAt = Date.now();
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
   _aliceState.listening = false;
-  if(typeof NexoraStreamVoice !== 'undefined'){
-    NexoraStreamVoice.cancelTurn();
-    NexoraStreamVoice.beginTurn();
-    NexoraStreamVoice.finalize(spoken, aliceCleanTtsText, function(line){
-      if(line && line.length >= 3) aliceQueueSpeak(line);
-    }, alicePrefetchTTS);
-    return;
-  }
-  ttsSpeakLines(spoken, 900).forEach(function(clean){
-    if(clean.length >= 3) aliceQueueSpeak(clean);
-  });
+  aliceQueueFullReply(spoken);
 }
 
 // PTT mic for Alice — hold to speak, release to send
@@ -1892,6 +2009,7 @@ function bindAlicePttMic(){
       return true;
     },
     onBeforeStart: function(){
+      if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
       aliceInterruptSpeaking();
       aliceStopMic();
       btn.classList.remove('ptt-busy');
@@ -2084,12 +2202,33 @@ function aliceStudentFirstName(student){
   return String(n).trim().split(/\s+/)[0] || 'there';
 }
 
-function aliceInstantOpening(student, returning){
+function aliceInstantOpening(student, returning, sessionType){
   var name = (typeof AiProfile !== 'undefined') ? AiProfile.displayName(student || CURRENT_STUDENT || {}) : aliceStudentFirstName(student);
+  if(sessionType === 'companion'){
+    if(returning){
+      return "Welcome back, "+name+"! I'm glad you're here. What would you like to talk about today?";
+    }
+    return "Hi "+name+"! I'm Alice. There's no strict lesson today — we can talk about whatever you'd like. So, what are we going to talk about today?";
+  }
   if(returning){
     return "Welcome back, "+name+"! I'm glad you're here to practice again. What would you like to work on today?";
   }
   return "Hi "+name+"! I'm Alice, your English practice partner. We'll use the Nexus Method — Idea plus Linker plus Idea. What topic would you like to practice today?";
+}
+
+function aliceTtsMainLine(text){
+  var spoken = String(text || '').replace(/^💬\s*/, '').replace(/▋/g, '').trim();
+  var parts = spoken.split(/\nALICE:\s*/i);
+  return aliceCleanTtsText(parts[0] || spoken);
+}
+
+function aliceQueueFullReply(text){
+  if(!text || !_aliceSpeakEnabled) return;
+  var main = aliceTtsMainLine(text);
+  if(!main || main.length < 3) return;
+  ttsSpeakLines(main, 900).forEach(function(line){
+    if(line && line.length >= 3) aliceQueueSpeak(line);
+  });
 }
 
 function jillStudentDisplayName(student){
@@ -3037,7 +3176,6 @@ document.addEventListener('visibilitychange', function(){
   if(document.hidden){
     if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
       alicePauseAudio();
-      _aliceTTSBusy = false;
     } else {
       alicePauseAudio();
     }
@@ -3047,7 +3185,9 @@ document.addEventListener('visibilitychange', function(){
     aliceStopMic();
   } else {
     if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
+      _aliceSpeakEnabled = true;
       aliceUnlockMicAndSend(false);
+      if(_aliceTTSQueue.length && !_aliceTTSBusy) _aliceTTSFlush();
       try { bindAlicePttMic(); } catch(e) {}
     }
     if(window._activePortalTab === 'nexora' && _nxState.active) resumeNexoraRuntime();
@@ -3177,6 +3317,23 @@ function jillQueueSpeak(text){ if(!text||text.trim().length<2) return; _jillTTSQ
 var _aliceTTSQueue = [];
 var _aliceTTSBusy = false;
 var _aliceTtsPrefetch = {};
+var _aliceTtsWatchdog = null;
+
+function alicePrunePrefetchCache(){
+  var keys = Object.keys(_aliceTtsPrefetch);
+  if(keys.length <= 20) return;
+  keys.slice(0, keys.length - 14).forEach(function(k){ delete _aliceTtsPrefetch[k]; });
+}
+
+function aliceArmTtsWatchdog(){
+  clearTimeout(_aliceTtsWatchdog);
+  _aliceTtsWatchdog = setTimeout(function(){
+    if(!_aliceTTSBusy) return;
+    _aliceTTSBusy = false;
+    if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} window._aliceAudio = null; }
+    _aliceTTSFlush();
+  }, 42000);
+}
 
 function aliceCleanTtsText(text){
   return prepareTtsLine(text);
@@ -3185,6 +3342,7 @@ function aliceCleanTtsText(text){
 function alicePrefetchTTS(text){
   var clean = aliceCleanTtsText(text);
   if(clean.length < 3 || _aliceTtsPrefetch[clean]) return;
+  alicePrunePrefetchCache();
   _aliceTtsPrefetch[clean] = 'loading';
   infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
   .then(function(r){ return r.ok ? r.blob() : null; })
@@ -3198,30 +3356,33 @@ function _aliceTTSFlush(){
   if(_aliceTTSBusy || _aliceTTSQueue.length===0 || !_aliceSpeakEnabled) return;
   _aliceTTSBusy = true;
   _aliceState.speaking = true;
+  aliceArmTtsWatchdog();
   var gen = _aliceSpeakGen;
   var text = _aliceTTSQueue.shift();
   var clean = aliceCleanTtsText(text);
-  if(clean.length < 3){ _aliceTTSBusy=false; _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+  if(clean.length < 3){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
 
   function playBlob(b){
-    if(!b || !_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+    if(!b || !_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
     delete _aliceTtsRetry[clean];
     if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} }
     window._aliceAudio = playAudioBlob(b, {
       onEnded: function(){
         window._aliceAudio = null;
+        clearTimeout(_aliceTtsWatchdog);
         _aliceTTSBusy = false;
         _aliceState.speaking = _aliceTTSQueue.length > 0;
         _aliceTTSFlush();
       },
       onError: function(){
         window._aliceAudio = null;
+        clearTimeout(_aliceTtsWatchdog);
         _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-        if(_aliceTtsRetry[clean] < 2) _aliceTTSQueue.unshift(text);
+        if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
         else delete _aliceTtsRetry[clean];
         _aliceTTSBusy = false;
         _aliceState.speaking = _aliceTTSQueue.length > 0;
-        setTimeout(_aliceTTSFlush, 150);
+        setTimeout(_aliceTTSFlush, 200);
       }
     });
   }
@@ -3236,12 +3397,13 @@ function _aliceTTSFlush(){
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(playBlob)
   .catch(function(){
+    clearTimeout(_aliceTtsWatchdog);
     _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-    if(_aliceTtsRetry[clean] < 2) _aliceTTSQueue.unshift(text);
+    if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
     else delete _aliceTtsRetry[clean];
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
-    setTimeout(_aliceTTSFlush, 180);
+    setTimeout(_aliceTTSFlush, 220);
   });
 }
 

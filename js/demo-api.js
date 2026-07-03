@@ -210,7 +210,7 @@ function demoCanUseLocalFallback(service, scenario) {
   return !!getLocalBuffer(service, scenario);
 }
 
-async function demoStart(service, scenario, name) {
+async function demoStart(service, scenario, name, onboarding) {
   await demoFetchMyIp();
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/start', {
@@ -220,7 +220,8 @@ async function demoStart(service, scenario, name) {
         service: service,
         scenario: scenario,
         consent: true,
-        name: name || 'Guest'
+        name: name || 'Guest',
+        onboarding: onboarding || null
       })
     });
     var parsed = await demoParseResponse(r);

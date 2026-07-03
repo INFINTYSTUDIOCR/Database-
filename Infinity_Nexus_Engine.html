@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nexus Engine">
 <link rel="manifest" href="manifest-engine.json">
-<link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png?v=20260702" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png?v=20260702">
 <link rel="stylesheet" href="css/pwa-install.css?v=2">
 <script src="js/pwa-register.js?v=2" defer></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -23,6 +23,10 @@
 <script src="js/daily-inspiration.js"></script>
 <script src="js/tts-chunks.js"></script>
 <script src="js/ptt-mic.js"></script>
+<script src="js/alice-progress.js?v=20260702"></script>
+<script src="js/alice-badges-cefr.js"></script>
+<script src="js/alice-pronunciation.js"></script>
+<script src="js/b2b-alice-report.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -42,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ── TOPBAR ── */
 .topbar{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
-.tb-logo{height:36px;object-fit:contain;}
+.tb-logo{height:36px;width:36px;object-fit:cover;border-radius:8px;}
 .tb-div{width:1px;height:26px;background:rgba(255,255,255,0.2);}
 .tb-title{font-size:13px;font-weight:700;color:white;}
 .tb-sub{font-size:10px;color:rgba(255,255,255,0.5);}
@@ -56,7 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── LOGIN ── */
 .login-wrap{max-width:420px;margin:5rem auto;padding:1.5rem;}
 .login-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
-.login-logo{height:72px;max-width:280px;object-fit:contain;margin-bottom:1rem;}
+.login-logo{height:72px;width:72px;max-width:72px;object-fit:cover;border-radius:16px;margin-bottom:1rem;}
 .login-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
 .login-tabs{display:flex;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem;}
@@ -232,7 +236,7 @@ textarea.inp{resize:vertical;min-height:80px;}
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png" alt="Infinity Studio CR">
+  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png?v=20260702" alt="Infinity Studio CR">
   <div class="tb-div"></div>
   <div>
     <div class="tb-title">Infinity Nexus Engine</div>
@@ -251,7 +255,7 @@ textarea.inp{resize:vertical;min-height:80px;}
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png" alt="Infinity Studio CR">
+      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260702" alt="Infinity Studio CR">
       <div class="login-title">Infinity Nexus Engine</div>
       <div class="login-sub">Sistema integrado de calibración, análisis y entrega · Powered by Nexus Method</div>
       <div id="login-trainer">
@@ -663,6 +667,47 @@ textarea.inp{resize:vertical;min-height:80px;}
   </div>
 </div>
 
+<div class="modal-bg" id="modal-companion-config">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title"><i class="ti ti-messages" style="color:#86EFAC;"></i>Configurar Alice Companion</div>
+    <input type="hidden" id="companion-sid">
+    <div class="ib ib-navy">Modo companion: el estudiante elige el tema; Alice practica KPIs de forma invisible. Activá solo cuando esté listo para conversación libre.</div>
+    <div class="form-group">
+      <label class="form-label">KPIs foco (máx. 5)</label>
+      <div id="companion-focus-kpis" style="max-height:140px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;"></div>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px;">Si no marcás ninguno, se usan los KPIs débiles del archivo del estudiante.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Modo de evaluación</label>
+      <select class="inp" id="companion-eval-mode">
+        <option value="soft">Suave — prioriza confianza</option>
+        <option value="standard" selected>Estándar — equilibrio</option>
+        <option value="rigorous">Riguroso — feedback honesto</option>
+      </select>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px;">Companion es conversación libre — sin mínimo de turnos (estilo asistente de voz).</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sesión por defecto en portal</label>
+      <select class="inp" id="companion-default-session">
+        <option value="companion">Companion (conversación libre)</option>
+        <option value="practice">Práctica Nexus</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Semillas de tema (opcional)</label>
+      <input class="inp" id="companion-topic-seeds" placeholder="Ej: historia, ciencia, trabajo en call center...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Justificación (opcional)</label>
+      <textarea class="inp" id="companion-justify" placeholder="Por qué este estudiante está listo para companion..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-companion-config')">Cancelar</button>
+      <button class="btn btn-navy" style="background:#059669;" onclick="confirmStudentCompanion()"><i class="ti ti-messages"></i>Activar Companion</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ROSTER TRAINER -->
 <div class="modal-bg" id="modal-roster">
   <div class="modal" style="max-width:600px;">
@@ -786,11 +831,22 @@ textarea.inp{resize:vertical;min-height:80px;}
 <div class="toast" id="toast"></div>
 
 <div id="pwa-install-bar" class="pwa-install-bar" hidden>
-  <span>Instalá Nexus Engine en tu dispositivo</span>
+  <span class="pwa-install-msg">Instalá Nexus en tu dispositivo</span>
   <button type="button" class="pwa-install-btn" onclick="infinityPwaInstall()">Instalar</button>
   <button type="button" class="pwa-dismiss-btn" onclick="document.getElementById('pwa-install-bar').hidden=true" aria-label="Cerrar">×</button>
 </div>
-<script src="js/pwa-register.js"></script>
+
+<div id="pwa-ios-help" class="pwa-ios-help" hidden>
+  <div class="pwa-ios-help-card">
+    <h3><i class="ti ti-brand-apple"></i> Instalar en iPhone</h3>
+    <ol>
+      <li>Abrí esta página en <strong>Safari</strong>.</li>
+      <li>Tocá <strong>Compartir</strong> → <strong>Agregar a pantalla de inicio</strong>.</li>
+      <li>Tocá <strong>Agregar</strong>.</li>
+    </ol>
+    <button type="button" class="btn btn-navy" onclick="infinityPwaHideIosHelp()">Entendido</button>
+  </div>
+</div>
 
 <script>
 const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
@@ -1424,6 +1480,7 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(192,132,252,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'
+    +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'
     +'<button data-sid="'+id+'" class="btn btn-sm" id="btn-sysmode" style="background:'+(s.system_mode==='alice'?'rgba(14,165,233,0.2)':'rgba(61,220,151,0.15)')+';border:1px solid '+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';color:'+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';font-weight:700;" onclick="requestModeChange(\''+id+'\')" title="Próxima sesión"><i class="ti ti-toggle-'+(s.system_mode==='alice'?'right':'left')+'"></i> '+(s.system_mode==='alice'?'Alice Mode':'Jill Mode')+'</button>'
 
     +'<div class="profile-header">'
@@ -1456,6 +1513,7 @@ function openStudent(id){
     +'</div></div></div>'
 
     +'<div class="tab-pane" id="pane-progress">'
+    +(typeof AliceProgress !== 'undefined' ? AliceProgress.renderEngineTrainerBlock(s, id) : '')
     +renderProgressBlock(s, id)
     +'<div class="card"><div class="card-title"><i class="ti ti-trending-up"></i>Evolución de KPIs (diagnóstico inicial)</div>'
     +(history.length>=2?'<div class="chart-wrap"><canvas id="chart-progress"></canvas></div>':'<div class="ib ib-navy">Se necesitan mínimo 2 calibraciones para mostrar el gráfico de evolución.</div>')
@@ -4533,6 +4591,95 @@ async function confirmStudentNexora(){
   closeModal('modal-nexora-justify');
   showToast('Nexora activado — '+(typeLabels[type]||type)+' para '+((s.info&&s.info.name)||'el estudiante'));
   openStudent(sid);
+}
+
+function populateCompanionKpiOptions(selected){
+  var box = document.getElementById('companion-focus-kpis');
+  if(!box || typeof KPI_TRACKER_AREAS==='undefined') return;
+  var sel = (selected||[]).map(String);
+  var html = '';
+  KPI_TRACKER_AREAS.forEach(function(area){
+    area.kpis.forEach(function(k){
+      var checked = sel.indexOf(k.id)>=0 ? ' checked' : '';
+      html += '<label style="display:block;font-size:12px;margin:4px 0;cursor:pointer;"><input type="checkbox" value="'+k.id+'"'+checked+'> '+k.id+' — '+k.name+'</label>';
+    });
+  });
+  box.innerHTML = html;
+  box.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var n = box.querySelectorAll('input[type=checkbox]:checked').length;
+      if(n>5){ this.checked=false; showToast('Máximo 5 KPIs foco'); }
+    });
+  });
+}
+
+function getCompanionSelectedKpis(){
+  var box = document.getElementById('companion-focus-kpis');
+  if(!box) return [];
+  var out = [];
+  box.querySelectorAll('input[type=checkbox]:checked').forEach(function(cb){
+    if(out.length<5) out.push(cb.value);
+  });
+  return out;
+}
+
+function toggleStudentCompanion(sid){
+  var s = DB[sid]; if(!s) return;
+  if(s.companionEnabled){
+    confirmAction('Desactivar Companion', '¿Desactivar Alice Companion para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
+      s.companionEnabled = false;
+      await dbSet('infinity_students', sid, s); DB[sid]=s;
+      showToast('Companion desactivado'); openStudent(sid);
+    }, 'Sí, desactivar');
+  } else {
+    document.getElementById('companion-sid').value = sid;
+    document.getElementById('companion-justify').value = '';
+    document.getElementById('companion-eval-mode').value = 'standard';
+    document.getElementById('companion-default-session').value = 'companion';
+    document.getElementById('companion-topic-seeds').value = '';
+    var pre = (s.companionConfig&&s.companionConfig.focusKpis) ? s.companionConfig.focusKpis : [];
+    if(!pre.length && s.kpiFile){
+      pre = [].concat(s.kpiFile.weakMicro||[], s.kpiFile.weakMacro||[]).slice(0,5);
+    }
+    populateCompanionKpiOptions(pre);
+    showModal('modal-companion-config');
+  }
+}
+
+async function confirmStudentCompanion(){
+  var sid = document.getElementById('companion-sid').value;
+  var justification = document.getElementById('companion-justify').value.trim();
+  var evalMode = document.getElementById('companion-eval-mode').value;
+  var defaultSessionType = document.getElementById('companion-default-session').value;
+  var topicSeeds = document.getElementById('companion-topic-seeds').value.trim();
+  var focusKpis = getCompanionSelectedKpis();
+  var s = DB[sid]; if(!s) return;
+
+  s.companionEnabled = true;
+  s.companionConfig = {
+    focusKpis: focusKpis,
+    evalMode: evalMode,
+    defaultSessionType: defaultSessionType === 'practice' ? 'practice' : 'companion',
+    topicSeeds: topicSeeds,
+    setAt: new Date().toISOString(),
+    setBy: SESSION.name,
+    justification: justification
+  };
+
+  if(!s.notes) s.notes=[];
+  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Companion activado — conversación libre · Eval: '+evalMode+(focusKpis.length?' · KPIs: '+focusKpis.join(', '):'')+(topicSeeds?' · Temas: '+topicSeeds:'')+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
+  await dbSet('infinity_students', sid, s); DB[sid]=s;
+  await logAction('Activó Alice Companion', ((s.info&&s.info.name)||sid));
+  closeModal('modal-companion-config');
+  showToast('Companion activado para '+((s.info&&s.info.name)||'el estudiante'));
+  openStudent(sid);
+}
+
+function exportAliceB2BReport(sid){
+  var s = DB[sid];
+  if(!s || typeof AliceB2BReport === 'undefined'){ showToast('Informe no disponible'); return; }
+  AliceB2BReport.downloadReport(s, sid);
+  showToast('Informe Alice descargado');
 }
 
 async function rotateAndCombineExercises(sid){

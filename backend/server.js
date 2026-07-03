@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_EXPIRY_STUDENT_SEC, JWT_SECRET } = require('./auth');
+const Companion = require('./alice-companion');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -887,7 +888,7 @@ async function saveDemoSession(sessionId, data) {
 
 app.post('/demo/start', async (req, res) => {
   try {
-    const { service, scenario, consent, name } = req.body || {};
+    const { service, scenario, consent, name, onboarding } = req.body || {};
     if (!consent) return res.status(400).json({ error: 'Consent required' });
     if (!['alice', 'jill', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -906,7 +907,7 @@ app.post('/demo/start', async (req, res) => {
 
     const sc = scenario || (service === 'nexora' ? 'star' : 'default');
     const guest = name || 'Guest';
-    const reply = await demoGenerateOpening(service, sc, guest);
+    const reply = await demoGenerateOpening(service, sc, guest, onboarding);
 
     const sessionId = crypto.randomUUID();
     const session = {
@@ -914,6 +915,8 @@ app.post('/demo/start', async (req, res) => {
       scenario: sc,
       step: 0,
       name: guest,
+      onboarding: onboarding || null,
+      demoMode: sc === 'companion' ? 'companion' : 'standard',
       consent: true,
       ip,
       history: [{ role: 'assistant', content: reply }],
@@ -926,7 +929,7 @@ app.post('/demo/start', async (req, res) => {
       sessionId,
       reply,
       step: 0,
-      maxSteps: (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
+      maxSteps: sc === 'companion' ? 12 : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps,
       buffered: false,
       live: true,
       sessionsLeft: ipLimit.sessionsLeft,
@@ -1703,14 +1706,21 @@ function getDemoStreamConfig(session, closing) {
   throw new Error('Unknown demo service');
 }
 
-async function demoGenerateOpening(service, scenario, name) {
+async function demoGenerateOpening(service, scenario, name, onboarding) {
   const guest = name || 'Guest';
   if (service === 'alice') {
+    const isCompanion = scenario === 'companion';
+    const goal = onboarding?.goal || 'practice English';
+    const level = onboarding?.level || 'not sure';
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 280,
-      system: getDemoAliceSystem(guest),
-      messages: [{ role: 'user', content: `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
+      system: getDemoAliceSystem(guest) + (isCompanion
+        ? '\n\nCOMPANION DEMO: Free Siri-style chat. No turn minimum. Student goal: ' + goal + '. Level: ' + level + '. Ask what they want to talk about today. Warm, short, human.'
+        : ''),
+      messages: [{ role: 'user', content: isCompanion
+        ? `Open a free companion demo for ${guest}. Their goal: ${goal}. Welcome warmly and ask ONE open question about what they want to talk about — work, travel, hobbies, anything.`
+        : `Open a real 5-minute Alice demo for ${guest}. Welcome them warmly and ask ONE engaging question about their work in English.` }]
     });
     return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
   }
@@ -1744,10 +1754,13 @@ async function demoGenerateReply(session) {
   const msgs = (session.history || []).slice(-12);
 
   if (session.service === 'alice') {
+    const companionExtra = session.demoMode === 'companion'
+      ? '\n\nCOMPANION: Free chat like Siri. No minimum turns. Follow their topic. Short warm replies. Never assign drills.'
+      : '';
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 650,
-      system: getDemoAliceSystem(guest),
+      system: getDemoAliceSystem(guest) + companionExtra,
       messages: msgs
     });
     return resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -2048,11 +2061,14 @@ function formatJillBundleNote(jillBundle) {
 
 app.post('/alice', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, mode, secret, nexora } = req.body || {};
+    const { student, history, message, mode, secret, nexora, sessionType, companionTopic } = req.body || {};
     if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
       return res.status(403).json({ error: 'Student scope mismatch' });
     }
     sanitizeStudentAiProfile(student);
+    const companionCtx = Companion.resolveCompanionSession(student, sessionType);
+    const effectiveSessionType = companionCtx.sessionType;
+    const companionCfg = companionCtx.config;
 
     const isKamuk = student?.id && student.id.startsWith('KAM-');
     const tutorName = 'Alice';
@@ -2068,36 +2084,73 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       const display = getStudentDisplayName(student);
       const returning = mode === 'return_session' || isReturningStudent(student, 'alice');
       const profileNote = buildAiProfileNote(student, 'alice');
-      const greetInstruction = returning
-        ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
-        : `First session: greet warmly using ONLY the name "${display}" from the student record. ONE engaging practice question. Do NOT ask how they prefer to be called. Never say Johnny, Planning, or any name not in the student record.`;
+      const companion = effectiveSessionType === 'companion';
+      const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+      const greetInstruction = companion
+        ? (returning
+          ? `Welcome back ${display} briefly (max 2 sentences). Ask what they want to talk about today — open topic. Focus KPIs from trainer: ${companionCfg.focusKpis.join(', ')}.`
+          : `First companion session: greet warmly using ONLY "${display}". Ask: "What are we going to talk about today?" Let them lead. Focus KPIs: ${companionCfg.focusKpis.join(', ')}.`)
+        : (returning
+          ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
+          : `First session: greet warmly using ONLY the name "${display}" from the student record. ONE engaging practice question. Do NOT ask how they prefer to be called. Never say Johnny, Planning, or any name not in the student record.`);
 
-      const openExtra = brainScopeExtra(student, req, `${mode}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}:${ALICE_BRAIN_VER}`);
+      const openExtra = brainScopeExtra(student, req, `${mode}:${companion ? 'companion' : 'practice'}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}:${ALICE_BRAIN_VER}:${Companion.COMPANION_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('alice', 'opening', `START_${mode}`, openExtra);
       if (openBrain.hit) {
-        return res.json({ opening: plainBrainReply(openBrain.reply), sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
+        return res.json({
+          opening: plainBrainReply(openBrain.reply),
+          sessionMode: returning ? 'return_session' : 'start_session',
+          sessionType: effectiveSessionType,
+          companionEnabled: Companion.isCompanionEnabled(student),
+          brainCache: true
+        });
       }
 
+      const companionBlock = companion ? '\n\n' + Companion.buildCompanionCoachBlock(student, companionCfg, topicHint) : '';
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+        messages: [{ role: 'user', content: `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${companion ? 'COMPANION MODE: KPI-anchored practice partner — student picks the topic.' : ''} ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}${companionBlock}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
       if (openBrain.hash && opening) await Brain.brainSetLLM(openBrain.hash, 'alice', 'opening', `START_${mode}`, opening, openExtra);
       recordOpening(actorKey, 'alice', extractOpeningSnippet(opening)).catch(() => {});
-      return res.json({ opening, sessionMode: returning ? 'return_session' : 'start_session' });
+      return res.json({
+        opening,
+        sessionMode: returning ? 'return_session' : 'start_session',
+        sessionType: effectiveSessionType,
+        companionEnabled: Companion.isCompanionEnabled(student)
+      });
     }
 
     // EVALUATE
     if (mode === 'evaluate') {
+      const companion = effectiveSessionType === 'companion';
       const hist = (history || []).filter(m => m.content?.trim())
         .map(m => `${m.role === 'user' ? 'Student' : 'Alice'}: ${String(m.content).replace(/\n+/g, ' ').trim()}`)
         .join('\n');
 
       const metrics = buildAliceSessionMetrics(history);
-      const overall_score = scoreAliceSessionFromMetrics(metrics);
+      const topic = Companion.resolveSessionTopic(history, companionTopic, message);
       const connectors_used = metrics.connectors;
       const connectors_missed = aliceEvalConnectorsMissed(connectors_used);
+
+      if (companion) {
+        const scored = Companion.scoreCompanionSession(metrics, student, companionCfg);
+        const resp = await claudeCall({
+          model: 'claude-haiku-4-5-20251001', max_tokens: 500,
+          system: 'You are Alice companion evaluator. Respond ONLY with valid JSON. No markdown. No overall_score — score is precomputed.',
+          messages: [{ role: 'user', content: Companion.buildCompanionEvalUserPrompt(student, hist, metrics, scored, topic, companionCfg) }]
+        });
+        const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+        try {
+          const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
+          return res.json({ evaluation: Companion.enrichCompanionEvaluation(qual, scored, metrics, companionCfg) });
+        } catch (e) {
+          return res.json({ evaluation: Companion.enrichCompanionEvaluation({}, scored, metrics, companionCfg) });
+        }
+      }
+
+      const overall_score = scoreAliceSessionFromMetrics(metrics);
 
       if (!hist || hist.length < 20) {
         return res.json({ evaluation: {
@@ -2151,6 +2204,12 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const tb = (student?.trainingBook||[]).slice(0,5)
       .map(ex=>`- ${ex.title} (${ex.kpi||''}): ${ex.studentTask||''}`).join('\n');
 
+    const companion = effectiveSessionType === 'companion';
+    const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    const methodBlock = companion
+      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}\n\nOPTIONAL: If they ask about grammar, linkers, or Nexus — explain briefly, then return to their chosen topic.`
+      : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
+
     const systemPrompt = `You are Alice, a warm, patient, and encouraging English tutor. You love helping people and you never rush.
 
 ROLE: You are a tutor and coach only. You NEVER roleplay as a customer, client, interviewer, manager, or Nexora character. Answer questions and explain concepts freely; for full simulations, point them warmly to Nexora Lab and keep coaching in the current practice.
@@ -2161,11 +2220,9 @@ PATIENCE: Students make mistakes. They speak slowly. They freeze. That is okay. 
 
 ${ALICE_BILINGUAL_INPUT}
 
-${ALICE_COACHING_RULES}
+${methodBlock}
 
 LANGUAGE: Respond ONLY in English. NEVER mix Spanish into your main response. Only at the very end, on a new line, write: "ALICE: [one specific tip in Spanish, example with a connector]"
-
-METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.
 
 RESPONSE STYLE: 
 - 3-4 natural sentences max
@@ -2217,6 +2274,14 @@ const ALICE_COACHING_RULES = `COACHING — FLEXIBLE BUT ANCHORED (Alice is NOT J
 - Example — "explain linkers": "Linkers connect ideas — like however or on top of that. In our practice today on [topic], you could say: 'I hear you, however, let me check your account.' Try one linker in your next reply."
 - NEVER scold, shame, pressure, or speak harshly because they asked off-topic, mixed languages, went on a tangent, or made mistakes. Celebrate curiosity; steer back gently when needed.
 - If they want full customer/interview/Nexora roleplay: say simulations live in Nexora Lab, then keep coaching in the current practice — do not refuse rudely.`;
+
+const ALICE_COMPANION_RULES = `COMPANION MODE — free conversation (like a friendly Siri for English):
+- The student talks about anything they want. No minimum length, no drills, no turn quota.
+- Short answers are fine — even a few words. Respond naturally and keep the chat alive without pressuring them.
+- Be warm, helpful, curious. Answer questions, chat about their topic, share a quick thought when it fits.
+- Coach only when natural — model better English in your reply; never lecture or assign homework.
+- Do NOT force Idea + Linker + Idea. Do NOT say "practice longer" or "give me more turns".
+- 2-4 sentences usually; follow-up question optional, not an exam. They can end whenever they want.`;
 
 /** Never stream or cache raw {"reply":...} to clients/TTS. */
 function plainBrainReply(raw) {
@@ -2558,23 +2623,30 @@ async function tutorKnowledgeSliceFast(message) {
 // ── ALICE STREAM ─────────────────────────────────────────────
 app.post('/alice/stream', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, scenario, secret } = req.body || {};
+    const { student, history, message, scenario, secret, sessionType, companionTopic } = req.body || {};
     if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
       return res.status(403).json({ error: 'Student scope mismatch' });
     }
     sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
+    const companionCtx = Companion.resolveCompanionSession(student, sessionType);
+    const effectiveSessionType = companionCtx.sessionType;
+    const companionCfg = companionCtx.config;
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
     const sceneNote = scenario ? `\nActive scenario: ${scenario.title || ''} — ${scenario.desc || ''}` : '';
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'alice');
-    const system = `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
+    const companion = effectiveSessionType === 'companion';
+    const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    const methodBlock = companion
+      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
+      : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
+    const system = `You are Alice, a warm, patient, and encouraging English tutor${companion ? ' in COMPANION mode' : ' using the Nexus Method'}.
 ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
-${ALICE_COACHING_RULES}
-METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
+${methodBlock}
 RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. One flowing spoken turn — no ellipses or dramatic pauses.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;

@@ -3,55 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Try Alice — Infinity Studio CR</title>
+<title>Try Alice — Free English Practice | Infinity Studio CR</title>
+<link rel="manifest" href="manifest-alice.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#5B21B6">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css">
 <link rel="stylesheet" href="css/lang-toggle.css">
 <link rel="stylesheet" href="css/demo.css">
+<style>
+.onboard-step{max-width:420px;margin:0 auto 20px;text-align:left;}
+.onboard-step h2{font-size:22px;font-weight:800;color:#5B21B6;margin-bottom:8px;}
+.onboard-step p{font-size:14px;color:#4A4A6A;line-height:1.6;margin-bottom:16px;}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.goal-btn{padding:14px 12px;border:2px solid #E2E8F0;border-radius:12px;background:white;cursor:pointer;font-size:13px;font-weight:700;text-align:left;transition:border-color .15s,background .15s;}
+.goal-btn:hover,.goal-btn.selected{border-color:#7C3AED;background:#EDE9FE;color:#5B21B6;}
+.onboard-inp{width:100%;padding:12px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;margin-bottom:12px;}
+.onboard-nav{display:flex;gap:10px;justify-content:space-between;margin-top:8px;}
+.step-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
+.step-dots span{width:8px;height:8px;border-radius:50%;background:#E2E8F0;}
+.step-dots span.on{background:#7C3AED;}
+</style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo-page"></a>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260702" alt="Infinity Studio CR" class="nav-logo-page"></a>
   <div class="nav-links">
     <a href="try-demo.html">← All demos</a>
+    <a href="Infinity_Student_Portal.html" style="font-weight:700;color:#5B21B6;">Full portal →</a>
   </div>
 </nav>
 
 <div class="demo-session" id="app">
-  <div class="consent-box" style="padding:0 0 16px;" id="pre-start">
-    <label class="consent-label">
-      <input type="checkbox" id="demo-consent" checked>
-      <span>Anonymized demo data may be used to improve Alice and Jill coaching.</span>
-    </label>
-    <button type="button" class="btn-primary" style="margin-top:14px;max-width:280px;" id="btn-start">Start Alice demo</button>
+  <div id="onboarding">
+    <div class="step-dots"><span class="on" id="dot-0"></span><span id="dot-1"></span><span id="dot-2"></span></div>
+
+    <div class="onboard-step" id="step-0">
+      <h2>What's your goal?</h2>
+      <p>Alice adapts to you — free conversation, like talking to a smart assistant in English.</p>
+      <div class="goal-grid" id="goal-grid">
+        <button type="button" class="goal-btn selected" data-goal="work">💼 Work & career</button>
+        <button type="button" class="goal-btn" data-goal="travel">✈️ Travel</button>
+        <button type="button" class="goal-btn" data-goal="interview">🎯 Job interview</button>
+        <button type="button" class="goal-btn" data-goal="confidence">💬 Daily confidence</button>
+      </div>
+      <div class="onboard-nav"><span></span><button type="button" class="btn-primary" id="btn-next-0">Next →</button></div>
+    </div>
+
+    <div class="onboard-step" id="step-1" style="display:none;">
+      <h2>Your level?</h2>
+      <p>No test — pick what feels closest. Alice adjusts automatically.</p>
+      <select class="onboard-inp" id="level-pick">
+        <option value="beginner">Beginner — I freeze when I speak</option>
+        <option value="elementary">Elementary — short sentences OK</option>
+        <option value="intermediate" selected>Intermediate — I want fluency</option>
+        <option value="advanced">Advanced — polish & confidence</option>
+      </select>
+      <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-1">← Back</button><button type="button" class="btn-primary" id="btn-next-1">Next →</button></div>
+    </div>
+
+    <div class="onboard-step" id="step-2" style="display:none;">
+      <h2>What should Alice call you?</h2>
+      <p>Free companion chat — talk about anything, as long as you want.</p>
+      <input class="onboard-inp" id="user-name" placeholder="Your first name" maxlength="24" autocomplete="given-name">
+      <label class="consent-label" style="display:flex;gap:8px;font-size:12px;color:#4A4A6A;margin-bottom:12px;">
+        <input type="checkbox" id="demo-consent" checked>
+        <span>Anonymized demo data may improve Alice coaching.</span>
+      </label>
+      <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-2">← Back</button><button type="button" class="btn-primary" id="btn-start"><i class="ti ti-microphone"></i> Start free chat</button></div>
+    </div>
   </div>
 
   <div class="demo-panel" id="panel" style="display:none;">
     <div class="demo-panel-head">
       <div>
-        <h1>Alice — Mini coaching</h1>
-        <div class="meta" id="step-meta">Live mini session</div>
+        <h1>Alice Companion</h1>
+        <div class="meta" id="step-meta">Free conversation · no minimum turns</div>
       </div>
       <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
     </div>
     <div class="demo-msgs" id="msgs"></div>
     <div class="demo-status" id="typing" style="display:none;font-style:italic;">Alice is typing…</div>
-    <div class="demo-voice-hint" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Alice speaks — hold <strong>mic</strong> (PTT) to answer or type below. Chrome recommended.</div>
+    <div class="demo-voice-hint" id="voice-hint" style="display:none;margin:12px 12px 0;"><i class="ti ti-volume"></i> Hold <strong>mic</strong> (PTT) or type — chat freely like Siri.</div>
     <div class="demo-input-row" id="input-row">
       <button type="button" class="demo-mic" id="btn-mic" title="Speak to Alice" aria-label="Microphone"><i class="ti ti-microphone"></i></button>
-      <input class="demo-input" id="inp" placeholder="Speak or type in English…" autocomplete="off">
+      <input class="demo-input" id="inp" placeholder="Talk about anything in English…" autocomplete="off">
       <button type="button" class="demo-send" id="btn-send" title="Send"><i class="ti ti-send"></i></button>
     </div>
     <div class="demo-status" id="mic-status" style="display:none;"></div>
     <div id="eval-wrap"></div>
+    <div style="text-align:center;padding:16px;font-size:13px;">
+      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20completo" target="_blank" rel="noopener" style="color:#5B21B6;font-weight:700;">Get full Alice + trainer → WhatsApp</a>
+    </div>
   </div>
 
   <div class="demo-limit" id="limit-view" style="display:none;">
     <i class="ti ti-clock-pause"></i>
-    <p><strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.</p>
-    <a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20mi%20evaluaci%C3%B3n%20gratuita" target="_blank" rel="noopener">WhatsApp — evaluación gratis</a>
+    <p><strong>Daily demo limit reached</strong> — come back tomorrow or get full access with a trainer.</p>
+    <a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20mi%20evaluaci%C3%B3n%20gratuita" target="_blank" rel="noopener">WhatsApp — free assessment</a>
   </div>
 </div>
 
@@ -71,19 +123,43 @@
 (function () {
   var sessionId = null;
   var step = 0;
-  var maxSteps = 4;
+  var maxSteps = 12;
   var busy = false;
   var done = false;
+  var onboard = { goal: 'work', level: 'intermediate', name: 'Guest' };
   var voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
   syncDemoVoicesFromServer().then(function () {
     voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
   });
 
   var panel = document.getElementById('panel');
-  var pre = document.getElementById('pre-start');
+  var onboardEl = document.getElementById('onboarding');
   var msgs = document.getElementById('msgs');
   var inp = document.getElementById('inp');
   var limitView = document.getElementById('limit-view');
+
+  document.querySelectorAll('.goal-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      document.querySelectorAll('.goal-btn').forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      onboard.goal = btn.dataset.goal;
+    };
+  });
+
+  function showOnboardStep(n) {
+    [0, 1, 2].forEach(function (i) {
+      document.getElementById('step-' + i).style.display = i === n ? 'block' : 'none';
+      document.getElementById('dot-' + i).classList.toggle('on', i === n);
+    });
+  }
+
+  document.getElementById('btn-next-0').onclick = function () { showOnboardStep(1); };
+  document.getElementById('btn-back-1').onclick = function () { showOnboardStep(0); };
+  document.getElementById('btn-next-1').onclick = function () {
+    onboard.level = document.getElementById('level-pick').value;
+    showOnboardStep(2);
+  };
+  document.getElementById('btn-back-2').onclick = function () { showOnboardStep(1); };
 
   function setBusy(v) {
     busy = v;
@@ -96,14 +172,16 @@
       alert('Please accept consent to start.');
       return;
     }
+    onboard.name = (document.getElementById('user-name').value || 'Guest').trim() || 'Guest';
+    onboard.level = document.getElementById('level-pick').value;
     setBusy(true);
-    demoTrack('demo_alice_start', 'try-alice');
+    demoTrack('demo_alice_b2c_start', onboard.goal);
     try {
-      var d = await demoStart('alice', 'default', 'Guest');
+      var d = await demoStart('alice', 'companion', onboard.name, onboard);
       sessionId = d.sessionId;
-      maxSteps = d.maxSteps || 4;
+      maxSteps = d.maxSteps || 12;
       if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
-      pre.style.display = 'none';
+      onboardEl.style.display = 'none';
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = (d.sessionsLeft != null ? d.sessionsLeft : '') + ' demos left today';
@@ -113,7 +191,7 @@
       updateMeta();
     } catch (e) {
       if (e.error === 'limit') {
-        pre.style.display = 'none';
+        onboardEl.style.display = 'none';
         limitView.style.display = 'block';
       } else {
         alert(e.message || 'Demo unavailable. Try again later.');
@@ -123,7 +201,7 @@
   }
 
   function updateMeta() {
-    document.getElementById('step-meta').textContent = 'Step ' + step + ' / ' + maxSteps + ' · Live demo';
+    document.getElementById('step-meta').textContent = 'Free companion · turn ' + step + ' · talk as long as you want';
   }
 
   async function send(micText) {
@@ -168,7 +246,7 @@
         document.getElementById('input-row').style.display = 'none';
         demoAddMsg(msgs, 'Daily limit reached for this connection.', 'assistant', 'SYSTEM');
       } else {
-        demoAddMsg(msgs, e.message || 'Connection issue — try again or contact us on WhatsApp.', 'assistant', 'SYSTEM');
+        demoAddMsg(msgs, e.message || 'Connection issue — try again.', 'assistant', 'SYSTEM');
       }
     }
     setBusy(false);

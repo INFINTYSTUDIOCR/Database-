@@ -9,7 +9,7 @@
 <script src="nexora-profile.js?v=voice-sync-6"></script>
 <script src="js/nexora-voice-lock.js?v=6"></script>
 <script src="nexora-characters.js"></script>
-<script src="js/tts-chunks.js"></script>
+<script src="js/tts-chunks.js?v=20260703"></script>
 <script src="js/nexora-industry-map.js"></script>
 <script src="js/nexora-scenario-bank-data.js"></script>
 <script src="js/nexora-scenario-bank.js"></script>
@@ -2200,11 +2200,11 @@ async function sendToAlice(text){
   saveNexoraLabRuntime();
   var st=nexoraStatusEl();
   if(st) st.textContent=(p.firstName||'Client')+' is responding...';
-  NexoraStreamVoice.beginTurn();
+  var nxPrefetchState = {};
   var nxSan=function(raw){ return sanitizeNexoraReply(String(raw||''), p); };
   try{
     var fullRaw=await nexoraGetReply(buildNexoraPayload(text,_nx.history.slice(-14),p,sc), function(partial){
-      NexoraStreamVoice.feed(partial, nxSan, queueSpeak, nexoraPrefetchTTS);
+      scheduleTtsPrefetch(nxSan(partial), nexoraPrefetchTTS, nxPrefetchState);
     });
     var reply=sanitizeNexoraReply(fullRaw||'', p);
     if(st) st.textContent='';
@@ -2212,13 +2212,14 @@ async function sendToAlice(text){
       _nx.history.push({role:'assistant',content:reply});
       _nx.transcript.push('CLIENT ('+(p.firstName||'Client')+'): '+reply);
     }
-    NexoraStreamVoice.finalize(fullRaw||'', nxSan, queueSpeak, nexoraPrefetchTTS);
-    if(!_nxTTSQueue.length && !_nxTTSBusy && reply && nexoraReplyTtsReady(reply)) queueSpeak(prepareTtsLine(reply));
-    else if(reply && !nexoraReplyTtsReady(reply) && !_nxTTSQueue.length) showToast('Client line was cut short — ask them to repeat.');
+    if(reply && nexoraReplyTtsReady(reply)){
+      ttsSpeakLines(prepareTtsLine(reply), 900).forEach(function(line){
+        if(line && line.length >= 12) queueSpeak(line);
+      });
+    } else if(reply && !nexoraReplyTtsReady(reply) && !_nxTTSQueue.length) showToast('Client line was cut short — ask them to repeat.');
     else if(!reply) showToast('Client did not respond — try again.');
     saveNexoraLabRuntime();
   }catch(e){
-    NexoraStreamVoice.cancelTurn();
     if(st) st.textContent='';
     showToast('AI did not respond — check login and try again.');
   }finally{
@@ -2369,7 +2370,10 @@ function bindAllNexoraPttMics(){
           if(!_nxSending) return true;
           return nexoraIsSpeaking();
         },
-        onBeforeStart: function(){ nexoraPauseSpeech(); },
+        onBeforeStart: function(){
+          if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+          nexoraPauseSpeech();
+        },
         onUi: function(listening){
           btn.classList.toggle('listening', !!listening);
           if(!listening){

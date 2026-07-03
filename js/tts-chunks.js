@@ -123,6 +123,46 @@ function drainTtsPending(pending, onSentence, onPrefetch) {
   return { pending: rest, spoken: out };
 }
 
+var _ttsAudioUnlocked = false;
+
+/** Unlock browser audio after a user gesture (laptops often block autoplay after several plays). */
+function unlockTtsAudio() {
+  if (_ttsAudioUnlocked) return Promise.resolve();
+  return new Promise(function (resolve) {
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        var ctx = new Ctx();
+        var p = ctx.resume();
+        var done = function () {
+          _ttsAudioUnlocked = true;
+          try { ctx.close(); } catch (e) {}
+          resolve();
+        };
+        if (p && typeof p.then === 'function') p.then(done).catch(done);
+        else done();
+        return;
+      }
+    } catch (e) { /* fall through */ }
+    try {
+      var a = new Audio();
+      a.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      a.volume = 0.001;
+      var p = a.play();
+      if (p && typeof p.then === 'function') {
+        p.then(function () { _ttsAudioUnlocked = true; resolve(); })
+          .catch(function () { _ttsAudioUnlocked = true; resolve(); });
+      } else {
+        _ttsAudioUnlocked = true;
+        resolve();
+      }
+    } catch (e2) {
+      _ttsAudioUnlocked = true;
+      resolve();
+    }
+  });
+}
+
 /**
  * Play TTS blob reliably — retries autoplay, never skips queue silently.
  */
@@ -150,17 +190,19 @@ function playAudioBlob(blob, handlers) {
   function tryPlay() {
     var p = audio.play();
     if (p && typeof p.then === 'function') {
-      p.catch(function () {
+      p.then(function () { _ttsAudioUnlocked = true; }).catch(function () {
         attempts++;
-        if (attempts < 5) {
-          setTimeout(tryPlay, 120 * attempts);
+        if (attempts < 6) {
+          unlockTtsAudio().finally(function () {
+            setTimeout(tryPlay, 140 * attempts);
+          });
         } else {
           done(handlers.onError);
         }
       });
     }
   }
-  tryPlay();
+  unlockTtsAudio().finally(tryPlay);
   return audio;
 }
 

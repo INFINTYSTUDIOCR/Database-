@@ -1,16 +1,16 @@
 {
-  "id": "infinity-student-portal",
-  "name": "Alice — Infinity Portal",
+  "id": "infinity-alice-practice",
+  "name": "Alice — English Practice",
   "short_name": "Alice",
-  "description": "Practica inglés hablado con Alice — companion libre, KPIs y Nexora.",
-  "start_url": "/Infinity_Student_Portal.html",
+  "description": "Free English conversation practice with Alice. Talk anytime, like Siri.",
+  "start_url": "/try-alice.html",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#5B21B6",
   "theme_color": "#5B21B6",
-  "lang": "es",
+  "lang": "en",
   "categories": ["education", "productivity"],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
@@ -18,15 +18,15 @@
   ],
   "shortcuts": [
     {
-      "name": "Charla rápida",
-      "short_name": "Companion",
-      "url": "/Infinity_Student_Portal.html?tab=alice&quick=companion",
+      "name": "Free chat with Alice",
+      "short_name": "Chat",
+      "url": "/try-alice.html",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Mi progreso",
-      "short_name": "Progreso",
-      "url": "/Infinity_Student_Portal.html?tab=progreso",
+      "name": "Student portal",
+      "short_name": "Portal",
+      "url": "/Infinity_Student_Portal.html?tab=alice&quick=companion",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
