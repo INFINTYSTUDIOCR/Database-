@@ -550,7 +550,8 @@ try {
 }
 
 const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
-const ALICE_VOICE_ID = process.env.ALICE_VOICE_ID || 'r1KmysJdVYZjJCm4mL3b';
+// Alice tutor + Alice Companion — same ElevenLabs voice (do not diverge).
+const ALICE_VOICE_ID = 'r1KmysJdVYZjJCm4mL3b';
 const SUPER_BRAIN_VOICE_ID = process.env.SUPER_BRAIN_VOICE_ID || 'Gubgw9l4dtIoQA9YZHgx';
 const JILL_VOICE_ID = process.env.JILL_VOICE_ID || 'NoOVOzCQFLOvtsMoNcdT';
 const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
