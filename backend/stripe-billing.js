@@ -225,6 +225,8 @@ async function manualGrant(sbSet, sbGetOne, { email, days, source } = {}) {
   };
 }
 
+const WA_OUTBOX_ID = 'ALICE-WA-OUTBOX';
+
 function waMsgId() {
   return 'ALICE-WA-MSG-' + crypto.randomBytes(8).toString('hex');
 }
@@ -242,63 +244,62 @@ function clientActivationMessage(email, expiresAt, clientUrl) {
   );
 }
 
+/** Single-row outbox so the PC bridge always finds pending messages. */
+async function readOutbox(sbGetOne) {
+  const row = await sbGetOne(PREMIUM_TABLE, WA_OUTBOX_ID);
+  const items = Array.isArray(row?.data?.items) ? row.data.items : [];
+  return items;
+}
+
+async function writeOutbox(sbSet, items) {
+  await sbSet(PREMIUM_TABLE, WA_OUTBOX_ID, {
+    items: (items || []).slice(-80),
+    updatedAt: new Date().toISOString()
+  });
+}
+
 /** Queue WhatsApp text for the PC bridge to send automatically. */
-async function enqueueWhatsApp(sbSet, { phone, message, email }) {
+async function enqueueWhatsApp(sbSet, sbGetOne, { phone, message, email }) {
   const digits = String(phone || '').replace(/\D/g, '');
   if (digits.length < 10) return { error: 'invalid_phone' };
   if (!message || !String(message).trim()) return { error: 'invalid_message' };
   const id = waMsgId();
   const now = new Date().toISOString();
-  await sbSet(PREMIUM_TABLE, id, {
+  const item = {
+    id,
     phone: digits,
     message: String(message).trim(),
     email: email ? String(email).trim().toLowerCase() : null,
     status: 'pending',
     createdAt: now
-  });
+  };
+  const items = await readOutbox(sbGetOne);
+  items.push(item);
+  await writeOutbox(sbSet, items);
   return { id, phone: digits, status: 'pending' };
 }
 
-async function listPendingWhatsApp(sbGet, sbQuery) {
-  let rows = [];
-  // Prefer filtered query — full table scan can miss rows (PostgREST default limit).
-  if (typeof sbQuery === 'function') {
-    try {
-      rows = await sbQuery(
-        PREMIUM_TABLE,
-        'id=like.ALICE-WA-MSG-*&select=id,data&order=updated_at.desc&limit=50'
-      );
-    } catch (e) {
-      rows = [];
-    }
-  }
-  if (!rows || !rows.length) {
-    rows = (await sbGet(PREMIUM_TABLE)) || [];
-  }
-  return (rows || [])
-    .filter((r) => r && String(r.id || '').startsWith('ALICE-WA-MSG-') && r.data && r.data.status === 'pending')
-    .map((r) => ({
-      id: r.id,
-      phone: r.data.phone,
-      message: r.data.message,
-      email: r.data.email,
-      createdAt: r.data.createdAt
-    }))
+async function listPendingWhatsApp(_sbGet, _sbQuery, sbGetOne) {
+  const items = await readOutbox(sbGetOne);
+  return items
+    .filter((i) => i && i.status === 'pending' && i.phone && i.message)
     .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
 }
 
 async function ackWhatsApp(sbSet, sbGetOne, id, status) {
   const key = String(id || '').trim();
   if (!key.startsWith('ALICE-WA-MSG-')) return { error: 'invalid_id' };
-  const row = await sbGetOne(PREMIUM_TABLE, key);
-  if (!row?.data) return { error: 'not_found' };
-  const next = status === 'failed' ? 'failed' : 'sent';
-  await sbSet(PREMIUM_TABLE, key, {
-    ...row.data,
-    status: next,
-    finishedAt: new Date().toISOString()
+  const items = await readOutbox(sbGetOne);
+  let found = false;
+  const nextStatus = status === 'failed' ? 'failed' : 'sent';
+  const next = items.map((i) => {
+    if (i.id !== key) return i;
+    found = true;
+    return { ...i, status: nextStatus, finishedAt: new Date().toISOString() };
   });
-  return { id: key, status: next };
+  if (!found) return { error: 'not_found' };
+  await writeOutbox(sbSet, next);
+  return { id: key, status: nextStatus };
 }
 
 async function createCheckoutSession({ email, successUrl, cancelUrl }) {

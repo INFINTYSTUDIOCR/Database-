@@ -64,7 +64,7 @@ else fail('manual-grant + restore routes', 'missing');
 if (server.includes('/billing/wa-outbox') && server.includes('enqueueWhatsApp')) pass('wa-outbox auto-send routes', 'ok');
 else fail('wa-outbox auto-send routes', 'missing');
 
-const queued = await Billing.enqueueWhatsApp(sbSet, {
+const queued = await Billing.enqueueWhatsApp(sbSet, sbGetOne, {
   phone: '50688887777',
   message: 'hola qa',
   email: 'qa@test.com'
@@ -72,19 +72,17 @@ const queued = await Billing.enqueueWhatsApp(sbSet, {
 if (queued.id && queued.status === 'pending') pass('enqueueWhatsApp', queued.id);
 else fail('enqueueWhatsApp', JSON.stringify(queued));
 
-const pendingList = await Billing.listPendingWhatsApp(async (table) => {
-  const out = [];
-  for (const [k, v] of store.entries()) {
-    if (k.startsWith(table + ':')) out.push(v);
-  }
-  return out;
-});
+const pendingList = await Billing.listPendingWhatsApp(null, null, sbGetOne);
 if (pendingList.some((p) => p.id === queued.id)) pass('listPendingWhatsApp', 'ok');
 else fail('listPendingWhatsApp', JSON.stringify(pendingList));
 
 const acked = await Billing.ackWhatsApp(sbSet, sbGetOne, queued.id, 'sent');
 if (acked.status === 'sent') pass('ackWhatsApp', 'sent');
 else fail('ackWhatsApp', JSON.stringify(acked));
+
+const pendingAfter = await Billing.listPendingWhatsApp(null, null, sbGetOne);
+if (!pendingAfter.some((p) => p.id === queued.id)) pass('ack removes pending', 'ok');
+else fail('ack removes pending', 'still pending');
 
 if (server.includes('premiumToken') && server.includes('Billing.isPremiumActive')) pass('premium demo bypass', 'ok');
 else fail('premium demo bypass', 'missing');

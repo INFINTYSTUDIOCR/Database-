@@ -1466,7 +1466,7 @@ app.post('/billing/manual-grant', async (req, res) => {
     if (phone) {
       const clientUrl = process.env.PUBLIC_SITE_URL || 'https://studioinfinitycr.com/try-alice.html';
       const message = Billing.clientActivationMessage(result.email, result.expiresAt, clientUrl);
-      whatsapp = await Billing.enqueueWhatsApp(sbSet, {
+      whatsapp = await Billing.enqueueWhatsApp(sbSet, sbGetOne, {
         phone,
         message,
         email: result.email
@@ -1484,8 +1484,8 @@ app.post('/billing/manual-grant', async (req, res) => {
 app.get('/billing/wa-outbox', async (req, res) => {
   try {
     if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
-    const items = await Billing.listPendingWhatsApp(sbGet, sbQuery);
-    return res.json({ items });
+    const items = await Billing.listPendingWhatsApp(sbGet, sbQuery, sbGetOne);
+    return res.json({ items, outbox: 'v2' });
   } catch (err) {
     console.error('WA outbox error:', err.message);
     return res.status(500).json({ error: 'outbox_failed' });
