@@ -3,6 +3,8 @@
  * Runs on your PC. Sends activation messages automatically (no copy/paste).
  */
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
@@ -11,9 +13,33 @@ const BRIDGE_SECRET = process.env.BRIDGE_SECRET || process.env.ANALYZE_SECRET ||
 const POLL_MS = Math.max(3000, parseInt(process.env.POLL_MS || '5000', 10));
 
 if (!BRIDGE_SECRET) {
-  console.error('Falta BRIDGE_SECRET. Ejecutá CONFIGURAR.bat primero.');
+  console.error('Falta BRIDGE_SECRET. Ejecutá WHATSAPP-1-CONFIGURAR.bat primero.');
   process.exit(1);
 }
+
+function findBrowser() {
+  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) {
+    return process.env.CHROME_PATH;
+  }
+  const candidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Google\\Chrome\\Application\\chrome.exe'),
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+  ];
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+const browserPath = findBrowser();
+if (!browserPath) {
+  console.error('No se encontró Chrome ni Edge. Instalá Google Chrome y volvé a intentar.');
+  process.exit(1);
+}
+console.log('Usando navegador:', browserPath);
 
 let ready = false;
 
@@ -72,22 +98,31 @@ async function pollLoop(client) {
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
   puppeteer: {
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // Ventana visible: el QR de WhatsApp Web se ve grande y fácil de escanear
+    headless: false,
+    executablePath: browserPath,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
   }
 });
 
 client.on('qr', (qr) => {
-  console.log('\n=== Escaneá este QR con tu teléfono ===');
-  console.log('WhatsApp → Menú (⋮) → Dispositivos vinculados → Vincular dispositivo\n');
+  console.log('\n========================================');
+  console.log('  ESCANEA ESTE QR CON TU TELEFONO');
+  console.log('  WhatsApp → Dispositivos vinculados');
+  console.log('========================================\n');
   qrcode.generate(qr, { small: true });
+  console.log('\nSi no ves bien el QR, agranda la ventana.\n');
 });
 
 client.on('ready', () => {
   ready = true;
-  console.log('\nListo. WhatsApp automático ENCENDIDO.');
-  console.log('Dejá esta ventana abierta.');
+  console.log('\nListo. WhatsApp automatico ENCENDIDO.');
+  console.log('Deja esta ventana abierta.');
   console.log('Cuando actives un cliente en activar.html, el mensaje se manda solo.\n');
+});
+
+client.on('authenticated', () => {
+  console.log('WhatsApp autenticado…');
 });
 
 client.on('auth_failure', (m) => {
@@ -103,5 +138,8 @@ setInterval(() => {
   if (ready) pollLoop(client);
 }, POLL_MS);
 
-console.log('Iniciando WhatsApp automático…');
-client.initialize();
+console.log('Iniciando WhatsApp automatico…');
+client.initialize().catch((err) => {
+  console.error('Error al iniciar:', err.message);
+  process.exit(1);
+});
