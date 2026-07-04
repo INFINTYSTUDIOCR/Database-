@@ -512,11 +512,13 @@ function demoSessionMaxSteps(session) {
 }
 
 function demoStreamMeta(session, done, maxSteps, extra) {
+  const buffered = !!(session && (session.buffered || session.live === false));
   return Object.assign({
     step: session.step,
     done,
     maxSteps,
-    live: true,
+    live: !buffered,
+    buffered,
     trialEnd: !!(done && isCompanionDemoSession(session) && !session.premium),
     product: isCompanionDemoSession(session) ? 'alice_companion' : session.service,
     turnsLeft: maxSteps > 0 ? Math.max(0, maxSteps - session.step) : null
@@ -809,12 +811,49 @@ function cacheDemoResponse(key, reply) {
 }
 
 function getDemoBuffer(service, scenario) {
+  if (service === 'alice' && scenario === 'companion') {
+    return DEMO_BUFFER.alice_companion || DEMO_BUFFER.alice;
+  }
   if (service === 'alice') return DEMO_BUFFER.alice;
   if (service === 'jill') return DEMO_BUFFER.jill;
   if (service === 'nexora') {
     return scenario === 'customer_service' ? DEMO_BUFFER.nexora_cs : DEMO_BUFFER.nexora_star;
   }
   return null;
+}
+
+function stripDemoMd(text) {
+  return String(text || '').replace(/\*\*/g, '');
+}
+
+function demoBufferMaxSteps(buf) {
+  if (!buf || !Array.isArray(buf.steps)) return 4;
+  return buf.steps.length + 1;
+}
+
+function demoBufferOpening(buf, guest) {
+  let start = stripDemoMd(buf?.start || '');
+  const name = String(guest || '').trim();
+  if (name && name.toLowerCase() !== 'guest') {
+    start = start.replace(/^Hi!/i, 'Hi ' + name.split(/\s+/)[0] + '!');
+  }
+  return start;
+}
+
+function demoBufferNextReply(buf, step) {
+  const steps = (buf && buf.steps) || [];
+  if (step > steps.length) {
+    return {
+      reply: stripDemoMd(buf?.finish?.reply || 'Thanks for trying the demo!'),
+      done: true,
+      evaluation: buf?.finish?.evaluation || null
+    };
+  }
+  return {
+    reply: stripDemoMd(steps[step - 1] || steps[steps.length - 1] || ''),
+    done: false,
+    evaluation: null
+  };
 }
 
 const ALICE_EVAL_CONNECTORS = [
@@ -947,9 +986,6 @@ app.post('/demo/start', async (req, res) => {
     const { service, scenario, consent, name, onboarding, premiumToken } = req.body || {};
     if (!consent) return res.status(400).json({ error: 'Consent required' });
     if (!['alice', 'jill', 'nexora'].includes(service)) return res.status(400).json({ error: 'Invalid service' });
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
-    }
 
     const sc = scenario || (service === 'nexora' ? 'star' : 'default');
     const companionDemo = service === 'alice' && sc === 'companion';
@@ -968,23 +1004,66 @@ app.post('/demo/start', async (req, res) => {
     }
 
     const guest = name || 'Guest';
-    const reply = await demoGenerateOpening(service, sc, guest, onboarding);
-
     const sessionId = crypto.randomUUID();
     const isPremium = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
-    const trialLimits = DEMO_LIMITS.alice_companion;
-    const sessionMaxSteps = companionDemo
-      ? (isPremium ? 0 : trialLimits.maxSteps)
-      : (DEMO_LIMITS[service] || DEMO_LIMITS.alice).maxSteps;
+    // Public website: scripted buffer only. Live AI only for paid Alice Companion.
+    const useLive = companionDemo && isPremium;
+
+    if (!useLive) {
+      const buf = getDemoBuffer(service, sc);
+      if (!buf) return res.status(503).json({ error: 'buffer_missing', message: 'Demo script unavailable.' });
+      const reply = demoBufferOpening(buf, guest);
+      const sessionMaxSteps = demoBufferMaxSteps(buf);
+      const session = {
+        service,
+        scenario: sc,
+        step: 0,
+        name: guest,
+        onboarding: onboarding || null,
+        demoMode: companionDemo ? 'companion' : 'standard',
+        maxSteps: sessionMaxSteps,
+        premium: false,
+        buffered: true,
+        live: false,
+        consent: true,
+        ip,
+        history: [{ role: 'assistant', content: reply }],
+        createdAt: new Date().toISOString(),
+        apiCalls: 0
+      };
+      await saveDemoSession(sessionId, session);
+      return res.json({
+        sessionId,
+        reply,
+        step: 0,
+        maxSteps: sessionMaxSteps,
+        buffered: true,
+        live: false,
+        premium: false,
+        trial: companionDemo,
+        product: companionDemo ? 'alice_companion' : service,
+        sessionsLeft: ipLimit.sessionsLeft,
+        whitelisted: !!ipLimit.whitelisted,
+        voiceProfile: getDemoVoiceProfileFor(service, sc)
+      });
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live Companion requires AI — try again shortly.' });
+    }
+
+    const reply = await demoGenerateOpening(service, sc, guest, onboarding);
     const session = {
       service,
       scenario: sc,
       step: 0,
       name: guest,
       onboarding: onboarding || null,
-      demoMode: companionDemo ? 'companion' : 'standard',
-      maxSteps: sessionMaxSteps,
-      premium: isPremium,
+      demoMode: 'companion',
+      maxSteps: 0,
+      premium: true,
+      buffered: false,
+      live: true,
       consent: true,
       ip,
       history: [{ role: 'assistant', content: reply }],
@@ -997,12 +1076,12 @@ app.post('/demo/start', async (req, res) => {
       sessionId,
       reply,
       step: 0,
-      maxSteps: sessionMaxSteps,
+      maxSteps: 0,
       buffered: false,
       live: true,
-      premium: isPremium,
-      trial: companionDemo && !isPremium,
-      product: companionDemo ? 'alice_companion' : service,
+      premium: true,
+      trial: false,
+      product: 'alice_companion',
       sessionsLeft: ipLimit.sessionsLeft,
       whitelisted: !!ipLimit.whitelisted,
       voiceProfile: getDemoVoiceProfileFor(service, sc)
@@ -1017,9 +1096,6 @@ app.post('/demo/message', async (req, res) => {
   try {
     const { sessionId, message, premiumToken } = req.body || {};
     if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
-    }
 
     const session = await getDemoSession(sessionId);
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
@@ -1041,6 +1117,41 @@ app.post('/demo/message', async (req, res) => {
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
     session.apiCalls = (session.apiCalls || 0) + 1;
+
+    // Website demos: scripted buffer (full reply, no live AI cut-offs)
+    if (session.buffered || session.live === false) {
+      const buf = getDemoBuffer(session.service, session.scenario);
+      if (!buf) return res.status(503).json({ error: 'buffer_missing' });
+      const next = demoBufferNextReply(buf, session.step);
+      session.history.push({ role: 'assistant', content: next.reply });
+      await saveDemoSession(sessionId, session);
+      const payload = {
+        reply: next.reply,
+        step: session.step,
+        done: next.done,
+        buffered: true,
+        live: false,
+        maxSteps,
+        trialEnd: next.done && isCompanionDemoSession(session),
+        product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
+      };
+      if (next.done && next.evaluation) {
+        payload.evaluation = enrichEvaluation(next.evaluation, session.history);
+        await saveDemoKb({
+          service: session.service,
+          scenario: session.scenario,
+          history: session.history,
+          evaluation: payload.evaluation,
+          consent: session.consent,
+          ip
+        });
+      }
+      return res.json(payload);
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live Companion requires AI — try again shortly.' });
+    }
 
     const done = demoSessionDone(session);
     let reply;
@@ -1082,9 +1193,6 @@ app.post('/demo/stream', async (req, res) => {
   try {
     const { sessionId, message, premiumToken } = req.body || {};
     if (!sessionId || !message?.trim()) return res.status(400).json({ error: 'Missing sessionId or message' });
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(503).json({ error: 'live_unavailable', message: 'Live demo requires AI — try again shortly.' });
-    }
 
     const session = await getDemoSession(sessionId);
     if (!session) return res.status(404).json({ error: 'Session expired. Start a new demo.' });
@@ -1106,6 +1214,48 @@ app.post('/demo/stream', async (req, res) => {
     session.history.push({ role: 'user', content: message.trim() });
     session.step++;
     session.apiCalls = (session.apiCalls || 0) + 1;
+
+    // Buffered website demos: full scripted reply over SSE (no live model, no mid-cut)
+    if (session.buffered || session.live === false) {
+      const buf = getDemoBuffer(session.service, session.scenario);
+      if (!buf) return res.status(503).json({ error: 'buffer_missing' });
+      const next = demoBufferNextReply(buf, session.step);
+      session.history.push({ role: 'assistant', content: next.reply });
+      await saveDemoSession(sessionId, session);
+      let evaluation = null;
+      if (next.done && next.evaluation) {
+        evaluation = enrichEvaluation(next.evaluation, session.history);
+        await saveDemoKb({
+          service: session.service,
+          scenario: session.scenario,
+          history: session.history,
+          evaluation,
+          consent: session.consent,
+          ip
+        });
+      }
+      res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.flushHeaders?.();
+      const meta = demoStreamMeta(session, next.done, maxSteps, { buffered: true, live: false });
+      meta.live = false;
+      meta.buffered = true;
+      res.write(`data: ${JSON.stringify({ meta })}\n\n`);
+      // Send full reply in one token so client TTS speaks the complete line without cuts
+      res.write(`data: ${JSON.stringify({ token: next.reply })}\n\n`);
+      if (evaluation) res.write(`data: ${JSON.stringify({ evaluation })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      return res.end();
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'live_unavailable', message: 'Live Companion requires AI — try again shortly.' });
+    }
+
     const done = demoSessionDone(session);
 
     const streamCfg = getDemoStreamConfig(session, done);

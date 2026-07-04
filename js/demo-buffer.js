@@ -1,5 +1,23 @@
-/** Client-side demo buffer — used when Render /demo/* is unavailable */
+/** Client-side demo buffer — public website demos (not live AI) */
 window.DEMO_BUFFER = {
+  alice_companion: {
+    start: "Hi! I'm Alice — your English companion. No lesson plan today: we can talk about whatever you like — work, travel, stories, daily life. What do you feel like chatting about?",
+    steps: [
+      "I love that topic. Tell me more — what happened recently that made you think about it?",
+      "Interesting! If you had to explain that to a friend in English in two sentences, how would you say it? Take your time.",
+      "You're doing great — this is real practice. One more: what would you like to do or change about that situation?"
+    ],
+    finish: {
+      reply: "That was a lovely mini chat! In the full Alice Companion you can talk anytime, about anything, with the same voice and no cut-offs.\n\nALICE: Unlock Companion for unlimited practice — same Alice voice, 24/7.",
+      evaluation: {
+        overall_score: 74,
+        highlights: ["You kept a natural conversation going", "You practiced real spoken English"],
+        improvements: ["Add one connector (however, on top of that) when you switch ideas", "Expand answers with one extra detail"],
+        connectors_found: [],
+        connectors_suggested: ["however", "on top of that", "even though"]
+      }
+    }
+  },
   alice: {
     start: "Hi! I'm Alice — your English performance coach at Infinity Studio CR. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
     steps: [

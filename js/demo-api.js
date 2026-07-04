@@ -34,12 +34,18 @@ function stripMd(text) {
 
 function getLocalBuffer(service, scenario) {
   var buf = window.DEMO_BUFFER || {};
+  if (service === 'alice' && scenario === 'companion') return buf.alice_companion || buf.alice;
   if (service === 'alice') return buf.alice;
   if (service === 'jill') return buf.jill;
   if (service === 'nexora') {
     return scenario === 'customer_service' ? buf.nexora_cs : buf.nexora_star;
   }
   return null;
+}
+
+function localBufferMaxSteps(buf) {
+  if (!buf || !buf.steps || !buf.steps.length) return 4;
+  return buf.steps.length + 1;
 }
 
 function getLocalIpBucket(service) {
@@ -119,12 +125,16 @@ function demoStartLocal(service, scenario, name) {
     history: [{ role: 'assistant', content: reply }]
   };
 
+  var maxSteps = localBufferMaxSteps(buf);
+  localDemoSessions[sessionId].maxSteps = maxSteps;
+
   return {
     sessionId: sessionId,
     reply: reply,
     step: 0,
-    maxSteps: DEMO_LIMITS[service].maxSteps,
+    maxSteps: maxSteps,
     buffered: true,
+    live: false,
     local: true,
     sessionsLeft: limit.sessionsLeft,
     voiceProfile: typeof demoVoiceProfile === 'function' ? demoVoiceProfile(service, scenario) : null
@@ -137,24 +147,34 @@ function demoSendLocal(sessionId, message) {
 
   checkLocalLimit(session.service, 'message');
   var buf = getLocalBuffer(session.service, session.scenario);
-  var maxSteps = DEMO_LIMITS[session.service].maxSteps;
+  var maxSteps = session.maxSteps || localBufferMaxSteps(buf);
 
   session.history.push({ role: 'user', content: message.trim() });
   session.step++;
 
   var reply;
   var done = session.step >= maxSteps;
+  var evaluation = null;
 
   if (done) {
-    reply = buf.finish.reply;
+    reply = stripMd(buf.finish.reply);
+    evaluation = buf.finish.evaluation;
   } else {
     reply = stripMd(buf.steps[session.step - 1] || buf.steps[buf.steps.length - 1]);
   }
 
   session.history.push({ role: 'assistant', content: reply });
 
-  var payload = { reply: reply, step: session.step, done: done, buffered: true, local: true, maxSteps: maxSteps };
-  if (done) payload.evaluation = buf.finish.evaluation;
+  var payload = {
+    reply: reply,
+    step: session.step,
+    done: done,
+    buffered: true,
+    live: false,
+    local: true,
+    maxSteps: maxSteps
+  };
+  if (done && evaluation) payload.evaluation = evaluation;
   return payload;
 }
 
