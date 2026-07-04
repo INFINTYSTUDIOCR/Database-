@@ -167,27 +167,21 @@ var DemoVoice = (function () {
       return;
     }
 
+    // Demos: ElevenLabs for fixed buffer lines (server caches — no repeat API cost).
+    // Premium: live Alice voice. Free non-buffer text is rejected by server.
     var alice = isAliceProfile(p);
     var prem = premiumFields();
-    var paid = !!(prem && prem.premiumToken);
-
-    // Free website demos: browser TTS only (saves ElevenLabs). Premium Companion: Alice ElevenLabs voice.
-    if (!paid) {
-      browserSpeak(cleanText, p, onEnd);
-      return;
-    }
-
     var voiceId = alice ? ALICE_VOICE_ID : p.voiceId;
     var body = {
       text: cleanText,
-      voiceId: voiceId,
-      premiumToken: prem.premiumToken
+      voiceId: voiceId
     };
     if (alice) {
       body.voice = 'alice';
       body.product = 'alice';
       body.voiceId = ALICE_VOICE_ID;
     }
+    if (prem.premiumToken) body.premiumToken = prem.premiumToken;
 
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
@@ -205,12 +199,13 @@ var DemoVoice = (function () {
         playBlob(blob, onEnd);
       })
       .catch(function () {
-        if (alice && !isRetry) {
+        if (!isRetry) {
           setTimeout(function () {
-            speak(cleanText, { voiceId: ALICE_VOICE_ID, label: 'Alice', gender: 'female', lang: 'en-US' }, onEnd, true);
-          }, 400);
+            speak(cleanText, p, onEnd, true);
+          }, 350);
           return;
         }
+        // Last resort only — free demos should hit buffer cache
         browserSpeak(cleanText, p, onEnd);
       });
   }

@@ -1,9 +1,9 @@
 var DEMO_BACKEND = 'https://alice-by-infinity.onrender.com';
 
 var DEMO_LIMITS = {
-  alice: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
-  jill: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 12 },
-  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 50 }
+  alice: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 8 },
+  jill: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 8 },
+  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 8 }
 };
 
 var localDemoSessions = {};

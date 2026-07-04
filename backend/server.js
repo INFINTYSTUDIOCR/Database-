@@ -483,14 +483,13 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  // maxSteps 0 = unlimited turns in-session (conversation must flow; never stop at 6)
-  alice:  { sessionsPerDay: 5, maxSteps: 0 },
-  /** Website trial for Alice Companion — free flow in session; daily session cap only. */
-  alice_companion: { sessionsPerDay: 2, maxSteps: 0, messagesPerDay: 200 },
-  jill:   { sessionsPerDay: 5, maxSteps: 0 },
-  nexora: { sessionsPerDay: 5, maxSteps: 0 },
-  claire: { sessionsPerDay: 12, messagesPerDay: 120 },
-  tts:    { sessionsPerDay: 999, messagesPerDay: 400, ttsPerDay: 400 }
+  // Public website: ONE demo session per IP per product per day, then paywall.
+  alice:  { sessionsPerDay: 1, maxSteps: 0 },
+  alice_companion: { sessionsPerDay: 1, maxSteps: 0, messagesPerDay: 12 },
+  jill:   { sessionsPerDay: 1, maxSteps: 0 },
+  nexora: { sessionsPerDay: 1, maxSteps: 0 },
+  claire: { sessionsPerDay: 3, messagesPerDay: 30 },
+  tts:    { sessionsPerDay: 1, messagesPerDay: 20, ttsPerDay: 20 }
 };
 
 const APP1_BUILD = '20260704-companion-trial';
@@ -831,13 +830,9 @@ function demoBufferMaxSteps(buf) {
   return buf.steps.length + 1;
 }
 
-function demoBufferOpening(buf, guest) {
-  let start = stripDemoMd(buf?.start || '');
-  const name = String(guest || '').trim();
-  if (name && name.toLowerCase() !== 'guest') {
-    start = start.replace(/^Hi!/i, 'Hi ' + name.split(/\s+/)[0] + '!');
-  }
-  return start;
+function demoBufferOpening(buf) {
+  // Fixed script text (no name injection) so ElevenLabs audio stays cacheable.
+  return stripDemoMd(buf?.start || '');
 }
 
 function demoBufferNextReply(buf, step) {
@@ -996,8 +991,8 @@ app.post('/demo/start', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: companionDemo
-          ? 'Your free Alice Companion trial for today is used. Unlock 30 days unlimited or try again tomorrow.'
-          : `Demo limit reached for today. Try again in ${ipLimit.wait}.`,
+          ? 'Ya usaste tu demo gratis de hoy. Desbloqueá Alice Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis de hoy. Para seguir, escribinos por WhatsApp o elegí un plan.',
         wait: ipLimit.wait,
         product: companionDemo ? 'alice_companion' : service
       });
@@ -1012,7 +1007,7 @@ app.post('/demo/start', async (req, res) => {
     if (!useLive) {
       const buf = getDemoBuffer(service, sc);
       if (!buf) return res.status(503).json({ error: 'buffer_missing', message: 'Demo script unavailable.' });
-      const reply = demoBufferOpening(buf, guest);
+      const reply = demoBufferOpening(buf);
       const sessionMaxSteps = demoBufferMaxSteps(buf);
       const session = {
         service,
@@ -1106,8 +1101,8 @@ app.post('/demo/message', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: isCompanionDemoSession(session)
-          ? 'Alice Companion trial limit reached for today.'
-          : 'Daily demo message limit reached.',
+          ? 'Ya usaste tu demo gratis. Desbloqueá Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp.',
         wait: ipLimit.wait,
         product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
       });
@@ -1203,8 +1198,8 @@ app.post('/demo/stream', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: isCompanionDemoSession(session)
-          ? 'Alice Companion trial limit reached for today.'
-          : 'Daily demo message limit reached.',
+          ? 'Ya usaste tu demo gratis. Desbloqueá Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp.',
         wait: ipLimit.wait,
         product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
       });
@@ -1679,16 +1674,22 @@ app.post('/demo/tts', async (req, res) => {
       requested === ALICE_VOICE_ID ||
       requested === 'r1KmysJdVYZjJCm4mL3b';
 
-    // Free website demos must NOT burn ElevenLabs — only paid Companion / premium token.
     const isPremiumTts = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
-    if (!isPremiumTts && !isDemoIpWhitelisted(ip)) {
-      return res.status(403).json({
-        error: 'demo_tts_browser_only',
-        message: 'Free demos use browser voice. Premium unlocks Alice ElevenLabs voice.'
-      });
+    const owner = isDemoIpWhitelisted(ip);
+
+    // Free demos: ElevenLabs ONLY for fixed buffer script lines (served from cache after first gen).
+    if (!isPremiumTts && !owner) {
+      const bufVoice = demoBufferVoiceForText(text);
+      if (!bufVoice) {
+        return res.status(403).json({
+          error: 'demo_tts_buffer_only',
+          message: 'Free demos only play buffered ElevenLabs clips. Unlock premium for live voice.'
+        });
+      }
+      return await synthesizeSpeech(req, res, { text, voiceId: bufVoice, label: 'Demo buffer' });
     }
 
-    // Paid Alice / Companion: always ElevenLabs Alice voice.
+    // Premium / owner: Alice voice or requested allowlisted voice
     if (wantsAlice) {
       return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
     }
@@ -2338,61 +2339,125 @@ function cleanTtsText(text) {
     .slice(0, 2500);
 }
 
-async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed }) {
-  if (!text) return res.status(400).json({ error: 'Missing text' });
-  if (!ELEVEN_KEY) return res.status(500).json({ error: 'ELEVENLABS_KEY not configured' });
-  if (!voiceId) return res.status(503).json({ error: `${label} voice ID not configured` });
+/** Fixed demo script lines → voiceId (ElevenLabs only once per line, then cache forever). */
+let DEMO_BUFFER_VOICE_MAP = null;
+function getDemoBufferVoiceMap() {
+  if (DEMO_BUFFER_VOICE_MAP) return DEMO_BUFFER_VOICE_MAP;
+  DEMO_BUFFER_VOICE_MAP = new Map();
+  const profiles = getDemoVoiceProfiles();
+  const entries = [
+    ['alice', ALICE_VOICE_ID],
+    ['alice_companion', ALICE_VOICE_ID],
+    ['jill', JILL_VOICE_ID],
+    ['nexora_star', profiles.nexora_star?.voiceId || ALICE_VOICE_ID],
+    ['nexora_cs', profiles.nexora_cs?.voiceId || JILL_VOICE_ID]
+  ];
+  const add = (raw, voiceId) => {
+    const c = cleanTtsText(stripDemoMd(raw));
+    if (c && voiceId) DEMO_BUFFER_VOICE_MAP.set(c, voiceId);
+  };
+  for (const [key, voiceId] of entries) {
+    const b = DEMO_BUFFER[key];
+    if (!b) continue;
+    add(b.start, voiceId);
+    (b.steps || []).forEach((s) => add(s, voiceId));
+    if (b.finish?.reply) add(b.finish.reply, voiceId);
+  }
+  return DEMO_BUFFER_VOICE_MAP;
+}
 
+function demoBufferVoiceForText(text) {
+  const c = cleanTtsText(stripDemoMd(text));
+  if (!c) return null;
+  return getDemoBufferVoiceMap().get(c) || null;
+}
+
+/**
+ * Get TTS audio from RAM/brain cache, or call ElevenLabs once and store.
+ * Returns { buffer, cache: 'RAM'|'HIT'|'MISS' }
+ */
+async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
+  if (!ELEVEN_KEY) throw new Error('ELEVENLABS_KEY not configured');
+  if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
   const clean = cleanTtsText(text);
-  if (!clean) return res.status(400).json({ error: 'Empty text' });
+  if (!clean) throw new Error('Empty text');
 
   const cacheKey = getTTSCacheKey(clean, voiceId);
   if (ttsCache.has(cacheKey)) {
-    const cached = ttsCache.get(cacheKey);
-    res.set('Content-Type', 'audio/mpeg');
-    res.set('X-Cache', 'HIT');
-    res.set('X-Brain-TTS', 'RAM');
-    return res.send(cached);
+    return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
 
   const brainTts = await Brain.brainGetTTS(clean, voiceId);
   if (brainTts.hit) {
     cacheTTS(cacheKey, brainTts.buffer);
-    res.set('Content-Type', 'audio/mpeg');
-    res.set('X-Cache', 'HIT');
-    res.set('X-Brain-TTS', 'HIT');
-    return res.send(brainTts.buffer);
+    return { buffer: brainTts.buffer, cache: 'HIT', clean };
   }
 
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
-    headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+    headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
     body: JSON.stringify({
       text: clean,
       model_id: 'eleven_multilingual_v2',
       voice_settings: {
-        stability: stability ?? 0.52,
-        similarity_boost: similarityBoost ?? 0.78,
-        style: style ?? 0.12,
+        stability: opts.stability ?? 0.52,
+        similarity_boost: opts.similarityBoost ?? 0.78,
+        style: opts.style ?? 0.12,
         use_speaker_boost: true,
-        speed: speed ?? 1.08
+        speed: opts.speed ?? 1.08
       }
     })
   });
 
   if (!r.ok) {
     const err = await r.text();
-    console.error(`${label} TTS error:`, err);
-    return res.status(500).json({ error: 'TTS failed' });
+    console.error(`${label || 'TTS'} error:`, err);
+    throw new Error('TTS failed');
   }
 
   const buf = Buffer.from(await r.arrayBuffer());
   cacheTTS(cacheKey, buf);
   if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf);
-  res.set('Content-Type', 'audio/mpeg');
-  res.set('Cache-Control', 'no-cache');
-  res.set('X-Brain-TTS', 'MISS');
-  return res.send(buf);
+  return { buffer: buf, cache: 'MISS', clean };
+}
+
+async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed }) {
+  if (!text) return res.status(400).json({ error: 'Missing text' });
+  try {
+    const { buffer, cache } = await getOrCreateTtsAudio(text, voiceId, label, {
+      stability, similarityBoost, style, speed
+    });
+    res.set('Content-Type', 'audio/mpeg');
+    res.set('X-Cache', cache === 'MISS' ? 'MISS' : 'HIT');
+    res.set('X-Brain-TTS', cache);
+    if (cache === 'MISS') res.set('Cache-Control', 'no-cache');
+    return res.send(buffer);
+  } catch (err) {
+    if (err.message === 'Empty text') return res.status(400).json({ error: 'Empty text' });
+    if (err.message.includes('not configured')) return res.status(503).json({ error: err.message });
+    return res.status(500).json({ error: 'TTS failed' });
+  }
+}
+
+/** Pre-generate all demo buffer lines once (ElevenLabs only on cache miss). */
+async function warmDemoBufferTts() {
+  if (!ELEVEN_KEY) {
+    console.warn('Demo TTS warm skipped: no ELEVENLABS_KEY');
+    return;
+  }
+  const map = getDemoBufferVoiceMap();
+  console.log('Warming demo buffer TTS:', map.size, 'clips');
+  let miss = 0;
+  for (const [text, voiceId] of map) {
+    try {
+      const r = await getOrCreateTtsAudio(text, voiceId, 'Demo buffer');
+      if (r.cache === 'MISS') miss++;
+      await new Promise((ok) => setTimeout(ok, 250));
+    } catch (e) {
+      console.warn('Demo TTS warm fail:', e.message);
+    }
+  }
+  console.log('Demo buffer TTS ready. New ElevenLabs calls this boot:', miss);
 }
 
 
@@ -4121,4 +4186,10 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server on port ${PORT}`);
+  // Pre-cache demo buffer audio (ElevenLabs only on miss — not on every visitor).
+  setTimeout(() => {
+    warmDemoBufferTts().catch((e) => console.warn('Demo TTS warm error:', e.message));
+  }, 4000);
+});
