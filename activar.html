@@ -8,62 +8,111 @@
 <style>
   *{box-sizing:border-box}
   body{font-family:system-ui,sans-serif;background:#f5f3ff;margin:0;padding:24px;color:#1e1b4b}
-  .box{max-width:420px;margin:40px auto;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 12px 40px rgba(91,33,182,.12)}
-  h1{font-size:1.25rem;margin:0 0 8px}
-  p{font-size:14px;color:#64748b;line-height:1.5;margin:0 0 20px}
+  .box{max-width:440px;margin:32px auto;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 12px 40px rgba(91,33,182,.12)}
+  h1{font-size:1.3rem;margin:0 0 8px}
+  .steps{font-size:14px;color:#64748b;line-height:1.55;margin:0 0 20px;padding:12px 14px;background:#f8fafc;border-radius:10px}
+  .steps strong{color:#1e1b4b}
   label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
   input{width:100%;padding:12px 14px;border:1px solid #ddd6fe;border-radius:10px;font-size:16px;margin-bottom:14px}
-  button{width:100%;padding:14px;border:0;border-radius:10px;background:#5b21b6;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+  button{width:100%;padding:16px;border:0;border-radius:12px;background:#5b21b6;color:#fff;font-size:17px;font-weight:800;cursor:pointer}
   button:disabled{opacity:.6;cursor:wait}
-  .ok{background:#ecfdf5;color:#065f46;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
+  .ok{background:#ecfdf5;color:#065f46;padding:14px;border-radius:10px;font-size:15px;margin-top:14px;display:none;line-height:1.45;font-weight:600}
   .err{background:#fef2f2;color:#991b1b;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
-  .copy{margin-top:12px;font-size:13px;line-height:1.45;background:#f8fafc;padding:12px;border-radius:10px;display:none}
+  .hint{font-size:12px;color:#94a3b8;margin:-8px 0 14px}
 </style>
 </head>
 <body>
   <div class="box">
     <h1>Activar Alice Companion</h1>
-    <p>Cuando el cliente te pague por WhatsApp, poné su email acá y tocá el botón. Después le mandás el mensaje que aparece abajo.</p>
+    <div class="steps">
+      <strong>Cómo usarlo (30 segundos):</strong><br>
+      1. Cliente te paga y te da email + su número de WhatsApp<br>
+      2. Llenás los 3 campos abajo<br>
+      3. Tocás <strong>Activar y avisar al cliente</strong><br>
+      4. Se abre WhatsApp con el mensaje listo → solo tocás <strong>Enviar</strong>
+    </div>
 
     <label for="pass">Tu clave secreta</label>
-    <input id="pass" type="password" autocomplete="current-password" placeholder="La misma de Render (ANALYZE_SECRET)">
+    <input id="pass" type="password" autocomplete="current-password" placeholder="ANALYZE_SECRET de Render">
+    <p class="hint">La guardamos en este navegador para no escribirla cada vez.</p>
 
     <label for="email">Email del cliente</label>
     <input id="email" type="email" autocomplete="off" placeholder="cliente@gmail.com">
 
-    <button type="button" id="btn">Activar 30 días</button>
+    <label for="phone">WhatsApp del cliente</label>
+    <input id="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="50688887777">
+    <p class="hint">Con código de país, sin + ni espacios. Ej. Costa Rica: 50688887777</p>
+
+    <button type="button" id="btn">Activar y avisar al cliente</button>
 
     <div class="ok" id="ok"></div>
     <div class="err" id="err"></div>
-    <div class="copy" id="copy"></div>
   </div>
 
 <script>
 (function () {
   var BACKEND = 'https://alice-by-infinity.onrender.com';
   var CLIENT = 'https://studioinfinitycr.com/try-alice.html';
+  var PASS_KEY = 'infinity_activar_secret';
+
   var btn = document.getElementById('btn');
   var ok = document.getElementById('ok');
   var err = document.getElementById('err');
-  var copy = document.getElementById('copy');
+  var passEl = document.getElementById('pass');
 
-  function show(el, text) {
+  try {
+    var saved = localStorage.getItem(PASS_KEY);
+    if (saved) passEl.value = saved;
+  } catch (e) {}
+
+  function showErr(text) {
     ok.style.display = 'none';
+    err.style.display = 'block';
+    err.textContent = text;
+  }
+
+  function showOk(text) {
     err.style.display = 'none';
-    copy.style.display = 'none';
-    el.style.display = 'block';
-    el.textContent = text;
+    ok.style.display = 'block';
+    ok.textContent = text;
+  }
+
+  function onlyDigits(s) {
+    return String(s || '').replace(/\D/g, '');
+  }
+
+  function buildMessage(email, hasta) {
+    return (
+      'Listo! Alice Companion ya esta activa.\n\n' +
+      '1. Entra aqui: ' + CLIENT + '\n' +
+      '2. Toca: Ya me activaron — entrar con mi email\n' +
+      '3. Escribe este email: ' + email + '\n\n' +
+      'Valido hasta: ' + hasta + '\n' +
+      'Cualquier duda, escribime aqui.'
+    );
+  }
+
+  function openWhatsApp(phoneDigits, message) {
+    var url = 'https://wa.me/' + phoneDigits + '?text=' + encodeURIComponent(message);
+    window.open(url, '_blank', 'noopener');
   }
 
   btn.onclick = async function () {
-    var pass = document.getElementById('pass').value.trim();
+    var pass = passEl.value.trim();
     var email = document.getElementById('email').value.trim().toLowerCase();
-    ok.style.display = err.style.display = copy.style.display = 'none';
-    if (!pass) return show(err, 'Falta tu clave secreta.');
-    if (!email || email.indexOf('@') < 0) return show(err, 'Poné un email válido del cliente.');
+    var phone = onlyDigits(document.getElementById('phone').value);
+
+    ok.style.display = err.style.display = 'none';
+
+    if (!pass) return showErr('Falta tu clave secreta (ANALYZE_SECRET de Render).');
+    if (!email || email.indexOf('@') < 0) return showErr('Poné el email del cliente.');
+    if (phone.length < 10) return showErr('Poné el WhatsApp del cliente con código de país (ej. 50688887777).');
+
+    try { localStorage.setItem(PASS_KEY, pass); } catch (e) {}
 
     btn.disabled = true;
     btn.textContent = 'Activando…';
+
     try {
       var r = await fetch(BACKEND + '/billing/manual-grant', {
         method: 'POST',
@@ -74,28 +123,27 @@
         body: JSON.stringify({ email: email, source: 'activar_web' })
       });
       var data = await r.json().catch(function () { return {}; });
+
       if (!r.ok) {
-        show(err, r.status === 401
-          ? 'Clave incorrecta. Usá ANALYZE_SECRET de Render.'
-          : (data.error || data.message || 'No se pudo activar. ¿Redeploy del backend?'));
+        showErr(r.status === 401
+          ? 'Clave incorrecta. Revisá ANALYZE_SECRET en Render.'
+          : (data.error || data.message || 'No se pudo activar. ¿El backend ya tiene redeploy?'));
         return;
       }
+
       var hasta = data.expiresAt ? new Date(data.expiresAt).toLocaleDateString('es-CR') : '30 días';
-      show(ok, 'Listo. Companion activa para ' + email + ' hasta ' + hasta + '.');
-      var msg =
-        'Listo ✅ Alice Companion activa.\n\n' +
-        '1. Entrá a: ' + CLIENT + '\n' +
-        '2. Tocá: Ya me activaron — entrar con mi email\n' +
-        '3. Escribí este email: ' + email + '\n\n' +
-        'Válido hasta: ' + hasta;
-      copy.style.display = 'block';
-      copy.textContent = 'Copiá y pegá esto al cliente en WhatsApp:\n\n' + msg;
-      try { await navigator.clipboard.writeText(msg); } catch (e) {}
+      var msg = buildMessage(email, hasta);
+
+      openWhatsApp(phone, msg);
+
+      showOk('Activado. Se abrió WhatsApp con el mensaje listo — solo tocá Enviar.');
+      document.getElementById('email').value = '';
+      document.getElementById('phone').value = '';
     } catch (e) {
-      show(err, 'Error de red. Revisá internet o que el servidor esté arriba.');
+      showErr('Error de red. Revisá internet o que el servidor esté arriba.');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Activar 30 días';
+      btn.textContent = 'Activar y avisar al cliente';
     }
   };
 })();
