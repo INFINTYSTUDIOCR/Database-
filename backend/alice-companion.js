@@ -4,7 +4,7 @@
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v1-kpi-companion';
+const COMPANION_BRAIN_VER = 'v2-alexa-companion';
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',
@@ -98,13 +98,18 @@ function inferTopicFromText(text) {
   const t = String(text || '').toLowerCase();
   if (!t || t.length < 4) return '';
   const patterns = [
-    { re: /\b(history|historical|war|century|ancient|empire|revolution)\b/, topic: 'history' },
+    { re: /\b(history|historical|war|century|ancient|empire|revolution|story|stories|tale|legend)\b/, topic: 'stories' },
     { re: /\b(science|space|nasa|planet|physics|chemistry|biology|discovery)\b/, topic: 'science' },
-    { re: /\b(work|job|career|office|customer|call center)\b/, topic: 'work' },
-    { re: /\b(family|kids|children|parents|home)\b/, topic: 'family' },
-    { re: /\b(travel|trip|vacation|country|city)\b/, topic: 'travel' },
-    { re: /\b(sport|football|soccer|gym|exercise)\b/, topic: 'sports' },
-    { re: /\b(movie|film|music|book|series)\b/, topic: 'entertainment' }
+    { re: /\b(work|job|career|office|customer|call center|interview)\b/, topic: 'work' },
+    { re: /\b(family|kids|children|parents|home|friends)\b/, topic: 'family' },
+    { re: /\b(travel|trip|vacation|country|city|flight)\b/, topic: 'travel' },
+    { re: /\b(sport|football|soccer|gym|exercise|fitness)\b/, topic: 'sports' },
+    { re: /\b(movie|film|music|book|series|netflix|song)\b/, topic: 'entertainment' },
+    { re: /\b(fashion|style|clothes|outfit|shoes|makeup|brand)\b/, topic: 'fashion' },
+    { re: /\b(food|recipe|cook|restaurant|coffee|dinner)\b/, topic: 'food' },
+    { re: /\b(love|dating|relationship|feelings|mood|stress|life)\b/, topic: 'life' },
+    { re: /\b(news|politics|world|economy)\b/, topic: 'world' },
+    { re: /\b(tech|phone|app|ai|internet|game|gaming)\b/, topic: 'tech' }
   ];
   for (const p of patterns) {
     if (p.re.test(t)) return p.topic;
@@ -133,28 +138,36 @@ function buildFocusKpiCoachLines(focusKpis) {
 
 function buildCompanionCoachBlock(student, config, topic) {
   const cfg = normalizeCompanionConfig(config, student);
-  const topicLine = topic ? `ACTIVE TOPIC: "${topic}" — stay curious, branch into dates/places/examples when relevant.` : 'Let the student pick the topic; ask what they want to talk about today.';
-  const seeds = cfg.topicSeeds ? `Trainer topic hints: ${cfg.topicSeeds}.` : '';
+  const topicLine = topic
+    ? `ACTIVE TOPIC: "${topic}" — lean in with real interest. Ask, react, share, and go deeper when they want.`
+    : 'They choose the topic — fashion, stories, daily life, work, food, feelings, anything.';
+  const seeds = cfg.topicSeeds ? `Trainer soft hints (only if natural): ${cfg.topicSeeds}.` : '';
   const focusBlock = buildFocusKpiCoachLines(cfg.focusKpis);
   const rigor = cfg.evalMode === 'rigorous'
-    ? 'If they give a very short reply, still accept it warmly — only nudge for more when they seem engaged.'
-    : (cfg.evalMode === 'soft' ? 'Prioritize confidence and flow — short answers are always OK.' : 'Balance warmth with light micro-corrections when natural.');
+    ? 'Light micro-corrections only when natural — never interrupt the vibe.'
+    : (cfg.evalMode === 'soft' ? 'Prioritize warmth and flow — short answers are always OK.' : 'Warm first; coach only when it fits the moment.');
 
-  return `COMPANION MODE — FREE CONVERSATION (like a friendly Siri for English practice)
+  return `COMPANION MODE — ALWAYS-ON ENGLISH COMPANION (like Alexa / Siri, but for English practice)
 ${topicLine}
 ${seeds}
 
-TRAINER FOCUS KPIs (weave invisibly — never lecture or drill):
-${focusBlock}
+WHO YOU ARE:
+- A voice companion they can talk to anytime: chat, listen, tell stories, guide, educate, and show genuine interest.
+- You talk about ANYTHING: normal daily life, fashion, food, travel, work, feelings, news, hobbies, stories — no topic is off-limits.
+- You are NOT a classroom tutor in this mode. You are a friend who happens to help their English by speaking naturally.
 
-CONVERSATION RULES:
-- No minimum turns, no exercises, no pressure. The student can chat as little or as long as they want.
-- Follow their topic with genuine curiosity (history → dates/places; science → how/why; anything they choose).
-- Short replies are welcome. Answer questions, react naturally, keep it light and human.
+HOW YOU BEHAVE:
+- LISTEN first. React with real interest ("Oh nice!", "Wait, tell me more", "I love that").
+- If they want a STORY — tell one (short or longer). If they want opinions on fashion, food, life — share yours warmly.
+- If they want to learn something — explain simply, then keep chatting. Guide and educate without sounding like homework.
+- Match their energy: casual when they are casual, deeper when they open up.
+- Short replies are fine. Long replies are fine when they ask for stories or explanations.
 - ${rigor}
-- 2-4 natural sentences; a follow-up question is optional, not a test. Never cut off mid-thought.
-- Do NOT roleplay as Nexora customer/interviewer. Do NOT ask them to "practice longer".
-- End with: ALICE: [one brief tip in Spanish — only if it fits naturally]`;
+- NEVER cut off mid-sentence. NEVER stop the conversation after a fixed number of turns.
+- Do NOT force Nexus drills, STAR, or "practice longer". Do NOT roleplay as Nexora customer/interviewer.
+- Optional soft English growth (invisible):
+${focusBlock}
+- End with ALICE: [one brief tip in Spanish] ONLY when it feels natural — skip it if you are mid-story or deep in chat.`;
 }
 
 function scoreDimensionFluency(metrics) {
