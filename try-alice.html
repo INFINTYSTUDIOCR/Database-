@@ -189,22 +189,23 @@
 
   function showPaywalls() {
     AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), {
-      checkoutLabel: 'Unlock Alice Companion — 30 days',
-      waLabel: 'Pay via WhatsApp'
+      waLabel: 'Activar por WhatsApp'
     });
     AliceBilling.renderUpgradeButton(document.getElementById('limit-paywall'), {
-      checkoutLabel: 'Unlock Alice Companion — 30 days',
-      waLabel: 'Pay via WhatsApp'
+      waLabel: 'Activar por WhatsApp'
     });
   }
 
   AliceBilling.activateFromUrl().then(function (activated) {
-    if (activated) demoTrack('demo_alice_premium_activated', 'checkout');
+    if (activated && activated.premiumToken) {
+      demoTrack('demo_alice_premium_activated', 'checkout');
+      isPremium = true;
+    }
     return AliceBilling.verifyRemote();
   }).then(function (active) {
-    isPremium = !!active;
-    if (active) {
-      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), { checkoutLabel: 'Renew Alice Companion Premium' });
+    isPremium = !!(active || isPremium);
+    if (isPremium) {
+      AliceBilling.renderUpgradeButton(document.getElementById('panel-paywall'), {});
     } else {
       showPaywalls();
     }

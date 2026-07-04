@@ -1,10 +1,13 @@
 /**
- * Alice Premium — Stripe Checkout + 30-day pass (Supabase-backed).
+ * Alice Companion Premium — Stripe Checkout + 30-day pass (Supabase-backed).
+ * Foolproof flow: pay → auto-activate token → unlimited Companion.
+ * Restore: same email used at checkout.
  */
 const crypto = require('crypto');
 
 const PREMIUM_DAYS = parseInt(process.env.ALICE_PREMIUM_DAYS || '30', 10);
-const PREMIUM_USD_CENTS = parseInt(process.env.ALICE_PREMIUM_USD_CENTS || '1999', 10);
+/** Default $49 ≈ ₡24.500 Companion monthly. */
+const PREMIUM_USD_CENTS = parseInt(process.env.ALICE_PREMIUM_USD_CENTS || '4900', 10);
 const PREMIUM_TABLE = 'infinity_sessions';
 
 function getStripe() {
@@ -26,6 +29,10 @@ function checkoutRecordId(sessionId) {
   return 'ALICE-CHECKOUT-' + String(sessionId || '').trim();
 }
 
+function emailRecordId(email) {
+  return 'ALICE-EMAIL-' + String(email || '').trim().toLowerCase();
+}
+
 function generateToken() {
   return crypto.randomBytes(24).toString('hex');
 }
@@ -34,18 +41,24 @@ function publicConfig() {
   const usd = PREMIUM_USD_CENTS / 100;
   return {
     enabled: isConfigured(),
+    /** Card checkout optional; primary path is WhatsApp + manual/bridge grant. */
+    checkoutEnabled: isConfigured(),
+    activation: 'whatsapp',
     plan: 'alice_premium_30d',
+    product: 'alice_companion',
     days: PREMIUM_DAYS,
     priceUsd: usd,
-    priceLabel: '$' + usd.toFixed(2),
-    crcHint: '≈ ₡67.500 valor programa',
+    priceLabel: 'USD ' + usd.toFixed(usd % 1 ? 2 : 0),
+    crcHint: '₡24.500 · Alice Companion 30 días',
     features: [
-      'Unlimited Alice Companion chat (30 days)',
-      'No daily demo session cap',
-      'Voice + mic practice',
-      'Progress saved on this device'
+      'Alice Companion ilimitada (30 días)',
+      'Activación por WhatsApp (mismo día)',
+      'Voz + micrófono',
+      'Recuperá acceso con tu email'
     ],
-    whatsapp: 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Quiero Alice Premium')
+    whatsapp: 'https://wa.me/50660060981?text=' + encodeURIComponent(
+      'Hola! Quiero Alice Companion Premium (₡24.500 / 30 días).\nMi email para activar: '
+    )
   };
 }
 
@@ -65,14 +78,33 @@ async function isPremiumActive(token, sbGetOne) {
   return Date.now() < new Date(rec.expiresAt).getTime();
 }
 
-async function grantPremium(sbSet, { email, stripeSessionId, checkoutSessionId }) {
+async function existingGrantForCheckout(sbGetOne, checkoutSessionId) {
+  if (!checkoutSessionId || !sbGetOne) return null;
+  try {
+    const link = await sbGetOne(PREMIUM_TABLE, checkoutRecordId(checkoutSessionId));
+    const token = link?.data?.token;
+    if (!token) return null;
+    const rec = await readPremium(sbGetOne, token);
+    if (!rec?.expiresAt) return null;
+    if (Date.now() >= new Date(rec.expiresAt).getTime()) return null;
+    return rec;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function grantPremium(sbSet, { email, stripeSessionId, checkoutSessionId }, sbGetOne) {
+  const existing = await existingGrantForCheckout(sbGetOne, checkoutSessionId);
+  if (existing) return existing;
+
   const token = generateToken();
   const now = new Date();
   const expires = new Date(now.getTime() + PREMIUM_DAYS * 86400000);
   const payload = {
     token,
-    email: email || null,
+    email: email ? String(email).trim().toLowerCase() : null,
     plan: 'alice_premium_30d',
+    product: 'alice_companion',
     createdAt: now.toISOString(),
     expiresAt: expires.toISOString(),
     stripeSessionId: stripeSessionId || null
@@ -82,7 +114,15 @@ async function grantPremium(sbSet, { email, stripeSessionId, checkoutSessionId }
     await sbSet(PREMIUM_TABLE, checkoutRecordId(checkoutSessionId), {
       token,
       activatedAt: now.toISOString(),
-      expiresAt: expires.toISOString()
+      expiresAt: expires.toISOString(),
+      email: payload.email
+    });
+  }
+  if (payload.email) {
+    await sbSet(PREMIUM_TABLE, emailRecordId(payload.email), {
+      token,
+      expiresAt: expires.toISOString(),
+      updatedAt: now.toISOString()
     });
   }
   return payload;
@@ -90,16 +130,14 @@ async function grantPremium(sbSet, { email, stripeSessionId, checkoutSessionId }
 
 async function activateFromCheckout(checkoutSessionId, sbGetOne, sbSet) {
   if (!checkoutSessionId) return { error: 'missing_checkout' };
-  const link = await sbGetOne(PREMIUM_TABLE, checkoutRecordId(checkoutSessionId));
-  if (link?.data?.token) {
-    const active = await isPremiumActive(link.data.token, sbGetOne);
-    if (active) {
-      return {
-        premiumToken: link.data.token,
-        expiresAt: link.data.expiresAt,
-        plan: 'alice_premium_30d'
-      };
-    }
+
+  const existing = await existingGrantForCheckout(sbGetOne, checkoutSessionId);
+  if (existing) {
+    return {
+      premiumToken: existing.token,
+      expiresAt: existing.expiresAt,
+      plan: existing.plan || 'alice_premium_30d'
+    };
   }
 
   const stripe = getStripe();
@@ -119,11 +157,71 @@ async function activateFromCheckout(checkoutSessionId, sbGetOne, sbSet) {
     email: session.customer_details?.email || session.customer_email,
     stripeSessionId: session.id,
     checkoutSessionId: session.id
-  });
+  }, sbGetOne);
+
   return {
     premiumToken: granted.token,
     expiresAt: granted.expiresAt,
     plan: granted.plan
+  };
+}
+
+async function restoreByEmail(email, sbGetOne) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !normalized.includes('@')) return { error: 'invalid_email' };
+  try {
+    const row = await sbGetOne(PREMIUM_TABLE, emailRecordId(normalized));
+    const token = row?.data?.token;
+    if (!token) return { error: 'not_found' };
+    const active = await isPremiumActive(token, sbGetOne);
+    if (!active) return { error: 'expired' };
+    const rec = await readPremium(sbGetOne, token);
+    return {
+      premiumToken: token,
+      expiresAt: rec?.expiresAt || row.data.expiresAt,
+      plan: 'alice_premium_30d'
+    };
+  } catch (e) {
+    return { error: 'restore_failed' };
+  }
+}
+
+/**
+ * Manual / WhatsApp bridge activation (no Stripe).
+ * Always issues a fresh 30-day pass for the email (restore works with that email).
+ */
+async function manualGrant(sbSet, sbGetOne, { email, days, source } = {}) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !normalized.includes('@')) return { error: 'invalid_email' };
+
+  const token = generateToken();
+  const now = new Date();
+  const grantDays = Math.min(365, Math.max(1, parseInt(days, 10) || PREMIUM_DAYS));
+  const expires = new Date(now.getTime() + grantDays * 86400000);
+  const payload = {
+    token,
+    email: normalized,
+    plan: 'alice_premium_30d',
+    product: 'alice_companion',
+    source: source || 'whatsapp_manual',
+    createdAt: now.toISOString(),
+    expiresAt: expires.toISOString(),
+    stripeSessionId: null
+  };
+  await sbSet(PREMIUM_TABLE, premiumRecordId(token), payload);
+  await sbSet(PREMIUM_TABLE, emailRecordId(normalized), {
+    token,
+    expiresAt: expires.toISOString(),
+    updatedAt: now.toISOString(),
+    source: payload.source
+  });
+  return {
+    premiumToken: token,
+    expiresAt: payload.expiresAt,
+    plan: payload.plan,
+    email: normalized,
+    days: grantDays,
+    product: 'alice_companion'
   };
 }
 
@@ -139,8 +237,8 @@ async function createCheckoutSession({ email, successUrl, cancelUrl }) {
         currency: (process.env.ALICE_PREMIUM_CURRENCY || 'usd').toLowerCase(),
         unit_amount: PREMIUM_USD_CENTS,
         product_data: {
-          name: 'Alice Companion Premium — 30 days unlimited',
-          description: 'Unlimited free-flow English conversation with voice. Infinity Studio CR.',
+          name: 'Alice Companion Premium — 30 días',
+          description: 'Práctica de inglés ilimitada por voz. Infinity Studio CR.',
           images: process.env.ALICE_PREMIUM_IMAGE ? [process.env.ALICE_PREMIUM_IMAGE] : undefined
         }
       },
@@ -160,7 +258,7 @@ async function createCheckoutSession({ email, successUrl, cancelUrl }) {
   return { url: session.url, checkoutSessionId: session.id };
 }
 
-async function handleWebhook(rawBody, signature, sbSet) {
+async function handleWebhook(rawBody, signature, sbSet, sbGetOne) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) return { error: 'webhook_unconfigured', status: 503 };
 
@@ -181,7 +279,7 @@ async function handleWebhook(rawBody, signature, sbSet) {
         email: session.customer_details?.email || session.customer_email,
         stripeSessionId: session.id,
         checkoutSessionId: session.id
-      });
+      }, sbGetOne);
     }
   }
 
@@ -194,6 +292,8 @@ module.exports = {
   isPremiumActive,
   createCheckoutSession,
   activateFromCheckout,
+  restoreByEmail,
+  manualGrant,
   handleWebhook,
   grantPremium,
   PREMIUM_DAYS,

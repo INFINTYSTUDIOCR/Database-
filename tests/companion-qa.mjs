@@ -36,8 +36,9 @@ if (allowed.sessionType === 'companion' && !allowed.companionBlocked) pass('reso
 else fail('resolveCompanion allowed', JSON.stringify(allowed));
 
 // ── Module: topic inference ───────────────────────────────────
-if (Companion.inferTopicFromText('I love ancient history and the Roman empire') === 'history') pass('inferTopic history', 'ok');
-else fail('inferTopic history', Companion.inferTopicFromText('I love ancient history'));
+// history/ancient map to "stories" (Companion free-flow personality)
+if (Companion.inferTopicFromText('I love ancient history and the Roman empire') === 'stories') pass('inferTopic history→stories', 'ok');
+else fail('inferTopic history→stories', Companion.inferTopicFromText('I love ancient history'));
 
 if (Companion.inferTopicFromText('NASA discovered a new planet') === 'science') pass('inferTopic science', 'ok');
 else fail('inferTopic science', 'miss');

@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Precios — Infinity Studio CR | Inglés operacional Costa Rica 2026</title>
-<meta name="description" content="Precios Infinity Studio CR 2026: planes con trainer y solo IA — Jill, Alice, Alice Companion, Alice+ y Nexora.">
+<meta name="description" content="Precios Infinity Studio CR 2026 en colones. Paquetes con trainer (Foundations, ORT), IA sola (Jill, Alice, Companion) y add-ons (Nexora Pro, Alice+). LATAM: tipo de cambio + 8%.">
 <link rel="canonical" href="https://studioinfinitycr.com/pricing.html">
 <meta property="og:title" content="Precios Infinity Studio CR 2026">
-<meta property="og:description" content="Planes con trainer desde ₡67.500. Solo IA: Jill, Alice, Companion, Alice+ y Nexora.">
+<meta property="og:description" content="Foundations y ORT con trainer. Jill, Alice, Alice Companion, Nexora Pro y Alice+. Precios en colones. LATAM: TC + 8%.">
 <meta property="og:url" content="https://studioinfinitycr.com/pricing.html">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -15,7 +15,7 @@
 <style>
 .price-draft{background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid #F59E0B;border-radius:12px;padding:12px 16px;margin-bottom:1.75rem;font-size:13px;color:#92400E;font-weight:600;line-height:1.5;}
 .price-section-title{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;margin:2.25rem 0 0.5rem;color:var(--text);}
-.price-section-sub{font-size:14px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;max-width:40rem;}
+.price-section-sub{font-size:14px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;max-width:42rem;}
 .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.15rem;margin-bottom:1.5rem;}
 .price-card{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:16px;padding:1.35rem 1.25rem;box-shadow:0 10px 28px rgba(91,33,182,0.08);display:flex;flex-direction:column;min-height:100%;}
 .price-card.featured{border:2px solid var(--purple);box-shadow:0 14px 36px rgba(91,33,182,0.16);position:relative;}
@@ -24,8 +24,13 @@
 .price-card .price-tag{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
 .price-card .amount{font-family:'Space Grotesk',sans-serif;font-size:1.75rem;font-weight:800;color:var(--purple-dark);line-height:1.1;}
 .price-card .amount small{font-size:13px;font-weight:600;color:var(--t3);}
-.price-card .amount-usd{font-size:13px;color:var(--t2);margin:4px 0 10px;}
+.price-card .amount-note{font-size:12px;color:var(--t3);margin:0 0 10px;}
 .price-card .was{font-size:12px;color:var(--t3);text-decoration:line-through;margin-bottom:2px;}
+.price-markets{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1.75rem;}
+.price-market{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:14px;padding:1.1rem 1.15rem;box-shadow:0 8px 22px rgba(91,33,182,0.07);}
+.price-market h3{font-size:0.95rem;font-weight:800;margin:0 0 6px;color:var(--text);}
+.price-market .market-price{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;color:var(--purple-dark);margin:0 0 6px;}
+.price-market p{font-size:13px;color:var(--t2);line-height:1.55;margin:0;}
 .price-card p{font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;flex:1;}
 .price-card ul{list-style:none;padding:0;margin:0 0 14px;font-size:12px;color:var(--t2);line-height:1.55;}
 .price-card ul li{padding:4px 0;display:flex;gap:6px;align-items:flex-start;}
@@ -37,6 +42,10 @@
 .price-compare th{background:linear-gradient(135deg,#EDE9FE,#F5EEFF);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--purple-dark);}
 .price-compare tr:last-child td{border-bottom:none;}
 .price-compare strong{color:var(--purple-dark);}
+.alice-split{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.75rem;}
+.alice-split-card{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:14px;padding:1.15rem 1.2rem;box-shadow:0 8px 22px rgba(91,33,182,0.07);}
+.alice-split-card h3{font-size:1rem;font-weight:800;margin:0 0 8px;color:var(--purple-dark);}
+.alice-split-card p{font-size:13px;color:var(--t2);line-height:1.55;margin:0;}
 @media(max-width:640px){.price-compare{font-size:12px;}.price-compare th,.price-compare td{padding:10px 8px;}}
 </style>
 </head>
@@ -55,7 +64,7 @@
   <div class="subpage-hero-inner">
     <div class="section-tag">Esquema de precios · borrador</div>
     <h1>Precios Infinity Studio CR — 2026</h1>
-    <p class="lead">Dos caminos: <strong>plan con trainer humano</strong> o <strong>solo IA</strong> (Jill, Alice, Companion, Alice+, Nexora). Revisá el esquema y decidimos si lo publicamos así.</p>
+    <p class="lead"><strong>Paquetes base</strong> con trainer, <strong>IA sola</strong> (Jill, Alice, Companion) y <strong>add-ons premium</strong> (Nexora Pro, Alice+). Todos los precios en <strong>colones</strong>.</p>
   </div>
 </header>
 
@@ -64,70 +73,82 @@
     <i class="ti ti-info-circle"></i> <strong>Borrador para revisión.</strong> Aún no es la lista oficial de cobro. Si te parece bien, lo dejamos fijo y conectamos pagos / WhatsApp.
   </div>
 
-  <!-- A. PLANES CON TRAINER -->
-  <h2 class="price-section-title">A. Planes con trainer humano</h2>
-  <p class="price-section-sub">12 h/mes privadas + IA de apoyo según el plan. Promo 2026 sujeta a cupos.</p>
+  <div class="price-markets">
+    <div class="price-market">
+      <h3><i class="ti ti-map-pin"></i> Costa Rica</h3>
+      <div class="market-price">Precio en ₡</div>
+      <p>Pagás el monto en colones por <strong>transferencia local / SINPE</strong>. Sin recargo de procesamiento internacional.</p>
+    </div>
+    <div class="price-market">
+      <h3><i class="ti ti-world"></i> Resto de LATAM</h3>
+      <div class="market-price">₡ → TC + 8%</div>
+      <p>Mismo precio en colones, convertido al <strong>tipo de cambio del día</strong> más <strong>8%</strong> por PayPal o Western Union. El monto final en tu moneda se confirma al pagar.</p>
+    </div>
+  </div>
+
+  <!-- Alice tutora vs Companion -->
+  <h2 class="price-section-title">Alice tutora ≠ Alice Companion</h2>
+  <p class="price-section-sub">Dos productos distintos. No son lo mismo con otro nombre.</p>
+  <div class="alice-split">
+    <div class="alice-split-card">
+      <h3><i class="ti ti-school"></i> Alice tutora — Enfocada</h3>
+      <p>Linkers, estructura, corrección, evaluación y KPIs. Trabajo duro. La sesión de entrenamiento. Ideal si querés método y progreso medible.</p>
+    </div>
+    <div class="alice-split-card">
+      <h3><i class="ti ti-messages"></i> Alice Companion — Libre</h3>
+      <p>Hablás de lo que querás, cuando querás. Te sigue la corriente, se interesa por el tema y te corrige suave sin cortar el flow — como esa amiga bilingüe con quien podés hablar horas. Práctica real, no “clase”.</p>
+    </div>
+  </div>
+
+  <!-- A. PAQUETES BASE -->
+  <h2 class="price-section-title">A. Paquetes base (con trainer humano)</h2>
+  <p class="price-section-sub">12 h/mes privadas + IA según el nivel. Promo 2026 sujeta a cupos.</p>
 
   <div class="price-grid">
     <article class="price-card">
-      <div class="price-tag">Fundamentos estructurales</div>
-      <h3>Foundations + Jill</h3>
+      <div class="price-tag">Paquete base · nivel cero</div>
+      <h3>Foundations</h3>
       <div class="was">Lista ₡96.000</div>
       <div class="amount">₡67.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $135 · Regular ₡75.000</div>
-      <p>Estructura del idioma antes de la presión. Trainer 12 h + Jill 24/7.</p>
+      <div class="amount-note">CR: transferencia local · LATAM: TC del día + 8% · Regular ₡75.000</div>
+      <p><strong>Jill IA + trainer humano.</strong> Nivel cero: Jill construye la base; el trainer calibra.</p>
       <ul>
         <li><i class="ti ti-check"></i> 12 h trainer privado</li>
-        <li><i class="ti ti-check"></i> Jill tutora (Fundamentos)</li>
+        <li><i class="ti ti-check"></i> Jill tutora 24/7 (estructura desde cero)</li>
         <li><i class="ti ti-check"></i> Training Book + KPIs</li>
       </ul>
       <a href="index.html#contact" class="btn-mini">Agenda diagnóstico</a>
     </article>
 
     <article class="price-card featured">
-      <div class="price-tag">ORT</div>
-      <h3>Operational Readiness</h3>
+      <div class="price-tag">Paquete base · intermedio-avanzado</div>
+      <h3>ORT</h3>
       <div class="was">Lista ₡127.500</div>
       <div class="amount">₡67.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $135 · Regular ₡75.000</div>
-      <p>Ejecución bajo presión. Trainer 12 h + Alice tutora + Nexora incluido.</p>
+      <div class="amount-note">CR: transferencia local · LATAM: TC del día + 8% · Regular ₡75.000</div>
+      <p><strong>Alice IA + Nexora + trainer humano.</strong> Alice corrige, Nexora simula, el trainer entrega.</p>
       <ul>
         <li><i class="ti ti-check"></i> 12 h trainer privado</li>
-        <li><i class="ti ti-check"></i> Alice tutora (Nexus)</li>
-        <li><i class="ti ti-check"></i> Nexora simulaciones</li>
+        <li><i class="ti ti-check"></i> Alice tutora (método Nexus)</li>
+        <li><i class="ti ti-check"></i> Nexora (simulaciones bajo presión)</li>
       </ul>
       <a href="index.html#contact" class="btn-mini">Agenda diagnóstico</a>
     </article>
-
-    <article class="price-card">
-      <div class="price-tag">Sprint 30 días</div>
-      <h3>Nexora Professional</h3>
-      <div class="was">Lista ₡135.750</div>
-      <div class="amount">₡67.500 <small>/30 días</small></div>
-      <div class="amount-usd">≈ $135 · Regular ₡75.000</div>
-      <p>Volumen de simulaciones 24/7 — entrevistas, CS, ROI, stakeholder.</p>
-      <ul>
-        <li><i class="ti ti-check"></i> Lab Nexora full access</li>
-        <li><i class="ti ti-check"></i> Sin horas de trainer</li>
-        <li><i class="ti ti-check"></i> Ideal pre-entrevista</li>
-      </ul>
-      <a href="try-nexora.html" class="btn-mini outline">Probar Nexora</a>
-    </article>
   </div>
 
-  <!-- B. SOLO IA -->
-  <h2 class="price-section-title">B. Solo IA (sin trainer)</h2>
-  <p class="price-section-sub">Suscripción mensual. Ideal si querés practicar solo con IA o sumar un add-on a tu plan.</p>
+  <!-- B. INDEPENDIENTES -->
+  <h2 class="price-section-title">B. Productos independientes (sin trainer)</h2>
+  <p class="price-section-sub">IA sola. Entrada al método o práctica diaria sin horas humanas.</p>
 
   <div class="price-grid">
     <article class="price-card">
-      <div class="price-tag">Jill</div>
-      <h3>Tutora Fundamentos</h3>
-      <div class="amount">₡9.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $19 · Lista ₡12.500</div>
-      <p>Estructura, chunks, tiempos y linkers. Entrada al método.</p>
+      <div class="price-tag">Independiente</div>
+      <h3>Jill sola</h3>
+      <div class="amount">₡12.500 <small>/mes</small></div>
+      <div class="amount-note">CR: transferencia local · LATAM: TC + 8%</div>
+      <p>IA tutora desde cero. Estructura, chunks, tiempos y linkers. Sin trainer humano.</p>
       <ul>
-        <li><i class="ti ti-check"></i> Práctica asíncrona</li>
+        <li><i class="ti ti-check"></i> Base del idioma</li>
         <li><i class="ti ti-check"></i> Método Nexus básico</li>
         <li><i class="ti ti-check"></i> Sin trainer humano</li>
       </ul>
@@ -135,133 +156,143 @@
     </article>
 
     <article class="price-card">
-      <div class="price-tag">Alice</div>
-      <h3>Tutora Nexus</h3>
-      <div class="amount">₡12.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $25 · Lista ₡16.500</div>
-      <p>Coach estructurado: conectores, recuperación, KPIs y ejercicios.</p>
+      <div class="price-tag">Independiente</div>
+      <h3>Alice tutora</h3>
+      <div class="amount">₡18.500 <small>/mes</small></div>
+      <div class="amount-note">CR: transferencia local · LATAM: TC + 8%</div>
+      <p>IA tutora intermedio-avanzado. Linkers, estructura, corrección, evaluación y KPIs. La sesión de entrenamiento — sin trainer humano.</p>
       <ul>
         <li><i class="ti ti-check"></i> Método Nexus completo</li>
         <li><i class="ti ti-check"></i> Voz + texto</li>
-        <li><i class="ti ti-check"></i> Alineada a Training Book</li>
+        <li><i class="ti ti-check"></i> KPIs y corrección enfocada</li>
       </ul>
       <a href="try-demo.html" class="btn-mini outline">Ver demos</a>
     </article>
 
     <article class="price-card featured">
-      <div class="price-tag">Alice Companion</div>
-      <h3>Práctica tipo Alexa</h3>
-      <div class="amount">₡14.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $29 · Lista ₡19.500</div>
-      <p>Habla, escucha, historias, moda, vida diaria — cualquier tema, sin cortes.</p>
+      <div class="price-tag">Independiente · la más humana</div>
+      <h3>Alice Companion</h3>
+      <div class="amount">₡24.500 <small>/mes</small></div>
+      <div class="amount-note">CR: transferencia local · LATAM: TC + 8%</div>
+      <p>No es clase: es alguien con quien hablar en inglés. Cualquier tema, cuando querás. Te sigue la corriente, se interesa, corrige suave y no corta el flow.</p>
       <ul>
-        <li><i class="ti ti-check"></i> Charla libre ilimitada</li>
+        <li><i class="ti ti-check"></i> Charla libre 24/7 por voz</li>
         <li><i class="ti ti-check"></i> Interés real + historias</li>
-        <li><i class="ti ti-check"></i> 24/7 por voz</li>
+        <li><i class="ti ti-check"></i> Corrección suave sin interrumpir</li>
       </ul>
       <a href="try-alice.html" class="btn-mini">Probar Companion</a>
     </article>
+  </div>
 
-    <article class="price-card">
-      <div class="price-tag">Alice+</div>
-      <h3>Tutora + Companion</h3>
-      <div class="amount">₡19.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $39 · Lista ₡24.500</div>
-      <p>Nexus estructurado + charla libre. El pack completo de Alice.</p>
-      <ul>
-        <li><i class="ti ti-check"></i> Alice tutora</li>
-        <li><i class="ti ti-check"></i> Alice Companion</li>
-        <li><i class="ti ti-check"></i> Mejor precio que por separado</li>
-      </ul>
-      <a href="index.html#contact" class="btn-mini outline">Pedir acceso</a>
-    </article>
+  <!-- C. ADD-ONS PREMIUM -->
+  <h2 class="price-section-title">C. Add-ons premium</h2>
+  <p class="price-section-sub">Herramientas y packs IA sin trainer. Se activan desde el dashboard / acceso del estudiante.</p>
 
+  <div class="price-grid">
     <article class="price-card">
-      <div class="price-tag">Nexora</div>
-      <h3>Lab de simulaciones</h3>
-      <div class="amount">₡16.500 <small>/mes</small></div>
-      <div class="amount-usd">≈ $33 · o ₡22.500 / 30 días sprint</div>
-      <p>Entrevistas, clientes, stakeholder ROI, upload de documentos.</p>
+      <div class="price-tag">Add-on premium</div>
+      <h3>Nexora Pro</h3>
+      <div class="amount">₡28.500 <small>/mes</small></div>
+      <div class="amount-note">CR: transferencia local · LATAM: TC + 8%</div>
+      <p><strong>No es práctica diaria.</strong> Nexora programada a medida: desde el dashboard elegís qué practicar — entrevistas, reuniones, llamadas, presentaciones, informes.</p>
       <ul>
-        <li><i class="ti ti-check"></i> Simulaciones con voz</li>
-        <li><i class="ti ti-check"></i> Escenarios bajo presión</li>
-        <li><i class="ti ti-check"></i> Análisis financiero / ROI</li>
+        <li><i class="ti ti-check"></i> Lab de simulaciones bajo presión</li>
+        <li><i class="ti ti-check"></i> Escenarios a medida del cliente</li>
+        <li><i class="ti ti-check"></i> Activación desde el dashboard</li>
+        <li><i class="ti ti-check"></i> Herramienta de sprint — no coach diario</li>
       </ul>
       <a href="try-nexora.html" class="btn-mini outline">Probar Nexora</a>
     </article>
+
+    <article class="price-card featured">
+      <div class="price-tag">Add-on premium · pack IA completo</div>
+      <h3>Alice+</h3>
+      <div class="amount">₡49.500 <small>/mes</small></div>
+      <div class="amount-note">CR: transferencia local · LATAM: TC + 8% · Ahorrás vs por separado (₡71.500)</div>
+      <p>El paquete IA más completo <strong>sin trainer humano</strong>: Alice tutora + Nexora Pro + Alice Companion. Entrenamiento, simulaciones y compañera de práctica en un solo acceso.</p>
+      <ul>
+        <li><i class="ti ti-check"></i> Alice tutora (método + KPIs)</li>
+        <li><i class="ti ti-check"></i> Nexora Pro (simulaciones a medida)</li>
+        <li><i class="ti ti-check"></i> Alice Companion (práctica libre)</li>
+      </ul>
+      <a href="index.html#contact" class="btn-mini">Pedir acceso Alice+</a>
+    </article>
   </div>
 
-  <!-- C. COMPARATIVA -->
-  <h2 class="price-section-title">C. Comparativa rápida</h2>
-  <p class="price-section-sub">Qué incluye cada camino.</p>
+  <!-- D. COMPARATIVA -->
+  <h2 class="price-section-title">D. Comparativa rápida</h2>
+  <p class="price-section-sub">Precios base en colones. LATAM: tipo de cambio del día + 8%.</p>
 
   <table class="price-compare">
     <thead>
       <tr>
         <th>Producto</th>
-        <th>Promo</th>
-        <th>Trainer</th>
+        <th>Tipo</th>
+        <th>Precio (₡)</th>
+        <th>Incluye</th>
         <th>Ideal para</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>Fundamentos + trainer</strong></td>
+        <td><strong>Foundations</strong></td>
+        <td>Paquete base</td>
         <td>₡67.500/mes</td>
-        <td>12 h</td>
-        <td>No arranco / base débil</td>
+        <td>Trainer + Jill</td>
+        <td>Nivel cero / base débil</td>
       </tr>
       <tr>
-        <td><strong>ORT + trainer</strong></td>
+        <td><strong>ORT</strong></td>
+        <td>Paquete base</td>
         <td>₡67.500/mes</td>
-        <td>12 h</td>
-        <td>Me bloqueo al hablar</td>
-      </tr>
-      <tr>
-        <td><strong>Nexora Pro sprint</strong></td>
-        <td>₡67.500 / 30 días</td>
-        <td>—</td>
-        <td>Volumen pre-entrevista</td>
+        <td>Trainer + Alice + Nexora</td>
+        <td>Intermedio-avanzado / presión</td>
       </tr>
       <tr>
         <td><strong>Jill sola</strong></td>
-        <td>₡9.500/mes</td>
-        <td>—</td>
-        <td>Estructura básica</td>
+        <td>Independiente</td>
+        <td>₡12.500/mes</td>
+        <td>Jill</td>
+        <td>Estructura desde cero, sin trainer</td>
       </tr>
       <tr>
         <td><strong>Alice tutora</strong></td>
-        <td>₡12.500/mes</td>
-        <td>—</td>
-        <td>Coach Nexus</td>
+        <td>Independiente</td>
+        <td>₡18.500/mes</td>
+        <td>Alice tutora</td>
+        <td>Entrenamiento enfocado + KPIs</td>
       </tr>
       <tr>
         <td><strong>Alice Companion</strong></td>
-        <td>₡14.500/mes</td>
-        <td>—</td>
-        <td>Práctica libre tipo Alexa</td>
+        <td>Independiente</td>
+        <td>₡24.500/mes</td>
+        <td>Companion</td>
+        <td>Alguien con quien hablar en inglés</td>
+      </tr>
+      <tr>
+        <td><strong>Nexora Pro</strong></td>
+        <td>Add-on</td>
+        <td>₡28.500/mes</td>
+        <td>Nexora a medida</td>
+        <td>Sprint / simulaciones (no diario)</td>
       </tr>
       <tr>
         <td><strong>Alice+</strong></td>
-        <td>₡19.500/mes</td>
-        <td>—</td>
-        <td>Tutora + Companion</td>
-      </tr>
-      <tr>
-        <td><strong>Nexora sola</strong></td>
-        <td>₡16.500/mes</td>
-        <td>—</td>
-        <td>Simulaciones / ROI</td>
+        <td>Add-on</td>
+        <td>₡49.500/mes</td>
+        <td>Tutora + Nexora + Companion</td>
+        <td>Todo el ecosistema IA, sin trainer</td>
       </tr>
     </tbody>
   </table>
 
   <div class="pricing-panel">
-    <p><strong>Regla de empaquetado:</strong> el plan con trainer (₡67.500) siempre sale más barato que sumar trainer suelto + todas las IAs. Si ya tenés plan Infinity, los add-ons de IA pueden ir con −30%.</p>
+    <p><strong>Cómo se cobra:</strong> precios en <strong>colones</strong>. Costa Rica: transferencia local. Resto de LATAM: tipo de cambio del día + <strong>8%</strong> (PayPal / Western Union).</p>
+    <p style="margin:0.75rem 0 0;"><strong>Regla de empaquetado:</strong> Foundations y ORT (₡67.500) incluyen trainer humano — siempre más valor que armar IA suelta. Alice+ (₡49.500) es el techo IA sin trainer. Si ya tenés plan base, los add-ons pueden ir con −30%.</p>
     <p style="margin:0.75rem 0 0;"><strong>Diagnóstico:</strong> 90 min gratis con trainer — sin compromiso.</p>
   </div>
 
-  <p class="pricing-note">Borrador de esquema. Precios en CRC; USD aproximado a tipo de cambio de referencia. Promo 2026 sujeta a cupos. Pagos: WhatsApp hoy · tarjeta cuando se active checkout.</p>
+  <p class="pricing-note">Borrador de esquema. Precios en CRC. Promo 2026 sujeta a cupos. LATAM: tipo de cambio del día + 8% (PayPal / Western Union). Pagos: WhatsApp hoy · tarjeta cuando se active checkout.</p>
 
   <div class="cta-row">
     <a href="https://wa.me/50660060981?text=Hola!%20Vi%20el%20esquema%20de%20precios%20y%20quiero%20agendar%20diagn%C3%B3stico" class="cta-primary" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> WhatsApp — agendar</a>

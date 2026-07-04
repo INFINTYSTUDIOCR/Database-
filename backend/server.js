@@ -15,7 +15,7 @@ app.set('trust proxy', 1);
 app.post('/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const sig = req.headers['stripe-signature'];
-    const result = await Billing.handleWebhook(req.body, sig, sbSet);
+    const result = await Billing.handleWebhook(req.body, sig, sbSet, sbGetOne);
     return res.status(result.status || 200).json(result);
   } catch (err) {
     console.error('Billing webhook error:', err.message);
@@ -1422,6 +1422,45 @@ app.get('/billing/activate', async (req, res) => {
   } catch (err) {
     console.error('Activate error:', err.message);
     return res.status(500).json({ error: 'activate_failed' });
+  }
+});
+
+/** Recover premium token with the same email used at activation. */
+app.post('/billing/restore', async (req, res) => {
+  try {
+    const email = (req.body && req.body.email) || '';
+    const result = await Billing.restoreByEmail(email, sbGetOne);
+    if (result.error === 'invalid_email') return res.status(400).json(result);
+    if (result.error === 'not_found' || result.error === 'expired') return res.status(404).json(result);
+    if (result.error) return res.status(500).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Restore error:', err.message);
+    return res.status(500).json({ error: 'restore_failed' });
+  }
+});
+
+/**
+ * Manual activation (WhatsApp bridge on your PC, or admin tools).
+ * Header: X-Bridge-Secret: ANALYZE_SECRET (or WA_BRIDGE_SECRET).
+ */
+app.post('/billing/manual-grant', async (req, res) => {
+  try {
+    const secret = req.headers['x-bridge-secret'] || req.body?.secret || '';
+    const expected = process.env.WA_BRIDGE_SECRET || process.env.ANALYZE_SECRET || '';
+    if (!expected || secret !== expected) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    const email = (req.body && req.body.email) || '';
+    const days = req.body?.days;
+    const source = (req.body && req.body.source) || 'whatsapp_bridge';
+    const result = await Billing.manualGrant(sbSet, sbGetOne, { email, days, source });
+    if (result.error === 'invalid_email') return res.status(400).json(result);
+    if (result.error) return res.status(500).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Manual grant error:', err.message);
+    return res.status(500).json({ error: 'grant_failed', message: err.message });
   }
 });
 
