@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Activar Companion — solo vos</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,sans-serif;background:#f5f3ff;margin:0;padding:24px;color:#1e1b4b}
+  .box{max-width:420px;margin:40px auto;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 12px 40px rgba(91,33,182,.12)}
+  h1{font-size:1.25rem;margin:0 0 8px}
+  p{font-size:14px;color:#64748b;line-height:1.5;margin:0 0 20px}
+  label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
+  input{width:100%;padding:12px 14px;border:1px solid #ddd6fe;border-radius:10px;font-size:16px;margin-bottom:14px}
+  button{width:100%;padding:14px;border:0;border-radius:10px;background:#5b21b6;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+  button:disabled{opacity:.6;cursor:wait}
+  .ok{background:#ecfdf5;color:#065f46;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
+  .err{background:#fef2f2;color:#991b1b;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
+  .copy{margin-top:12px;font-size:13px;line-height:1.45;background:#f8fafc;padding:12px;border-radius:10px;display:none}
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>Activar Alice Companion</h1>
+    <p>Cuando el cliente te pague por WhatsApp, poné su email acá y tocá el botón. Después le mandás el mensaje que aparece abajo.</p>
+
+    <label for="pass">Tu clave secreta</label>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="La misma de Render (ANALYZE_SECRET)">
+
+    <label for="email">Email del cliente</label>
+    <input id="email" type="email" autocomplete="off" placeholder="cliente@gmail.com">
+
+    <button type="button" id="btn">Activar 30 días</button>
+
+    <div class="ok" id="ok"></div>
+    <div class="err" id="err"></div>
+    <div class="copy" id="copy"></div>
+  </div>
+
+<script>
+(function () {
+  var BACKEND = 'https://alice-by-infinity.onrender.com';
+  var CLIENT = 'https://studioinfinitycr.com/try-alice.html';
+  var btn = document.getElementById('btn');
+  var ok = document.getElementById('ok');
+  var err = document.getElementById('err');
+  var copy = document.getElementById('copy');
+
+  function show(el, text) {
+    ok.style.display = 'none';
+    err.style.display = 'none';
+    copy.style.display = 'none';
+    el.style.display = 'block';
+    el.textContent = text;
+  }
+
+  btn.onclick = async function () {
+    var pass = document.getElementById('pass').value.trim();
+    var email = document.getElementById('email').value.trim().toLowerCase();
+    ok.style.display = err.style.display = copy.style.display = 'none';
+    if (!pass) return show(err, 'Falta tu clave secreta.');
+    if (!email || email.indexOf('@') < 0) return show(err, 'Poné un email válido del cliente.');
+
+    btn.disabled = true;
+    btn.textContent = 'Activando…';
+    try {
+      var r = await fetch(BACKEND + '/billing/manual-grant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Bridge-Secret': pass
+        },
+        body: JSON.stringify({ email: email, source: 'activar_web' })
+      });
+      var data = await r.json().catch(function () { return {}; });
+      if (!r.ok) {
+        show(err, r.status === 401
+          ? 'Clave incorrecta. Usá ANALYZE_SECRET de Render.'
+          : (data.error || data.message || 'No se pudo activar. ¿Redeploy del backend?'));
+        return;
+      }
+      var hasta = data.expiresAt ? new Date(data.expiresAt).toLocaleDateString('es-CR') : '30 días';
+      show(ok, 'Listo. Companion activa para ' + email + ' hasta ' + hasta + '.');
+      var msg =
+        'Listo ✅ Alice Companion activa.\n\n' +
+        '1. Entrá a: ' + CLIENT + '\n' +
+        '2. Tocá: Ya me activaron — entrar con mi email\n' +
+        '3. Escribí este email: ' + email + '\n\n' +
+        'Válido hasta: ' + hasta;
+      copy.style.display = 'block';
+      copy.textContent = 'Copiá y pegá esto al cliente en WhatsApp:\n\n' + msg;
+      try { await navigator.clipboard.writeText(msg); } catch (e) {}
+    } catch (e) {
+      show(err, 'Error de red. Revisá internet o que el servidor esté arriba.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Activar 30 días';
+    }
+  };
+})();
+</script>
+</body>
+</html>
