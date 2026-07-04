@@ -1517,12 +1517,8 @@ app.get('/demo/voices', (req, res) => {
 
 app.post('/demo/tts', async (req, res) => {
   try {
-    const { text, voiceId: bodyVoiceId, firstName, voice, product } = req.body || {};
+    const { text, voiceId: bodyVoiceId, firstName, voice, product, premiumToken } = req.body || {};
     const ip = getClientIp(req);
-    const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
-    if (!ipLimit.ok) {
-      return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
-    }
 
     const requested = String(bodyVoiceId || '').trim();
     const wantsAlice =
@@ -1532,9 +1528,15 @@ app.post('/demo/tts', async (req, res) => {
       requested === ALICE_VOICE_ID ||
       requested === 'r1KmysJdVYZjJCm4mL3b';
 
-    // Alice tutor + Alice Companion: always the same ElevenLabs Alice voice (never Nexora / browser remap).
+    // Alice tutor + Companion: always ElevenLabs Alice — never Nexora remap, never browser fallback voice.
+    // Do not apply demo TTS daily cap here (cap was causing robotic speechSynthesis fallback on the client).
     if (wantsAlice) {
       return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
+    }
+
+    const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts', premiumToken });
+    if (!ipLimit.ok) {
+      return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
 
     const voiceId = enforceNexoraTtsVoice(firstName, requested);

@@ -144,6 +144,18 @@ var DemoVoice = (function () {
     return false;
   }
 
+  function premiumFields() {
+    if (typeof AliceBilling !== 'undefined' && AliceBilling.payload) {
+      try { return AliceBilling.payload() || {}; } catch (e) { /* ignore */ }
+    }
+    try {
+      var t = localStorage.getItem('alice_premium_token');
+      return t ? { premiumToken: t } : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
   function speak(text, profile, onEnd, isRetry) {
     var p = normalizeProfile(profile || _activeProfile);
     if (!p) return;
@@ -155,33 +167,47 @@ var DemoVoice = (function () {
       return;
     }
 
-    // Alice tutor + Companion: always Alice's ElevenLabs voice (same ID).
+    // Alice tutor + Companion: ALWAYS ElevenLabs Alice — never browser robot voice.
     var alice = isAliceProfile(p);
-    var voiceId = alice
-      ? (window.DEMO_VOICES && window.DEMO_VOICES.alice && window.DEMO_VOICES.alice.voiceId) || ALICE_VOICE_ID
-      : p.voiceId;
+    var voiceId = alice ? ALICE_VOICE_ID : p.voiceId;
+
+    var body = {
+      text: cleanText,
+      voiceId: voiceId
+    };
+    if (alice) {
+      body.voice = 'alice';
+      body.product = 'alice';
+      body.voiceId = ALICE_VOICE_ID;
+    }
+    var prem = premiumFields();
+    if (prem.premiumToken) body.premiumToken = prem.premiumToken;
 
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: cleanText,
-        voiceId: voiceId,
-        voice: alice ? 'alice' : undefined,
-        product: alice ? 'alice' : undefined
-      })
+      body: JSON.stringify(body)
     })
       .then(function (r) {
-        if (!r.ok) throw new Error('tts_fail');
+        if (!r.ok) throw new Error('tts_fail_' + r.status);
         var ct = (r.headers.get('content-type') || '').toLowerCase();
         if (ct.indexOf('audio') >= 0) return r.blob();
         throw new Error('not_audio');
       })
-      .then(function (blob) { playBlob(blob, onEnd); })
+      .then(function (blob) {
+        if (!blob || blob.size < 100) throw new Error('empty_audio');
+        playBlob(blob, onEnd);
+      })
       .catch(function () {
-        // One retry with hard-coded Alice ID before browser (browser sounds robotic).
+        // Retry once — never use speechSynthesis for Alice (sounds like a robot).
         if (alice && !isRetry) {
-          speak(cleanText, { voiceId: ALICE_VOICE_ID, label: 'Alice', gender: 'female' }, onEnd, true);
+          setTimeout(function () {
+            speak(cleanText, { voiceId: ALICE_VOICE_ID, label: 'Alice', gender: 'female', lang: 'en-US' }, onEnd, true);
+          }, 400);
+          return;
+        }
+        if (alice) {
+          if (typeof onEnd === 'function') onEnd();
           return;
         }
         browserSpeak(cleanText, p, onEnd);
