@@ -4,7 +4,7 @@
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v2-alexa-companion';
+const COMPANION_BRAIN_VER = 'v2-practice-assistant';
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',
@@ -147,7 +147,7 @@ function buildCompanionCoachBlock(student, config, topic) {
     ? 'Light micro-corrections only when natural — never interrupt the vibe.'
     : (cfg.evalMode === 'soft' ? 'Prioritize warmth and flow — short answers are always OK.' : 'Warm first; coach only when it fits the moment.');
 
-  return `COMPANION MODE — ALWAYS-ON ENGLISH COMPANION (like Alexa / Siri, but for English practice)
+  return `COMPANION MODE — ALWAYS-ON ENGLISH COMPANION (personal practice assistant for English)
 ${topicLine}
 ${seeds}
 
