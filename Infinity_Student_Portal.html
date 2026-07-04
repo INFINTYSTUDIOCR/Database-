@@ -31,7 +31,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/tts-chunks.js?v=20260703"></script>
+<script src="js/tts-chunks.js?v=20260703c"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -2326,16 +2326,22 @@ function aliceInstantOpening(student, returning, sessionType){
 }
 
 function aliceTtsMainLine(text){
-  var spoken = String(text || '').replace(/^💬\s*/, '').replace(/▋/g, '').trim();
-  var parts = spoken.split(/\nALICE:\s*/i);
-  return aliceCleanTtsText(parts[0] || spoken);
+  // Speak the FULL reply — never drop the second half or ALICE tip line
+  return String(text || '')
+    .replace(/^💬\s*/, '')
+    .replace(/▋/g, '')
+    .replace(/\nALICE:\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function aliceQueueFullReply(text){
   if(!text || !_aliceSpeakEnabled) return;
   var main = aliceTtsMainLine(text);
   if(!main || main.length < 3) return;
-  ttsSpeakLines(main, 900).forEach(function(line){
+  // Clear stale queue so a new full reply is never mixed with a half-played one
+  _aliceTTSQueue = [];
+  ttsSpeakLines(main, 700).forEach(function(line){
     if(line && line.length >= 3) aliceQueueSpeak(line);
   });
 }
@@ -3436,14 +3442,16 @@ function alicePrunePrefetchCache(){
   keys.slice(0, keys.length - 14).forEach(function(k){ delete _aliceTtsPrefetch[k]; });
 }
 
-function aliceArmTtsWatchdog(){
+function aliceArmTtsWatchdog(textLen){
   clearTimeout(_aliceTtsWatchdog);
+  var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
   _aliceTtsWatchdog = setTimeout(function(){
     if(!_aliceTTSBusy) return;
+    // Only advance if audio truly stalled — never cut a healthy long playback early
     _aliceTTSBusy = false;
     if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} window._aliceAudio = null; }
     _aliceTTSFlush();
-  }, 42000);
+  }, ms);
 }
 
 function aliceCleanTtsText(text){
@@ -3467,10 +3475,10 @@ function _aliceTTSFlush(){
   if(_aliceTTSBusy || _aliceTTSQueue.length===0 || !_aliceSpeakEnabled) return;
   _aliceTTSBusy = true;
   _aliceState.speaking = true;
-  aliceArmTtsWatchdog();
   var gen = _aliceSpeakGen;
   var text = _aliceTTSQueue.shift();
   var clean = aliceCleanTtsText(text);
+  aliceArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
 
   function playBlob(b){

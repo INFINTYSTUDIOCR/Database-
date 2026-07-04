@@ -1469,6 +1469,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 </footer>
 
 <script src="js/i18n.js"></script>
+<script src="js/tts-chunks.js?v=20260703c"></script>
 <script src="js/program-vignettes.js"></script>
 <script src="js/student-deliverables.js"></script>
 <script>
@@ -1588,7 +1589,7 @@ function submitContact(){
 <script>
 // ── CLAIRE WIDGET ─────────────────────────────────────────────
 var CLAIRE_BACKEND = 'https://alice-by-infinity.onrender.com';
-var _ch = [], _open = false, _started = false, _count = 0, _LIMIT = 20;
+var _ch = [], _open = false, _started = false, _count = 0, _LIMIT = 100;
 var _mic = null, _micOn = false;
 
 function toggleClaire() {
@@ -1644,7 +1645,7 @@ async function sendClaire() {
   _ch.push({role:'user', content:txt});
   _count++;
   updateCount();
-  if (_count === 17) setTimeout(function(){ addMsg('💡 Nos quedan pocos mensajes — si quieres continuar, agenda tu evaluación gratuita cuando quieras.', 'c'); }, 300);
+  if (_count === 90) setTimeout(function(){ addMsg('💡 Si quieres seguir con un trainer humano, agenda tu evaluación gratuita cuando quieras.', 'c'); }, 300);
   if (_count >= _LIMIT) { setTimeout(showLimit, 600); return; }
   showTyping(true);
   try {
@@ -1663,19 +1664,39 @@ async function sendClaire() {
   }
 }
 
+var _claireTtsQueue = [];
+var _claireTtsBusy = false;
 function speak(text) {
-  var clean = text.replace(/[*_#<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,400);
+  var clean = String(text || '').replace(/[*_#<>]/g,' ').replace(/\s+/g,' ').trim();
   if (clean.length < 5) return;
+  var chunks = typeof ttsSpeakLines === 'function' ? ttsSpeakLines(clean, 700) : [clean];
+  _claireTtsQueue = (chunks || []).filter(function(c){ return c && c.length >= 3; });
+  if (!_claireTtsQueue.length) _claireTtsQueue = [clean];
+  if (!_claireTtsBusy) claireTtsFlush();
+}
+function claireTtsFlush() {
+  if (_claireTtsBusy || !_claireTtsQueue.length) { _claireTtsBusy = false; return; }
+  _claireTtsBusy = true;
+  var chunk = _claireTtsQueue.shift();
   fetch(CLAIRE_BACKEND + '/claire-tts', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({text:clean})
+    body: JSON.stringify({text:chunk})
   }).then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
-    if (!b) return;
-    if (window._ca) window._ca.pause();
-    window._ca = new Audio(URL.createObjectURL(b));
-    window._ca.play();
-  }).catch(function(){});
+    if (!b) { _claireTtsBusy = false; claireTtsFlush(); return; }
+    if (window._ca) { try { window._ca.pause(); } catch(e){} }
+    if (typeof playAudioBlob === 'function') {
+      window._ca = playAudioBlob(b, {
+        onEnded: function(){ window._ca = null; _claireTtsBusy = false; claireTtsFlush(); },
+        onError: function(){ window._ca = null; _claireTtsBusy = false; claireTtsFlush(); }
+      });
+    } else {
+      window._ca = new Audio(URL.createObjectURL(b));
+      window._ca.onended = function(){ _claireTtsBusy = false; claireTtsFlush(); };
+      window._ca.onerror = function(){ _claireTtsBusy = false; claireTtsFlush(); };
+      window._ca.play().catch(function(){ _claireTtsBusy = false; claireTtsFlush(); });
+    }
+  }).catch(function(){ _claireTtsBusy = false; claireTtsFlush(); });
 }
 
 function toggleMic() {

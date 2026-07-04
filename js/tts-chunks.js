@@ -72,6 +72,12 @@ function ttsSpeakLines(text, maxLen) {
   return splitTtsChunks(line, maxLen);
 }
 
+/** Watchdog ms so long audio is never cut mid-playback (~12 chars/sec + buffer). */
+function ttsWatchdogMs(textLen) {
+  var n = Math.max(40, Number(textLen) || 0);
+  return Math.min(180000, Math.max(75000, Math.ceil(n / 10) * 1000 + 20000));
+}
+
 function splitTtsChunks(text, maxLen) {
   maxLen = maxLen || 450;
   var sentences = splitTtsSentences(text);

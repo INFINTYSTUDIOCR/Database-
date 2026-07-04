@@ -286,7 +286,7 @@ app.get('/keycheck', async (req, res) => {
 });
 
 // ── RATE LIMIT ───────────────────────────────────────────────
-const TUTOR_LIMIT = 50;
+const TUTOR_LIMIT = 200;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
 async function checkTutorLimit(sid, tutor, table) {
@@ -483,13 +483,14 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  alice:  { sessionsPerDay: 5, maxSteps: 4 },
-  /** Website trial for Alice Companion (paid product) — taste then paywall. */
-  alice_companion: { sessionsPerDay: 1, maxSteps: 6, messagesPerDay: 12 },
-  jill:   { sessionsPerDay: 5, maxSteps: 4 },
-  nexora: { sessionsPerDay: 5, maxSteps: 3 },
-  claire: { sessionsPerDay: 8, messagesPerDay: 30 },
-  tts:    { sessionsPerDay: 999, messagesPerDay: 40, ttsPerDay: 40 }
+  // maxSteps 0 = unlimited turns in-session (conversation must flow; never stop at 6)
+  alice:  { sessionsPerDay: 5, maxSteps: 0 },
+  /** Website trial for Alice Companion — free flow in session; daily session cap only. */
+  alice_companion: { sessionsPerDay: 2, maxSteps: 0, messagesPerDay: 200 },
+  jill:   { sessionsPerDay: 5, maxSteps: 0 },
+  nexora: { sessionsPerDay: 5, maxSteps: 0 },
+  claire: { sessionsPerDay: 12, messagesPerDay: 120 },
+  tts:    { sessionsPerDay: 999, messagesPerDay: 400, ttsPerDay: 400 }
 };
 
 const APP1_BUILD = '20260704-companion-trial';
@@ -1774,10 +1775,12 @@ function getDemoCompanionSystem(name, onboarding) {
 
 Visitor: ${guest}. Goal: ${goal}. Level: ${level}.
 
-OPENING RULES (critical):
-- Write ONE opening only — never two greetings, never repeat yourself, no --- dividers.
+FLOW RULES (critical):
+- Keep a natural flowing conversation — never stop after a fixed number of turns.
+- Complete every sentence. NEVER cut off mid-thought, mid-word, or mid-explanation.
+- 3-6 natural English sentences per turn. Ask ONE open follow-up question.
 - No markdown headers (#). No "demo", no "Infinity Studio CR", no meta talk about the product.
-- 3-4 natural English sentences. Ask ONE open question: what do they want to talk about today?
+- Opening: ONE warm greeting + what they want to talk about today.
 - End with exactly one line: ALICE: [one short motivating tip in Spanish]
 - Sound like a friend who listens 24/7 — bus, car, lunch break practice.`;
 }
@@ -1847,18 +1850,20 @@ function getDemoStreamConfig(session, closing) {
   const hist = demoHistoryText(session);
 
   if (session.service === 'alice') {
+    const isCompanion = session.demoMode === 'companion';
     return {
-      max_tokens: closing ? 320 : 650,
-      system: getDemoAliceSystem(guest),
+      max_tokens: closing ? 400 : 900,
+      system: (isCompanion ? getDemoCompanionSystem(guest, session.onboarding) : getDemoAliceSystem(guest))
+        + '\nNEVER cut off mid-sentence. Always finish every spoken line completely. Full replies only.',
       messages: closing
-        ? [{ role: 'user', content: `Final turn of Alice demo for ${guest}. Wrap up warmly in 2-3 sentences.\n\n${hist}` }]
+        ? [{ role: 'user', content: `Final turn of Alice demo for ${guest}. Wrap up warmly in 2-3 complete sentences.\n\n${hist}` }]
         : msgs
     };
   }
   if (session.service === 'jill') {
     return {
-      max_tokens: closing ? 360 : 750,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Texto directo (sin JSON). 4-6 oraciones, método Nexus, tono natural y espontáneo — sin relleno motivacional.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}`,
+      max_tokens: closing ? 400 : 900,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Texto directo (sin JSON). 4-8 oraciones completas, método Nexus, tono natural.${closing ? ' Cerrá la demo e invitá a agendar evaluación.' : ''}\nNEVER cut off mid-sentence.`,
       messages: closing
         ? [{ role: 'user', content: `Cierre final Foundations demo.\n\n${hist}` }]
         : msgs
@@ -1868,7 +1873,7 @@ function getDemoStreamConfig(session, closing) {
     const ctx = getDemoNexoraContext(session.scenario, guest);
     const { systemPrompt } = buildNexoraSystemPrompt(ctx);
     return {
-      max_tokens: 220,
+      max_tokens: 450,
       system: systemPrompt + (closing ? '\nFINAL TURN: Close the simulation naturally in character.' : '') + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
       messages: closing
         ? [{ role: 'user', content: `Close simulation.\n\n${hist}` }]
@@ -1928,8 +1933,9 @@ async function demoGenerateReply(session) {
     const isCompanion = session.demoMode === 'companion';
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 650,
-      system: isCompanion ? getDemoCompanionSystem(guest, session.onboarding) : getDemoAliceSystem(guest),
+      max_tokens: 900,
+      system: (isCompanion ? getDemoCompanionSystem(guest, session.onboarding) : getDemoAliceSystem(guest))
+        + '\nNEVER cut off mid-sentence. Always finish every spoken line completely.',
       messages: msgs
     });
     const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -1938,8 +1944,8 @@ async function demoGenerateReply(session) {
   if (session.service === 'jill') {
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 750,
-      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Respondé de forma real y adaptada al mensaje. JSON: {"reply":"...","contentType":"text"}`,
+      max_tokens: 900,
+      system: JILL_SYSTEM_PROMPT + `\n\nMODO DEMO WEB: Visitante ${guest}. Respondé de forma real y adaptada al mensaje. JSON: {"reply":"...","contentType":"text"}\nNEVER cut off mid-sentence.`,
       messages: msgs
     });
     const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -1950,7 +1956,7 @@ async function demoGenerateReply(session) {
     const { systemPrompt, p, scType } = buildNexoraSystemPrompt(ctx);
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 220,
+      max_tokens: 450,
       system: systemPrompt + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
       messages: msgs
     });
@@ -2749,15 +2755,15 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
-    const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
+    const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     if (brain.hit) {
       return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
     await streamAnthropicSSE(res, {
-      max_tokens: 420,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nResponde en texto directo, sin JSON. 2-4 oraciones, tono natural. Regla + ejemplo + UNA pregunta de práctica.`,
+      max_tokens: 700,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nResponde en texto directo, sin JSON. 2-5 oraciones completas, tono natural. Regla + ejemplo + UNA pregunta de práctica. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -2817,15 +2823,15 @@ ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
 ${methodBlock}
-RESPONSE STYLE: 3-5 natural sentences max. Complete every sentence — NEVER cut off mid-thought or mid-explanation. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. One flowing spoken turn — no ellipses or dramatic pauses.
+RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. One flowing spoken turn — no ellipses or dramatic pauses. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
-    const msgs = [...(history || []).slice(-10), { role: 'user', content: message }];
+    const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: 380,
+      max_tokens: 800,
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }

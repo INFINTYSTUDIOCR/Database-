@@ -1,6 +1,8 @@
 var CLAIRE_BACKEND = 'https://alice-by-infinity.onrender.com';
-var _ch = [], _open = false, _started = false, _count = 0, _LIMIT = 20;
+var _ch = [], _open = false, _started = false, _count = 0, _LIMIT = 100;
 var _mic = null, _micOn = false;
+var _claireTtsQueue = [];
+var _claireTtsBusy = false;
 
 function toggleClaire() {
   _open = !_open;
@@ -54,13 +56,13 @@ async function sendClaire() {
   _ch.push({role:'user', content:txt});
   _count++;
   updateCount();
-  if (_count === 17) setTimeout(function(){ addMsg('💡 Nos quedan pocos mensajes — si querés continuar, agendá tu evaluación gratuita cuando quieras.', 'c'); }, 300);
+  if (_count === 90) setTimeout(function(){ addMsg('💡 Si quieres seguir con un trainer humano, agenda tu evaluación gratuita cuando quieras.', 'c'); }, 300);
   if (_count >= _LIMIT) { setTimeout(showLimit, 600); return; }
   showTyping(true);
   try {
     var r = await fetch(CLAIRE_BACKEND + '/claire', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({mode:'chat', message:txt, history:_ch.slice(-12)})
+      body: JSON.stringify({mode:'chat', message:txt, history:_ch.slice(-20)})
     });
     var d = await r.json();
     showTyping(false);
@@ -69,23 +71,52 @@ async function sendClaire() {
     _ch.push({role:'assistant', content:d.reply});
   } catch(e) {
     showTyping(false);
-    addMsg('Disculpá, hubo un problema. Escribinos al WhatsApp: +506 6006 0981', 'c');
+    addMsg('Disculpa, hubo un problema. Escríbenos al WhatsApp: +506 6006 0981', 'c');
   }
 }
 
 function speak(text) {
-  var clean = text.replace(/[*_#<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,400);
+  var clean = String(text || '').replace(/[*_#<>]/g,' ').replace(/\s+/g,' ').trim();
   if (clean.length < 5) return;
+  var chunks = typeof ttsSpeakLines === 'function' ? ttsSpeakLines(clean, 700) : [clean];
+  if (!chunks.length) chunks = [clean];
+  _claireTtsQueue = chunks.filter(function(c){ return c && c.length >= 3; });
+  if (!_claireTtsBusy) claireTtsFlush();
+}
+
+function claireTtsFlush() {
+  if (_claireTtsBusy || !_claireTtsQueue.length) {
+    _claireTtsBusy = false;
+    return;
+  }
+  _claireTtsBusy = true;
+  var chunk = _claireTtsQueue.shift();
   fetch(CLAIRE_BACKEND + '/claire-tts', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({text:clean})
+    body: JSON.stringify({text:chunk})
   }).then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(b){
-    if (!b) return;
-    if (window._ca) window._ca.pause();
-    window._ca = new Audio(URL.createObjectURL(b));
-    window._ca.play();
-  }).catch(function(){});
+    if (!b) {
+      _claireTtsBusy = false;
+      claireTtsFlush();
+      return;
+    }
+    if (window._ca) { try { window._ca.pause(); } catch(e){} }
+    if (typeof playAudioBlob === 'function') {
+      window._ca = playAudioBlob(b, {
+        onEnded: function(){ window._ca = null; _claireTtsBusy = false; claireTtsFlush(); },
+        onError: function(){ window._ca = null; _claireTtsBusy = false; claireTtsFlush(); }
+      });
+    } else {
+      window._ca = new Audio(URL.createObjectURL(b));
+      window._ca.onended = function(){ _claireTtsBusy = false; claireTtsFlush(); };
+      window._ca.onerror = function(){ _claireTtsBusy = false; claireTtsFlush(); };
+      window._ca.play().catch(function(){ _claireTtsBusy = false; claireTtsFlush(); });
+    }
+  }).catch(function(){
+    _claireTtsBusy = false;
+    claireTtsFlush();
+  });
 }
 
 function toggleMic() {
@@ -157,8 +188,8 @@ function showLimit() {
   var cmb = document.getElementById('cmb');
   if (cmb) cmb.disabled = true;
   if (window._ca) window._ca.pause();
-  trackClaireEvent('claire_limit_reached','20_messages');
-  addMsg('¡Fue un gusto hablar con vos! Agendá tu evaluación gratuita por WhatsApp cuando quieras.', 'c');
+  trackClaireEvent('claire_limit_reached','session_cap');
+  addMsg('¡Fue un gusto hablar contigo! Agenda tu evaluación gratuita por WhatsApp cuando quieras.', 'c');
 }
 
 window.addEventListener('beforeunload', function(){ if(window._ca) window._ca.pause(); });

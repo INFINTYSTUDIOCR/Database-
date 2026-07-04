@@ -59,6 +59,13 @@ var DemoVoice = (function () {
 
   function playBlob(blob, onEnd) {
     stopAudio();
+    if (typeof playAudioBlob === 'function') {
+      _audio = playAudioBlob(blob, {
+        onEnded: function () { _audio = null; if (typeof onEnd === 'function') onEnd(); },
+        onError: function () { _audio = null; if (typeof onEnd === 'function') onEnd(); }
+      });
+      return;
+    }
     _audio = new Audio(URL.createObjectURL(blob));
     _audio.onended = function () { if (typeof onEnd === 'function') onEnd(); };
     _audio.play().catch(function () { if (typeof onEnd === 'function') onEnd(); });
@@ -148,11 +155,8 @@ var DemoVoice = (function () {
       })
       .then(function (blob) { playBlob(blob, onEnd); })
       .catch(function () {
-        if (p.source === 'elevenlabs-account' || p.source === 'jill-voices.json' || p.source === 'NEXORA_DEMO_MALE_VOICE_ID' || p.source === 'NEXORA_DEMO_FEMALE_VOICE_ID' || p.source === 'voices.json') {
-          browserSpeak(cleanText, p, onEnd);
-        } else if (typeof onEnd === 'function') {
-          onEnd();
-        }
+        // Always fall back to browser voice so nothing is skipped mid-reply
+        browserSpeak(cleanText, p, onEnd);
       });
   }
 
@@ -160,8 +164,16 @@ var DemoVoice = (function () {
   var _ttsBusy = false;
 
   function queueSpeak(text, profile) {
-    splitTtsChunks(text, 450).forEach(function (chunk) {
-      _ttsQueue.push({ text: chunk, profile: profile || _activeProfile });
+    var full = clean(text);
+    if (!full) return;
+    var chunks = typeof ttsSpeakLines === 'function'
+      ? ttsSpeakLines(full, 700)
+      : (typeof splitTtsChunks === 'function' ? splitTtsChunks(full, 450) : [full]);
+    if (!chunks.length) chunks = [full];
+    chunks.forEach(function (chunk) {
+      if (chunk && chunk.trim().length >= 3) {
+        _ttsQueue.push({ text: chunk.trim(), profile: profile || _activeProfile });
+      }
     });
     if (!_ttsBusy) drainQueue();
   }

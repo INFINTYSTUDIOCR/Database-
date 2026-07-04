@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png?v=20260704" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png?v=20260704">
 <meta name="theme-color" content="#5B21B6">
-<meta name="description" content="Prueba gratis Alice Companion — habla de lo que quieras en inglés por voz, 24/7. Corrección y feedback al instante. Para Latinoamérica. 1 sesión/día, 6 mensajes.">
+<meta name="description" content="Prueba gratis Alice Companion — habla de lo que quieras en inglés por voz, 24/7. Corrección y feedback al instante. Conversación fluida, sin corte a mitad de frase.">
 <meta name="keywords" content="Alice Companion, practicar inglés conversación IA, inglés por voz Latinoamérica, compañero práctica inglés, Infinity Studio CR">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://studioinfinitycr.com/try-alice.html">
@@ -72,7 +72,7 @@
       Habla de <strong>cualquier tema</strong>, en <strong>cualquier momento</strong> y en <strong>cualquier lugar</strong> — en el <strong>carro</strong>, en el <strong>bus</strong>, en el <strong>restaurante</strong> — y mejorá listening y fluidez casi sin darte cuenta.
       <span class="trial-hero-tagline">No hay excusa para dejar de hablar inglés. Pruébala ya — Alice Companion.</span>
     </p>
-    <p style="font-size:12px;color:#8888AA;margin-bottom:0;">Prueba limitada hoy · 1 sesión · 6 mensajes · luego desbloquea acceso completo.</p>
+    <p style="font-size:12px;color:#8888AA;margin-bottom:0;">Prueba gratis hoy · conversación fluida · Alice lee la respuesta completa.</p>
   </div>
 
   <div class="demo-consent-band" id="demo-consent-band">
@@ -112,7 +112,7 @@
 
     <div class="onboard-step" id="step-2" style="display:none;">
       <h2>Start your free trial</h2>
-      <p><strong>1 session per day</strong> · <strong>6 messages</strong> to taste Companion. Then unlock 30 days unlimited.</p>
+      <p><strong>Free trial today</strong> · full flowing conversation. Unlock 30 days unlimited anytime.</p>
       <input class="onboard-inp" id="user-name" placeholder="Your first name" maxlength="24" autocomplete="given-name">
       <div class="onboard-nav"><button type="button" class="btn-outline" id="btn-back-2">← Back</button><button type="button" class="btn-companion-trial" id="btn-start"><i class="ti ti-microphone"></i> Probar Alice Companion</button></div>
     </div>
@@ -122,7 +122,7 @@
     <div class="demo-panel-head">
       <div>
         <h1>Alice Companion</h1>
-        <div class="meta" id="step-meta">Free trial · 6 messages</div>
+        <div class="meta" id="step-meta">Free trial · conversación fluida</div>
       </div>
       <span style="font-size:11px;opacity:.9;" id="sessions-left"></span>
     </div>
@@ -160,13 +160,13 @@
 <script src="js/demo-api.js"></script>
 <script src="js/demo-voices.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/tts-chunks.js"></script>
+<script src="js/tts-chunks.js?v=20260703c"></script>
 <script src="js/ptt-mic.js"></script>
 <script src="js/demo-voice.js"></script>
 <script src="js/demo-stream.js"></script>
 <script>
 (function () {
-  var TRIAL_TURNS = 6;
+  var TRIAL_TURNS = 0; // 0 = unlimited turns in session (never stop at 6)
   var sessionId = null;
   var step = 0;
   var maxSteps = TRIAL_TURNS;
@@ -246,11 +246,13 @@
   function updateMeta() {
     var left = turnsLeft();
     if (isPremium || !maxSteps) {
-      document.getElementById('step-meta').textContent = 'Alice Companion Premium · unlimited';
+      document.getElementById('step-meta').textContent = isPremium
+        ? 'Alice Companion Premium · unlimited'
+        : 'Free trial · conversación fluida';
       trialNudge.classList.remove('show');
       return;
     }
-    document.getElementById('step-meta').textContent = 'Free trial · ' + (left != null ? left + ' message' + (left === 1 ? '' : 's') + ' left' : 'active');
+    document.getElementById('step-meta').textContent = 'Free trial · ' + (left != null ? left + ' message' + (left === 1 ? '' : 's') + ' left' : 'conversación fluida');
     if (left != null && left <= 2 && left > 0) {
       trialNudge.textContent = '🔥 ' + left + ' trial message' + (left === 1 ? '' : 's') + ' left — unlock unlimited Companion after this chat.';
       trialNudge.classList.add('show');
