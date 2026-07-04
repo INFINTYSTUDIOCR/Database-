@@ -1440,27 +1440,70 @@ app.post('/billing/restore', async (req, res) => {
   }
 });
 
+function bridgeAuthorized(req) {
+  const secret = req.headers['x-bridge-secret'] || req.body?.secret || req.query?.secret || '';
+  const expected = process.env.WA_BRIDGE_SECRET || process.env.ANALYZE_SECRET || '';
+  return !!(expected && secret === expected);
+}
+
 /**
- * Manual activation (WhatsApp bridge on your PC, or admin tools).
+ * Manual activation (activar.html or admin).
+ * Optional phone → queues WhatsApp for PC auto-sender.
  * Header: X-Bridge-Secret: ANALYZE_SECRET (or WA_BRIDGE_SECRET).
  */
 app.post('/billing/manual-grant', async (req, res) => {
   try {
-    const secret = req.headers['x-bridge-secret'] || req.body?.secret || '';
-    const expected = process.env.WA_BRIDGE_SECRET || process.env.ANALYZE_SECRET || '';
-    if (!expected || secret !== expected) {
-      return res.status(401).json({ error: 'unauthorized' });
-    }
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
     const email = (req.body && req.body.email) || '';
     const days = req.body?.days;
+    const phone = (req.body && req.body.phone) || '';
     const source = (req.body && req.body.source) || 'whatsapp_bridge';
     const result = await Billing.manualGrant(sbSet, sbGetOne, { email, days, source });
     if (result.error === 'invalid_email') return res.status(400).json(result);
     if (result.error) return res.status(500).json(result);
-    return res.json(result);
+
+    let whatsapp = null;
+    if (phone) {
+      const clientUrl = process.env.PUBLIC_SITE_URL || 'https://studioinfinitycr.com/try-alice.html';
+      const message = Billing.clientActivationMessage(result.email, result.expiresAt, clientUrl);
+      whatsapp = await Billing.enqueueWhatsApp(sbSet, {
+        phone,
+        message,
+        email: result.email
+      });
+    }
+
+    return res.json({ ...result, whatsapp });
   } catch (err) {
     console.error('Manual grant error:', err.message);
     return res.status(500).json({ error: 'grant_failed', message: err.message });
+  }
+});
+
+/** PC bridge polls pending WhatsApp messages to send automatically. */
+app.get('/billing/wa-outbox', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const items = await Billing.listPendingWhatsApp(sbGet);
+    return res.json({ items });
+  } catch (err) {
+    console.error('WA outbox error:', err.message);
+    return res.status(500).json({ error: 'outbox_failed' });
+  }
+});
+
+app.post('/billing/wa-outbox/ack', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const id = (req.body && req.body.id) || '';
+    const status = (req.body && req.body.status) || 'sent';
+    const result = await Billing.ackWhatsApp(sbSet, sbGetOne, id, status);
+    if (result.error === 'not_found') return res.status(404).json(result);
+    if (result.error) return res.status(400).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('WA ack error:', err.message);
+    return res.status(500).json({ error: 'ack_failed' });
   }
 });
 

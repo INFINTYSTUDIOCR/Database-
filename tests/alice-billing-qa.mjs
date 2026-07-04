@@ -61,6 +61,31 @@ else fail('billing routes', 'missing');
 if (server.includes('/billing/manual-grant') && server.includes('/billing/restore')) pass('manual-grant + restore routes', 'ok');
 else fail('manual-grant + restore routes', 'missing');
 
+if (server.includes('/billing/wa-outbox') && server.includes('enqueueWhatsApp')) pass('wa-outbox auto-send routes', 'ok');
+else fail('wa-outbox auto-send routes', 'missing');
+
+const queued = await Billing.enqueueWhatsApp(sbSet, {
+  phone: '50688887777',
+  message: 'hola qa',
+  email: 'qa@test.com'
+});
+if (queued.id && queued.status === 'pending') pass('enqueueWhatsApp', queued.id);
+else fail('enqueueWhatsApp', JSON.stringify(queued));
+
+const pendingList = await Billing.listPendingWhatsApp(async (table) => {
+  const out = [];
+  for (const [k, v] of store.entries()) {
+    if (k.startsWith(table + ':')) out.push(v);
+  }
+  return out;
+});
+if (pendingList.some((p) => p.id === queued.id)) pass('listPendingWhatsApp', 'ok');
+else fail('listPendingWhatsApp', JSON.stringify(pendingList));
+
+const acked = await Billing.ackWhatsApp(sbSet, sbGetOne, queued.id, 'sent');
+if (acked.status === 'sent') pass('ackWhatsApp', 'sent');
+else fail('ackWhatsApp', JSON.stringify(acked));
+
 if (server.includes('premiumToken') && server.includes('Billing.isPremiumActive')) pass('premium demo bypass', 'ok');
 else fail('premium demo bypass', 'missing');
 
@@ -112,9 +137,13 @@ if (existsSync(path.join(bridgeDir, 'index.js')) && existsSync(path.join(bridgeD
 } else fail('wa-bridge files', 'MISSING');
 
 const bridge = readFileSync(path.join(bridgeDir, 'index.js'), 'utf8');
-if (bridge.includes('/billing/manual-grant') && bridge.includes('/activar') && bridge.includes('ALLOWED_NUMBERS')) {
-  pass('wa-bridge commands', 'ok');
-} else fail('wa-bridge commands', 'incomplete');
+if (bridge.includes('/billing/wa-outbox') && bridge.includes('sendMessage')) {
+  pass('wa-bridge auto-send', 'ok');
+} else fail('wa-bridge auto-send', 'incomplete');
+
+if (existsSync(path.join(root, 'WHATSAPP-1-CONFIGURAR.bat')) && existsSync(path.join(root, 'WHATSAPP-2-INICIAR.bat'))) {
+  pass('whatsapp bat launchers', 'ok');
+} else fail('whatsapp bat launchers', 'missing');
 
 const gitignore = readFileSync(path.join(root, '.gitignore'), 'utf8');
 if (gitignore.includes('wa-bridge/.env') && gitignore.includes('.wwebjs_auth')) pass('gitignore wa-bridge secrets', 'ok');

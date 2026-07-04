@@ -19,42 +19,41 @@
   .ok{background:#ecfdf5;color:#065f46;padding:14px;border-radius:10px;font-size:15px;margin-top:14px;display:none;line-height:1.45;font-weight:600}
   .err{background:#fef2f2;color:#991b1b;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
   .hint{font-size:12px;color:#94a3b8;margin:-8px 0 14px}
+  .note{font-size:12px;color:#64748b;margin-top:16px;line-height:1.45}
 </style>
 </head>
 <body>
   <div class="box">
     <h1>Activar Alice Companion</h1>
     <div class="steps">
-      <strong>Cómo usarlo (30 segundos):</strong><br>
-      1. Cliente te paga y te da email + su número de WhatsApp<br>
-      2. Llenás los 3 campos abajo<br>
-      3. Tocás <strong>Activar y avisar al cliente</strong><br>
-      4. Se abre WhatsApp con el mensaje listo → solo tocás <strong>Enviar</strong>
+      <strong>WhatsApp se manda solo</strong> (si tenés encendido WHATSAPP-2-INICIAR en tu PC).<br><br>
+      1. Cliente paga y te da email + número<br>
+      2. Llenás los campos y tocás el botón<br>
+      3. El cliente recibe el WhatsApp solo — vos no pegás nada
     </div>
 
     <label for="pass">Tu clave secreta</label>
     <input id="pass" type="password" autocomplete="current-password" placeholder="ANALYZE_SECRET de Render">
-    <p class="hint">La guardamos en este navegador para no escribirla cada vez.</p>
+    <p class="hint">Se guarda en este navegador.</p>
 
     <label for="email">Email del cliente</label>
     <input id="email" type="email" autocomplete="off" placeholder="cliente@gmail.com">
 
     <label for="phone">WhatsApp del cliente</label>
     <input id="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="50688887777">
-    <p class="hint">Con código de país, sin + ni espacios. Ej. Costa Rica: 50688887777</p>
+    <p class="hint">Con código de país, sin +. Ej: 50688887777</p>
 
-    <button type="button" id="btn">Activar y avisar al cliente</button>
+    <button type="button" id="btn">Activar (WhatsApp automático)</button>
 
     <div class="ok" id="ok"></div>
     <div class="err" id="err"></div>
+    <p class="note">Si el mensaje no llega en 10 segundos: en tu PC debe estar abierta la ventana negra de WHATSAPP-2-INICIAR.</p>
   </div>
 
 <script>
 (function () {
   var BACKEND = 'https://alice-by-infinity.onrender.com';
-  var CLIENT = 'https://studioinfinitycr.com/try-alice.html';
   var PASS_KEY = 'infinity_activar_secret';
-
   var btn = document.getElementById('btn');
   var ok = document.getElementById('ok');
   var err = document.getElementById('err');
@@ -81,22 +80,6 @@
     return String(s || '').replace(/\D/g, '');
   }
 
-  function buildMessage(email, hasta) {
-    return (
-      'Listo! Alice Companion ya esta activa.\n\n' +
-      '1. Entra aqui: ' + CLIENT + '\n' +
-      '2. Toca: Ya me activaron — entrar con mi email\n' +
-      '3. Escribe este email: ' + email + '\n\n' +
-      'Valido hasta: ' + hasta + '\n' +
-      'Cualquier duda, escribime aqui.'
-    );
-  }
-
-  function openWhatsApp(phoneDigits, message) {
-    var url = 'https://wa.me/' + phoneDigits + '?text=' + encodeURIComponent(message);
-    window.open(url, '_blank', 'noopener');
-  }
-
   btn.onclick = async function () {
     var pass = passEl.value.trim();
     var email = document.getElementById('email').value.trim().toLowerCase();
@@ -106,7 +89,7 @@
 
     if (!pass) return showErr('Falta tu clave secreta (ANALYZE_SECRET de Render).');
     if (!email || email.indexOf('@') < 0) return showErr('Poné el email del cliente.');
-    if (phone.length < 10) return showErr('Poné el WhatsApp del cliente con código de país (ej. 50688887777).');
+    if (phone.length < 10) return showErr('Poné el WhatsApp del cliente (ej. 50688887777).');
 
     try { localStorage.setItem(PASS_KEY, pass); } catch (e) {}
 
@@ -120,30 +103,29 @@
           'Content-Type': 'application/json',
           'X-Bridge-Secret': pass
         },
-        body: JSON.stringify({ email: email, source: 'activar_web' })
+        body: JSON.stringify({ email: email, phone: phone, source: 'activar_web' })
       });
       var data = await r.json().catch(function () { return {}; });
 
       if (!r.ok) {
         showErr(r.status === 401
           ? 'Clave incorrecta. Revisá ANALYZE_SECRET en Render.'
-          : (data.error || data.message || 'No se pudo activar. ¿El backend ya tiene redeploy?'));
+          : (data.error || data.message || 'No se pudo activar.'));
         return;
       }
 
-      var hasta = data.expiresAt ? new Date(data.expiresAt).toLocaleDateString('es-CR') : '30 días';
-      var msg = buildMessage(email, hasta);
-
-      openWhatsApp(phone, msg);
-
-      showOk('Activado. Se abrió WhatsApp con el mensaje listo — solo tocá Enviar.');
+      if (data.whatsapp && data.whatsapp.id) {
+        showOk('Activado. WhatsApp en cola: se envía solo en unos segundos (PC con WHATSAPP-2-INICIAR encendido).');
+      } else {
+        showOk('Activado, pero no se encoló WhatsApp. Revisá el número.');
+      }
       document.getElementById('email').value = '';
       document.getElementById('phone').value = '';
     } catch (e) {
-      showErr('Error de red. Revisá internet o que el servidor esté arriba.');
+      showErr('Error de red. Revisá internet o el servidor.');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Activar y avisar al cliente';
+      btn.textContent = 'Activar (WhatsApp automático)';
     }
   };
 })();

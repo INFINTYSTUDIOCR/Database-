@@ -225,6 +225,68 @@ async function manualGrant(sbSet, sbGetOne, { email, days, source } = {}) {
   };
 }
 
+function waMsgId() {
+  return 'ALICE-WA-MSG-' + crypto.randomBytes(8).toString('hex');
+}
+
+function clientActivationMessage(email, expiresAt, clientUrl) {
+  const url = clientUrl || 'https://studioinfinitycr.com/try-alice.html';
+  const hasta = expiresAt ? new Date(expiresAt).toLocaleDateString('es-CR') : '30 días';
+  return (
+    'Listo! Alice Companion ya esta activa.\n\n' +
+    '1. Entra aqui: ' + url + '\n' +
+    '2. Toca: Ya me activaron — entrar con mi email\n' +
+    '3. Escribe este email: ' + email + '\n\n' +
+    'Valido hasta: ' + hasta + '\n' +
+    'Cualquier duda, escribime aqui.'
+  );
+}
+
+/** Queue WhatsApp text for the PC bridge to send automatically. */
+async function enqueueWhatsApp(sbSet, { phone, message, email }) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length < 10) return { error: 'invalid_phone' };
+  if (!message || !String(message).trim()) return { error: 'invalid_message' };
+  const id = waMsgId();
+  const now = new Date().toISOString();
+  await sbSet(PREMIUM_TABLE, id, {
+    phone: digits,
+    message: String(message).trim(),
+    email: email ? String(email).trim().toLowerCase() : null,
+    status: 'pending',
+    createdAt: now
+  });
+  return { id, phone: digits, status: 'pending' };
+}
+
+async function listPendingWhatsApp(sbGet) {
+  const rows = await sbGet(PREMIUM_TABLE);
+  return (rows || [])
+    .filter((r) => r && String(r.id || '').startsWith('ALICE-WA-MSG-') && r.data && r.data.status === 'pending')
+    .map((r) => ({
+      id: r.id,
+      phone: r.data.phone,
+      message: r.data.message,
+      email: r.data.email,
+      createdAt: r.data.createdAt
+    }))
+    .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+}
+
+async function ackWhatsApp(sbSet, sbGetOne, id, status) {
+  const key = String(id || '').trim();
+  if (!key.startsWith('ALICE-WA-MSG-')) return { error: 'invalid_id' };
+  const row = await sbGetOne(PREMIUM_TABLE, key);
+  if (!row?.data) return { error: 'not_found' };
+  const next = status === 'failed' ? 'failed' : 'sent';
+  await sbSet(PREMIUM_TABLE, key, {
+    ...row.data,
+    status: next,
+    finishedAt: new Date().toISOString()
+  });
+  return { id: key, status: next };
+}
+
 async function createCheckoutSession({ email, successUrl, cancelUrl }) {
   const stripe = getStripe();
   if (!stripe) return { error: 'billing_unconfigured' };
@@ -294,6 +356,10 @@ module.exports = {
   activateFromCheckout,
   restoreByEmail,
   manualGrant,
+  enqueueWhatsApp,
+  listPendingWhatsApp,
+  ackWhatsApp,
+  clientActivationMessage,
   handleWebhook,
   grantPremium,
   PREMIUM_DAYS,
