@@ -49,7 +49,7 @@ app.use(cors({
     return callback(new Error('CORS not allowed'));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Bridge-Secret'],
   maxAge: 86400
 }));
 
