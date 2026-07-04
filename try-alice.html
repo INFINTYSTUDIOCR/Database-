@@ -147,7 +147,7 @@
 
   <div class="demo-limit" id="limit-view" style="display:none;">
     <i class="ti ti-clock-pause"></i>
-    <p><strong>Today's free trial is used</strong> — unlock Alice Companion for 30 days or book your assessment.</p>
+    <p><strong>Ya usaste tu demo gratis.</strong> Para seguir, desbloqueá Alice Companion o escribinos por WhatsApp.</p>
     <div id="limit-paywall"></div>
   </div>
 </div>
@@ -318,8 +318,8 @@
       panel.style.display = 'block';
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = d.premium
-        ? 'Premium · unlimited'
-        : 'Free trial · 1/day';
+        ? 'Premium · ilimitado'
+        : 'Demo gratis · una sola vez';
       var reply = d.reply || '';
       if (typeof TutorReply !== 'undefined' && TutorReply.companionOpeningText) {
         reply = TutorReply.companionOpeningText(reply);

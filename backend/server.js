@@ -483,14 +483,17 @@ app.get('/auth/verify', requireProductAuth, (req, res) => {
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
 const DEMO_LIMITS = {
-  // Public website: ONE demo session per IP per product per day, then paywall.
-  alice:  { sessionsPerDay: 1, maxSteps: 0 },
-  alice_companion: { sessionsPerDay: 1, maxSteps: 0, messagesPerDay: 12 },
-  jill:   { sessionsPerDay: 1, maxSteps: 0 },
-  nexora: { sessionsPerDay: 1, maxSteps: 0 },
+  // Public website: ONE demo ever per IP per product (no daily reset). Pay to continue.
+  alice:  { sessionsLifetime: 1, maxSteps: 0 },
+  alice_companion: { sessionsLifetime: 1, maxSteps: 0, messagesLifetime: 12 },
+  jill:   { sessionsLifetime: 1, maxSteps: 0 },
+  nexora: { sessionsLifetime: 1, maxSteps: 0 },
   claire: { sessionsPerDay: 3, messagesPerDay: 30 },
-  tts:    { sessionsPerDay: 1, messagesPerDay: 20, ttsPerDay: 20 }
+  tts:    { sessionsLifetime: 1, messagesLifetime: 40, ttsLifetime: 40 }
 };
+
+/** Demo products that never reset (one free try forever unless premium). */
+const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
 const APP1_BUILD = '20260704-companion-trial';
 
@@ -751,41 +754,62 @@ async function checkDemoIpLimit(ip, service, { action, premiumToken } = {}) {
   if (premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne)) {
     return { ok: true, sessionsLeft: 999, premium: true };
   }
-  if (!ip || ip === 'unknown') return { ok: true, sessionsLeft: DEMO_LIMITS[service]?.sessionsPerDay || 5 };
+  if (!ip || ip === 'unknown') {
+    const lim = DEMO_LIMITS[service];
+    return { ok: true, sessionsLeft: lim?.sessionsLifetime || lim?.sessionsPerDay || 1 };
+  }
   if (isDemoIpWhitelisted(ip)) {
     return { ok: true, sessionsLeft: 999, whitelisted: true };
   }
   const limits = DEMO_LIMITS[service];
   if (!limits) return { ok: true };
 
+  const lifetime = DEMO_LIFETIME_SERVICES.has(service);
+  const sessionCap = limits.sessionsLifetime || limits.sessionsPerDay || 1;
+  const messageCap = limits.messagesLifetime || limits.messagesPerDay || null;
+  const ttsCap = limits.ttsLifetime || limits.ttsPerDay || messageCap || 40;
+
   const { id, data } = await getIpRecord(ip);
-  const day = todayKey();
-  const bucket = data[service] || { day, sessions: 0, messages: 0 };
-  if (bucket.day !== day) { bucket.day = day; bucket.sessions = 0; bucket.messages = 0; bucket.tts = 0; }
+  const bucket = data[service] || { sessions: 0, messages: 0, tts: 0 };
+  // Lifetime demos never reset. Other services (e.g. claire) still reset daily.
+  if (!lifetime) {
+    const day = todayKey();
+    if (bucket.day !== day) {
+      bucket.day = day;
+      bucket.sessions = 0;
+      bucket.messages = 0;
+      bucket.tts = 0;
+    }
+  }
 
   if (action === 'session') {
-    if (bucket.sessions >= limits.sessionsPerDay) {
-      return { ok: false, reason: 'sessions', wait: '24 horas', sessionsLeft: 0 };
+    if (bucket.sessions >= sessionCap) {
+      return {
+        ok: false,
+        reason: 'sessions',
+        wait: lifetime ? null : '24 horas',
+        sessionsLeft: 0,
+        lifetime: !!lifetime
+      };
     }
     bucket.sessions++;
   }
 
   if (action === 'message') {
     bucket.messages = (bucket.messages || 0) + 1;
-    if (limits.messagesPerDay && bucket.messages > limits.messagesPerDay) {
+    if (messageCap && bucket.messages > messageCap) {
       data[service] = bucket;
       await saveIpRecord(id, data);
-      return { ok: false, reason: 'messages', wait: '24 horas', sessionsLeft: 0 };
+      return { ok: false, reason: 'messages', wait: lifetime ? null : '24 horas', sessionsLeft: 0, lifetime: !!lifetime };
     }
   }
 
   if (action === 'tts') {
     bucket.tts = (bucket.tts || 0) + 1;
-    const ttsCap = limits.ttsPerDay || limits.messagesPerDay || 40;
     if (bucket.tts > ttsCap) {
       data[service] = bucket;
       await saveIpRecord(id, data);
-      return { ok: false, reason: 'tts', wait: '24 horas', sessionsLeft: 0 };
+      return { ok: false, reason: 'tts', wait: lifetime ? null : '24 horas', sessionsLeft: 0, lifetime: !!lifetime };
     }
   }
 
@@ -793,8 +817,9 @@ async function checkDemoIpLimit(ip, service, { action, premiumToken } = {}) {
   await saveIpRecord(id, data);
   return {
     ok: true,
-    sessionsLeft: Math.max(0, limits.sessionsPerDay - bucket.sessions),
-    messagesLeft: limits.messagesPerDay ? Math.max(0, limits.messagesPerDay - bucket.messages) : null
+    sessionsLeft: Math.max(0, sessionCap - bucket.sessions),
+    messagesLeft: messageCap ? Math.max(0, messageCap - (bucket.messages || 0)) : null,
+    lifetime: !!lifetime
   };
 }
 
@@ -991,8 +1016,8 @@ app.post('/demo/start', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: companionDemo
-          ? 'Ya usaste tu demo gratis de hoy. Desbloqueá Alice Companion o escribinos por WhatsApp.'
-          : 'Ya usaste tu demo gratis de hoy. Para seguir, escribinos por WhatsApp o elegí un plan.',
+          ? 'Ya usaste tu demo gratis. Para seguir, desbloqueá Alice Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp o elegí un plan.',
         wait: ipLimit.wait,
         product: companionDemo ? 'alice_companion' : service
       });
@@ -1101,8 +1126,8 @@ app.post('/demo/message', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: isCompanionDemoSession(session)
-          ? 'Ya usaste tu demo gratis. Desbloqueá Companion o escribinos por WhatsApp.'
-          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp.',
+          ? 'Ya usaste tu demo gratis. Para seguir, desbloqueá Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp o elegí un plan.',
         wait: ipLimit.wait,
         product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
       });
@@ -1198,8 +1223,8 @@ app.post('/demo/stream', async (req, res) => {
       return res.status(429).json({
         error: 'limit',
         message: isCompanionDemoSession(session)
-          ? 'Ya usaste tu demo gratis. Desbloqueá Companion o escribinos por WhatsApp.'
-          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp.',
+          ? 'Ya usaste tu demo gratis. Para seguir, desbloqueá Companion o escribinos por WhatsApp.'
+          : 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp o elegí un plan.',
         wait: ipLimit.wait,
         product: isCompanionDemoSession(session) ? 'alice_companion' : session.service
       });
@@ -1501,15 +1526,16 @@ app.get('/demo/status', async (req, res) => {
     const ip = getClientIp(req);
     const service = req.query.service || 'alice';
     const { data } = await getIpRecord(ip);
-    const day = todayKey();
-    const bucket = data[service] || { day, sessions: 0, messages: 0 };
+    const bucket = data[service] || { sessions: 0, messages: 0 };
     const limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
-    const sessionsUsed = bucket.day === day ? bucket.sessions : 0;
+    const sessionCap = limits.sessionsLifetime || limits.sessionsPerDay || 1;
+    const sessionsUsed = bucket.sessions || 0;
     return res.json({
       service,
       sessionsUsed,
-      sessionsLeft: Math.max(0, limits.sessionsPerDay - sessionsUsed),
-      maxSteps: limits.maxSteps || 4
+      sessionsLeft: Math.max(0, sessionCap - sessionsUsed),
+      maxSteps: limits.maxSteps || 4,
+      lifetime: DEMO_LIFETIME_SERVICES.has(service)
     });
   } catch (err) {
     return res.status(500).json({ error: 'Status unavailable' });

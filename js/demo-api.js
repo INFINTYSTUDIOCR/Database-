@@ -1,9 +1,9 @@
 var DEMO_BACKEND = 'https://alice-by-infinity.onrender.com';
 
 var DEMO_LIMITS = {
-  alice: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 8 },
-  jill: { sessionsPerDay: 1, maxSteps: 4, messagesPerDay: 8 },
-  nexora: { sessionsPerDay: 1, maxSteps: 3, messagesPerDay: 8 }
+  alice: { sessionsLifetime: 1, maxSteps: 4, messagesLifetime: 8 },
+  jill: { sessionsLifetime: 1, maxSteps: 4, messagesLifetime: 8 },
+  nexora: { sessionsLifetime: 1, maxSteps: 3, messagesLifetime: 8 }
 };
 
 var localDemoSessions = {};
@@ -49,21 +49,22 @@ function localBufferMaxSteps(buf) {
 }
 
 function getLocalIpBucket(service) {
-  var key = 'infinity-demo-ip-' + service;
+  var key = 'infinity-demo-ip-lifetime-' + service;
   try {
     var raw = localStorage.getItem(key);
     var data = raw ? JSON.parse(raw) : {};
-    var day = todayKey();
-    if (data.day !== day) return { day: day, sessions: 0, messages: 0 };
-    return data;
+    return {
+      sessions: data.sessions || 0,
+      messages: data.messages || 0
+    };
   } catch (e) {
-    return { day: todayKey(), sessions: 0, messages: 0 };
+    return { sessions: 0, messages: 0 };
   }
 }
 
 function saveLocalIpBucket(service, bucket) {
   try {
-    localStorage.setItem('infinity-demo-ip-' + service, JSON.stringify(bucket));
+    localStorage.setItem('infinity-demo-ip-lifetime-' + service, JSON.stringify(bucket));
   } catch (e) {}
 }
 
@@ -72,10 +73,16 @@ function checkLocalLimit(service, action) {
     return { ok: true, sessionsLeft: 999, whitelisted: true };
   }
   var limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
+  var cap = limits.sessionsLifetime || limits.sessionsPerDay || 1;
   var bucket = getLocalIpBucket(service);
   if (action === 'session') {
-    if (bucket.sessions >= limits.sessionsPerDay) {
-      return { ok: false, error: 'limit', message: 'Daily demo limit reached.', sessionsLeft: 0 };
+    if (bucket.sessions >= cap) {
+      return {
+        ok: false,
+        error: 'limit',
+        message: 'Ya usaste tu demo gratis. Para seguir, escribinos por WhatsApp o elegí un plan.',
+        sessionsLeft: 0
+      };
     }
     bucket.sessions++;
   }
@@ -83,7 +90,7 @@ function checkLocalLimit(service, action) {
   saveLocalIpBucket(service, bucket);
   return {
     ok: true,
-    sessionsLeft: Math.max(0, limits.sessionsPerDay - bucket.sessions)
+    sessionsLeft: Math.max(0, cap - bucket.sessions)
   };
 }
 
@@ -220,9 +227,11 @@ async function demoFetchStatus(service) {
   } catch (e) {}
   var limits = DEMO_LIMITS[service] || DEMO_LIMITS.alice;
   var bucket = getLocalIpBucket(service);
+  var cap = limits.sessionsLifetime || limits.sessionsPerDay || 1;
   return {
-    sessionsLeft: Math.max(0, limits.sessionsPerDay - bucket.sessions),
-    maxSteps: limits.maxSteps
+    sessionsLeft: Math.max(0, cap - bucket.sessions),
+    maxSteps: limits.maxSteps,
+    lifetime: true
   };
 }
 

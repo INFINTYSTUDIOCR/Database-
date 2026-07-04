@@ -381,7 +381,7 @@
 
   var DEMO_COMMON = [
     { s: 'a[href="try-demo.html"]', en: '← All demos', es: '← Todos los demos' },
-    { s: '.demo-limit p', html: true, en: '<strong>Daily demo limit reached</strong> from this connection. Come back tomorrow or book your free assessment now.', es: '<strong>Límite diario de demo alcanzado</strong> desde esta conexión. Volvé mañana o agendá tu evaluación gratuita ahora.' }
+    { s: '.demo-limit p', html: true, en: '<strong>You already used your free demo.</strong> Unlock a plan or contact us on WhatsApp to continue.', es: '<strong>Ya usaste tu demo gratis.</strong> Para seguir, escribinos por WhatsApp o elegí un plan.' }
   ];
 
   var DEMO_ALICE = DEMO_COMMON.concat([
