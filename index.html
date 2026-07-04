@@ -111,10 +111,18 @@
     },
     {
       "@type": "Question",
-      "name": "¿Qué son Nexora Pro Alice Companion y Alice+?",
+      "name": "¿Cuánto cuestan Jill, Alice, Companion, Nexora Pro y Alice+?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Son add-ons con suscripción propia, independientes de los paquetes de Fundamentos estructurales básicos del inglés (Foundations), ORT y acceso estándar. Su contratación y condiciones de uso son separadas del programa principal."
+        "text": "Jill sola ₡12.500/mes. Alice tutora ₡18.500/mes. Alice Companion ₡24.500/mes. Nexora Pro ₡28.500/mes. Alice+ (tutora + Nexora + Companion) ₡49.500/mes. Foundations y ORT con trainer: promo ₡67.500/mes. Precios en colones; LATAM tipo de cambio del día + 8%."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué diferencia hay entre Alice tutora, Alice Companion y Alice+?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Alice tutora es entrenamiento enfocado (linkers, estructura, KPIs). Alice Companion es asistente de práctica personal: charla libre por voz sobre cualquier tema. Alice+ incluye tutora, Nexora Pro y Companion en un solo acceso."
       }
     }
   ]
@@ -455,9 +463,15 @@ a.cc-link .cc-value{color:var(--purple);}
 .trust-goicoechea{font-size:14px;color:var(--t2);line-height:1.65;max-width:720px;}
 .trust-goicoechea a{color:var(--purple);font-weight:700;text-decoration:none;}
 .pricing-home-bridge{padding:64px 2rem;text-align:center;}
-.pricing-home-bridge .section-inner{max-width:560px;margin:0 auto;}
+.pricing-home-bridge .section-inner{max-width:720px;margin:0 auto;}
 .pricing-home-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:1.5rem;}
 .pricing-home-legal{margin-top:1.25rem;font-size:12px;color:var(--t3);line-height:1.55;}
+.pricing-home-table{width:100%;border-collapse:separate;border-spacing:0;background:white;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(91,33,182,0.08);border:1px solid rgba(91,33,182,0.12);font-size:13px;margin:1.5rem auto 0;text-align:left;}
+.pricing-home-table th,.pricing-home-table td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+.pricing-home-table th{background:linear-gradient(135deg,#EDE9FE,#F5EEFF);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--purple-dark);}
+.pricing-home-table tr:last-child td{border-bottom:none;}
+.pricing-home-table strong{color:var(--purple-dark);}
+@media(max-width:640px){.pricing-home-table{font-size:12px;}.pricing-home-table th,.pricing-home-table td{padding:10px 8px;}}
 
 .portal-section{background:white;padding:60px 2rem;}
 .portal-inner{max-width:1200px;margin:0 auto;text-align:center;}
@@ -1145,13 +1159,59 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <section class="pricing-section pricing-home-bridge" id="pricing">
   <div class="section-inner">
     <div class="section-tag">Inversión</div>
-    <h2 class="section-title">Promo <span style="color:var(--purple)">₡67.500</span> · 2026</h2>
-    <p class="section-sub" style="margin-left:auto;margin-right:auto;">Elegiste un camino arriba — cada plan incluye 12 h/mes con trainer privado + IA de apoyo. El desglose completo (KPIs, stack, legales) está en precios.</p>
+    <h2 class="section-title">Precios claros · <span style="color:var(--purple)">2026</span></h2>
+    <p class="section-sub" style="margin-left:auto;margin-right:auto;">Planes con trainer o solo IA. Precios en colones. LATAM: tipo de cambio del día + 8%.</p>
+    <table class="pricing-home-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Incluye</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Foundations</strong></td>
+          <td>₡67.500/mes</td>
+          <td>Trainer 12 h + Jill</td>
+        </tr>
+        <tr>
+          <td><strong>ORT</strong></td>
+          <td>₡67.500/mes</td>
+          <td>Trainer 12 h + Alice + Nexora</td>
+        </tr>
+        <tr>
+          <td><strong>Jill sola</strong></td>
+          <td>₡12.500/mes</td>
+          <td>Tutora Fundamentos (sin trainer)</td>
+        </tr>
+        <tr>
+          <td><strong>Alice tutora</strong></td>
+          <td>₡18.500/mes</td>
+          <td>Entrenamiento Nexus + KPIs</td>
+        </tr>
+        <tr>
+          <td><strong>Alice Companion</strong></td>
+          <td>₡24.500/mes</td>
+          <td>Asistente de práctica personal</td>
+        </tr>
+        <tr>
+          <td><strong>Nexora Pro</strong></td>
+          <td>₡28.500/mes</td>
+          <td>Lab de simulaciones</td>
+        </tr>
+        <tr>
+          <td><strong>Alice+</strong></td>
+          <td>₡49.500/mes</td>
+          <td>Tutora + Nexora + Companion</td>
+        </tr>
+      </tbody>
+    </table>
     <div class="pricing-home-actions">
-      <a href="pricing.html" class="btn-primary"><i class="ti ti-tags"></i> Ver planes completos</a>
+      <a href="pricing.html" class="btn-primary"><i class="ti ti-tags"></i> Ver detalle completo</a>
       <a href="#contact" class="btn-secondary"><i class="ti ti-calendar-check"></i> Agenda diagnóstico</a>
     </div>
-    <p class="pricing-home-legal">Precio regular ₡75.000/mes (Fundamentos estructurales (Foundations) y ORT) o ₡75.000/30 días (Nexora Pro). Promo sujeta a cupos · diagnóstico 90 min sin compromiso.</p>
+    <p class="pricing-home-legal">Foundations y ORT: promo ₡67.500 (regular ₡75.000). Sujeto a cupos · diagnóstico 90 min sin compromiso.</p>
   </div>
 </section>
 
@@ -1387,12 +1447,27 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
       <div class="faq-item" role="listitem">
         <button type="button" class="faq-q" aria-expanded="false" aria-controls="faq-a-8" id="faq-q-8">
-          <span>¿Qué son Nexora Pro, Alice Companion y Alice+?</span>
+          <span>¿Cuánto cuestan Jill, Alice, Companion, Nexora Pro y Alice+?</span>
           <span class="faq-q-icon" aria-hidden="true"><i class="ti ti-plus"></i></span>
         </button>
         <div class="faq-a" id="faq-a-8" role="region" aria-labelledby="faq-q-8">
           <div class="faq-a-inner">
-            <p>Son programas de acceso independiente — no forman parte de los paquetes de Fundamentos estructurales (Foundations), ORT ni del acceso estándar a Jill, Alice tutor o Nexora. Nexora Pro, Alice Companion y Alice+ son add-ons con suscripción propia, disponibles para estudiantes activos o como acceso independiente. Su contratación, facturación y condiciones de uso son separadas del programa principal. Consulta disponibilidad y precio directamente con tu trainer o a través del formulario de contacto.</p>
+            <p><strong>Solo IA (sin trainer):</strong> Jill ₡12.500/mes · Alice tutora ₡18.500/mes · Alice Companion ₡24.500/mes · Nexora Pro ₡28.500/mes · Alice+ ₡49.500/mes (tutora + Nexora + Companion).</p>
+            <p style="margin-top:0.75rem;"><strong>Con trainer:</strong> Foundations y ORT en promo ₡67.500/mes (regular ₡75.000). Precios en colones. Fuera de Costa Rica: tipo de cambio del día + 8%. Detalle completo en <a href="pricing.html">precios</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" role="listitem">
+        <button type="button" class="faq-q" aria-expanded="false" aria-controls="faq-a-9" id="faq-q-9">
+          <span>¿Qué diferencia hay entre Alice tutora, Alice Companion y Alice+?</span>
+          <span class="faq-q-icon" aria-hidden="true"><i class="ti ti-plus"></i></span>
+        </button>
+        <div class="faq-a" id="faq-a-9" role="region" aria-labelledby="faq-q-9">
+          <div class="faq-a-inner">
+            <p><strong>Alice tutora</strong> es entrenamiento enfocado: linkers, estructura, corrección y KPIs.</p>
+            <p style="margin-top:0.75rem;"><strong>Alice Companion</strong> es tu asistente de práctica personal: hablás de lo que querás por voz, con corrección suave.</p>
+            <p style="margin-top:0.75rem;"><strong>Alice+</strong> une tutora + Nexora Pro + Companion en un solo acceso (₡49.500/mes). <strong>Nexora Pro</strong> es el lab de simulaciones (entrevistas, llamadas, presentaciones) por ₡28.500/mes.</p>
           </div>
         </div>
       </div>
