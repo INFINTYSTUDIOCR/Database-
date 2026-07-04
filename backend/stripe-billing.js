@@ -259,8 +259,22 @@ async function enqueueWhatsApp(sbSet, { phone, message, email }) {
   return { id, phone: digits, status: 'pending' };
 }
 
-async function listPendingWhatsApp(sbGet) {
-  const rows = await sbGet(PREMIUM_TABLE);
+async function listPendingWhatsApp(sbGet, sbQuery) {
+  let rows = [];
+  // Prefer filtered query — full table scan can miss rows (PostgREST default limit).
+  if (typeof sbQuery === 'function') {
+    try {
+      rows = await sbQuery(
+        PREMIUM_TABLE,
+        'id=like.ALICE-WA-MSG-*&select=id,data&order=updated_at.desc&limit=50'
+      );
+    } catch (e) {
+      rows = [];
+    }
+  }
+  if (!rows || !rows.length) {
+    rows = (await sbGet(PREMIUM_TABLE)) || [];
+  }
   return (rows || [])
     .filter((r) => r && String(r.id || '').startsWith('ALICE-WA-MSG-') && r.data && r.data.status === 'pending')
     .map((r) => ({

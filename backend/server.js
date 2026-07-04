@@ -1484,7 +1484,7 @@ app.post('/billing/manual-grant', async (req, res) => {
 app.get('/billing/wa-outbox', async (req, res) => {
   try {
     if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
-    const items = await Billing.listPendingWhatsApp(sbGet);
+    const items = await Billing.listPendingWhatsApp(sbGet, sbQuery);
     return res.json({ items });
   } catch (err) {
     console.error('WA outbox error:', err.message);
