@@ -1517,14 +1517,27 @@ app.get('/demo/voices', (req, res) => {
 
 app.post('/demo/tts', async (req, res) => {
   try {
-    const { text, voiceId: bodyVoiceId, firstName } = req.body || {};
-    const voiceId = enforceNexoraTtsVoice(firstName, bodyVoiceId);
+    const { text, voiceId: bodyVoiceId, firstName, voice, product } = req.body || {};
     const ip = getClientIp(req);
     const ipLimit = await checkDemoIpLimit(ip, 'tts', { action: 'tts' });
     if (!ipLimit.ok) {
       return res.status(429).json({ error: 'limit', message: 'Demo voice limit reached for today.' });
     }
 
+    const requested = String(bodyVoiceId || '').trim();
+    const wantsAlice =
+      voice === 'alice' ||
+      product === 'alice' ||
+      product === 'alice_companion' ||
+      requested === ALICE_VOICE_ID ||
+      requested === 'r1KmysJdVYZjJCm4mL3b';
+
+    // Alice tutor + Alice Companion: always the same ElevenLabs Alice voice (never Nexora / browser remap).
+    if (wantsAlice) {
+      return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
+    }
+
+    const voiceId = enforceNexoraTtsVoice(firstName, requested);
     const allowlist = getDemoTtsAllowlist();
     if (!voiceId || !allowlist.has(voiceId)) {
       const fallback = NEXORA_FEMALE_FIRST_NAMES.has(String(firstName || '').trim().split(/\s+/)[0])
@@ -1533,7 +1546,7 @@ app.post('/demo/tts', async (req, res) => {
       return await synthesizeSpeech(req, res, { text, voiceId: fallback, label: 'Nexora demo' });
     }
 
-    const label = voiceId === ALICE_VOICE_ID ? 'Alice demo' : 'Nexora demo';
+    const label = voiceId === ALICE_VOICE_ID ? 'Alice' : 'Nexora demo';
     return await synthesizeSpeech(req, res, { text, voiceId, label });
   } catch (err) {
     console.error('Demo TTS error:', err.message);

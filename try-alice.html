@@ -159,11 +159,11 @@
 <script src="js/alice-billing.js"></script>
 <script src="js/demo-buffer.js"></script>
 <script src="js/demo-api.js"></script>
-<script src="js/demo-voices.js"></script>
+<script src="js/demo-voices.js?v=20260704alice"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/tts-chunks.js?v=20260703c"></script>
 <script src="js/ptt-mic.js"></script>
-<script src="js/demo-voice.js"></script>
+<script src="js/demo-voice.js?v=20260704alice"></script>
 <script src="js/demo-stream.js"></script>
 <script>
 (function () {
@@ -175,9 +175,18 @@
   var done = false;
   var isPremium = false;
   var onboard = { goal: 'work', level: 'intermediate', name: 'Guest' };
-  var voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
+  // Companion must use the same ElevenLabs Alice voice as the tutor (never browser/robot).
+  var ALICE_VOICE_LOCK = { voiceId: 'r1KmysJdVYZjJCm4mL3b', label: 'Alice', gender: 'female', lang: 'en-US', source: 'elevenlabs-account' };
+  var voiceProfile = DemoVoice.setProfile(ALICE_VOICE_LOCK);
   syncDemoVoicesFromServer().then(function () {
-    voiceProfile = DemoVoice.setProfile(demoVoiceProfile('alice'));
+    var fromServer = demoVoiceProfile('alice') || {};
+    voiceProfile = DemoVoice.setProfile({
+      voiceId: fromServer.voiceId || ALICE_VOICE_LOCK.voiceId,
+      label: 'Alice',
+      gender: 'female',
+      lang: 'en-US',
+      source: fromServer.source || 'elevenlabs-account'
+    });
   });
 
   var panel = document.getElementById('panel');
@@ -293,7 +302,15 @@
       sessionId = d.sessionId;
       isPremium = !!(d.premium || isPremium);
       maxSteps = d.maxSteps != null ? d.maxSteps : TRIAL_TURNS;
-      if (d.voiceProfile) voiceProfile = DemoVoice.setProfile(d.voiceProfile);
+      // Keep Alice voice lock even if server sends another profile by mistake
+      var vp = d.voiceProfile || {};
+      voiceProfile = DemoVoice.setProfile({
+        voiceId: (vp.voiceId && vp.label === 'Alice') ? vp.voiceId : (voiceProfile && voiceProfile.voiceId) || ALICE_VOICE_LOCK.voiceId,
+        label: 'Alice',
+        gender: 'female',
+        lang: 'en-US',
+        source: 'elevenlabs-account'
+      });
       onboardEl.style.display = 'none';
       document.getElementById('trial-hero').style.display = 'none';
       var consentBand = document.getElementById('demo-consent-band');

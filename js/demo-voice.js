@@ -131,7 +131,20 @@ var DemoVoice = (function () {
     window.speechSynthesis.speak(u);
   }
 
-  function speak(text, profile, onEnd) {
+  var ALICE_VOICE_ID = 'r1KmysJdVYZjJCm4mL3b';
+
+  function isAliceProfile(p) {
+    if (!p) return false;
+    var id = String(p.voiceId || '');
+    var label = String(p.label || '').toLowerCase();
+    if (id === ALICE_VOICE_ID || id === 'r1KmysJdVYZjJCm4mL3b') return true;
+    if (label.indexOf('alice') >= 0) return true;
+    var demoAlice = window.DEMO_VOICES && window.DEMO_VOICES.alice;
+    if (demoAlice && id && id === demoAlice.voiceId) return true;
+    return false;
+  }
+
+  function speak(text, profile, onEnd, isRetry) {
     var p = normalizeProfile(profile || _activeProfile);
     if (!p) return;
     _activeProfile = p;
@@ -142,10 +155,21 @@ var DemoVoice = (function () {
       return;
     }
 
+    // Alice tutor + Companion: always Alice's ElevenLabs voice (same ID).
+    var alice = isAliceProfile(p);
+    var voiceId = alice
+      ? (window.DEMO_VOICES && window.DEMO_VOICES.alice && window.DEMO_VOICES.alice.voiceId) || ALICE_VOICE_ID
+      : p.voiceId;
+
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: cleanText, voiceId: p.voiceId, voice: p.voiceId ? undefined : 'alice' })
+      body: JSON.stringify({
+        text: cleanText,
+        voiceId: voiceId,
+        voice: alice ? 'alice' : undefined,
+        product: alice ? 'alice' : undefined
+      })
     })
       .then(function (r) {
         if (!r.ok) throw new Error('tts_fail');
@@ -155,7 +179,11 @@ var DemoVoice = (function () {
       })
       .then(function (blob) { playBlob(blob, onEnd); })
       .catch(function () {
-        // Always fall back to browser voice so nothing is skipped mid-reply
+        // One retry with hard-coded Alice ID before browser (browser sounds robotic).
+        if (alice && !isRetry) {
+          speak(cleanText, { voiceId: ALICE_VOICE_ID, label: 'Alice', gender: 'female' }, onEnd, true);
+          return;
+        }
         browserSpeak(cleanText, p, onEnd);
       });
   }
