@@ -1679,8 +1679,16 @@ app.post('/demo/tts', async (req, res) => {
       requested === ALICE_VOICE_ID ||
       requested === 'r1KmysJdVYZjJCm4mL3b';
 
-    // Alice tutor + Companion: always ElevenLabs Alice — never Nexora remap, never browser fallback voice.
-    // Do not apply demo TTS daily cap here (cap was causing robotic speechSynthesis fallback on the client).
+    // Free website demos must NOT burn ElevenLabs — only paid Companion / premium token.
+    const isPremiumTts = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
+    if (!isPremiumTts && !isDemoIpWhitelisted(ip)) {
+      return res.status(403).json({
+        error: 'demo_tts_browser_only',
+        message: 'Free demos use browser voice. Premium unlocks Alice ElevenLabs voice.'
+      });
+    }
+
+    // Paid Alice / Companion: always ElevenLabs Alice voice.
     if (wantsAlice) {
       return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
     }

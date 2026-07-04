@@ -167,21 +167,27 @@ var DemoVoice = (function () {
       return;
     }
 
-    // Alice tutor + Companion: ALWAYS ElevenLabs Alice — never browser robot voice.
     var alice = isAliceProfile(p);
-    var voiceId = alice ? ALICE_VOICE_ID : p.voiceId;
+    var prem = premiumFields();
+    var paid = !!(prem && prem.premiumToken);
 
+    // Free website demos: browser TTS only (saves ElevenLabs). Premium Companion: Alice ElevenLabs voice.
+    if (!paid) {
+      browserSpeak(cleanText, p, onEnd);
+      return;
+    }
+
+    var voiceId = alice ? ALICE_VOICE_ID : p.voiceId;
     var body = {
       text: cleanText,
-      voiceId: voiceId
+      voiceId: voiceId,
+      premiumToken: prem.premiumToken
     };
     if (alice) {
       body.voice = 'alice';
       body.product = 'alice';
       body.voiceId = ALICE_VOICE_ID;
     }
-    var prem = premiumFields();
-    if (prem.premiumToken) body.premiumToken = prem.premiumToken;
 
     fetch(BACKEND + '/demo/tts', {
       method: 'POST',
@@ -199,15 +205,10 @@ var DemoVoice = (function () {
         playBlob(blob, onEnd);
       })
       .catch(function () {
-        // Retry once — never use speechSynthesis for Alice (sounds like a robot).
         if (alice && !isRetry) {
           setTimeout(function () {
             speak(cleanText, { voiceId: ALICE_VOICE_ID, label: 'Alice', gender: 'female', lang: 'en-US' }, onEnd, true);
           }, 400);
-          return;
-        }
-        if (alice) {
-          if (typeof onEnd === 'function') onEnd();
           return;
         }
         browserSpeak(cleanText, p, onEnd);
