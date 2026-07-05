@@ -2490,7 +2490,10 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 
   if (!r.ok) {
     const err = await r.text();
-    console.error(`${label || 'TTS'} error:`, err);
+    console.error(`${label || 'TTS'} ElevenLabs ${r.status}:`, err.slice(0, 500));
+    if (r.status === 401 || /quota|limit_exceeded|credit|subscription/i.test(err)) {
+      throw new Error('ELEVENLABS_QUOTA');
+    }
     throw new Error('TTS failed');
   }
 
@@ -2513,8 +2516,9 @@ async function synthesizeSpeech(req, res, { text, voiceId, label, stability, sim
     return res.send(buffer);
   } catch (err) {
     if (err.message === 'Empty text') return res.status(400).json({ error: 'Empty text' });
-    if (err.message.includes('not configured')) return res.status(503).json({ error: err.message });
-    return res.status(500).json({ error: 'TTS failed' });
+    if (err.message.includes('not configured')) return res.status(503).json({ error: err.message, code: 'ELEVEN_KEY_MISSING' });
+    if (err.message === 'ELEVENLABS_QUOTA') return res.status(503).json({ error: 'ElevenLabs quota or key invalid', code: 'ELEVEN_QUOTA' });
+    return res.status(500).json({ error: 'TTS failed', code: 'ELEVEN_ERROR' });
   }
 }
 

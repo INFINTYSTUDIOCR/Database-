@@ -1810,6 +1810,7 @@ async function startAliceSession(sessionType, opts){
   _aliceState.savedSession = null;
   _aliceState.scenario = null;
   if(typeof unlockTtsAudio === 'function') await unlockTtsAudio();
+  if(window.speechSynthesis) try{ speechSynthesis.getVoices(); }catch(e){}
   renderAlice();
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   var returning = mode === 'return_session';
@@ -2212,7 +2213,30 @@ function aliceShowTtsError(status){
   if(!st) return;
   if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
   else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Companion.';
+  else if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
   else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
+}
+
+function aliceBrowserTtsLang(){
+  var acc = ALICE_ACCENTS[_aliceState.accent];
+  return (acc && acc.lang) || 'en-US';
+}
+
+function alicePlayBrowserTts(text, onEnded, onError){
+  if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = aliceBrowserTtsLang();
+  u.rate = 0.94;
+  var voices = speechSynthesis.getVoices() || [];
+  var pref = u.lang.slice(0, 2);
+  var v = voices.find(function(vo){ return vo.lang === u.lang; })
+    || voices.find(function(vo){ return (vo.lang || '').indexOf(pref) === 0; });
+  if(v) u.voice = v;
+  u.onend = function(){ if(onEnded) onEnded(); };
+  u.onerror = function(){ if(onError) onError(); };
+  speechSynthesis.speak(u);
+  return true;
 }
 
 function aliceFetchTtsBlob(clean){
@@ -3652,27 +3676,39 @@ function _aliceTTSFlush(){
   aliceArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
 
+  function finishAliceLine(){
+    window._aliceAudio = null;
+    clearTimeout(_aliceTtsWatchdog);
+    _aliceTTSBusy = false;
+    _aliceState.speaking = _aliceTTSQueue.length > 0;
+    _aliceTTSFlush();
+  }
+
   function playBlob(b){
-    if(!b || !_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+    if(!_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+    if(!b){
+      delete _aliceTtsRetry[clean];
+      if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
+      finishAliceLine();
+      return;
+    }
     delete _aliceTtsRetry[clean];
     if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} }
     window._aliceAudio = playAudioBlob(b, {
-      onEnded: function(){
-        window._aliceAudio = null;
-        clearTimeout(_aliceTtsWatchdog);
-        _aliceTTSBusy = false;
-        _aliceState.speaking = _aliceTTSQueue.length > 0;
-        _aliceTTSFlush();
-      },
+      onEnded: finishAliceLine,
       onError: function(){
         window._aliceAudio = null;
         clearTimeout(_aliceTtsWatchdog);
+        if(alicePlayBrowserTts(clean, finishAliceLine, function(){
+          _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
+          if(_aliceTtsRetry[clean] < 2) _aliceTTSQueue.unshift(text);
+          else delete _aliceTtsRetry[clean];
+          finishAliceLine();
+        })) return;
         _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
         if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
         else delete _aliceTtsRetry[clean];
-        _aliceTTSBusy = false;
-        _aliceState.speaking = _aliceTTSQueue.length > 0;
-        setTimeout(_aliceTTSFlush, 200);
+        finishAliceLine();
       }
     });
   }
