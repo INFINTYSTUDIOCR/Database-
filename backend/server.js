@@ -373,9 +373,12 @@ function assertStudentScope(req, studentId) {
   return true;
 }
 
-function isTutorEnabledForStudent(student, tutor) {
+function isTutorEnabledForStudent(student, tutor, opts = {}) {
   if (!student) return true;
   if (tutor === 'alice') {
+    const sessionType = opts.sessionType || null;
+    if (sessionType === 'companion' && student.companionEnabled === true) return true;
+    if (opts.allowCompanionProduct && student.companionEnabled === true) return true;
     if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
     return (student.system_mode || 'jill') === 'alice';
   }
@@ -396,14 +399,16 @@ async function loadStudentRecordForAuth(req, bodyStudent) {
   return bodyStudent || null;
 }
 
-async function assertStudentTutorAccess(req, res, tutor, bodyStudent) {
+async function assertStudentTutorAccess(req, res, tutor, bodyStudent, opts = {}) {
   if (req.auth.role !== 'student') return bodyStudent || null;
   const student = await loadStudentRecordForAuth(req, bodyStudent);
   if (!assertStudentScope(req, student?.id)) {
     res.status(403).json({ error: 'Student scope mismatch' });
     return null;
   }
-  if (!isTutorEnabledForStudent(student, tutor)) {
+  const sessionType = opts.sessionType || req.body?.sessionType || null;
+  const accessOpts = { sessionType, ...opts };
+  if (!isTutorEnabledForStudent(student, tutor, accessOpts)) {
     res.status(403).json({ error: 'Tutor access disabled', tutorOff: tutor });
     return null;
   }
@@ -3391,7 +3396,7 @@ app.post('/claire-tts', optionalAuth, async (req, res) => {
 
 app.post('/alice-tts', requireProductAuth, async (req, res) => {
   try {
-    const ok = await assertStudentTutorAccess(req, res, 'alice', null);
+    const ok = await assertStudentTutorAccess(req, res, 'alice', null, { allowCompanionProduct: true });
     if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
     return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });

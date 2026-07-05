@@ -376,7 +376,7 @@ async function doLogin(){
 
 function switchPortalTab(tab){
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
-  if(tab === 'alice' && s && !studentAliceOn(s)) tab = 'progreso';
+  if(tab === 'alice' && s && !studentAliceTabOn(s)) tab = 'progreso';
   if(tab === 'jill' && s && !studentJillOn(s)) tab = 'progreso';
   if(tab === 'nexora' && s && (!studentAliceOn(s) || !s.nexoraEnabled)) tab = 'progreso';
   var prevTab = window._activePortalTab || 'progreso';
@@ -907,6 +907,22 @@ function studentJillOn(s){
   if(!s) return false;
   if(typeof s.jillEnabled === 'boolean') return s.jillEnabled;
   return (s.system_mode || 'jill') !== 'alice';
+}
+function studentCompanionOn(s){
+  return !!(s && s.companionEnabled === true);
+}
+/** Tab Alice visible si tutora Alice O Companion premium están ON (Engine master). */
+function studentAliceTabOn(s){
+  return studentAliceOn(s) || studentCompanionOn(s);
+}
+function syncAliceNavLabel(s){
+  var nav = document.getElementById('nav-alice');
+  if(!nav) return;
+  if(studentCompanionOn(s) && !studentAliceOn(s)){
+    nav.innerHTML = '<i class="ti ti-messages"></i>Companion';
+  } else {
+    nav.innerHTML = '<i class="ti ti-robot"></i>Alice';
+  }
 }
 
 async function checkNexoraAccess(s){
@@ -1564,11 +1580,16 @@ function aliceCompanionEnabled(){
 }
 
 function aliceApplyCompanionDefaults(){
-  if(!aliceCompanionEnabled()) {
-    _aliceState.sessionType = 'practice';
+  var s = CURRENT_STUDENT;
+  if(!studentCompanionOn(s)) {
+    if(!studentAliceOn(s)) _aliceState.sessionType = 'practice';
     return;
   }
-  var cfg = CURRENT_STUDENT.companionConfig || {};
+  if(!studentAliceOn(s)) {
+    _aliceState.sessionType = 'companion';
+    return;
+  }
+  var cfg = s.companionConfig || {};
   if(cfg.defaultSessionType === 'companion' || cfg.defaultSessionType === 'practice'){
     _aliceState.sessionType = cfg.defaultSessionType;
   }
@@ -1579,15 +1600,21 @@ function renderAliceStart(){
   var hasSaved = !!_aliceState.savedSession;
   var mode = _aliceState.sessionType || 'practice';
   var companionOn = aliceCompanionEnabled();
-  var modePicker = companionOn
+  var aliceTutorOn = studentAliceOn(CURRENT_STUDENT);
+  var companionOnly = companionOn && !aliceTutorOn;
+  if(companionOnly) mode = 'companion';
+  var modePicker = (companionOn && aliceTutorOn)
     ? '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
       +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Práctica Nexus</button>'
       +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:rgba(134,239,172,0.2);border:2px solid #86EFAC;color:#86EFAC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Alice Companion</button>'
       +'</div>'
     : '';
-  var intro = companionOn
-    ? '<strong>Alice</strong> (tutora) = práctica Nexus con ejercicios y conectores. <strong>Alice Companion</strong> (premium) = charla libre ilimitada — producto incluido en tu plan.'
-    : '<strong>Alice</strong> es tu tutora de inglés con el <strong>Método Nexus</strong> — Idea + Linker + Idea. <span style="opacity:.85;">Alice Companion (charla libre) es premium — pedí a tu trainer activarlo.</span>';
+  var intro = companionOnly
+    ? '<strong>Alice Companion</strong> está activo en tu plan — charla libre en inglés, cualquier tema, sin cortes. Mantené presionado el micrófono o escribí para hablar.'
+    : (companionOn
+      ? '<strong>Alice</strong> (tutora) = práctica Nexus con ejercicios y conectores. <strong>Alice Companion</strong> (premium) = charla libre ilimitada — producto incluido en tu plan.'
+      : '<strong>Alice</strong> es tu tutora de inglés con el <strong>Método Nexus</strong> — Idea + Linker + Idea. <span style="opacity:.85;">Alice Companion (charla libre) es premium — pedí a tu trainer activarlo.</span>');
+  var startLabel = companionOnly ? 'Iniciar Companion' : 'Iniciar sesión';
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(192,132,252,0.15);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
     +intro
@@ -1595,7 +1622,7 @@ function renderAliceStart(){
     +modePicker
     +(companionOn && typeof AliceProgress !== 'undefined' ? AliceProgress.renderQuickStart(CURRENT_STUDENT, true) : '')
     +'<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(192,132,252,0.4);width:100%;justify-content:center;" onclick="startAliceSession(_aliceState.sessionType||\'practice\')"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(192,132,252,0.4);width:100%;justify-content:center;" onclick="startAliceSession('+(companionOnly?"'companion'":"(_aliceState.sessionType||'practice')")+')"><i class="ti ti-player-play"></i> '+startLabel+'</button>'
     +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);color:#C084FC;font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
@@ -1675,7 +1702,25 @@ async function startAliceSession(sessionType, opts){
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
   _aliceState.sessionType = sessionType || _aliceState.sessionType || 'practice';
-  if(!aliceCompanionEnabled()) _aliceState.sessionType = 'practice';
+  if(!studentAliceOn(CURRENT_STUDENT) && studentCompanionOn(CURRENT_STUDENT)){
+    _aliceState.sessionType = 'companion';
+  } else if(!aliceCompanionEnabled()) {
+    _aliceState.sessionType = 'practice';
+  }
+  if(_aliceState.sessionType === 'practice' && !studentAliceOn(CURRENT_STUDENT)){
+    showToast('Práctica Alice no está activa — pedí a tu trainer.','err');
+    _aliceState.sessionActive = false;
+    _aliceStarting = false;
+    renderAlice();
+    return;
+  }
+  if(_aliceState.sessionType === 'companion' && !studentCompanionOn(CURRENT_STUDENT)){
+    showToast('Alice Companion no está activo — pedí a tu trainer.','err');
+    _aliceState.sessionActive = false;
+    _aliceStarting = false;
+    renderAlice();
+    return;
+  }
   if(opts.continueTopic) _aliceState.companionTopic = String(opts.continueTopic).slice(0, 80);
   else _aliceState.companionTopic = '';
   _aliceState.sessionStartedAt = Date.now();
@@ -3352,12 +3397,13 @@ function applySystemMode(s){
   var navAlice  = document.getElementById('nav-alice');
 
   if(navJill)  navJill.style.display  = studentJillOn(s)  ? 'flex' : 'none';
-  if(navAlice) navAlice.style.display = studentAliceOn(s) ? 'flex' : 'none';
+  if(navAlice) navAlice.style.display = studentAliceTabOn(s) ? 'flex' : 'none';
+  syncAliceNavLabel(s);
 
   checkNexoraAccess(s);
 
   var active = window._activePortalTab;
-  if(active === 'alice' && !studentAliceOn(s)) switchPortalTab('progreso');
+  if(active === 'alice' && !studentAliceTabOn(s)) switchPortalTab('progreso');
   else if(active === 'jill' && !studentJillOn(s)) switchPortalTab('progreso');
   else if(active === 'nexora' && (!studentAliceOn(s) || !(s && s.nexoraEnabled))) switchPortalTab('progreso');
 }
