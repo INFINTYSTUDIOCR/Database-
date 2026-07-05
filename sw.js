@@ -68,7 +68,11 @@ self.addEventListener('fetch', function(event) {
     event.respondWith(
       fetch(req)
         .then(function(res) { return res; })
-        .catch(function() { return caches.match(req); })
+        .catch(function() {
+          return caches.match(req).then(function(cached) {
+            return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
+          });
+        })
     );
     return;
   }
