@@ -1615,9 +1615,9 @@ function renderAlice(){
     +'</div>'
     +headerRight
     +'</div>'
-    +((!_aliceState.sessionActive && !aliceCompanionUiActive() && typeof AliceProgress !== 'undefined') ? AliceProgress.renderHabitStrip(CURRENT_STUDENT) : '')
-    +((!_aliceState.sessionActive && !aliceCompanionUiActive() && typeof AliceBadgesCefr !== 'undefined') ? AliceBadgesCefr.renderBadgesRow(CURRENT_STUDENT) : '')
-    +((!_aliceState.sessionActive && !aliceCompanionUiActive() && typeof AliceReminders !== 'undefined') ? AliceReminders.renderReminderPrompt() : '')
+    +((!_aliceState.sessionActive && typeof AliceProgress !== 'undefined') ? AliceProgress.renderHabitStrip(CURRENT_STUDENT) : '')
+    +((!_aliceState.sessionActive && typeof AliceBadgesCefr !== 'undefined') ? AliceBadgesCefr.renderBadgesRow(CURRENT_STUDENT) : '')
+    +((!_aliceState.sessionActive && typeof AliceReminders !== 'undefined') ? AliceReminders.renderReminderPrompt() : '')
     +(!_aliceState.sessionActive ? renderAliceStart() : renderAliceSession())
     +'</div>';
   if(_aliceState.sessionActive){
