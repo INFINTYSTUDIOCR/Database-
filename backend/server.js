@@ -388,8 +388,8 @@ function isTutorEnabledForStudent(student, tutor, opts = {}) {
   if (!student) return true;
   if (tutor === 'alice') {
     const sessionType = opts.sessionType || null;
-    if (sessionType === 'companion' && student.companionEnabled === true) return true;
-    if (opts.allowCompanionProduct && student.companionEnabled === true) return true;
+    if (sessionType === 'companion' && !!student.companionEnabled) return true;
+    if (opts.allowCompanionProduct && !!student.companionEnabled) return true;
     if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
     return (student.system_mode || 'jill') === 'alice';
   }

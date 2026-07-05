@@ -345,7 +345,12 @@ async function doLogin(){
       return;
     }
 
-    try { await infinityLogin(user, pass, 'student', { silent: true }); } catch(e) {}
+    try {
+      await infinityLogin(user, pass, 'student', { silent: true });
+      if(!getAuthToken()) showToast('Acceso al portal OK, pero la voz necesita re-login — salí y volvé a ingresar.','err');
+    } catch(e) {
+      showToast('Servidor de voz no respondió — salí y volvé a ingresar antes de Companion.','err');
+    }
     warmInfinityApi();
 
     CURRENT_STUDENT = student;
@@ -1751,12 +1756,31 @@ async function startAliceCompanionQuick(continueTopic){
   await startAliceSession('companion', { continueTopic: continueTopic || '' });
 }
 
+async function syncCurrentStudentFlags(){
+  if(!CURRENT_STUDENT || !CURRENT_STUDENT.id) return;
+  try{
+    var row = await dbGetStudentRow(CURRENT_STUDENT.id);
+    if(row && row.data){
+      Object.assign(CURRENT_STUDENT, row.data);
+      CURRENT_STUDENT.id = row.id;
+      ALL_STUDENTS[row.id] = CURRENT_STUDENT;
+    }
+  }catch(e){}
+}
+
 async function startAliceSession(sessionType, opts){
   if(_aliceStarting) return;
   opts = opts || {};
   _aliceStarting = true;
   var startGen = ++_aliceStartGen;
   stopAlice();
+  await syncCurrentStudentFlags();
+  if(!getAuthToken()){
+    showToast('Sin sesión de voz — salí del portal y volvé a ingresar.','err');
+    _aliceStarting = false;
+    renderAlice();
+    return;
+  }
   _aliceState.history = [];
   _aliceState.evaluation = null;
   _aliceState.sessionActive = true;
@@ -1785,7 +1809,7 @@ async function startAliceSession(sessionType, opts){
   _aliceState.sessionStartedAt = Date.now();
   _aliceState.savedSession = null;
   _aliceState.scenario = null;
-  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+  if(typeof unlockTtsAudio === 'function') await unlockTtsAudio();
   renderAlice();
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   var returning = mode === 'return_session';
@@ -2176,6 +2200,31 @@ var _aliceSpeakEnabled = false;
 var _aliceLastSpokenKey = '';
 var _aliceLastSpokenAt = 0;
 
+function aliceTtsRequestBody(text){
+  return JSON.stringify({
+    text: text,
+    sessionType: (_aliceState && _aliceState.sessionType) || 'practice'
+  });
+}
+
+function aliceShowTtsError(status){
+  var st = document.getElementById('alice-status');
+  if(!st) return;
+  if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
+  else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Companion.';
+  else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
+}
+
+function aliceFetchTtsBlob(clean){
+  return infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body: aliceTtsRequestBody(clean)})
+  .then(function(r){
+    if(!r.ok){ aliceShowTtsError(r.status); return null; }
+    var ct = (r.headers.get('content-type') || '').toLowerCase();
+    if(ct.indexOf('audio') === -1) return null;
+    return r.blob();
+  });
+}
+
 function aliceSpeakDedupeKey(text){
   return aliceCleanTtsText(text).toLowerCase().replace(/\s+/g, ' ').trim();
 }
@@ -2534,7 +2583,8 @@ function warmInfinityApi(){
 }
 
 function aliceWarmApi(){
-  infinityFetch('/alice-tts',{method:'POST',headers:authHeaders(),body:JSON.stringify({text:'Hi'})}).catch(function(){});
+  if(!getAuthToken()) return;
+  aliceFetchTtsBlob('Hi').catch(function(){});
 }
 
 function nexoraWarmApi(){
@@ -3585,8 +3635,7 @@ function alicePrefetchTTS(text){
   if(clean.length < 3 || _aliceTtsPrefetch[clean]) return;
   alicePrunePrefetchCache();
   _aliceTtsPrefetch[clean] = 'loading';
-  infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
-  .then(function(r){ return r.ok ? r.blob() : null; })
+  aliceFetchTtsBlob(clean)
   .then(function(b){ if(b) _aliceTtsPrefetch[clean] = b; else delete _aliceTtsPrefetch[clean]; })
   .catch(function(){ delete _aliceTtsPrefetch[clean]; });
 }
@@ -3634,8 +3683,7 @@ function _aliceTTSFlush(){
     playBlob(cached);
     return;
   }
-  infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
-  .then(function(r){ return r.ok ? r.blob() : null; })
+  aliceFetchTtsBlob(clean)
   .then(playBlob)
   .catch(function(){
     clearTimeout(_aliceTtsWatchdog);
