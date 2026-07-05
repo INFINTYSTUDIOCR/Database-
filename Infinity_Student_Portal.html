@@ -83,8 +83,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes alicePulse{0%,100%{opacity:1}50%{opacity:0.55}}
 #alice-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
 #alice-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
-#nav-alice.companion-nav{color:#F5A623;}
-#nav-alice.companion-nav.active{background:rgba(245,166,35,0.14)!important;color:#FCD34D!important;}
+#nav-alice.companion-nav{color:#FFD700;font-weight:800;}
+#nav-alice.companion-nav.active{background:linear-gradient(135deg,rgba(255,215,0,0.28),rgba(245,158,11,0.18))!important;color:#FFEB3B!important;box-shadow:inset 0 0 0 1px rgba(255,215,0,0.35);}
+#nav-alice.companion-nav i{color:#FFD700;}
 #jill-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
 #jill-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
 #alice-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
@@ -1556,33 +1557,39 @@ function aliceCompanionUiActive(){
 function aliceTheme(){
   if(aliceCompanionUiActive()){
     return {
-      cardBg: 'linear-gradient(160deg,#1a1206,#2d1a05,#4a2c0a)',
-      cardShadow: 'rgba(245,166,35,0.35)',
-      cardBorder: 'rgba(245,166,35,0.28)',
-      title: '#FCD34D',
-      titleShadow: 'rgba(245,166,35,0.5)',
-      accent: '#F5A623',
-      accentLight: '#FDE68A',
-      rgb: '245,166,35',
-      btnGrad: 'linear-gradient(135deg,#B45309,#D97706)',
-      btnShadow: 'rgba(245,166,35,0.4)',
+      cardBg: 'linear-gradient(160deg,#120e00,#3a2d00,#7a5c00)',
+      cardShadow: '0 8px 40px rgba(255,193,7,0.5), 0 0 48px rgba(255,215,0,0.18)',
+      cardBorder: 'rgba(255,215,0,0.55)',
+      studioLabel: '#FFD700',
+      title: '#FFD700',
+      titleShadow: 'rgba(255,215,0,0.75)',
+      accent: '#FFEB3B',
+      accentLight: '#FFF176',
+      rgb: '255,215,0',
+      btnGrad: 'linear-gradient(135deg,#B45309,#EAB308,#FFD700)',
+      btnShadow: '0 4px 20px rgba(255,215,0,0.55)',
       headline: 'ALICE',
-      subtitle: 'Companion · Charla libre en inglés'
+      subtitle: 'Companion · Charla libre en inglés',
+      badgeBg: 'rgba(255,215,0,0.14)',
+      msgBg: 'rgba(255,215,0,0.16)'
     };
   }
   return {
     cardBg: 'linear-gradient(160deg,#0B1437,#1a0533,#2d1060)',
-    cardShadow: 'rgba(91,33,182,0.35)',
+    cardShadow: '0 8px 32px rgba(91,33,182,0.35)',
     cardBorder: 'rgba(192,132,252,0.2)',
+    studioLabel: '#F5A623',
     title: '#C084FC',
     titleShadow: 'rgba(192,132,252,0.45)',
     accent: '#C084FC',
     accentLight: '#C084FC',
     rgb: '192,132,252',
     btnGrad: 'linear-gradient(135deg,#5B21B6,#7C3AED)',
-    btnShadow: 'rgba(192,132,252,0.4)',
+    btnShadow: '0 4px 16px rgba(192,132,252,0.4)',
     headline: 'ALICE',
-    subtitle: 'Nexus 2.5 — Tu tutora de inglés'
+    subtitle: 'Nexus 2.5 — Tu tutora de inglés',
+    badgeBg: 'rgba(192,132,252,0.07)',
+    msgBg: 'rgba(192,132,252,0.1)'
   };
 }
 
@@ -1590,20 +1597,23 @@ function renderAlice(){
   var root = document.getElementById('alice-root');
   if(!root) return;
   var th = aliceTheme();
+  var isGold = aliceCompanionUiActive();
   var accentOptions = Object.keys(ALICE_ACCENTS).map(function(k){
     return '<option value="'+k+'"'+(k===_aliceState.accent?' selected':'')+'>'+ALICE_ACCENTS[k].label+'</option>';
   }).join('');
-  root.innerHTML = '<div style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px '+th.cardShadow+';border:1px solid '+th.cardBorder+';">'
+  var headerRight = isGold
+    ? '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(255,215,0,0.4),rgba(234,179,8,0.25));border:2px solid rgba(255,215,0,0.65);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 24px rgba(255,215,0,0.45);">✨</div>'
+    : '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
+      +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select></div>';
+  var cardBorderW = isGold ? '2px' : '1px';
+  root.innerHTML = '<div style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:'+th.cardShadow+';border:'+cardBorderW+' solid '+th.cardBorder+';">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'
-    +'<div style="font-size:10px;letter-spacing:0.25em;color:#F5A623;font-weight:700;">STUDIO INFINITY CR</div>'
-    +'<div style="font-size:28px;font-weight:900;color:'+th.title+';letter-spacing:0.05em;text-shadow:0 0 24px '+th.titleShadow+';">'+th.headline+'</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">'+th.subtitle+'</div>'
+    +'<div style="font-size:10px;letter-spacing:0.25em;color:'+th.studioLabel+';font-weight:700;">STUDIO INFINITY CR</div>'
+    +'<div style="font-size:28px;font-weight:900;color:'+th.title+';letter-spacing:0.05em;text-shadow:0 0 28px '+th.titleShadow+(isGold?',0 0 10px rgba(255,215,0,0.5)':'')+';">'+th.headline+'</div>'
+    +'<div style="font-size:11px;color:'+(isGold?'#FFEB3B':'rgba(255,255,255,0.88)')+';">'+th.subtitle+'</div>'
     +'</div>'
-    +'<div style="text-align:right;">'
-    +'<div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
-    +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select>'
-    +'</div>'
+    +headerRight
     +'</div>'
     +((!_aliceState.sessionActive && typeof AliceProgress !== 'undefined') ? AliceProgress.renderHabitStrip(CURRENT_STUDENT) : '')
     +((!_aliceState.sessionActive && typeof AliceBadgesCefr !== 'undefined') ? AliceBadgesCefr.renderBadgesRow(CURRENT_STUDENT) : '')
@@ -1651,7 +1661,7 @@ function renderAliceStart(){
   var modePicker = (companionOn && aliceTutorOn)
     ? '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
       +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Práctica Nexus</button>'
-      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:rgba(245,166,35,0.22);border:2px solid #F5A623;color:#FCD34D;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Alice Companion</button>'
+      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(255,215,0,0.35),rgba(234,179,8,0.25));border:2px solid #FFD700;color:#FFEB3B;box-shadow:0 0 16px rgba(255,215,0,0.35);':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Alice Companion</button>'
       +'</div>'
     : '';
   var intro = companionOnly
@@ -1667,7 +1677,7 @@ function renderAliceStart(){
     +modePicker
     +(companionOn && typeof AliceProgress !== 'undefined' ? AliceProgress.renderQuickStart(CURRENT_STUDENT, true) : '')
     +'<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px '+th.btnShadow+';width:100%;justify-content:center;" onclick="startAliceSession('+(companionOnly?"'companion'":"(_aliceState.sessionType||'practice')")+')"><i class="ti ti-player-play"></i> '+startLabel+'</button>'
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:'+(companionOnly||mode==='companion'?'2px solid rgba(255,215,0,0.55)':'none')+';color:'+(companionOnly||mode==='companion'?'#1a1200':'white')+';font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startAliceSession('+(companionOnly?"'companion'":"(_aliceState.sessionType||'practice')")+')"><i class="ti ti-player-play"></i> '+startLabel+'</button>'
     +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.3);color:'+th.accent+';font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
@@ -1688,14 +1698,14 @@ function renderAliceSession(){
         +'<span><i class="ti ti-user"></i> '+scn.customer_personality+'</span>'
         +'<span><i class="ti ti-flame" style="color:#FB923C;"></i> Dificultad '+scn.difficulty+'/10</span>'
         +'</div>'
-      :'<div style="background:rgba('+th.rgb+',0.08);border:1px solid rgba('+th.rgb+',0.18);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">'+badgeText+'</div>'
+      :'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">'+badgeText+'</div>'
     )
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
     +'<div id="alice-status" style="font-size:12px;color:'+th.accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
     +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba('+th.rgb+',0.28);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendAliceMessage();">'
     +'<button id="alice-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.35);color:'+th.accent+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
-    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+th.btnGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
+    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+th.btnGrad+';border:'+(aliceCompanionUiActive()?'2px solid rgba(255,215,0,0.5)':'none')+';color:'+(aliceCompanionUiActive()?'#1a1200':'white')+';border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendAliceMessage()"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
     +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(134,239,172,0.1);border:1px solid rgba(134,239,172,0.25);color:#86EFAC;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endAliceSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
@@ -1902,8 +1912,8 @@ function aliceFormatMessageHtml(m){
     +(isAlice
       ?'<div style="font-size:10px;color:'+th.accent+';font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">'+roleLabel+'</div>'
       :'<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;margin-bottom:4px;">VOS</div>')
-    +'<div style="max-width:88%;background:'+(isAlice?'rgba('+th.rgb+',0.12)':'rgba(255,255,255,0.08)')
-    +';border:1px solid '+(isAlice?'rgba('+th.rgb+',0.28)':'rgba(255,255,255,0.12)')
+    +'<div style="max-width:88%;background:'+(isAlice?(th.msgBg||('rgba('+th.rgb+',0.12)')):'rgba(255,255,255,0.08)')
+    +';border:1px solid '+(isAlice?'rgba('+th.rgb+',0.45)':'rgba(255,255,255,0.12)')
     +';border-radius:'+(isAlice?'4px 14px 14px 14px':'14px 4px 14px 14px')
     +';padding:10px 14px;font-size:13px;line-height:1.6;color:white;">'
     +clean
