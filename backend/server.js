@@ -373,6 +373,43 @@ function assertStudentScope(req, studentId) {
   return true;
 }
 
+function isTutorEnabledForStudent(student, tutor) {
+  if (!student) return true;
+  if (tutor === 'alice') {
+    if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
+    return (student.system_mode || 'jill') === 'alice';
+  }
+  if (tutor === 'jill') {
+    if (typeof student.jillEnabled === 'boolean') return student.jillEnabled;
+    return (student.system_mode || 'jill') !== 'alice';
+  }
+  return true;
+}
+
+async function loadStudentRecordForAuth(req, bodyStudent) {
+  if (req.auth.role === 'student' && req.auth.studentId) {
+    try {
+      const row = await sbGetOne('infinity_students', req.auth.studentId);
+      if (row?.data) return { ...row.data, id: req.auth.studentId };
+    } catch (e) { /* fall through */ }
+  }
+  return bodyStudent || null;
+}
+
+async function assertStudentTutorAccess(req, res, tutor, bodyStudent) {
+  if (req.auth.role !== 'student') return bodyStudent || null;
+  const student = await loadStudentRecordForAuth(req, bodyStudent);
+  if (!assertStudentScope(req, student?.id)) {
+    res.status(403).json({ error: 'Student scope mismatch' });
+    return null;
+  }
+  if (!isTutorEnabledForStudent(student, tutor)) {
+    res.status(403).json({ error: 'Tutor access disabled', tutorOff: tutor });
+    return null;
+  }
+  return student;
+}
+
 // ── AUTH ─────────────────────────────────────────────────────
 app.post('/auth/login', async (req, res) => {
   try {
@@ -2590,10 +2627,9 @@ function formatJillBundleNote(jillBundle) {
 
 app.post('/alice', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, mode, secret, nexora, sessionType, companionTopic } = req.body || {};
-    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
-      return res.status(403).json({ error: 'Student scope mismatch' });
-    }
+    let { student, history, message, mode, secret, nexora, sessionType, companionTopic } = req.body || {};
+    student = await assertStudentTutorAccess(req, res, 'alice', student);
+    if (!student) return;
     sanitizeStudentAiProfile(student);
     const companionCtx = Companion.resolveCompanionSession(student, sessionType);
     const effectiveSessionType = companionCtx.sessionType;
@@ -2940,10 +2976,9 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
-    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
-      return res.status(403).json({ error: 'Student scope mismatch' });
-    }
+    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    if (!student) return;
     sanitizeStudentAiProfile(student);
 
     const name = student?.name || student?.info?.name || 'estudiante';
@@ -3112,10 +3147,9 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
-    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
-      return res.status(403).json({ error: 'Student scope mismatch' });
-    }
+    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    if (!student) return;
     sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
@@ -3178,10 +3212,9 @@ async function tutorKnowledgeSliceFast(message) {
 // ── ALICE STREAM ─────────────────────────────────────────────
 app.post('/alice/stream', requireProductAuth, async (req, res) => {
   try {
-    const { student, history, message, scenario, secret, sessionType, companionTopic } = req.body || {};
-    if (req.auth.role === 'student' && !assertStudentScope(req, student?.id)) {
-      return res.status(403).json({ error: 'Student scope mismatch' });
-    }
+    let { student, history, message, scenario, secret, sessionType, companionTopic } = req.body || {};
+    student = await assertStudentTutorAccess(req, res, 'alice', student);
+    if (!student) return;
     sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
     const companionCtx = Companion.resolveCompanionSession(student, sessionType);
@@ -3358,6 +3391,8 @@ app.post('/claire-tts', optionalAuth, async (req, res) => {
 
 app.post('/alice-tts', requireProductAuth, async (req, res) => {
   try {
+    const ok = await assertStudentTutorAccess(req, res, 'alice', null);
+    if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
     return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
   } catch (err) {
@@ -3368,6 +3403,8 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
 
 app.post('/jill-tts', requireProductAuth, async (req, res) => {
   try {
+    const ok = await assertStudentTutorAccess(req, res, 'jill', null);
+    if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
     return await synthesizeSpeech(req, res, { text, voiceId: JILL_VOICE_ID, label: 'Jill' });
   } catch (err) {

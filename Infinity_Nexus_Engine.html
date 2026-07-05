@@ -1479,9 +1479,10 @@ function openStudent(id){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
-    +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(192,132,252,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'
-    +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'
-    +'<button data-sid="'+id+'" class="btn btn-sm" id="btn-sysmode" style="background:'+(s.system_mode==='alice'?'rgba(14,165,233,0.2)':'rgba(61,220,151,0.15)')+';border:1px solid '+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';color:'+(s.system_mode==='alice'?'#38BDF8':'#3DDC97')+';font-weight:700;" onclick="requestModeChange(\''+id+'\')" title="Próxima sesión"><i class="ti ti-toggle-'+(s.system_mode==='alice'?'right':'left')+'"></i> '+(s.system_mode==='alice'?'Alice Mode':'Jill Mode')+'</button>'
+    +(isMaster?('<button data-sid="'+id+'" data-tutor="jill" class="btn btn-sm" style="background:'+(studentJillOn(s)?'rgba(61,220,151,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillOn(s)?'#3DDC97':'rgba(255,255,255,0.3)')+';color:'+(studentJillOn(s)?'#3DDC97':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-left"></i> Jill '+(studentJillOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" data-tutor="alice" class="btn btn-sm" style="background:'+(studentAliceOn(s)?'rgba(192,132,252,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentAliceOn(s)?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(studentAliceOn(s)?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-right"></i> Alice '+(studentAliceOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(245,166,35,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#F5A623':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#F5A623':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'):'')
 
     +'<div class="profile-header">'
     +'<div><div class="ph-name">'+((s.info&&s.info.name)||'—')+'</div>'
@@ -4498,6 +4499,44 @@ async function saveKPITracker(){
 // ── NEXORA — activación individual por estudiante ──────────
 // ── SYSTEM MODE — Jill ↔ Alice ──────────────────────────────────
 // Trainer-only control. Persistent. Applies next session.
+// ── SYSTEM MODE — Jill ↔ Alice (legacy) ───────────────────────
+function studentAliceOn(s){
+  if(!s) return false;
+  if(typeof s.aliceEnabled === 'boolean') return s.aliceEnabled;
+  return (s.system_mode || 'jill') === 'alice';
+}
+function studentJillOn(s){
+  if(!s) return false;
+  if(typeof s.jillEnabled === 'boolean') return s.jillEnabled;
+  return (s.system_mode || 'jill') !== 'alice';
+}
+
+function toggleStudentTutor(sid, tutor){
+  if(!hasMasterAccess()) return;
+  var s = DB[sid]; if(!s) return;
+  var labels = { jill:'Jill', alice:'Alice' };
+  var label = labels[tutor];
+  if(!label) return;
+  var on = tutor === 'alice' ? studentAliceOn(s) : studentJillOn(s);
+  var name = (s.info&&s.info.name)||'este estudiante';
+  if(on){
+    confirmAction('Apagar '+label, '¿Apagar '+label+' para '+name+'? El estudiante no puede activarlo solo.', async function(){
+      if(tutor === 'alice') s.aliceEnabled = false;
+      else s.jillEnabled = false;
+      await dbSet('infinity_students', sid, s); DB[sid]=s;
+      showToast(label+' OFF'); openStudent(sid);
+    }, 'Apagar');
+  } else {
+    if(tutor === 'alice') s.aliceEnabled = true;
+    else s.jillEnabled = true;
+    dbSet('infinity_students', sid, s).then(function(){
+      DB[sid]=s;
+      showToast(label+' ON');
+      openStudent(sid);
+    }).catch(function(){ showToast('Error al guardar','err'); });
+  }
+}
+
 function requestModeChange(sid){
   var s = DB[sid]; if(!s) return;
   var currentMode = s.system_mode || 'jill';
@@ -4548,6 +4587,7 @@ function syncNexoraEngineIndustryUI(){
 }
 
 function toggleStudentNexora(sid){
+  if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
   if(s.nexoraEnabled){
     confirmAction('Desactivar Nexora', '¿Desactivar el acceso a Nexora para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
@@ -4624,6 +4664,7 @@ function getCompanionSelectedKpis(){
 }
 
 function toggleStudentCompanion(sid){
+  if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
   if(s.companionEnabled){
     confirmAction('Desactivar Companion', '¿Desactivar Alice Companion para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
