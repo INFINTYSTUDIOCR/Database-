@@ -3054,6 +3054,62 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session' }));
     }
 
+    if (mode === 'evaluate') {
+      const hist = (history || []).filter(m => m.content?.trim())
+        .map(m => `${m.role === 'user' ? 'Estudiante' : 'Jill'}: ${String(m.content).replace(/\n+/g, ' ').trim()}`)
+        .join('\n');
+      const metrics = buildAliceSessionMetrics(history);
+      const userTurns = metrics.turns;
+      let overall_score = scoreAliceSessionFromMetrics(metrics);
+      if (userTurns < 2) overall_score = Math.max(48, overall_score - 12);
+      const bundleTitle = jillBundle?.title || 'Foundations';
+      const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'linkers, chunks, estructura';
+
+      if (!hist || hist.length < 16) {
+        return res.json({ evaluation: {
+          overall_score: Math.max(50, overall_score),
+          student_turns: userTurns,
+          bundle_ready: false,
+          best_moment: 'Abriste la sesión y practicaste con Jill.',
+          main_improvement: 'La próxima vez, completá al menos 3 respuestas en inglés sobre el bundle.',
+          jill_message: `Buen inicio, ${getStudentDisplayName(student)}. Seguí con el bundle "${bundleTitle}" mañana.`
+        }});
+      }
+
+      const statsNote = `Bundle: ${bundleTitle}. KPIs del bundle: ${bundleKpis}. Turnos estudiante: ${userTurns}. Palabras: ${metrics.wordCount}. Conectores: ${metrics.connectors.join(', ') || 'ninguno'}. Score calculado: ${overall_score}/100.`;
+
+      const resp = await claudeCall({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 450,
+        system: 'Sos Jill evaluadora Foundations. Respondé SOLO JSON válido. Sin markdown. Sin overall_score — ya está calculado.',
+        messages: [{ role: 'user', content: `Evaluá esta sesión Foundations de ${getStudentDisplayName(student)}.\n\n${statsNote}\n\nTranscript:\n${hist}\n\nJSON exacto:\n{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus/bundle","jill_message":"2-3 frases cálidas en español + una frase modelo en inglés del chunk de hoy","bundle_ready":true o false si dominó el bundle según evidencia}` }]
+      });
+
+      const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+      try {
+        const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
+        return res.json({ evaluation: {
+          overall_score,
+          student_turns: userTurns,
+          connectors_used: metrics.connectors,
+          bundle_id: jillBundle?.id || null,
+          best_moment: qual.best_moment || 'Practicaste con constancia.',
+          main_improvement: qual.main_improvement || 'Seguí con chunks del bundle activo.',
+          jill_message: qual.jill_message || `Muy bien, ${getStudentDisplayName(student)}.`,
+          bundle_ready: !!qual.bundle_ready && overall_score >= 72 && userTurns >= 4
+        }});
+      } catch (e) {
+        return res.json({ evaluation: {
+          overall_score,
+          student_turns: userTurns,
+          bundle_ready: overall_score >= 75 && userTurns >= 5,
+          best_moment: 'Buen esfuerzo en la sesión.',
+          main_improvement: 'Repetí el chunk del bundle en voz alta 3 veces.',
+          jill_message: `Seguí así, ${getStudentDisplayName(student)} — el método Nexus es práctica, no teoría.`
+        }});
+      }
+    }
+
     if (!message) return res.status(400).json({ error: 'Missing message' });
 
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
@@ -3196,7 +3252,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nResponde en texto directo, sin JSON. 2-5 oraciones completas, tono natural. Regla + ejemplo + UNA pregunta de práctica. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

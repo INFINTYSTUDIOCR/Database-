@@ -31,6 +31,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
+<script src="js/jill-foundations.js?v=20260706"></script>
 <script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -3757,7 +3758,9 @@ var _jillState = {
   recognition: null,
   micRunning: false,
   autoMic: false,
-  speaking: false
+  speaking: false,
+  activeBundle: null,
+  evaluation: null
 };
 
 function jillStopAudio(){
@@ -3854,10 +3857,29 @@ function jillStopAll(){
 var _jillMicText = '';
 var _jillSending = false;
 
+function jillGetContext(s){
+  if(typeof JillFoundations !== 'undefined'){
+    return JillFoundations.getContext(s || CURRENT_STUDENT || {});
+  }
+  return (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext)
+    ? NexusPortal.getJillContext(s)
+    : { weakKpis: (s && s.quizWeakKpis) || [] };
+}
+
+function jillActiveBundle(){
+  return _jillState.activeBundle || (typeof JillFoundations !== 'undefined' ? JillFoundations.getActiveBundle(CURRENT_STUDENT) : null);
+}
+
+function renderJillBundleStrip(){
+  var s = CURRENT_STUDENT;
+  if(typeof JillFoundations === 'undefined' || !s) return '';
+  return JillFoundations.renderBundleBar(s, jillActiveBundle());
+}
+
 function renderJill(){
   var root = document.getElementById('jill-root');
   if(!root) return;
-  root.setAttribute('data-jill-ui', 'v2');
+  root.setAttribute('data-jill-ui', 'v3');
   root.innerHTML =
     '<div style="background:linear-gradient(160deg,#064e3b,#0a5c3c,#0e7a50);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(10,92,60,0.35);border:1px solid rgba(61,220,151,0.25);">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
@@ -3894,9 +3916,14 @@ function renderJillStart(){
 }
 
 function renderJillSession(){
+  var evalHtml = (_jillState.evaluation && typeof JillFoundations !== 'undefined')
+    ? JillFoundations.renderEvaluationSummary(_jillState.evaluation, jillActiveBundle())
+    : '';
   return '<div>'
-    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#bbf7d0;font-weight:600;">🌿 Jill · Tutora Foundations · Método Nexus</div>'
+    + renderJillBundleStrip()
+    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#bbf7d0;font-weight:600;">🌿 Jill · Método Nexus · regla + ejemplo + práctica</div>'
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
+    +'<div id="jill-eval-summary">'+evalHtml+'</div>'
     +'<div id="jill-status" style="font-size:12px;color:#86EFAC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
     +'<input id="jill-input" class="inp" placeholder="Escribí tu respuesta o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.92);border:2px solid rgba(61,220,151,0.35);color:#111827;border-radius:12px;padding:10px 14px;">'
@@ -3904,12 +3931,15 @@ function renderJillSession(){
     +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendJillMsg()"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);color:#bbf7d0;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endJillSession()"><i class="ti ti-check"></i>Terminar sesión</button>'
+    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);color:#bbf7d0;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endJillSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
     +'</div>'
     +'</div>';
 }
 
 function jillFormatMessageHtml(m){
+  if(typeof JillFoundations !== 'undefined'){
+    return JillFoundations.formatMessageHtml(m, jillActiveBundle());
+  }
   if(!m || !m.content) return '';
   var isJill = m.role === 'assistant';
   var bubbleStyle = isJill
@@ -3938,28 +3968,102 @@ function jillRenderHistoryMessages(){
 
 function startJillSessionClick(){
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
-  _jillState.sessionActive = true;
-  _jillSpeakEnabled = true;
-  _jillSending = false;
-  _jillState.history = [];
-  renderJill();
-  startJillSession(window._currentStudent || window._portalStudent || CURRENT_STUDENT);
+  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  var boot = (typeof JillFoundations !== 'undefined') ? JillFoundations.loadBundles() : Promise.resolve();
+  boot.then(function(){
+    if(s && typeof JillFoundations !== 'undefined'){
+      JillFoundations.autoAssignBundle(s);
+      _jillState.activeBundle = JillFoundations.getActiveBundle(s);
+      if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
+    }
+    _jillState.sessionActive = true;
+    _jillState.evaluation = null;
+    _jillSpeakEnabled = true;
+    _jillSending = false;
+    _jillState.history = [];
+    renderJill();
+    startJillSession(s);
+  });
 }
 
-function endJillSession(){
+async function endJillSession(){
+  if(!_jillState.sessionActive) return;
+  if(_jillState.evaluation){
+    _jillState.sessionActive = false;
+    _jillState.history = [];
+    _jillState.evaluation = null;
+    renderJill();
+    return;
+  }
+  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  var statusEl = document.getElementById('jill-status');
+  var userTurns = _jillState.history.filter(function(m){ return m.role === 'user' && m.content && m.content.trim(); }).length;
+  if(statusEl) statusEl.textContent = userTurns ? 'Jill evalúa tu sesión…' : 'Cerrando sesión…';
   jillStopAll();
-  _jillState.sessionActive = false;
-  _jillState.history = [];
+
+  if(userTurns >= 1 && s){
+    try {
+      var jillCtx = jillGetContext(s);
+      var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
+      var r = await infinityFetch('/jill', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          mode:'evaluate',
+          student: studentPayload,
+          history: _jillState.history,
+          jillBundle: jillCtx.jillBundle || jillActiveBundle(),
+          weakKpis: jillCtx.weakKpis || [],
+          nemesisState: jillCtx.nemesisState,
+          track: jillCtx.track,
+          reinforcement: jillCtx.reinforcement || []
+        })
+      });
+      var data = await r.json();
+      if(data.evaluation){
+        _jillState.evaluation = data.evaluation;
+        if(typeof JillFoundations !== 'undefined'){
+          JillFoundations.recordSession(s, data.evaluation, jillActiveBundle());
+          if(data.evaluation.bundle_ready && s.jillProgress && s.jillProgress.activeBundle){
+            var bid = s.jillProgress.activeBundle;
+            if(s.jillProgress.completedBundles.indexOf(bid) < 0) s.jillProgress.completedBundles.push(bid);
+            var meta = JillFoundations.bundleById(bid);
+            if(meta && meta.nextBundle) s.jillProgress.activeBundle = meta.nextBundle;
+            else s.jillProgress.activeBundle = null;
+            _jillState.activeBundle = JillFoundations.getActiveBundle(s);
+          }
+          await dbSet('infinity_students', s.id, s);
+        }
+        if(data.evaluation.jill_message) jillSpeak(data.evaluation.jill_message);
+      }
+    } catch(e){
+      if(statusEl) statusEl.textContent = 'No se pudo evaluar — intentá de nuevo.';
+    }
+  }
+
+  if(statusEl && !statusEl.textContent.match(/evaluar|Cerrando/)) statusEl.textContent = '';
+  if(userTurns < 1){
+    _jillState.sessionActive = false;
+    _jillState.history = [];
+    _jillState.evaluation = null;
+    renderJill();
+    return;
+  }
   renderJill();
+  scrollJillMessages();
 }
 
 async function startJillSession(s){
   if(!s) return;
   if(typeof AiProfile !== 'undefined') AiProfile.purgeBadPreferredName(s);
+  if(typeof JillFoundations !== 'undefined'){
+    await JillFoundations.loadBundles();
+    JillFoundations.autoAssignBundle(s);
+    _jillState.activeBundle = JillFoundations.getActiveBundle(s);
+  }
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = 'Jill se conecta…';
   warmInfinityApi();
-  var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: s.quizWeakKpis||[] };
+  var jillCtx = jillGetContext(s);
   var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session';
   var returning = mode === 'return_session';
@@ -3969,18 +4073,23 @@ async function startJillSession(s){
       body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
-    var reply = jillExtractReply(data.reply || '');
+    var parsed = (typeof JillFoundations !== 'undefined')
+      ? JillFoundations.parseReply(data.reply || '')
+      : { reply: jillExtractReply(data.reply || ''), contentType: data.contentType || 'text' };
+    if(data.contentType && !parsed.contentType) parsed.contentType = data.contentType;
+    var reply = parsed.reply;
     if(!reply || reply.length < 8) reply = jillInstantOpening(s, returning);
-    _jillState.history = [{role:'assistant', content: reply}];
+    _jillState.history = [{role:'assistant', content: reply, contentType: parsed.contentType || 'text'}];
     jillRenderHistoryMessages();
     jillSpeak(reply);
+    if(s.id) await dbSet('infinity_students', s.id, s);
     if(typeof AiProfile !== 'undefined'){
       await AiProfile.saveAiProfilePatch({ firstGreetingJill: true }, dbSet, s);
     }
     if(statusEl) statusEl.textContent = '';
   } catch(e){
     var fallback = jillInstantOpening(s, returning);
-    _jillState.history = [{role:'assistant', content: fallback}];
+    _jillState.history = [{role:'assistant', content: fallback, contentType: 'text'}];
     jillRenderHistoryMessages();
     jillSpeak(fallback);
     if(statusEl) statusEl.textContent = '';
@@ -4043,7 +4152,7 @@ async function sendJillMsg(micText){
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
   try {
-    var jillCtx = (typeof NexusPortal !== 'undefined' && NexusPortal.getJillContext) ? NexusPortal.getJillContext(s) : { weakKpis: (s && s.quizWeakKpis) || [] };
+    var jillCtx = jillGetContext(s);
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -4081,8 +4190,11 @@ async function sendJillMsg(micText){
     }
 
     fullText = jillExtractReply(fullText);
-    _jillState.history[streamIdx] = {role:'assistant', content: fullText || 'No entendí — ¿podés repetir?'};
-    if(fullText && fullText.trim().length > 2) jillSpeak(fullText);
+    var parsed = (typeof JillFoundations !== 'undefined')
+      ? JillFoundations.parseReply(fullText)
+      : { reply: fullText, contentType: 'text' };
+    _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply || fullText || 'No entendí — ¿podés repetir?', contentType: parsed.contentType || 'text'};
+    if(parsed.reply && parsed.reply.trim().length > 2) jillSpeak(parsed.reply);
     jillRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
 
