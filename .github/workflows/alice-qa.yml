@@ -12,6 +12,9 @@ on:
       - 'Infinity_Student_Portal.html'
       - 'Infinity_Nexus_Engine.html'
       - 'try-alice.html'
+      - 'pricing.html'
+      - 'index.html'
+      - 'hablemos.html'
       - 'tests/**'
       - 'scripts/run-alice-qa.mjs'
   pull_request:
