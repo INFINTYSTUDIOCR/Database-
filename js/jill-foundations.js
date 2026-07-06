@@ -7,13 +7,25 @@
   var _bundles = [];
   var _sequence = [];
   var _loaded = null;
+  var BUNDLE_ID_ALIASES = { 'F1-lego': 'F1-msi' };
+
+  function resolveBundleId(id) {
+    if (!id) return id;
+    return BUNDLE_ID_ALIASES[id] || id;
+  }
+
+  function migrateProgressBundleIds(s) {
+    if (!s || !s.jillProgress) return;
+    if (s.jillProgress.activeBundle) s.jillProgress.activeBundle = resolveBundleId(s.jillProgress.activeBundle);
+    s.jillProgress.completedBundles = (s.jillProgress.completedBundles || []).map(resolveBundleId);
+  }
 
   var CTYPE_RE = /\[\[CTYPE:(text|exercise|example|whiteboard)\]\]\s*$/i;
   var CTYPE_LINE = /^\s*JILL_META:\s*\{[^}]*"contentType"\s*:\s*"(text|exercise|example|whiteboard)"/im;
 
   function loadBundles() {
     if (_loaded) return _loaded;
-    _loaded = fetch('config/jill-bundles.json?v=20260706')
+    _loaded = fetch('config/jill-bundles.json?v=20260706c')
       .then(function (r) { return r.ok ? r.json() : { bundles: [], sequence: [] }; })
       .then(function (data) {
         _bundles = data.bundles || [];
@@ -35,12 +47,13 @@
   }
 
   function bundleById(id) {
-    return _bundles.find(function (b) { return b.id === id; }) || null;
+    return _bundles.find(function (b) { return b.id === resolveBundleId(id); }) || null;
   }
 
   function ensureProgress(s) {
     if (!s) return { activeBundle: null, completedBundles: [], sessionLog: [] };
     if (!s.jillProgress) s.jillProgress = { activeBundle: null, completedBundles: [], sessionLog: [] };
+    migrateProgressBundleIds(s);
     if (!s.jillProgress.completedBundles) s.jillProgress.completedBundles = [];
     if (!s.jillProgress.sessionLog) s.jillProgress.sessionLog = [];
     return s.jillProgress;
@@ -101,7 +114,7 @@
     var t = String(text || '').toLowerCase();
     if (/\b(ejercicio|practic[aá]|complet[aá]|escrib[ií]|dec[ií] en ingl[eé]s|arm[aá] el chunk|tu turno)\b/.test(t)) return 'exercise';
     if (/\b(por ejemplo|ejemplo:|modelo:|as[ií]:|for example)\b/.test(t)) return 'example';
-    if (/\|/.test(text) || /\b(lego|regla \d|piezas?|estructura|whiteboard|pizarr[oó]n)\b/i.test(text)) return 'whiteboard';
+    if (/\|/.test(text) || /\b(infinity|mec[aá]nica estructural|regla \d|piezas?|estructura|whiteboard|pizarr[oó]n)\b/i.test(text)) return 'whiteboard';
     return 'text';
   }
 

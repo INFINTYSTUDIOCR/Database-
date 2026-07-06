@@ -5,7 +5,7 @@
   "eligibilityNote": "Estudiante con base secundaria mínima (números, colores, saludos). No cero absoluto. F0 solo refuerza si hace falta.",
   "sequence": [
     "B5-basics",
-    "F1-lego",
+    "F1-msi",
     "B2-verbs",
     "F2-pronouns",
     "B3-tenses",
@@ -32,17 +32,17 @@
       "whiteboard": ["1-10-100", "Mon–Sun / months", "Hello — How are you?"],
       "structures": [],
       "images": ["basics-grid"],
-      "nextBundle": "F1-lego"
+      "nextBundle": "F1-msi"
     },
     {
-      "id": "F1-lego",
+      "id": "F1-msi",
       "order": 1,
       "phase": "F1",
-      "title": "Mecánica Lego — Estructuras ensamblables",
+      "title": "Mecánica Estructural Infinity® — Estructuras ensamblables",
       "level": "Survival",
-      "foundationsSection": "El concepto de estructura · Inglés como Lego",
+      "foundationsSection": "El concepto de estructura · Mecánica Estructural Infinity®",
       "doctrine": "No memorizar oraciones completas. Enseñar piezas, reglas de conexión y diagramas. Palabras = piezas; estructuras = instrucciones.",
-      "legoRules": [
+      "structureRules": [
         "Regla 1: Si aparece HAVE → siguiente verbo en participio (Have + Been)",
         "Regla 2: Participio de TO BE activa cadena TO BE (Been + …)",
         "Regla 3: Con TO BE en la estructura → verbo principal en ING (Been + Working)",
@@ -52,7 +52,7 @@
       "topics": ["Piezas vs instrucciones", "Descomponer oraciones", "Reglas HAVE → participle → TO BE → ING", "Diagramas visuales"],
       "whiteboard": ["I | Should | Have | Been | Working", "HAVE → participle", "TO BE → ING"],
       "structures": ["Pronoun + Modal + Have + To Be + ING"],
-      "images": ["lego-structure"],
+      "images": ["infinity-structure"],
       "nextBundle": "B2-verbs"
     },
     {
@@ -62,7 +62,7 @@
       "title": "16 verbos fundamentales — Presente · Pasado · Participio",
       "level": "Survival",
       "foundationsSection": "Verbos fundamentales",
-      "doctrine": "Verbos como piezas Lego. Tres formas operativas: presente, pasado, participio — no listas infinitas.",
+      "doctrine": "Verbos como piezas de la Mecánica Estructural Infinity®. Tres formas operativas: presente, pasado, participio — no listas infinitas.",
       "kpis": ["k1", "k2", "k4"],
       "topics": ["be / have / do + core 13", "Present · Past · Participle", "Regular -ed vs irregular top set"],
       "whiteboard": ["I am / I was / I have been", "I work / I worked / I have worked", "I do / I did / I have done"],
@@ -107,7 +107,7 @@
       "title": "Modales — Can · Could · Should · Would · Must · May · Might",
       "level": "Emerging",
       "foundationsSection": "Modales",
-      "doctrine": "Modales modifican la estructura base sin romper Lego. Combinables con Have + To Be + ING.",
+      "doctrine": "Modales modifican la estructura base sin romper la Mecánica Estructural Infinity®. Combinables con Have + To Be + ING.",
       "kpis": ["k3", "k11", "k12"],
       "topics": ["Ability can/could", "Advice should", "Hypothesis would", "Obligation must", "Possibility may/might"],
       "whiteboard": ["I can / I should / I must", "I should have been…", "Could you…?"],

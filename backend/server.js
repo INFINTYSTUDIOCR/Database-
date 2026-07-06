@@ -2632,7 +2632,7 @@ function formatJillBundleNote(jillBundle) {
     jillBundle.phase ? `Fase ${jillBundle.phase}` : '',
     jillBundle.foundationsSection ? `Sección: ${jillBundle.foundationsSection}` : '',
     jillBundle.doctrine ? `Doctrina: ${jillBundle.doctrine}` : '',
-    jillBundle.legoRules?.length ? `Reglas Lego: ${jillBundle.legoRules.join(' | ')}` : '',
+    jillBundle.structureRules?.length ? `Reglas Mecánica Estructural Infinity®: ${jillBundle.structureRules.join(' | ')}` : (jillBundle.legoRules?.length ? `Reglas Mecánica Estructural Infinity®: ${jillBundle.legoRules.join(' | ')}` : ''),
     jillBundle.structures?.length ? `Estructuras: ${jillBundle.structures.join('; ')}` : '',
     jillBundle.vocabDomains?.length ? `Dominios vocab: ${jillBundle.vocabDomains.slice(0, 6).join(', ')}` : '',
     jillBundle.exitCriteria?.length ? `Perfil salida (checklist): ${jillBundle.exitCriteria.join('; ')}` : '',
@@ -2640,7 +2640,7 @@ function formatJillBundleNote(jillBundle) {
     `Temas: ${(jillBundle.topics || []).join('; ')}`,
     `Whiteboard: ${(jillBundle.whiteboard || []).join(' | ')}`,
     `KPIs bundle: ${(jillBundle.kpis || []).join(', ')}`,
-    'Enseñá mecánica Lego + chunking — NO listas ni frases memorizadas. El bundle es la guía de HOY (prioridad), pero podés atender preguntas Foundations válidas fuera del bundle y volver al tema activo.'
+    'Enseñá Mecánica Estructural Infinity® + chunking — NO listas ni frases memorizadas. El bundle es la guía de HOY (prioridad), pero podés atender preguntas Foundations válidas fuera del bundle y volver al tema activo.'
   ].filter(Boolean);
   return parts.join('. ') + '.';
 }
@@ -2915,7 +2915,7 @@ ESTILO — MÉTODO CON NATURALIDAD:
 
 GUION vs PREGUNTAS FOUNDATIONS (OBLIGATORIO):
 - El bundle activo es tu guion de hoy — siempre retomalo después de responder.
-- Si preguntan algo de Foundations (gerundio/-ING, tiempos, Lego, chunking, modales, pronombres, vocab funcional, linkers, recovery, etc.) aunque NO sea el tema del bundle actual: NO digas "esperá a que lleguemos ahí". Explicá en miniatura (regla Nexus + ejemplo + 1 práctica), luego redirigí al bundle en una frase ("Ahora volvamos a [tema del bundle]").
+- Si preguntan algo de Foundations (gerundio/-ING, tiempos, Mecánica Estructural Infinity®, chunking, modales, pronombres, vocab funcional, linkers, recovery, etc.) aunque NO sea el tema del bundle actual: NO digas "esperá a que lleguemos ahí". Explicá en miniatura (regla Nexus + ejemplo + 1 práctica), luego redirigí al bundle en una frase ("Ahora volvamos a [tema del bundle]").
 - Revisá el historial reciente: contá tangentes seguidas (preguntas válidas Foundations fuera del bundle sin volver al guion). Tangentes 1–3: atendé y redirigí. A partir de la 4ª tangente seguida: con calma decí que no podés abandonar el guion de hoy y ofrecé retomar el bundle o dejar esa profundidad para después.
 - Si preguntan Nexora, entrevistas STAR, customer service o simulaciones: eso es Alice Mode — redirigí en 1 frase, sin mini-clase.
 

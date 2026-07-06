@@ -31,7 +31,9 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-foundations.js?v=20260706"></script>
+<script src="js/jill-foundations.js?v=20260706c"></script>
+<script src="js/jill-progress.js?v=20260706"></script>
+<script src="js/jill-quiz.js?v=20260706b"></script>
 <script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -90,7 +92,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #jill-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
 #jill-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
 #alice-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
-#jill-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
+  #jill-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
+  .jill-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(61,220,151,0.35);color:#bbf7d0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+  .jill-chip:hover{background:rgba(61,220,151,0.22);}
+  .jill-chip-kahoot{background:rgba(91,33,182,0.35);border-color:rgba(167,139,250,0.55);color:#e9d5ff;}
+  .jill-kahoot-opt:active{transform:translateY(2px)!important;box-shadow:0 2px 0 rgba(0,0,0,0.22)!important;}
+  #jill-root[data-jill-pro="1"] .jill-pro-accent{color:#c4b5fd;}
 @media (max-width:640px){
   #alice-messages{max-height:min(52vh,320px)!important;}
   #jill-messages{max-height:min(52vh,320px)!important;}
@@ -396,7 +403,7 @@ function switchPortalTab(tab){
   }
   if(tab !== 'nexora' && prevTab === 'nexora') pauseNexoraMedia();
   if(tab === 'nexora') resumeNexoraRuntime();
-  if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; }
+  if(tab !== 'jill'){ jillStopAll(); _jillState.autoMic = false; _jillState.quizActive = false; }
   window._activePortalTab = tab;
   document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
   var pane = document.getElementById('tp-'+tab);
@@ -485,6 +492,60 @@ function handlePortalDeepLink(s){
       }, 600);
     }
   }catch(e){}
+}
+
+function isLocalJillPreviewHost(){
+  var h = (location.hostname || '').toLowerCase();
+  return h === '127.0.0.1' || h === 'localhost';
+}
+
+function buildJillPreviewStudent(){
+  var today = new Date().toISOString().split('T')[0];
+  return {
+    id: 'LOCAL-JILL-PREVIEW',
+    portalUser: 'preview',
+    status: 'active',
+    infinityTermsAccepted: true,
+    jillEnabled: true,
+    aliceEnabled: false,
+    companionEnabled: false,
+    system_mode: 'jill',
+    info: { name: 'Vista previa', phase: 1 },
+    jillGrowth: {
+      habit: {
+        streak: 2, bestStreak: 5, totalSessions: 3, totalMinutes: 8,
+        dailyGoalMinutes: 2, todayMinutes: 1.5, todayDate: today, lastPracticeDate: today
+      },
+      badges: ['first_jill'],
+      xp: 64,
+      pulses: []
+    },
+    jillProgress: { activeBundle: 'F1-msi', completedBundles: [], sessionLog: [] },
+    nemesisState: { domain: [], reinforcement: ['k8', 'k13'] },
+    quizWeakKpis: ['k8', 'k13'],
+    kpis: { phase1: {} },
+    trainingBook: [],
+    notes: [],
+    calibrations: []
+  };
+}
+
+async function tryJillLocalPreview(){
+  if(!isLocalJillPreviewHost()) return;
+  try{
+    var params = new URLSearchParams(location.search);
+    if(params.get('preview') !== 'jill') return;
+    var student = buildJillPreviewStudent();
+    CURRENT_STUDENT = student;
+    ALL_STUDENTS = ALL_STUDENTS || {};
+    ALL_STUDENTS[student.id] = student;
+    if(typeof JillFoundations !== 'undefined') await JillFoundations.loadBundles();
+    var tab = params.get('tab') || 'jill';
+    showPortal(student, { tab: tab, skipInspiration: true });
+    showPortalToast('Vista previa local Jill — sin login');
+  }catch(e){
+    console.error('Jill preview', e);
+  }
 }
 
 function showPortalToast(msg){
@@ -3557,13 +3618,49 @@ function applySystemMode(s){
 // ── KEEP RENDER ALIVE (ping every 8 min to prevent cold starts) ──
 setInterval(function(){ fetch(INFINITY_API+'/').catch(function(){}); }, 8*60*1000);
 
-// ── JILL TTS QUEUE (sentence-by-sentence + prefetch) ──
+// ── JILL TTS QUEUE (sentence-by-sentence + prefetch + browser fallback) ──
 var _jillSpeakEnabled = true;
 var _jillTTSQueue = [];
 var _jillTTSBusy = false;
 var _jillSpeakGen = 0;
 var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
+var _jillTtsRetry = {};
+
+function jillShowTtsError(status){
+  var st = document.getElementById('jill-status');
+  if(!st) return;
+  if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
+  else if(status >= 400) st.textContent = 'Voz no disponible — reintentá en unos segundos.';
+}
+
+function jillPlayBrowserTts(text, onEnded, onError){
+  if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.92;
+  var voices = speechSynthesis.getVoices() || [];
+  var v = voices.find(function(vo){ return vo.lang === 'en-US'; })
+    || voices.find(function(vo){ return (vo.lang || '').indexOf('en') === 0; });
+  if(v) u.voice = v;
+  u.onend = function(){ if(onEnded) onEnded(); };
+  u.onerror = function(){ if(onError) onError(); };
+  speechSynthesis.speak(u);
+  return true;
+}
+
+function jillFetchTtsBlob(clean){
+  return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
+  .then(function(r){
+    if(!r.ok){ jillShowTtsError(r.status); return null; }
+    var ct = (r.headers.get('content-type') || '').toLowerCase();
+    if(ct.indexOf('audio') === -1) return null;
+    var st = document.getElementById('jill-status');
+    if(st && st.textContent && st.textContent.indexOf('ElevenLabs') >= 0) st.textContent = '';
+    return r.blob();
+  });
+}
 
 function jillCleanTtsText(text){
   return prepareTtsLine(text);
@@ -3588,29 +3685,46 @@ function _jillTTSFlush(){
   var clean = jillCleanTtsText(text);
   if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
 
+  function finishJillLine(){
+    _jillState.audio = null;
+    _jillTTSBusy = false;
+    _jillState.speaking = _jillTTSQueue.length > 0;
+    _jillTTSFlush();
+  }
+
   function playBlob(b){
-    if(!b || gen !== _jillSpeakGen){
+    if(!_jillSpeakEnabled || gen !== _jillSpeakGen){
       _jillTTSBusy=false;
-      _jillState.speaking = _jillTTSQueue.length>0 && gen === _jillSpeakGen;
+      _jillState.speaking=_jillTTSQueue.length>0;
       if(gen === _jillSpeakGen) _jillTTSFlush();
       return;
     }
+    if(!b){
+      delete _jillTtsRetry[clean];
+      if(jillPlayBrowserTts(clean, finishJillLine, finishJillLine)) return;
+      finishJillLine();
+      return;
+    }
+    delete _jillTtsRetry[clean];
     jillStopAudio();
     _jillState.audio = playAudioBlob(b, {
       onEnded: function(){
         if(gen !== _jillSpeakGen) return;
-        _jillState.audio = null;
-        _jillTTSBusy = false;
-        _jillState.speaking = _jillTTSQueue.length > 0;
-        _jillTTSFlush();
+        finishJillLine();
       },
       onError: function(){
         if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
-        _jillTTSQueue.unshift(text);
-        _jillTTSBusy = false;
-        _jillState.speaking = _jillTTSQueue.length > 0;
-        setTimeout(_jillTTSFlush, 150);
+        if(jillPlayBrowserTts(clean, finishJillLine, function(){
+          _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
+          if(_jillTtsRetry[clean] < 2) _jillTTSQueue.unshift(text);
+          else delete _jillTtsRetry[clean];
+          finishJillLine();
+        })) return;
+        _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
+        if(_jillTtsRetry[clean] < 3) _jillTTSQueue.unshift(text);
+        else delete _jillTtsRetry[clean];
+        finishJillLine();
       }
     });
   }
@@ -3621,12 +3735,13 @@ function _jillTTSFlush(){
     playBlob(cached);
     return;
   }
-  infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
-  .then(function(r){ return r.ok ? r.blob() : null; })
+  jillFetchTtsBlob(clean)
   .then(playBlob)
   .catch(function(){
     if(gen !== _jillSpeakGen){ _jillTTSBusy=false; return; }
-    _jillTTSQueue.unshift(text);
+    _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
+    if(_jillTtsRetry[clean] < 3) _jillTTSQueue.unshift(text);
+    else delete _jillTtsRetry[clean];
     _jillTTSBusy=false;
     _jillState.speaking=_jillTTSQueue.length>0;
     setTimeout(_jillTTSFlush, 180);
@@ -3760,11 +3875,13 @@ var _jillState = {
   autoMic: false,
   speaking: false,
   activeBundle: null,
-  evaluation: null
+  evaluation: null,
+  quizActive: false
 };
 
 function jillStopAudio(){
   if(_jillState.audio){ _jillState.audio.pause(); _jillState.audio = null; }
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   _jillState.speaking = false;
 }
 
@@ -3876,17 +3993,74 @@ function renderJillBundleStrip(){
   return JillFoundations.renderBundleBar(s, jillActiveBundle());
 }
 
+function renderJillChips(){
+  return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
+    +'<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">💀 Jill Pro · Nemesis</button>'
+    +'</div>';
+}
+
+function jillSendChip(text){
+  if(!_jillState.sessionActive || _jillSending) return;
+  var inp = document.getElementById('jill-input');
+  if(inp) inp.value = text;
+  sendJillMsg(text);
+}
+
+function jillOpenKahootQuiz(){
+  if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
+  _jillState.quizActive = true;
+  jillStopAll();
+  renderJill();
+}
+
+function jillCloseKahootQuiz(refresh){
+  _jillState.quizActive = false;
+  if(refresh) renderJill();
+  else {
+    var zone = document.getElementById('jill-quiz-zone');
+    if(zone) zone.innerHTML = '';
+    var wrap = document.getElementById('jill-session-main');
+    if(wrap) wrap.style.display = '';
+  }
+}
+
 function renderJill(){
   var root = document.getElementById('jill-root');
   if(!root) return;
-  root.setAttribute('data-jill-ui', 'v3');
+  root.setAttribute('data-jill-ui', 'v6');
+  if(_jillState.quizActive){
+    root.setAttribute('data-jill-pro', '1');
+    var nemesisPreview = (typeof JillQuiz !== 'undefined' && CURRENT_STUDENT) ? JillQuiz.renderNemesisTopics(CURRENT_STUDENT) : '';
+    root.innerHTML =
+      '<div style="background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(91,33,182,0.45);border:1px solid rgba(167,139,250,0.35);">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
+      +'<div>'
+      +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PRO</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Nemesis Quest · Kahoot contra tus fallos</div>'
+      +'</div>'
+      +'<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
+      +'</div>'
+      + nemesisPreview
+      +'<div id="jill-quiz-zone"></div>'
+      +'</div>';
+    var zone = document.getElementById('jill-quiz-zone');
+    var s = CURRENT_STUDENT;
+    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, jillActiveBundle());
+    return;
+  }
+  root.removeAttribute('data-jill-pro');
   root.innerHTML =
     '<div style="background:linear-gradient(160deg,#064e3b,#0a5c3c,#0e7a50);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(10,92,60,0.35);border:1px solid rgba(61,220,151,0.25);">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'
     +'<div style="font-size:10px;letter-spacing:0.25em;color:#bbf7d0;font-weight:700;">STUDIO INFINITY CR</div>'
     +'<div style="font-size:28px;font-weight:900;color:#86EFAC;letter-spacing:0.05em;text-shadow:0 0 24px rgba(61,220,151,0.35);">JILL</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Foundations · Presión cero · Avance garantizado</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Tutora Jill · Rachas · Premios · Método Nexus</div>'
     +'</div>'
     +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>'
     +'</div>'
@@ -3907,26 +4081,44 @@ function renderJill(){
 }
 
 function renderJillStart(){
-  return '<div style="text-align:center;">'
-    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.82);line-height:1.8;">'
-    +'<strong>Jill</strong> es tu tutora de Foundations con el <strong>Método Nexus</strong> — chunks, ejercicios y refuerzo de KPIs débiles.'
+  var s = CURRENT_STUDENT;
+  var growth = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderHabitStrip(s) : '';
+  var badges = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderBadgesRow(s) : '';
+  var motiv = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderMotivation(s) : '';
+  var bundle = (typeof JillFoundations !== 'undefined' && s) ? JillFoundations.renderBundleBar(s, jillActiveBundle()) : '';
+  var nemesisHint = (typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+  return '<div>'
+    + growth
+    + badges
+    + motiv
+    + bundle
+    + nemesisHint
+    +'<div style="text-align:center;">'
+    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
+    +'<strong>Jill</strong> te enseña inglés con el <strong>Método Nexus</strong> — simple, sin presión. '
+    +'Explicación en español, práctica con chunks. Mantené presionado el <strong>micrófono</strong> o escribí.'
     +'</div>'
-    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(61,220,151,0.35);width:100%;justify-content:center;" onclick="startJillSessionClick()"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
-    +'</div>';
+    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick()"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
+    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:14px;padding:12px 24px;border-radius:14px;cursor:pointer;width:100%;justify-content:center;" onclick="jillOpenKahootQuiz()"><i class="ti ti-skull"></i> Jill Pro · Nemesis Quest</button>'
+    +'</div></div>';
 }
 
 function renderJillSession(){
+  var s = CURRENT_STUDENT;
+  var miniStrip = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderHabitStrip(s) : '';
   var evalHtml = (_jillState.evaluation && typeof JillFoundations !== 'undefined')
     ? JillFoundations.renderEvaluationSummary(_jillState.evaluation, jillActiveBundle())
     : '';
-  return '<div>'
+  return '<div id="jill-session-main">'
+    + miniStrip
     + renderJillBundleStrip()
     +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#bbf7d0;font-weight:600;">🌿 Jill · Método Nexus · regla + ejemplo + práctica</div>'
+    + renderJillChips()
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
     +'<div id="jill-eval-summary">'+evalHtml+'</div>'
     +'<div id="jill-status" style="font-size:12px;color:#86EFAC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="jill-input" class="inp" placeholder="Escribí tu respuesta o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.92);border:2px solid rgba(61,220,151,0.35);color:#111827;border-radius:12px;padding:10px 14px;">'
+    +'<input id="jill-input" class="inp" placeholder="Escribí en español o inglés — o mantené presionado el micrófono 🎤" style="flex:1;background:rgba(255,255,255,0.92);border:2px solid rgba(61,220,151,0.35);color:#111827;border-radius:12px;padding:10px 14px;">'
     +'<button id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(61,220,151,0.15);border:1px solid rgba(61,220,151,0.4);color:#86EFAC;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
     +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendJillMsg()"><i class="ti ti-send"></i></button>'
     +'</div>'
@@ -4021,9 +4213,12 @@ async function endJillSession(){
       var data = await r.json();
       if(data.evaluation){
         _jillState.evaluation = data.evaluation;
+        var evScore = data.evaluation.overall_score != null ? parseInt(data.evaluation.overall_score, 10) : 0;
+        var evBundleReady = !!data.evaluation.bundle_ready;
+        var sessionBundleId = (s.jillProgress && s.jillProgress.activeBundle) || (jillActiveBundle() && jillActiveBundle().id) || '';
         if(typeof JillFoundations !== 'undefined'){
           JillFoundations.recordSession(s, data.evaluation, jillActiveBundle());
-          if(data.evaluation.bundle_ready && s.jillProgress && s.jillProgress.activeBundle){
+          if(evBundleReady && s.jillProgress && s.jillProgress.activeBundle){
             var bid = s.jillProgress.activeBundle;
             if(s.jillProgress.completedBundles.indexOf(bid) < 0) s.jillProgress.completedBundles.push(bid);
             var meta = JillFoundations.bundleById(bid);
@@ -4031,6 +4226,30 @@ async function endJillSession(){
             else s.jillProgress.activeBundle = null;
             _jillState.activeBundle = JillFoundations.getActiveBundle(s);
           }
+        }
+        if(typeof JillProgress !== 'undefined'){
+          var jTurns = JillProgress.countUserTurns(_jillState.history);
+          var jWords = JillProgress.countWords(_jillState.history);
+          var jRec = JillProgress.recordSessionEnd(s, {
+            turns: jTurns,
+            wordCount: jWords,
+            score: evScore,
+            bundleReady: evBundleReady,
+            bundleId: sessionBundleId
+          });
+          var jDaily = JillProgress.dailyGoalMet(s);
+          var jUnlocked = JillProgress.checkBadges(s, {
+            score: evScore,
+            bundleReady: evBundleReady,
+            dailyGoalMet: jDaily
+          });
+          if(s.id) await dbSet('infinity_students', s.id, s);
+          if(jRec && jRec.xpGain) showToast('+' + jRec.xpGain + ' XP con Jill');
+          if(jUnlocked && jUnlocked.length){
+            var badgeMsg = JillProgress.renderNewBadgeToast(jUnlocked);
+            if(badgeMsg) setTimeout(function(){ showToast(badgeMsg); }, 600);
+          }
+        } else if(s.id && typeof JillFoundations !== 'undefined'){
           await dbSet('infinity_students', s.id, s);
         }
         if(data.evaluation.jill_message) jillSpeak(data.evaluation.jill_message);
@@ -4217,6 +4436,12 @@ function jillSpeak(text){
   ttsSpeakLines(text, 900).forEach(function(clean){
     if(clean.length >= 3) jillQueueSpeak(clean);
   });
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', function(){ tryJillLocalPreview(); });
+} else {
+  tryJillLocalPreview();
 }
 
 </script>

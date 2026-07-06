@@ -1,0 +1,6 @@
+# Identidad Git — JILL PRO (plantilla, no activa)
+# Copiá a git-identity.jill-pro.local y editá si hace falta.
+# Activar: powershell -File scripts\activar-git-identidad.ps1 -Profile jill-pro
+
+GIT_USER_NAME=Jill Pro
+GIT_USER_EMAIL=jill-pro@infinitystudiocr.com

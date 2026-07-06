@@ -3,6 +3,8 @@ backend/node_modules/
 scripts/wa-bridge/node_modules/
 scripts/wa-bridge/.wwebjs_auth/
 scripts/wa-bridge/.env
+scripts/git-identity.local
+scripts/git-identity.jill-pro.local
 .env
 backend/.env
 *.log

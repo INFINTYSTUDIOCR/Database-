@@ -434,7 +434,7 @@
     var done = s.jillProgress.completedBundles || [];
     var activeMeta = active ? JILL_BUNDLES.find(function (b) { return b.id === active; }) : null;
     return '<div class="card" style="margin-top:12px;"><div class="card-title"><i class="ti ti-school"></i>Jill — Ruta Foundations (v2)</div>'
-      + '<div class="ib ib-navy" style="font-size:11px;">Secuencia A.D.A.M. · mecánica Lego → tiempos → chunking → oral → Alice</div>'
+      + '<div class="ib ib-navy" style="font-size:11px;">Secuencia A.D.A.M. · Mecánica Estructural Infinity® → tiempos → chunking → oral → Alice</div>'
       + (activeMeta
         ? '<div class="ib ib-green" style="margin-top:6px;">Activo: <strong>' + activeMeta.title + '</strong>' + (activeMeta.phase ? ' · ' + activeMeta.phase : '') + '</div>'
         : '<div style="font-size:12px;color:var(--t3);margin-top:6px;">Sin bundle — asigná F0 o el que corresponda al estudiante</div>')
