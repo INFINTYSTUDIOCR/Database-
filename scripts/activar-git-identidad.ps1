@@ -19,7 +19,7 @@ if ($Profile -eq 'jill-pro') {
 }
 
 if (-not (Test-Path $localFile)) {
-  Write-Host "Falta $localFile — copiá desde $(Split-Path -Leaf $example) y editá nombre/email." -ForegroundColor Yellow
+  Write-Host "Falta $localFile - copia desde $(Split-Path -Leaf $example) y edita nombre/email." -ForegroundColor Yellow
   exit 1
 }
 
