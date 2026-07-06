@@ -1094,6 +1094,13 @@ app.post('/demo/start', async (req, res) => {
     const sessionId = crypto.randomUUID();
     const isPremium = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
     const qaLive = isQaLiveDemo(req, req.body || {});
+    if (!companionDemo && !qaLive) {
+      return res.status(403).json({
+        error: 'demo_by_request',
+        message: 'Los demos de Jill, Alice Coach y Nexora son con cita. Solicitá una demo en hablemos.html — Alice Companion sigue en try-alice.html.',
+        requestUrl: 'https://studioinfinitycr.com/hablemos.html#consulta'
+      });
+    }
     // Public website: scripted buffer only. Live AI for paid Companion or QA battery (secret).
     const useLive = (companionDemo && isPremium) || qaLive;
 

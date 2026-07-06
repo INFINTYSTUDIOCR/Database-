@@ -1990,7 +1990,7 @@ async function nexoraDemoMessageFallback(payload){
   try{data=JSON.parse(text);}catch(e){throw new Error('demo_message_unavailable');}
   if(!r.ok){
     if(data.error==='limit') showToast('Daily demo limit reached.');
-    else if(data.error==='Session expired'||r.status===404) showToast('Session expired — reopen from try-nexora.html.');
+    else if(data.error==='Session expired'||r.status===404) showToast('Session expired — reopen from the student portal or request a demo at hablemos.html.');
     throw new Error(data.message||data.error||'demo_message_failed');
   }
   return String(data.reply||'').trim();

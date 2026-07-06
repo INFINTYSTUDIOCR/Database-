@@ -27,6 +27,10 @@
     <div class="breadcrumb"><a href="index.html">Inicio</a> <span>/</span> Hablemos</div>
     <h1 class="page-title">Hablemos</h1>
     <p class="page-lead">¿No sabés cuál programa es para vos? Contanos tu situación y te orientamos — sin compromiso, respuesta rápida.</p>
+    <div id="demo-request-banner" class="content-block" style="display:none;margin-top:1.25rem;padding:14px 18px;background:#EDE9FE;border:1px solid rgba(91,33,182,0.2);border-radius:12px;">
+      <strong id="demo-request-title" style="color:#5B21B6;">Solicitar demo</strong>
+      <p id="demo-request-text" style="margin:8px 0 0;font-size:14px;color:#4A4A6A;line-height:1.6;">Completá el formulario y te contactamos para agendar tu demo guiada.</p>
+    </div>
   </div>
 </header>
 
@@ -126,6 +130,36 @@
   </div>
 </div>
 <script src="js/enroll.js"></script>
+<script>
+(function () {
+  var map = {
+    jill: { title: 'Solicitar demo Jill', note: 'Demo guiada de Jill — tutora Fundamentos estructurales (Foundations).', select: 'Foundations / ORT' },
+    nexora: { title: 'Solicitar demo Nexora', note: 'Demo guiada de Nexora — simulaciones STAR y atención al cliente con voz.', select: 'Ecosistema completo Infinity' },
+    'alice-coach': { title: 'Solicitar demo Alice Coach', note: 'Demo guiada de Alice tutora Nexus — coaching alineado a KPIs y Training Book.', select: 'Ecosistema completo Infinity' }
+  };
+  var key = (new URLSearchParams(location.search).get('solicitar') || '').toLowerCase();
+  var cfg = map[key];
+  if (!cfg) return;
+  var banner = document.getElementById('demo-request-banner');
+  var title = document.getElementById('demo-request-title');
+  var text = document.getElementById('demo-request-text');
+  var sel = document.getElementById('en-schedule');
+  var note = document.getElementById('en-note');
+  if (banner) banner.style.display = 'block';
+  if (title) title.textContent = cfg.title;
+  if (text) text.textContent = cfg.note;
+  if (sel) {
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text === cfg.select) { sel.selectedIndex = i; break; }
+    }
+  }
+  if (note && !note.value.trim()) note.value = 'Quiero agendar demo de ' + key.replace('-', ' ') + '.';
+  setTimeout(function () {
+    var box = document.getElementById('consulta');
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
+})();
+</script>
 <script src="js/claire.js"></script>
 <script src="js/i18n.js"></script>
 </body>

@@ -262,7 +262,7 @@
     { s: '#jill .alice-cap:nth-child(2)', html: true, en: '<i class="ti ti-check"></i>First Nexus linkers', es: '<i class="ti ti-check"></i>Primeros conectores Nexus' },
     { s: '#jill .alice-cap:nth-child(3)', html: true, en: '<i class="ti ti-check"></i>Voice & text', es: '<i class="ti ti-check"></i>Voz y texto' },
     { s: '#jill .alice-cap:nth-child(4)', html: true, en: '<i class="ti ti-check"></i>Fundamentos estructurales (Foundations) track', es: '<i class="ti ti-check"></i>Ruta Fundamentos estructurales (Foundations)' },
-    { s: '#jill a[href="try-jill.html"]', html: true, en: '<i class="ti ti-player-play"></i>Try Jill — 5 min', es: '<i class="ti ti-player-play"></i>Probar Jill — 5 min' },
+    { s: '#jill a[href="hablemos.html?solicitar=jill#consulta"]', html: true, en: '<i class="ti ti-calendar"></i>Request Jill demo', es: '<i class="ti ti-calendar"></i>Solicitar demo Jill' },
     { s: '#jill a[href="foundations.html"]', html: true, en: '<i class="ti ti-book"></i>Fundamentos estructurales (Foundations) program', es: '<i class="ti ti-book"></i>Programa Fundamentos estructurales (Foundations)' },
     { s: '#alice .alice-cap:nth-child(1)', html: true, en: '<i class="ti ti-check"></i>Real-time correction', es: '<i class="ti ti-check"></i>Corrección en tiempo real' },
     { s: '#alice .alice-cap:nth-child(2)', html: true, en: '<i class="ti ti-check"></i>Nexus Method coaching', es: '<i class="ti ti-check"></i>Coaching Método Nexus' },

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Try a Demo — Infinity Studio CR</title>
+<title>Alice Companion — Prueba gratis | Infinity Studio CR</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="css/pages.css?v=20260703b">
@@ -13,84 +13,59 @@
 <body class="demo-hub-dark">
 
 <nav>
-  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo-page"></a>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR" class="nav-logo-page"></a>
   <div class="nav-links">
-    <a href="index.html">← Back to site</a>
+    <a href="index.html">← Inicio</a>
   </div>
 </nav>
 
 <header class="page-hero">
   <div class="page-hero-inner">
-    <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> Live Demos</div>
-    <h1 class="page-title">Try Before You Commit</h1>
-    <p class="page-lead">Free mini sessions with <strong>voice + microphone</strong> — one demo per persona per day per connection. Jill builds your base, Alice coaches fluency, Nexora simulates real pressure.</p>
+    <div class="breadcrumb"><a href="index.html">Inicio</a> <span>/</span> Alice Companion</div>
+    <h1 class="page-title">Prueba gratis Alice Companion</h1>
+    <p class="page-lead">La única demo interactiva en el sitio: charla libre en inglés por voz. Jill, Alice Coach y Nexora se agendan con nosotros.</p>
   </div>
 </header>
 
-<div class="demo-hub-intro">
-  <p class="demo-note">Real mini-sessions with live AI — same engine as the full product, limited to one try per day per connection. With your consent, anonymized patterns may improve Jill, Alice and Nexora.</p>
+<div class="demo-grid" style="max-width:720px;margin:0 auto 2rem;">
+  <a href="try-alice.html" class="demo-gate alice" id="gate-alice">
+    <div class="demo-gate-art"><img src="assets/logos/alice.png" alt="Alice Companion" onerror="this.outerHTML='<i class=\'ti ti-robot\'></i>'"></div>
+    <h2>Probar Alice Companion</h2>
+    <p>Prueba gratis — habla de lo que quieras en inglés (voz + mic). Producto premium; no es la tutora estructurada del programa.</p>
+    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Empezar prueba gratis</span>
+    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-alice"></div>
+  </a>
+</div>
 
-  <div class="consent-box">
-    <label class="consent-label">
-      <input type="checkbox" id="demo-consent" checked>
-      <span>I agree that my demo may be used in anonymized form to improve coaching and simulations. No personal data is sold or shared.</span>
-    </label>
+<div class="demo-hub-intro" style="max-width:720px;margin:0 auto 2rem;">
+  <h2 style="font-size:18px;font-weight:800;margin-bottom:12px;color:var(--t1);">¿Jill, Alice Coach o Nexora?</h2>
+  <p class="demo-note" style="margin-bottom:16px;">Esos productos requieren demo guiada con el equipo. Contanos tu perfil y te agendamos.</p>
+  <div class="demo-grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <a href="hablemos.html?solicitar=jill#consulta" class="demo-gate jill" style="padding:18px;">
+      <h2 style="font-size:16px;">Jill</h2>
+      <span class="demo-gate-cta" style="font-size:12px;"><i class="ti ti-calendar"></i> Solicitar demo</span>
+    </a>
+    <a href="hablemos.html?solicitar=alice-coach#consulta" class="demo-gate alice" style="padding:18px;">
+      <h2 style="font-size:16px;">Alice Coach</h2>
+      <span class="demo-gate-cta" style="font-size:12px;"><i class="ti ti-calendar"></i> Solicitar demo</span>
+    </a>
+    <a href="hablemos.html?solicitar=nexora#consulta" class="demo-gate nexora" style="padding:18px;">
+      <h2 style="font-size:16px;">Nexora</h2>
+      <span class="demo-gate-cta" style="font-size:12px;"><i class="ti ti-calendar"></i> Solicitar demo</span>
+    </a>
   </div>
 </div>
 
-<div class="demo-grid">
-  <a href="try-jill.html" class="demo-gate jill" id="gate-jill">
-    <div class="demo-gate-art"><img src="assets/logos/jill.png" alt="Jill" onerror="this.outerHTML='<i class=\'ti ti-message-circle\'></i>'"></div>
-    <h2>Try Jill</h2>
-    <p>5-minute Foundations — structure, chunks, tenses and your first linkers. Jill <strong>speaks</strong> and listens via mic.</p>
-    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Jill demo</span>
-    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-jill"></div>
-  </a>
-
-  <a href="try-alice.html" class="demo-gate alice" id="gate-alice">
-    <div class="demo-gate-art"><img src="assets/logos/alice.png" alt="Alice Companion" onerror="this.outerHTML='<i class=\'ti ti-robot\'></i>'"></div>
-    <h2>Try Alice Companion</h2>
-    <p>Free trial — talk about anything in English (voice + mic). <strong>Premium product</strong>; not the structured Alice tutor lesson.</p>
-    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start free trial</span>
-    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-alice"></div>
-  </a>
-
-  <a href="try-nexora.html" class="demo-gate nexora" id="gate-nexora">
-    <div class="demo-gate-art"><img src="assets/logos/nexora.png" alt="Nexora"></div>
-    <h2>Try Nexora</h2>
-    <p>STAR interview or customer service — the client/interviewer <strong>speaks to you</strong>. Answer by mic or keyboard.</p>
-    <span class="demo-gate-cta"><i class="ti ti-arrow-right"></i> Start Nexora demo</span>
-    <div style="font-size:11px;color:var(--t3);margin-top:10px;" id="status-nexora"></div>
-  </a>
-</div>
-
 <footer class="page-footer demo-footer-dark">
-  Infinity Studio CR · Demo limits apply per connection · <a href="index.html#contact">Contact</a>
+  Infinity Studio CR · <a href="index.html#contact">Contacto</a>
 </footer>
 
 <script src="js/demo-buffer.js?v=20260704buf"></script>
 <script src="js/demo-api.js?v=20260704buf"></script>
 <script>
-document.querySelectorAll('.demo-gate').forEach(function (gate) {
-  gate.addEventListener('click', function (e) {
-    if (!demoGetConsent()) {
-      e.preventDefault();
-      alert('Please accept the consent checkbox to start a demo.');
-    }
-  });
-});
-
-Promise.all([
-  demoFetchStatus('jill'),
-  demoFetchStatus('alice'),
-  demoFetchStatus('nexora')
-]).then(function (arr) {
-  var j = document.getElementById('status-jill');
+demoFetchStatus('alice').then(function (st) {
   var a = document.getElementById('status-alice');
-  var n = document.getElementById('status-nexora');
-  if (j) j.textContent = arr[0].sessionsLeft + ' demo(s) left today';
-  if (a) a.textContent = arr[1].sessionsLeft + ' demo(s) left today';
-  if (n) n.textContent = arr[2].sessionsLeft + ' demo(s) left today';
+  if (a) a.textContent = st.sessionsLeft + ' prueba(s) restante(s) hoy';
 });
 </script>
 <script src="js/i18n.js"></script>

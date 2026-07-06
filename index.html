@@ -532,6 +532,22 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 .fade-up{opacity:0;transform:translateY(24px);transition:opacity 0.6s,transform 0.6s;}
 .fade-up.visible{opacity:1;transform:none;}
 
+.site-guide{background:linear-gradient(180deg,#F8F8FF 0%,#fff 100%);border-bottom:1px solid var(--line);padding:2rem 0;}
+.site-guide-inner{max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+.site-guide-head{text-align:center;margin-bottom:1.25rem;}
+.site-guide-head h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.25rem,3vw,1.5rem);font-weight:800;color:var(--text);margin:0 0 6px;}
+.site-guide-head p{font-size:14px;color:var(--t2);margin:0;line-height:1.6;}
+.site-guide-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.site-guide-card{background:white;border:1px solid rgba(91,33,182,0.12);border-radius:14px;padding:1rem 1.1rem;box-shadow:0 6px 20px rgba(91,33,182,0.06);}
+.site-guide-card h3{font-size:13px;font-weight:800;color:var(--purple-dark);margin:0 0 8px;display:flex;align-items:center;gap:6px;}
+.site-guide-card p{font-size:13px;color:var(--t2);line-height:1.6;margin:0;}
+.site-guide-card ul{margin:8px 0 0;padding-left:1.1rem;font-size:13px;color:var(--t2);line-height:1.65;}
+.site-guide-card li{margin:4px 0;}
+.site-guide-card a{color:var(--purple);font-weight:700;text-decoration:none;}
+.site-guide-card a:hover{text-decoration:underline;}
+.site-guide-currency{background:#EDE9FE;border:1px solid rgba(91,33,182,0.15);border-radius:12px;padding:12px 16px;margin-top:14px;font-size:13px;color:#4A4A6A;line-height:1.65;text-align:center;}
+.site-guide-currency strong{color:#5B21B6;}
+
 @media(max-width:768px){
   :root{--companion-ribbon-h:72px;}
   .companion-ribbon-text{font-size:12px;}
@@ -583,6 +599,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <a href="#programs">Todos los programas</a>
     <a href="#jill">Jill</a>
     <a href="#alice-companion">Alice Companion</a>
+    <a href="#como-funciona">Cómo funciona</a>
     <a href="#donde-estas">Tu camino</a>
     <a href="#pricing">Precios</a>
     <a href="#about">Nosotros</a>
@@ -650,6 +667,46 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">KPIs semanales</div></div>
   </div>
 </div>
+
+<section class="site-guide" id="como-funciona">
+  <div class="site-guide-inner">
+    <div class="site-guide-head">
+      <div class="section-tag" style="margin-bottom:8px;">Guía rápida</div>
+      <h2>¿Cómo funciona esta página?</h2>
+      <p>Si llegaste por curiosidad y no sabés por dónde empezar — esto resume todo en un minuto.</p>
+    </div>
+    <div class="site-guide-grid">
+      <div class="site-guide-card">
+        <h3><i class="ti ti-route"></i> 1. Explorá y elegí tu camino</h3>
+        <ul>
+          <li><a href="#donde-estas">¿Dónde estás vos?</a> — tres rutas según tu situación.</li>
+          <li><a href="para-quien.html">Para quién es</a> — perfiles y programas.</li>
+          <li><a href="#pricing">Precios</a> — tabla completa abajo en esta página.</li>
+        </ul>
+      </div>
+      <div class="site-guide-card">
+        <h3><i class="ti ti-gift"></i> 2. Qué es gratis vs. de pago</h3>
+        <ul>
+          <li><strong>Gratis:</strong> <a href="try-alice.html">Alice Companion</a> (prueba limitada en la web) + <a href="#contact">diagnóstico 90 min</a> sin compromiso.</li>
+          <li><strong>Con cita:</strong> demo guiada de Jill, Alice Coach o Nexora — <a href="hablemos.html#consulta">solicitala aquí</a>.</li>
+          <li><strong>De pago:</strong> programas con trainer (Foundations, ORT) y suscripciones solo IA (Jill, Alice, Companion, Nexora).</li>
+        </ul>
+      </div>
+      <div class="site-guide-card">
+        <h3><i class="ti ti-click"></i> 3. Próximo paso concreto</h3>
+        <ul>
+          <li>¿Solo querés probar? → <a href="try-alice.html">Alice Companion gratis</a>.</li>
+          <li>¿Querés que te orientemos? → <a href="hablemos.html#consulta">Hablemos</a> o <a href="#contact">WhatsApp</a>.</li>
+          <li>¿Ya sos estudiante? → <a href="portal-access.html">Portal estudiantil</a> (acceso con clave).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-guide-currency">
+      <strong>Divisa:</strong> todos los precios están en <strong>colones costarricenses (₡ / CRC)</strong> — no en dólares ni pesos de otros países.
+      En Costa Rica pagás por SINPE/transferencia. Fuera de CR: mismo monto en colones convertido al <strong>tipo de cambio del día + 8%</strong> (PayPal o Western Union). Te confirmamos el total exacto antes de pagar.
+    </div>
+  </div>
+</section>
 
 <section id="elegi-tu-vida" class="section-compact">
   <div class="section-inner">
@@ -836,7 +893,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="deliverable-feat"><i class="ti ti-chart-dots"></i><span>Evaluación STAR en tiempo real</span></div>
       </div>
       <div class="deliverable-actions">
-        <a href="try-nexora.html" class="btn-gold-dark"><i class="ti ti-player-play"></i>Probar Nexora — 5 min</a>
+        <a href="hablemos.html?solicitar=nexora#consulta" class="btn-gold-dark"><i class="ti ti-calendar"></i>Solicitar demo Nexora</a>
         <a href="#contact" class="btn-secondary"><i class="ti ti-calendar-check"></i>Agenda diagnóstico</a>
       </div>
     </div>
@@ -855,7 +912,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="deliverable-feat"><i class="ti ti-layers-linked"></i><span>Idea + Linker + Idea desde el día uno</span></div>
       </div>
       <div class="deliverable-actions">
-        <a href="try-jill.html" class="btn-primary"><i class="ti ti-player-play"></i>Probar Jill — 5 min</a>
+        <a href="hablemos.html?solicitar=jill#consulta" class="btn-primary"><i class="ti ti-calendar"></i>Solicitar demo Jill</a>
         <a href="foundations.html" class="btn-secondary"><i class="ti ti-book"></i>Programa Fundamentos estructurales (Foundations)</a>
       </div>
     </div>
@@ -904,9 +961,9 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
               <div class="tb-portal-nav-label">Navegación</div>
               <div class="tb-portal-nav-item active"><i class="ti ti-layout-dashboard"></i> Panel</div>
               <div class="tb-portal-nav-item"><i class="ti ti-list-check"></i> Mis ejercicios <span class="tb-nav-badge">4</span></div>
-              <a href="try-jill.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-message-circle"></i> Jill Tutor <span class="tb-link-arrow">Demo →</span></a>
-              <a href="try-alice.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-robot"></i> Alice Coach <span class="tb-link-arrow">Demo →</span></a>
-              <a href="try-nexora.html" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-headset"></i> Nexora Sims <span class="tb-link-arrow">Demo →</span></a>
+              <a href="hablemos.html?solicitar=jill#consulta" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-message-circle"></i> Jill Tutor <span class="tb-link-arrow">Solicitar →</span></a>
+              <a href="hablemos.html?solicitar=alice-coach#consulta" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-robot"></i> Alice Coach <span class="tb-link-arrow">Solicitar →</span></a>
+              <a href="hablemos.html?solicitar=nexora#consulta" class="tb-portal-nav-item tb-portal-link"><i class="ti ti-headset"></i> Nexora Sims <span class="tb-link-arrow">Solicitar →</span></a>
               <div class="tb-portal-nav-item"><i class="ti ti-chart-radar"></i> Historial KPI</div>
               <div class="tb-portal-nav-item"><i class="ti ti-notes"></i> Notas de sesión</div>
             </aside>
@@ -972,20 +1029,20 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
               </section>
 
               <section class="tb-portal-section tb-portal-cards-row">
-                <a href="try-alice.html" class="tb-tool-card alice">
+                <a href="hablemos.html?solicitar=alice-coach#consulta" class="tb-tool-card alice">
                   <img src="assets/logos/alice.png" alt="" class="tb-tool-logo">
                   <div>
                     <div class="tb-tool-name">Alice — Coach 24/7</div>
-                    <div class="tb-tool-desc">Coaching en vivo alineado a tus KPIs y ejercicios. Toca para probar el demo.</div>
-                    <span class="tb-tool-cta">Abrir demo Alice <i class="ti ti-arrow-right"></i></span>
+                    <div class="tb-tool-desc">Coaching en vivo alineado a tus KPIs y ejercicios. Demo guiada con el equipo.</div>
+                    <span class="tb-tool-cta">Solicitar demo Alice <i class="ti ti-arrow-right"></i></span>
                   </div>
                 </a>
-                <a href="try-nexora.html" class="tb-tool-card nexora">
+                <a href="hablemos.html?solicitar=nexora#consulta" class="tb-tool-card nexora">
                   <img src="assets/logos/nexora.png" alt="" class="tb-tool-logo">
                   <div>
                     <div class="tb-tool-name">Nexora — Simulaciones</div>
                     <div class="tb-tool-desc">Entrevistas STAR y atención al cliente con voz + micrófono.</div>
-                    <span class="tb-tool-cta">Abrir demo Nexora <i class="ti ti-arrow-right"></i></span>
+                    <span class="tb-tool-cta">Solicitar demo Nexora <i class="ti ti-arrow-right"></i></span>
                   </div>
                 </a>
               </section>
@@ -999,7 +1056,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
                   <div class="tb-alice-msg bot"><strong>ALICE</strong> ¡Buen giro! Ahora dame el Resultado — ¿qué cambió después de tu explicación?</div>
                   <div class="tb-alice-kpi"><i class="ti ti-chart-dots"></i> Actualizando KPI: Pensamiento estructural · +3 pts</div>
                 </div>
-                <a href="try-alice.html" class="tb-inline-demo"><i class="ti ti-player-play"></i> Probar Alice — demo 5 min</a>
+                <a href="hablemos.html?solicitar=alice-coach#consulta" class="tb-inline-demo"><i class="ti ti-calendar"></i> Solicitar demo Alice Coach</a>
               </section>
 
               <section class="tb-portal-section">
@@ -1009,7 +1066,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
                   <div class="tb-nexora-tag">Entrevista STAR · Simulacro</div>
                   <div class="tb-nexora-title">Cuéntame de una vez que manejaste un cliente difícil</div>
                   <div class="tb-nexora-meta"><i class="ti ti-microphone"></i> Voz + micrófono · ~8 min · Evaluado en tiempo real</div>
-                  <a href="try-nexora.html" class="tb-inline-demo gold"><i class="ti ti-headset"></i> Probar demo Nexora</a>
+                  <a href="hablemos.html?solicitar=nexora#consulta" class="tb-inline-demo gold"><i class="ti ti-calendar"></i> Solicitar demo Nexora</a>
                 </div>
               </section>
 
@@ -1083,7 +1140,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
           <div class="alice-cap"><i class="ti ti-check"></i>Ruta Fundamentos estructurales (Foundations)</div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:1.5rem;">
-          <a href="try-jill.html" class="btn-primary" style="display:inline-flex;"><i class="ti ti-player-play"></i>Probar Jill — 5 min</a>
+          <a href="hablemos.html?solicitar=jill#consulta" class="btn-primary" style="display:inline-flex;"><i class="ti ti-calendar"></i>Solicitar demo Jill</a>
           <a href="foundations.html" class="btn-secondary" style="margin-top:0;border-color:rgba(255,255,255,0.4);color:white;background:transparent;"><i class="ti ti-book"></i>Programa Fundamentos estructurales (Foundations)</a>
         </div>
       </div>
