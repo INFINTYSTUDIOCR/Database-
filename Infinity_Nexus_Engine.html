@@ -1480,6 +1480,7 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +(isMaster?('<button data-sid="'+id+'" data-tutor="jill" class="btn btn-sm" style="background:'+(studentJillOn(s)?'rgba(61,220,151,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillOn(s)?'#3DDC97':'rgba(255,255,255,0.3)')+';color:'+(studentJillOn(s)?'#3DDC97':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-left"></i> Jill '+(studentJillOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentJillProOn(s)?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillProOn(s)?'#A78BFA':'rgba(255,255,255,0.3)')+';color:'+(studentJillProOn(s)?'#C4B5FD':'var(--t2)')+';font-weight:700;" onclick="toggleStudentJillPro(this.dataset.sid)"><i class="ti ti-skull"></i> Jill Pro '+(studentJillProOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" data-tutor="alice" class="btn btn-sm" style="background:'+(studentAliceOn(s)?'rgba(192,132,252,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentAliceOn(s)?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(studentAliceOn(s)?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-right"></i> Alice '+(studentAliceOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(245,166,35,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#F5A623':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#F5A623':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'):'')
@@ -4510,6 +4511,13 @@ function studentJillOn(s){
   if(typeof s.jillEnabled === 'boolean') return s.jillEnabled;
   return (s.system_mode || 'jill') !== 'alice';
 }
+function studentJillProOn(s){
+  if(!s) return false;
+  return s.jillProEnabled === true;
+}
+function studentJillTabOn(s){
+  return studentJillOn(s) || studentJillProOn(s);
+}
 
 function toggleStudentTutor(sid, tutor){
   if(!hasMasterAccess()) return;
@@ -4532,6 +4540,27 @@ function toggleStudentTutor(sid, tutor){
     dbSet('infinity_students', sid, s).then(function(){
       DB[sid]=s;
       showToast(label+' ON');
+      openStudent(sid);
+    }).catch(function(){ showToast('Error al guardar','err'); });
+  }
+}
+
+function toggleStudentJillPro(sid){
+  if(!hasMasterAccess()) return;
+  var s = DB[sid]; if(!s) return;
+  var on = studentJillProOn(s);
+  var name = (s.info&&s.info.name)||'este estudiante';
+  if(on){
+    confirmAction('Apagar Jill Pro', '¿Apagar Jill Pro (Nemesis Quest) para '+name+'? El estudiante no puede activarlo solo.', async function(){
+      s.jillProEnabled = false;
+      await dbSet('infinity_students', sid, s); DB[sid]=s;
+      showToast('Jill Pro OFF'); openStudent(sid);
+    }, 'Apagar');
+  } else {
+    s.jillProEnabled = true;
+    dbSet('infinity_students', sid, s).then(function(){
+      DB[sid]=s;
+      showToast('Jill Pro ON');
       openStudent(sid);
     }).catch(function(){ showToast('Error al guardar','err'); });
   }
@@ -5454,7 +5483,7 @@ function renderSuperBrain(m){
     +'<div id="sb-msgs" style="max-height:340px;overflow-y:auto;margin-bottom:10px;padding-right:4px;"></div>'
     +'<div id="sb-voice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:8px;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;">'
-    +'<input id="sb-input" class="inp" placeholder="Tu orden aquí — Enter o botón enviar..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
+    +'<input id="sb-input" class="inp" placeholder="Orden… o pegá un link de TikTok para importarlo a Jill" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
     +'<button id="sb-mic-btn" title="Mantené presionado para hablar (PTT)" style="width:44px;height:44px;background:rgba(107,114,128,0.4);border:1px solid rgba(192,132,252,0.35);color:#9CA3AF;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
     +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
     +'</div></div>'
@@ -5462,12 +5491,22 @@ function renderSuperBrain(m){
     +'<div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Subir conocimiento</div>'
     +'<input class="inp" id="sb-up-title" placeholder="Título (ej: Regla k9 Corporate)">'
-    +'<select class="inp" id="sb-up-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option></select>'
+    +'<select class="inp" id="sb-up-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="jill-foundations">Jill Foundations</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option></select>'
     +'<textarea class="inp" id="sb-up-content" placeholder="Pegá texto, procedimientos, reglas..." style="min-height:100px;margin-top:8px;"></textarea>'
     +'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
     +'<button class="btn btn-outline btn-sm" onclick="superBrainIngest(false)"><i class="ti ti-inbox"></i>Guardar pendiente</button>'
     +'<button class="btn btn-navy btn-sm" onclick="superBrainIngest(true)"><i class="ti ti-broadcast"></i>Publicar ya</button>'
     +'</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-brand-tiktok"></i>TikTok → Jill</div>'
+    +'<div id="sb-tiktok-status" style="font-size:12px;color:var(--t2);margin-bottom:8px;">Cargando…</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
+    +'<button class="btn btn-navy btn-sm" onclick="tiktokJillConnect()"><i class="ti ti-link"></i>Conectar TikTok</button>'
+    +'<button class="btn btn-outline btn-sm" onclick="tiktokJillSync()"><i class="ti ti-refresh"></i>Sincronizar videos</button>'
+    +'</div>'
+    +'<textarea class="inp" id="sb-tiktok-urls" placeholder="O pegá URLs de videos (una por línea) para importar sin OAuth…" style="min-height:56px;font-size:11px;"></textarea>'
+    +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="tiktokJillImportUrls()"><i class="ti ti-download"></i>Importar URLs</button>'
+    +'<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.45;">Los videos nuevos van a <strong>Pendiente</strong> — vos publicás cuando Jill deba aprenderlo. Auto-sync cada 12h si está configurado en Render.</div>'
+    +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Pendiente de publicar</div>'
     +'<div id="sb-pending-list" style="font-size:12px;color:var(--t2);">—</div></div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-check"></i>Ya propagado a tutores</div>'
@@ -5570,11 +5609,14 @@ async function superBrainRefresh(){
     if(pending){
       var items = data.pendingLessons || [];
       pending.innerHTML = items.length ? items.map(function(p){
-        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(p.title||'—')+'</strong><div style="margin:4px 0;color:var(--t3);">'+(p.preview||'')+'</div>'
+        var src = p.source === 'tiktok' ? '<span style="font-size:10px;background:#111;color:#fff;padding:2px 6px;border-radius:4px;margin-left:6px;">TikTok</span>' : '';
+        var link = (p.meta && p.meta.shareUrl) ? '<a href="'+p.meta.shareUrl+'" target="_blank" rel="noopener" style="font-size:10px;color:var(--nm);">Ver video</a>' : '';
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>'+(p.title||'—')+'</strong>'+src+' '+link+'<div style="margin:4px 0;color:var(--t3);">'+(p.preview||'')+'</div>'
           +'<button class="btn btn-navy btn-sm" onclick="superBrainPublishPending(\''+p.id+'\')"><i class="ti ti-broadcast"></i>Publicar a tutores</button> '
           +'<button class="btn btn-outline btn-sm" onclick="superBrainRejectPending(\''+p.id+'\')"><i class="ti ti-x"></i></button></div>';
       }).join('') : 'Nada pendiente.';
     }
+    tiktokJillRefreshStatus();
     var pub = document.getElementById('sb-published-list');
     if(pub){
       var published = data.recentPublished || [];
@@ -5683,6 +5725,10 @@ function renderSuperBrainStop(){
   _sbUi.greetingBusy = false;
 }
 
+function extractTikTokUrls(text){
+  return (String(text||'').match(/https?:\/\/(?:www\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+/gi) || []);
+}
+
 async function superBrainTalk(micText){
   var inp = document.getElementById('sb-input');
   var text = (micText || (inp ? inp.value : '') || '').trim();
@@ -5691,6 +5737,34 @@ async function superBrainTalk(micText){
   _sbUi.ttsQueue = []; _sbUi.ttsBusy = false;
   if(inp) inp.value = '';
   superBrainStopMic();
+  var tiktokUrls = extractTikTokUrls(text);
+  if(tiktokUrls.length){
+    _sbUi.history.push({ role:'user', text: text });
+    superBrainRenderMsgs();
+    var stTt = document.getElementById('sb-voice-status');
+    if(stTt) stTt.textContent = 'Importando TikTok…';
+    try{
+      var ttData = await superBrainFetch('/super-brain/tiktok/sync-urls', {
+        method:'POST',
+        body: JSON.stringify({ urls: tiktokUrls, secret: SUPER_BRAIN_SECRET })
+      });
+      var ttMsg = (ttData.message || ('Importados: '+(ttData.queued||0)+' en pendiente.'))
+        + '\n\nRevisá «Pendiente de publicar» a la derecha → Publicar a tutores cuando esté bien.';
+      _sbUi.history.push({ role:'brain', text: ttMsg });
+      superBrainRenderMsgs();
+      showToast(ttData.message || 'TikTok importado');
+      superBrainRefresh();
+    }catch(e){
+      var errMsg = 'No pude importar el TikTok: '+(e.message||'error')
+        + '\n\nSi dice 404: falta redeploy del backend en Render.'
+        + '\nMientras: pegá el guion del video en «Subir conocimiento» → Guardar pendiente.';
+      _sbUi.history.push({ role:'brain', text: errMsg });
+      superBrainRenderMsgs();
+      showToast(e.message,'err');
+    }
+    if(stTt) stTt.textContent = 'Esperando tu orden';
+    return;
+  }
   _sbUi.history.push({ role:'user', text: text });
   superBrainRenderMsgs();
   var st = document.getElementById('sb-voice-status');
@@ -5746,6 +5820,64 @@ async function superBrainRejectPending(id){
   try{
     await superBrainFetch('/super-brain/reject', { method:'POST', body: JSON.stringify({ pendingId: id, secret: SUPER_BRAIN_SECRET }) });
     showToast('Descartado');
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function tiktokJillRefreshStatus(){
+  var el = document.getElementById('sb-tiktok-status');
+  if(!el) return;
+  try{
+    var data = await superBrainFetch('/super-brain/tiktok/status?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+    var lines = [];
+    if(!data.oauthReady) lines.push('⚠️ Falta configurar TikTok API en Render (CLIENT_KEY, SECRET, REDIRECT_URI).');
+    else if(data.connected) lines.push('✓ Cuenta conectada · @'+(data.username||'—'));
+    else lines.push('Sin conectar — usá <strong>Conectar TikTok</strong> o importá por URL.');
+    if(data.lastSyncAt) lines.push('Último sync: '+new Date(data.lastSyncAt).toLocaleString('es-CR'));
+    if(data.lastSyncResult && data.lastSyncResult.queued != null) lines.push('Último resultado: '+data.lastSyncResult.queued+' nuevo(s) en pendiente.');
+    if(data.autoSyncHours) lines.push('Auto-sync cada '+data.autoSyncHours+'h.');
+    if(data.lastError) lines.push('<span style="color:#b45309;">'+data.lastError+'</span>');
+    el.innerHTML = lines.join('<br>');
+  }catch(e){
+    el.textContent = 'TikTok sync: '+e.message;
+  }
+}
+
+async function tiktokJillConnect(){
+  try{
+    var data = await superBrainFetch('/super-brain/tiktok/oauth/url?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+    if(!data.url){ showToast('No se obtuvo URL OAuth','err'); return; }
+    window.open(data.url, 'tiktok_oauth', 'width=520,height=720');
+    showToast('Completá el login en la ventana de TikTok');
+    setTimeout(tiktokJillRefreshStatus, 8000);
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function tiktokJillSync(){
+  try{
+    showToast('Sincronizando TikTok…');
+    var data = await superBrainFetch('/super-brain/tiktok/sync', {
+      method:'POST',
+      body: JSON.stringify({ secret: SUPER_BRAIN_SECRET })
+    });
+    showToast(data.message || ('Sync: '+((data.queued)||0)+' pendiente(s)'));
+    superBrainRefresh();
+  }catch(e){ showToast(e.message,'err'); tiktokJillRefreshStatus(); }
+}
+
+async function tiktokJillImportUrls(){
+  var ta = document.getElementById('sb-tiktok-urls');
+  var raw = ta ? ta.value : '';
+  var urls = raw.split(/\n+/).map(function(u){ return u.trim(); }).filter(Boolean);
+  if(!urls.length){ showToast('Pegá al menos una URL','err'); return; }
+  try{
+    showToast('Importando '+urls.length+' URL(s)…');
+    var data = await superBrainFetch('/super-brain/tiktok/sync-urls', {
+      method:'POST',
+      body: JSON.stringify({ urls: urls, secret: SUPER_BRAIN_SECRET })
+    });
+    if(ta) ta.value = '';
+    showToast(data.message || ('Importados: '+(data.queued||0)));
     superBrainRefresh();
   }catch(e){ showToast(e.message,'err'); }
 }

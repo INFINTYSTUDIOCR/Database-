@@ -261,7 +261,7 @@ function trimHistory(history) {
   return (Array.isArray(history) ? history : []).slice(-MAX_CHAT_HISTORY);
 }
 
-async function ingest(state, { title, content, author, category, autoPublish }) {
+async function ingest(state, { title, content, author, category, autoPublish, source, meta }) {
   const text = String(content || '').trim();
   if (!text || text.length < 8) throw new Error('El contenido necesita al menos 8 caracteres.');
   const item = {
@@ -270,7 +270,8 @@ async function ingest(state, { title, content, author, category, autoPublish }) 
     content: text.slice(0, MAX_LESSON_CHARS),
     category: category || 'metodologia',
     author: author || 'Fundador',
-    source: 'upload',
+    source: source || 'upload',
+    meta: meta || null,
     date: new Date().toISOString()
   };
   if (autoPublish) {
@@ -499,7 +500,12 @@ function publicSummary(state, extra = {}) {
       id: l.id, title: l.title, date: l.publishedAt || l.date, preview: String(l.content || '').slice(0, 100)
     })),
     pendingLessons: (state.pendingLessons || []).slice().reverse().map(p => ({
-      id: p.id, title: p.title, date: p.date, preview: String(p.content || '').slice(0, 120)
+      id: p.id,
+      title: p.title,
+      date: p.date,
+      preview: String(p.content || '').slice(0, 120),
+      source: p.source || 'upload',
+      meta: p.meta || null
     })),
     stats: state.stats,
     updatedAt: state.updatedAt

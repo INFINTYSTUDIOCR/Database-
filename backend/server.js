@@ -200,6 +200,9 @@ Brain.initNexusBrain({ sbGetOne, sbSet });
 const SuperBrain = require('./super-brain');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 
+const TikTokJill = require('./tiktok-jill');
+TikTokJill.initTikTokJill({ sbGetOne, sbSet });
+
 // ── OPENING ROTATION LOG (Alice / Jill / Nexora session starts) ──
 const OPENING_LOG_MAX = 8;
 
@@ -4224,6 +4227,76 @@ app.post('/super-brain/reject', requireMasterOrAnalyzeSecret, async (req, res) =
   }
 });
 
+// ── TIKTOK → JILL (sync con revisión en pending) ─────────────
+app.get('/super-brain/tiktok/status', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const syncState = await TikTokJill.loadSyncState();
+    return res.json({ ok: true, ...TikTokJill.publicStatus(syncState) });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'TikTok status failed' });
+  }
+});
+
+app.get('/super-brain/tiktok/oauth/url', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const { url, state } = TikTokJill.buildOAuthUrl();
+    return res.json({ ok: true, url, state });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'OAuth URL failed' });
+  }
+});
+
+app.get('/super-brain/tiktok/oauth/callback', async (req, res) => {
+  const { code, state, error, error_description: errDesc } = req.query || {};
+  const failHtml = (msg) => `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>TikTok · Infinity</title></head><body style="font-family:system-ui;padding:32px;max-width:480px;margin:auto;"><h2>TikTok — error</h2><p>${msg}</p><p>Cerrá esta ventana y volvé a A.D.A.M.</p></body></html>`;
+  const okHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>TikTok conectado</title></head><body style="font-family:system-ui;padding:32px;max-width:480px;margin:auto;"><h2 style="color:#059669;">✓ TikTok conectado</h2><p>Tu cuenta quedó vinculada. Cerrá esta ventana y en A.D.A.M. tocá <strong>Sincronizar videos</strong>.</p><script>setTimeout(function(){window.close();},4000);</script></body></html>`;
+  try {
+    if (error) return res.status(400).send(failHtml(errDesc || error));
+    if (!code || !state) return res.status(400).send(failHtml('Faltan parámetros OAuth.'));
+    await TikTokJill.handleOAuthCallback(code, state);
+    return res.send(okHtml);
+  } catch (err) {
+    console.error('tiktok oauth callback:', err.message);
+    return res.status(400).send(failHtml(err.message || 'OAuth falló'));
+  }
+});
+
+app.post('/super-brain/tiktok/sync', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const author = req.auth?.name || 'Fundador';
+    const result = await TikTokJill.syncFromApi(claudeCall, author);
+    return res.json({ ok: true, ...result, message: `Sync API: ${result.queued} nuevo(s) en pendiente de revisión.` });
+  } catch (err) {
+    console.error('tiktok sync:', err.message);
+    return res.status(400).json({ error: err.message || 'Sync failed' });
+  }
+});
+
+app.post('/super-brain/tiktok/sync-urls', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { urls } = req.body || {};
+    const author = req.auth?.name || 'Fundador';
+    const result = await TikTokJill.syncFromUrls(urls, claudeCall, author);
+    return res.json({ ok: true, ...result, message: `Importados: ${result.queued} en pendiente de revisión.` });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Import failed' });
+  }
+});
+
+app.post('/super-brain/tiktok/configure', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const { username } = req.body || {};
+    const state = await TikTokJill.loadSyncState();
+    if (username) state.username = String(username).replace(/^@/, '').slice(0, 64);
+    await TikTokJill.saveSyncState(state);
+    return res.json({ ok: true, ...TikTokJill.publicStatus(state) });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Configure failed' });
+  }
+});
+
 // ── ANALYZE ──────────────────────────────────────────────────
 app.post('/analyze', async (req, res) => {
   try {
@@ -4331,4 +4404,15 @@ app.listen(PORT, () => {
   setTimeout(() => {
     warmDemoBufferTts().catch((e) => console.warn('Demo TTS warm error:', e.message));
   }, 4000);
+  const tiktokHours = parseInt(process.env.TIKTOK_SYNC_INTERVAL_HOURS || '0', 10);
+  if (tiktokHours > 0 && TikTokJill.isConfigured()) {
+    const ms = tiktokHours * 3600000;
+    setTimeout(() => {
+      TikTokJill.scheduledSyncIfDue(claudeCall).catch(() => {});
+    }, 60000);
+    setInterval(() => {
+      TikTokJill.scheduledSyncIfDue(claudeCall).catch(() => {});
+    }, ms);
+    console.log(`TikTok → Jill auto-sync cada ${tiktokHours}h`);
+  }
 });
