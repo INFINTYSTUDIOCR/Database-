@@ -40,8 +40,8 @@
   ];
 
   var INDEX = [
-    { s: '.hero-mirror-hope', en: 'We\'re not a language school. We help people who already know some English but freeze in interviews, calls or meetings.', es: 'No somos una academia. Ayudamos a gente que ya sabe algo de inglés pero se bloquea en entrevistas, llamadas o reuniones.' },
-    { s: '.hero-tagline', en: 'Private video classes + AI practice · from Costa Rica for all Latin America', es: 'Clases privadas por videollamada + práctica con IA · desde Costa Rica para toda Latinoamérica' },
+    { s: '.hero-mirror-hope', en: 'For everyday people with a concrete problem: you understand English but can\'t speak when it matters — interview, client call, boss in a meeting.', es: 'Para gente común con un problema concreto: entendés inglés pero no podés hablarlo cuando hay presión — entrevista, llamada con un cliente, jefe en reunión.' },
+    { s: '.hero-tagline', en: 'Private video classes · from ₡12,500/month · Costa Rica and Latin America', es: 'Clases privadas por videollamada · desde ₡12.500/mes · Costa Rica y toda Latinoamérica' },
     { s: '.hero-headline', en: 'Stop going blank when it matters most.', es: 'Dejá de quedarte en blanco cuando más importa.' },
     { s: '.hero-pills .pill:nth-child(1)', en: '12 h/month with your coach', es: '12 h al mes con tu profe' },
     { s: '.hero-pills .pill:nth-child(2)', en: 'AI practice at night', es: 'Práctica con IA de noche' },
