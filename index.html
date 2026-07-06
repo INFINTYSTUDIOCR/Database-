@@ -548,7 +548,26 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 .site-guide-currency{background:#EDE9FE;border:1px solid rgba(91,33,182,0.15);border-radius:12px;padding:12px 16px;margin-top:14px;font-size:13px;color:#4A4A6A;line-height:1.65;text-align:center;}
 .site-guide-currency strong{color:#5B21B6;}
 
+.para-mi{background:#fff;border-bottom:1px solid var(--line);padding:2.5rem 0 2rem;}
+.para-mi-inner{max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+.para-mi-head{text-align:center;margin-bottom:1.5rem;}
+.para-mi-head h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.45rem,3.5vw,1.85rem);font-weight:800;color:var(--text);margin:0 0 8px;}
+.para-mi-head p{font-size:15px;color:var(--t2);margin:0;line-height:1.6;max-width:36rem;margin-left:auto;margin-right:auto;}
+.para-mi-checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.75rem;}
+.para-mi-check{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:14px;padding:1rem 1.1rem;}
+.para-mi-check.no{background:#FFF7ED;border-color:#FED7AA;}
+.para-mi-check h3{font-size:14px;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:6px;}
+.para-mi-check.yes h3{color:#166534;}
+.para-mi-check.no h3{color:#9A3412;}
+.para-mi-check ul{margin:0;padding-left:1.15rem;font-size:14px;color:var(--t2);line-height:1.65;}
+.para-mi-check li{margin:5px 0;}
+.para-mi-paths-title{text-align:center;font-size:1.05rem;font-weight:800;color:var(--text);margin:0 0 1rem;}
+.para-mi-cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:1.25rem;}
+.para-mi-cta-row a{font-size:14px;font-weight:700;color:var(--purple);text-decoration:none;}
+.para-mi-cta-row a:hover{text-decoration:underline;}
+
 @media(max-width:768px){
+  .para-mi-checkgrid{grid-template-columns:1fr;}
   :root{--companion-ribbon-h:72px;}
   .companion-ribbon-text{font-size:12px;}
   .companion-ribbon-text .ribbon-detail{display:none;}
@@ -566,48 +585,27 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 </head>
 <body>
 
-<a href="try-alice.html" class="companion-ribbon" id="companion-ribbon" aria-label="Probar Alice Companion gratis">
+<a href="try-alice.html" class="companion-ribbon" id="companion-ribbon" aria-label="Probar gratis sin pagar">
   <div class="companion-ribbon-inner">
-    <span class="companion-ribbon-badge"><i class="ti ti-sparkles"></i> Nuevo</span>
+    <span class="companion-ribbon-badge"><i class="ti ti-sparkles"></i> Gratis</span>
     <p class="companion-ribbon-text">
-      <strong>Alice Companion</strong> — tu asistente de práctica personal en inglés: habla, escucha, cuenta historias, muestra interés.
-      <span class="ribbon-detail"> Moda, vida, trabajo — lo que quieras, sin cortes.</span>
+      <strong>Probalo gratis</strong> — hablá en inglés con una IA por voz, sin tarjeta.
+      <span class="ribbon-detail"> Cualquier tema: trabajo, viajes, lo que quieras.</span>
     </p>
-    <span class="companion-ribbon-cta">Probar Alice Companion <i class="ti ti-arrow-right"></i></span>
+    <span class="companion-ribbon-cta">Probar ahora <i class="ti ti-arrow-right"></i></span>
   </div>
 </a>
 
 <nav>
   <a href="index.html" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" srcset="assets/logos/infinity-studio-cr-nav.png?v=20260703 1x, assets/logos/infinity-studio-cr-nav@2x.png?v=20260703 2x" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo" width="52" height="52"></a>
   <div class="nav-links">
-  <div class="nav-links">
-    <a href="#problem">El problema</a>
-    <a href="#ecosystem">¿Qué recibís?</a>
-    <div class="nav-dropdown">
-      <button type="button" class="nav-drop-btn">Programas <i class="ti ti-chevron-down" style="font-size:14px;"></i></button>
-      <div class="nav-drop-menu">
-        <div class="nav-drop-label">Entrenamiento core</div>
-        <a href="foundations.html">Fundamentos estructurales (Foundations)</a>
-        <a href="ort.html">ORT</a>
-        <div class="nav-drop-divider"></div>
-        <div class="nav-drop-label">Comunidad</div>
-        <a href="off-the-clock.html">Off The Clock</a>
-        <a href="conversatorio.html">El Conversatorio</a>
-        <a href="job-finder.html">Job Finder</a>
-      </div>
-    </div>
-    <a href="#programs">Todos los programas</a>
-    <a href="#jill">Jill</a>
-    <a href="#alice-companion">Alice Companion</a>
+    <a href="#para-mi">¿Es para mí?</a>
     <a href="#como-funciona">Cómo funciona</a>
-    <a href="#donde-estas">Tu camino</a>
     <a href="#pricing">Precios</a>
-    <a href="#about">Nosotros</a>
-    <a href="#success-stories">Casos de éxito</a>
-    <a href="ingles-operacional-latinoamerica.html">LATAM</a>
+    <a href="try-alice.html">Probar gratis</a>
     <a href="#contact">Contacto</a>
   </div>
-  <a href="#contact" class="nav-cta">Agenda diagnóstico</a>
+  <a href="#contact" class="nav-cta">Hablá con nosotros</a>
 </nav>
 
 <section class="hero">
@@ -617,22 +615,22 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <img src="assets/logos/infinity-studio-cr.png?v=20260703" srcset="assets/logos/infinity-studio-cr.png?v=20260703 1x, assets/logos/infinity-logo.png?v=20260703 2x" alt="Infinity Studio CR" class="hero-logo" width="96" height="96">
       </div>
       <div class="hero-mirror" aria-live="polite">
-        <p class="hero-mirror-q" id="hero-mirror-q">¿Hablas inglés pero no entiendes cuando te hablan rápido?</p>
+        <p class="hero-mirror-q" id="hero-mirror-q">¿Entendés inglés pero te trabás cuando tenés que hablar?</p>
       </div>
-      <p class="hero-mirror-hope">El inglés que tienes alcanza — en México, Chile, Colombia o donde estés. Nosotros te llevamos a donde necesitas operar.</p>
-      <p class="hero-tagline">12 h/mes trainer privado · IA de apoyo · online para toda LATAM</p>
-      <h1 class="hero-headline">No necesitas más clases de inglés. Necesitas dejar de paralizarte.</h1>
+      <p class="hero-mirror-hope">No somos una academia. Ayudamos a gente que ya sabe algo de inglés pero se bloquea en entrevistas, llamadas o reuniones.</p>
+      <p class="hero-tagline">Clases privadas por videollamada + práctica con IA · desde Costa Rica para toda Latinoamérica</p>
+      <h1 class="hero-headline">Dejá de quedarte en blanco cuando más importa.</h1>
       <div class="hero-pills">
-        <div class="pill"><i class="ti ti-user-check"></i>12 h trainer privado</div>
-        <div class="pill"><i class="ti ti-robot"></i>IA entre sesiones</div>
-        <div class="pill"><i class="ti ti-chart-bar"></i>5 KPIs / semana</div>
+        <div class="pill"><i class="ti ti-user-check"></i>12 h al mes con tu profe</div>
+        <div class="pill"><i class="ti ti-robot"></i>Práctica con IA de noche</div>
+        <div class="pill"><i class="ti ti-chart-bar"></i>Te decimos cómo vas</div>
       </div>
       <div class="hero-ctas">
         <div class="hero-cta-row">
-          <a href="#contact" class="btn-primary"><i class="ti ti-calendar-check"></i>Agenda diagnóstico</a>
-          <a href="portal-access.html" class="hero-portal-lock" title="Portal Access" aria-label="Portal Access"><i class="ti ti-lock"></i></a>
+          <a href="#para-mi" class="btn-primary"><i class="ti ti-help"></i>¿Es para mí?</a>
+          <a href="portal-access.html" class="hero-portal-lock" title="Portal estudiantil" aria-label="Portal estudiantil"><i class="ti ti-lock"></i></a>
         </div>
-        <a href="try-alice.html" class="btn-secondary"><i class="ti ti-messages"></i>Alice Companion gratis</a>
+        <a href="try-alice.html" class="btn-secondary"><i class="ti ti-messages"></i>Probar gratis (sin pagar)</a>
       </div>
     </div>
     <div class="hero-visual">
@@ -642,15 +640,15 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       </figure>
       <div class="hero-card-wrap">
       <div class="hero-card">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;margin-bottom:1rem;">Panel de desempeño en vivo</div>
-        <div class="kpi-row"><span class="kpi-label">Generación de ideas</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:72%"></div></div><span class="kpi-val">3.6</span></div>
-        <div class="kpi-row"><span class="kpi-label">Pensamiento estructural</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:64%"></div></div><span class="kpi-val">3.2</span></div>
-        <div class="kpi-row"><span class="kpi-label">Recuperación</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:80%"></div></div><span class="kpi-val">4.0</span></div>
-        <div class="kpi-row"><span class="kpi-label">Resolución de problemas</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:56%"></div></div><span class="kpi-val">2.8</span></div>
-        <div class="kpi-row"><span class="kpi-label">Capacidad de respuesta</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:88%;background:linear-gradient(90deg,var(--purple),var(--gold))"></div></div><span class="kpi-val">4.4</span></div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;margin-bottom:1rem;">Tu avance esta semana</div>
+        <div class="kpi-row"><span class="kpi-label">Ideas al hablar</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:72%"></div></div><span class="kpi-val">3.6</span></div>
+        <div class="kpi-row"><span class="kpi-label">Orden al explicar</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:64%"></div></div><span class="kpi-val">3.2</span></div>
+        <div class="kpi-row"><span class="kpi-label">Recuperarte si te trabás</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:80%"></div></div><span class="kpi-val">4.0</span></div>
+        <div class="kpi-row"><span class="kpi-label">Resolver bajo presión</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:56%"></div></div><span class="kpi-val">2.8</span></div>
+        <div class="kpi-row"><span class="kpi-label">Responder rápido</span><div class="kpi-bar-bg"><div class="kpi-bar-fill" style="width:88%;background:linear-gradient(90deg,var(--purple),var(--gold))"></div></div><span class="kpi-val">4.4</span></div>
         <div class="hero-score">
           <div><div class="score-label">Puntaje general</div><div class="score-num">18<span style="font-size:16px;opacity:0.4">/25</span></div></div>
-          <div class="score-badge">Nivel funcional</div>
+          <div class="score-badge">Vas mejorando</div>
         </div>
       </div>
       </div>
@@ -660,150 +658,125 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   </div>
 </section>
 
+<section class="para-mi" id="para-mi">
+  <div class="para-mi-inner">
+    <div class="para-mi-head">
+      <div class="section-tag" style="margin-bottom:8px;">Empezá acá</div>
+      <h2>¿Es para vos?</h2>
+      <p>Si te reconocés en la columna verde, seguí. Si estás en la naranja, mejor otra cosa — y está bien.</p>
+    </div>
+    <div class="para-mi-checkgrid">
+      <div class="para-mi-check yes">
+        <h3><i class="ti ti-check"></i> Sí, es para vos si…</h3>
+        <ul>
+          <li>Entendés inglés pero te <strong>trabás</strong> en entrevistas, llamadas o reuniones.</li>
+          <li>Querés entrar a <strong>call center, BPO</strong> o trabajo remoto con clientes en inglés.</li>
+          <li>Ya estudiaste en academias y <strong>seguís sin hablar con confianza</strong>.</li>
+          <li>Buscás <strong>clases privadas</strong> (solo vos y tu profe), no salón lleno.</li>
+        </ul>
+      </div>
+      <div class="para-mi-check no">
+        <h3><i class="ti ti-x"></i> No es para vos si…</h3>
+        <ul>
+          <li>Solo querés un <strong>certificado A1–B2</strong> para el currículum.</li>
+          <li>Buscás el curso <strong>más barato</strong> del mercado.</li>
+          <li>Querés <strong>solo gramática</strong> sin practicar hablar de verdad.</li>
+          <li>No tenés tiempo ni ganas de practicar <strong>entre clases</strong>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="para-mi-paths-title" id="donde-estas">¿Cuál te describe mejor? Tocá una tarjeta</p>
+    <div class="who-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+      <a href="foundations-path.html" class="who-card path-card-link path-foundations">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-zero.jpg" alt="Aprender inglés desde casi cero" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-seedling"></i> Casi no sé inglés</h3>
+          <p>Empezás desde cero o con base muy débil. Primero armamos la base, sin presión de entrevista.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> Programa Foundations · ₡67.500/mes</span>
+          <span class="path-card-go">Ver este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
+      </a>
+      <a href="ort-path.html" class="who-card path-card-link path-ort">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-freeze.jpg" alt="Bloqueo al hablar inglés" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-bolt"></i> Me trabo al hablar</h3>
+          <p>Entendés pero cuando hay presión — entrevista, cliente, jefe — se te va la voz.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> Programa ORT · ₡67.500/mes</span>
+          <span class="path-card-go">Ver este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
+      </a>
+      <a href="advanced-path.html" class="who-card path-card-link path-nexora">
+        <div class="who-card-media">
+          <img src="assets/photos/pain-volume.jpg" alt="Practicar mucho antes del momento real" width="560" height="320" loading="lazy" decoding="async">
+        </div>
+        <div class="who-card-body">
+          <h3><i class="ti ti-microphone"></i> Ya hablo — quiero practicar más</h3>
+          <p>Necesitás simulaciones de entrevistas y llamadas antes del día que no podés repetir.</p>
+          <span class="path-card-meta"><i class="ti ti-tag"></i> Nexora Pro · ₡67.500 / 30 días</span>
+          <span class="path-card-go">Ver este camino <i class="ti ti-arrow-right"></i></span>
+        </div>
+      </a>
+    </div>
+    <div class="para-mi-cta-row">
+      <a href="#contact"><i class="ti ti-brand-whatsapp"></i> No estoy seguro — escribinos</a>
+      <span style="color:#CBD5E1;">·</span>
+      <a href="try-alice.html"><i class="ti ti-messages"></i> Solo quiero probar gratis</a>
+      <span style="color:#CBD5E1;">·</span>
+      <a href="para-quien.html">Ver más perfiles</a>
+    </div>
+  </div>
+</section>
+
 <div class="stats-bar">
   <div class="stats-inner">
-    <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">h/mes trainer privado</div></div>
-    <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-label">IA de apoyo</div></div>
-    <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">KPIs semanales</div></div>
+    <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">horas al mes con tu profe</div></div>
+    <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-label">práctica con IA</div></div>
+    <div class="stat-item"><div class="stat-num">1 a 1</div><div class="stat-label">nunca salón grupal</div></div>
   </div>
 </div>
 
 <section class="site-guide" id="como-funciona">
   <div class="site-guide-inner">
     <div class="site-guide-head">
-      <div class="section-tag" style="margin-bottom:8px;">Guía rápida</div>
-      <h2>¿Cómo funciona esta página?</h2>
-      <p>Si llegaste por curiosidad y no sabés por dónde empezar — esto resume todo en un minuto.</p>
+      <div class="section-tag" style="margin-bottom:8px;">En pocas palabras</div>
+      <h2>¿Cómo funciona todo esto?</h2>
+      <p>Sin vueltas — qué podés hacer en esta página y qué cuesta plata.</p>
     </div>
     <div class="site-guide-grid">
       <div class="site-guide-card">
-        <h3><i class="ti ti-route"></i> 1. Explorá y elegí tu camino</h3>
+        <h3><i class="ti ti-route"></i> 1. Mirá si encajás</h3>
         <ul>
-          <li><a href="#donde-estas">¿Dónde estás vos?</a> — tres rutas según tu situación.</li>
-          <li><a href="para-quien.html">Para quién es</a> — perfiles y programas.</li>
-          <li><a href="#pricing">Precios</a> — tabla completa abajo en esta página.</li>
+          <li>Arriba: <a href="#para-mi">¿Es para vos?</a> — leé las dos columnas.</li>
+          <li>Tocá la tarjeta que te describe (casi cero, me trabo, ya hablo).</li>
+          <li>Más perfiles en <a href="para-quien.html">Para quién es</a>.</li>
         </ul>
       </div>
       <div class="site-guide-card">
-        <h3><i class="ti ti-gift"></i> 2. Qué es gratis vs. de pago</h3>
+        <h3><i class="ti ti-gift"></i> 2. Qué es gratis y qué no</h3>
         <ul>
-          <li><strong>Gratis:</strong> <a href="try-alice.html">Alice Companion</a> (prueba limitada en la web) + <a href="#contact">diagnóstico 90 min</a> sin compromiso.</li>
-          <li><strong>Con cita:</strong> demo guiada de Jill, Alice Coach o Nexora — <a href="hablemos.html#consulta">solicitala aquí</a>.</li>
-          <li><strong>De pago:</strong> programas con trainer (Foundations, ORT) y suscripciones solo IA (Jill, Alice, Companion, Nexora).</li>
+          <li><strong>Gratis:</strong> <a href="try-alice.html">probar Alice Companion</a> en la web + charla de orientación (<a href="#contact">WhatsApp</a>).</li>
+          <li><strong>Sin pagar antes:</strong> demo guiada de Jill, Alice o Nexora — <a href="hablemos.html#consulta">pedila acá</a>.</li>
+          <li><strong>De pago:</strong> programas con profe (desde ₡67.500/mes) o solo IA (desde ₡12.500/mes). Ver <a href="#pricing">precios</a>.</li>
         </ul>
       </div>
       <div class="site-guide-card">
-        <h3><i class="ti ti-click"></i> 3. Próximo paso concreto</h3>
+        <h3><i class="ti ti-click"></i> 3. Tu siguiente paso</h3>
         <ul>
-          <li>¿Solo querés probar? → <a href="try-alice.html">Alice Companion gratis</a>.</li>
-          <li>¿Querés que te orientemos? → <a href="hablemos.html#consulta">Hablemos</a> o <a href="#contact">WhatsApp</a>.</li>
-          <li>¿Ya sos estudiante? → <a href="portal-access.html">Portal estudiantil</a> (acceso con clave).</li>
+          <li>Curioso → <a href="try-alice.html">probar gratis</a>.</li>
+          <li>Con dudas → <a href="hablemos.html#consulta">Hablemos</a> o <a href="#contact">WhatsApp</a>.</li>
+          <li>Ya sos estudiante → <a href="portal-access.html">portal</a> (con tu clave).</li>
         </ul>
       </div>
     </div>
     <div class="site-guide-currency">
-      <strong>Divisa:</strong> todos los precios están en <strong>colones costarricenses (₡ / CRC)</strong> — no en dólares ni pesos de otros países.
-      En Costa Rica pagás por SINPE/transferencia. Fuera de CR: mismo monto en colones convertido al <strong>tipo de cambio del día + 8%</strong> (PayPal o Western Union). Te confirmamos el total exacto antes de pagar.
+      <strong>Plata:</strong> precios en <strong>colones de Costa Rica (₡)</strong>, no en dólares.
+      En CR pagás por SINPE. Fuera de CR: convertimos a tu moneda (tipo de cambio del día + 8%). Te decimos el monto exacto <strong>antes</strong> de cobrar.
     </div>
-  </div>
-</section>
-
-<section id="elegi-tu-vida" class="section-compact">
-  <div class="section-inner">
-    <div class="section-tag">Tu motivación</div>
-    <h2 class="section-title">¿Qué te trae <span style="color:var(--purple)">aquí?</span></h2>
-    <p class="section-sub">Elige el motivo real — te llevamos al camino correcto, no a un curso genérico.</p>
-    <div class="motiv-grid">
-      <a href="ort-path.html?motivo=trabajo" class="motiv-card fade-up">
-        <div class="motiv-card-media">
-          <img src="assets/photos/pain-interview.jpg" alt="Ansiedad en entrevista en inglés" width="480" height="300" loading="lazy" decoding="async">
-          <div class="motiv-icon"><i class="ti ti-briefcase"></i></div>
-        </div>
-        <div class="motiv-card-body">
-          <h3>Trabajo o entrevista</h3>
-          <p>Pasar la entrevista, el cliente o la reunión en inglés — sin quedarte en blanco.</p>
-          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-      <a href="advanced-path.html?motivo=negocio" class="motiv-card fade-up">
-        <div class="motiv-card-media">
-          <img src="assets/photos/pain-business.jpg" alt="Negocio sin traductores — presión en inglés" width="480" height="300" loading="lazy" decoding="async">
-          <div class="motiv-icon"><i class="ti ti-building-store"></i></div>
-        </div>
-        <div class="motiv-card-body">
-          <h3>Negocio sin traductores</h3>
-          <p>Negociar, vender y liderar en inglés sin depender de alguien más.</p>
-          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-      <a href="foundations-path.html?motivo=familia" class="motiv-card fade-up">
-        <div class="motiv-card-media">
-          <img src="assets/photos/pain-family.jpg" alt="Familia en el exterior — barrera del idioma" width="480" height="300" loading="lazy" decoding="async">
-          <div class="motiv-icon"><i class="ti ti-heart"></i></div>
-        </div>
-        <div class="motiv-card-body">
-          <h3>Familia en EE.UU.</h3>
-          <p>Hablar con familia, viajes y vida real — con estructura, no con vergüenza.</p>
-          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-      <a href="ort-path.html?motivo=bloqueo" class="motiv-card fade-up">
-        <div class="motiv-card-media">
-          <img src="assets/photos/pain-freeze.jpg" alt="Bloqueo al hablar inglés bajo presión" width="480" height="300" loading="lazy" decoding="async">
-          <div class="motiv-icon"><i class="ti ti-mood-sad"></i></div>
-        </div>
-        <div class="motiv-card-body">
-          <h3>Me bloqueo al hablar</h3>
-          <p>Entiendes todo, pero cuando tienes que responder… nada. Eso se entrena.</p>
-          <span class="motiv-go">Ver camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-    </div>
-    <p class="who-more" style="margin-top:1.75rem;"><a href="try-alice.html">Probar Alice Companion gratis →</a></p>
-  </div>
-</section>
-
-<section id="donde-estas" class="who-section section-compact">
-  <div class="section-inner">
-    <div class="section-tag">Tu nivel</div>
-    <h2 class="section-title">¿Dónde estás <span style="color:var(--purple)">tú?</span></h2>
-    <p class="section-sub">Tres caminos claros. Mismo precio promo. Elige según dónde te duele hoy.</p>
-    <div class="who-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
-      <a href="foundations-path.html" class="who-card path-card-link path-foundations">
-        <div class="who-card-media">
-          <img src="assets/photos/pain-zero.jpg" alt="Empezar desde cero en inglés" width="560" height="320" loading="lazy" decoding="async">
-        </div>
-        <div class="who-card-body">
-          <h3><i class="ti ti-seedling"></i> No arranco</h3>
-          <p>Base débil o casi cero. Instalamos la estructura del idioma antes de la presión.</p>
-          <span class="path-card-meta"><i class="ti ti-tag"></i> Fundamentos estructurales (Foundations) · ₡67.500/mes</span>
-          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-      <a href="ort-path.html" class="who-card path-card-link path-ort">
-        <div class="who-card-media">
-          <img src="assets/photos/pain-freeze.jpg" alt="Parálisis al hablar inglés" width="560" height="320" loading="lazy" decoding="async">
-        </div>
-        <div class="who-card-body">
-          <h3><i class="ti ti-bolt"></i> Me bloqueo al hablar</h3>
-          <p>Entiendes inglés pero te paralizas bajo presión real. ORT te obliga a ejecutar.</p>
-          <span class="path-card-meta"><i class="ti ti-tag"></i> ORT · ₡67.500/mes</span>
-          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-      <a href="advanced-path.html" class="who-card path-card-link path-nexora">
-        <div class="who-card-media">
-          <img src="assets/photos/pain-volume.jpg" alt="Práctica intensiva bajo presión" width="560" height="320" loading="lazy" decoding="async">
-        </div>
-        <div class="who-card-body">
-          <h3><i class="ti ti-microphone"></i> Necesito volumen</h3>
-          <p>Ya hablas — necesitas velocidad, precisión y simulaciones antes del momento real.</p>
-          <span class="path-card-meta"><i class="ti ti-tag"></i> Nexora Pro · ₡67.500 / 30 días</span>
-          <span class="path-card-go">Elegir este camino <i class="ti ti-arrow-right"></i></span>
-        </div>
-      </a>
-    </div>
-    <p class="who-more"><a href="casos-de-exito.html">Ver caso Goicoechea documentado →</a></p>
   </div>
 </section>
 
@@ -812,18 +785,18 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <div class="problem-grid">
       <div>
         <div class="section-tag">El problema real</div>
-        <h2 class="section-title">La mayoría no tiene un problema de inglés.</h2>
-        <p class="problem-text">Tienen un <span class="hl">problema de ejecución.</span></p>
+        <h2 class="section-title">No es que no sepas inglés.</h2>
+        <p class="problem-text">Es que <span class="hl">te trabás cuando hay presión.</span></p>
         <ul class="problem-list">
-          <li><i class="ti ti-check"></i><strong>Entienden</strong> inglés</li>
-          <li><i class="ti ti-check"></i><strong>Leen</strong> inglés</li>
-          <li><i class="ti ti-check"></i><strong>Escriben</strong> inglés</li>
+          <li><i class="ti ti-check"></i><strong>Entendés</strong> cuando te hablan</li>
+          <li><i class="ti ti-check"></i><strong>Leés</strong> correos y mensajes</li>
+          <li><i class="ti ti-check"></i><strong>Escribís</strong> más o menos bien</li>
         </ul>
-        <p class="problem-text" style="margin-top:1rem;">Pero cuando ocurre la <strong>interacción real</strong> — bajo presión, con un cliente, en una reunión, en una entrevista en Guadalajara o en un call center en San José...</p>
+        <p class="problem-text" style="margin-top:1rem;">Pero en la <strong>entrevista</strong>, la <strong>llamada con el cliente</strong> o la <strong>reunión con el jefe</strong>… se te va todo.</p>
       </div>
       <div class="freeze-box">
-        <span class="freeze-word">Se<br>Paralizan.</span>
-        <div class="freeze-sub">Eso no es un problema de inglés.<br>Es un problema de preparación operacional.<br><br><strong>Infinity Studio CR</strong> fue creado para ti — en México, Chile, Colombia o donde estés en LATAM — sesiones privadas, no aulas grupales.</div>
+        <span class="freeze-word">Te<br>trabás.</span>
+        <div class="freeze-sub">Eso no se arregla con más gramática.<br>Se arregla practicando situaciones reales, con alguien que te guíe.<br><br><strong>Infinity Studio CR</strong> — clases privadas por videollamada, desde Costa Rica para toda Latinoamérica.</div>
       </div>
     </div>
   </div>
@@ -832,8 +805,8 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <section id="comparison" class="s-warm">
   <div class="section-inner">
     <div class="section-tag">Esto es diferente</div>
-    <h2 class="section-title">Esto <span style="color:var(--purple)">no</span> es una academia más de inglés.</h2>
-    <p class="section-sub">Sesiones privadas para una persona: tú. Sin aulas llenas en ningún país — solo tu dolor, tu Training Book, tus resultados.</p>
+    <h2 class="section-title">Esto <span style="color:var(--purple)">no</span> es una academia más.</h2>
+    <p class="section-sub">Acá no hay salón lleno. Es vos, tu profe, y práctica de verdad.</p>
     <figure class="section-photo fade-up">
       <img src="assets/photos/hero-session.jpg" alt="Práctica de inglés en vivo — participación bajo presión real" width="1200" height="400" loading="lazy" decoding="async">
     </figure>
@@ -850,13 +823,13 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       </div>
       <div class="comp-card otc">
         <div class="comp-title"><i class="ti ti-rocket"></i>Sistema Infinity Studio CR</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>Sesiones privadas 1 a 1</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>Interacción en tiempo real</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>Training Book personalizado</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>5 KPIs operacionales</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>Seguimiento semanal</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>IA de apoyo 24/7</div>
-        <div class="comp-item"><div class="ci otc-check">✓</div>Preparación operacional</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Clases privadas 1 a 1</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Practicás hablar de verdad</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Plan hecho para vos</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Te miden cómo vas</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Seguimiento cada semana</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>IA para practicar de noche</div>
+        <div class="comp-item"><div class="ci otc-check">✓</div>Simulaciones de entrevista</div>
       </div>
     </div>
   </div>
@@ -865,8 +838,8 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <section id="ecosystem" class="s-lavender">
   <div class="section-inner">
     <div class="section-tag">Tu kit de estudiante</div>
-    <h2 class="section-title">¿Qué reciben nuestros <span style="color:var(--purple)">estudiantes?</span></h2>
-    <p class="section-sub">No son clases grupales. Es un sistema operacional privado — tu trainer, IA de apoyo, simulaciones y métricas, donde te paralizas.</p>
+    <h2 class="section-title">¿Qué recibís si entrás?</h2>
+    <p class="section-sub">No son clases grupales. Es tu profe, práctica con IA, simulaciones y seguimiento de cómo vas.</p>
     <figure class="section-photo fade-up">
       <img src="assets/photos/hero-team.jpg" alt="Estudiantes colaborando y ganando confianza en inglés" width="1200" height="400" loading="lazy" decoding="async">
     </figure>
@@ -1217,7 +1190,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="section-inner">
     <div class="section-tag">Inversión</div>
     <h2 class="section-title">Precios claros · <span style="color:var(--purple)">2026</span></h2>
-    <p class="section-sub" style="margin-left:auto;margin-right:auto;">Planes con trainer o solo IA. Precios en colones. LATAM: tipo de cambio del día + 8%.</p>
+    <p class="section-sub" style="margin-left:auto;margin-right:auto;">Precios en colones de Costa Rica (₡). Fuera de CR: tipo de cambio del día + 8%.</p>
     <table class="pricing-home-table">
       <thead>
         <tr>
@@ -1577,7 +1550,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <footer>
   <img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" srcset="assets/logos/infinity-studio-cr-nav.png?v=20260703 1x, assets/logos/infinity-studio-cr-nav@2x.png?v=20260703 2x" alt="Infinity Studio CR" class="footer-logo" width="60" height="60">
   <div class="footer-links">
-    <a href="#problem">El problema</a><a href="#donde-estas">Tu camino</a><a href="#ecosystem">¿Qué recibís?</a>
+    <a href="#para-mi">¿Es para mí?</a><a href="#como-funciona">Cómo funciona</a><a href="#pricing">Precios</a><a href="#contact">Contacto</a>
     <a href="#programs">Programas</a>
     <a href="#jill">Jill</a><a href="#alice-companion">Alice</a><a href="#pricing">Precios</a><a href="#about">Nosotros</a>
     <a href="#success-stories">Casos de éxito</a><a href="para-quien.html">Para quién</a><a href="ingles-operacional-latinoamerica.html">LATAM</a><a href="casos-de-exito.html">Casos documentados</a><a href="#contact">Contacto</a>
@@ -1637,11 +1610,11 @@ document.querySelectorAll('.fade-up').forEach(function(el){obs.observe(el);});
 
 (function(){
   var qs=[
-    '¿Te trabas en la entrevista aunque estés en CDMX, Santiago o Bogotá?',
-    '¿Hablas inglés pero no entiendes cuando te hablan rápido?',
-    '¿Usas traductor para reuniones con clientes de EE.UU. o Europa?',
-    '¿Tu familia en el exterior habla inglés y tú te quedas callado?',
-    '¿Entiendes todo pero cuando tienes que responder… nada?'
+    '¿Te trabás en la entrevista aunque sepas inglés?',
+    '¿Entendés todo pero cuando tenés que hablar… nada?',
+    '¿Necesitás inglés para call center o trabajo remoto?',
+    '¿Tu familia habla inglés y vos te quedás callado?',
+    '¿Ya probaste academias y seguís sin confianza?'
   ];
   var el=document.getElementById('hero-mirror-q');
   if(!el||qs.length<2)return;
