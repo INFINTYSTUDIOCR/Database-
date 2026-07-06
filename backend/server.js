@@ -372,6 +372,17 @@ function requireMasterOrAnalyzeSecret(req, res, next) {
   return requireMasterAccess(req, res, next);
 }
 
+function isAnalyzeSecretMatch(secret) {
+  return !!(ANALYZE_SECRET && secret && secret === ANALYZE_SECRET);
+}
+
+/** QA battery (7+7): live AI demos with ANALYZE_SECRET — public site stays buffered. */
+function isQaLiveDemo(req, body) {
+  const secret = req.headers['x-analyze-secret'] || body?.secret || body?.qaSecret;
+  const qaLive = body?.qaLive === true || req.headers['x-qa-live'] === '1';
+  return qaLive && isAnalyzeSecretMatch(secret);
+}
+
 app.get('/brain/stats', requireProductAuth, async (req, res) => {
   try {
     return res.json(await Brain.brainGetStats());
@@ -1082,8 +1093,9 @@ app.post('/demo/start', async (req, res) => {
     const guest = name || 'Guest';
     const sessionId = crypto.randomUUID();
     const isPremium = !!(premiumToken && await Billing.isPremiumActive(premiumToken, sbGetOne));
-    // Public website: scripted buffer only. Live AI only for paid Alice Companion.
-    const useLive = companionDemo && isPremium;
+    const qaLive = isQaLiveDemo(req, req.body || {});
+    // Public website: scripted buffer only. Live AI for paid Companion or QA battery (secret).
+    const useLive = (companionDemo && isPremium) || qaLive;
 
     if (!useLive) {
       const buf = getDemoBuffer(service, sc);
@@ -1129,15 +1141,18 @@ app.post('/demo/start', async (req, res) => {
     }
 
     const reply = await demoGenerateOpening(service, sc, guest, onboarding);
+    const liveMaxSteps = (companionDemo && isPremium && !qaLive)
+      ? 0
+      : (DEMO_LIMITS[limitService] || DEMO_LIMITS.alice).maxSteps;
     const session = {
       service,
       scenario: sc,
       step: 0,
       name: guest,
       onboarding: onboarding || null,
-      demoMode: 'companion',
-      maxSteps: 0,
-      premium: true,
+      demoMode: qaLive ? 'qa' : (companionDemo ? 'companion' : 'standard'),
+      maxSteps: liveMaxSteps,
+      premium: !!(companionDemo && isPremium),
       buffered: false,
       live: true,
       consent: true,
@@ -1152,12 +1167,13 @@ app.post('/demo/start', async (req, res) => {
       sessionId,
       reply,
       step: 0,
-      maxSteps: 0,
+      maxSteps: liveMaxSteps,
       buffered: false,
       live: true,
-      premium: true,
-      trial: false,
-      product: 'alice_companion',
+      premium: !!(companionDemo && isPremium),
+      trial: companionDemo && !isPremium,
+      qaLive: !!qaLive,
+      product: companionDemo ? 'alice_companion' : service,
       sessionsLeft: ipLimit.sessionsLeft,
       whitelisted: !!ipLimit.whitelisted,
       voiceProfile: getDemoVoiceProfileFor(service, sc)
@@ -1321,8 +1337,8 @@ app.post('/demo/stream', async (req, res) => {
       meta.live = false;
       meta.buffered = true;
       res.write(`data: ${JSON.stringify({ meta })}\n\n`);
-      // Send full reply in one token so client TTS speaks the complete line without cuts
-      res.write(`data: ${JSON.stringify({ token: next.reply })}\n\n`);
+      // Send full reply in one chunk (t = demo-stream.js / QA battery; token = legacy alias)
+      res.write(`data: ${JSON.stringify({ t: next.reply, token: next.reply })}\n\n`);
       if (evaluation) res.write(`data: ${JSON.stringify({ evaluation })}\n\n`);
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       return res.end();

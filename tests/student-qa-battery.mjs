@@ -4,6 +4,11 @@
  */
 const BACKEND = process.env.DEMO_BACKEND || 'https://alice-by-infinity.onrender.com';
 const STUDENT = process.env.QA_STUDENT_NAME || 'QA-Estudiante';
+const QA_SECRET = process.env.ANALYZE_SECRET || process.env.QA_SECRET || '';
+
+function qaPayload(obj) {
+  return Object.assign({}, obj, { qaLive: true, secret: QA_SECRET });
+}
 
 const ROTATION_PLAN = [
   { service: 'jill', scenario: 'default', label: 'Jill Foundations' },
@@ -122,9 +127,13 @@ async function parseStream(sessionId, message) {
         if (evt.t) {
           if (firstTokenMs === null) firstTokenMs = Date.now() - t0;
           fullText += evt.t;
+        } else if (evt.token) {
+          if (firstTokenMs === null) firstTokenMs = Date.now() - t0;
+          fullText += evt.token;
         }
         if (evt.meta) meta = evt.meta;
         if (evt.evaluation) evaluation = evt.evaluation;
+        if (evt.done === true) meta = Object.assign({}, meta || {}, { done: true });
         if (evt.error) throw new Error(evt.error);
       } catch (e) {
         if (e.message && e.message !== 'Unexpected end of JSON input') throw e;
@@ -148,12 +157,12 @@ async function runFullDemoSession(plan, roundIdx) {
 
   const start = await api('/demo/start', {
     method: 'POST',
-    body: JSON.stringify({
+    body: JSON.stringify(qaPayload({
       service: plan.service,
       scenario: plan.scenario === 'default' ? undefined : plan.scenario,
       consent: true,
       name: STUDENT + '-' + roundIdx
-    })
+    }))
   });
 
   if (!start.ok) throw new Error('start ' + start.status + ' ' + JSON.stringify(start.data).slice(0, 150));
@@ -314,7 +323,7 @@ async function rotationRound(i, plan) {
     if (plan.label.includes('lab stream')) {
       const start = await api('/demo/start', {
         method: 'POST',
-        body: JSON.stringify({ service: 'nexora', scenario: 'customer_service', consent: true, name: STUDENT + '-lab' })
+        body: JSON.stringify(qaPayload({ service: 'nexora', scenario: 'customer_service', consent: true, name: STUDENT + '-lab' }))
       });
       if (!start.ok) throw new Error('start failed');
       const lab = await testNexoraLabEval(start.data.sessionId);
@@ -343,14 +352,14 @@ async function stressRound(i) {
   try {
     if (i === 0) {
       const parallel = await Promise.all(['jill', 'alice', 'nexora'].map(s =>
-        api('/demo/start', { method: 'POST', body: JSON.stringify({ service: s, consent: true, name: STUDENT + '-p' + s, scenario: s === 'nexora' ? 'star' : undefined }) })
+        api('/demo/start', { method: 'POST', body: JSON.stringify(qaPayload({ service: s, consent: true, name: STUDENT + '-p' + s, scenario: s === 'nexora' ? 'star' : undefined })) })
       ));
       const ok = parallel.every(p => p.ok && p.data.live);
       log('STRESS', name + ' parallel starts', ok, parallel.map(p => p.status).join(','));
       return;
     }
     if (i === 1) {
-      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify({ service: 'alice', consent: true, name: STUDENT + '-rapid' }) });
+      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify(qaPayload({ service: 'alice', consent: true, name: STUDENT + '-rapid' })) });
       const sid = start.data.sessionId;
       const outs = [];
       for (let j = 0; j < 3; j++) {
@@ -361,14 +370,14 @@ async function stressRound(i) {
       return;
     }
     if (i === 2) {
-      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify({ service: 'jill', consent: true, name: STUDENT + '-empty' }) });
+      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify(qaPayload({ service: 'jill', consent: true, name: STUDENT + '-empty' })) });
       const bad = await api('/demo/stream', { method: 'POST', body: JSON.stringify({ sessionId: start.data.sessionId, message: '   ' }) });
       const ok = bad.status === 400 || bad.status === 422;
       log('STRESS', name + ' empty message rejected', ok, 'status=' + bad.status);
       return;
     }
     if (i === 3) {
-      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify({ service: 'alice', consent: true, name: STUDENT + '-long' }) });
+      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify(qaPayload({ service: 'alice', consent: true, name: STUDENT + '-long' })) });
       const longMsg = 'I work in international logistics and yesterday I had to explain a delay to a client however the warehouse team did not update the system on top of that the carrier changed the route even though we had promised delivery by Friday therefore I needed to reset expectations while keeping trust and I used connectors like however on top of that and even though but I still felt my pacing was too slow when the client pushed back.';
       const stream = await parseStream(start.data.sessionId, longMsg);
       const ok = stream.fullText.length > 30 && stream.totalMs < 45000;
@@ -389,7 +398,7 @@ async function stressRound(i) {
       return;
     }
     if (i === 5) {
-      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify({ service: 'nexora', scenario: 'customer_service', consent: true, name: STUDENT + '-nxstress' }) });
+      const start = await api('/demo/start', { method: 'POST', body: JSON.stringify(qaPayload({ service: 'nexora', scenario: 'customer_service', consent: true, name: STUDENT + '-nxstress' })) });
       const turns = [];
       for (let t = 0; t < 4; t++) {
         turns.push(testNexoraLabEval(start.data.sessionId));
@@ -416,6 +425,10 @@ async function stressRound(i) {
 
 async function main() {
   console.log('\n=== STUDENT QA BATTERY — ' + BACKEND + ' ===\n');
+  if (!QA_SECRET) {
+    console.error('FAIL: Set ANALYZE_SECRET or QA_SECRET env var (must match backend Render).');
+    process.exit(1);
+  }
   const health = await api('/health');
   log('PREFLIGHT', 'health', health.ok, JSON.stringify(health.data));
 
