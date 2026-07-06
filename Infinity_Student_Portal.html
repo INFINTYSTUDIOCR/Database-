@@ -393,7 +393,7 @@ async function doLogin(){
 function switchPortalTab(tab){
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
   if(tab === 'alice' && s && !studentAliceTabOn(s)) tab = 'progreso';
-  if(tab === 'jill' && s && !studentJillOn(s)) tab = 'progreso';
+  if(tab === 'jill' && s && !studentJillTabOn(s)) tab = 'progreso';
   if(tab === 'nexora' && s && (!studentAliceOn(s) || !s.nexoraEnabled)) tab = 'progreso';
   var prevTab = window._activePortalTab || 'progreso';
   if(tab !== prevTab && prevTab) window._portalPrevTab = prevTab;
@@ -507,6 +507,7 @@ function buildJillPreviewStudent(){
     status: 'active',
     infinityTermsAccepted: true,
     jillEnabled: true,
+    jillProEnabled: true,
     aliceEnabled: false,
     companionEnabled: false,
     system_mode: 'jill',
@@ -978,6 +979,13 @@ function studentJillOn(s){
   if(typeof s.jillEnabled === 'boolean') return s.jillEnabled;
   return (s.system_mode || 'jill') !== 'alice';
 }
+function studentJillProOn(s){
+  if(!s) return false;
+  return s.jillProEnabled === true;
+}
+function studentJillTabOn(s){
+  return studentJillOn(s) || studentJillProOn(s);
+}
 function studentCompanionOn(s){
   return !!(s && s.companionEnabled === true);
 }
@@ -995,6 +1003,16 @@ function syncAliceNavLabel(s){
   } else {
     nav.innerHTML = '<i class="ti ti-robot"></i>Alice';
   }
+}
+
+function syncJillNavLabel(s){
+  var nav = document.getElementById('nav-jill');
+  if(!nav) return;
+  var jill = studentJillOn(s);
+  var pro = studentJillProOn(s);
+  if(pro && !jill) nav.innerHTML = '<i class="ti ti-skull"></i>Jill Pro';
+  else if(jill && pro) nav.innerHTML = '<i class="ti ti-message-circle"></i>Jill + Pro';
+  else nav.innerHTML = '<i class="ti ti-message-circle"></i>Jill';
 }
 
 async function checkNexoraAccess(s){
@@ -3603,15 +3621,16 @@ function applySystemMode(s){
   var navJill   = document.getElementById('nav-jill');
   var navAlice  = document.getElementById('nav-alice');
 
-  if(navJill)  navJill.style.display  = studentJillOn(s)  ? 'flex' : 'none';
+  if(navJill)  navJill.style.display  = studentJillTabOn(s)  ? 'flex' : 'none';
   if(navAlice) navAlice.style.display = studentAliceTabOn(s) ? 'flex' : 'none';
   syncAliceNavLabel(s);
+  syncJillNavLabel(s);
 
   checkNexoraAccess(s);
 
   var active = window._activePortalTab;
   if(active === 'alice' && !studentAliceTabOn(s)) switchPortalTab('progreso');
-  else if(active === 'jill' && !studentJillOn(s)) switchPortalTab('progreso');
+  else if(active === 'jill' && !studentJillTabOn(s)) switchPortalTab('progreso');
   else if(active === 'nexora' && (!studentAliceOn(s) || !(s && s.nexoraEnabled))) switchPortalTab('progreso');
 }
 
@@ -3994,12 +4013,18 @@ function renderJillBundleStrip(){
 }
 
 function renderJillChips(){
+  var s = CURRENT_STUDENT;
+  var jillOn = studentJillOn(s);
+  var proChip = studentJillProOn(s)
+    ? '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">💀 Jill Pro · Nemesis</button>'
+    : '';
+  if(!jillOn) return proChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+proChip+'</div>' : '';
   return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
-    +'<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">💀 Jill Pro · Nemesis</button>'
+    + proChip
     +'</div>';
 }
 
@@ -4011,6 +4036,11 @@ function jillSendChip(text){
 }
 
 function jillOpenKahootQuiz(){
+  var s = CURRENT_STUDENT;
+  if(!studentJillProOn(s)){
+    showToast('Jill Pro no está activo — pedí a tu trainer.','err');
+    return;
+  }
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
   _jillState.quizActive = true;
   jillStopAll();
@@ -4031,7 +4061,16 @@ function jillCloseKahootQuiz(refresh){
 function renderJill(){
   var root = document.getElementById('jill-root');
   if(!root) return;
+  var s = CURRENT_STUDENT;
   root.setAttribute('data-jill-ui', 'v6');
+  if(_jillState.sessionActive && s && !studentJillOn(s)){
+    _jillState.sessionActive = false;
+    _jillState.history = [];
+    _jillState.evaluation = null;
+  }
+  if(_jillState.quizActive && s && !studentJillProOn(s)){
+    _jillState.quizActive = false;
+  }
   if(_jillState.quizActive){
     root.setAttribute('data-jill-pro', '1');
     var nemesisPreview = (typeof JillQuiz !== 'undefined' && CURRENT_STUDENT) ? JillQuiz.renderNemesisTopics(CURRENT_STUDENT) : '';
@@ -4054,15 +4093,25 @@ function renderJill(){
     return;
   }
   root.removeAttribute('data-jill-pro');
+  var proOnly = studentJillProOn(s) && !studentJillOn(s);
+  var shell = proOnly
+    ? 'background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border:1px solid rgba(167,139,250,0.35);box-shadow:0 8px 32px rgba(91,33,182,0.4);'
+    : 'background:linear-gradient(160deg,#064e3b,#0a5c3c,#0e7a50);border:1px solid rgba(61,220,151,0.25);box-shadow:0 8px 32px rgba(10,92,60,0.35);';
+  var header = proOnly
+    ? '<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
+      +'<div style="font-size:28px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PRO</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Nemesis Quest · Rachas · Premios</div>'
+    : '<div style="font-size:10px;letter-spacing:0.25em;color:#bbf7d0;font-weight:700;">STUDIO INFINITY CR</div>'
+      +'<div style="font-size:28px;font-weight:900;color:#86EFAC;letter-spacing:0.05em;text-shadow:0 0 24px rgba(61,220,151,0.35);">JILL</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Tutora Jill · Rachas · Premios · Método Nexus</div>';
+  var headerIcon = proOnly
+    ? '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💀</div>'
+    : '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>';
   root.innerHTML =
-    '<div style="background:linear-gradient(160deg,#064e3b,#0a5c3c,#0e7a50);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(10,92,60,0.35);border:1px solid rgba(61,220,151,0.25);">'
+    '<div style="'+shell+'border-radius:20px;padding:1.5rem;color:white;">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
-    +'<div>'
-    +'<div style="font-size:10px;letter-spacing:0.25em;color:#bbf7d0;font-weight:700;">STUDIO INFINITY CR</div>'
-    +'<div style="font-size:28px;font-weight:900;color:#86EFAC;letter-spacing:0.05em;text-shadow:0 0 24px rgba(61,220,151,0.35);">JILL</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Tutora Jill · Rachas · Premios · Método Nexus</div>'
-    +'</div>'
-    +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>'
+    +'<div>'+header+'</div>'
+    + headerIcon
     +'</div>'
     +(!_jillState.sessionActive ? renderJillStart() : renderJillSession())
     +'</div>';
@@ -4082,11 +4131,31 @@ function renderJill(){
 
 function renderJillStart(){
   var s = CURRENT_STUDENT;
+  var jillOn = studentJillOn(s);
+  var proOn = studentJillProOn(s);
   var growth = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderHabitStrip(s) : '';
   var badges = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderBadgesRow(s) : '';
   var motiv = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderMotivation(s) : '';
-  var bundle = (typeof JillFoundations !== 'undefined' && s) ? JillFoundations.renderBundleBar(s, jillActiveBundle()) : '';
-  var nemesisHint = (typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+  var bundle = (jillOn && typeof JillFoundations !== 'undefined' && s) ? JillFoundations.renderBundleBar(s, jillActiveBundle()) : '';
+  var nemesisHint = (proOn && typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+  var proBtn = proOn
+    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:14px;padding:12px 24px;border-radius:14px;cursor:pointer;width:100%;justify-content:center;" onclick="jillOpenKahootQuiz()"><i class="ti ti-skull"></i> Jill Pro · Nemesis Quest</button>'
+    : '';
+  var jillBlock = jillOn
+    ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
+      +'<strong>Jill</strong> te enseña inglés con el <strong>Método Nexus</strong> — simple, sin presión. '
+      +'Explicación en español, práctica con chunks. Mantené presionado el <strong>micrófono</strong> o escribí.'
+      +'</div>'
+      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick()"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
+    : '';
+  var proIntro = (!jillOn && proOn)
+    ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.35);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.75;">'
+      +'<strong>Jill Pro</strong> — Nemesis Quest Kahoot contra los temas que más te cuestan. Sin chat de tutora; solo práctica interactiva.'
+      +'</div>'
+    : '';
+  if(!jillOn && !proOn){
+    return '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.6);padding:1rem;">Jill y Jill Pro no están activos — pedí a tu trainer.</div>';
+  }
   return '<div>'
     + growth
     + badges
@@ -4094,12 +4163,9 @@ function renderJillStart(){
     + bundle
     + nemesisHint
     +'<div style="text-align:center;">'
-    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
-    +'<strong>Jill</strong> te enseña inglés con el <strong>Método Nexus</strong> — simple, sin presión. '
-    +'Explicación en español, práctica con chunks. Mantené presionado el <strong>micrófono</strong> o escribí.'
-    +'</div>'
-    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick()"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
-    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:14px;padding:12px 24px;border-radius:14px;cursor:pointer;width:100%;justify-content:center;" onclick="jillOpenKahootQuiz()"><i class="ti ti-skull"></i> Jill Pro · Nemesis Quest</button>'
+    + proIntro
+    + jillBlock
+    + proBtn
     +'</div></div>';
 }
 
@@ -4159,8 +4225,12 @@ function jillRenderHistoryMessages(){
 }
 
 function startJillSessionClick(){
-  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  if(!studentJillOn(s)){
+    showToast('Jill tutora no está activa — pedí a tu trainer.','err');
+    return;
+  }
+  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var boot = (typeof JillFoundations !== 'undefined') ? JillFoundations.loadBundles() : Promise.resolve();
   boot.then(function(){
     if(s && typeof JillFoundations !== 'undefined'){
