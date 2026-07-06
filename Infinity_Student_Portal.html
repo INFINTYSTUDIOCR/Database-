@@ -31,7 +31,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/tts-chunks.js?v=20260703c"></script>
+<script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -2208,6 +2208,13 @@ function aliceTtsRequestBody(text){
   });
 }
 
+function aliceClearTtsStatus(){
+  var st = document.getElementById('alice-status');
+  if(!st) return;
+  var t = st.textContent || '';
+  if(t.indexOf('ElevenLabs') >= 0 || t.indexOf('Voz no disponible') >= 0 || t.indexOf('navegador') >= 0) st.textContent = '';
+}
+
 function aliceShowTtsError(status){
   var st = document.getElementById('alice-status');
   if(!st) return;
@@ -2245,6 +2252,7 @@ function aliceFetchTtsBlob(clean){
     if(!r.ok){ aliceShowTtsError(r.status); return null; }
     var ct = (r.headers.get('content-type') || '').toLowerCase();
     if(ct.indexOf('audio') === -1) return null;
+    aliceClearTtsStatus();
     return r.blob();
   });
 }
