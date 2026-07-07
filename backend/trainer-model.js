@@ -1,5 +1,5 @@
 /**
- * Modelo de enseùanza Johnny / Infinity ù reglas duras para Jill y Alice.
+ * Modelo de enseÔøΩanza Johnny / Infinity ÔøΩ reglas duras para Jill y Alice.
  */
 const fs = require('fs');
 const path = require('path');
@@ -85,7 +85,7 @@ function validateMatrixSentence(text, matrixContext) {
 
   const pronoun = detectPronoun(lower);
   if (!pronoun) issues.push('Falta pronombre (P).');
-  else if (expectedP && pronoun !== expectedP) issues.push(`Usù el pronombre del drill: ${expectedP}.`);
+  else if (expectedP && pronoun !== expectedP) issues.push(`UsÔøΩ el pronombre del drill: ${expectedP}.`);
 
   if (sigla === 'PR' || col === 'present') {
     if (forms && pronoun) {
@@ -93,7 +93,7 @@ function validateMatrixSentence(text, matrixContext) {
       const hasForm = lower.includes(forms.base) || lower.includes(forms.pr3) || lower.includes(forms.pr3.replace('ies', 'y'));
       if (!hasForm) issues.push(`Falta verbo (V): ${verb}.`);
       if (need3s && forms.pr3 && !new RegExp(`\\b${forms.pr3}\\b`).test(lower) && !new RegExp(`\\b${forms.base}s\\b`).test(lower)) {
-        issues.push(`3ù persona: ${pronoun} + ${forms.pr3} (+s).`);
+        issues.push(`3ÔøΩ persona: ${pronoun} + ${forms.pr3} (+s).`);
       }
     }
   } else if (sigla === 'PS' || col === 'past') {
@@ -112,12 +112,12 @@ function validateMatrixSentence(text, matrixContext) {
     const modalWord = modal && (modal[1] || modal[0] || modal);
     if (!/\b(will|would|can|could|should|must|may|might)\b/.test(lower)) issues.push('Falta modal (M): will/would/can/could/should.');
     if (modalWord && !new RegExp(`\\b${String(modalWord).toLowerCase()}\\b`).test(lower)) {
-      issues.push(`Usù el modal del drill: ${modalWord}.`);
+      issues.push(`UsÔøΩ el modal del drill: ${modalWord}.`);
     }
-    if (forms && !new RegExp(`\\b${forms.base}\\b`).test(lower)) issues.push(`Verbo base despuùs del modal: ${verb || forms.base}.`);
+    if (forms && !new RegExp(`\\b${forms.base}\\b`).test(lower)) issues.push(`Verbo base despuÔøΩs del modal: ${verb || forms.base}.`);
   }
 
-  if (raw.split(/\s+/).length < 3) issues.push('Complemento (C) muy corto ù una idea concreta.');
+  if (raw.split(/\s+/).length < 3) issues.push('Complemento (C) muy corto ÔøΩ una idea concreta.');
   return { ok: issues.length === 0, issues, slot: 'P|M|V|C' };
 }
 
@@ -135,7 +135,7 @@ function pickActiveDrill(student, tutor, bundle, matrixContext) {
 
   if (bundle?.id === 'F0-matrix' || bundle?.gateMode === 'matrix-only') {
     if (matrixContext?.conversationPhase) {
-      return { id: 'CONV_polish', title: 'Conversaciùn Foundations', script: 'Jill escucha; estudiante habla.' };
+      return { id: 'CONV_polish', title: 'ConversaciÔøΩn Foundations', script: 'Jill escucha; estudiante habla.' };
     }
     return { id: 'MSI_matrix', ...drills.MSI_matrix };
   }
@@ -168,10 +168,10 @@ function evaluateStudentTurn(text, opts = {}) {
     const sentences = countEnglishSentences(text);
     const words = englishWordCount(text);
     if (words < 2) {
-      result.forcedReply = 'Keep going ù say more in English.';
+      result.forcedReply = 'Keep going ÔøΩ say more in English.';
       return result;
     }
-    result.coachNote = 'Fase conversaciùn ù Jill evalùa tiempo verbal, coordinaciùn, lùgica y fluidez en diùlogo.';
+    result.coachNote = 'Fase conversaciÔøΩn ÔøΩ Jill evalÔøΩa tiempo verbal, coordinaciÔøΩn, lÔøΩgica y fluidez en diÔøΩlogo.';
     result.structureOk = null;
     return result;
   }
@@ -184,7 +184,7 @@ function evaluateStudentTurn(text, opts = {}) {
       result.coachNote = `Ranuras: ${v.issues.join(' ')}`;
       result.forcedReply = null;
     } else if (v.ok === true) {
-      result.coachNote = 'Estructura MSIù vùlida ù reforzù pronunciaciùn si hace falta.';
+      result.coachNote = 'Estructura MSIÔøΩ vÔøΩlida ÔøΩ reforzÔøΩ pronunciaciÔøΩn si hace falta.';
     }
     return result;
   }
@@ -194,7 +194,7 @@ function evaluateStudentTurn(text, opts = {}) {
 
   if (drill?.id === 'IG_critical' && sentences < (drill.minSentences || 3)) {
     result.forcedReply = drill.forcedReply;
-    result.issues.push(`Solo ${sentences} oraciùn(es) ù mùnimo ${drill.minSentences}.`);
+    result.issues.push(`Solo ${sentences} oraciÔøΩn(es) ÔøΩ mÔøΩnimo ${drill.minSentences}.`);
     return result;
   }
 
@@ -206,7 +206,7 @@ function evaluateStudentTurn(text, opts = {}) {
 
   if (drill?.id === 'R_critical' && responseMs && responseMs > (drill.maxResponseMs || 12000)) {
     result.issues.push('Tiempo de respuesta alto.');
-    result.coachNote = 'Meta <12s con oraciùn estructurada.';
+    result.coachNote = 'Meta <12s con oraciÔøΩn estructurada.';
   }
 
   if (drill?.id === 'RA_critical' && words < (drill.minWords || 1)) {
@@ -218,24 +218,24 @@ function evaluateStudentTurn(text, opts = {}) {
   return result;
 }
 
-const JOHNNY_TRAINER_RULE = `MODELO TRAINER INFINITY (Johnny Ramirez ù OBLIGATORIO):
-- Enseùùs como en sala: regla corta ? ejemplo en pizarra (ranuras P|M|V|C) ? UNA prùctica.
-- NUNCA traducciùn palabra por palabra. Estructurar, no memorizar oraciones ajenas.
-- Si el sistema marca forcedReply del drill: decù EXACTAMENTE esa frase y nada mùs (ej. "Keep going.").
-- Si hay issues de ranura: nombrù la ranura (P, M, V, C), mostrù la fùrmula MSIù, pedù UNA oraciùn nueva.
-- Jill (Foundations): solo MSI ranuras P|M|V|C ó sin curriculum Idea+Linker+Idea (eso es Alice).ùn suelta sin conector = pedir linker y continuar.
-- Correcciùn con afecto firme ù como trainer, no como chatbot motivacional.
-- Foundations = Jill (MSIù, matriz, moneda). Intermediate+ = Alice (linkers, expansiùn, STAR cuando aplica).
-- FASE CONVERSACIùN (estructura dominada): Jill fuerza diùlogo sostenido, escucha, compara contra canon y corrige. NO graduar automùticamente ù solo solicitar graduaciùn cuando KPIs conversacionales Johnny estùn satisfechos en sesiùn evaluate.`;
+const JOHNNY_TRAINER_RULE = `MODELO TRAINER INFINITY (Johnny Ramirez ÔøΩ OBLIGATORIO):
+- EnseÔøΩÔøΩs como en sala: regla corta ? ejemplo en pizarra (ranuras P|M|V|C) ? UNA prÔøΩctica.
+- NUNCA traducciÔøΩn palabra por palabra. Estructurar, no memorizar oraciones ajenas.
+- Si el sistema marca forcedReply del drill: decÔøΩ EXACTAMENTE esa frase y nada mÔøΩs (ej. "Keep going.").
+- Si hay issues de ranura: nombrÔøΩ la ranura (P, M, V, C), mostrÔøΩ la fÔøΩrmula MSIÔøΩ, pedÔøΩ UNA oraciÔøΩn nueva.
+- Jill (Foundations): solo MSI ranuras P|M|V|C ‚Äî sin curriculum Idea+Linker+Idea (eso es Alice).
+- CorrecciÔøΩn con afecto firme ÔøΩ como trainer, no como chatbot motivacional.
+- Foundations = Jill (MSIÔøΩ, matriz, moneda). Intermediate+ = Alice (linkers, expansiÔøΩn, STAR cuando aplica).
+- FASE CONVERSACIÔøΩN (estructura dominada): Jill fuerza diÔøΩlogo sostenido, escucha, compara contra canon y corrige. NO graduar automÔøΩticamente ÔøΩ solo solicitar graduaciÔøΩn cuando KPIs conversacionales Johnny estÔøΩn satisfechos en sesiÔøΩn evaluate.`;
 
 function formatTrainerEvalNote(evalResult) {
   if (!evalResult) return '';
   const parts = [];
   if (evalResult.drillTitle) parts.push(`DRILL ACTIVO: ${evalResult.drillTitle} (${evalResult.drillId || ''})`);
-  if (evalResult.forcedReply) parts.push(`FORCED REPLY (decù solo esto): "${evalResult.forcedReply}"`);
+  if (evalResult.forcedReply) parts.push(`FORCED REPLY (decÔøΩ solo esto): "${evalResult.forcedReply}"`);
   if (evalResult.issues?.length) parts.push(`ISSUES: ${evalResult.issues.join('; ')}`);
   if (evalResult.coachNote) parts.push(`COACH: ${evalResult.coachNote}`);
-  if (evalResult.structureOk === true) parts.push('STRUCTURE OK: validù brevemente y siguiente drill.');
+  if (evalResult.structureOk === true) parts.push('STRUCTURE OK: validÔøΩ brevemente y siguiente drill.');
   if (evalResult.structureOk === false) parts.push('STRUCTURE FAIL: corregir ranuras antes de avanzar.');
   return parts.length ? `\n${parts.join('\n')}` : '';
 }
