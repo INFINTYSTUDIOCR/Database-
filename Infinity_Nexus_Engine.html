@@ -5512,11 +5512,15 @@ function renderSuperBrain(m){
     +'<button class="btn btn-navy btn-sm" onclick="superBrainIngest(true)"><i class="ti ti-broadcast"></i>Publicar ya</button>'
     +'</div></div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-files"></i>Archivos en bulk</div>'
-    +'<div class="ib ib-amber" style="margin-bottom:8px;font-size:11px;">PDF, TXT, PNG/JPG · máx 2 MB c/u · varios a la vez. Van a <strong>Pendiente</strong> o directo a tutores.</div>'
+    +'<div class="ib ib-amber" style="margin-bottom:8px;font-size:11px;">PDF, TXT, PNG/JPG · máx 2 MB c/u · archivos sueltos o <strong>carpeta completa</strong> (subcarpetas incluidas en Chrome/Edge).</div>'
     +'<input class="inp" id="kbu-title-prefix" placeholder="Prefijo de título (opcional, ej: Foundations S3)">'
     +'<select class="inp" id="kbu-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="jill-foundations">Jill Foundations</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option><option value="otro">Otro</option></select>'
     +'<textarea class="inp" id="kbu-note" placeholder="Nota común para todos los archivos (opcional)" style="min-height:48px;margin-top:8px;font-size:12px;"></textarea>'
-    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-upload"></i>Elegir archivos<input type="file" id="kbu-files" accept=".pdf,.png,.jpg,.jpeg,.txt" multiple style="display:none" onchange="kbuFilesSelected(this)"></label>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-upload"></i>Archivos<input type="file" id="kbu-files" accept=".pdf,.png,.jpg,.jpeg,.txt" multiple style="display:none" onchange="kbuFilesSelected(this)"></label>'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-folder"></i>Carpeta<input type="file" id="kbu-folder" accept=".pdf,.png,.jpg,.jpeg,.txt" webkitdirectory directory multiple style="display:none" onchange="kbuFolderSelected(this)"></label>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="kbuPickFolderModern()"><i class="ti ti-folders"></i>Carpeta (recursiva)</button>'
+    +'</div>'
     +'<div id="kbu-file-list" style="font-size:11px;color:var(--t2);margin-top:6px;"></div>'
     +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="kbu-publish-now" style="accent-color:var(--purple);"> Publicar directo a Jill/Alice (sin pendiente)</label>'
     +'<button class="btn btn-navy btn-sm" id="kbu-upload-btn" style="margin-top:8px;" onclick="kbuBulkUpload()"><i class="ti ti-cloud-upload"></i>Procesar archivos</button>'
@@ -6989,6 +6993,8 @@ function previewNexora(s){
 
 // ── FEATURE 1: KB UPLOAD — Archivos e imágenes ────────────
 var KB_UPLOADS = [];
+var KBU_STAGED = [];
+var KBU_ALLOWED_EXT = /\.(pdf|png|jpe?g|txt)$/i;
 
 async function loadKBUploads(){
   try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ KB_UPLOADS=[]; }
@@ -6996,19 +7002,79 @@ async function loadKBUploads(){
 
 function renderKBUpload(m){ renderSuperBrain(m); }
 
-function kbuFilesSelected(input){
+function kbuIsSupportedFile(file){
+  var name = String(file && file.name || '');
+  if(!name || name.charAt(0) === '.' || name === 'Thumbs.db' || name === 'desktop.ini') return false;
+  if(KBU_ALLOWED_EXT.test(name)) return true;
+  var type = String(file.type || '');
+  return /^(text\/plain|image\/(png|jpeg)|application\/pdf)$/i.test(type);
+}
+
+function kbuStageFiles(fileList, sourceLabel){
+  var files = Array.from(fileList || []);
+  var supported = files.filter(kbuIsSupportedFile);
+  var skipped = files.length - supported.length;
+  KBU_STAGED = supported;
+  kbuRenderStagedList(skipped, sourceLabel);
+}
+
+function kbuRenderStagedList(skippedCount, sourceLabel){
   var list = document.getElementById('kbu-file-list');
   if(!list) return;
-  var files = input.files ? Array.from(input.files) : [];
-  if(!files.length){ list.textContent = ''; return; }
-  list.innerHTML = files.map(function(f, i){
+  if(!KBU_STAGED.length){ list.textContent = ''; return; }
+  var header = '<div style="font-weight:700;margin-bottom:4px;">'+KBU_STAGED.length+' archivo(s)'
+    +(sourceLabel ? ' · '+sourceLabel : '')
+    +(skippedCount ? ' · '+skippedCount+' omitido(s) (tipo no soportado)' : '')
+    +'</div>';
+  list.innerHTML = header + KBU_STAGED.slice(0, 100).map(function(f, i){
     var ok = f.size <= 2*1024*1024;
-    return '<div style="margin:2px 0;color:'+(ok?'var(--t2)':'var(--rm)')+';">'+(i+1)+'. '+f.name+' ('+(f.size/1024).toFixed(1)+' KB)'+(ok?'':' — muy grande')+'</div>';
-  }).join('');
+    var path = f.webkitRelativePath || f.name;
+    return '<div style="margin:2px 0;color:'+(ok?'var(--t2)':'var(--rm)')+';">'+(i+1)+'. '+path+' ('+(f.size/1024).toFixed(1)+' KB)'+(ok?'':' — muy grande')+'</div>';
+  }).join('') + (KBU_STAGED.length > 100 ? '<div style="margin-top:4px;color:var(--t3);">…y '+(KBU_STAGED.length-100)+' más.</div>' : '');
+}
+
+function kbuFilesSelected(input){
+  kbuStageFiles(input.files || [], 'archivos sueltos');
+}
+
+function kbuFolderSelected(input){
+  kbuStageFiles(input.files || [], 'carpeta');
+}
+
+async function kbuWalkDir(handle, prefix, out){
+  for await (var entry of handle.values()){
+    var rel = prefix ? prefix+'/'+entry.name : entry.name;
+    if(entry.kind === 'file'){
+      var file = await entry.getFile();
+      try{ Object.defineProperty(file, 'webkitRelativePath', { value: rel, configurable: true }); }catch(e){}
+      out.push(file);
+    } else if(entry.kind === 'directory'){
+      await kbuWalkDir(entry, rel, out);
+    }
+  }
+}
+
+async function kbuPickFolderModern(){
+  if(!window.showDirectoryPicker){
+    var inp = document.getElementById('kbu-folder');
+    if(inp) inp.click();
+    else showToast('Usá Chrome o Edge para elegir carpeta','err');
+    return;
+  }
+  try{
+    var dir = await window.showDirectoryPicker();
+    var files = [];
+    await kbuWalkDir(dir, '', files);
+    kbuStageFiles(files, dir.name || 'carpeta');
+    showToast(files.length+' archivo(s) en carpeta');
+  }catch(e){
+    if(e && e.name !== 'AbortError') showToast(e.message || 'No se pudo abrir la carpeta','err');
+  }
 }
 
 function kbuBaseName(file){
-  return String(file.name||'archivo').replace(/\.[^.]+$/, '');
+  var path = String((file && file.webkitRelativePath) || file.name || 'archivo');
+  return path.replace(/\.[^.]+$/, '').replace(/[\\/]/g, ' · ');
 }
 
 async function kbuExtractFileText(file, statusEl){
@@ -7067,7 +7133,7 @@ async function kbuProcessOneFile(file, opts){
   var publishNow = !!opts.publishNow;
   var title = (prefix ? prefix+' · ' : '') + kbuBaseName(file);
   var statusEl = opts.statusEl;
-  if(statusEl) statusEl.textContent = 'Procesando: '+file.name+'…';
+  if(statusEl) statusEl.textContent = 'Procesando: '+(file.webkitRelativePath || file.name)+'…';
   var extracted = await kbuExtractFileText(file, statusEl);
   var content = extracted.extractedText + (note ? '\n\nNota: '+note : '');
   var id = 'KBFILE-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
@@ -7096,12 +7162,15 @@ async function kbuProcessOneFile(file, opts){
 
 async function kbuBulkUpload(){
   var fileEl = document.getElementById('kbu-files');
+  var folderEl = document.getElementById('kbu-folder');
   var status = document.getElementById('kbu-status');
   var btn = document.getElementById('kbu-upload-btn');
-  var files = fileEl && fileEl.files ? Array.from(fileEl.files) : [];
-  if(!files.length){ showToast('Elegí al menos un archivo','err'); return; }
+  var files = KBU_STAGED.slice();
+  if(!files.length){ showToast('Elegí archivos o una carpeta','err'); return; }
   var tooBig = files.filter(function(f){ return f.size > 2*1024*1024; });
-  if(tooBig.length){ showToast(tooBig.length+' archivo(s) superan 2 MB','err'); return; }
+  var ready = files.filter(function(f){ return f.size <= 2*1024*1024; });
+  if(!ready.length){ showToast(tooBig.length+' archivo(s) superan 2 MB','err'); return; }
+  if(tooBig.length) showToast(tooBig.length+' archivo(s) >2 MB se omitirán','err');
   var opts = {
     titlePrefix: (document.getElementById('kbu-title-prefix')||{}).value || '',
     category: (document.getElementById('kbu-cat')||{}).value || 'metodologia',
@@ -7111,20 +7180,23 @@ async function kbuBulkUpload(){
   };
   btn.disabled = true;
   var ok = 0, fail = 0;
-  for(var i=0;i<files.length;i++){
+  for(var i=0;i<ready.length;i++){
     try{
-      await kbuProcessOneFile(files[i], opts);
+      await kbuProcessOneFile(ready[i], opts);
       ok++;
-      if(status) status.textContent = '✓ '+ok+'/'+files.length+' listo…';
+      if(status) status.textContent = '✓ '+ok+'/'+ready.length+' listo…';
     }catch(e){
       fail++;
-      if(status) status.textContent = '⚠ Error en '+files[i].name+': '+e.message;
+      var label = ready[i].webkitRelativePath || ready[i].name;
+      if(status) status.textContent = '⚠ Error en '+label+': '+e.message;
     }
   }
   await logAction('Bulk KB upload', ok+' archivo(s), '+fail+' error(es)');
   showToast(ok+' archivo(s) procesado(s)'+(fail?(' · '+fail+' error(es)'):''));
   if(status) status.textContent = '✅ '+ok+' importado(s)'+(fail?(', '+fail+' fallaron'):'')+'. '+(opts.publishNow?'Publicado a tutores.':'Revisá Pendiente arriba.');
   if(fileEl) fileEl.value = '';
+  if(folderEl) folderEl.value = '';
+  KBU_STAGED = [];
   var list = document.getElementById('kbu-file-list');
   if(list) list.innerHTML = '';
   btn.disabled = false;
