@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "images": [
+    {
+      "id": "moneda",
+      "title": "Método de la Moneda",
+      "path": "assets/canon/moneda.svg",
+      "topics": ["questions", "coin", "inversion"],
+      "bundles": ["F0-matrix", "B3-tenses", "F3-modals"]
+    },
+    {
+      "id": "preposiciones",
+      "title": "Preposiciones (in · on · at · by)",
+      "path": "assets/canon/preposiciones.svg",
+      "topics": ["prepositions", "in", "on", "at", "by"],
+      "bundles": ["F0-matrix", "F4-components"]
+    },
+    {
+      "id": "articulos",
+      "title": "Artículos (a · an · the)",
+      "path": "assets/canon/articulos.svg",
+      "topics": ["articles", "a", "an", "the"],
+      "bundles": ["F0-matrix", "F4-components"]
+    },
+    {
+      "id": "tiempos",
+      "title": "Tiempos verbales — PR · PS · PC · PRP",
+      "path": "assets/canon/tiempos.svg",
+      "topics": ["tenses", "PR", "PS", "PC", "PRP"],
+      "bundles": ["F0-matrix", "B3-tenses"]
+    }
+  ]
+}

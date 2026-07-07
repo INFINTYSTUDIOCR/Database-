@@ -210,6 +210,29 @@ for (const f of ['js/ptt-mic.js', 'js/tts-chunks.js', 'js/nexora-industry-map.js
   }
 }
 
+// ── 7.10 Jill structure canon + matrix + vocab ─────────────────
+const matrixJs = read('js/jill-matrix.js');
+const vocabJs = read('js/jill-vocab.js');
+const canonJson = read('config/jill-structure-canon.json');
+if (canonJson.includes('"PR"') && canonJson.includes('coinMethod')) pass('jill-structure-canon.json', 'notation + moneda');
+else fail('jill-structure-canon.json', 'incomplete');
+if (portalHtml.includes('jill-vocab.js') && portalHtml.includes('jillOpenCoinQuiz')) pass('portal jill structure wiring', 'vocab + coin quiz');
+else fail('portal jill structure wiring', 'MISSING');
+if (matrixJs.includes('MASTERY_RATIO = 1') && matrixJs.includes('TARGET_RESPONSE_MS')) pass('jill-matrix strict gate', '100% + response KPI');
+else fail('jill-matrix strict gate', 'MISSING');
+if (serverJs.includes('buildJillStructureNotationBlock') && serverJs.includes('JILL_COIN_METHOD_RULE')) pass('server structure notation', 'defined');
+else fail('server structure notation', 'MISSING');
+if (existsSync(path.join(root, 'assets/canon/moneda.svg'))) pass('canon moneda.svg', 'present');
+else fail('canon moneda.svg', 'MISSING');
+for (const f of ['js/jill-matrix.js', 'js/jill-vocab.js', 'js/jill-quiz.js']) {
+  try {
+    execSync('node --check "' + path.join(root, f) + '"', { stdio: 'pipe' });
+    pass('syntax ' + f, 'OK');
+  } catch (e) {
+    fail('syntax ' + f, String(e.stderr || e.message).slice(0, 80));
+  }
+}
+
 const failed = results.filter(r => !r.ok);
 console.log('\n=== Q&A 7 — Full bug sweep ===\n');
 for (const r of results) {

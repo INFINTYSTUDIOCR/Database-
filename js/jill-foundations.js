@@ -25,7 +25,7 @@
 
   function loadBundles() {
     if (_loaded) return _loaded;
-    _loaded = fetch('config/jill-bundles.json?v=20260707a')
+    _loaded = fetch('config/jill-bundles.json?v=20260707b')
       .then(function (r) { return r.ok ? r.json() : { bundles: [], sequence: [] }; })
       .then(function (data) {
         _bundles = data.bundles || [];
@@ -91,6 +91,9 @@
     if (typeof JillMatrix !== 'undefined' && bundle) {
       var mc = JillMatrix.getApiContext(s, bundle);
       if (mc) ctx.matrixContext = mc;
+    }
+    if (typeof JillVocab !== 'undefined') {
+      ctx.vocabContext = JillVocab.getApiContext(s);
     }
     return ctx;
   }

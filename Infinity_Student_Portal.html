@@ -31,10 +31,11 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-foundations.js?v=20260707a"></script>
-<script src="js/jill-matrix.js?v=20260707a"></script>
+<script src="js/jill-foundations.js?v=20260707b"></script>
+<script src="js/jill-matrix.js?v=20260707b"></script>
+<script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260706"></script>
-<script src="js/jill-quiz.js?v=20260706b"></script>
+<script src="js/jill-quiz.js?v=20260707b"></script>
 <script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -691,7 +692,17 @@ function showPortal(s){
 
   // ── RECURSOS ──────────────────────────────────────────
   var lastTt = (s.typingTests&&s.typingTests.length)?s.typingTests[s.typingTests.length-1]:null;
-  var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
+  var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
+  var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
+    +'<div style="font-size:12px;color:var(--t2);line-height:1.65;margin-bottom:10px;">Después de practicar con Jill, leé <strong>5–10 min</strong> en voz baja o alta. Anotá palabras nuevas en tu cuaderno — entran a tu vocab activo.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">'
+    +'<a href="https://www.bbc.co.uk/learningenglish/english/features/news-review" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">BBC Learning English — News Review</a>'
+    +'<a href="https://learningenglish.voanews.com/" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">VOA Learning English</a>'
+    +'<a href="https://www.newsinlevels.com/" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">News in Levels</a>'
+    +'<a href="https://learnenglish.britishcouncil.org/skills/reading" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">British Council — Reading</a>'
+    +'<a href="https://www.nacion.com/el-mundo/" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">La Nación — resumí titular en inglés (PR/PC)</a>'
+    +'</div>'+vocabCard+'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
     +'<div id="portal-typing-container" style="max-width:100%;overflow:hidden;">'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px;">'
     +'<button class="btn btn-navy" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)"><i class="ti ti-keyboard"></i>Iniciar Typing Test (60s)</button>'
@@ -3897,8 +3908,12 @@ var _jillState = {
   speaking: false,
   activeBundle: null,
   evaluation: null,
-  quizActive: false
+  quizActive: false,
+  quizMode: 'nemesis',
+  lastStructureOk: false,
+  drillTurnStartedAt: null
 };
+if(typeof window !== 'undefined') window._jillState = _jillState;
 
 function jillStopAudio(){
   if(_jillState.audio){ _jillState.audio.pause(); _jillState.audio = null; }
@@ -4030,6 +4045,23 @@ function renderJillChips(){
     +'</div>';
 }
 
+function jillDetectStructureOk(reply, contentType){
+  var t = String(reply || '').toLowerCase();
+  if (/\b(incorrect|wrong|no es|falta|error|ranura equivocada|try again|intentá de nuevo)\b/.test(t)) return false;
+  if (contentType === 'exercise' || contentType === 'whiteboard') return true;
+  if (/\b(bien|correct|exacto|perfect|dominaste|validado|good|ranura|slot|✓)\b/.test(t)) return true;
+  return false;
+}
+
+function jillOpenCoinQuiz(){
+  var s = CURRENT_STUDENT;
+  if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
+  _jillState.quizActive = true;
+  _jillState.quizMode = 'coin';
+  jillStopAll();
+  renderJill();
+}
+
 function jillSendChip(text){
   if(!_jillState.sessionActive || _jillSending) return;
   var inp = document.getElementById('jill-input');
@@ -4041,12 +4073,17 @@ function jillMatrixMark(ok){
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   var bundle = jillActiveBundle();
   if(!s || typeof JillMatrix === 'undefined' || !JillMatrix.isMatrixBundle(bundle)) return;
+  if(ok !== false && !_jillState.lastStructureOk){
+    showToast('Primero practicá y que Jill valide tu estructura.','err');
+    return;
+  }
   JillMatrix.recordPractice(s, ok !== false);
+  _jillState.lastStructureOk = false;
   if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
   renderJill();
   var drill = JillMatrix.getDrillPrompt(s);
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Próximo: ' + drill.pronoun + ' + ' + drill.verb;
+  if(statusEl) statusEl.textContent = 'Próximo: ' + drill.pronoun + ' + ' + drill.verb + ' (' + drill.sigla + ')';
 }
 
 function jillMatrixStartAnecdote(){
@@ -4073,6 +4110,7 @@ function jillOpenKahootQuiz(){
 
 function jillCloseKahootQuiz(refresh){
   _jillState.quizActive = false;
+  _jillState.quizMode = 'nemesis';
   if(refresh) renderJill();
   else {
     var zone = document.getElementById('jill-quiz-zone');
@@ -4113,7 +4151,10 @@ function renderJill(){
       +'</div>';
     var zone = document.getElementById('jill-quiz-zone');
     var s = CURRENT_STUDENT;
-    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, jillActiveBundle());
+    if(zone && typeof JillQuiz !== 'undefined'){
+      if(_jillState.quizMode === 'coin' && JillQuiz.mountCoin) JillQuiz.mountCoin(zone, s, jillActiveBundle());
+      else JillQuiz.mount(zone, s, jillActiveBundle());
+    }
     return;
   }
   root.removeAttribute('data-jill-pro');
@@ -4302,6 +4343,7 @@ async function endJillSession(){
           history: _jillState.history,
           jillBundle: jillCtx.jillBundle || jillActiveBundle(),
           matrixContext: jillCtx.matrixContext || null,
+          vocabContext: jillCtx.vocabContext || null,
           weakKpis: jillCtx.weakKpis || [],
           nemesisState: jillCtx.nemesisState,
           track: jillCtx.track,
@@ -4387,7 +4429,7 @@ async function startJillSession(s){
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
+      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
     });
     var data = await r.json();
     var parsed = (typeof JillFoundations !== 'undefined')
@@ -4453,11 +4495,19 @@ async function sendJillMsg(micText){
   jillStopMic();
   _jillMicText = '';
   if(inp) inp.value = '';
+  var turnStarted = _jillState.drillTurnStartedAt || Date.now();
   _jillState.history.push({role:'user', content:text});
   var historyForApi = _jillState.history.slice(-10);
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'jill', dbSet).catch(function(){});
   if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, s).catch(function(){});
+
+  if(typeof JillVocab !== 'undefined' && s) JillVocab.harvestFromText(s, text);
+  if(s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle())){
+    var rMs = Date.now() - turnStarted;
+    JillMatrix.recordResponseTime(s, rMs);
+    if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
+  }
 
   var streamIdx = _jillState.history.length;
   _jillState.history.push({role:'assistant', content:'▋'});
@@ -4474,7 +4524,7 @@ async function sendJillMsg(micText){
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);
@@ -4512,6 +4562,12 @@ async function sendJillMsg(micText){
       ? JillFoundations.parseReply(fullText)
       : { reply: fullText, contentType: 'text' };
     _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply || fullText || 'No entendí — ¿podés repetir?', contentType: parsed.contentType || 'text'};
+    _jillState.lastStructureOk = jillDetectStructureOk(parsed.reply || fullText, parsed.contentType);
+    _jillState.drillTurnStartedAt = Date.now();
+    if(_jillState.lastStructureOk && typeof JillMatrix !== 'undefined'){
+      var mp = document.getElementById('jill-matrix-panel');
+      if(mp) renderJill();
+    }
     if(parsed.reply && parsed.reply.trim().length > 2) jillSpeak(parsed.reply);
     jillRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';

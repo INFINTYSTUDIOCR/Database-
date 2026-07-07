@@ -8,15 +8,45 @@
   var BRAND = 'Jill Pro';
   var MODE_LABEL = 'Nemesis Quest';
 
-  var KAHOOT = [
-    { bg: '#e21b3c', shape: '▲' },
-    { bg: '#1368ce', shape: '◆' },
-    { bg: '#d89e00', shape: '●' },
-    { bg: '#26890c', shape: '■' }
+  var PULSE_OPTS = [
+    { bg: '#5B21B6', shape: '⬡' },
+    { bg: '#0a5c3c', shape: '⬢' },
+    { bg: '#D97706', shape: '✦' },
+    { bg: '#7C3AED', shape: '◇' }
   ];
+
+  var KAHOOT = PULSE_OPTS;
 
   var TIMER_SEC = 15;
   var QUESTIONS_PER_ROUND = 5;
+
+  var COIN_QUESTIONS = [
+    { kpi: 'k3', topic: 'coin', q: 'Método Moneda: ¿Cuál es PREGUNTA?', options: ['You are ready.', 'Are you ready?', 'Ready you are?', 'You ready are?'], answer: 1, explain: 'Are a la izquierda de you → pregunta.' },
+    { kpi: 'k3', topic: 'coin', q: 'Moneda: ¿Cuál es RESPUESTA?', options: ['Did she work?', 'She worked yesterday.', 'Work she did?', 'Did work she?'], answer: 1, explain: 'worked después de she → afirmación.' },
+    { kpi: 'k3', topic: 'coin', q: 'Excepción moneda: WH-question válida…', options: ['You are what?', 'What are you doing?', 'Are what you?', 'Doing you what?'], answer: 1, explain: 'What primero; moneda aplica al bloque aux+pronombre.' },
+    { kpi: 'k3', topic: 'coin', q: '¿Pregunta con Did?', options: ['He did go.', 'Did he go?', 'He go did?', 'Go did he?'], answer: 1, explain: 'Did antes del pronombre.' },
+    { kpi: 'k14', topic: 'coin', q: 'Identificá rápido: pregunta', options: ['They are coming.', 'Are they coming?', 'Coming they are.', 'They coming are?'], answer: 1, explain: 'Velocidad + patrón moneda.' }
+  ];
+
+  var PREP_QUESTIONS = [
+    { kpi: 'k4', topic: 'prep', q: 'I live ___ San José (ciudad)', options: ['in', 'on', 'at', 'by'], answer: 0, explain: 'in + ciudad/país.' },
+    { kpi: 'k4', topic: 'prep', q: 'The book is ___ the table', options: ['in', 'on', 'at', 'by'], answer: 1, explain: 'on + superficie.' },
+    { kpi: 'k4', topic: 'prep', q: 'We meet ___ 5 pm', options: ['in', 'on', 'at', 'by'], answer: 2, explain: 'at + hora.' },
+    { kpi: 'k4', topic: 'prep', q: 'I go ___ car', options: ['in', 'on', 'at', 'by'], answer: 3, explain: 'by + transporte.' }
+  ];
+
+  var ARTICLE_QUESTIONS = [
+    { kpi: 'k4', topic: 'article', q: 'I need ___ hour (sonido vocal)', options: ['a', 'an', 'the', '—'], answer: 1, explain: 'an antes de sonido vocal.' },
+    { kpi: 'k4', topic: 'article', q: '___ sun is bright (único)', options: ['A', 'An', 'The', '—'], answer: 2, explain: 'the + único conocido.' },
+    { kpi: 'k4', topic: 'article', q: 'She is ___ engineer', options: ['a', 'an', 'the', '—'], answer: 1, explain: 'an + engineer.' }
+  ];
+
+  var TENSE_SIGLA_QUESTIONS = [
+    { kpi: 'k3', topic: 'tense', q: 'Sigla PR = …', options: ['P + V + C', 'P + To Be + ing', 'P + Have + PP', 'P + M + V'], answer: 0, explain: 'Presente simple.' },
+    { kpi: 'k3', topic: 'tense', q: 'Sigla PC = …', options: ['P + V + C', 'P + To Be + V+ing', 'P + Have + PP', 'P + Had + PP'], answer: 1, explain: 'Presente continuo.' },
+    { kpi: 'k3', topic: 'tense', q: 'I will go → fórmula', options: ['P + V + C', 'P + M + V', 'P + Have + PP', 'P + M + HAVE + PP'], answer: 1, explain: 'P + M + V (will = -RE).' },
+    { kpi: 'k3', topic: 'tense', q: 'I could have done → fórmula', options: ['P + M + V', 'P + M + HAVE + PP', 'P + HAVE + PP', 'P + M + HAVE + BEEN + ing'], answer: 1, explain: 'Modal perfecto.' }
+  ];
 
   var CORE = [
     { kpi: 'k10', q: 'En el Método Nexus, un "chunk" es…', options: ['Una palabra suelta', 'Un bloque listo para usar', 'Solo gramática', 'Traducción literal'], answer: 1, explain: 'Los chunks son piezas que ensamblás sin traducir palabra por palabra.' },
@@ -27,6 +57,7 @@
   ];
 
   var BY_BUNDLE = {
+    'F0-matrix': TENSE_SIGLA_QUESTIONS.concat(COIN_QUESTIONS.slice(0, 2)),
     'F1-msi': [
       { kpi: 'k3', q: 'Regla MSI®: después de HAVE va…', options: ['Infinitivo (-ing)', 'Participio', 'Modal solo', 'Artículo'], answer: 1, explain: 'HAVE → participio (been, worked…).' },
       { kpi: 'k10', q: 'Con TO BE en la cadena, el verbo principal suele ir en…', options: ['-ed', '-ing', 'infinitivo', 'sin verbo'], answer: 1, explain: 'TO BE → ING: I have been working.' },
@@ -288,10 +319,44 @@
     return { xp: xp, unlocked: unlocked };
   }
 
+  function pickCoinQuestions(student, count) {
+    count = count || QUESTIONS_PER_ROUND;
+    var pool = shuffle(COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(TENSE_SIGLA_QUESTIONS));
+    var nemesis = collectNemesisKpis(student);
+    if (nemesis.indexOf('k3') >= 0 || nemesis.indexOf('k4') >= 0) {
+      pool = shuffle(COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS));
+    }
+    return pool.slice(0, count);
+  }
+
+  function mountPulse(rootEl, student, activeBundle, onDone, opts) {
+    opts = opts || {};
+    var modeLabel = opts.modeLabel || MODE_LABEL;
+    var brandLine = opts.brandLine || (BRAND + ' · ' + modeLabel);
+    var quiz = opts.quiz || pickNemesisQuestions(student, activeBundle);
+    var nemesisKpis = opts.nemesisKpis || collectNemesisKpis(student);
+    mountInternal(rootEl, student, activeBundle, onDone, { quiz: quiz, nemesisKpis: nemesisKpis, brandLine: brandLine, pulseMode: !!opts.pulseMode });
+  }
+
+  function mountCoin(rootEl, student, activeBundle, onDone) {
+    mountPulse(rootEl, student, activeBundle, onDone, {
+      quiz: pickCoinQuestions(student),
+      modeLabel: 'Pulse · Método Moneda',
+      brandLine: 'Jill Pulse · Moneda + Preposiciones + Artículos',
+      pulseMode: true
+    });
+  }
+
   function mount(rootEl, student, activeBundle, onDone) {
+    mountPulse(rootEl, student, activeBundle, onDone, {});
+  }
+
+  function mountInternal(rootEl, student, activeBundle, onDone, cfg) {
+    cfg = cfg || {};
     if (!rootEl) return;
-    var nemesisKpis = collectNemesisKpis(student);
-    var quiz = pickNemesisQuestions(student, activeBundle);
+    var nemesisKpis = cfg.nemesisKpis || collectNemesisKpis(student);
+    var quiz = cfg.quiz || pickNemesisQuestions(student, activeBundle);
+    var brandLine = cfg.brandLine || (BRAND + ' · ' + MODE_LABEL);
     if (!quiz.length) {
       rootEl.innerHTML = '<div style="text-align:center;padding:1rem;color:#fde68a;">Sin preguntas — practicá con Jill y volvé.</div>';
       return;
@@ -308,7 +373,8 @@
       quiz: quiz,
       bundleId: bundleIdFromStudent(student, activeBundle),
       nemesisKpis: nemesisKpis,
-      kpiResults: []
+      kpiResults: [],
+      pulseMode: !!cfg.pulseMode
     };
 
     function clearTimer() {
@@ -374,8 +440,11 @@
         bundleId: state.bundleId,
         kpiResults: state.kpiResults,
         nemesisKpis: state.nemesisKpis,
-        nemesisMode: true
+        nemesisMode: !state.pulseMode
       });
+      if (state.pulseMode && student && score >= 70 && typeof JillMatrix !== 'undefined') {
+        JillMatrix.ensureMatrix(student).coinQuizPassed = true;
+      }
       if (student && student.id && typeof dbSet === 'function') {
         dbSet('infinity_students', student.id, student).catch(function () {});
       }
@@ -498,7 +567,7 @@
 
     rootEl.innerHTML = '<style>@keyframes jillKahootIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}</style>'
       + '<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
-      + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:10px;">' + BRAND + ' · ' + MODE_LABEL + ' — Kahoot contra tus fallos</div>'
+      + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:10px;">' + esc(brandLine) + '</div>'
       + '<div id="jill-kahoot-stage"></div></div>';
     var stage = document.getElementById('jill-kahoot-stage');
     rootEl = stage;
@@ -510,10 +579,13 @@
     MODE_LABEL: MODE_LABEL,
     pickQuestions: pickQuestions,
     pickNemesisQuestions: pickNemesisQuestions,
+    pickCoinQuestions: pickCoinQuestions,
     collectNemesisKpis: collectNemesisKpis,
     renderNemesisTopics: renderNemesisTopics,
     mount: mount,
+    mountCoin: mountCoin,
     recordQuiz: recordQuiz,
-    QUESTIONS_PER_ROUND: QUESTIONS_PER_ROUND
+    QUESTIONS_PER_ROUND: QUESTIONS_PER_ROUND,
+    COIN_QUESTIONS: COIN_QUESTIONS
   };
 })(typeof window !== 'undefined' ? window : this);

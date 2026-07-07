@@ -3,6 +3,8 @@
  * Se alimenta de NEXUS-KB, KBFILE uploads y conocimiento del fundador.
  * Lo publicado se propaga a Alice, Jill, Nexora y Analyze.
  */
+const fs = require('fs');
+const path = require('path');
 const SUPER_BRAIN_ID = 'SUPER-BRAIN-CORE';
 const NEXUS_KB_ID = 'NEXUS-KB';
 const MAX_LESSONS = 300;
@@ -532,15 +534,40 @@ async function buildContextBlock(query) {
   return formatSourcesBlock(sources);
 }
 
-const STRUCTURE_CANON = `STRUCTURE CANON (Infinity · Mecánica Estructural — always true for tutors):
-- Teach and evaluate by SLOTS (ranuras), not translation: Pronoun | Auxiliary/Modal | Verb form | Complement | (Linker when anecdote phase).
-- Core progression (F0): Col1 Present → Col2 Past → Col3 To Be + ING → Col4 Have/Has/Had + participle → Col5 Have + participle + To Be + ING → then modals/future.
-- 16 core verbs: be, have, do, work, study, go, make, take, get, see, know, think, want, need, say, tell.
-- Pronouns taught WITH verbs from day one: personal, possessive, demonstrative, reflexive — not separate vocabulary lists.
-- Articles (a/an/the), prepositions (in/on/at/by), months, numbers: embedded inside structure practice, not standalone modules.
-- Fluency = automate patterns + chunks + linkers (IDEA → LINKER → IDEA); never word-by-word translation.
-- Anecdote drill: 15 min written notebook → read aloud → tutor flags pronunciation, structure, tense, coordination, prepositions; use whiteboard + KB images.
-- Correction format: name the missing/wrong SLOT, show formula on whiteboard, one practice sentence.`;
+function loadJillStructureCanonFile() {
+  const paths = [
+    path.join(__dirname, '../config/jill-structure-canon.json'),
+    path.join(__dirname, 'config/jill-structure-canon.json')
+  ];
+  for (const p of paths) {
+    try {
+      if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch { /* next */ }
+  }
+  return null;
+}
+
+function buildStructureCanonText() {
+  const cfg = loadJillStructureCanonFile();
+  const lines = [
+    'STRUCTURE CANON (Infinity · Mecánica Estructural — always true for tutors):',
+    '- Teach and evaluate by SLOTS (ranuras): P | M | V | C | (Linker when anecdote).',
+    '- Siglas: PR=presente P+V+C; PS=pasado; PC=P+To Be+V+ing; PRP=P+Have+PP; MOD=P+M+V; MP=P+M+HAVE+PP; MC=P+M+HAVE+BEEN+V+ing.',
+    '- F0 progression: PR → PS → PC → PRP → PPC → MOD → MP → MC. Gate 100% before advance.',
+    '- Will=-RE (caminarÉ→I WILL walk); Would=-RÍA (caminarÍA→I WOULD walk); Should=debería+I SHOULD+base.',
+    '- Coin method: verb LEFT of pronoun = question; verb RIGHT = answer (WH-/imperative exceptions).',
+    '- 16 core verbs + 3rd person -s in PR. Table format: I seem / He seems with Spanish bridge.',
+    '- Articles/prepositions inside C; numbers 11-99 pattern after ten.',
+    '- Notebook anecdote 15min → read → grammar+structure+coherence+pronunciation coaching.',
+    '- KPI focus: idea generation, coordination, word choice, improvisation, structure, response time (<12s target).'
+  ];
+  if (cfg && Array.isArray(cfg.formulas)) {
+    lines.push('- FORMULAS: ' + cfg.formulas.map(f => `${f.sigla}:${f.notation}`).join(' | '));
+  }
+  return lines.join('\n');
+}
+
+const STRUCTURE_CANON = buildStructureCanonText();
 
 function buildProactiveCanonBlock(published, charLimit = 1000) {
   const ranked = (published || [])

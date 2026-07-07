@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "title": "Mecánica Estructural Infinity® — Notación oficial",
+  "symbols": {
+    "P": "Pronombre (I, you, he, she, it, we, they)",
+    "M": "Modal (will, would, should, can, could, must, may, might)",
+    "V": "Verbo en forma operativa (base / pasado / participio según ranura)",
+    "C": "Complemento (sustantivo, frase, lugar, tiempo)",
+    "TB": "To Be (am, is, are, was, were, been, being)",
+    "H": "Have / Has / Had",
+    "ING": "Verbo + ing (gerundio / progresivo)",
+    "PR": "Presente simple — P + V + C",
+    "PS": "Pasado simple — P + V(pasado) + C",
+    "PP": "Participio pasado — base para perfecto",
+    "PRP": "Presente perfecto — P + Have/Has + PP + C",
+    "PC": "Presente continuo — P + To Be + V+ing + C",
+    "PPC": "Pasado perfecto continuo — P + Had + been + V+ing + C"
+  },
+  "formulas": [
+    { "id": "pr", "sigla": "PR", "notation": "P + V + C", "example": "I go home", "whiteboard": "I | go | home" },
+    { "id": "pc", "sigla": "PC", "notation": "P + TO BE + V+ing + C", "example": "They are coming", "whiteboard": "They | are | coming" },
+    { "id": "ps", "sigla": "PS", "notation": "P + V(pasado) + C", "example": "She worked yesterday", "whiteboard": "She | worked | yesterday" },
+    { "id": "prp", "sigla": "PRP", "notation": "P + Have/Has + PP + C", "example": "He has done it", "whiteboard": "He | has | done | it" },
+    { "id": "pap", "sigla": "PAP", "notation": "P + Had + PP + C", "example": "I had said that", "whiteboard": "I | had | said | that" },
+    { "id": "ppc", "sigla": "PPC", "notation": "P + Have/Had + been + V+ing + C", "example": "They have been going / They had been having", "whiteboard": "They | have been | going" },
+    { "id": "modal", "sigla": "MOD", "notation": "P + M + V + C", "example": "I will go / I should see / She could come", "whiteboard": "I | will | go" },
+    { "id": "modal-perfect", "sigla": "MP", "notation": "P + M + HAVE + PP + C", "example": "I could have done", "whiteboard": "I | could | have | done" },
+    { "id": "modal-combined", "sigla": "MC", "notation": "P + M + HAVE + BEEN + V+ing + C", "example": "We should have been going", "whiteboard": "We | should | have been | going" }
+  ],
+  "modalBridge": {
+    "will": { "es": "-RE (futuro)", "hint": "caminarÉ → I WILL walk", "example": "I will walk" },
+    "would": { "es": "-RÍA (condicional)", "hint": "caminarÍA → I WOULD walk", "example": "I would walk" },
+    "should": { "es": "debería", "hint": "debería → I SHOULD + verbo base", "example": "I should study" },
+    "can": { "es": "poder (presente)", "hint": "puedo → I CAN + base", "example": "I can work" },
+    "could": { "es": "podría", "hint": "podría → I COULD + base", "example": "I could help" }
+  },
+  "coinMethod": {
+    "title": "Método de la Moneda",
+    "rule": "Verbo a la IZQUIERDA del pronombre → generalmente PREGUNTA. Verbo a la DERECHA del pronombre → generalmente RESPUESTA/Afirmación.",
+    "examples": [
+      { "type": "question", "text": "Are you coming?", "note": "Are (V aux) antes de you (P)" },
+      { "type": "answer", "text": "You are coming.", "note": "are después de you" },
+      { "type": "question", "text": "Did she work?", "note": "Did antes de she" },
+      { "type": "answer", "text": "She worked.", "note": "worked después de she" }
+    ],
+    "exceptions": [
+      "WH-questions: What did you say? — la W va primero; la moneda aplica al bloque auxiliar+pronombre.",
+      "Imperativos: Go home / Please sit — sin pronombre.",
+      "Tag questions: You are ready, aren't you? — segunda parte invierte."
+    ],
+    "canonImage": "assets/canon/moneda.svg"
+  },
+  "conjugationTable": {
+    "title": "Tabla bilingüe modelo",
+    "verb": "seem",
+    "es": "parecer",
+    "rows": [
+      ["I seem (síim)", "Yo parezco"],
+      ["You seem", "Ud. parece"],
+      ["He seems (síims)", "Él parece"],
+      ["She seems", "Ella parece"],
+      ["It seems", "Parece"],
+      ["We seem", "Nos. parecemos"],
+      ["You seem", "Uds. parecen"],
+      ["They seem", "Ellos parecen"]
+    ],
+    "note": "3ª persona singular (+s): he/she/it + V+s en presente"
+  },
+  "kpiFocus": [
+    { "id": "k9", "name": "Generación de idea", "jillRule": "Cada práctica pide UNA idea concreta en el complemento." },
+    { "id": "k8", "name": "Coordinación de idea", "jillRule": "Desde Col 3: dos ideas con and/but mínimo." },
+    { "id": "k5", "name": "Escogencia de palabra", "jillRule": "Vocab solo de lista activa del alumno o del drill." },
+    { "id": "k24", "name": "Improvisación", "jillRule": "Anécdota y preguntas sorpresa sin script." },
+    { "id": "k3", "name": "Implementación de estructura", "jillRule": "Corrección por ranuras P|M|V|C siempre." },
+    { "id": "k14", "name": "Tiempo de respuesta", "jillRule": "Meta: respuesta estructurada en menos de 12s tras el drill." }
+  ],
+  "gate": {
+    "masteryRatio": 1,
+    "hitsPerCell": 3,
+    "targetResponseMs": 12000,
+    "maxAvgResponseMs": 15000,
+    "aliceExitRequires": [
+      "100% matriz columnas 1-5",
+      "Promedio respuesta bajo umbral",
+      "Anécdota cuaderno evaluada",
+      "Quiz moneda + preposiciones aprobados",
+      "Coordinación básica sin conectores avanzados"
+    ]
+  },
+  "numbersPattern": {
+    "rule": "Después de 10 el patrón se repite: eleven=ten+one … twenty=two+ten … hasta 100 y reinicia.",
+    "drill": "11-19 = ten + unit; 21-99 = tens + unit"
+  },
+  "notebook": {
+    "rule": "Cuaderno obligatorio: anécdotas 15 min escritas → leer o pegar → Jill analiza gramática, estructura, orden, coherencia.",
+    "feedback": "Corrección on-the-go por ranuras + pronunciación imitable"
+  }
+}

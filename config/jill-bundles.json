@@ -68,10 +68,12 @@
         "I | have been | working"
       ],
       "structures": [
-        "Pronombre + verbo + complemento",
-        "Pronombre + To Be + verbo(-ing)",
-        "Pronombre + Have/Has + participio",
-        "Pronombre + Have + participio + To Be + verbo(-ing)"
+        "PR: P + V + C",
+        "PS: P + V(pasado) + C",
+        "PC: P + TO BE + V+ing + C",
+        "PRP: P + HAVE + PP + C",
+        "PPC: P + HAVE/HAD + been + V+ing + C",
+        "MOD: P + M + V + C (will=-RE · would=-RÍA)"
       ],
       "images": ["canon-structure"],
       "nextBundle": "F1-msi"
