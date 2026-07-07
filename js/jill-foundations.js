@@ -25,7 +25,7 @@
 
   function loadBundles() {
     if (_loaded) return _loaded;
-    _loaded = fetch('config/jill-bundles.json?v=20260706c')
+    _loaded = fetch('config/jill-bundles.json?v=20260707a')
       .then(function (r) { return r.ok ? r.json() : { bundles: [], sequence: [] }; })
       .then(function (data) {
         _bundles = data.bundles || [];
@@ -81,13 +81,18 @@
   function getContext(s) {
     ensureProgress(s);
     var bundle = getActiveBundle(s);
-    return {
+    var ctx = {
       jillBundle: bundle,
       weakKpis: (s && s.quizWeakKpis) || [],
       nemesisState: (s && s.nemesisState) || { domain: [], reinforcement: [] },
       track: s && s.track,
       reinforcement: (s && s.nemesisState && s.nemesisState.reinforcement) || []
     };
+    if (typeof JillMatrix !== 'undefined' && bundle) {
+      var mc = JillMatrix.getApiContext(s, bundle);
+      if (mc) ctx.matrixContext = mc;
+    }
+    return ctx;
   }
 
   function parseReply(raw) {

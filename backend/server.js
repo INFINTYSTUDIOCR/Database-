@@ -2723,6 +2723,40 @@ function formatJillBundleNote(jillBundle) {
   return parts.join('. ') + '.';
 }
 
+const JILL_F0_MATRIX_RULE = `
+F0 MATRIX MODE (OBLIGATORIO cuando bundle F0-matrix o matrixContext activo):
+- NO enseñes modales, futuro will, Nexora, entrevistas, chunking avanzado ni linkers hasta que matrixContext indique anecdoteUnlocked y columnas dominadas.
+- Evalúa cada respuesta por RANURAS: Pronombre | Auxiliar (To Be / Have) | Forma verbal (base / past / -ing / past participle) | Complemento.
+- Si falla una ranura: nombra la ranura, muestra la fórmula en whiteboard, pide UNA oración con el pronombre+verbo del drillPrompt.
+- Usa matrixContext.drillPrompt como objetivo del turno si el estudiante no pide otra cosa Foundations válida.
+- Modo anécdota (anecdoteMode true): corrige pronunciación, tiempos, coordinación, preposiciones en el texto leído/pegado — sin cambiar de tema.
+- Ritmo: regla corta + 1 ejemplo modelo + 1 práctica. Explicación en español; práctica en inglés estructurado.`;
+
+function formatJillMatrixNote(matrixContext) {
+  if (!matrixContext || matrixContext.bundleId !== 'F0-matrix') return '';
+  const parts = [
+    '\nMATRIZ F0 (gate matrix-only):',
+    matrixContext.phaseLabel ? `Columna: ${matrixContext.phaseLabel}` : '',
+    matrixContext.formula ? `Fórmula: ${matrixContext.formula}` : '',
+    matrixContext.drillPrompt ? `Drill activo: ${matrixContext.drillPrompt}` : '',
+    matrixContext.columnProgress != null ? `Progreso columna: ${matrixContext.columnProgress}%` : '',
+    matrixContext.columnsSummary ? `Estado columnas: ${matrixContext.columnsSummary}` : '',
+    matrixContext.anecdoteMode ? 'MODO ANÉCDOTA — ritual 15 min: corrige por ranuras estructurales.' : '',
+    matrixContext.anecdoteUnlocked && !matrixContext.anecdoteMode ? 'Anécdota desbloqueada — ofrecer ritual 15 min cuando la práctica oral fluya.' : '',
+    'NO modales/futuro/chunking avanzado hasta cerrar matriz. Corrección por ranuras siempre.'
+  ].filter(Boolean);
+  return parts.join(' ') + '.';
+}
+
+function jillMatrixPromptExtras(jillBundle, matrixContext) {
+  const isF0 = jillBundle?.id === 'F0-matrix' || jillBundle?.gateMode === 'matrix-only' || matrixContext?.gateMode === 'matrix-only';
+  return {
+    isF0,
+    matrixNote: formatJillMatrixNote(matrixContext),
+    matrixRule: isF0 ? JILL_F0_MATRIX_RULE : ''
+  };
+}
+
 app.post('/alice', requireProductAuth, async (req, res) => {
   try {
     let { student, history, message, mode, secret, nexora, sessionType, companionTopic } = req.body || {};
@@ -3080,7 +3114,7 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext } = req.body || {};
     student = await assertStudentTutorAccess(req, res, 'jill', student);
     if (!student) return;
     sanitizeStudentAiProfile(student);
@@ -3093,6 +3127,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? `\nÁREAS DÉBILES EN QUIZ (reforzar hoy): ${weakKpis.join(', ')}.`
       : '';
     const bundleNote = formatJillBundleNote(jillBundle);
+    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
       ? `\nNEMESIS REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS REFUERZO: ${reinforcement.join(', ')}.` : '');
@@ -3128,7 +3163,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -3223,7 +3258,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const msgs = [...prevMsgs, { role: 'user', content: message }];
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3309,7 +3344,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement } = req.body || {};
+    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext } = req.body || {};
     student = await assertStudentTutorAccess(req, res, 'jill', student);
     if (!student) return;
     sanitizeStudentAiProfile(student);
@@ -3324,6 +3359,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
     const weakNote = weakKpis?.length ? `\nTemas a reforzar hoy: ${weakKpis.join(', ')}.` : '';
     const bundleNote = formatJillBundleNote(jillBundle);
+    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
@@ -3340,7 +3376,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

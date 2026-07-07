@@ -4,7 +4,7 @@
   "foundationsSource": "A.D.A.M. / NEXUS-KB — doctrina Foundations publicada",
   "eligibilityNote": "Estudiante con base secundaria mínima (números, colores, saludos). No cero absoluto. F0 solo refuerza si hace falta.",
   "sequence": [
-    "B5-basics",
+    "F0-matrix",
     "F1-msi",
     "B2-verbs",
     "F2-pronouns",
@@ -32,6 +32,48 @@
       "whiteboard": ["1-10-100", "Mon–Sun / months", "Hello — How are you?"],
       "structures": [],
       "images": ["basics-grid"],
+      "nextBundle": "F1-msi"
+    },
+    {
+      "id": "F0-matrix",
+      "order": 0,
+      "phase": "F0",
+      "title": "Matriz estructural — Pronombres × 16 verbos × tiempos",
+      "level": "Survival",
+      "foundationsSection": "Mecánica Estructural Infinity® · Matriz de dominio",
+      "gateMode": "matrix-only",
+      "doctrine": "Desde cero: pronombres (personal, posesivo, demostrativo, reflexivo) EN CONJUNTO con 16 verbos. Solo practicar la matriz hasta que salga natural. Estructurar, no traducir. Artículos, preposiciones, meses y números entran dentro de las oraciones, no como módulos sueltos.",
+      "structureRules": [
+        "Col 1: Pronombre + verbo (presente) + complemento — dominar antes de avanzar",
+        "Col 2: + pasado simple (columna 1+2)",
+        "Col 3: Pronombre + To Be + verbo(-ing)",
+        "Col 4: Pronombre + Have/Has/Had + participio",
+        "Col 5: Have + participio + (To Be) + verbo(-ing)",
+        "Después de dominar: anécdota 15 min escrita → leer → Jill corrige ranuras",
+        "Futuro y modales SOLO después de F0-matrix"
+      ],
+      "kpis": ["k1", "k2", "k3", "k4", "k10"],
+      "topics": [
+        "16 verbos: be have do work study go make take get see know think want need say tell",
+        "Pronombres personales posesivos demostrativos reflexivos",
+        "Matriz pronombre × verbo × tiempo",
+        "a/an/the in/on/at dentro de complementos",
+        "Meses y números en contexto estructural"
+      ],
+      "whiteboard": [
+        "I | work | today",
+        "I | worked | yesterday",
+        "I | am | working",
+        "I | have | worked",
+        "I | have been | working"
+      ],
+      "structures": [
+        "Pronombre + verbo + complemento",
+        "Pronombre + To Be + verbo(-ing)",
+        "Pronombre + Have/Has + participio",
+        "Pronombre + Have + participio + To Be + verbo(-ing)"
+      ],
+      "images": ["canon-structure"],
       "nextBundle": "F1-msi"
     },
     {

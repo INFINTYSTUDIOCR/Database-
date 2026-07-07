@@ -532,6 +532,16 @@ async function buildContextBlock(query) {
   return formatSourcesBlock(sources);
 }
 
+const STRUCTURE_CANON = `STRUCTURE CANON (Infinity · Mecánica Estructural — always true for tutors):
+- Teach and evaluate by SLOTS (ranuras), not translation: Pronoun | Auxiliary/Modal | Verb form | Complement | (Linker when anecdote phase).
+- Core progression (F0): Col1 Present → Col2 Past → Col3 To Be + ING → Col4 Have/Has/Had + participle → Col5 Have + participle + To Be + ING → then modals/future.
+- 16 core verbs: be, have, do, work, study, go, make, take, get, see, know, think, want, need, say, tell.
+- Pronouns taught WITH verbs from day one: personal, possessive, demonstrative, reflexive — not separate vocabulary lists.
+- Articles (a/an/the), prepositions (in/on/at/by), months, numbers: embedded inside structure practice, not standalone modules.
+- Fluency = automate patterns + chunks + linkers (IDEA → LINKER → IDEA); never word-by-word translation.
+- Anecdote drill: 15 min written notebook → read aloud → tutor flags pronunciation, structure, tense, coordination, prepositions; use whiteboard + KB images.
+- Correction format: name the missing/wrong SLOT, show formula on whiteboard, one practice sentence.`;
+
 function buildProactiveCanonBlock(published, charLimit = 1000) {
   const ranked = (published || [])
     .filter(l => l.published !== false)
@@ -555,8 +565,9 @@ async function getPropagatedContext(query, charLimit = 2200) {
   const reactiveBudget = charLimit - canonBudget - 80;
   const canon = buildProactiveCanonBlock(sources.published, canonBudget);
   const lines = [];
+  lines.push(STRUCTURE_CANON.slice(0, Math.min(900, Math.floor(charLimit * 0.4))));
   if (canon.trim()) {
-    lines.push('CANON (proactive — weave into teaching each turn when natural; do not wait for student to ask):');
+    lines.push('\nPUBLISHED DOCTRINE (canon):');
     lines.push(canon);
   }
   const reactive = [];
