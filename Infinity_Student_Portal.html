@@ -2743,10 +2743,42 @@ function nexoraStudentPayload(student){
   return { id: s.id, info: s.info, name: (s.info && s.info.name) || s.name, aiProfile: s.aiProfile || {} };
 }
 
+function jillDetectCompanionTopic(text){
+  var t = String(text || '').toLowerCase();
+  if(/\b(futuro|future)\b/.test(t)) return 'futuro MOD (P + will + V + C)';
+  if(/\b(gerundio|gerund|-ing|progressive|continuo|\bpc\b)/.test(t)) return 'gerundio / PC';
+  if(/\b(presente simple|present simple|\bpr\b)/.test(t)) return 'presente simple PR';
+  if(/\b(pasado simple|past simple|\bps\b)/.test(t)) return 'pasado simple PS';
+  if(/\b(present perfect|presente perfecto|\bprp\b)/.test(t)) return 'presente perfecto PRP';
+  if(/\b(modal|will|would|should|can|could)\b/.test(t)) return 'modales MOD';
+  if(/\b(explic|ayud|lecci|enseñ|help me|teach|no entiendo)/.test(t)) return String(text || '').slice(0, 120);
+  return '';
+}
+
 function jillInstantCoachReply(userText){
+  var isCompanion = jillCompanionUiActive();
   var t = String(userText || '').toLowerCase();
+  if(isCompanion){
+    var topic = jillDetectCompanionTopic(userText) || _jillState.companionTopic || '';
+    if(/futuro|future|\bwill\b/.test(t) || /futuro|will/i.test(topic)){
+      return 'Claro, futuro — Regla MSI: P + will + verbo base + C. Modelo: I will study tomorrow. ¿Armás una con will + tu plan de mañana?';
+    }
+    if(/no entiendo|m[aá]s simple|explic/.test(t)){
+      if(topic && !/no entiendo/i.test(topic)){
+        return 'Ok, más simple sobre "'+topic+'" — decime si no te queda la fórmula o las palabras en inglés y lo armamos con una ranura MSI paso a paso.';
+      }
+      return 'Te escucho — ¿qué tema querés que simplifique? Futuro, gerundio, pasado… decime cuál y lo vemos con fórmula + ejemplo.';
+    }
+    return 'Seguimos — pedime cualquier tema (futuro, tiempos, vocab) y te armo la lección MSI.';
+  }
+  if(/futuro|future|\bwill\b/.test(t)){
+    return 'Claro — futuro con will: P + will + verbo base + C. Modelo: I will study tomorrow. ¿Armás una con will + tu plan?';
+  }
   if(/no entiendo|m[aá]s simple|explic/.test(t)){
-    return 'Claro — en simple: be une pronombre + idea. Modelo: I am at home. ¿Podés armar una con I am + un lugar o cómo te sentís?';
+    if(/\b(be|am|is|are|to be)\b/.test(t)){
+      return 'Claro — en simple: be une pronombre + idea. Modelo: I am at home. ¿Podés armar una con I am + un lugar o cómo te sentís?';
+    }
+    return 'Te escucho — ¿qué parte no te quedó clara? Fórmula, ejemplo o palabras en inglés. Lo vemos paso a paso.';
   }
   if(/otro ejemplo|dame otro/.test(t)){
     return 'Ejemplo: I am in San José. / I am tired. / I am ready. Armá la tuya con I + am + una idea concreta.';
@@ -2777,7 +2809,9 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
         track: jillCtx.track,
         reinforcement: jillCtx.reinforcement || [],
         responseMs: responseMs,
-        calibrationContext: jillCtx.calibrationContext || null
+        calibrationContext: jillCtx.calibrationContext || null,
+        sessionType: _jillState.sessionType || 'tutor',
+        companionTopic: _jillState.companionTopic || ''
       })
     });
     if(!resp.ok) return null;
@@ -4754,6 +4788,10 @@ async function sendJillMsg(micText){
   var turnStarted = _jillState.drillTurnStartedAt || Date.now();
   if(isCompanion && !_jillState.companionTopic){
     _jillState.companionTopic = text.slice(0, 120);
+  }
+  if(isCompanion){
+    var newTopic = jillDetectCompanionTopic(text);
+    if(newTopic) _jillState.companionTopic = newTopic.slice(0, 120);
   }
   _jillState.history.push({role:'user', content:text});
   var historyForApi = _jillState.history.slice(-10);

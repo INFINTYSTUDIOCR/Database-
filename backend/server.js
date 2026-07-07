@@ -3674,9 +3674,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       });
     }
 
-    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
     const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
-    if (brain.hit) {
+    if (!isJillCompanion && brain.hit) {
       const cachedPlain = plainBrainReply(brain.reply);
       if (cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
         res.set('X-Brain-LLM', 'HIT');
@@ -3848,10 +3848,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const profileNote = buildAiProfileNote(student, 'jill');
     const adaptNote = buildStudyAdaptationNote(student, message);
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
-    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     const cachedPlain = brain.hit ? plainBrainReply(brain.reply) : '';
-    if (brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
+    if (!isJillCompanion && brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
       return Brain.writeBrainSSE(res, cachedPlain);
     }
     const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student));
