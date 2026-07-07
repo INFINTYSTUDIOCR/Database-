@@ -1,27 +1,63 @@
 /**
- * Motor visual Jill  canon SVG + GIF opcional, mismo fondo en todos.
+ * Motor visual Jill — canon SVG inline + GIF opcional, mismo fondo en todos.
  */
 (function (global) {
   'use strict';
 
   var _cfg = null;
   var _load = null;
+  var _svgCache = {};
+  var CACHE_VER = '20260707i';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
     if (!path) return '';
-    if (/^https?:\/\//i.test(path) || path.charAt(0) === '/') return path;
-    return '/' + path.replace(/^\//, '');
+    if (/^https?:\/\//i.test(path)) return path;
+    if (path.charAt(0) === '/') return path;
+    return path.replace(/^\//, '');
+  }
+
+  function preloadSvg(path) {
+    if (!path) return Promise.resolve('');
+    var rel = assetUrl(path);
+    var abs = rel.charAt(0) === '/' ? rel : '/' + rel;
+    if (_svgCache[rel]) return Promise.resolve(_svgCache[rel]);
+    if (_svgCache[abs]) return Promise.resolve(_svgCache[abs]);
+
+    function tryFetch(url) {
+      return fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + CACHE_VER)
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .catch(function () { return ''; });
+    }
+
+    return tryFetch(rel).then(function (txt) {
+      if (txt && txt.indexOf('<svg') >= 0) {
+        _svgCache[rel] = txt;
+        _svgCache[abs] = txt;
+        return txt;
+      }
+      return tryFetch(abs).then(function (txt2) {
+        if (txt2 && txt2.indexOf('<svg') >= 0) {
+          _svgCache[rel] = txt2;
+          _svgCache[abs] = txt2;
+        }
+        return txt2 || '';
+      });
+    });
   }
 
   function loadConfig() {
-    if (_cfg) return Promise.resolve(_cfg);
+    if (_cfg) {
+      var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+      return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
+    }
     if (_load) return _load;
-    _load = fetch('config/jill-canon-visual.json?v=20260707h')
+    _load = fetch('config/jill-canon-visual.json?v=' + CACHE_VER)
       .then(function (r) { return r.ok ? r.json() : {}; })
       .then(function (data) {
         _cfg = data || {};
-        return _cfg;
+        var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+        return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
       })
       .catch(function () {
         _cfg = { background: DEFAULT_BG, clips: [] };
@@ -43,24 +79,47 @@
     var bg = (_cfg && _cfg.background) || DEFAULT_BG;
     var img = _cfg && _cfg.backgroundImage;
     if (img) {
-      return 'background-color:' + bg + ';background-image:url(' + assetUrl(img) + '?v=20260707h);background-size:cover;background-position:center;';
+      return 'background-color:' + bg + ';background-image:url(' + assetUrl(img) + '?v=' + CACHE_VER + ');background-size:cover;background-position:center;';
     }
     return 'background-color:' + bg + ';';
+  }
+
+  function inlineSvgMarkup(svgText, alt) {
+    var inner = String(svgText || '').replace(/<\?xml[\s\S]*?\?>/gi, '').trim();
+    if (!inner || inner.indexOf('<svg') < 0) return '';
+    inner = inner.replace(/<svg\b/i, '<svg style="width:100%;height:100%;display:block" role="img" aria-label="' + esc(alt) + '"');
+    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:8px 12px 8px 48px;box-sizing:border-box;pointer-events:none;">'
+      + inner
+      + '</div>';
   }
 
   function render(columnId, fallbackRef) {
     var clip = clipForColumn(columnId, fallbackRef);
     if (!clip) return '';
-    var cache = '?v=20260707h';
     var isGif = !!clip.gif;
-    var media = assetUrl(isGif ? clip.gif : clip.svg) + cache;
     var alt = clip.title || (fallbackRef && fallbackRef.title) || 'Canon Jill';
+    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);';
+
     if (isGif) {
-      return '<div class="jill-canon-frame" style="margin-top:4px;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);' + frameStyle() + '">'
-        + '<img src="' + media + '" alt="' + esc(alt) + '" style="display:block;width:100%;max-width:320px;height:auto;margin:0 auto;" loading="eager" decoding="async">'
+      var gifSrc = assetUrl(clip.gif) + '?v=' + CACHE_VER;
+      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
+        + '<img src="' + gifSrc + '" alt="' + esc(alt) + '" style="display:block;width:100%;height:100%;object-fit:contain;" loading="eager" decoding="async">'
         + '</div>';
     }
-    return '<div class="jill-canon-frame" style="position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);aspect-ratio:320/180;' + frameStyle() + '">'
+
+    var svgPath = clip.svg || (fallbackRef && fallbackRef.path);
+    var rel = assetUrl(svgPath);
+    var cached = _svgCache[rel] || _svgCache['/' + rel.replace(/^\//, '')];
+    var inline = cached ? inlineSvgMarkup(cached, alt) : '';
+
+    if (inline) {
+      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
+        + inline
+        + '</div>';
+    }
+
+    var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
+    return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
       + '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:8px 12px 8px 48px;box-sizing:border-box;" loading="eager" decoding="async">'
       + '</div>';
   }

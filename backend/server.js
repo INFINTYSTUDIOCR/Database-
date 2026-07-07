@@ -2663,6 +2663,35 @@ const INSTITUTIONAL_BRAIN_RULE = `INSTITUTIONAL BRAIN (always true):
 - PROACTIVE: weave relevant canon doctrine (chunking, linkers, structure, 0/0/0) into each teaching turn when natural — do not wait for the student to ask.
 - If the student does not understand: adapt delivery (shorter, example, analogy, slower pace)—never break Nexus Method.`;
 
+const JILL_INSTITUTIONAL_BRAIN_RULE = `INSTITUTIONAL BRAIN (Jill / Foundations MSI®):
+- ONE shared Super Brain — same data as Alice/Nexora; YOUR delivery is Mecánica Estructural Infinity® (P|M|V|C), método moneda, chunks de UNA oración estructurada.
+- PROACTIVE: weave MSI® doctrine (ranuras, fórmulas PR/PS/PC/PRP/PPC/MOD, método moneda) — NEVER proactive linker chains or Idea+Linker+Idea.
+- Linkers avanzados (however, furthermore, on top of that, as a result…) = territorio Alice. Redirigí en una frase si preguntan.
+- If the student does not understand: adapt delivery — never break MSI® method.`;
+
+function jillReplyHasAliceLinkers(text) {
+  const raw = String(text || '');
+  const t = raw.toLowerCase();
+  if (/idea\s*\+\s*linker\s*\+\s*idea/i.test(raw)) return true;
+  if (/\b(on top of that|furthermore|as a result|even though|in other words|therefore|besides|so far)\b/i.test(raw)) {
+    if (/alice|intermediate|profundiz|territorio de alice/i.test(t)) return false;
+    return true;
+  }
+  if (/\b(linkers?|conectores nexus)\b/i.test(raw) && !/alice|profundiz/i.test(t)) return true;
+  if (/\bhowever\b/i.test(raw) && /\b(practic[aá]|us[aá]|conect|linker|cadena)\b/i.test(t)) return true;
+  return false;
+}
+
+function filterJillSuperBrainContext(ctx) {
+  return String(ctx || '').split('\n').filter((line) => {
+    const l = line.toLowerCase();
+    if (/idea\s*\+\s*linker/i.test(line)) return false;
+    if (/\blinkers?\b/.test(l) && /nexus|conector|however|furthermore|on top of that/i.test(l)) return false;
+    if (/mínimo.*linker|3 linkers|tres conectores/i.test(l)) return false;
+    return true;
+  }).join('\n').trim();
+}
+
 function detectStudySignals(text) {
   const t = String(text || '').toLowerCase();
   const signals = {};
@@ -3109,7 +3138,7 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v6-guion-flex';
+const JILL_BRAIN_VER = 'v7-msi-scope';
 const ALICE_BRAIN_VER = 'v6-coach-flex';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
@@ -3148,7 +3177,7 @@ ALCANCE JILL (Foundations) — NO ES ALICE:
 const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
 ${TrainerModel.JOHNNY_TRAINER_RULE}
 ${JILL_FOUNDATIONS_SCOPE}
-${INSTITUTIONAL_BRAIN_RULE}
+${JILL_INSTITUTIONAL_BRAIN_RULE}
 Compartís la misma base que Alice, Alice Companion y Nexora (Super Brain); tu rol es Foundations y cómo lo explicás, no un subconjunto de datos.
 
 IDENTIDAD:
@@ -3302,7 +3331,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
       const openExtra = brainScopeExtra(student, req, `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
-      if (openBrain.hit && !calibrationNote.trim()) {
+      if (openBrain.hit && !calibrationNote.trim() && !jillReplyHasAliceLinkers(openBrain.reply)) {
         try {
           const parsed = parseJillResponse(openBrain.reply);
           return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', brainCache: true }));
@@ -3336,7 +3365,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       let overall_score = scoreAliceSessionFromMetrics(metrics);
       if (userTurns < 2) overall_score = Math.max(48, overall_score - 12);
       const bundleTitle = jillBundle?.title || 'Foundations';
-      const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'linkers, chunks, estructura';
+      const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'estructura MSI, chunks, tiempos verbales';
       const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
       const structPrereq = jillStructurePrerequisitesMet(student);
 
@@ -3418,7 +3447,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
-    if (brain.hit) {
+    if (brain.hit && !jillReplyHasAliceLinkers(brain.reply)) {
       res.set('X-Brain-LLM', 'HIT');
       try {
         const parsed = parseJillResponse(brain.reply);
@@ -3434,7 +3463,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const msgs = [...prevMsgs, { role: 'user', content: message }];
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceForJill(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3560,7 +3589,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
-    if (brain.hit) {
+    if (brain.hit && !jillReplyHasAliceLinkers(brain.reply)) {
       return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
     const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
@@ -3570,7 +3599,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.');
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceForJillFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -3598,6 +3627,32 @@ async function tutorKnowledgeSliceFast(message) {
   try {
     return await Promise.race([
       tutorKnowledgeSlice(message),
+      new Promise((resolve) => setTimeout(() => resolve(''), 350))
+    ]);
+  } catch {
+    return '';
+  }
+}
+
+async function tutorKnowledgeSliceForJill(message) {
+  if (!SuperBrain.isSuperBrainEnabled()) return '';
+  try {
+    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
+    const filtered = filterJillSuperBrainContext(ctx);
+    if (!filtered) return '';
+    return `\n\nINSTITUTIONAL KNOWLEDGE (Super Brain — Jill MSI® filter):
+PROACTIVE RULE: MSI® only — P|M|V|C, método moneda, chunks estructurales. NO linker chains / Idea+Linker+Idea.
+${filtered}`;
+  } catch {
+    return '';
+  }
+}
+
+async function tutorKnowledgeSliceForJillFast(message) {
+  if (!SuperBrain.isSuperBrainEnabled()) return '';
+  try {
+    return await Promise.race([
+      tutorKnowledgeSliceForJill(message),
       new Promise((resolve) => setTimeout(() => resolve(''), 350))
     ]);
   } catch {

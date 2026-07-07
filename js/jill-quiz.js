@@ -244,6 +244,11 @@
     return pickNemesisQuestions(student, activeBundle, count);
   }
 
+  function pickCoinQuestions(count) {
+    count = count || 3;
+    return shuffle(COIN_QUESTIONS).slice(0, count);
+  }
+
   function updateNemesisState(student, kpiResults, score) {
     if (!student) return;
     if (!student.nemesisState) student.nemesisState = { domain: [], reinforcement: [] };
