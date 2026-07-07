@@ -35,19 +35,18 @@
     { s: 'a[href="#contact"]', en: 'Contact', es: 'Contacto' },
     { s: '.nav-cta', en: 'Book diagnostic', es: 'Agenda diagnóstico' },
     { s: 'a[href="index.html#ecosystem"]', en: 'What You Get', es: '¿Qué Recibes?' },
-    { s: 'a[href="index.html#contact"].nav-cta', en: 'Book diagnostic', es: 'Agenda diagnóstico' },
-    { s: 'a[href="#contact"].nav-cta', en: 'Book diagnostic', es: 'Agenda diagnóstico' }
+    { s: 'a.nav-cta', en: 'Try free', es: 'Probar gratis' }
   ];
 
   var INDEX = [
     { s: '.hero-mirror-hope', en: 'For everyday people with a concrete problem: you understand English but can\'t speak when it matters — interview, client call, boss in a meeting.', es: 'Para gente común con un problema concreto: entendés inglés pero no podés hablarlo cuando hay presión — entrevista, llamada con un cliente, jefe en reunión.' },
-    { s: '.hero-tagline', en: 'Private video classes · from ₡12,500/month · Costa Rica and Latin America', es: 'Clases privadas por videollamada · desde ₡12.500/mes · Costa Rica y toda Latinoamérica' },
+    { s: '.hero-tagline', html: true, en: 'Coach-led program <strong>₡67,500/mo</strong> (Foundations or ORT) · <a href="try-alice.html" style="color:inherit;">free Companion</a> on the web · Costa Rica & LATAM', es: 'Programa con profe <strong>₡67.500/mes</strong> (Foundations u ORT) · <a href="try-alice.html" style="color:inherit;">Companion gratis</a> en la web · Costa Rica y LATAM' },
     { s: '.hero-headline', en: 'Stop going blank when it matters most.', es: 'Dejá de quedarte en blanco cuando más importa.' },
     { s: '.hero-pills .pill:nth-child(1)', en: '12 h/month with your coach', es: '12 h al mes con tu profe' },
     { s: '.hero-pills .pill:nth-child(2)', en: 'AI practice at night', es: 'Práctica con IA de noche' },
     { s: '.hero-pills .pill:nth-child(3)', en: 'We track your progress', es: 'Te decimos cómo vas' },
-    { s: '.hero-ctas .btn-primary', en: 'Is this for me?', es: '¿Es para mí?' },
-    { s: '.hero-ctas a[href="try-alice.html"]', html: true, en: '<i class="ti ti-messages"></i>Try Alice Companion', es: '<i class="ti ti-messages"></i>Probar Alice Companion' },
+    { s: '.hero-ctas .btn-companion', html: true, en: '<i class="ti ti-messages"></i>Try Alice Companion free', es: '<i class="ti ti-messages"></i>Probar Alice Companion gratis' },
+    { s: '.hero-ctas .btn-secondary', html: true, en: '<i class="ti ti-brand-whatsapp"></i>Free chat — no commitment', es: '<i class="ti ti-brand-whatsapp"></i>Charla gratis — sin compromiso' },
     { s: '.hero-photo-tag', html: true, en: '<i class="ti ti-user-heart"></i> Private 1-on-1', es: '<i class="ti ti-user-heart"></i> Privado 1 a 1' },
     { s: '.stats-bar .stat-item:nth-child(1) .stat-label', en: 'h/month private trainer', es: 'h/mes trainer privado' },
     { s: '.stats-bar .stat-item:nth-child(2) .stat-label', en: 'AI support', es: 'IA de apoyo' },
