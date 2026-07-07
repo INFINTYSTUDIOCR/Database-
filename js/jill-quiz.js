@@ -5,8 +5,8 @@
 (function (global) {
   'use strict';
 
-  var BRAND = 'Jill Pro';
-  var MODE_LABEL = 'Nemesis Quest';
+  var BRAND = 'Jill Pulse';
+  var MODE_LABEL = 'Foundations Quiz';
 
   var PULSE_OPTS = [
     { bg: '#5B21B6', shape: '⬡' },
@@ -48,6 +48,8 @@
     { kpi: 'k3', topic: 'tense', q: 'I could have done → fórmula', options: ['P + M + V', 'P + M + HAVE + PP', 'P + HAVE + PP', 'P + M + HAVE + BEEN + ing'], answer: 1, explain: 'Modal perfecto.' }
   ];
 
+  var FOUNDATIONS_DRILL = COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(TENSE_SIGLA_QUESTIONS);
+
   var CORE = [
     { kpi: 'k10', q: 'En el Método Nexus, un "chunk" es…', options: ['Una palabra suelta', 'Un bloque listo para usar', 'Solo gramática', 'Traducción literal'], answer: 1, explain: 'Los chunks son piezas que ensamblás sin traducir palabra por palabra.' },
     { kpi: 'k8', q: '¿Cuál conector muestra contraste?', options: ['on top of that', 'however', 'first of all', 'as well as'], answer: 1, explain: '"However" marca oposición entre ideas.' },
@@ -57,7 +59,7 @@
   ];
 
   var BY_BUNDLE = {
-    'F0-matrix': TENSE_SIGLA_QUESTIONS.concat(COIN_QUESTIONS.slice(0, 2)),
+    'F0-matrix': TENSE_SIGLA_QUESTIONS.concat(COIN_QUESTIONS.slice(0, 1)).concat(PREP_QUESTIONS.slice(0, 1)),
     'F1-msi': [
       { kpi: 'k3', q: 'Regla MSI®: después de HAVE va…', options: ['Infinitivo (-ing)', 'Participio', 'Modal solo', 'Artículo'], answer: 1, explain: 'HAVE → participio (been, worked…).' },
       { kpi: 'k10', q: 'Con TO BE en la cadena, el verbo principal suele ir en…', options: ['-ed', '-ing', 'infinitivo', 'sin verbo'], answer: 1, explain: 'TO BE → ING: I have been working.' },
@@ -121,6 +123,7 @@
 
   function allTaggedQuestions() {
     var out = CORE.slice();
+    FOUNDATIONS_DRILL.forEach(function (q) { out.push(q); });
     Object.keys(BY_BUNDLE).forEach(function (bid) {
       (BY_BUNDLE[bid] || []).forEach(function (q) {
         out.push(Object.assign({ bundleId: bid }, q));
@@ -182,7 +185,7 @@
   function renderNemesisTopics(student) {
     var kpis = collectNemesisKpis(student).slice(0, 6);
     if (!kpis.length) {
-      return '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Sin fallos recientes — Jill Pro usará tu módulo activo</div>';
+      return '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Sin fallos recientes — Pulse mezcla tu módulo + estructura + KPIs</div>';
     }
     return '<div style="margin-bottom:10px;">'
       + '<div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">💀 TUS NEMESIS (temas a vencer)</div>'
@@ -220,6 +223,8 @@
         if (!nemesisKpis.length || nemesisKpis.indexOf(q.kpi) >= 0) pushQ(Object.assign({ bundleId: bid }, q));
       });
     }
+
+    shuffle(FOUNDATIONS_DRILL).slice(0, 2).forEach(function (q) { pushQ(q); });
 
     if (pool.length < count) {
       shuffle(allTaggedQuestions()).forEach(pushQ);
@@ -319,44 +324,11 @@
     return { xp: xp, unlocked: unlocked };
   }
 
-  function pickCoinQuestions(student, count) {
-    count = count || QUESTIONS_PER_ROUND;
-    var pool = shuffle(COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(TENSE_SIGLA_QUESTIONS));
-    var nemesis = collectNemesisKpis(student);
-    if (nemesis.indexOf('k3') >= 0 || nemesis.indexOf('k4') >= 0) {
-      pool = shuffle(COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS));
-    }
-    return pool.slice(0, count);
-  }
-
-  function mountPulse(rootEl, student, activeBundle, onDone, opts) {
-    opts = opts || {};
-    var modeLabel = opts.modeLabel || MODE_LABEL;
-    var brandLine = opts.brandLine || (BRAND + ' · ' + modeLabel);
-    var quiz = opts.quiz || pickNemesisQuestions(student, activeBundle);
-    var nemesisKpis = opts.nemesisKpis || collectNemesisKpis(student);
-    mountInternal(rootEl, student, activeBundle, onDone, { quiz: quiz, nemesisKpis: nemesisKpis, brandLine: brandLine, pulseMode: !!opts.pulseMode });
-  }
-
-  function mountCoin(rootEl, student, activeBundle, onDone) {
-    mountPulse(rootEl, student, activeBundle, onDone, {
-      quiz: pickCoinQuestions(student),
-      modeLabel: 'Pulse · Método Moneda',
-      brandLine: 'Jill Pulse · Moneda + Preposiciones + Artículos',
-      pulseMode: true
-    });
-  }
-
   function mount(rootEl, student, activeBundle, onDone) {
-    mountPulse(rootEl, student, activeBundle, onDone, {});
-  }
-
-  function mountInternal(rootEl, student, activeBundle, onDone, cfg) {
-    cfg = cfg || {};
     if (!rootEl) return;
-    var nemesisKpis = cfg.nemesisKpis || collectNemesisKpis(student);
-    var quiz = cfg.quiz || pickNemesisQuestions(student, activeBundle);
-    var brandLine = cfg.brandLine || (BRAND + ' · ' + MODE_LABEL);
+    var nemesisKpis = collectNemesisKpis(student);
+    var quiz = pickNemesisQuestions(student, activeBundle);
+    var brandLine = BRAND + ' · ' + MODE_LABEL + ' — estructura, tiempos, moneda, prep, vocab';
     if (!quiz.length) {
       rootEl.innerHTML = '<div style="text-align:center;padding:1rem;color:#fde68a;">Sin preguntas — practicá con Jill y volvé.</div>';
       return;
@@ -373,8 +345,7 @@
       quiz: quiz,
       bundleId: bundleIdFromStudent(student, activeBundle),
       nemesisKpis: nemesisKpis,
-      kpiResults: [],
-      pulseMode: !!cfg.pulseMode
+      kpiResults: []
     };
 
     function clearTimer() {
@@ -385,10 +356,10 @@
       var q = state.quiz[state.idx];
       var pct = Math.round((state.timeLeft / TIMER_SEC) * 100);
       var timerColor = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
-      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Nemesis · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
+      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Pulse · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
       return '<div id="jill-kahoot-inner" style="animation:jillKahootIn .35s ease;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;font-weight:800;color:#e9d5ff;">'
-        + '<span>💀 ' + MODE_LABEL + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
+        + '<span>⚡ ' + MODE_LABEL + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
         + '<span>🔥 ' + state.streak + '</span>'
         + '<span>✓ ' + state.correct + '</span>'
         + '</div>'
@@ -440,10 +411,13 @@
         bundleId: state.bundleId,
         kpiResults: state.kpiResults,
         nemesisKpis: state.nemesisKpis,
-        nemesisMode: !state.pulseMode
+        nemesisMode: true
       });
-      if (state.pulseMode && student && score >= 70 && typeof JillMatrix !== 'undefined') {
-        JillMatrix.ensureMatrix(student).coinQuizPassed = true;
+      if (student && score >= 70) {
+        if (!student.jillPulse) student.jillPulse = {};
+        student.jillPulse.lastScore = score;
+        student.jillPulse.lastDate = new Date().toISOString();
+        if (score >= 80) student.jillPulse.passed = true;
       }
       if (student && student.id && typeof dbSet === 'function') {
         dbSet('infinity_students', student.id, student).catch(function () {});
@@ -583,9 +557,8 @@
     collectNemesisKpis: collectNemesisKpis,
     renderNemesisTopics: renderNemesisTopics,
     mount: mount,
-    mountCoin: mountCoin,
     recordQuiz: recordQuiz,
     QUESTIONS_PER_ROUND: QUESTIONS_PER_ROUND,
-    COIN_QUESTIONS: COIN_QUESTIONS
+    FOUNDATIONS_DRILL: FOUNDATIONS_DRILL
   };
 })(typeof window !== 'undefined' ? window : this);

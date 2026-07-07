@@ -32,10 +32,10 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-foundations.js?v=20260707b"></script>
-<script src="js/jill-matrix.js?v=20260707b"></script>
+<script src="js/jill-matrix.js?v=20260707c"></script>
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260706"></script>
-<script src="js/jill-quiz.js?v=20260707b"></script>
+<script src="js/jill-quiz.js?v=20260707c"></script>
 <script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -3909,7 +3909,6 @@ var _jillState = {
   activeBundle: null,
   evaluation: null,
   quizActive: false,
-  quizMode: 'nemesis',
   lastStructureOk: false,
   drillTurnStartedAt: null
 };
@@ -4032,34 +4031,15 @@ function renderJillBundleStrip(){
 function renderJillChips(){
   var s = CURRENT_STUDENT;
   var jillOn = studentJillOn(s);
-  var proChip = studentJillProOn(s)
-    ? '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">💀 Jill Pro · Nemesis</button>'
-    : '';
-  if(!jillOn) return proChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+proChip+'</div>' : '';
+  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">⚡ Pulse Quiz</button>';
+  if(!jillOn) return pulseChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+pulseChip+'</div>' : '';
   return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
-    + proChip
+    + pulseChip
     +'</div>';
-}
-
-function jillDetectStructureOk(reply, contentType){
-  var t = String(reply || '').toLowerCase();
-  if (/\b(incorrect|wrong|no es|falta|error|ranura equivocada|try again|intentá de nuevo)\b/.test(t)) return false;
-  if (contentType === 'exercise' || contentType === 'whiteboard') return true;
-  if (/\b(bien|correct|exacto|perfect|dominaste|validado|good|ranura|slot|✓)\b/.test(t)) return true;
-  return false;
-}
-
-function jillOpenCoinQuiz(){
-  var s = CURRENT_STUDENT;
-  if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
-  _jillState.quizActive = true;
-  _jillState.quizMode = 'coin';
-  jillStopAll();
-  renderJill();
 }
 
 function jillSendChip(text){
@@ -4096,10 +4076,18 @@ function jillMatrixStartAnecdote(){
   }
 }
 
+function jillDetectStructureOk(reply, contentType){
+  var t = String(reply || '').toLowerCase();
+  if (/\b(incorrect|wrong|no es|falta|error|ranura equivocada|try again|intentá de nuevo)\b/.test(t)) return false;
+  if (contentType === 'exercise' || contentType === 'whiteboard') return true;
+  if (/\b(bien|correct|exacto|perfect|dominaste|validado|good|ranura|slot|✓)\b/.test(t)) return true;
+  return false;
+}
+
 function jillOpenKahootQuiz(){
   var s = CURRENT_STUDENT;
-  if(!studentJillProOn(s)){
-    showToast('Jill Pro no está activo — pedí a tu trainer.','err');
+  if(!studentJillTabOn(s)){
+    showToast('Jill no está activa — pedí a tu trainer.','err');
     return;
   }
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
@@ -4110,7 +4098,6 @@ function jillOpenKahootQuiz(){
 
 function jillCloseKahootQuiz(refresh){
   _jillState.quizActive = false;
-  _jillState.quizMode = 'nemesis';
   if(refresh) renderJill();
   else {
     var zone = document.getElementById('jill-quiz-zone');
@@ -4130,7 +4117,7 @@ function renderJill(){
     _jillState.history = [];
     _jillState.evaluation = null;
   }
-  if(_jillState.quizActive && s && !studentJillProOn(s)){
+  if(_jillState.quizActive && s && !studentJillTabOn(s)){
     _jillState.quizActive = false;
   }
   if(_jillState.quizActive){
@@ -4141,8 +4128,8 @@ function renderJill(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PRO</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Nemesis Quest · Kahoot contra tus fallos</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PULSE</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Quiz interactivo — estructura, tiempos, moneda, prep, vocab</div>'
       +'</div>'
       +'<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
       +'</div>'
@@ -4151,10 +4138,7 @@ function renderJill(){
       +'</div>';
     var zone = document.getElementById('jill-quiz-zone');
     var s = CURRENT_STUDENT;
-    if(zone && typeof JillQuiz !== 'undefined'){
-      if(_jillState.quizMode === 'coin' && JillQuiz.mountCoin) JillQuiz.mountCoin(zone, s, jillActiveBundle());
-      else JillQuiz.mount(zone, s, jillActiveBundle());
-    }
+    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, jillActiveBundle());
     return;
   }
   root.removeAttribute('data-jill-pro');

@@ -17,7 +17,7 @@
     past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
     progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
-    combined: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'PPC + moneda' }
+    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' }
   };
 
   var COLUMNS = [
@@ -41,7 +41,7 @@
         responseSamples: [],
         avgResponseMs: null,
         failStreak: {},
-        coinQuizPassed: false,
+        pulseQuizPassed: false,
         drillStartedAt: null
       };
     }
@@ -246,7 +246,6 @@
     var anecdoteBtn = m.anecdoteUnlocked
       ? '<button type="button" class="jill-chip" onclick="jillMatrixStartAnecdote()" style="border-color:#F5A623;color:#FCD34D;">📓 Anécdota 15 min</button>'
       : '';
-    var coinBtn = '<button type="button" class="jill-chip" onclick="jillOpenCoinQuiz()" style="border-color:#c4b5fd;color:#e9d5ff;">🪙 Pulse · Moneda</button>';
     var avgLbl = m.avgResponseMs != null
       ? '<span style="color:' + (gate.timeOk ? '#86EFAC' : '#FCD34D') + ';">⏱ ' + m.avgResponseMs + 'ms</span> meta &lt;' + TARGET_RESPONSE_MS + 'ms'
       : '⏱ KPI tiempo: respondé en &lt;12s';
@@ -261,7 +260,7 @@
       + renderCanonThumb(col.id)
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
       + '<button type="button" class="jill-chip" onclick="jillMatrixMark(true)" style="' + markStyle + '" ' + (markDisabled ? 'disabled' : '') + '>✓ Jill validó</button>'
-      + coinBtn + anecdoteBtn
+      + anecdoteBtn
       + '</div>'
       + (markDisabled ? '<div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:6px;">Practicá → Jill corrige → recién ahí marcás dominio.</div>' : '')
       + (m.anecdoteActive ? '<div style="font-size:11px;color:#FCD34D;margin-top:8px;">📓 Cuaderno 15 min → leé o pegá. Jill: estructura + coherencia + pronunciación.</div>' : '')
