@@ -1,8 +1,8 @@
 {
   "jill": {
-    "voiceId": "NoOVOzCQFLOvtsMoNcdT",
-    "label": "Jill — Foundations Tutor",
-    "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=NoOVOzCQFLOvtsMoNcdT"
+    "voiceId": "r1KmysJdVYZjJCm4mL3b",
+    "label": "Jill — Foundations Tutor (same voice as Alice)",
+    "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=r1KmysJdVYZjJCm4mL3b"
   },
   "alice": {
     "voiceId": "r1KmysJdVYZjJCm4mL3b",
@@ -22,7 +22,7 @@
     "cs_client": {
       "voiceId": "NoOVOzCQFLOvtsMoNcdT",
       "label": "Maria Santos",
-      "notes": "Uses Jill voice from your ElevenLabs account, or set NEXORA_DEMO_FEMALE_VOICE_ID"
+      "notes": "Nexora CS client voice — separate from Jill tutor"
     }
   }
 }

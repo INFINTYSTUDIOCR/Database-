@@ -628,7 +628,8 @@ const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
 // Alice tutor + Alice Companion — same ElevenLabs voice (do not diverge).
 const ALICE_VOICE_ID = 'r1KmysJdVYZjJCm4mL3b';
 const SUPER_BRAIN_VOICE_ID = process.env.SUPER_BRAIN_VOICE_ID || 'Gubgw9l4dtIoQA9YZHgx';
-const JILL_VOICE_ID = process.env.JILL_VOICE_ID || 'NoOVOzCQFLOvtsMoNcdT';
+// Jill uses the same ElevenLabs voice as Alice (Foundations delivery differs, not the voice).
+const JILL_VOICE_ID = process.env.JILL_VOICE_ID || ALICE_VOICE_ID;
 const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
 
 function loadVoicesConfig() {
@@ -655,7 +656,7 @@ function getDemoVoiceProfiles() {
   const csId = csFromEnv || csFromFile;
   return {
     jill: {
-      voiceId: JILL_VOICE_ID,
+      voiceId: ALICE_VOICE_ID,
       label: cfg.jill?.label || 'Jill',
       gender: 'female',
       lang: 'es-CR',
@@ -3878,7 +3879,7 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null);
     if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: JILL_VOICE_ID, label: 'Jill' });
+    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Jill' });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });

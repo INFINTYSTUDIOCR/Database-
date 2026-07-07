@@ -31,7 +31,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260707i"></script>
+<script src="js/jill-canon-visual.js?v=20260707j"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260707g"></script>
 <script src="js/trainer-drill-engine.js?v=20260707f"></script>
@@ -2732,12 +2732,18 @@ function warmInfinityApi(){
   fetch(INFINITY_API+'/').catch(function(){});
   infinityFetch('/health',{headers:authHeaders()}).catch(function(){});
   aliceWarmApi();
+  jillWarmApi();
   nexoraWarmApi();
 }
 
 function aliceWarmApi(){
   if(!getAuthToken()) return;
   aliceFetchTtsBlob('Hi').catch(function(){});
+}
+
+function jillWarmApi(){
+  if(!getAuthToken()) return;
+  jillFetchTtsBlob('Hola, soy Jill.').catch(function(){});
 }
 
 function nexoraWarmApi(){
@@ -3690,19 +3696,31 @@ var _jillTtsRetry = {};
 function jillShowTtsError(status){
   var st = document.getElementById('jill-status');
   if(!st) return;
-  if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
-  else if(status >= 400) st.textContent = 'Voz no disponible — reintentá en unos segundos.';
+  if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
+  else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Jill.';
+  else if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
+  else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
+}
+
+function jillDetectTtsLang(text){
+  var t = String(text || '');
+  if(/[áéíóúñ¿¡]/i.test(t)) return 'es-CR';
+  var es = (t.match(/\b(el|la|los|las|que|con|para|por|hoy|estás|decime|practic|entonces|también|qué|cómo|sí|hola|gracias|listo|entiendo|ejemplo|oración|verbo|estructura|seguimos|arrancamos|dominar|retomemos)\b/gi) || []).length;
+  var en = (t.match(/\b(the|and|you|with|today|practice|sentence|verb|structure|hello|ready|example|because|what|how|am|are|is|work|worked)\b/gi) || []).length;
+  if(en > es + 1) return 'en-US';
+  return 'es-CR';
 }
 
 function jillPlayBrowserTts(text, onEnded, onError){
   if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
   try{ window.speechSynthesis.cancel(); }catch(e){}
   var u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = 0.92;
+  u.lang = jillDetectTtsLang(text);
+  u.rate = 0.94;
   var voices = speechSynthesis.getVoices() || [];
-  var v = voices.find(function(vo){ return vo.lang === 'en-US'; })
-    || voices.find(function(vo){ return (vo.lang || '').indexOf('en') === 0; });
+  var pref = u.lang.slice(0, 2);
+  var v = voices.find(function(vo){ return vo.lang === u.lang; })
+    || voices.find(function(vo){ return (vo.lang || '').indexOf(pref) === 0; });
   if(v) u.voice = v;
   u.onend = function(){ if(onEnded) onEnded(); };
   u.onerror = function(){ if(onError) onError(); };
@@ -4316,6 +4334,7 @@ function startJillSessionClick(){
     return;
   }
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+  if(typeof jillWarmApi === 'function') jillWarmApi();
   var boot = (typeof JillFoundations !== 'undefined') ? JillFoundations.loadBundles() : Promise.resolve();
   boot.then(function(){
     if(s && typeof JillFoundations !== 'undefined'){

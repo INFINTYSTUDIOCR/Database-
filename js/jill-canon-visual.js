@@ -1,5 +1,5 @@
 /**
- * Motor visual Jill ó canon SVG inline + GIF opcional, mismo fondo en todos.
+ * Motor visual Jill ù canon SVG inline + GIF opcional, mismo fondo en todos.
  */
 (function (global) {
   'use strict';
@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260707i';
+  var CACHE_VER = '20260707j';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
@@ -79,7 +79,7 @@
     var bg = (_cfg && _cfg.background) || DEFAULT_BG;
     var img = _cfg && _cfg.backgroundImage;
     if (img) {
-      return 'background-color:' + bg + ';background-image:url(' + assetUrl(img) + '?v=' + CACHE_VER + ');background-size:cover;background-position:center;';
+      return 'background-color:' + bg + ';background-image:url(' + assetUrl(img) + '?v=' + CACHE_VER + ');background-size:28px 28px;background-repeat:no-repeat;background-position:6px 6px;';
     }
     return 'background-color:' + bg + ';';
   }
@@ -88,7 +88,7 @@
     var inner = String(svgText || '').replace(/<\?xml[\s\S]*?\?>/gi, '').trim();
     if (!inner || inner.indexOf('<svg') < 0) return '';
     inner = inner.replace(/<svg\b/i, '<svg style="width:100%;height:100%;display:block" role="img" aria-label="' + esc(alt) + '"');
-    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:8px 12px 8px 48px;box-sizing:border-box;pointer-events:none;">'
+    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px 8px;box-sizing:border-box;pointer-events:none;">'
       + inner
       + '</div>';
   }
@@ -120,7 +120,7 @@
 
     var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
     return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
-      + '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:8px 12px 8px 48px;box-sizing:border-box;" loading="eager" decoding="async">'
+      + '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px 8px;box-sizing:border-box;" loading="eager" decoding="async">'
       + '</div>';
   }
 

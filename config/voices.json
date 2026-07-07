@@ -1,8 +1,8 @@
 {
   "jill": {
-    "voiceId": "NoOVOzCQFLOvtsMoNcdT",
-    "label": "Jill — Foundations Tutor",
-    "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=NoOVOzCQFLOvtsMoNcdT"
+    "voiceId": "r1KmysJdVYZjJCm4mL3b",
+    "label": "Jill — Foundations Tutor (same voice as Alice)",
+    "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=r1KmysJdVYZjJCm4mL3b"
   },
   "alice": {
     "voiceId": "r1KmysJdVYZjJCm4mL3b",

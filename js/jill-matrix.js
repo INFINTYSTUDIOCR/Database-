@@ -261,7 +261,7 @@
     if (typeof JillCanonVisual !== 'undefined') {
       return JillCanonVisual.render(colId, ref);
     }
-    var src = canonAssetUrl(ref.path) + '?v=20260707g';
+    var src = canonAssetUrl(ref.path) + '?v=20260707j';
     return '<div style="margin-top:4px;text-align:center;">'
       + '<img src="' + src + '" alt="' + escHtml(ref.title) + '" style="max-width:100%;width:min(100%,320px);height:auto;border-radius:8px;border:1px solid rgba(61,220,151,0.35);display:block;margin:0 auto;" loading="eager" decoding="async">'
       + '</div>';
