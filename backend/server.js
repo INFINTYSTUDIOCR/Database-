@@ -3448,15 +3448,17 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
-    if (brain.hit && !jillReplyHasAliceLinkers(brain.reply)) {
-      res.set('X-Brain-LLM', 'HIT');
-      try {
-        const parsed = parseJillResponse(brain.reply);
-        const plain = parsed.reply || brain.reply;
-        return res.json({ ...parsed, reply: plain, brainCache: true });
-      } catch (e) {
-        const plain = String(brain.reply || '').replace(/^\s*\{\s*"reply"\s*:\s*"?/, '').replace(/"?\s*\}\s*$/, '').trim();
-        return res.json({ reply: plain, contentType: 'text', brainCache: true });
+    if (brain.hit) {
+      const cachedPlain = plainBrainReply(brain.reply);
+      if (cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
+        res.set('X-Brain-LLM', 'HIT');
+        try {
+          const parsed = parseJillResponse(brain.reply);
+          const plain = parsed.reply || cachedPlain;
+          return res.json({ ...parsed, reply: plain, brainCache: true });
+        } catch (e) {
+          return res.json({ reply: cachedPlain, contentType: 'text', brainCache: true });
+        }
       }
     }
 
@@ -3506,7 +3508,24 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    res.write(`data: ${JSON.stringify({ error: err?.error?.message || 'API error' })}\n\n`);
+    const errMsg = err?.error?.message || 'API error';
+    if (brainMeta && system && messages) {
+      try {
+        const resp = await claudeCall({ model: model || 'claude-haiku-4-5-20251001', max_tokens: max_tokens || 400, system, messages });
+        const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+        if (text.length > 8) {
+          res.write(`data: ${JSON.stringify({ t: text })}\n\n`);
+          res.write('data: [DONE]\n\n');
+          if (brainMeta.hash && text.length > 40) {
+            Brain.brainSetLLM(brainMeta.hash, brainMeta.tutor, brainMeta.intent, brainMeta.message, text, brainMeta.extra).catch(() => {});
+          }
+          return res.end();
+        }
+      } catch (fallbackErr) {
+        console.error('Stream fallback error:', fallbackErr.message);
+      }
+    }
+    res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
     return res.end();
   }
   const reader = r.body.getReader();
@@ -3534,7 +3553,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
       } catch {}
     }
   }
-  if (brainMeta?.hash && fullText.trim().length > 8) {
+  if (brainMeta?.hash && fullText.trim().length > 40 && /[a-zA-Záéíóúñ]{10,}/i.test(fullText)) {
     Brain.brainSetLLM(
       brainMeta.hash,
       brainMeta.tutor,
@@ -3590,8 +3609,9 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
-    if (brain.hit && !jillReplyHasAliceLinkers(brain.reply)) {
-      return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
+    const cachedPlain = brain.hit ? plainBrainReply(brain.reply) : '';
+    if (brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
+      return Brain.writeBrainSSE(res, cachedPlain);
     }
     const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);

@@ -33,7 +33,7 @@
   function loadDrills() {
     if (_cfg) return Promise.resolve(_cfg);
     if (_load) return _load;
-    _load = fetch('config/trainer-drills.json?v=20260707d')
+    _load = fetch('config/trainer-drills.json?v=20260707k')
       .then(function (r) { return r.ok ? r.json() : { drills: {} }; })
       .then(function (d) { _cfg = d; return d; })
       .catch(function () { _cfg = { drills: {} }; return _cfg; });
@@ -56,6 +56,14 @@
   function detectPronoun(text) {
     var m = String(text || '').toLowerCase().match(/\b(i|you|he|she|it|we|they)\b/);
     return m ? m[1] : null;
+  }
+
+  function isJillCoachMetaRequest(text) {
+    var t = String(text || '').toLowerCase();
+    if (!t.trim()) return false;
+    var meta = /\b(no entiendo|no comprendo|m[aù]s simple|explic[aù]me|explic[aù]|otro ejemplo|dame un ejemplo|dame otro|repet[iù]|en ingl[eù]s|despacio|m[aù]s despacio|explicaci[où]n corta|2 frases|corto|qu[eù] significa|c[où]mo funciona|no entend[iù]|ayuda|help|no capto)\b/i;
+    var englishDrill = /\b(i|you|he|she|we|they)\b.{0,48}\b(am|is|are|was|were|have|has|had|will|can|could|should)\b/i.test(t);
+    return meta.test(t) && !englishDrill;
   }
 
   function validateMatrixSentence(text, matrixContext) {
@@ -153,6 +161,12 @@
       return result;
     }
 
+    if (tutor === 'jill' && isJillCoachMetaRequest(text)) {
+      result.coachNote = 'Pedido meta (chip): simplificar, dar ejemplo o explicar ù NO penalizar MSI.';
+      result.structureOk = null;
+      return result;
+    }
+
     if (matrixContext && matrixContext.conversationPhase && !matrixContext.anecdoteMode) {
       var w = englishWordCount(text);
       if (w < 2) {
@@ -177,6 +191,10 @@
     var words = englishWordCount(text);
 
     if (drill.id === 'IG_critical' && sentences < (drill.minSentences || 3)) {
+      if (tutor === 'jill' && isJillCoachMetaRequest(text)) {
+        result.coachNote = 'Pedido de clarificaciùn ù espaùol simple, no exigir 3 oraciones en inglùs.';
+        return result;
+      }
       result.forcedReply = drill.forcedReply || 'Keep going.';
       result.issues.push('Menos de ' + (drill.minSentences || 3) + ' oraciones.');
       return result;
@@ -202,6 +220,7 @@
     loadDrills: loadDrills,
     evaluateTurn: evaluateTurn,
     validateMatrixSentence: validateMatrixSentence,
-    pickActiveDrill: pickActiveDrill
+    pickActiveDrill: pickActiveDrill,
+    isJillCoachMetaRequest: isJillCoachMetaRequest
   };
 })(typeof window !== 'undefined' ? window : global);

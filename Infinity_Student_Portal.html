@@ -34,7 +34,7 @@
 <script src="js/jill-canon-visual.js?v=20260707j"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260707g"></script>
-<script src="js/trainer-drill-engine.js?v=20260707f"></script>
+<script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-matrix.js?v=20260707h"></script>
 <script src="js/jill-graduation.js?v=20260707b"></script>
 <script src="js/jill-trainer-insights.js?v=20260707a"></script>
@@ -2685,6 +2685,52 @@ function nexoraStudentPayload(student){
   return { id: s.id, info: s.info, name: (s.info && s.info.name) || s.name, aiProfile: s.aiProfile || {} };
 }
 
+function jillInstantCoachReply(userText){
+  var t = String(userText || '').toLowerCase();
+  if(/no entiendo|m[aá]s simple|explic/.test(t)){
+    return 'Claro — en simple: be une pronombre + idea. Modelo: I am at home. ¿Podés armar una con I am + un lugar o cómo te sentís?';
+  }
+  if(/otro ejemplo|dame otro/.test(t)){
+    return 'Ejemplo: I am in San José. / I am tired. / I am ready. Armá la tuya con I + am + una idea concreta.';
+  }
+  if(/ingl[eé]s|despacio/.test(t)){
+    return 'Slow English: I am here. I am ready. Now you — I am + your idea.';
+  }
+  if(/corto|2 frases/.test(t)){
+    return 'Be = am / is / are. Hoy: I am + un lugar o sentimiento. Tu turno en inglés.';
+  }
+  return 'Te escucho — decime qué parte no te quedó clara y lo vemos paso a paso.';
+}
+
+async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCtx, responseMs){
+  try {
+    var resp = await infinityFetch('/jill', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        student: studentPayload,
+        history: historyForApi,
+        message: text,
+        weakKpis: jillCtx.weakKpis || [],
+        jillBundle: jillCtx.jillBundle,
+        matrixContext: jillCtx.matrixContext || null,
+        vocabContext: jillCtx.vocabContext || null,
+        nemesisState: jillCtx.nemesisState,
+        track: jillCtx.track,
+        reinforcement: jillCtx.reinforcement || [],
+        responseMs: responseMs,
+        calibrationContext: jillCtx.calibrationContext || null
+      })
+    });
+    if(!resp.ok) return null;
+    var data = await resp.json();
+    var raw = data.reply || '';
+    return (typeof JillFoundations !== 'undefined') ? JillFoundations.parseReply(raw) : { reply: jillExtractReply(raw), contentType: data.contentType || 'text' };
+  } catch(e){
+    return null;
+  }
+}
+
 function jillInstantOpening(student, returning, calibrating){
   var name = jillStudentDisplayName(student);
   if(calibrating && typeof JillCalibration !== 'undefined'){
@@ -4663,6 +4709,7 @@ async function sendJillMsg(micText){
         if(raw==='[DONE]') break;
         try {
           var evt = JSON.parse(raw);
+          if(evt.error && statusEl) statusEl.textContent = 'Reintentando respuesta…';
           if(evt.t){
             fullText += evt.t;
             if(statusEl) statusEl.textContent = '';
@@ -4679,7 +4726,19 @@ async function sendJillMsg(micText){
     var parsed = (typeof JillFoundations !== 'undefined')
       ? JillFoundations.parseReply(fullText)
       : { reply: fullText, contentType: 'text' };
-    _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply || fullText || 'No entendí — ¿podés repetir?', contentType: parsed.contentType || 'text'};
+    if(!parsed.reply || parsed.reply.trim().length < 4){
+      var fb = await jillPostFallbackReply(studentPayload, historyForApi, text, jillCtx, responseMs);
+      if(fb && fb.reply && fb.reply.trim().length > 4){
+        parsed = fb;
+        fullText = fb.reply;
+      }
+    }
+    if(!parsed.reply || parsed.reply.trim().length < 4){
+      parsed = { reply: jillInstantCoachReply(text), contentType: 'text' };
+      fullText = parsed.reply;
+    }
+
+    _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply, contentType: parsed.contentType || 'text'};
     _jillState.lastStructureOk = jillDetectStructureOk(parsed.reply || fullText, parsed.contentType, drillEval);
     _jillState.drillTurnStartedAt = Date.now();
     if(_jillState.lastStructureOk && typeof JillMatrix !== 'undefined'){
