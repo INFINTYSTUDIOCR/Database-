@@ -4299,10 +4299,10 @@ app.post('/super-brain/tiktok/sync', requireMasterOrAnalyzeSecret, async (req, r
 app.post('/super-brain/tiktok/sync-urls', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { urls } = req.body || {};
+    const { urls, force } = req.body || {};
     const author = req.auth?.name || 'Fundador';
-    const result = await TikTokJill.syncFromUrls(urls, claudeCall, author);
-    return res.json({ ok: true, ...result, message: `Importados: ${result.queued} en pendiente de revisión.` });
+    const result = await TikTokJill.syncFromUrls(urls, claudeCall, author, { force: !!force });
+    return res.json({ ok: true, ...result, message: result.message || `Importados: ${result.queued} en pendiente de revisión.` });
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Import failed' });
   }

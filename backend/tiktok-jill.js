@@ -282,7 +282,41 @@ JSON exacto:
   }
 }
 
-async function queueVideoAsPending(superBrainState, video, pedagogy, author) {
+function videoFromUrlFallback(url) {
+  const id = videoIdFromUrl(url);
+  if (!id) return null;
+  const clean = String(url).trim();
+  return {
+    id,
+    title: 'TikTok (metadata limitada)',
+    description: `Video importado por URL (oEmbed no disponible).\n${clean}`,
+    shareUrl: clean,
+    coverUrl: '',
+    createTime: null,
+    duration: null,
+    source: 'tiktok-url-fallback',
+    author: ''
+  };
+}
+
+function formatImportMessage(result) {
+  const q = result.queued || 0;
+  const s = result.skipped || 0;
+  const sc = result.scanned || 0;
+  if (q > 0) {
+    return `Importados: ${q} en pendiente de revisión.${s ? ` (${s} omitido(s).)` : ''}`;
+  }
+  if (sc > 0 && s > 0) {
+    const reasons = (result.skipReasons || []).map((r) => r.reason);
+    if (reasons.length && reasons.every((r) => r === 'already_seen' || r === 'duplicate')) {
+      return '0 nuevos: ese video ya estaba importado (historial TikTok→Jill). Activá «Forzar reimportación» o probá otro URL.';
+    }
+    return `0 nuevos en pendiente (${sc} leído(s), ${s} omitido(s)). Revisá pendientes/publicados o usá Forzar.`;
+  }
+  return 'Importados: 0 en pendiente de revisión.';
+}
+
+async function queueVideoAsPending(superBrainState, video, pedagogy, author, opts = {}) {
   const SuperBrain = require('./super-brain');
   const item = {
     id: `TT-${video.id}-${Date.now()}`,
@@ -301,10 +335,12 @@ async function queueVideoAsPending(superBrainState, video, pedagogy, author) {
     }
   };
   superBrainState.pendingLessons = superBrainState.pendingLessons || [];
-  const dup = superBrainState.pendingLessons.some(p =>
-    p.meta?.videoId === video.id || (p.meta?.shareUrl && p.meta.shareUrl === video.shareUrl)
-  );
-  if (dup) return { queued: false, reason: 'duplicate' };
+  if (!opts.force) {
+    const dup = superBrainState.pendingLessons.some(p =>
+      p.meta?.videoId === video.id || (p.meta?.shareUrl && p.meta.shareUrl === video.shareUrl)
+    );
+    if (dup) return { queued: false, reason: 'duplicate' };
+  }
   superBrainState.pendingLessons.push(item);
   if (superBrainState.pendingLessons.length > 100) {
     superBrainState.pendingLessons = superBrainState.pendingLessons.slice(-100);
@@ -313,25 +349,32 @@ async function queueVideoAsPending(superBrainState, video, pedagogy, author) {
   return { queued: true, pending: item };
 }
 
-async function processNewVideos(videos, superBrainState, claudeCall, author) {
+async function processNewVideos(videos, superBrainState, claudeCall, author, opts = {}) {
   const syncState = await loadSyncState();
   const seen = new Set(syncState.seenVideoIds || []);
-  const results = { scanned: videos.length, queued: 0, skipped: 0, items: [] };
+  const results = { scanned: videos.length, queued: 0, skipped: 0, items: [], skipReasons: [] };
 
   for (const raw of videos.slice(0, MAX_PER_SYNC)) {
-    const video = raw.id ? normalizeVideoFromApi(raw) : raw;
-    if (!video.id || seen.has(video.id)) {
+    const video = raw.id && raw.source === 'tiktok-api' ? normalizeVideoFromApi(raw) : raw;
+    if (!video.id) {
       results.skipped++;
+      results.skipReasons.push({ id: null, reason: 'no_id', shareUrl: video.shareUrl });
+      continue;
+    }
+    if (!opts.force && seen.has(video.id)) {
+      results.skipped++;
+      results.skipReasons.push({ id: video.id, reason: 'already_seen', shareUrl: video.shareUrl });
       continue;
     }
     const pedagogy = await extractPedagogyForJill(claudeCall, video);
-    const q = await queueVideoAsPending(superBrainState, video, pedagogy, author);
+    const q = await queueVideoAsPending(superBrainState, video, pedagogy, author, opts);
     if (q.queued) {
       seen.add(video.id);
       results.queued++;
       results.items.push({ id: video.id, title: pedagogy.title, shareUrl: video.shareUrl });
     } else {
       results.skipped++;
+      results.skipReasons.push({ id: video.id, reason: q.reason || 'duplicate', shareUrl: video.shareUrl });
     }
   }
 
@@ -362,7 +405,7 @@ async function syncFromApi(claudeCall, author) {
   return results;
 }
 
-async function syncFromUrls(urls, claudeCall, author) {
+async function syncFromUrls(urls, claudeCall, author, opts = {}) {
   const list = (urls || []).map(u => String(u).trim()).filter(u => u.includes('tiktok.com'));
   if (!list.length) throw new Error('Pegá al menos una URL de TikTok válida.');
 
@@ -376,12 +419,17 @@ async function syncFromUrls(urls, claudeCall, author) {
       videos.push(normalizeVideoFromOembed(url, o));
     } catch (e) {
       console.warn('tiktok oembed:', url, e.message);
+      const fb = videoFromUrlFallback(url);
+      if (fb) videos.push(fb);
     }
   }
 
-  if (!videos.length) throw new Error('No se pudo leer ningún video (¿URLs públicas?)');
-  const results = await processNewVideos(videos, sbState, claudeCall, author);
+  if (!videos.length) {
+    throw new Error('No se pudo leer ningún video. Usá la URL larga /@usuario/video/ID o pegá el guion en «Subir conocimiento».');
+  }
+  const results = await processNewVideos(videos, sbState, claudeCall, author, opts);
   results.mode = 'urls';
+  results.message = formatImportMessage(results);
   return results;
 }
 

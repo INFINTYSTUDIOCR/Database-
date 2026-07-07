@@ -5504,8 +5504,9 @@ function renderSuperBrain(m){
     +'<button class="btn btn-outline btn-sm" onclick="tiktokJillSync()"><i class="ti ti-refresh"></i>Sincronizar videos</button>'
     +'</div>'
     +'<textarea class="inp" id="sb-tiktok-urls" placeholder="O pegá URLs de videos (una por línea) para importar sin OAuth…" style="min-height:56px;font-size:11px;"></textarea>'
+    +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="sb-tiktok-force" style="accent-color:var(--purple);"> Forzar reimportación (aunque ya esté en historial)</label>'
     +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="tiktokJillImportUrls()"><i class="ti ti-download"></i>Importar URLs</button>'
-    +'<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.45;">Los videos nuevos van a <strong>Pendiente</strong> — vos publicás cuando Jill deba aprenderlo. Auto-sync cada 12h si está configurado en Render.</div>'
+    +'<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.45;">Importar por URL <strong>no requiere</strong> OAuth. Los videos nuevos van a <strong>Pendiente</strong> — vos publicás cuando Jill deba aprenderlo.</div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Pendiente de publicar</div>'
     +'<div id="sb-pending-list" style="font-size:12px;color:var(--t2);">—</div></div>'
@@ -5729,6 +5730,10 @@ function extractTikTokUrls(text){
   return (String(text||'').match(/https?:\/\/(?:www\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+/gi) || []);
 }
 
+function tiktokJillForceImport(){
+  return !!(document.getElementById('sb-tiktok-force') && document.getElementById('sb-tiktok-force').checked);
+}
+
 async function superBrainTalk(micText){
   var inp = document.getElementById('sb-input');
   var text = (micText || (inp ? inp.value : '') || '').trim();
@@ -5746,7 +5751,7 @@ async function superBrainTalk(micText){
     try{
       var ttData = await superBrainFetch('/super-brain/tiktok/sync-urls', {
         method:'POST',
-        body: JSON.stringify({ urls: tiktokUrls, secret: SUPER_BRAIN_SECRET })
+        body: JSON.stringify({ urls: tiktokUrls, secret: SUPER_BRAIN_SECRET, force: tiktokJillForceImport() })
       });
       var ttMsg = (ttData.message || ('Importados: '+(ttData.queued||0)+' en pendiente.'))
         + '\n\nRevisá «Pendiente de publicar» a la derecha → Publicar a tutores cuando esté bien.';
@@ -5830,11 +5835,15 @@ async function tiktokJillRefreshStatus(){
   try{
     var data = await superBrainFetch('/super-brain/tiktok/status?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
     var lines = [];
-    if(!data.oauthReady) lines.push('⚠️ Falta configurar TikTok API en Render (CLIENT_KEY, SECRET, REDIRECT_URI).');
+    if(!data.oauthReady) lines.push('ℹ️ OAuth TikTok es opcional (sync automático). Importar por URL funciona sin CLIENT_KEY.');
     else if(data.connected) lines.push('✓ Cuenta conectada · @'+(data.username||'—'));
     else lines.push('Sin conectar — usá <strong>Conectar TikTok</strong> o importá por URL.');
     if(data.lastSyncAt) lines.push('Último sync: '+new Date(data.lastSyncAt).toLocaleString('es-CR'));
-    if(data.lastSyncResult && data.lastSyncResult.queued != null) lines.push('Último resultado: '+data.lastSyncResult.queued+' nuevo(s) en pendiente.');
+    if(data.lastSyncResult && data.lastSyncResult.queued != null){
+      var lr = data.lastSyncResult;
+      lines.push('Último resultado: '+lr.queued+' nuevo(s), '+((lr.skipped)||0)+' omitido(s).');
+      if(lr.queued===0 && lr.skipped>0) lines.push('Si ya importaste ese video, marcá <strong>Forzar reimportación</strong>.');
+    }
     if(data.autoSyncHours) lines.push('Auto-sync cada '+data.autoSyncHours+'h.');
     if(data.lastError) lines.push('<span style="color:#b45309;">'+data.lastError+'</span>');
     el.innerHTML = lines.join('<br>');
@@ -5874,7 +5883,7 @@ async function tiktokJillImportUrls(){
     showToast('Importando '+urls.length+' URL(s)…');
     var data = await superBrainFetch('/super-brain/tiktok/sync-urls', {
       method:'POST',
-      body: JSON.stringify({ urls: urls, secret: SUPER_BRAIN_SECRET })
+      body: JSON.stringify({ urls: urls, secret: SUPER_BRAIN_SECRET, force: tiktokJillForceImport() })
     });
     if(ta) ta.value = '';
     showToast(data.message || ('Importados: '+(data.queued||0)));
