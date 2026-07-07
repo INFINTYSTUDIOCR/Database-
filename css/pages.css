@@ -94,6 +94,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:68px;padding:0 2rem;d
 .case{padding:1.5rem;margin-bottom:1.75rem;}
 .case h2{font-size:1.25rem;margin:.5rem 0 .75rem;}
 .case-badge{display:inline-block;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.3rem .7rem;border-radius:999px;background:var(--purple-glow);color:var(--purple);}
+.case-badge--kamuk{color:#0E7490;background:rgba(27,155,209,0.12);}
+.case-disclaimer{font-size:.9rem;color:#555;line-height:1.65;padding:.85rem 1rem;background:rgba(14,116,144,0.06);border:1px solid rgba(27,155,209,0.15);border-radius:8px;margin:0 0 1rem;}
+.case-source{font-size:.8rem;color:#888;margin-top:1rem;line-height:1.55;}
 .case blockquote{border-left:3px solid var(--purple);margin:1rem 0;padding:.5rem 0 .5rem 1rem;color:var(--t2);font-size:.92rem;line-height:1.65;}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin:1rem 0;list-style:none;padding:0;}
 .metrics li{text-align:center;padding:.85rem;background:var(--lavender);border-radius:10px;}
