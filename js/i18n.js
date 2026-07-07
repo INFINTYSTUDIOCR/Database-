@@ -509,20 +509,12 @@
 
   function applyProgramSelect(lang) {
     var sel = document.getElementById('cf-program');
-    if (!sel || sel.dataset.i18nReady) return;
-    var opts = sel.querySelectorAll('option');
-    if (opts.length >= 5) {
-      sel.dataset.i18nEn = 'Foundations (from scratch)|ORT (I freeze when speaking)|Nexora / advanced practice|Corporate program|Not sure yet';
-      sel.dataset.i18nEs = 'Foundations (desde cero)|ORT (me trabo al hablar)|Nexora / práctica avanzada|Programa corporativo|Aún no estoy seguro';
-      sel.dataset.i18nReady = '1';
-    } else if (opts.length >= 4) {
-      sel.dataset.i18nEn = opts[0].textContent + '|' + opts[1].textContent + '|' + opts[2].textContent + '|' + opts[3].textContent;
-      sel.dataset.i18nEs = 'Programa Individual|Programa Corporativo|Programa Institucional|Aún no estoy seguro';
-      sel.dataset.i18nReady = '1';
-    }
-    var parts = (lang === 'es' ? sel.dataset.i18nEs : sel.dataset.i18nEn || '').split('|');
-    opts.forEach(function (opt, i) {
-      if (parts[i]) opt.textContent = parts[i];
+    if (!sel) return;
+    sel.querySelectorAll('option').forEach(function (opt) {
+      var label = lang === 'es'
+        ? (opt.getAttribute('data-i18n-es') || opt.getAttribute('data-i18n-en') || opt.textContent)
+        : (opt.getAttribute('data-i18n-en') || opt.getAttribute('data-i18n-es') || opt.textContent);
+      if (label) opt.textContent = label;
     });
   }
 

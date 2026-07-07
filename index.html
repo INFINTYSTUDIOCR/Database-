@@ -1534,7 +1534,13 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <div class="form-group"><label class="form-label" for="cf-email">Correo</label><input id="cf-email" class="form-input" type="email" placeholder="tu@correo.com"></div>
         <div class="form-group"><label class="form-label" for="cf-phone">WhatsApp</label><input id="cf-phone" class="form-input" placeholder="+52, +56, +57…"></div>
         <div class="form-group"><label class="form-label" for="cf-program">Programa de interés</label>
-          <select id="cf-program" class="form-input"><option>Foundations (desde cero)</option><option>ORT (me trabo al hablar)</option><option>Nexora / práctica avanzada</option><option>Programa corporativo</option><option>Aún no estoy seguro</option></select>
+          <select id="cf-program" class="form-input">
+            <option value="foundations" data-i18n-en="Foundations (from scratch)" data-i18n-es="Foundations (desde cero)">Foundations (desde cero)</option>
+            <option value="ort" data-i18n-en="ORT (I freeze when speaking)" data-i18n-es="ORT (me trabo al hablar)">ORT (me trabo al hablar)</option>
+            <option value="nexora" data-i18n-en="Nexora / advanced practice" data-i18n-es="Nexora / práctica avanzada">Nexora / práctica avanzada</option>
+            <option value="corporate" data-i18n-en="Corporate program" data-i18n-es="Programa corporativo">Programa corporativo</option>
+            <option value="unsure" data-i18n-en="Not sure yet" data-i18n-es="Aún no estoy seguro">Aún no estoy seguro</option>
+          </select>
         </div>
         <div class="form-group"><label class="form-label" for="cf-goal">Tu meta</label><textarea id="cf-goal" class="form-input" placeholder="¿Qué quieres lograr con inglés operacional?"></textarea></div>
         <button type="button" onclick="submitContact()" class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;border:none;cursor:pointer;"><i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp</button>
