@@ -8,6 +8,11 @@ const PRONOUNS = ['i', 'you', 'he', 'she', 'it', 'we', 'they'];
 const THIRD = { he: 1, she: 1, it: 1 };
 const LINKER_RE = /\b(and|but|however|because|so|therefore|although|furthermore|also|plus|then|when|while|after|before|as well as|in addition|on top of that|as a result|which means|despite)\b/i;
 
+const JILL_PRE_LINKER_BUNDLES = new Set([
+  'F0-matrix', 'F1-msi', 'B2-verbs', 'F2-pronouns', 'B3-tenses', 'F3-modals', 'F4-components',
+  'B5-basics', 'F5-vocab-functional', 'F6-oral-production', 'B6-recovery', 'F7-alice-ready'
+]);
+
 const VERB_FORMS = {
   be: { base: 'be', pr3: 'is', ps: 'was', pp: 'been', ing: 'being', prI: 'am', prYou: 'are', prWe: 'are' },
   have: { base: 'have', pr3: 'has', ps: 'had', pp: 'had', ing: 'having' },
@@ -134,11 +139,11 @@ function pickActiveDrill(student, tutor, bundle, matrixContext) {
     }
     return { id: 'MSI_matrix', ...drills.MSI_matrix };
   }
-  if (priorities.some((p) => /k9|IG|idea/i.test(p))) return { id: 'IG_critical', ...drills.IG_critical };
-  if (priorities.some((p) => /k8|ST|linker|structure/i.test(p))) return { id: 'ST_critical', ...drills.ST_critical };
+  if (priorities.some((p) => /k9|IG|idea/i.test(p)) && tutor !== 'jill') return { id: 'IG_critical', ...drills.IG_critical };
+  if (priorities.some((p) => /k8|ST|linker|structure/i.test(p)) && tutor !== 'jill') return { id: 'ST_critical', ...drills.ST_critical };
   if (tutor === 'alice' && priorities.some((p) => /k13|RA|freeze/i.test(p))) return { id: 'RA_critical', ...drills.RA_critical };
 
-  if (tutor === 'jill') return { id: 'IG_critical', ...drills.IG_critical };
+  if (tutor === 'jill') return { id: 'MSI_matrix', ...drills.MSI_matrix };
   return { id: 'ST_critical', ...drills.ST_critical };
 }
 
@@ -193,7 +198,7 @@ function evaluateStudentTurn(text, opts = {}) {
     return result;
   }
 
-  if (drill?.id === 'ST_critical' && sentences >= (drill.minSentences || 2) && drill.requireLinker && !LINKER_RE.test(text)) {
+  if (drill?.id === 'ST_critical' && tutor === 'alice' && sentences >= (drill.minSentences || 2) && drill.requireLinker && !LINKER_RE.test(text)) {
     result.forcedReply = drill.forcedReply;
     result.issues.push('Falta linker entre ideas.');
     return result;
@@ -218,7 +223,7 @@ const JOHNNY_TRAINER_RULE = `MODELO TRAINER INFINITY (Johnny Ramirez ù OBLIGATOR
 - NUNCA traducciùn palabra por palabra. Estructurar, no memorizar oraciones ajenas.
 - Si el sistema marca forcedReply del drill: decù EXACTAMENTE esa frase y nada mùs (ej. "Keep going.").
 - Si hay issues de ranura: nombrù la ranura (P, M, V, C), mostrù la fùrmula MSIù, pedù UNA oraciùn nueva.
-- Idea + Linker + Idea: oraciùn suelta sin conector = pedir linker y continuar.
+- Jill (Foundations): solo MSI ranuras P|M|V|C ó sin curriculum Idea+Linker+Idea (eso es Alice).ùn suelta sin conector = pedir linker y continuar.
 - Correcciùn con afecto firme ù como trainer, no como chatbot motivacional.
 - Foundations = Jill (MSIù, matriz, moneda). Intermediate+ = Alice (linkers, expansiùn, STAR cuando aplica).
 - FASE CONVERSACIùN (estructura dominada): Jill fuerza diùlogo sostenido, escucha, compara contra canon y corrige. NO graduar automùticamente ù solo solicitar graduaciùn cuando KPIs conversacionales Johnny estùn satisfechos en sesiùn evaluate.`;

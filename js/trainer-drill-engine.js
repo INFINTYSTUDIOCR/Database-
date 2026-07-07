@@ -125,9 +125,9 @@
       }
       return Object.assign({ id: 'MSI_matrix' }, drills.MSI_matrix || {});
     }
-    if (weak.some(function (p) { return /k9|IG/i.test(p); })) return Object.assign({ id: 'IG_critical' }, drills.IG_critical || {});
-    if (weak.some(function (p) { return /k8|ST/i.test(p); })) return Object.assign({ id: 'ST_critical' }, drills.ST_critical || {});
-    if (tutor === 'jill') return Object.assign({ id: 'IG_critical' }, drills.IG_critical || {});
+    if (weak.some(function (p) { return /k9|IG/i.test(p); }) && tutor !== 'jill') return Object.assign({ id: 'IG_critical' }, drills.IG_critical || {});
+    if (weak.some(function (p) { return /k8|ST/i.test(p); }) && tutor !== 'jill') return Object.assign({ id: 'ST_critical' }, drills.ST_critical || {});
+    if (tutor === 'jill') return Object.assign({ id: 'MSI_matrix' }, drills.MSI_matrix || {});
     return Object.assign({ id: 'ST_critical' }, drills.ST_critical || {});
   }
 
@@ -181,7 +181,7 @@
       result.issues.push('Menos de ' + (drill.minSentences || 3) + ' oraciones.');
       return result;
     }
-    if (drill.id === 'ST_critical' && sentences >= (drill.minSentences || 2) && drill.requireLinker && !LINKER_RE.test(text)) {
+    if (drill.id === 'ST_critical' && tutor === 'alice' && sentences >= (drill.minSentences || 2) && drill.requireLinker && !LINKER_RE.test(text)) {
       result.forcedReply = drill.forcedReply || 'Add a linker ù keep going.';
       result.issues.push('Falta linker.');
       return result;

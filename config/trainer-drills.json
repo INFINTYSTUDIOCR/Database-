@@ -15,7 +15,7 @@
     },
     "ST_critical": {
       "kpi": "k8",
-      "tutor": ["jill", "alice"],
+      "tutor": ["alice"],
       "phase": "1",
       "title": "Idea + Linker + Idea",
       "script": "Cada oracion aislada sin conector = pedir linker y que continue sin reiniciar.",
