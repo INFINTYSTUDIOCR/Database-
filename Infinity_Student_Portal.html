@@ -41,7 +41,7 @@
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/jill-quiz.js?v=20260707flame"></script>
-<script src="js/tts-chunks.js?v=20260706"></script>
+<script src="js/tts-chunks.js?v=20260707bilingual"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -3854,12 +3854,17 @@ function jillDetectTtsLang(text){
   return 'es-CR';
 }
 
-function jillPlayBrowserTts(text, onEnded, onError){
+function jillTtsCacheKey(clean, lang){
+  return (lang || 'es') + '::' + clean;
+}
+
+function jillPlayBrowserTts(text, lang, onEnded, onError){
   if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
   try{ window.speechSynthesis.cancel(); }catch(e){}
   var u = new SpeechSynthesisUtterance(text);
-  u.lang = jillDetectTtsLang(text);
-  u.rate = 0.94;
+  u.lang = (lang === 'en') ? 'en-US' : 'es-CR';
+  u.rate = 0.82;
+  u.pitch = 1.0;
   var voices = speechSynthesis.getVoices() || [];
   var pref = u.lang.slice(0, 2);
   var v = voices.find(function(vo){ return vo.lang === u.lang; })
@@ -3871,8 +3876,8 @@ function jillPlayBrowserTts(text, onEnded, onError){
   return true;
 }
 
-function jillFetchTtsBlob(clean){
-  return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
+function jillFetchTtsBlob(clean, lang){
+  return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: lang || 'es'})})
   .then(function(r){
     if(!r.ok){ jillShowTtsError(r.status); return null; }
     var ct = (r.headers.get('content-type') || '').toLowerCase();
@@ -3888,13 +3893,26 @@ function jillCleanTtsText(text){
 }
 
 function jillPrefetchTTS(text){
-  var clean = jillCleanTtsText(text);
-  if(clean.length < 3 || _jillTtsPrefetch[clean]) return;
-  _jillTtsPrefetch[clean] = 'loading';
-  infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean})})
-  .then(function(r){ return r.ok ? r.blob() : null; })
-  .then(function(b){ if(b) _jillTtsPrefetch[clean] = b; else delete _jillTtsPrefetch[clean]; })
-  .catch(function(){ delete _jillTtsPrefetch[clean]; });
+  var segments = typeof jillTtsSegments === 'function'
+    ? jillTtsSegments(text, 480)
+    : [{ text: jillCleanTtsText(text), lang: 'es' }];
+  segments.forEach(function(seg){
+    var clean = jillCleanTtsText(seg.text);
+    if(clean.length < 3) return;
+    var key = jillTtsCacheKey(clean, seg.lang);
+    if(_jillTtsPrefetch[key]) return;
+    _jillTtsPrefetch[key] = 'loading';
+    infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: seg.lang || 'es'})})
+    .then(function(r){ return r.ok ? r.blob() : null; })
+    .then(function(b){ if(b) _jillTtsPrefetch[key] = b; else delete _jillTtsPrefetch[key]; })
+    .catch(function(){ delete _jillTtsPrefetch[key]; });
+  });
+}
+
+function jillQueueSpeak(text, lang){
+  if(!text || text.trim().length < 2 || !_jillSpeakEnabled) return;
+  _jillTTSQueue.push({ text: text.trim(), lang: lang || 'es' });
+  _jillTTSFlush();
 }
 
 function _jillTTSFlush(){
@@ -3902,15 +3920,22 @@ function _jillTTSFlush(){
   _jillTTSBusy = true;
   _jillState.speaking = true;
   var gen = _jillSpeakGen;
-  var text = _jillTTSQueue.shift();
+  var item = _jillTTSQueue.shift();
+  var text = typeof item === 'string' ? item : item.text;
+  var lang = typeof item === 'string' ? (jillDetectTtsLang(text) === 'en-US' ? 'en' : 'es') : (item.lang || 'es');
   var clean = jillCleanTtsText(text);
   if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
+
+  var nextItem = _jillTTSQueue[0];
+  var nextLang = nextItem ? (typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
+  var langPause = (nextLang && nextLang !== lang) ? 240 : 0;
 
   function finishJillLine(){
     _jillState.audio = null;
     _jillTTSBusy = false;
     _jillState.speaking = _jillTTSQueue.length > 0;
-    _jillTTSFlush();
+    if(langPause) setTimeout(_jillTTSFlush, langPause);
+    else _jillTTSFlush();
   }
 
   function playBlob(b){
@@ -3921,12 +3946,12 @@ function _jillTTSFlush(){
       return;
     }
     if(!b){
-      delete _jillTtsRetry[clean];
-      if(jillPlayBrowserTts(clean, finishJillLine, finishJillLine)) return;
+      delete _jillTtsRetry[jillTtsCacheKey(clean, lang)];
+      if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
       finishJillLine();
       return;
     }
-    delete _jillTtsRetry[clean];
+    delete _jillTtsRetry[jillTtsCacheKey(clean, lang)];
     jillStopAudio();
     _jillState.audio = playAudioBlob(b, {
       onEnded: function(){
@@ -3936,40 +3961,42 @@ function _jillTTSFlush(){
       onError: function(){
         if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
-        if(jillPlayBrowserTts(clean, finishJillLine, function(){
-          _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
-          if(_jillTtsRetry[clean] < 2) _jillTTSQueue.unshift(text);
-          else delete _jillTtsRetry[clean];
+        if(jillPlayBrowserTts(clean, lang, finishJillLine, function(){
+          var rk = jillTtsCacheKey(clean, lang);
+          _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
+          if(_jillTtsRetry[rk] < 2) _jillTTSQueue.unshift({ text: text, lang: lang });
+          else delete _jillTtsRetry[rk];
           finishJillLine();
         })) return;
-        _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
-        if(_jillTtsRetry[clean] < 3) _jillTTSQueue.unshift(text);
-        else delete _jillTtsRetry[clean];
+        var rk2 = jillTtsCacheKey(clean, lang);
+        _jillTtsRetry[rk2] = (_jillTtsRetry[rk2] || 0) + 1;
+        if(_jillTtsRetry[rk2] < 3) _jillTTSQueue.unshift({ text: text, lang: lang });
+        else delete _jillTtsRetry[rk2];
         finishJillLine();
       }
     });
   }
 
-  var cached = _jillTtsPrefetch[clean];
+  var cacheKey = jillTtsCacheKey(clean, lang);
+  var cached = _jillTtsPrefetch[cacheKey];
   if(cached && cached !== 'loading'){
-    delete _jillTtsPrefetch[clean];
+    delete _jillTtsPrefetch[cacheKey];
     playBlob(cached);
     return;
   }
-  jillFetchTtsBlob(clean)
+  jillFetchTtsBlob(clean, lang)
   .then(playBlob)
   .catch(function(){
     if(gen !== _jillSpeakGen){ _jillTTSBusy=false; return; }
-    _jillTtsRetry[clean] = (_jillTtsRetry[clean] || 0) + 1;
-    if(_jillTtsRetry[clean] < 3) _jillTTSQueue.unshift(text);
-    else delete _jillTtsRetry[clean];
+    var rk = jillTtsCacheKey(clean, lang);
+    _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
+    if(_jillTtsRetry[rk] < 3) _jillTTSQueue.unshift({ text: text, lang: lang });
+    else delete _jillTtsRetry[rk];
     _jillTTSBusy=false;
     _jillState.speaking=_jillTTSQueue.length>0;
     setTimeout(_jillTTSFlush, 180);
   });
 }
-
-function jillQueueSpeak(text){ if(!text||text.trim().length<2||!_jillSpeakEnabled) return; _jillTTSQueue.push(text); _jillTTSFlush(); }
 
 // ── ALICE TTS QUEUE + prefetch ───────────────────────────────
 var _aliceTTSQueue = [];
@@ -4946,8 +4973,13 @@ async function sendJillMsg(micText){
 function jillSpeak(text){
   if(!text || !_jillSpeakEnabled) return;
   jillStopMic();
-  ttsSpeakLines(text, 900).forEach(function(clean){
-    if(clean.length >= 3) jillQueueSpeak(clean);
+  var segments = typeof jillTtsSegments === 'function'
+    ? jillTtsSegments(text, 480)
+    : ttsSpeakLines(text, 480).map(function(line){
+        return { text: line, lang: jillDetectTtsLang(line) === 'en-US' ? 'en' : 'es' };
+      });
+  segments.forEach(function(seg){
+    if(seg.text && seg.text.length >= 2) jillQueueSpeak(seg.text, seg.lang);
   });
 }
 

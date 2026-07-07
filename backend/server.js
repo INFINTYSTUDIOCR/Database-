@@ -2590,8 +2590,9 @@ async function demoGenerateEvaluation(session) {
 const ttsCache = new Map();
 const TTS_CACHE_MAX = 200; // máximo de entradas
 
-function getTTSCacheKey(text, voiceId){
-  return voiceId + ':' + text.slice(0, 100);
+function getTTSCacheKey(text, voiceId, languageCode){
+  const lang = languageCode ? String(languageCode).slice(0, 4) : 'auto';
+  return voiceId + ':' + lang + ':' + text.slice(0, 100);
 }
 
 function cacheTTS(key, buffer){
@@ -2659,8 +2660,9 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
   const clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
+  const languageCode = opts.languageCode || null;
 
-  const cacheKey = getTTSCacheKey(clean, voiceId);
+  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
@@ -2671,20 +2673,23 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     return { buffer: brainTts.buffer, cache: 'HIT', clean };
   }
 
+  const payload = {
+    text: clean,
+    model_id: 'eleven_multilingual_v2',
+    voice_settings: {
+      stability: opts.stability ?? 0.52,
+      similarity_boost: opts.similarityBoost ?? 0.78,
+      style: opts.style ?? 0.12,
+      use_speaker_boost: true,
+      speed: opts.speed ?? 1.08
+    }
+  };
+  if (languageCode) payload.language_code = languageCode;
+
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-    body: JSON.stringify({
-      text: clean,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: {
-        stability: opts.stability ?? 0.52,
-        similarity_boost: opts.similarityBoost ?? 0.78,
-        style: opts.style ?? 0.12,
-        use_speaker_boost: true,
-        speed: opts.speed ?? 1.08
-      }
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!r.ok) {
@@ -2702,11 +2707,11 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   return { buffer: buf, cache: 'MISS', clean };
 }
 
-async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed }) {
+async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed, languageCode }) {
   if (!text) return res.status(400).json({ error: 'Missing text' });
   try {
     const { buffer, cache } = await getOrCreateTtsAudio(text, voiceId, label, {
-      stability, similarityBoost, style, speed
+      stability, similarityBoost, style, speed, languageCode
     });
     res.set('Content-Type', 'audio/mpeg');
     res.set('X-Cache', cache === 'MISS' ? 'MISS' : 'HIT');
@@ -4144,8 +4149,19 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
   try {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null);
     if (req.auth.role === 'student' && !ok) return;
-    const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Jill' });
+    const { text, lang, language_code } = req.body || {};
+    const rawLang = String(language_code || lang || '').toLowerCase();
+    const languageCode = rawLang.indexOf('en') === 0 ? 'en' : (rawLang.indexOf('es') === 0 ? 'es' : null);
+    return await synthesizeSpeech(req, res, {
+      text,
+      voiceId: JILL_VOICE_ID || ALICE_VOICE_ID,
+      label: 'Jill',
+      stability: 0.66,
+      similarityBoost: 0.72,
+      style: 0.05,
+      speed: 0.84,
+      languageCode
+    });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
