@@ -202,6 +202,7 @@ SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 
 const TrainerModel = require('./trainer-model');
 const JillTrainerInsights = require('./jill-trainer-insights');
+const JillCalibration = require('./jill-calibration');
 
 const TikTokJill = require('./tiktok-jill');
 TikTokJill.initTikTokJill({ sbGetOne, sbSet });
@@ -3243,7 +3244,7 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext } = req.body || {};
+    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext } = req.body || {};
     student = await assertStudentTutorAccess(req, res, 'jill', student);
     if (!student) return;
     sanitizeStudentAiProfile(student);
@@ -3265,6 +3266,28 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const trackNote = track?.current
       ? `\nTRACK ACTIVO: ${track.current}. Graduados: jill=${!!track.graduated?.jill}, alice=${!!track.graduated?.alice}, nexora=${!!track.graduated?.nexora}.`
       : '';
+    const calibrationNote = JillCalibration.formatCalibrationNote(calibrationContext, student);
+
+    if (mode === 'calibration_start') {
+      const display = getStudentDisplayName(student);
+      const profileNote = buildAiProfileNote(student, 'jill');
+      const probe = calibrationContext?.currentProbe;
+      const probeLine = probe
+        ? `Empezá la calibración: explicá en 2 frases que vas a medir verbos, conectores, artículos, preposiciones y MSI® sin presión. Luego lanzá EXACTAMENTE esta primera prueba: "${probe.ask}"`
+        : 'Empezá la calibración diagnóstica antes del bundle.';
+      const resp = await claudeCall({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        system: JILL_SYSTEM_PROMPT + calibrationNote,
+        messages: [{
+          role: 'user',
+          content: `El estudiante ${display} abre su primera sesión Foundations. ${probeLine}${profileNote}${bundleNote}${trackNote}\n\nRESPONDE ÚNICAMENTE JSON: {"reply":"...","contentType":"text"}`
+        }]
+      });
+      const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+      const parsed = parseJillResponse(raw);
+      return res.json(Object.assign({}, parsed, { sessionMode: 'calibration_start' }));
+    }
 
     if (mode === 'start_session' || mode === 'return_session') {
       const actorKey = resolveActorKey({ student, req });
@@ -3279,7 +3302,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
       const openExtra = brainScopeExtra(student, req, `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
-      if (openBrain.hit) {
+      if (openBrain.hit && !calibrationNote.trim()) {
         try {
           const parsed = parseJillResponse(openBrain.reply);
           return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', brainCache: true }));
@@ -3291,7 +3314,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 350,
-        system: JILL_SYSTEM_PROMPT,
+        system: JILL_SYSTEM_PROMPT + calibrationNote,
         messages: [{
           role: 'user',
           content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
@@ -3411,7 +3434,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const msgs = [...prevMsgs, { role: 'user', content: message }];
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3497,7 +3520,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext } = req.body || {};
+    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext } = req.body || {};
     student = await assertStudentTutorAccess(req, res, 'jill', student);
     if (!student) return;
     sanitizeStudentAiProfile(student);
@@ -3519,15 +3542,17 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
+    const calibrationNote = JillCalibration.formatCalibrationNote(calibrationContext, student);
+    const calibrating = !!calibrationContext?.active;
     const responseMs = req.body?.responseMs;
-    const drillEval = TrainerModel.evaluateStudentTurn(message, {
+    const drillEval = calibrating ? null : TrainerModel.evaluateStudentTurn(message, {
       student, tutor: 'jill', bundle: jillBundle, matrixContext, responseMs
     });
     if (drillEval.forcedReply) {
       return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n[[CTYPE:text]]');
     }
-    const trainerNote = TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
-      + TrainerModel.formatTrainerEvalNote(drillEval);
+    const trainerNote = calibrating ? '' : (TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
+      + TrainerModel.formatTrainerEvalNote(drillEval));
     mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
@@ -3539,12 +3564,13 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
     const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
-    const teachInstr = convPhase
+    const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
+    const teachInstr = calTeach || (convPhase
       ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-      : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.';
+      : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.');
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

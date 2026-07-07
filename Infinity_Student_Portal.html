@@ -31,6 +31,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
+<script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260707c"></script>
 <script src="js/trainer-drill-engine.js?v=20260707f"></script>
 <script src="js/jill-matrix.js?v=20260707e"></script>
@@ -2683,8 +2684,11 @@ function nexoraStudentPayload(student){
   return { id: s.id, info: s.info, name: (s.info && s.info.name) || s.name, aiProfile: s.aiProfile || {} };
 }
 
-function jillInstantOpening(student, returning){
+function jillInstantOpening(student, returning, calibrating){
   var name = jillStudentDisplayName(student);
+  if(calibrating && typeof JillCalibration !== 'undefined'){
+    return JillCalibration.instantOpening(student);
+  }
   if(returning){
     return "Hola "+name+", retomemos. ¿Listo para practicar?";
   }
@@ -4258,6 +4262,7 @@ function renderJillSession(){
     : '';
   return '<div id="jill-session-main">'
     + miniStrip
+    + ((typeof JillCalibration !== 'undefined' && s) ? JillCalibration.renderPanel(s) : '')
     + renderJillBundleStrip()
     + matrixHtml
     +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#bbf7d0;font-weight:600;">🌿 Jill · MSI® · P + V + C (estructura, no linkers Nexus)</div>'
@@ -4325,6 +4330,7 @@ function startJillSessionClick(){
     _jillSpeakEnabled = true;
     _jillSending = false;
     _jillState.history = [];
+    _jillState.calibrationActive = (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
     renderJill();
     startJillSession(s);
   });
@@ -4375,7 +4381,8 @@ async function endJillSession(){
           weakKpis: jillCtx.weakKpis || [],
           nemesisState: jillCtx.nemesisState,
           track: jillCtx.track,
-          reinforcement: jillCtx.reinforcement || []
+          reinforcement: jillCtx.reinforcement || [],
+          calibrationContext: jillCtx.calibrationContext || null
         })
       });
       var data = await r.json();
@@ -4420,6 +4427,10 @@ async function endJillSession(){
         } else if(s.id && typeof JillFoundations !== 'undefined'){
           await dbSet('infinity_students', s.id, s);
         }
+        if(typeof JillCalibration !== 'undefined' && s && data.evaluation){
+          JillCalibration.rememberLesson(s, 'session', 'Sesion Jill score ' + evScore + ' - ' + (data.evaluation.main_improvement || ''));
+          if(s.id) await dbSet('infinity_students', s.id, s);
+        }
         if(typeof JillGraduation !== 'undefined' && data.evaluation.graduation_request){
           JillGraduation.recordGraduationRequest(s, data.evaluation);
         }
@@ -4450,6 +4461,7 @@ async function endJillSession(){
 async function startJillSession(s){
   if(!s) return;
   if(typeof AiProfile !== 'undefined') AiProfile.purgeBadPreferredName(s);
+  if(typeof JillCalibration !== 'undefined') JillCalibration.ensure(s);
   if(typeof JillFoundations !== 'undefined'){
     await JillFoundations.loadBundles();
     JillFoundations.autoAssignBundle(s);
@@ -4460,12 +4472,15 @@ async function startJillSession(s){
   warmInfinityApi();
   var jillCtx = jillGetContext(s);
   var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
-  var mode = (typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session';
-  var returning = mode === 'return_session';
+  if(studentPayload && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
+  var needsCal = (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
+  var mode = needsCal ? 'calibration_start' : ((typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session');
+  var returning = !needsCal && mode === 'return_session';
+  _jillState.calibrationActive = needsCal;
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] })
+      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], calibrationContext: jillCtx.calibrationContext || null })
     });
     var data = await r.json();
     var parsed = (typeof JillFoundations !== 'undefined')
@@ -4473,17 +4488,17 @@ async function startJillSession(s){
       : { reply: jillExtractReply(data.reply || ''), contentType: data.contentType || 'text' };
     if(data.contentType && !parsed.contentType) parsed.contentType = data.contentType;
     var reply = parsed.reply;
-    if(!reply || reply.length < 8) reply = jillInstantOpening(s, returning);
+    if(!reply || reply.length < 8) reply = jillInstantOpening(s, returning, needsCal);
     _jillState.history = [{role:'assistant', content: reply, contentType: parsed.contentType || 'text'}];
     jillRenderHistoryMessages();
     jillSpeak(reply);
     if(s.id) await dbSet('infinity_students', s.id, s);
-    if(typeof AiProfile !== 'undefined'){
+    if(typeof AiProfile !== 'undefined' && !needsCal){
       await AiProfile.saveAiProfilePatch({ firstGreetingJill: true }, dbSet, s);
     }
     if(statusEl) statusEl.textContent = '';
   } catch(e){
-    var fallback = jillInstantOpening(s, returning);
+    var fallback = jillInstantOpening(s, returning, needsCal);
     _jillState.history = [{role:'assistant', content: fallback, contentType: 'text'}];
     jillRenderHistoryMessages();
     jillSpeak(fallback);
@@ -4539,9 +4554,25 @@ async function sendJillMsg(micText){
   if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, s).catch(function(){});
 
   if(typeof JillVocab !== 'undefined' && s) JillVocab.harvestFromText(s, text);
+  var wasCalibrating = s && typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s);
+  if(wasCalibrating){
+    var calResult = JillCalibration.scoreLastTurn(s, text);
+    if(calResult && calResult.done){
+      _jillState.calibrationActive = false;
+      if(typeof AiProfile !== 'undefined'){
+        AiProfile.saveAiProfilePatch({ firstGreetingJill: true }, dbSet, s).catch(function(){});
+      }
+      if(typeof JillFoundations !== 'undefined'){
+        JillFoundations.autoAssignBundle(s);
+        _jillState.activeBundle = JillFoundations.getActiveBundle(s);
+      }
+    }
+    if(s && s.id) dbSet('infinity_students', s.id, s).catch(function(){});
+    renderJill();
+  }
   var jillCtx = jillGetContext(s);
   var responseMs = Date.now() - turnStarted;
-  if(s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle())){
+  if(s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle()) && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s))){
     JillMatrix.recordResponseTime(s, responseMs);
     if(jillCtx.matrixContext && jillCtx.matrixContext.anecdoteMode){
       var anecdoteWords = text.split(/\s+/).filter(function(w){ return /[a-zA-Z]/.test(w); }).length;
@@ -4552,7 +4583,7 @@ async function sendJillMsg(micText){
     if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
   }
 
-  var drillEval = (typeof TrainerDrill !== 'undefined')
+  var drillEval = (typeof TrainerDrill !== 'undefined' && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s)))
     ? TrainerDrill.evaluateTurn(text, { student: s, tutor: 'jill', bundle: jillActiveBundle(), matrixContext: jillCtx.matrixContext, responseMs: responseMs })
     : null;
 
@@ -4588,9 +4619,10 @@ async function sendJillMsg(micText){
 
   try {
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
+    if(studentPayload && s && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);

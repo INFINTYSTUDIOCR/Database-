@@ -95,6 +95,12 @@
     if (typeof JillVocab !== 'undefined') {
       ctx.vocabContext = JillVocab.getApiContext(s);
     }
+    if (typeof JillCalibration !== 'undefined') {
+      ctx.calibrationContext = JillCalibration.getApiContext(s);
+      if (ctx.calibrationContext.route && ctx.calibrationContext.route.weakKpis && ctx.calibrationContext.route.weakKpis.length) {
+        ctx.weakKpis = ctx.calibrationContext.route.weakKpis.slice();
+      }
+    }
     return ctx;
   }
 
