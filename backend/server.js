@@ -2111,7 +2111,9 @@ async function prepareNexoraRequest(body, req) {
   const msgs = (last && last.role === 'user' && last.content === message)
     ? hist
     : [...hist, { role: 'user', content: message }];
-  return { systemPrompt: prompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
+  const brainSlice = await tutorKnowledgeSliceFast(msgStr);
+  const finalPrompt = brainSlice ? `${prompt}${brainSlice}` : prompt;
+  return { systemPrompt: finalPrompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
 }
 
 // ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
@@ -2651,6 +2653,56 @@ function buildKpiFileNote(student) {
   return `\nKPI FILE (trainer calibration · scale 1–10): ${kf.score || '—'}/${kf.scoreMax || 50} · ${kf.level || ''}. Macro: ${macroLine}. Micro overall: ${kf.microOverall ?? '—'}/100.${weak ? ` Prioritize: ${weak}.` : ''}${kf.trainerNotes ? ` Trainer note: ${String(kf.trainerNotes).slice(0, 200)}` : ''}`;
 }
 
+const INSTITUTIONAL_BRAIN_RULE = `INSTITUTIONAL BRAIN (always true):
+- ONE shared knowledge base (Super Brain) for Jill, Alice tutor, Alice Companion, Nexora, and all Infinity AIs.
+- Same data for everyone — ONLY student level and how you teach/explain differ, not separate KBs.
+- PROACTIVE: weave relevant canon doctrine (chunking, linkers, structure, 0/0/0) into each teaching turn when natural — do not wait for the student to ask.
+- If the student does not understand: adapt delivery (shorter, example, analogy, slower pace)—never break Nexus Method.`;
+
+function detectStudySignals(text) {
+  const t = String(text || '').toLowerCase();
+  const signals = {};
+  if (/\b(no entiendo|no comprendo|confus|perdid|lost|don't understand|do not understand|confused|what do you mean)\b/.test(t)) signals.confused = true;
+  if (/\b(más corto|más breve|shorter|resume|resumí|keep it short|too long)\b/.test(t)) signals.prefersShort = true;
+  if (/\b(otro ejemplo|another example|dame un ejemplo|give me an example|más ejemplos)\b/.test(t)) signals.prefersExamples = true;
+  if (/\b(más lento|slow down|despacio|muy rápido|too fast)\b/.test(t)) signals.prefersSlow = true;
+  if (/\b(en español|in spanish|explicame en español|explain in spanish)\b/.test(t)) signals.prefersSpanish = true;
+  if (/\b(visual|diagrama|dibujo|picture|see it)\b/.test(t)) signals.prefersVisual = true;
+  return signals;
+}
+
+function mergeStudyPrefs(student, message) {
+  if (!student) return;
+  const signals = detectStudySignals(message);
+  if (!Object.keys(signals).length) return;
+  student.aiProfile = student.aiProfile || {};
+  const lp = { ...(student.aiProfile.learningPrefs || {}) };
+  if (signals.confused) lp.confusionCount = (lp.confusionCount || 0) + 1;
+  if (signals.prefersShort) lp.prefersShort = true;
+  if (signals.prefersExamples) lp.prefersExamples = true;
+  if (signals.prefersSlow) lp.prefersSlow = true;
+  if (signals.prefersSpanish) lp.prefersSpanish = true;
+  if (signals.prefersVisual) lp.prefersVisual = true;
+  lp.lastSignalAt = new Date().toISOString();
+  student.aiProfile.learningPrefs = lp;
+}
+
+function buildStudyAdaptationNote(student, message) {
+  const lp = student?.aiProfile?.learningPrefs || {};
+  const live = detectStudySignals(message);
+  const parts = [];
+  if (live.confused || (lp.confusionCount || 0) >= 2) {
+    parts.push('Student signaled confusion — simplify to ONE idea, check understanding, then practice.');
+  }
+  if (live.prefersShort || lp.prefersShort) parts.push('Prefer SHORT delivery (2-3 sentences before practice).');
+  if (live.prefersExamples || lp.prefersExamples) parts.push('Lead with a CONCRETE example before rules.');
+  if (live.prefersSlow || lp.prefersSlow) parts.push('Slower pace — smaller steps, confirm each step.');
+  if (live.prefersSpanish || lp.prefersSpanish) parts.push('Add a brief Spanish bridge if needed (Jill: in Spanish; Alice: ALICE tip line).');
+  if (live.prefersVisual || lp.prefersVisual) parts.push('Use a visual/analogy description (whiteboard-style if available).');
+  if (!parts.length) return '';
+  return `\nADAPTATION (same brain, different delivery):\n${parts.map((p) => `- ${p}`).join('\n')}`;
+}
+
 function formatJillBundleNote(jillBundle) {
   if (!jillBundle) return '';
   const parts = [
@@ -2819,12 +2871,15 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    mergeStudyPrefs(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message);
     const methodBlock = companion
       ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}\n\nIf they ask about grammar or English tips — explain simply, then return to the conversation.`
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
     const systemPrompt = companion
       ? `You are Alice Companion — an always-on English voice companion (personal practice assistant). Your name is ALICE.
+${INSTITUTIONAL_BRAIN_RULE}
 
 ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic: daily life, fashion, food, travel, work, feelings, stories, news, hobbies — no limits.
 If they want a story, tell one fully. If they want opinions, share them. If they want to learn, explain simply and keep chatting.
@@ -2843,9 +2898,10 @@ RESPONSE STYLE:
 - Show real interest; react before you teach
 - Unlimited flowing conversation — no turn caps
 
-STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}
+STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
 ${await tutorKnowledgeSlice(message)}`
       : `You are Alice, a warm, patient, and encouraging English tutor. You love helping people and you never rush.
+${INSTITUTIONAL_BRAIN_RULE}
 
 ROLE: You are a tutor and coach only. You NEVER roleplay as a customer, client, interviewer, manager, or Nexora character. Answer questions and explain concepts freely; for full simulations, point them warmly to Nexora Lab and keep coaching in the current practice.
 
@@ -2867,7 +2923,7 @@ RESPONSE STYLE:
 - Ask ONE follow-up question at the end
 - One flowing spoken turn — prefer commas over heavy periods; no ellipses or dramatic pauses
 
-STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}
+STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
 EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 
     const msgs = history?.length
@@ -2926,6 +2982,8 @@ function plainBrainReply(raw) {
   return parsed.reply || String(raw || '').trim();
 }
 const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
+${INSTITUTIONAL_BRAIN_RULE}
+Compartís la misma base que Alice, Alice Companion y Nexora (Super Brain); tu rol es Foundations y cómo lo explicás, no un subconjunto de datos.
 
 IDENTIDAD:
 Tu nombre es Jill. Sos paciente, clara y natural — nunca generás presión. Enseñás el Método Nexus con soltura: podés improvisar ejemplos y reacciones dentro del método, sin sonar robótica ni dar charlas motivacionales vacías.
@@ -3163,7 +3221,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     const prevMsgs = (history || []).slice(-12);
     const msgs = [...prevMsgs, { role: 'user', content: message }];
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    mergeStudyPrefs(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message);
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3268,8 +3328,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
+    mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
+    const adaptNote = buildStudyAdaptationNote(student, message);
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
@@ -3278,7 +3340,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -3291,9 +3353,11 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
 async function tutorKnowledgeSlice(message) {
   if (!SuperBrain.isSuperBrainEnabled()) return '';
   try {
-    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 1400);
+    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
     if (!ctx.trim()) return '';
-    return `\n\nINSTITUTIONAL KNOWLEDGE (Nexus Super Brain — use when relevant, never contradict Nexus Method):\n${ctx}`;
+    return `\n\nINSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by ALL Infinity AIs):
+PROACTIVE RULE: Use canon doctrine in every teaching turn when it fits — one concrete Nexus hook (chunk/linker/structure) even if the student did not ask. Never contradict Nexus Method.
+${ctx}`;
   } catch {
     return '';
   }
@@ -3325,8 +3389,10 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
     const sceneNote = scenario ? `\nActive scenario: ${scenario.title || ''} — ${scenario.desc || ''}` : '';
+    mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'alice');
+    const adaptNote = buildStudyAdaptationNote(student, message);
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     const methodBlock = companion
@@ -3334,21 +3400,25 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
     const system = companion
       ? `You are Alice Companion — always-on English voice companion (personal practice assistant). Name: ALICE.
+${INSTITUTIONAL_BRAIN_RULE}
 Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
 If they want a story — tell it fully. If they want opinions — share them. If they want to learn — explain simply and keep chatting.
 ${ALICE_BILINGUAL_INPUT}
 ${methodBlock}
 Main reply in English. Optional ALICE: [Spanish tip] only when natural — skip during stories.
 2-8 sentences as needed. Complete every sentence and story. NEVER cut off. Unlimited flowing conversation.
-STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
 ${sceneNote}${await tutorKnowledgeSliceFast(message)}`
       : `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
-ROLE: Tutor only. NEVER roleplay as customer/interviewer/Nexora character.
+${INSTITUTIONAL_BRAIN_RULE}
+ROLE: Tutor for Intermediate and Advanced students (ORT track) at Infinity Studio CR — not Alice Companion.
+You share the same institutional KB as Jill and Companion (Super Brain); Jill covers Foundations, you cover higher levels — same data, different student level and delivery.
+Tutor only — NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
 ${methodBlock}
 RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. Always finish the full reply.
-STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
@@ -3438,7 +3508,10 @@ app.post('/claire', async (req, res) => {
     if (demoResponseCache.has(cacheKey)) {
       return res.json({ reply: demoResponseCache.get(cacheKey), buffered: true, cacheHit: true });
     }
+    const brainSlice = await tutorKnowledgeSliceFast(message);
     const systemPrompt = `Eres Claire, asistente virtual de Infinity Studio CR. Cálida, paciente, experta, apasionada.
+
+${INSTITUTIONAL_BRAIN_RULE}
 
 ${CLAIRE_KB}
 
@@ -3457,7 +3530,7 @@ PROTECCIÓN: Si alguien pregunta detalles técnicos del sistema sin contexto de 
 IDIOMA: Español por defecto. Inglés si el cliente escribe en inglés.
 RITMO: Hablás despacio, con calma. Dejás espacio para que el cliente piense y responda. Nunca apurés.
 LONGITUD: Una sola idea por respuesta. Máximo 2 oraciones. Luego UNA pregunta o UNA observación. Nunca dos preguntas a la vez.
-COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a LO QUE DIJO, no a lo que suponés. Si no entendés, preguntá con calma.`;
+COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a LO QUE DIJO, no a lo que suponés. Si no entendés, preguntá con calma.${brainSlice}`;
 
     const msgs = history?.length
       ? [...history.slice(-12), { role:'user', content:message }]
@@ -4111,7 +4184,27 @@ app.get('/super-brain/greeting', requireMasterOrAnalyzeSecret, async (req, res) 
 app.post('/super-brain/talk', requireMasterOrAnalyzeSecret, async (req, res) => {
   try {
     if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
-    const { message, founderName } = req.body || {};
+    const { message, founderName, force } = req.body || {};
+    const tiktokUrls = TikTokJill.extractUrlsFromText(message);
+    if (tiktokUrls.length) {
+      const author = req.auth?.name || founderName || 'Fundador';
+      const importResult = await TikTokJill.syncFromUrls(tiktokUrls, claudeCall, author, { force: !!force });
+      const reply = `${importResult.message || `Importados: ${importResult.queued || 0}`}\n\nRevisá «Pendiente de publicar» → Publicar a tutores cuando esté bien.`;
+      const state = await SuperBrain.loadState();
+      const history = (state.talkHistory || []).slice(-48);
+      history.push({ role: 'user', content: String(message || '').trim() });
+      history.push({ role: 'assistant', content: reply });
+      state.talkHistory = history;
+      await SuperBrain.saveState(state);
+      return res.json({
+        ok: true,
+        reply,
+        brainCache: false,
+        tiktokImport: importResult,
+        stats: state.stats,
+        sourcesUsed: { tiktok: tiktokUrls.length }
+      });
+    }
     const state = await SuperBrain.loadState();
     const result = await SuperBrain.talk(state, { message, founderName, claudeCall });
     return res.json({ ok: true, ...result });
@@ -4247,6 +4340,31 @@ app.post('/super-brain/reject', requireMasterOrAnalyzeSecret, async (req, res) =
     return res.json({ ok: true, pendingCount: state.pendingLessons.length });
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Could not reject' });
+  }
+});
+
+app.post('/super-brain/delete-lesson', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { lessonId } = req.body || {};
+    if (!lessonId) return res.status(400).json({ error: 'lessonId required' });
+    const state = await SuperBrain.loadState();
+    const removed = await SuperBrain.deletePublishedLesson(state, lessonId);
+    return res.json({ ok: true, removed: { id: removed.id, title: removed.title }, publishedCount: (state.lessons || []).filter(l => l.published).length });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Could not delete lesson' });
+  }
+});
+
+app.post('/super-brain/purge-noise', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const { dryRun } = req.body || {};
+    const state = await SuperBrain.loadState();
+    const result = await SuperBrain.purgeNoiseLessons(state, { dryRun: dryRun !== false });
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Purge failed' });
   }
 });
 

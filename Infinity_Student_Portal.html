@@ -2064,6 +2064,7 @@ async function sendAliceMessage(micText){
   if(statusEl) statusEl.textContent = 'Alice está pensando…';
 
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'alice', dbSet).catch(function(){});
+  if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, CURRENT_STUDENT).catch(function(){});
 
   var streamIdx = _aliceState.history.length;
   _aliceState.history.push({ role:'assistant', content:'▋' });
@@ -4429,6 +4430,7 @@ async function sendJillMsg(micText){
   var historyForApi = _jillState.history.slice(-10);
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'jill', dbSet).catch(function(){});
+  if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, s).catch(function(){});
 
   var streamIdx = _jillState.history.length;
   _jillState.history.push({role:'assistant', content:'▋'});

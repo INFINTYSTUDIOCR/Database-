@@ -196,6 +196,40 @@ function videoIdFromUrl(url) {
   return m ? m[1] : null;
 }
 
+function normalizeTikTokUrl(raw) {
+  let u = String(raw || '').trim().replace(/[.,;:!?)>\]]+$/, '');
+  if (!u) return '';
+  if (!/^https?:\/\//i.test(u)) u = `https://${u.replace(/^\/\//, '')}`;
+  return u.includes('tiktok.com') ? u : '';
+}
+
+function extractUrlsFromText(text) {
+  const found = new Set();
+  const raw = String(text || '');
+  const patterns = [
+    /https?:\/\/(?:www\.|m\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+/gi,
+    /(?:^|[\s(])((?:www\.|m\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+)/gi
+  ];
+  for (const re of patterns) {
+    let m;
+    const r = new RegExp(re.source, re.flags);
+    while ((m = r.exec(raw)) !== null) {
+      const u = normalizeTikTokUrl(m[1] || m[0]);
+      if (u) found.add(u);
+    }
+  }
+  return [...found];
+}
+
+function findVideoInState(sbState, videoId) {
+  if (!videoId || !sbState) return null;
+  const pending = (sbState.pendingLessons || []).find((p) => p.meta?.videoId === videoId);
+  if (pending) return { where: 'pendiente', title: pending.title };
+  const lesson = (sbState.lessons || []).find((l) => l.meta?.videoId === videoId);
+  if (lesson) return { where: lesson.published ? 'publicado' : 'borrador', title: lesson.title };
+  return null;
+}
+
 function normalizeVideoFromApi(v) {
   return {
     id: v.id,
@@ -299,7 +333,7 @@ function videoFromUrlFallback(url) {
   };
 }
 
-function formatImportMessage(result) {
+function formatImportMessage(result, sbState) {
   const q = result.queued || 0;
   const s = result.skipped || 0;
   const sc = result.scanned || 0;
@@ -309,7 +343,12 @@ function formatImportMessage(result) {
   if (sc > 0 && s > 0) {
     const reasons = (result.skipReasons || []).map((r) => r.reason);
     if (reasons.length && reasons.every((r) => r === 'already_seen' || r === 'duplicate')) {
-      return '0 nuevos: ese video ya estaba importado (historial TikTok→Jill). Activá «Forzar reimportación» o probá otro URL.';
+      const vid = (result.skipReasons[0] || {}).id;
+      const loc = vid && sbState ? findVideoInState(sbState, vid) : null;
+      const where = loc
+        ? ` Ya está en «${loc.where}»: ${loc.title}.`
+        : ' Revisá «Publicado» abajo — puede que ya lo hayas publicado.';
+      return `0 nuevos: ese video ya estaba en el historial TikTok→Jill.${where} Activá «Forzar reimportación» si querés volver a encolarlo en Pendiente.`;
     }
     return `0 nuevos en pendiente (${sc} leído(s), ${s} omitido(s)). Revisá pendientes/publicados o usá Forzar.`;
   }
@@ -429,7 +468,7 @@ async function syncFromUrls(urls, claudeCall, author, opts = {}) {
   }
   const results = await processNewVideos(videos, sbState, claudeCall, author, opts);
   results.mode = 'urls';
-  results.message = formatImportMessage(results);
+  results.message = formatImportMessage(results, sbState);
   return results;
 }
 
@@ -489,6 +528,7 @@ module.exports = {
   handleOAuthCallback,
   syncFromApi,
   syncFromUrls,
+  extractUrlsFromText,
   publicStatus,
   scheduledSyncIfDue,
   extractPedagogyForJill

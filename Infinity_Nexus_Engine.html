@@ -304,9 +304,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-auditlog" onclick="showView('auditlog',this)"><i class="ti ti-history"></i>Log de auditoría</div>
       <div class="sb-item" id="nav-avail-overview" onclick="showView('avail-overview',this)"><i class="ti ti-users-group"></i>Disponibilidad equipo</div>
       <div class="sb-item" id="nav-broadcast" onclick="openBroadcastModal()"><i class="ti ti-brand-whatsapp"></i>Comunicado general</div>
-      <div class="sb-item" id="nav-nexus-kb" onclick="showView('nexus-kb',this)"><i class="ti ti-bulb"></i>Nexus AI · Base de conocimiento</div>
-      <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>A.D.A.M. · Nexus AI</div>
-      <div class="sb-item" id="nav-kb-upload" onclick="showView('kb-upload',this)"><i class="ti ti-cloud-upload"></i>KB Upload · Archivos</div>
+      <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>A.D.A.M. · Nexus KB</div>
       <div class="sb-item" id="nav-ops" onclick="showView('ops',this)"><i class="ti ti-activity"></i>Operación en vivo</div>
       <div class="sb-item" id="nav-network" onclick="showView('network',this)"><i class="ti ti-radar"></i>Network Traffic</div>
       <div class="sb-item" onclick="showView('staffchat',this)"><i class="ti ti-messages"></i>Chat de Staff</div>
@@ -1116,9 +1114,7 @@ function startApp(){
     document.getElementById('nav-auditlog').style.display='none';
     document.getElementById('nav-avail-overview').style.display='none';
     document.getElementById('nav-broadcast').style.display='none';
-    document.getElementById('nav-nexus-kb').style.display='none';
     document.getElementById('nav-super-brain').style.display='none';
-    document.getElementById('nav-kb-upload').style.display='none';
     document.getElementById('nav-ops').style.display='none';
     document.getElementById('nav-network').style.display='none';
     document.getElementById('nav-new-student').style.display='none';
@@ -1217,9 +1213,7 @@ function showView(view, btn){
   else if(view==='availability') renderAvailability(m);
   else if(view==='attendance') renderAttendanceView(m);
   else if(view==='avail-overview') renderAvailabilityOverview(m);
-  else if(view==='nexus-kb') renderNexusKB(m);
-  else if(view==='super-brain') renderSuperBrain(m);
-  else if(view==='kb-upload') renderKBUpload(m);
+  else if(view==='nexus-kb' || view==='kb-upload' || view==='super-brain') renderSuperBrain(m);
   else if(view==='ops') renderOpsOverview(m);
   else if(view==='staffchat') renderStaffChat(m);
   else if(view==='dashboard') renderDashboard_Admin(m);
@@ -5397,39 +5391,60 @@ async function saveNexusKB(){
   await dbSet('infinity_sessions','NEXUS-KB', NEXUS_KB);
 }
 
-function renderNexusKB(m){
-  if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
-  var entries = (NEXUS_KB.entries||[]).slice().reverse();
+function renderNexusKB(m){ renderSuperBrain(m); }
 
-  m.innerHTML = '<div class="fade">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-bulb"></i> Nexus AI · Base de conocimiento</h2>'
-    +'<div class="ib ib-navy">Cada entrada acá se incluye automáticamente en los prompts de "Analizar con IA". Es así como la IA "aprende" tu metodología con el tiempo: cada sesión analizada puede sumar un insight reusable. Entradas: '+entries.length+'.</div>'
-    +'<div class="ib ib-amber"><strong>Regla fundamental:</strong> toda sugerencia de la IA debe basarse en la lógica del Método Nexus (STAR, conectores naturales, 26 KPIs, "comunicar &gt; perfección"). Puede ser innovadora en formato/contexto, pero nunca puede contradecir o reemplazar los principios centrales del método.</div>'
-    +'<div class="ib ib-amber"><strong>Framework estructural central — Idea + Linker + Idea + Linker + Idea (chunking):</strong> todo ejercicio refuerza este patrón hasta volverlo hábito. La fluidez = estructura + escogencia de palabras (incluyendo phrasal verbs, prefijos y sufijos), no velocidad ni gramática perfecta. El fin subliminal es que el estudiante aprenda a improvisar eligiendo estructuras, no a memorizar guiones.</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-plus"></i>Agregar entrada manual</div>'
-    +'<textarea class="inp" id="kb-new-entry" placeholder="Ej: Los estudiantes de programa Corporate suelen fallar más en k21/k22 (Customer Interaction / Professional Communication) — priorizar ejercicios de tono profesional desde la semana 1."></textarea>'
-    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn btn-navy btn-sm" onclick="addNexusKBEntry()"><i class="ti ti-check"></i>Agregar</button></div>'
-    +'</div>'
-    +(entries.length ? entries.map(function(e,i){
-        var realIdx = entries.length-1-i;
-        return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
-          +'<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;flex:1;">'+e.text+'</div>'
-          +'<button data-idx="'+realIdx+'" class="btn btn-red btn-sm" onclick="deleteNexusKBEntry(this.dataset.idx)"><i class="ti ti-trash"></i></button>'
-          +'</div><div style="font-size:11px;color:var(--t3);margin-top:6px;">'+fmtDate(e.date)+' · '+(e.author||'—')+(e.studentName?(' · '+e.studentName):'')+'</div></div>';
-      }).join('')
-      : '<div class="ib ib-amber">Sin entradas todavía. Se van a sumar automáticamente cuando guardes análisis de IA, o agregalas manualmente arriba.</div>')
-    +'</div>';
+function superBrainRenderKbEntries(){
+  var el = document.getElementById('sb-kb-entries');
+  if(!el) return;
+  var entries = (NEXUS_KB.entries||[]).slice().reverse().slice(0, 12);
+  el.innerHTML = entries.length ? entries.map(function(e, i){
+    var realIdx = (NEXUS_KB.entries||[]).length - 1 - i;
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border);">'
+      +'<div style="font-size:12px;line-height:1.5;white-space:pre-wrap;">'+e.text+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'
+      +'<span style="font-size:10px;color:var(--t3);">'+fmtDate(e.date)+' · '+(e.author||'—')+'</span>'
+      +'<button data-idx="'+realIdx+'" class="btn btn-red btn-sm" onclick="deleteNexusKBEntry(this.dataset.idx)"><i class="ti ti-trash"></i></button>'
+      +'</div></div>';
+  }).join('') : '<span style="color:var(--t3);">Sin insights todavía.</span>';
+}
+
+function superBrainRenderFileList(){
+  var el = document.getElementById('sb-kb-files');
+  if(!el) return;
+  var catLabels = { conectores:'Conectores', star:'STAR', ejercicios:'Ejercicios', errores:'Errores', vocabulario:'Vocabulario', metodologia:'Metodología', 'jill-foundations':'Jill', otro:'Otro' };
+  el.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px;">Archivos guardados ('+KB_UPLOADS.length+')</div>'
+    +(KB_UPLOADS.length ? KB_UPLOADS.slice(0, 15).map(function(f){
+      return '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start;">'
+        +'<div style="flex:1;min-width:0;"><strong style="font-size:12px;">'+f.title+'</strong>'
+        +'<div style="font-size:10px;color:var(--t3);">'+(catLabels[f.category]||f.category)+' · '+f.fileName+' · '+fmtDate(f.date)+'</div>'
+        +'<div style="font-size:10px;color:var(--t3);max-height:32px;overflow:hidden;">'+((f.extractedText||'').substring(0,120))+'…</div></div>'
+        +'<button data-id="'+f._id+'" class="btn btn-red btn-sm" onclick="kbuDelete(this.dataset.id)"><i class="ti ti-trash"></i></button></div>';
+    }).join('') : '<span style="color:var(--t3);">Ningún archivo todavía.</span>');
 }
 
 async function addNexusKBEntry(text, studentName){
-  var t = text || document.getElementById('kb-new-entry').value.trim();
+  var t = text || (document.getElementById('kb-new-entry') && document.getElementById('kb-new-entry').value.trim());
   if(!t){ showToast('Escribí algo primero','err'); return; }
   NEXUS_KB.entries = NEXUS_KB.entries||[];
   NEXUS_KB.entries.push({ date:new Date().toISOString(), author:SESSION.name, text:t, studentName:studentName||null });
   await saveNexusKB();
+  try{
+    await superBrainFetch('/super-brain/ingest', {
+      method:'POST',
+      body: JSON.stringify({
+        title: 'Insight Nexus KB',
+        content: t,
+        category: 'metodologia',
+        autoPublish: false,
+        secret: SUPER_BRAIN_SECRET
+      })
+    });
+  }catch(e){ console.warn('super-brain ingest insight:', e.message); }
   await logAction('Agregó entrada a Nexus AI KB', t.substring(0,80));
   showToast('Entrada agregada a la base de conocimiento');
-  if(document.getElementById('kb-new-entry')) renderNexusKB(document.getElementById('main-content'));
+  if(!text && document.getElementById('kb-new-entry')) document.getElementById('kb-new-entry').value = '';
+  superBrainRenderKbEntries();
+  superBrainRefresh();
 }
 
 async function deleteNexusKBEntry(idx){
@@ -5438,7 +5453,8 @@ async function deleteNexusKBEntry(idx){
     await saveNexusKB();
     await logAction('Eliminó entrada de Nexus AI KB','');
     showToast('Entrada eliminada');
-    renderNexusKB(document.getElementById('main-content'));
+    superBrainRenderKbEntries();
+    superBrainRefresh();
   });
 }
 
@@ -5473,47 +5489,69 @@ async function superBrainFetch(path, opts){
 function renderSuperBrain(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
   m.innerHTML = '<div class="fade">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> A.D.A.M. · Adjusting Deployment Application Matrix</h2>'
-    +'<div class="ib ib-navy">Bilingüe nativo (español + inglés). Te saluda, queda en silencio y responde con precisión cuando das la orden.</div>'
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> A.D.A.M. · Nexus KB</h2>'
+    +'<div class="ib ib-navy">Un solo lugar: conversá con A.D.A.M., subí texto o archivos (bulk), importá TikTok, revisá pendientes y publicá a Jill/Alice.</div>'
     +'<div id="sb-db-status" class="ib ib-amber" style="margin-top:8px;">Conectando a base de datos...</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:12px;align-items:start;">'
-    // LEFT — Alice-style voice session
+    +'<div style="display:grid;grid-template-columns:1fr minmax(300px,380px);gap:14px;margin-top:12px;align-items:start;">'
     +'<div style="background:linear-gradient(160deg,#1e1035 0%,#2d1b4e 100%);border-radius:16px;padding:16px;border:1px solid rgba(192,132,252,0.25);">'
     +'<div style="font-size:10px;font-weight:800;color:#C084FC;letter-spacing:0.12em;margin-bottom:8px;">A.D.A.M. · NEXUS MATRIX</div>'
     +'<div id="sb-msgs" style="max-height:340px;overflow-y:auto;margin-bottom:10px;padding-right:4px;"></div>'
     +'<div id="sb-voice-status" style="font-size:12px;color:#C084FC;text-align:center;min-height:18px;margin-bottom:8px;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;">'
-    +'<input id="sb-input" class="inp" placeholder="Orden… o pegá un link de TikTok para importarlo a Jill" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
+    +'<input id="sb-input" class="inp" placeholder="Orden… o pegá un link de TikTok para importarlo" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
     +'<button id="sb-mic-btn" title="Mantené presionado para hablar (PTT)" style="width:44px;height:44px;background:rgba(107,114,128,0.4);border:1px solid rgba(192,132,252,0.35);color:#9CA3AF;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
     +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
     +'</div></div>'
-    // RIGHT — upload + publish
-    +'<div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Subir conocimiento</div>'
+    +'<div style="max-height:calc(100vh - 200px);overflow-y:auto;padding-right:4px;">'
+    +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Subir conocimiento (texto)</div>'
     +'<input class="inp" id="sb-up-title" placeholder="Título (ej: Regla k9 Corporate)">'
     +'<select class="inp" id="sb-up-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="jill-foundations">Jill Foundations</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option></select>'
-    +'<textarea class="inp" id="sb-up-content" placeholder="Pegá texto, procedimientos, reglas..." style="min-height:100px;margin-top:8px;"></textarea>'
+    +'<textarea class="inp" id="sb-up-content" placeholder="Pegá texto, procedimientos, reglas..." style="min-height:80px;margin-top:8px;"></textarea>'
     +'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
     +'<button class="btn btn-outline btn-sm" onclick="superBrainIngest(false)"><i class="ti ti-inbox"></i>Guardar pendiente</button>'
     +'<button class="btn btn-navy btn-sm" onclick="superBrainIngest(true)"><i class="ti ti-broadcast"></i>Publicar ya</button>'
     +'</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-files"></i>Archivos en bulk</div>'
+    +'<div class="ib ib-amber" style="margin-bottom:8px;font-size:11px;">PDF, TXT, PNG/JPG · máx 2 MB c/u · varios a la vez. Van a <strong>Pendiente</strong> o directo a tutores.</div>'
+    +'<input class="inp" id="kbu-title-prefix" placeholder="Prefijo de título (opcional, ej: Foundations S3)">'
+    +'<select class="inp" id="kbu-cat" style="margin-top:8px;"><option value="metodologia">Metodología</option><option value="jill-foundations">Jill Foundations</option><option value="conectores">Conectores</option><option value="star">STAR</option><option value="ejercicios">Ejercicios</option><option value="errores">Errores frecuentes</option><option value="vocabulario">Vocabulario</option><option value="otro">Otro</option></select>'
+    +'<textarea class="inp" id="kbu-note" placeholder="Nota común para todos los archivos (opcional)" style="min-height:48px;margin-top:8px;font-size:12px;"></textarea>'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-upload"></i>Elegir archivos<input type="file" id="kbu-files" accept=".pdf,.png,.jpg,.jpeg,.txt" multiple style="display:none" onchange="kbuFilesSelected(this)"></label>'
+    +'<div id="kbu-file-list" style="font-size:11px;color:var(--t2);margin-top:6px;"></div>'
+    +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="kbu-publish-now" style="accent-color:var(--purple);"> Publicar directo a Jill/Alice (sin pendiente)</label>'
+    +'<button class="btn btn-navy btn-sm" id="kbu-upload-btn" style="margin-top:8px;" onclick="kbuBulkUpload()"><i class="ti ti-cloud-upload"></i>Procesar archivos</button>'
+    +'<div id="kbu-status" style="font-size:11px;color:var(--t2);margin-top:8px;"></div>'
+    +'<div id="sb-kb-files" style="margin-top:10px;font-size:12px;color:var(--t2);">—</div>'
+    +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-brand-tiktok"></i>TikTok → Jill</div>'
     +'<div id="sb-tiktok-status" style="font-size:12px;color:var(--t2);margin-bottom:8px;">Cargando…</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
     +'<button class="btn btn-navy btn-sm" onclick="tiktokJillConnect()"><i class="ti ti-link"></i>Conectar TikTok</button>'
     +'<button class="btn btn-outline btn-sm" onclick="tiktokJillSync()"><i class="ti ti-refresh"></i>Sincronizar videos</button>'
     +'</div>'
-    +'<textarea class="inp" id="sb-tiktok-urls" placeholder="O pegá URLs de videos (una por línea) para importar sin OAuth…" style="min-height:56px;font-size:11px;"></textarea>'
-    +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="sb-tiktok-force" style="accent-color:var(--purple);"> Forzar reimportación (aunque ya esté en historial)</label>'
+    +'<textarea class="inp" id="sb-tiktok-urls" placeholder="URLs de videos (una por línea) — sin OAuth" style="min-height:48px;font-size:11px;"></textarea>'
+    +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="sb-tiktok-force" style="accent-color:var(--purple);"> Forzar reimportación</label>'
     +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="tiktokJillImportUrls()"><i class="ti ti-download"></i>Importar URLs</button>'
-    +'<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.45;">Importar por URL <strong>no requiere</strong> OAuth. Los videos nuevos van a <strong>Pendiente</strong> — vos publicás cuando Jill deba aprenderlo.</div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Pendiente de publicar</div>'
     +'<div id="sb-pending-list" style="font-size:12px;color:var(--t2);">—</div></div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-check"></i>Ya propagado a tutores</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
+    +'<button class="btn btn-outline btn-sm" onclick="superBrainPurgeNoise(true)"><i class="ti ti-scan"></i>Preview limpiar ruido</button>'
+    +'<button class="btn btn-red btn-sm" onclick="superBrainPurgeNoise(false)"><i class="ti ti-trash"></i>Ejecutar limpieza</button>'
+    +'</div>'
+    +'<div id="sb-purge-preview" style="font-size:11px;color:var(--t2);margin-bottom:8px;"></div>'
     +'<div id="sb-published-list" style="font-size:12px;color:var(--t2);">—</div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-bulb"></i>Insights Nexus KB</div>'
+    +'<div class="ib ib-amber" style="font-size:11px;margin-bottom:8px;">Entradas cortas de análisis de sesiones y notas manuales — también alimentan a A.D.A.M.</div>'
+    +'<textarea class="inp" id="kb-new-entry" placeholder="Ej: Corporate falla más en k21 — priorizar tono profesional desde semana 1." style="min-height:56px;font-size:12px;"></textarea>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:6px;"><button class="btn btn-navy btn-sm" onclick="addNexusKBEntry()"><i class="ti ti-plus"></i>Agregar</button></div>'
+    +'<div id="sb-kb-entries" style="margin-top:10px;font-size:12px;color:var(--t2);">—</div>'
+    +'</div>'
     +'</div></div></div>';
   renderSuperBrainStop();
+  loadNexusKB().then(function(){ superBrainRenderKbEntries(); });
+  loadKBUploads().then(function(){ superBrainRenderFileList(); });
   superBrainRefresh();
   bindAdamPttMic();
   superBrainGreet();
@@ -5620,9 +5658,19 @@ async function superBrainRefresh(){
     tiktokJillRefreshStatus();
     var pub = document.getElementById('sb-published-list');
     if(pub){
-      var published = data.recentPublished || [];
+      var published = data.allPublished || data.recentPublished || [];
       pub.innerHTML = published.length ? published.map(function(l){
-        return '<div style="padding:6px 0;border-bottom:1px solid var(--border);"><strong>'+(l.title||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+(l.preview||'')+'</div></div>';
+        var score = (l.qualityScore != null) ? l.qualityScore : '';
+        var badge = l.noise ? '<span style="font-size:10px;background:#FEE2E2;color:#B91C1C;padding:2px 6px;border-radius:4px;margin-left:6px;">ruido</span>'
+          : (score >= 35 ? '<span style="font-size:10px;background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:4px;margin-left:6px;">oro</span>' : '');
+        var topic = l.topic ? '<span style="font-size:10px;color:var(--t3);margin-left:6px;">'+l.topic+'</span>' : '';
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">'
+          +'<div style="flex:1;min-width:0;"><strong>'+(l.title||'—')+'</strong>'+badge+topic
+          +(score !== '' ? '<span style="font-size:10px;color:var(--t3);margin-left:6px;">q'+score+'</span>' : '')
+          +'<div style="font-size:11px;color:var(--t3);margin-top:4px;">'+(l.preview||'')+'</div></div>'
+          +'<button class="btn btn-red btn-sm" onclick="superBrainDeleteLesson(\''+l.id+'\')"><i class="ti ti-trash"></i></button>'
+          +'</div></div>';
       }).join('') : 'Publicá material para que Alice/Jill lo reciban.';
     }
   }catch(e){
@@ -5727,7 +5775,22 @@ function renderSuperBrainStop(){
 }
 
 function extractTikTokUrls(text){
-  return (String(text||'').match(/https?:\/\/(?:www\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+/gi) || []);
+  var found = {};
+  var raw = String(text||'');
+  var patterns = [
+    /https?:\/\/(?:www\.|m\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+/gi,
+    /(?:^|[\s(])((?:www\.|m\.|vm\.|vt\.)?tiktok\.com\/[^\s<>"']+)/gi
+  ];
+  patterns.forEach(function(re){
+    var m;
+    var r = new RegExp(re.source, re.flags);
+    while((m = r.exec(raw))){
+      var u = (m[1] || m[0]).trim().replace(/[.,;:!?)>\]]+$/,'');
+      if(!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/\//,'');
+      if(u.indexOf('tiktok.com') >= 0) found[u] = 1;
+    }
+  });
+  return Object.keys(found);
 }
 
 function tiktokJillForceImport(){
@@ -5753,8 +5816,11 @@ async function superBrainTalk(micText){
         method:'POST',
         body: JSON.stringify({ urls: tiktokUrls, secret: SUPER_BRAIN_SECRET, force: tiktokJillForceImport() })
       });
-      var ttMsg = (ttData.message || ('Importados: '+(ttData.queued||0)+' en pendiente.'))
-        + '\n\nRevisá «Pendiente de publicar» a la derecha → Publicar a tutores cuando esté bien.';
+      var ttMsg = (ttData.message || ('Importados: '+(ttData.queued||0)+' en pendiente.'));
+      if((ttData.queued||0) === 0 && (ttData.skipped||0) > 0){
+        ttMsg += '\n\n(Ese video ya estaba importado — revisá «Publicado» abajo o marcá «Forzar reimportación».)';
+      }
+      ttMsg += '\n\nRevisá «Pendiente de publicar» a la derecha → Publicar a tutores cuando esté bien.';
       _sbUi.history.push({ role:'brain', text: ttMsg });
       superBrainRenderMsgs();
       showToast(ttData.message || 'TikTok importado');
@@ -5777,7 +5843,7 @@ async function superBrainTalk(micText){
   try{
     var data = await superBrainFetch('/super-brain/talk', {
       method:'POST',
-      body: JSON.stringify({ message: text, founderName: (SESSION&&SESSION.name)||'Fundador', secret: SUPER_BRAIN_SECRET })
+      body: JSON.stringify({ message: text, founderName: (SESSION&&SESSION.name)||'Fundador', force: tiktokJillForceImport(), secret: SUPER_BRAIN_SECRET })
     });
     var reply = data.reply || '—';
     _sbUi.history.push({ role:'brain', text: reply });
@@ -5827,6 +5893,62 @@ async function superBrainRejectPending(id){
     showToast('Descartado');
     superBrainRefresh();
   }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainDeleteLesson(id){
+  confirmAction('Eliminar lección', '¿Sacar esta lección del cerebro de tutores (Jill/Alice)?', async function(){
+    try{
+      await superBrainFetch('/super-brain/delete-lesson', { method:'POST', body: JSON.stringify({ lessonId: id, secret: SUPER_BRAIN_SECRET }) });
+      showToast('Lección eliminada del cerebro');
+      await logAction('A.D.A.M. eliminó lección publicada', id);
+      superBrainRefresh();
+    }catch(e){ showToast(e.message,'err'); }
+  });
+}
+
+async function superBrainPurgeNoise(previewOnly){
+  var previewEl = document.getElementById('sb-purge-preview');
+  try{
+    if(!previewOnly){
+      var preview = await superBrainFetch('/super-brain/purge-noise', {
+        method:'POST',
+        body: JSON.stringify({ dryRun: true, secret: SUPER_BRAIN_SECRET })
+      });
+      var removedP = preview.removed || [];
+      var keptP = preview.kept || [];
+      if(!removedP.length){ showToast('Nada que limpiar'); return; }
+      confirmAction('Limpiar ruido del cerebro', 'Se eliminarán '+removedP.length+' lección(es) y quedarán '+keptP.length+'. ¿Continuar?', async function(){
+        try{
+          var exec = await superBrainFetch('/super-brain/purge-noise', {
+            method:'POST',
+            body: JSON.stringify({ dryRun: false, secret: SUPER_BRAIN_SECRET })
+          });
+          if(previewEl) previewEl.innerHTML = '<span style="color:#059669;">✓ Limpieza hecha: '+exec.removedCount+' eliminadas, '+exec.keptCount+' conservadas.</span>';
+          showToast('Cerebro limpio: '+exec.removedCount+' fuera, '+exec.keptCount+' útiles');
+          await logAction('A.D.A.M. purge-noise', exec.removedCount+' eliminadas');
+          superBrainRefresh();
+        }catch(e){ showToast(e.message,'err'); }
+      });
+      return;
+    }
+    var data = await superBrainFetch('/super-brain/purge-noise', {
+      method:'POST',
+      body: JSON.stringify({ dryRun: true, secret: SUPER_BRAIN_SECRET })
+    });
+    var removed = data.removed || [];
+    var kept = data.kept || [];
+    if(previewEl){
+      previewEl.innerHTML = removed.length
+        ? '<strong>Preview:</strong> se quitarían <strong>'+removed.length+'</strong> · quedarían <strong>'+kept.length+'</strong>.<br>'
+          + removed.slice(0,12).map(function(r){ return '· '+r.title+' <span style="color:var(--t3);">('+r.topic+', q'+r.qualityScore+')</span>'; }).join('<br>')
+          +(removed.length>12 ? '<br>…y '+(removed.length-12)+' más.' : '')
+        : '<span style="color:#059669;">Sin ruido detectado — el cerebro ya está limpio.</span>';
+    }
+    showToast('Preview: '+removed.length+' a quitar, '+kept.length+' a conservar');
+  }catch(e){
+    if(previewEl) previewEl.textContent = 'Error: '+e.message;
+    showToast(e.message,'err');
+  }
 }
 
 async function tiktokJillRefreshStatus(){
@@ -6872,174 +6994,150 @@ async function loadKBUploads(){
   try{ hydrateFromSessionRows(await dbGetSessionsCached()); }catch(e){ KB_UPLOADS=[]; }
 }
 
-function renderKBUpload(m){
-  if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer.</div></div>'; return; }
-  m.innerHTML = '<div class="fade">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-cloud-upload"></i> KB Upload · Material para Alice</h2>'
-    +'<div class="ib ib-navy">Subí PDFs, imágenes o texto plano. El contenido se convierte a texto y Alice lo usa en sus análisis cuando detecta fallas en áreas relacionadas. Las imágenes se describen automáticamente.</div>'
-    +'<div class="ib ib-amber"><strong>Límite por archivo:</strong> 2 MB. Formatos: PDF, PNG, JPG, JPEG, TXT. El texto extraído se guarda como entrada en la base de conocimiento de Alice.</div>'
+function renderKBUpload(m){ renderSuperBrain(m); }
 
-    +'<div class="card"><div class="card-title"><i class="ti ti-file-upload"></i>Subir archivo</div>'
-    +'<div class="form-group"><label class="form-label">Título / Tema</label><input class="inp" id="kbu-title" placeholder="Ej: Material de conectores — Semana 3"></div>'
-    +'<div class="form-group"><label class="form-label">Categoría</label>'
-    +'<select class="inp" id="kbu-cat">'
-    +'<option value="conectores">Conectores (FSF / Linking)</option>'
-    +'<option value="star">STAR + Storytelling</option>'
-    +'<option value="ejercicios">Ejercicios y dinámicas</option>'
-    +'<option value="errores">Patrones de error frecuentes</option>'
-    +'<option value="vocabulario">Vocabulario operacional</option>'
-    +'<option value="metodologia">Metodología general</option>'
-    +'<option value="otro">Otro</option>'
-    +'</select></div>'
-    +'<div class="form-group"><label class="form-label">Archivo</label>'
-    +'<label class="btn btn-outline" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-upload"></i>Elegir archivo (PDF, imagen, TXT)<input type="file" id="kbu-file" accept=".pdf,.png,.jpg,.jpeg,.txt" style="display:none" onchange="kbuFileSelected(this)"></label>'
-    +'<div id="kbu-file-name" style="font-size:12px;color:var(--t2);margin-top:6px;"></div>'
-    +'</div>'
-    +'<div id="kbu-preview" style="margin-top:8px;"></div>'
-    +'<div class="form-group"><label class="form-label">Nota adicional (opcional)</label><textarea class="inp" id="kbu-note" placeholder="Contexto sobre este material..." style="min-height:60px;"></textarea></div>'
-    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;">'
-    +'<button class="btn btn-navy" id="kbu-upload-btn" onclick="kbuUpload()"><i class="ti ti-cloud-upload"></i>Procesar y subir</button>'
-    +'</div>'
-    +'<div id="kbu-status" style="font-size:12px;color:var(--t2);margin-top:8px;"></div>'
-    +'</div>'
-
-    +'<div class="card"><div class="card-title"><i class="ti ti-files"></i>Material subido ('+KB_UPLOADS.length+')</div>'
-    +(KB_UPLOADS.length ? KB_UPLOADS.map(function(f){
-      var catLabels={conectores:'Conectores',star:'STAR',ejercicios:'Ejercicios',errores:'Errores frecuentes',vocabulario:'Vocabulario',metodologia:'Metodología',otro:'Otro'};
-      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'
-        +'<div style="width:36px;height:36px;border-radius:var(--r);background:var(--nl);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-'+(f.type==='image'?'photo':'file-text')+'" style="color:var(--nm);font-size:18px;"></i></div>'
-        +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:13px;font-weight:700;color:var(--text);">'+f.title+'</div>'
-        +'<div style="font-size:11px;color:var(--t2);">'+(catLabels[f.category]||f.category)+' · '+(f.type==='image'?'Imagen':'Documento')+' · '+fmtDate(f.date)+' · '+f.author+'</div>'
-        +'<div style="font-size:11px;color:var(--t3);margin-top:3px;max-height:40px;overflow:hidden;text-overflow:ellipsis;">'+((f.extractedText||'').substring(0,180))+'...</div>'
-        +'</div>'
-        +'<button data-id="'+f._id+'" class="btn btn-red btn-sm" onclick="kbuDelete(this.dataset.id)"><i class="ti ti-trash"></i></button>'
-        +'</div>';
-    }).join('') : '<div style="font-size:13px;color:var(--t3);">Sin archivos subidos todavía.</div>')
-    +'</div>'
-    +'</div>';
+function kbuFilesSelected(input){
+  var list = document.getElementById('kbu-file-list');
+  if(!list) return;
+  var files = input.files ? Array.from(input.files) : [];
+  if(!files.length){ list.textContent = ''; return; }
+  list.innerHTML = files.map(function(f, i){
+    var ok = f.size <= 2*1024*1024;
+    return '<div style="margin:2px 0;color:'+(ok?'var(--t2)':'var(--rm)')+';">'+(i+1)+'. '+f.name+' ('+(f.size/1024).toFixed(1)+' KB)'+(ok?'':' — muy grande')+'</div>';
+  }).join('');
 }
 
-function kbuFileSelected(input){
-  var file = input.files[0]; if(!file) return;
-  document.getElementById('kbu-file-name').textContent = file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
-  document.getElementById('kbu-preview').innerHTML='';
-  if(file.type.startsWith('image/')){
-    var url = URL.createObjectURL(file);
-    document.getElementById('kbu-preview').innerHTML='<img src="'+url+'" style="max-width:200px;max-height:150px;border-radius:var(--r);border:1px solid var(--border);">';
+function kbuBaseName(file){
+  return String(file.name||'archivo').replace(/\.[^.]+$/, '');
+}
+
+async function kbuExtractFileText(file, statusEl){
+  if(file.size > 2*1024*1024) throw new Error(file.name+': máx 2 MB');
+  var extractedText = '';
+  var fileType = '';
+  if(file.type === 'text/plain'){
+    fileType = 'text';
+    extractedText = await new Promise(function(res,rej){
+      var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.onerror=rej; r.readAsText(file);
+    });
+  } else if(file.type.startsWith('image/')){
+    fileType = 'image';
+    if(statusEl) statusEl.textContent = 'Describiendo imagen: '+file.name+'…';
+    var b64 = await new Promise(function(res,rej){
+      var r=new FileReader(); r.onload=function(e){res(e.target.result.split(',')[1]);}; r.onerror=rej; r.readAsDataURL(file);
+    });
+    var aiResp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:600,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
+          {type:'text',text:'Describí esta imagen en detalle en español, enfocándote en contenido educativo, ejercicios de idioma, conectores o material pedagógico. Si hay texto, transcribilo.'}
+        ]}]
+      })
+    });
+    if(!aiResp.ok) throw new Error('Error describiendo '+file.name+': '+aiResp.status);
+    var aiData = await aiResp.json();
+    extractedText = (aiData.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+  } else if(file.type==='application/pdf' || /\.pdf$/i.test(file.name)){
+    fileType = 'pdf';
+    if(statusEl) statusEl.textContent = 'Extrayendo PDF: '+file.name+'…';
+    var ab = await new Promise(function(res,rej){
+      var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.onerror=rej; r.readAsArrayBuffer(file);
+    });
+    var bytes = new Uint8Array(ab);
+    var raw = '';
+    for(var i=0;i<Math.min(bytes.length,200000);i++) raw+=String.fromCharCode(bytes[i]);
+    var matches = raw.match(/[\x20-\x7E\n\r\t]{4,}/g)||[];
+    extractedText = matches.join(' ').replace(/\s+/g,' ').substring(0,4000);
+    if(extractedText.length < 100) extractedText = 'PDF: "'+file.name+'". Texto no extraíble automáticamente — revisá manualmente.';
+  } else {
+    throw new Error(file.name+': formato no soportado');
   }
+  if(!extractedText || extractedText.length < 5) throw new Error(file.name+': sin contenido extraíble');
+  if(extractedText.length > 11000) extractedText = extractedText.substring(0,11000)+'… [truncado]';
+  return { extractedText: extractedText, fileType: fileType };
+}
+
+async function kbuProcessOneFile(file, opts){
+  var prefix = (opts.titlePrefix||'').trim();
+  var cat = opts.category || 'metodologia';
+  var note = (opts.note||'').trim();
+  var publishNow = !!opts.publishNow;
+  var title = (prefix ? prefix+' · ' : '') + kbuBaseName(file);
+  var statusEl = opts.statusEl;
+  if(statusEl) statusEl.textContent = 'Procesando: '+file.name+'…';
+  var extracted = await kbuExtractFileText(file, statusEl);
+  var content = extracted.extractedText + (note ? '\n\nNota: '+note : '');
+  var id = 'KBFILE-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  await dbSet('infinity_sessions', id, {
+    title: title,
+    category: cat,
+    type: extracted.fileType,
+    fileName: file.name,
+    fileSize: file.size,
+    extractedText: content,
+    note: note,
+    author: SESSION.name,
+    date: new Date().toISOString()
+  });
+  KB_UPLOADS.unshift(Object.assign({_id:id}, { title:title, category:cat, type:extracted.fileType, fileName:file.name, extractedText:content, date:new Date().toISOString(), author:SESSION.name }));
+  await superBrainFetch('/super-brain/ingest', {
+    method:'POST',
+    body: JSON.stringify({ title: title, content: content, category: cat, autoPublish: publishNow, secret: SUPER_BRAIN_SECRET })
+  });
+  var kbSummary = '['+cat.toUpperCase()+'] '+title+(note?' — '+note:'')+': '+content.substring(0,400);
+  NEXUS_KB.entries = NEXUS_KB.entries||[];
+  NEXUS_KB.entries.push({ date:new Date().toISOString(), author:SESSION.name, text:kbSummary, studentName:null });
+  await saveNexusKB();
+  return title;
+}
+
+async function kbuBulkUpload(){
+  var fileEl = document.getElementById('kbu-files');
+  var status = document.getElementById('kbu-status');
+  var btn = document.getElementById('kbu-upload-btn');
+  var files = fileEl && fileEl.files ? Array.from(fileEl.files) : [];
+  if(!files.length){ showToast('Elegí al menos un archivo','err'); return; }
+  var tooBig = files.filter(function(f){ return f.size > 2*1024*1024; });
+  if(tooBig.length){ showToast(tooBig.length+' archivo(s) superan 2 MB','err'); return; }
+  var opts = {
+    titlePrefix: (document.getElementById('kbu-title-prefix')||{}).value || '',
+    category: (document.getElementById('kbu-cat')||{}).value || 'metodologia',
+    note: (document.getElementById('kbu-note')||{}).value || '',
+    publishNow: !!(document.getElementById('kbu-publish-now') && document.getElementById('kbu-publish-now').checked),
+    statusEl: status
+  };
+  btn.disabled = true;
+  var ok = 0, fail = 0;
+  for(var i=0;i<files.length;i++){
+    try{
+      await kbuProcessOneFile(files[i], opts);
+      ok++;
+      if(status) status.textContent = '✓ '+ok+'/'+files.length+' listo…';
+    }catch(e){
+      fail++;
+      if(status) status.textContent = '⚠ Error en '+files[i].name+': '+e.message;
+    }
+  }
+  await logAction('Bulk KB upload', ok+' archivo(s), '+fail+' error(es)');
+  showToast(ok+' archivo(s) procesado(s)'+(fail?(' · '+fail+' error(es)'):''));
+  if(status) status.textContent = '✅ '+ok+' importado(s)'+(fail?(', '+fail+' fallaron'):'')+'. '+(opts.publishNow?'Publicado a tutores.':'Revisá Pendiente arriba.');
+  if(fileEl) fileEl.value = '';
+  var list = document.getElementById('kbu-file-list');
+  if(list) list.innerHTML = '';
+  btn.disabled = false;
+  superBrainRenderFileList();
+  superBrainRenderKbEntries();
+  superBrainRefresh();
 }
 
 async function kbuUpload(){
-  var title = document.getElementById('kbu-title').value.trim();
-  var cat   = document.getElementById('kbu-cat').value;
-  var note  = document.getElementById('kbu-note').value.trim();
-  var fileEl= document.getElementById('kbu-file');
-  var file  = fileEl.files[0];
-  var status= document.getElementById('kbu-status');
-  var btn   = document.getElementById('kbu-upload-btn');
-
-  if(!title){ showToast('Ingresá un título','err'); return; }
-  if(!file){ showToast('Elegí un archivo','err'); return; }
-  if(file.size > 2*1024*1024){ showToast('Archivo muy grande (máx 2 MB)','err'); return; }
-
-  btn.disabled=true;
-  status.textContent='Leyendo archivo...';
-
-  try{
-    var extractedText = '';
-    var fileType = '';
-
-    if(file.type === 'text/plain'){
-      // TXT: leer directo
-      fileType = 'text';
-      extractedText = await new Promise(function(res,rej){
-        var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.onerror=rej; r.readAsText(file);
-      });
-    } else if(file.type.startsWith('image/')){
-      // Imagen: convertir a base64 y pedir descripción a Claude
-      fileType = 'image';
-      status.textContent='Describiendo imagen con IA...';
-      var b64 = await new Promise(function(res,rej){
-        var r=new FileReader(); r.onload=function(e){res(e.target.result.split(',')[1]);}; r.onerror=rej; r.readAsDataURL(file);
-      });
-      var aiResp = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-sonnet-4-6', max_tokens:600,
-          messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
-            {type:'text',text:'Describí esta imagen en detalle en español, enfocándote en cualquier contenido educativo, ejercicios de idioma, conectores, frases o material pedagógico que veas. Si hay texto, transcribilo. Si es un diagrama, explicalo. Sé específico y útil para un trainer de inglés operacional.'}
-          ]}]
-        })
-      });
-      if(!aiResp.ok) throw new Error('Error describiendo imagen: '+aiResp.status);
-      var aiData = await aiResp.json();
-      extractedText = (aiData.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
-    } else if(file.type==='application/pdf'){
-      // PDF: leer como texto (heurístico — en browser no hay parser nativo bueno, usamos lo que se puede extraer)
-      fileType = 'pdf';
-      status.textContent='Extrayendo texto del PDF...';
-      var ab = await new Promise(function(res,rej){
-        var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.onerror=rej; r.readAsArrayBuffer(file);
-      });
-      // Extracción básica de texto de PDF usando regex sobre bytes UTF
-      var bytes = new Uint8Array(ab);
-      var raw = '';
-      for(var i=0;i<Math.min(bytes.length,200000);i++) raw+=String.fromCharCode(bytes[i]);
-      // Extraer strings legibles (secuencias de caracteres imprimibles)
-      var matches = raw.match(/[\x20-\x7E\n\r\t]{4,}/g)||[];
-      var cleaned = matches.join(' ').replace(/\s+/g,' ').substring(0,4000);
-      if(cleaned.length < 100){
-        // Si no se pudo extraer bien, pedir ayuda a IA con lo que tenemos
-        extractedText = 'PDF subido: "'+file.name+'". No fue posible extraer texto automáticamente. Título: '+title+'. Categoría: '+cat+(note?'. Nota: '+note:'');
-      } else {
-        extractedText = cleaned;
-      }
-    }
-
-    if(!extractedText || extractedText.length < 5) throw new Error('No se pudo extraer contenido del archivo.');
-
-    // Truncar si muy largo
-    if(extractedText.length > 5000) extractedText = extractedText.substring(0,5000)+'... [truncado]';
-
-    status.textContent='Guardando en base de conocimiento...';
-
-    var id = 'KBFILE-'+Date.now();
-    var entry = {
-      title: title,
-      category: cat,
-      type: fileType,
-      fileName: file.name,
-      fileSize: file.size,
-      extractedText: extractedText,
-      note: note,
-      author: SESSION.name,
-      date: new Date().toISOString()
-    };
-
-    await dbSet('infinity_sessions', id, entry);
-
-    // También agregar automáticamente al NEXUS_KB para que Alice lo use
-    var kbSummary = '['+cat.toUpperCase()+'] '+title+(note?' — '+note:'')+': '+extractedText.substring(0,600);
-    await addNexusKBEntry(kbSummary, null);
-
-    KB_UPLOADS.unshift(Object.assign({_id:id},entry));
-    await logAction('Subió archivo a KB', title+' ('+file.name+')');
-    showToast('Archivo procesado y agregado a la KB de Alice');
-    status.textContent='✅ Listo. El contenido ya está disponible para Alice.';
-    document.getElementById('kbu-title').value='';
-    document.getElementById('kbu-note').value='';
-    document.getElementById('kbu-file-name').textContent='';
-    document.getElementById('kbu-preview').innerHTML='';
-    fileEl.value='';
-    renderKBUpload(document.getElementById('main-content'));
-  }catch(err){
-    status.textContent='❌ Error: '+err.message;
-    showToast('Error procesando archivo','err');
-  }
-  btn.disabled=false;
+  var fileEl = document.getElementById('kbu-files') || document.getElementById('kbu-file');
+  if(!fileEl || !fileEl.files || !fileEl.files[0]){ showToast('Elegí un archivo','err'); return; }
+  fileEl.files = fileEl.files;
+  await kbuBulkUpload();
 }
 
 async function kbuDelete(id){
@@ -7048,7 +7146,8 @@ async function kbuDelete(id){
     KB_UPLOADS = KB_UPLOADS.filter(function(f){ return f._id!==id; });
     await logAction('Eliminó archivo de KB', id);
     showToast('Archivo eliminado');
-    renderKBUpload(document.getElementById('main-content'));
+    superBrainRenderFileList();
+    superBrainRefresh();
   });
 }
 

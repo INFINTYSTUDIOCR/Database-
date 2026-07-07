@@ -121,6 +121,50 @@ async function loadKbFiles() {
   }
 }
 
+function lessonQualityScore(lesson) {
+  const title = String(lesson?.title || '');
+  const content = String(lesson?.content || '');
+  let score = 0;
+  if (/DOCTRINA:/i.test(content)) score += 45;
+  if (/Método|método|chunk|linker|0\/0\/0|MSI|fluidez|estructura|recovery|Idea\s*\+\s*Linker/i.test(content)) score += 18;
+  score += Math.min(content.replace(/#\w+/g, '').trim().length / 40, 25);
+  if (/^TikTok\s*[·\-]\s*(#\w+\s*)+$/i.test(title.trim())) score -= 55;
+  const hashInTitle = (title.match(/#\w+/g) || []).length;
+  if (hashInTitle >= 3 && title.length < 90) score -= 35;
+  const hashInContent = (content.match(/#\w+/g) || []).length;
+  const words = content.replace(/#\w+/g, '').trim().split(/\s+/).filter(Boolean).length;
+  if (hashInContent >= 4 && words < 35) score -= 45;
+  if (content.length < 60) score -= 25;
+  return score;
+}
+
+function isNoiseLesson(lesson) {
+  return lessonQualityScore(lesson) < 12;
+}
+
+function topicBucket(lesson) {
+  const titleBlob = normalizeText(lesson.title || '');
+  const fullBlob = normalizeText(`${lesson.title || ''} ${lesson.content || ''}`);
+  const buckets = [
+    ['chunking', /\bchunk/],
+    ['linker', /\blinker|conector/],
+    ['fluidez', /\bfluidez|fluency/],
+    ['000', /\b0\s*\/\s*0\s*\/\s*0|metodo\s*0/],
+    ['msi', /\bmsi\b|have\s*participio/],
+    ['estructura', /\bestructur/],
+    ['recovery', /\brecovery|rephrase|reformul/],
+    ['star', /\bstar\b/]
+  ];
+  for (const [name, re] of buckets) {
+    if (re.test(titleBlob)) return name;
+  }
+  for (const [name, re] of buckets) {
+    if (re.test(fullBlob)) return name;
+  }
+  if (/^tiktok/.test(titleBlob) && isNoiseLesson(lesson)) return 'noise-tiktok';
+  return titleBlob.slice(0, 48) || 'misc';
+}
+
 function rankLessons(query, lessons, limit) {
   const list = lessons || [];
   if (!list.length) return [];
@@ -225,7 +269,10 @@ const ADAM_CORE = `IDENTIDAD — A.D.A.M. (Adjusting Deployment Application Matr
 - Cuando te dan una orden clara: analizás a fondo, improvisás si hace falta, proponés con claridad y profundidad.
 - Respondé con la extensión que la orden requiera — sin límite artificial de palabras u oraciones.
 - Si algo no está en la BD: decilo en una frase y ofrecé propuestas concretas (no inventes hechos).
-- Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).`;
+- Método Nexus siempre (STAR, Idea+Linker+Idea, 26 KPIs).
+- TIKTOK → JILL: el servidor importa URLs públicas de tiktok.com (caption + extracción pedagógica) a Pendiente de publicar. NUNCA digas "no puedo abrir links de TikTok" ni pidas transcripción como primera opción si pueden pegar el URL. Si mencionan @infinitystudiocr o videos TikTok sin URL: pedí que peguen el link en el chat (Enter) o en el panel TikTok→Jill — no requiere OAuth.
+- TUTORAS (doctrina fija): Jill = tutora Foundations. Alice (modo tutora, no Companion) = tutora Intermediate y Advanced. Ambas comparten la misma KB institucional vía Super Brain; la diferencia es el nivel del estudiante, no el acceso a información.
+- CEREBRO ÚNICO: TODO el conocimiento institucional vive en Super Brain (texto, archivos, TikTok, insights). Jill, Alice tutora, Alice Companion, Nexora y el resto acceden a LA MISMA base; solo cambian nivel y forma de enseñar/explicar. El fundador decide qué publica; lo pendiente no sale a tutores hasta que publique.`;
 
 function buildBrainPrompt(sources, founderName, query) {
   const founder = founderName || sources.state?.founderName || 'Master Trainer';
@@ -244,9 +291,17 @@ SESSION RULES:
 - Use the database below silently; cite source only if helpful ("según la KB…" / "per the KB…").
 - Never dump unprompted lists or unrelated info.
 - If they teach NEW institutional knowledge explicitly, end with: NUEVO_CONOCIMIENTO: [paragraph]
+- TikTok: video URLs are imported server-side automatically. If they mention TikTok/@infinitystudiocr without a URL, tell them to paste the video link in chat — do NOT say you cannot open TikTok links.
 
 Founder: ${founder}
 Order: "${String(query || '').slice(0, 2000)}"
+
+INSTITUTIONAL BASELINE (always true — never contradict):
+- ONE shared institutional brain (Super Brain) for ALL AIs: Jill, Alice tutor, Alice Companion, Nexora, etc.
+- Same knowledge base for everyone; ONLY student level and teaching style differ—not separate KBs.
+- Founder publishes when ready; pending stays internal until published.
+- If the student does not understand: adapt delivery (shorter, example, analogy, pace) to their learning signals—never break Nexus Method.
+- Jill: Foundations. Alice tutor: Intermediate + Advanced. Alice Companion: open practice, same KB, conversational delivery.
 
 DATABASE (relevant context — do not recite all):
 ${db}`;
@@ -293,7 +348,7 @@ async function ingest(state, { title, content, author, category, autoPublish, so
   return { pending: item, published: false };
 }
 
-async function publishKnowledge(state, { title, content, author, category, source, lessonId }) {
+async function publishKnowledge(state, { title, content, author, category, source, lessonId, meta }) {
   let text = String(content || '').trim();
   let lessonTitle = title;
   let saved = null;
@@ -313,6 +368,7 @@ async function publishKnowledge(state, { title, content, author, category, sourc
       author: author || 'Fundador',
       source: source || 'manual',
       category: category || 'metodologia',
+      meta: meta || null,
       published: true,
       publishedAt: new Date().toISOString(),
       date: new Date().toISOString()
@@ -341,7 +397,8 @@ async function approvePending(state, pendingId) {
     content: item.content,
     author: item.author || 'Fundador',
     category: item.category || 'metodologia',
-    source: item.source || 'approved'
+    source: item.source || 'approved',
+    meta: item.meta || null
   });
   return lesson;
 }
@@ -403,7 +460,7 @@ async function talk(state, { message, claudeCall, founderName }) {
 
   let reply = '';
   let brainCache = false;
-  const brainExtra = `adam-v3:${ADAM_MODEL}:${sources.published.length}:${sources.kbEntries.length}`;
+  const brainExtra = `adam-v6-unified-brain:${ADAM_MODEL}:${sources.published.length}:${sources.kbEntries.length}`;
 
   if (_brain?.brainGetLLM) {
     const cached = await _brain.brainGetLLM('super', 'brain', msg, brainExtra);
@@ -436,7 +493,7 @@ async function talk(state, { message, claudeCall, founderName }) {
 
   let nuevoPending = null;
   const nuevo = extractNuevoConocimiento(reply);
-  if (nuevo && /enseñ|guardá|recordá|agregá|publicá|nuevo|regla|siempre/i.test(msg)) {
+  if (nuevo) {
     reply = reply.replace(/\n?NUEVO_CONOCIMIENTO:[\s\S]*$/i, '').trim();
     state.pendingLessons = state.pendingLessons || [];
     nuevoPending = {
@@ -475,16 +532,110 @@ async function buildContextBlock(query) {
   return formatSourcesBlock(sources);
 }
 
-async function getPropagatedContext(query, charLimit = 1400) {
-  const sources = await loadKnowledgeSources(query);
+function buildProactiveCanonBlock(published, charLimit = 1000) {
+  const ranked = (published || [])
+    .filter(l => l.published !== false)
+    .map(l => ({ lesson: l, score: lessonQualityScore(l), topic: topicBucket(l) }))
+    .filter(x => x.score >= 15)
+    .sort((a, b) => b.score - a.score || String(b.lesson.publishedAt || b.lesson.date || '').localeCompare(String(a.lesson.publishedAt || a.lesson.date || '')));
+  const seenTopics = new Set();
   const lines = [];
-  sources.relevantPublished.slice(0, 6).forEach(l => {
-    lines.push(`- ${l.title}: ${String(l.content || '').slice(0, 180)}`);
-  });
-  sources.relevantKb.slice(-6).forEach(e => {
-    lines.push(`- ${String(e.text || '').slice(0, 140)}`);
+  ranked.forEach(({ lesson, topic }) => {
+    if (seenTopics.has(topic)) return;
+    seenTopics.add(topic);
+    const excerpt = String(lesson.content || '').replace(/\s+/g, ' ').slice(0, 240);
+    lines.push(`• ${lesson.title}: ${excerpt}`);
   });
   return lines.join('\n').slice(0, charLimit);
+}
+
+async function getPropagatedContext(query, charLimit = 2200) {
+  const sources = await loadKnowledgeSources(query);
+  const canonBudget = Math.floor(charLimit * 0.42);
+  const reactiveBudget = charLimit - canonBudget - 80;
+  const canon = buildProactiveCanonBlock(sources.published, canonBudget);
+  const lines = [];
+  if (canon.trim()) {
+    lines.push('CANON (proactive — weave into teaching each turn when natural; do not wait for student to ask):');
+    lines.push(canon);
+  }
+  const reactive = [];
+  sources.relevantPublished.slice(0, 6).forEach(l => {
+    if (isNoiseLesson(l)) return;
+    reactive.push(`- ${l.title}: ${String(l.content || '').slice(0, 200)}`);
+  });
+  sources.relevantKb.slice(-6).forEach(e => {
+    reactive.push(`- ${String(e.text || '').slice(0, 160)}`);
+  });
+  sources.relevantFiles.slice(0, 4).forEach(f => {
+    reactive.push(`- [${f.title}]: ${String(f.content || '').slice(0, 160)}`);
+  });
+  if (reactive.length) {
+    lines.push('\nQUERY-RELEVANT:');
+    lines.push(reactive.join('\n'));
+  }
+  return lines.join('\n').slice(0, charLimit);
+}
+
+async function deletePublishedLesson(state, lessonId) {
+  const lessons = state.lessons || [];
+  const idx = lessons.findIndex(l => l.id === lessonId && l.published);
+  if (idx < 0) throw new Error('Lección publicada no encontrada.');
+  const removed = lessons[idx];
+  state.lessons = lessons.filter(l => l.id !== lessonId);
+  state.stats = state.stats || {};
+  state.stats.publishedCount = (state.lessons || []).filter(l => l.published).length;
+  await saveState(state);
+  return removed;
+}
+
+async function purgeNoiseLessons(state, { dryRun = true } = {}) {
+  const published = (state.lessons || []).filter(l => l.published);
+  const toRemove = new Set();
+  const kept = [];
+  const byTopic = {};
+
+  published.forEach(lesson => {
+    if (isNoiseLesson(lesson)) {
+      toRemove.add(lesson.id);
+      return;
+    }
+    const topic = topicBucket(lesson);
+    if (!byTopic[topic]) byTopic[topic] = [];
+    byTopic[topic].push({ lesson, score: lessonQualityScore(lesson) });
+  });
+
+  Object.values(byTopic).forEach(group => {
+    group.sort((a, b) => b.score - a.score || String(b.lesson.publishedAt || b.lesson.date || '').localeCompare(String(a.lesson.publishedAt || a.lesson.date || '')));
+    const maxKeep = group[0].score >= 35 ? 2 : 1;
+    group.forEach((item, i) => {
+      if (i < maxKeep) kept.push(item.lesson);
+      else toRemove.add(item.lesson.id);
+    });
+  });
+
+  const removed = published.filter(l => toRemove.has(l.id)).map(l => ({
+    id: l.id,
+    title: l.title,
+    topic: topicBucket(l),
+    qualityScore: lessonQualityScore(l),
+    preview: String(l.content || '').slice(0, 80)
+  }));
+
+  if (!dryRun) {
+    state.lessons = (state.lessons || []).filter(l => !toRemove.has(l.id));
+    state.stats = state.stats || {};
+    state.stats.publishedCount = (state.lessons || []).filter(l => l.published).length;
+    await saveState(state);
+  }
+
+  return {
+    dryRun: !!dryRun,
+    removedCount: removed.length,
+    keptCount: kept.length,
+    removed,
+    kept: kept.map(l => ({ id: l.id, title: l.title, topic: topicBucket(l), qualityScore: lessonQualityScore(l) }))
+  };
 }
 
 function publicSummary(state, extra = {}) {
@@ -499,6 +650,15 @@ function publicSummary(state, extra = {}) {
     recentPublished: (state.lessons || []).filter(l => l.published).slice(-6).reverse().map(l => ({
       id: l.id, title: l.title, date: l.publishedAt || l.date, preview: String(l.content || '').slice(0, 100)
     })),
+    allPublished: (state.lessons || []).filter(l => l.published).map(l => ({
+      id: l.id,
+      title: l.title,
+      date: l.publishedAt || l.date,
+      preview: String(l.content || '').slice(0, 100),
+      qualityScore: lessonQualityScore(l),
+      noise: isNoiseLesson(l),
+      topic: topicBucket(l)
+    })).sort((a, b) => b.qualityScore - a.qualityScore),
     pendingLessons: (state.pendingLessons || []).slice().reverse().map(p => ({
       id: p.id,
       title: p.title,
@@ -549,5 +709,9 @@ module.exports = {
   getFullSummary,
   publicSummary,
   appendNexusKB,
+  deletePublishedLesson,
+  purgeNoiseLessons,
+  lessonQualityScore,
+  isNoiseLesson,
   SUPER_BRAIN_ID
 };

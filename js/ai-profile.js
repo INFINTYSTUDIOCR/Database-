@@ -54,6 +54,7 @@
     var raw = (student && student.aiProfile) || {};
     var preferred = String(raw.preferredName || '').trim();
     var validPreferred = preferred ? isValidPreferredName(preferred, student) : null;
+    var lp = raw.learningPrefs || {};
     return {
       preferredName: validPreferred || '',
       nameAsked: {
@@ -63,6 +64,15 @@
       firstGreetingDone: {
         alice: !!(raw.firstGreetingDone && raw.firstGreetingDone.alice),
         jill: !!(raw.firstGreetingDone && raw.firstGreetingDone.jill)
+      },
+      learningPrefs: {
+        confusionCount: lp.confusionCount || 0,
+        prefersShort: !!lp.prefersShort,
+        prefersExamples: !!lp.prefersExamples,
+        prefersSlow: !!lp.prefersSlow,
+        prefersSpanish: !!lp.prefersSpanish,
+        prefersVisual: !!lp.prefersVisual,
+        lastSignalAt: lp.lastSignalAt || null
       }
     };
   }
@@ -164,6 +174,41 @@
     return;
   }
 
+  function detectStudySignals(text){
+    if(!text) return {};
+    var t = String(text).toLowerCase();
+    var signals = {};
+    if(/\b(no entiendo|no comprendo|confus|perdid|lost|don't understand|do not understand|confused|what do you mean)\b/.test(t)) signals.confused = true;
+    if(/\b(más corto|más breve|shorter|resume|resumí|keep it short|too long)\b/.test(t)) signals.prefersShort = true;
+    if(/\b(otro ejemplo|another example|dame un ejemplo|give me an example|más ejemplos)\b/.test(t)) signals.prefersExamples = true;
+    if(/\b(más lento|slow down|despacio|muy rápido|too fast)\b/.test(t)) signals.prefersSlow = true;
+    if(/\b(en español|in spanish|explicame en español|explain in spanish)\b/.test(t)) signals.prefersSpanish = true;
+    if(/\b(visual|diagrama|dibujo|picture|see it)\b/.test(t)) signals.prefersVisual = true;
+    return signals;
+  }
+
+  async function applyStudySignalsFromMessage(text, dbSetFn, studentRef){
+    var s = resolveStudent(studentRef);
+    if(!s || !s.id) return;
+    var signals = detectStudySignals(text);
+    var keys = Object.keys(signals);
+    if(!keys.length) return;
+    s.aiProfile = s.aiProfile || {};
+    var lp = s.aiProfile.learningPrefs || {};
+    if(signals.confused) lp.confusionCount = (lp.confusionCount || 0) + 1;
+    if(signals.prefersShort) lp.prefersShort = true;
+    if(signals.prefersExamples) lp.prefersExamples = true;
+    if(signals.prefersSlow) lp.prefersSlow = true;
+    if(signals.prefersSpanish) lp.prefersSpanish = true;
+    if(signals.prefersVisual) lp.prefersVisual = true;
+    lp.lastSignalAt = new Date().toISOString();
+    s.aiProfile.learningPrefs = lp;
+    if(typeof dbSetFn === 'function') await dbSetFn('infinity_students', s.id, s);
+    if(global.ALL_STUDENTS) global.ALL_STUDENTS[s.id] = s;
+    global._currentStudent = s;
+    global._portalStudent = s;
+  }
+
   global.AiProfile = {
     getAiProfile: getAiProfile,
     studentFirstName: studentFirstName,
@@ -174,6 +219,8 @@
     repairPoisonedProfile: repairPoisonedProfile,
     enrichStudentPayload: enrichStudentPayload,
     saveAiProfilePatch: saveAiProfilePatch,
+    applyStudySignalsFromMessage: applyStudySignalsFromMessage,
+    detectStudySignals: detectStudySignals,
     aliceSessionMode: aliceSessionMode,
     jillSessionMode: jillSessionMode,
     processUserNameReply: processUserNameReply
