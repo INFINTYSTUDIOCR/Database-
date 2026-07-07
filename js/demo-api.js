@@ -253,7 +253,9 @@ function demoPremiumFields() {
 
 async function demoStart(service, scenario, name, onboarding) {
   await demoFetchMyIp();
-  var premium = demoPremiumFields();
+  var sc = scenario || (service === 'nexora' ? 'star' : 'default');
+  var companionDemo = service === 'alice' && sc === 'companion';
+  var premium = companionDemo ? {} : demoPremiumFields();
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/start', {
       method: 'POST',
@@ -316,11 +318,12 @@ async function demoSend(sessionId, message) {
     return demoSendLocal(sessionId, message);
   }
 
+  var premium = demoPremiumFields();
   try {
     var r = await fetch(DEMO_BACKEND + '/demo/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ sessionId: sessionId, message: message }, demoPremiumFields()))
+      body: JSON.stringify(Object.assign({ sessionId: sessionId, message: message }, premium))
     });
     var parsed = await demoParseResponse(r);
     if (parsed.data && parsed.ok) return parsed.data;

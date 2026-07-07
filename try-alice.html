@@ -77,7 +77,7 @@
   </div>
 
   <div class="demo-consent-band" id="demo-consent-band">
-    <p class="demo-note">Real mini-sessions with live AI — same engine as the full product, limited to one try per day per connection. With your consent, anonymized patterns may improve Jill, Alice and Nexora.</p>
+    <p class="demo-note">Demo guiado con guion fijo — misma voz Alice, sin IA en vivo. Una prueba por conexión. Con tu consentimiento, patrones anónimos pueden mejorar el coaching.</p>
     <label class="consent-label" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;">
       <input type="checkbox" id="demo-consent" checked>
       <span>I agree that my demo may be used in anonymized form to improve coaching and simulations. No personal data is sold or shared.</span>
@@ -158,7 +158,7 @@
 
 <script src="js/alice-billing.js"></script>
 <script src="js/demo-buffer.js?v=20260704once"></script>
-<script src="js/demo-api.js?v=20260704once"></script>
+<script src="js/demo-api.js?v=20260706buf"></script>
 <script src="js/demo-voices.js?v=20260704alice2"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/tts-chunks.js?v=20260703c"></script>
@@ -167,7 +167,8 @@
 <script src="js/demo-stream.js?v=20260704once"></script>
 <script>
 (function () {
-  var TRIAL_TURNS = 0; // 0 = unlimited turns in session (never stop at 6)
+  var TRIAL_TURNS = 4; // buffered demo: opening + 3 scripted turns
+  var sessionBuffered = false;
   var sessionId = null;
   var step = 0;
   var maxSteps = TRIAL_TURNS;
@@ -259,7 +260,7 @@
     if (isPremium || !maxSteps) {
       document.getElementById('step-meta').textContent = isPremium
         ? 'Alice Companion Premium · unlimited'
-        : 'Free trial · conversación fluida';
+        : (sessionBuffered ? 'Demo guiado · conversación de muestra' : 'Free trial · conversación fluida');
       trialNudge.classList.remove('show');
       return;
     }
@@ -300,8 +301,9 @@
     try {
       var d = await demoStart('alice', 'companion', onboard.name, onboard);
       sessionId = d.sessionId;
+      sessionBuffered = !!(d.buffered || d.live === false);
       isPremium = !!(d.premium || isPremium);
-      maxSteps = d.maxSteps != null ? d.maxSteps : TRIAL_TURNS;
+      maxSteps = d.maxSteps != null ? d.maxSteps : (sessionBuffered ? TRIAL_TURNS : TRIAL_TURNS);
       // Keep Alice voice lock even if server sends another profile by mistake
       var vp = d.voiceProfile || {};
       voiceProfile = DemoVoice.setProfile({
@@ -319,7 +321,7 @@
       document.getElementById('voice-hint').style.display = 'flex';
       document.getElementById('sessions-left').textContent = d.premium
         ? 'Premium · ilimitado'
-        : 'Demo gratis · una sola vez';
+        : (sessionBuffered ? 'Demo guiado · una sola vez' : 'Demo gratis · una sola vez');
       var reply = d.reply || '';
       if (typeof TutorReply !== 'undefined' && TutorReply.companionOpeningText) {
         reply = TutorReply.companionOpeningText(reply);

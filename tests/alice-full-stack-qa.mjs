@@ -78,6 +78,9 @@ else fail('demo companion API', 'incomplete');
 if (server.includes('demoSessionMaxSteps') && server.includes('alice_companion') && server.includes('APP1_BUILD')) pass('companion demo trial limits', 'ok');
 else fail('companion demo trial limits', 'incomplete');
 
+if (server.includes('const useLive = !!qaLive') || server.includes('useLive = !!qaLive')) pass('companion demo buffered only', 'useLive=qaLive');
+else fail('companion demo buffered only', 'live path still enabled for public');
+
 if (read('manifest-portal.json').includes('shortcuts')) pass('portal manifest shortcuts', 'ok');
 else fail('portal manifest shortcuts', 'MISSING');
 

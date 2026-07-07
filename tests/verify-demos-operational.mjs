@@ -68,8 +68,27 @@ async function main() {
   }
 
   const alice = fs.readFileSync(path.join(root, 'try-alice.html'), 'utf8');
-  if (alice.includes('demo-stream.js') && alice.includes('demoStreamSend')) pass('try-alice live stream', 'wired');
-  else fail('try-alice live stream', 'still buffered — missing demoStreamSend');
+  if (alice.includes('demo-buffer.js') && alice.includes("demoStart('alice', 'companion'")) pass('try-alice buffered demo', 'wired');
+  else fail('try-alice buffered demo', 'missing buffer + companion start');
+
+  try {
+    const comp = await j('/demo/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service: 'alice', scenario: 'companion', consent: true, name: 'VerifyBot' })
+    });
+    if (comp.ok && comp.data?.buffered && comp.data?.live === false) {
+      pass('POST /demo/start companion', 'buffered session');
+    } else if (comp.status === 429) {
+      pass('POST /demo/start companion', 'limit OK (IP gate works)');
+    } else if (comp.ok && comp.data?.live) {
+      fail('POST /demo/start companion', 'expected buffered, got live — redeploy backend');
+    } else {
+      fail('POST /demo/start companion', comp.status + ' ' + JSON.stringify(comp.data).slice(0, 100));
+    }
+  } catch (e) {
+    fail('POST /demo/start companion', e.message);
+  }
 
   const nex = fs.readFileSync(path.join(root, 'nexora.html'), 'utf8');
   if (nex.includes('isNexoraPublicDemo') && nex.includes('/demo/nexora-lab/stream')) pass('nexora public demo', 'wired');
