@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const suites = [
+  'tests/verify-site-funnel.mjs',
   'tests/companion-qa.mjs',
   'tests/alice-growth-qa.mjs',
   'tests/alice-full-stack-qa.mjs',
