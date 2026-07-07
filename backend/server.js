@@ -2862,7 +2862,7 @@ function formatJillMatrixNote(matrixContext) {
     matrixContext.cronogramHint === 'explain_alternate_channel'
       ? 'CRONOGRAMA: falla sistemática 3+ — explicá el MISMO tema de 3 formas distintas (verbal → tabla PR/PS → método moneda) antes de avanzar.'
       : '',
-    'NO modales avanzados hasta gate. Corrección por ranuras P|M|V|C. Sonidos imitables en pronunciación.'
+    'NO modales avanzados hasta gate. Corrección por ranuras P|M|V|C. Sin linkers Nexus — eso es Alice. Sonidos imitables en pronunciación.'
   ].filter(Boolean);
   return parts.join(' ') + '.';
 }
