@@ -80,16 +80,25 @@
     "targetResponseMs": 12000,
     "maxAvgResponseMs": 15000,
     "aliceExitRequires": [
-      "100% matriz columnas 1-5",
+      "100% matriz columnas 1-6 (PR·PS·PC·PRP·PPC·MOD)",
       "Promedio respuesta bajo umbral",
       "Anécdota cuaderno evaluada",
       "Pulse quiz Foundations aprobado (estructura, tiempos, prep, vocab — incluye moneda)",
-      "Coordinación básica sin conectores avanzados"
+      "Fase conversación con Jill: demostrar diálogo fluido sin errores graves (tiempo verbal, coordinación, lógica, esfuerzo bajo)",
+      "Jill solicita graduación — el estudiante/trainer confirma (no automático)"
     ]
   },
   "numbersPattern": {
     "rule": "Después de 10 el patrón se repite: eleven=ten+one … twenty=two+ten … hasta 100 y reinicia.",
-    "drill": "11-19 = ten + unit; 21-99 = tens + unit"
+    "drill": "11-19 = ten + unit; 21-99 = tens + unit",
+    "ordinals": "1st first · 2nd second · 3rd third · 4th fourth … 21st twenty-first (patrón cardinal+th)"
+  },
+  "foundationsDiscipline": {
+    "rule": "Foundations Infinity: 16 verbos operativos en matriz MSI antes de ampliar vocabulario o tiempos avanzados.",
+    "coreVerbs16": ["be", "have", "do", "work", "study", "go", "make", "take", "get", "see", "know", "think", "want", "need", "say", "tell"],
+    "vocabCeiling": "Vocabulario funcional gradual — solo palabras del drill y lista activa del alumno.",
+    "sequence": "No avanzar de bundle hasta gate F0 (matriz + Pulse + anecdota). Cuaderno de bolsillo obligatorio.",
+    "jillRule": "Corregir por ranuras P|M|V|C. Estructurar, no traducir."
   },
   "notebook": {
     "rule": "Cuaderno obligatorio: anécdotas 15 min escritas → leer o pegar → Jill analiza gramática, estructura, orden, coherencia.",

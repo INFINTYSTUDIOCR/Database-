@@ -12,12 +12,15 @@
   var TARGET_RESPONSE_MS = 12000;
   var MAX_AVG_RESPONSE_MS = 15000;
 
+  var MODALS = ['will', 'would', 'can', 'could', 'should'];
+
   var CANON_BY_COLUMN = {
     present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
     past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
     progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
-    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' }
+    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
+    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' }
   };
 
   var COLUMNS = [
@@ -25,7 +28,8 @@
     { id: 'past', sigla: 'PS', label: 'Col 2 · PS Pasado', formula: 'P + V(pasado) + C', notation: 'P + verbo (pasado) + complemento' },
     { id: 'progressive', sigla: 'PC', label: 'Col 3 · PC Continuo', formula: 'P + TO BE + V+ing + C', notation: 'P + To Be + verbo(-ing) + complemento' },
     { id: 'perfect', sigla: 'PRP', label: 'Col 4 · PRP Perfecto', formula: 'P + HAVE + PP + C', notation: 'P + Have/Has/Had + participio + complemento' },
-    { id: 'combined', sigla: 'PPC', label: 'Col 5 · PPC Combinado', formula: 'P + HAVE + been + V+ing + C', notation: 'P + Have/Had + been + verbo(-ing) + complemento' }
+    { id: 'combined', sigla: 'PPC', label: 'Col 5 · PPC Combinado', formula: 'P + HAVE + been + V+ing + C', notation: 'P + Have/Had + been + verbo(-ing) + complemento' },
+    { id: 'modal', sigla: 'MOD', label: 'Col 6 · MOD Modales', formula: 'P + M + V + C', notation: 'P + Modal (will/would/can/could/should) + verbo base + complemento' }
   ];
 
   function ensureMatrix(student) {
@@ -138,14 +142,18 @@
     var vi = cursor % VERBS.length;
     var pi = Math.floor(cursor / VERBS.length) % PRONOUNS.length;
     if (!m.drillStartedAt) m.drillStartedAt = new Date().toISOString();
+    var modal = col.id === 'modal' ? MODALS[cursor % MODALS.length] : null;
     return {
       pronoun: PRONOUNS[pi],
       verb: VERBS[vi],
+      modal: modal,
       column: col,
       sigla: col.sigla,
       formula: col.formula,
       notation: col.notation,
-      instruction: 'Practica UNA oración (' + col.sigla + '): ' + PRONOUNS[pi] + ' + ' + VERBS[vi] + ' — ' + col.formula
+      instruction: col.id === 'modal'
+        ? 'Practica UNA oración (MOD): ' + PRONOUNS[pi] + ' + ' + modal + ' + ' + VERBS[vi] + ' — ' + col.formula
+        : 'Practica UNA oración (' + col.sigla + '): ' + PRONOUNS[pi] + ' + ' + VERBS[vi] + ' — ' + col.formula
     };
   }
 
@@ -199,6 +207,9 @@
     var cols = COLUMNS.map(function (c, i) {
       return c.sigla + (i <= (m.columnIndex || 0) ? ' ' + columnProgress(student, i) + '%' : ' 🔒');
     }).join(' | ');
+    var drillLine = col.id === 'modal' && drill.modal
+      ? drill.pronoun + ' + ' + drill.modal + ' + ' + drill.verb + ' — ' + col.formula
+      : drill.pronoun + ' + ' + drill.verb + ' — ' + col.formula;
     return {
       bundleId: 'F0-matrix',
       activeColumn: col.id,
@@ -206,7 +217,9 @@
       phaseLabel: col.label,
       formula: col.formula,
       notation: col.notation,
-      drillPrompt: drill.pronoun + ' + ' + drill.verb + ' — ' + col.formula,
+      drillPrompt: drillLine,
+      drillModal: drill.modal || null,
+      drillVerb: drill.verb || null,
       columnProgress: gate.columnPct,
       columnsSummary: cols,
       anecdoteMode: !!m.anecdoteActive,
@@ -218,8 +231,23 @@
       failStreak: gate.failStreak,
       cronogramHint: gate.failStreak >= 3 ? 'explain_alternate_channel' : 'normal',
       hitsRequired: HITS_TO_MASTER,
-      masteryRequiredPct: 100
+      masteryRequiredPct: 100,
+      conversationPhase: isStructureComplete(student)
     };
+  }
+
+  function isStructureComplete(student) {
+    for (var i = 0; i < COLUMNS.length; i++) {
+      if (!isColumnMastered(student, i)) return false;
+    }
+    var m = ensureMatrix(student);
+    var pulseOk = !!(m.pulseQuizPassed);
+  if (!pulseOk && student) {
+      pulseOk = !!(student.jillPulse && student.jillPulse.passed);
+    }
+    var anecdoteOk = (m.anecdoteSessions || 0) >= 1 || !!m.anecdoteEvaluated;
+    var timeOk = m.avgResponseMs == null || m.avgResponseMs <= MAX_AVG_RESPONSE_MS;
+    return pulseOk && anecdoteOk && timeOk;
   }
 
   function renderCanonThumb(colId) {
@@ -255,7 +283,7 @@
       + '<div style="font-size:11px;font-weight:800;color:#86EFAC;letter-spacing:0.06em;margin-bottom:6px;">MATRIZ · ' + col.sigla + ' · GATE 100%</div>'
       + '<div style="font-size:12px;color:#ecfdf5;margin-bottom:6px;"><strong>' + col.label + '</strong><br><code style="font-size:11px;color:#FCD34D;">' + col.formula + '</code></div>'
       + '<div style="font-size:11px;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;margin-bottom:8px;color:#fff;">'
-      + '🎯 ' + drill.pronoun + ' + <strong>' + drill.verb + '</strong> — ' + gate.columnPct + '% · ' + avgLbl + '</div>'
+      + '🎯 ' + (drill.modal ? drill.pronoun + ' + <strong>' + drill.modal + '</strong> + ' : drill.pronoun + ' + ') + '<strong>' + drill.verb + '</strong> — ' + gate.columnPct + '% · ' + avgLbl + '</div>'
       + colBars
       + renderCanonThumb(col.id)
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
@@ -264,11 +292,13 @@
       + '</div>'
       + (markDisabled ? '<div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:6px;">Practicá → Jill corrige → recién ahí marcás dominio.</div>' : '')
       + (m.anecdoteActive ? '<div style="font-size:11px;color:#FCD34D;margin-top:8px;">📓 Cuaderno 15 min → leé o pegá. Jill: estructura + coherencia + pronunciación.</div>' : '')
+      + (typeof JillGraduation !== 'undefined' ? JillGraduation.renderGateStatus(student) : '')
       + '</div>';
   }
 
   global.JillMatrix = {
     VERBS: VERBS,
+    MODALS: MODALS,
     PRONOUNS: PRONOUNS,
     COLUMNS: COLUMNS,
     HITS_TO_MASTER: HITS_TO_MASTER,
@@ -285,6 +315,7 @@
     isAnecdoteMode: isAnecdoteMode,
     columnProgress: columnProgress,
     gateStatus: gateStatus,
-    isColumnMastered: isColumnMastered
+    isColumnMastered: isColumnMastered,
+    isStructureComplete: isStructureComplete
   };
 })(typeof window !== 'undefined' ? window : globalThis);

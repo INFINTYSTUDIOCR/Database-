@@ -318,9 +318,20 @@ function trimHistory(history) {
   return (Array.isArray(history) ? history : []).slice(-MAX_CHAT_HISTORY);
 }
 
+function isUnextractedPdfPayload(text) {
+  const t = String(text || '').trim();
+  if (!t) return false;
+  if (/^%PDF-\d/i.test(t)) return true;
+  if (t.includes('%PDF-') && /\/FlateDecode|endobj|endstream/.test(t)) return true;
+  return false;
+}
+
 async function ingest(state, { title, content, author, category, autoPublish, source, meta }) {
   const text = String(content || '').trim();
   if (!text || text.length < 8) throw new Error('El contenido necesita al menos 8 caracteres.');
+  if (isUnextractedPdfPayload(text)) {
+    throw new Error('PDF sin texto extraíble. Usá «Archivos en bulk» en A.D.A.M. (no pegar el binario en texto).');
+  }
   const item = {
     id: `P-${Date.now()}`,
     title: String(title || 'Material subido').slice(0, 120),

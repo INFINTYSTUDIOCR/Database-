@@ -200,6 +200,9 @@ Brain.initNexusBrain({ sbGetOne, sbSet });
 const SuperBrain = require('./super-brain');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 
+const TrainerModel = require('./trainer-model');
+const JillTrainerInsights = require('./jill-trainer-insights');
+
 const TikTokJill = require('./tiktok-jill');
 TikTokJill.initTikTokJill({ sbGetOne, sbSet });
 
@@ -2733,7 +2736,10 @@ function buildJillStructureNotationBlock() {
     : '';
   const kpis = (c.kpiFocus || []).map(k => k.name).join(', ');
   const gate = c.gate ? `\nGATE: ${Math.round((c.gate.masteryRatio || 1) * 100)}% celdas × ${c.gate.hitsPerCell || 3} aciertos; meta respuesta <${c.gate.targetResponseMs || 12000}ms.` : '';
-  return `\nNOTACIÓN MSI® (usar en whiteboard con siglas PR/PS/PC/PRP/MOD/MP/MC):\nSímbolos: ${sym}\nFórmulas: ${forms}${coin}${bridge}\nKPI foco por turno (rotar): ${kpis}.${gate}\nCorrección SIEMPRE por ranuras P|M|V|C. Pronunciación: da sonidos imitables (seem/síim, gets/guéts). Cuaderno: anécdota 15 min → leer → coaching on-the-go.`;
+  const disc = c.foundationsDiscipline
+    ? `\nDISCIPLINA F0: ${c.foundationsDiscipline.rule} Verbos núcleo (16): ${(c.foundationsDiscipline.coreVerbs16 || []).join(', ')}. ${c.foundationsDiscipline.vocabCeiling || ''}`
+    : '';
+  return `\nNOTACIÓN MSI® (usar en whiteboard con siglas PR/PS/PC/PRP/MOD/MP/MC):\nSímbolos: ${sym}\nFórmulas: ${forms}${coin}${bridge}\nKPI foco por turno (rotar): ${kpis}.${gate}${disc}\nCorrección SIEMPRE por ranuras P|M|V|C. Pronunciación: da sonidos imitables (seem/síim, gets/guéts). Cuaderno: anécdota 15 min → leer → coaching on-the-go.`;
 }
 
 const JILL_STRUCTURE_NOTATION = buildJillStructureNotationBlock();
@@ -2780,12 +2786,66 @@ function formatJillBundleNote(jillBundle) {
 
 const JILL_F0_MATRIX_RULE = `
 F0 MATRIX MODE (OBLIGATORIO cuando bundle F0-matrix o matrixContext activo):
-- NO enseñes modales, futuro will, Nexora, entrevistas, chunking avanzado ni linkers hasta que matrixContext indique anecdoteUnlocked y columnas dominadas.
-- Evalúa cada respuesta por RANURAS: Pronombre | Auxiliar (To Be / Have) | Forma verbal (base / past / -ing / past participle) | Complemento.
+- Columnas 1-5 primero; Col 6 MOD (will=-RE / would=-RÍA) solo cuando matrixContext.activeColumn=modal o columnas previas dominadas.
+- NO Nexora, entrevistas STAR ni chunking avanzado hasta anecdoteUnlocked.
+- Evalúa cada respuesta por RANURAS: P | M | V | C (modal en col 6).
 - Si falla una ranura: nombra la ranura, muestra la fórmula en whiteboard, pide UNA oración con el pronombre+verbo del drillPrompt.
 - Usa matrixContext.drillPrompt como objetivo del turno si el estudiante no pide otra cosa Foundations válida.
 - Modo anécdota (anecdoteMode true): corrige pronunciación, tiempos, coordinación, preposiciones en el texto leído/pegado — sin cambiar de tema.
 - Ritmo: regla corta + 1 ejemplo modelo + 1 práctica. Explicación en español; práctica en inglés estructurado.`;
+
+const JILL_CONVERSATION_POLISH_RULE = `
+FASE CONVERSACIÓN FOUNDATIONS (matrixContext.conversationPhase true — estructura y teoría dominadas):
+- YA NO es solo drill de una oración: FORZÁ conversación sostenida. Jill habla poco; el estudiante habla mucho.
+- Escuchá cada turno, compará contra Mecánica Estructural Infinity® (ranuras P|M|V|C) y contra el modelo del canon en Super Brain.
+- Analizá: tiempo verbal correcto, coordinación de ideas (and/but mínimo), lógica, improvisación, esfuerzo evidente bajo, fluidez sin pausas largas.
+- Corregí on-the-go con afecto firme — como trainer en sala, no como chatbot.
+- Hacé preguntas de seguimiento, cambiá de tema dentro de Foundations, pedí que amplíe con detalle concreto.
+- NUNCA gradués automáticamente. Solo al terminar sesión (modo evaluate) podés marcar graduation_request:true si TODOS los KPIs conversacionales de Johnny se cumplen en la evidencia del transcript.
+- Si aún hay errores de tiempo, coordinación o esfuerzo evidente: seguí puliendo — graduation_request:false.`;
+
+function jillStructurePrerequisitesMet(student) {
+  const m = student?.jillMatrix || {};
+  const pulseOk = !!(m.pulseQuizPassed || student?.jillPulse?.passed);
+  const anecdoteOk = (m.anecdoteSessions || 0) >= 1 || !!m.anecdoteEvaluated;
+  const timeOk = m.avgResponseMs == null || m.avgResponseMs <= 15000;
+  const cols = m.columnIndex;
+  const cells = m.cells || {};
+  if (!pulseOk || !anecdoteOk || !timeOk) return false;
+  if (student?.jillMatrix && typeof cols === 'number' && cols < 5) {
+    /* client tracks columnIndex; full mastery verified client-side */
+  }
+  return !!(m.anecdoteUnlocked || student?.jillMatrix?.conversationPhase);
+}
+
+function formatJillConversationNote(matrixContext, student) {
+  const phase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+  if (!phase) return '';
+  const pending = student?.jillGraduationRequest?.pending;
+  return pending ? '\nSOLICITUD GRADUACIÓN PENDIENTE: el estudiante puede confirmar — vos ya evaluaste que cumple KPIs conversacionales.' : '';
+}
+
+async function finalizeJillEvaluation(student, evaluation, hist) {
+  let trainerInsight = null;
+  if (student && evaluation && hist && hist.length >= 12) {
+    try {
+      trainerInsight = await JillTrainerInsights.generateTrainerInsights(claudeCall, SuperBrain, {
+        student,
+        evaluation,
+        hist,
+        displayName: getStudentDisplayName(student)
+      });
+    } catch (e) {
+      console.warn('jill trainer insight:', e.message);
+    }
+  }
+  const payload = { evaluation };
+  if (trainerInsight) {
+    payload.trainerInsight = trainerInsight;
+    payload.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 } } : null;
+  }
+  return payload;
+}
 
 function formatJillMatrixNote(matrixContext) {
   if (!matrixContext || matrixContext.bundleId !== 'F0-matrix') return '';
@@ -2807,12 +2867,14 @@ function formatJillMatrixNote(matrixContext) {
   return parts.join(' ') + '.';
 }
 
-function jillMatrixPromptExtras(jillBundle, matrixContext) {
+function jillMatrixPromptExtras(jillBundle, matrixContext, student) {
   const isF0 = jillBundle?.id === 'F0-matrix' || jillBundle?.gateMode === 'matrix-only' || matrixContext?.gateMode === 'matrix-only';
+  const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
   return {
     isF0,
     matrixNote: formatJillMatrixNote(matrixContext),
-    matrixRule: isF0 ? JILL_F0_MATRIX_RULE : ''
+    matrixRule: isF0 ? (convPhase ? JILL_CONVERSATION_POLISH_RULE : JILL_F0_MATRIX_RULE) : '',
+    conversationNote: formatJillConversationNote(matrixContext, student)
   };
 }
 
@@ -3075,6 +3137,7 @@ function plainBrainReply(raw) {
   return parsed.reply || String(raw || '').trim();
 }
 const JILL_SYSTEM_PROMPT = `Sos Jill, la tutora de Foundations de Infinity Studio CR.
+${TrainerModel.JOHNNY_TRAINER_RULE}
 ${INSTITUTIONAL_BRAIN_RULE}
 Compartís la misma base que Alice, Alice Companion y Nexora (Super Brain); tu rol es Foundations y cómo lo explicás, no un subconjunto de datos.
 
@@ -3186,7 +3249,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? `\nÁREAS DÉBILES EN QUIZ (reforzar hoy): ${weakKpis.join(', ')}.`
       : '';
     const bundleNote = formatJillBundleNote(jillBundle);
-    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext);
+    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext, student);
     const vocabNote = formatJillVocabNote(vocabContext);
     const responseKpiNote = formatJillResponseKpiNote(matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
@@ -3224,7 +3287,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         system: JILL_SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -3244,49 +3307,71 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       if (userTurns < 2) overall_score = Math.max(48, overall_score - 12);
       const bundleTitle = jillBundle?.title || 'Foundations';
       const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'linkers, chunks, estructura';
+      const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+      const structPrereq = jillStructurePrerequisitesMet(student);
 
       if (!hist || hist.length < 16) {
-        return res.json({ evaluation: {
+        return res.json(await finalizeJillEvaluation(student, {
           overall_score: Math.max(50, overall_score),
           student_turns: userTurns,
           bundle_ready: false,
+          graduation_request: false,
           best_moment: 'Abriste la sesión y practicaste con Jill.',
-          main_improvement: 'La próxima vez, completá al menos 3 respuestas en inglés sobre el bundle.',
-          jill_message: `Buen inicio, ${getStudentDisplayName(student)}. Seguí con el bundle "${bundleTitle}" mañana.`
-        }});
+          main_improvement: convPhase
+            ? 'La próxima vez, sostené al menos 5 turnos en inglés en conversación con Jill.'
+            : 'La próxima vez, completá al menos 3 respuestas en inglés sobre el bundle.',
+          jill_message: `Buen inicio, ${getStudentDisplayName(student)}. Seguí con ${convPhase ? 'conversación guiada' : 'el bundle "' + bundleTitle + '"'} mañana.`,
+          conversation_phase: convPhase
+        }, hist));
       }
 
-      const statsNote = `Bundle: ${bundleTitle}. KPIs del bundle: ${bundleKpis}. Turnos estudiante: ${userTurns}. Palabras: ${metrics.wordCount}. Conectores: ${metrics.connectors.join(', ') || 'ninguno'}. Score calculado: ${overall_score}/100.`;
+      const statsNote = `Bundle: ${bundleTitle}. KPIs del bundle: ${bundleKpis}. Turnos estudiante: ${userTurns}. Palabras: ${metrics.wordCount}. Conectores: ${metrics.connectors.join(', ') || 'ninguno'}. Score calculado: ${overall_score}/100. Fase conversación: ${convPhase ? 'SÍ' : 'NO'}. Prerequisitos estructura: ${structPrereq ? 'cumplidos' : 'pendientes'}.`;
+
+      const evalSystem = convPhase
+        ? `Sos Jill evaluadora Foundations en FASE CONVERSACIÓN. El estudiante ya dominó estructura/teoría. Evaluá si DEMOSTRÓ en el transcript: conversar sin errores graves, tiempo verbal correcto, coordinación de ideas, lógica, poco esfuerzo evidente, fluidez sostenida con Jill. Compará contra Mecánica Estructural Infinity (P|M|V|C). NUNCA gradués automáticamente — solo podés SOLICITAR graduación (graduation_request:true) si la evidencia es clara y consistente en TODA la sesión. Si hay duda, graduation_request:false y seguí puliendo. Respondé SOLO JSON válido. Sin markdown. Sin overall_score.`
+        : 'Sos Jill evaluadora Foundations. Respondé SOLO JSON válido. Sin markdown. Sin overall_score — ya está calculado.';
+
+      const evalJsonSchema = convPhase
+        ? `{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus","jill_message":"2-3 frases cálidas en español + feedback conversacional","bundle_ready":true o false,"graduation_request":true solo si KPIs conversacionales Johnny satisfechos en evidencia,"graduation_reason":"por qué solicitás o no graduación a Alice","conversation_kpis":{"tense_accuracy":"ok|weak|fail","coordination":"ok|weak|fail","logic":"ok|weak|fail","effort":"ok|weak|fail","fluency":"ok|weak|fail"}}`
+        : `{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus/bundle","jill_message":"2-3 frases cálidas en español + una frase modelo en inglés del chunk de hoy","bundle_ready":true o false si dominó el bundle según evidencia,"graduation_request":false}`;
 
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 450,
-        system: 'Sos Jill evaluadora Foundations. Respondé SOLO JSON válido. Sin markdown. Sin overall_score — ya está calculado.',
-        messages: [{ role: 'user', content: `Evaluá esta sesión Foundations de ${getStudentDisplayName(student)}.\n\n${statsNote}\n\nTranscript:\n${hist}\n\nJSON exacto:\n{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus/bundle","jill_message":"2-3 frases cálidas en español + una frase modelo en inglés del chunk de hoy","bundle_ready":true o false si dominó el bundle según evidencia}` }]
+        max_tokens: 550,
+        system: evalSystem,
+        messages: [{ role: 'user', content: `Evaluá esta sesión Foundations de ${getStudentDisplayName(student)}.\n\n${statsNote}\n\nTranscript:\n${hist}\n\nJSON exacto:\n${evalJsonSchema}` }]
       });
 
       const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       try {
         const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
-        return res.json({ evaluation: {
+        const gradRequest = convPhase && structPrereq && !!qual.graduation_request
+          && overall_score >= 78 && userTurns >= 5;
+        return res.json(await finalizeJillEvaluation(student, {
           overall_score,
           student_turns: userTurns,
           connectors_used: metrics.connectors,
           bundle_id: jillBundle?.id || null,
+          conversation_phase: convPhase,
           best_moment: qual.best_moment || 'Practicaste con constancia.',
           main_improvement: qual.main_improvement || 'Seguí con chunks del bundle activo.',
           jill_message: qual.jill_message || `Muy bien, ${getStudentDisplayName(student)}.`,
-          bundle_ready: !!qual.bundle_ready && overall_score >= 72 && userTurns >= 4
-        }});
+          bundle_ready: !!qual.bundle_ready && overall_score >= 72 && userTurns >= 4,
+          graduation_request: gradRequest,
+          graduation_reason: gradRequest ? (qual.graduation_reason || '') : (qual.graduation_reason || qual.main_improvement || ''),
+          conversation_kpis: qual.conversation_kpis || null
+        }, hist));
       } catch (e) {
-        return res.json({ evaluation: {
+        return res.json(await finalizeJillEvaluation(student, {
           overall_score,
           student_turns: userTurns,
           bundle_ready: overall_score >= 75 && userTurns >= 5,
+          graduation_request: false,
           best_moment: 'Buen esfuerzo en la sesión.',
           main_improvement: 'Repetí el chunk del bundle en voz alta 3 veces.',
-          jill_message: `Seguí así, ${getStudentDisplayName(student)} — el método Nexus es práctica, no teoría.`
-        }});
+          jill_message: `Seguí así, ${getStudentDisplayName(student)} — el método Nexus es práctica, no teoría.`,
+          conversation_phase: convPhase
+        }, hist));
       }
     }
 
@@ -3319,7 +3404,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const msgs = [...prevMsgs, { role: 'user', content: message }];
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSlice(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3420,13 +3505,22 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       .map(ex => `- ${ex.title}: ${ex.studentTask || ''}`).join('\n');
     const weakNote = weakKpis?.length ? `\nTemas a reforzar hoy: ${weakKpis.join(', ')}.` : '';
     const bundleNote = formatJillBundleNote(jillBundle);
-    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext);
+    const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext, student);
     const vocabNote = formatJillVocabNote(vocabContext);
     const responseKpiNote = formatJillResponseKpiNote(matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
       ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
       : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
+    const responseMs = req.body?.responseMs;
+    const drillEval = TrainerModel.evaluateStudentTurn(message, {
+      student, tutor: 'jill', bundle: jillBundle, matrixContext, responseMs
+    });
+    if (drillEval.forcedReply) {
+      return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n[[CTYPE:text]]');
+    }
+    const trainerNote = TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
+      + TrainerModel.formatTrainerEvalNote(drillEval);
     mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
@@ -3437,9 +3531,13 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (brain.hit) {
       return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     }
+    const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+    const teachInstr = convPhase
+      ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
+      : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.';
     await streamAnthropicSSE(res, {
       max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\nEnseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -3494,6 +3592,18 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const adaptNote = buildStudyAdaptationNote(student, message);
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    let trainerNote = '';
+    if (!companion) {
+      const drillEval = TrainerModel.evaluateStudentTurn(message, {
+        student, tutor: 'alice', bundle: null, responseMs: req.body?.responseMs
+      });
+      if (drillEval.forcedReply) {
+        return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n\nALICE: Seguí expandiendo la idea.');
+      }
+      trainerNote = TrainerModel.formatTrainerDrillNote(student, 'alice', null)
+        + TrainerModel.formatTrainerEvalNote(drillEval)
+        + '\n' + TrainerModel.JOHNNY_TRAINER_RULE;
+    }
     const methodBlock = companion
       ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
@@ -3517,7 +3627,7 @@ PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
 ${methodBlock}
 RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. Always finish the full reply.
-STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);

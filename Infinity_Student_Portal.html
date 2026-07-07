@@ -31,8 +31,11 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-foundations.js?v=20260707b"></script>
-<script src="js/jill-matrix.js?v=20260707c"></script>
+<script src="js/jill-foundations.js?v=20260707c"></script>
+<script src="js/trainer-drill-engine.js?v=20260707e"></script>
+<script src="js/jill-matrix.js?v=20260707e"></script>
+<script src="js/jill-graduation.js?v=20260707b"></script>
+<script src="js/jill-trainer-insights.js?v=20260707a"></script>
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260706"></script>
 <script src="js/jill-quiz.js?v=20260707c"></script>
@@ -2078,9 +2081,27 @@ async function sendAliceMessage(micText){
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'alice', dbSet).catch(function(){});
   if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, CURRENT_STUDENT).catch(function(){});
 
+  var aliceTurnStarted = Date.now();
+  var drillEval = null;
+  if(_aliceState.sessionType !== 'companion' && typeof TrainerDrill !== 'undefined'){
+    drillEval = TrainerDrill.evaluateTurn(text, { student: CURRENT_STUDENT, tutor: 'alice', responseMs: Date.now() - aliceTurnStarted });
+  }
+
   var streamIdx = _aliceState.history.length;
   _aliceState.history.push({ role:'assistant', content:'▋' });
   aliceRenderHistoryMessages();
+
+  if(drillEval && drillEval.forcedReply){
+    var forcedAlice = drillEval.forcedReply + '\n\nALICE: Seguí expandiendo la idea.';
+    _aliceState.history[streamIdx] = { role:'assistant', content: forcedAlice };
+    aliceRenderHistoryMessages();
+    if(statusEl) statusEl.textContent = '';
+    aliceQueueFullReply(forcedAlice);
+    if(micBtn) micBtn.classList.remove('ptt-busy');
+    unwatchAlice();
+    _aliceSending = false;
+    return;
+  }
 
   var fullText = '';
   var alicePrefetchState = {};
@@ -2095,7 +2116,9 @@ async function sendAliceMessage(micText){
         history:_aliceState.history.slice(0, streamIdx).slice(-10),
         message:text, secret:ALICE_SECRET,
         sessionType: _aliceState.sessionType || 'practice',
-        companionTopic: _aliceState.companionTopic || ''
+        companionTopic: _aliceState.companionTopic || '',
+        drillContext: drillEval,
+        responseMs: Date.now() - aliceTurnStarted
       }),
       signal: ctrl.signal
     });
@@ -4063,7 +4086,12 @@ function jillMatrixMark(ok){
   renderJill();
   var drill = JillMatrix.getDrillPrompt(s);
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Próximo: ' + drill.pronoun + ' + ' + drill.verb + ' (' + drill.sigla + ')';
+  if(statusEl) {
+    var nextLine = drill.modal
+      ? drill.pronoun + ' + ' + drill.modal + ' + ' + drill.verb
+      : drill.pronoun + ' + ' + drill.verb;
+    statusEl.textContent = 'Próximo: ' + nextLine + ' (' + drill.sigla + ')';
+  }
 }
 
 function jillMatrixStartAnecdote(){
@@ -4076,7 +4104,9 @@ function jillMatrixStartAnecdote(){
   }
 }
 
-function jillDetectStructureOk(reply, contentType){
+function jillDetectStructureOk(reply, contentType, drillEval){
+  if (drillEval && drillEval.structureOk === true) return true;
+  if (drillEval && drillEval.structureOk === false) return false;
   var t = String(reply || '').toLowerCase();
   if (/\b(incorrect|wrong|no es|falta|error|ranura equivocada|try again|intentá de nuevo)\b/.test(t)) return false;
   if (contentType === 'exercise' || contentType === 'whiteboard') return true;
@@ -4300,6 +4330,20 @@ function startJillSessionClick(){
   });
 }
 
+function jillConfirmGraduation(){
+  var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  if(!s || typeof JillGraduation === 'undefined') return;
+  var grad = JillGraduation.confirmGraduation(s);
+  if(grad && grad.graduated){
+    if(s.id) dbSet('infinity_students', s.id, s).then(function(){
+      if(typeof showToast === 'function') showToast(grad.message || 'Alice activada.');
+      renderJill();
+    });
+  } else if(grad && grad.missing && grad.missing.length){
+    showToast(grad.missing[0], 'err');
+  }
+}
+
 async function endJillSession(){
   if(!_jillState.sessionActive) return;
   if(_jillState.evaluation){
@@ -4376,6 +4420,14 @@ async function endJillSession(){
         } else if(s.id && typeof JillFoundations !== 'undefined'){
           await dbSet('infinity_students', s.id, s);
         }
+        if(typeof JillGraduation !== 'undefined' && data.evaluation.graduation_request){
+          JillGraduation.recordGraduationRequest(s, data.evaluation);
+        }
+        if(typeof JillTrainerInsights !== 'undefined'){
+          JillTrainerInsights.applyFromServer(s, data);
+          JillTrainerInsights.refreshCharts(s);
+        }
+        if(s.id) await dbSet('infinity_students', s.id, s);
         if(data.evaluation.jill_message) jillSpeak(data.evaluation.jill_message);
       }
     } catch(e){
@@ -4487,11 +4539,22 @@ async function sendJillMsg(micText){
   if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, s).catch(function(){});
 
   if(typeof JillVocab !== 'undefined' && s) JillVocab.harvestFromText(s, text);
+  var jillCtx = jillGetContext(s);
+  var responseMs = Date.now() - turnStarted;
   if(s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle())){
-    var rMs = Date.now() - turnStarted;
-    JillMatrix.recordResponseTime(s, rMs);
+    JillMatrix.recordResponseTime(s, responseMs);
+    if(jillCtx.matrixContext && jillCtx.matrixContext.anecdoteMode){
+      var anecdoteWords = text.split(/\s+/).filter(function(w){ return /[a-zA-Z]/.test(w); }).length;
+      if(anecdoteWords >= 50 && typeof JillGraduation !== 'undefined'){
+        JillGraduation.markAnecdoteEvaluated(s);
+      }
+    }
     if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
   }
+
+  var drillEval = (typeof TrainerDrill !== 'undefined')
+    ? TrainerDrill.evaluateTurn(text, { student: s, tutor: 'jill', bundle: jillActiveBundle(), matrixContext: jillCtx.matrixContext, responseMs: responseMs })
+    : null;
 
   var streamIdx = _jillState.history.length;
   _jillState.history.push({role:'assistant', content:'▋'});
@@ -4503,12 +4566,31 @@ async function sendJillMsg(micText){
   _jillStreamCtrl = ctrl;
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
+  if(drillEval && drillEval.forcedReply){
+    clearTimeout(tid);
+    _jillState.history[streamIdx] = {role:'assistant', content: drillEval.forcedReply, contentType: 'text'};
+    _jillState.lastStructureOk = false;
+    _jillState.drillTurnStartedAt = Date.now();
+    jillSpeak(drillEval.forcedReply);
+    jillRenderHistoryMessages();
+    if(statusEl) statusEl.textContent = '';
+    if(micBtn) micBtn.classList.remove('ptt-busy');
+    unwatchJill();
+    _jillSending = false;
+    return;
+  }
+
+  if(drillEval && drillEval.structureOk === true && s && typeof JillMatrix !== 'undefined' && JillMatrix.isMatrixBundle(jillActiveBundle())){
+    JillMatrix.recordPractice(s, true);
+    _jillState.lastStructureOk = true;
+    if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
+  }
+
   try {
-    var jillCtx = jillGetContext(s);
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[] }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);
@@ -4546,9 +4628,10 @@ async function sendJillMsg(micText){
       ? JillFoundations.parseReply(fullText)
       : { reply: fullText, contentType: 'text' };
     _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply || fullText || 'No entendí — ¿podés repetir?', contentType: parsed.contentType || 'text'};
-    _jillState.lastStructureOk = jillDetectStructureOk(parsed.reply || fullText, parsed.contentType);
+    _jillState.lastStructureOk = jillDetectStructureOk(parsed.reply || fullText, parsed.contentType, drillEval);
     _jillState.drillTurnStartedAt = Date.now();
     if(_jillState.lastStructureOk && typeof JillMatrix !== 'undefined'){
+      if(s && JillMatrix.isMatrixBundle(jillActiveBundle())) JillMatrix.recordPractice(s, true);
       var mp = document.getElementById('jill-matrix-panel');
       if(mp) renderJill();
     }
@@ -4578,8 +4661,12 @@ function jillSpeak(text){
 }
 
 if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', function(){ tryJillLocalPreview(); });
+  document.addEventListener('DOMContentLoaded', function(){
+    if(typeof TrainerDrill !== 'undefined') TrainerDrill.loadDrills();
+    tryJillLocalPreview();
+  });
 } else {
+  if(typeof TrainerDrill !== 'undefined') TrainerDrill.loadDrills();
   tryJillLocalPreview();
 }
 

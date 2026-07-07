@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "author": "Infinity Studio CR — Johnny Ramirez",
+  "doctrine": "Drills del metodo Nexus / MSI. Las tutoras aplican el script exacto del trainer — sin suavizar.",
+  "drills": {
+    "IG_critical": {
+      "kpi": "k9",
+      "tutor": ["jill", "alice"],
+      "phase": "1",
+      "title": "Idea Expansion Drill",
+      "script": "Si la respuesta tiene menos de 3 oraciones en ingles, deci UNICAMENTE: Keep going. Sin reformular, sin ayudar.",
+      "minSentences": 3,
+      "forcedReply": "Keep going.",
+      "freq": "session_start"
+    },
+    "ST_critical": {
+      "kpi": "k8",
+      "tutor": ["jill", "alice"],
+      "phase": "1",
+      "title": "Idea + Linker + Idea",
+      "script": "Cada oracion aislada sin conector = pedir linker y que continue sin reiniciar.",
+      "minSentences": 2,
+      "requireLinker": true,
+      "forcedReply": "Add a linker — keep going.",
+      "linkers": ["and", "but", "however", "because", "so", "therefore", "although", "furthermore", "in addition", "as a result", "on top of that", "which means", "despite", "while", "when", "after", "before", "then", "also", "plus"]
+    },
+    "R_critical": {
+      "kpi": "k14",
+      "tutor": ["jill"],
+      "phase": "1",
+      "title": "Rapid Fire warm-up",
+      "script": "Respuesta completa en menos de 12 segundos. Silencio o una sola palabra = pedir oracion estructurada.",
+      "maxResponseMs": 12000,
+      "forcedReply": "One full sentence — structure it."
+    },
+    "MSI_matrix": {
+      "kpi": "k3",
+      "tutor": ["jill"],
+      "phase": "F0",
+      "title": "Matriz MSI — validacion por ranuras",
+      "script": "Corregir por P|M|V|C. 3ra persona PR: +s. No avanzar celda sin estructura valida.",
+      "validateStructure": true
+    },
+    "RA_critical": {
+      "kpi": "k13",
+      "tutor": ["alice"],
+      "phase": "1",
+      "title": "No Freeze — 3 segundos",
+      "script": "Cualquier palabra en ingles cuenta. Silencio es falla. Incorrecto no es falla.",
+      "minWords": 1,
+      "forcedReply": "Say anything in English — start now."
+    }
+  }
+}

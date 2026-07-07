@@ -417,7 +417,10 @@
         if (!student.jillPulse) student.jillPulse = {};
         student.jillPulse.lastScore = score;
         student.jillPulse.lastDate = new Date().toISOString();
-        if (score >= 80) student.jillPulse.passed = true;
+        if (score >= 80) {
+          student.jillPulse.passed = true;
+          if (student.jillMatrix) student.jillMatrix.pulseQuizPassed = true;
+        }
       }
       if (student && student.id && typeof dbSet === 'function') {
         dbSet('infinity_students', student.id, student).catch(function () {});
