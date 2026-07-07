@@ -33,9 +33,9 @@
     { s: 'a[href="#alice"]', en: 'Alice', es: 'Alice' },
     { s: 'a[href="#about"]', en: 'About', es: 'Nosotros' },
     { s: 'a[href="#contact"]', en: 'Contact', es: 'Contacto' },
-    { s: '.nav-cta', en: 'Book diagnostic', es: 'Agenda diagnóstico' },
-    { s: 'a[href="index.html#ecosystem"]', en: 'What You Get', es: '¿Qué Recibes?' },
-    { s: 'a.nav-cta', en: 'Try free', es: 'Probar gratis' }
+    { s: '.nav-cta', en: 'Talk to us', es: 'Hablá con nosotros' },
+    { s: 'a[href="index.html#contact"].nav-cta', en: 'Talk to us', es: 'Hablá con nosotros' },
+    { s: 'a[href="#contact"].nav-cta', en: 'Talk to us', es: 'Hablá con nosotros' },
   ];
 
   var INDEX = [
@@ -45,8 +45,8 @@
     { s: '.hero-pills .pill:nth-child(1)', en: '12 h/month with your coach', es: '12 h al mes con tu profe' },
     { s: '.hero-pills .pill:nth-child(2)', en: 'AI practice at night', es: 'Práctica con IA de noche' },
     { s: '.hero-pills .pill:nth-child(3)', en: 'We track your progress', es: 'Te decimos cómo vas' },
-    { s: '.hero-ctas .btn-companion', html: true, en: '<i class="ti ti-messages"></i>Try Alice Companion free', es: '<i class="ti ti-messages"></i>Probar Alice Companion gratis' },
-    { s: '.hero-ctas .btn-secondary', html: true, en: '<i class="ti ti-brand-whatsapp"></i>Free chat — no commitment', es: '<i class="ti ti-brand-whatsapp"></i>Charla gratis — sin compromiso' },
+    { s: '.hero-ctas .btn-primary', html: true, en: '<i class="ti ti-help"></i>Is this for you?', es: '<i class="ti ti-help"></i>¿Es para vos?' },
+    { s: '.hero-ctas a[href="try-alice.html"]', html: true, en: '<i class="ti ti-messages"></i>Try Alice Companion', es: '<i class="ti ti-messages"></i>Probar Alice Companion' },
     { s: '.hero-photo-tag', html: true, en: '<i class="ti ti-user-heart"></i> Private 1-on-1', es: '<i class="ti ti-user-heart"></i> Privado 1 a 1' },
     { s: '.stats-bar .stat-item:nth-child(1) .stat-label', en: 'h/month private trainer', es: 'h/mes trainer privado' },
     { s: '.stats-bar .stat-item:nth-child(2) .stat-label', en: 'AI support', es: 'IA de apoyo' },
@@ -320,8 +320,8 @@
     { s: '.nav-drop-menu a[href="off-the-clock.html"]', en: 'Off The Clock', es: 'Off The Clock' },
     { s: '.nav-drop-menu a[href="conversatorio.html"]', en: 'The Conversatory', es: 'El Conversatorio' },
     { s: '.nav-drop-menu a[href="job-finder.html"]', en: 'Job Finder', es: 'Job Finder' },
-    { s: 'a.hero-portal-lock', attr: 'title', en: 'Portal Access', es: 'Acceso al Portal' },
-    { s: 'a.hero-portal-lock', attr: 'aria-label', en: 'Portal Access', es: 'Acceso al Portal' },
+    { s: 'a.hero-portal-lock', attr: 'title', en: 'Student portal', es: 'Portal estudiantil' },
+    { s: 'a.hero-portal-lock', attr: 'aria-label', en: 'Student portal', es: 'Portal estudiantil' },
     { s: '.contact-cards .cc:nth-child(5) .cc-label', en: 'Website', es: 'Sitio Web' },
     { s: '.contact-cards .cc:nth-child(6) .cc-label', en: 'Coverage', es: 'Cobertura' },
     { s: '.contact-cards .cc:nth-child(6) .cc-value', en: 'Latin America · HQ Costa Rica', es: 'Latinoamérica · sede Costa Rica' },
