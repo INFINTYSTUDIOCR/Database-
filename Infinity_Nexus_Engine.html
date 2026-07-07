@@ -4547,7 +4547,7 @@ function toggleStudentJillPro(sid){
   var on = studentJillProOn(s);
   var name = (s.info&&s.info.name)||'este estudiante';
   if(on){
-    confirmAction('Apagar Jill Pro', '¿Apagar Jill Pro (Nemesis Quest) para '+name+'? El estudiante no puede activarlo solo.', async function(){
+    confirmAction('Apagar Jill Pro', '¿Apagar Jill Pro (Foundations Companion) para '+name+'? El estudiante no puede activarlo solo.', async function(){
       s.jillProEnabled = false;
       await dbSet('infinity_students', sid, s); DB[sid]=s;
       showToast('Jill Pro OFF'); openStudent(sid);

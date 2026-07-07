@@ -174,7 +174,7 @@
       + '<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-heartbeat"></i> Weekly Pulse — ' + ((s.info && s.info.name) || sid) + '</h2>'
       + '<button type="button" class="btn btn-outline btn-sm" onclick="NexusManualCal.open(\'' + sid + '\')"><i class="ti ti-adjustments"></i> Calibración manual</button></div>'
       + '<div class="ib ib-navy">Semana <strong>' + wk + '</strong> · Track: <strong>' + track.toUpperCase() + '</strong> · Auto: '
-      + prof.stats.quizzes + ' quiz · ' + prof.stats.nemesis + ' nemesis · confianza ' + prof.confidence + '%</div>'
+      + prof.stats.quizzes + ' quiz · ' + prof.stats.nemesis + ' rapid drill · confianza ' + prof.confidence + '%</div>'
       + '<div class="card" style="margin-top:10px;"><div class="card-title">Resumen (calculado)</div>'
       + macroHtml
       + '<div style="font-size:13px;font-weight:700;margin-top:8px;">Total: ' + fmtScore(prof.prevTotal, s) + ' → ' + fmtScore(prof.total, s) + '</div>'

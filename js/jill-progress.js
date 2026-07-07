@@ -19,7 +19,7 @@
     { id: 'bundles_3', icon: '🏗️', name: 'Constructor', desc: '3 bundles completados' },
     { id: 'minutes_20', icon: '⏱️', name: '20 minutos', desc: '20 minutos totales con Jill' },
     { id: 'xp_150', icon: '⭐', name: 'Estrella Nexus', desc: '150 XP acumulados' },
-    { id: 'quiz_100', icon: '💀', name: 'Nemesis vencido', desc: '100% en Jill Pro Nemesis Quest' }
+    { id: 'quiz_100', icon: '⚡', name: 'Rapid drill perfecto', desc: '100% en Rapid drill' }
   ];
 
   function todayKey(d) {
@@ -257,7 +257,7 @@
     if (badges.indexOf('first_jill') < 0) hints.push('🌿 Primera sesión');
     else if ((h.streak || 0) < 3 && badges.indexOf('streak_3') < 0) hints.push('🔥 Racha 3 días');
     else if (!dailyGoalMet(student) && badges.indexOf('daily_goal') < 0) hints.push('✅ Meta diaria (' + DAILY_GOAL_MINUTES + ' min)');
-    else if (badges.indexOf('quiz_100') < 0) hints.push('💀 Jill Pro Nemesis 100%');
+    else if (badges.indexOf('quiz_100') < 0) hints.push('⚡ Rapid drill 100%');
     else if ((g.xp || 0) < 150 && badges.indexOf('xp_150') < 0) hints.push('⭐ 150 XP');
     if (!hints.length) hints.push('💪 Sesión 75+ para premio extra');
     return hints[0];

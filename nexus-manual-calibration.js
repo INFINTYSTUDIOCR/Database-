@@ -196,7 +196,7 @@
       + '</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;font-size:12px;">'
       + ['session', 'jillAlice', 'quiz', 'nemesis', 'nexora', 'typing'].map(function (k, i) {
-        var labels = { session: 'Sesión trainer', jillAlice: 'Jill/Alice', quiz: 'Quiz', nemesis: 'Nemesis', nexora: 'Nexora', typing: 'Typing' };
+        var labels = { session: 'Sesión trainer', jillAlice: 'Jill/Alice', quiz: 'Quiz', nemesis: 'Rapid drill', nexora: 'Nexora', typing: 'Typing' };
         var checked = ev[k] ? ' checked' : '';
         return '<label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="mcal-ev-' + k + '"' + checked + ' onchange="NexusManualCal.patchContext()"> ' + labels[k] + '</label>';
       }).join('')

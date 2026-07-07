@@ -206,16 +206,16 @@
           var pct = v !== undefined ? Math.round((v / 5) * 100) : null;
           return '<div style="font-size:12px;padding:8px 0;border-bottom:1px solid var(--border);">'
             + '<strong>' + id + '</strong> ' + (pct !== null ? ('████░ ' + pct + '%') : '<span style="color:var(--t3);">N/A</span>')
-            + '<div style="font-size:10px;color:var(--t3);">Evidencia: sesiones + quiz + Nemesis</div></div>';
+            + '<div style="font-size:10px;color:var(--t3);">Evidencia: sesiones + quiz + Rapid drill</div></div>';
         }).join('');
     } else if (n === 3) {
       var lastQuiz = (s.quizzes || []).slice(-1)[0];
       var lastNem = (s.nemesisQuizzes || []).slice(-1)[0];
       var quizLine = lastQuiz ? (lastQuiz.correct + '/' + lastQuiz.total + ' (' + lastQuiz.score + '%)') : 'Sin quiz esta semana';
-      var nemLine = lastNem ? (lastNem.correct + '/' + lastNem.total + ' (' + lastNem.score + '%)') : 'Sin Nemesis esta semana';
+      var nemLine = lastNem ? (lastNem.correct + '/' + lastNem.total + ' (' + lastNem.score + '%)') : 'Sin Rapid drill esta semana';
       body.innerHTML = '<div style="font-size:13px;line-height:1.8;">'
         + '<div><strong>Quiz semanal:</strong> ' + quizLine + '</div>'
-        + '<div><strong>Nemesis:</strong> ' + nemLine + '</div>'
+        + '<div><strong>Rapid drill:</strong> ' + nemLine + '</div>'
         + '<div class="ib ib-navy" style="margin-top:8px;">Ya contado en auto — el alumno no repite aquí.</div></div>';
     } else {
       body.innerHTML = '<div style="font-size:13px;margin-bottom:10px;">Training Book: rotación automática al confirmar pulso.</div>'

@@ -1,12 +1,12 @@
 /**
- * Jill Pro — Nemesis Quest Kahoot
- * Preguntas priorizadas por KPIs/temas que el estudiante falla (nemesis + quizzes + refuerzo Jill).
+ * Jill — Rapid drill Kahoot
+ * Preguntas priorizadas por KPIs/temas que el estudiante falla (rapid drill + quizzes + refuerzo Jill).
  */
 (function (global) {
   'use strict';
 
-  var BRAND = 'Jill Pulse';
-  var MODE_LABEL = 'Foundations Quiz';
+  var BRAND = 'Rapid drill';
+  var MODE_LABEL = 'Rapid drill';
 
   var PULSE_OPTS = [
     { bg: '#5B21B6', shape: '⬡' },
@@ -19,6 +19,117 @@
 
   var TIMER_SEC = 15;
   var QUESTIONS_PER_ROUND = 5;
+  var WIN_SCORE_PCT = 70;
+  var GOLD_SCORE_PCT = 100;
+  var SILVER_SCORE_PCT = 80;
+
+  function ensureRapidDrillStats(student) {
+    if (!student) return { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 };
+    if (!student.jillRapidDrill) {
+      student.jillRapidDrill = { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 };
+    }
+    return student.jillRapidDrill;
+  }
+
+  function pressureRatio(state) {
+    var timeP = 1 - (state.timeLeft / TIMER_SEC);
+    var qP = state.idx / Math.max(1, state.quiz.length);
+    return Math.min(0.98, Math.max(0.05, timeP * 0.72 + qP * 0.28));
+  }
+
+  function injectRapidDrillStyles() {
+    if (document.getElementById('jill-rapid-drill-styles')) return;
+    var st = document.createElement('style');
+    st.id = 'jill-rapid-drill-styles';
+    st.textContent = ''
+      + '@keyframes jillKahootIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'
+      + '@keyframes jillFlameFlicker{0%,100%{transform:scale(1) rotate(-4deg);filter:brightness(1)}50%{transform:scale(1.14) rotate(4deg);filter:brightness(1.2)}}'
+      + '@keyframes jillPressureShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}'
+      + '@keyframes jillTrophyPop{0%{transform:scale(0.2) rotate(-20deg);opacity:0}60%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}'
+      + '@keyframes jillStreakPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.5)}50%{box-shadow:0 0 18px 6px rgba(251,191,36,0.35)}}'
+      + '@keyframes jillConfettiFall{0%{transform:translateY(-12px) rotate(0);opacity:1}100%{transform:translateY(90px) rotate(280deg);opacity:0}}'
+      + '.jill-pressure-track{position:relative;height:58px;margin:0 0 12px;border-radius:12px;background:linear-gradient(90deg,#1e1b4b 0%,#312e81 55%,#4c1d95 100%);border:1px solid rgba(251,191,36,0.35);overflow:hidden}'
+      + '.jill-pressure-track.critical{animation:jillPressureShake .35s ease-in-out infinite;border-color:rgba(252,165,165,0.75)}'
+      + '.jill-polvorin{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:10px;background:linear-gradient(145deg,#78350f,#92400e);border:2px solid #fcd34d;box-shadow:inset 0 -4px 0 rgba(0,0,0,0.25),0 0 14px rgba(251,191,36,0.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fef3c7;letter-spacing:.04em;text-align:center;line-height:1.05}'
+      + '.jill-flame-wrap{position:absolute;top:50%;transform:translateY(-50%);transition:left .85s linear;z-index:2}'
+      + '.jill-flame{font-size:30px;line-height:1;animation:jillFlameFlicker .55s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(251,146,60,0.9))}'
+      + '.jill-pressure-label{position:absolute;left:10px;top:6px;font-size:9px;font-weight:800;letter-spacing:.1em;color:rgba(254,243,199,0.85);text-transform:uppercase}'
+      + '.jill-pressure-danger{position:absolute;left:10px;bottom:6px;font-size:10px;font-weight:800;color:#fca5a5}'
+      + '.jill-trophy-burst{font-size:52px;animation:jillTrophyPop .55s cubic-bezier(.2,1.1,.3,1) both}'
+      + '.jill-streak-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(251,191,36,0.18);border:1px solid rgba(251,191,36,0.55);color:#fde68a;font-size:12px;font-weight:800;animation:jillStreakPulse 1.2s ease-in-out infinite}'
+      + '.jill-confetti span{position:absolute;top:0;width:8px;height:14px;border-radius:2px;animation:jillConfettiFall 1.1s ease-in forwards}';
+    document.head.appendChild(st);
+  }
+
+  function renderPressureScene(state) {
+    var ratio = pressureRatio(state);
+    var leftPct = Math.round(8 + ratio * 62);
+    var critical = state.timeLeft <= 5;
+    var danger = critical ? '¡La llama casi toca el polvorín!' : (ratio > 0.55 ? 'Respondé rápido — sube la presión' : 'La llama se acerca al polvorín…');
+    return '<div id="jill-pressure-track" class="jill-pressure-track' + (critical ? ' critical' : '') + '">'
+      + '<div class="jill-pressure-label">Presión psicológica</div>'
+      + '<div class="jill-pressure-danger" id="jill-pressure-danger">' + esc(danger) + '</div>'
+      + '<div id="jill-pressure-flame" class="jill-flame-wrap" style="left:' + leftPct + '%;"><div class="jill-flame">🔥</div></div>'
+      + '<div class="jill-polvorin" title="Polvorín">PÓLVORA</div>'
+      + '</div>';
+  }
+
+  function updatePressureDom(state) {
+    var track = document.getElementById('jill-pressure-track');
+    var flame = document.getElementById('jill-pressure-flame');
+    var danger = document.getElementById('jill-pressure-danger');
+    if (!flame) return;
+    var ratio = pressureRatio(state);
+    flame.style.left = Math.round(8 + ratio * 62) + '%';
+    if (track) track.classList.toggle('critical', state.timeLeft <= 5);
+    if (danger) {
+      danger.textContent = state.timeLeft <= 5
+        ? '¡La llama casi toca el polvorín!'
+        : (ratio > 0.55 ? 'Respondé rápido — sube la presión' : 'La llama se acerca al polvorín…');
+    }
+  }
+
+  function renderMiniTrophy(streak) {
+    var tier = streak >= 5 ? '🏆' : (streak >= 3 ? '🥇' : '⭐');
+    var label = streak >= 5 ? 'RACHA LEGENDARIA' : (streak >= 3 ? 'RACHA EN FUEGO' : 'BIEN');
+    return '<div class="jill-trophy-burst" style="margin-bottom:6px;">' + tier + '</div>'
+      + '<div class="jill-streak-pill">🔥 Racha ' + streak + ' · ' + label + '</div>';
+  }
+
+  function renderConfettiBurst() {
+    var colors = ['#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#c4b5fd', '#fb923c'];
+    var html = '<div class="jill-confetti" style="position:relative;height:70px;margin:0 auto 8px;max-width:280px;overflow:hidden;">';
+    for (var i = 0; i < 14; i++) {
+      var left = 8 + Math.floor(Math.random() * 84);
+      var delay = (Math.random() * 0.35).toFixed(2);
+      var col = colors[i % colors.length];
+      html += '<span style="left:' + left + '%;background:' + col + ';animation-delay:' + delay + 's;"></span>';
+    }
+    return html + '</div>';
+  }
+
+  function trophyForScore(score, perfect) {
+    if (perfect || score >= GOLD_SCORE_PCT) return { icon: '🏆', title: 'TROFEO DE ORO', sub: 'Rapid drill perfecto' };
+    if (score >= SILVER_SCORE_PCT) return { icon: '🥇', title: 'TROFEO DE PLATA', sub: 'Excelente bajo presión' };
+    if (score >= WIN_SCORE_PCT) return { icon: '🥈', title: 'TROFEO DE BRONCE', sub: 'Ganaste la ronda' };
+    return { icon: '💀', title: 'Casi — otra ronda', sub: 'La llama sigue cerca del polvorín' };
+  }
+
+  function applyWinStreak(student, score, perfect) {
+    var rd = ensureRapidDrillStats(student);
+    var won = score >= WIN_SCORE_PCT;
+    if (won) {
+      rd.winStreak = (rd.winStreak || 0) + 1;
+      rd.totalWins = (rd.totalWins || 0) + 1;
+      rd.trophies = (rd.trophies || 0) + (perfect || score >= GOLD_SCORE_PCT ? 3 : (score >= SILVER_SCORE_PCT ? 2 : 1));
+      if (rd.winStreak > (rd.bestWinStreak || 0)) rd.bestWinStreak = rd.winStreak;
+    } else {
+      rd.winStreak = 0;
+    }
+    rd.lastScore = score;
+    rd.lastDate = new Date().toISOString();
+    return { won: won, rd: rd };
+  }
 
   var COIN_QUESTIONS = [
     { kpi: 'k3', topic: 'coin', q: 'Método Moneda: ¿Cuál es PREGUNTA?', options: ['You are ready.', 'Are you ready?', 'Ready you are?', 'You ready are?'], answer: 1, explain: 'Are a la izquierda de you → pregunta.' },
@@ -141,7 +252,7 @@
       q: b.q,
       options: b.options.slice(),
       answer: b.answer,
-      explain: b.explain || 'Refuerzo Nemesis — practicá este tema con Jill.'
+      explain: b.explain || 'Refuerzo Rapid drill — practicá este tema con Jill.'
     };
   }
 
@@ -184,11 +295,15 @@
 
   function renderNemesisTopics(student) {
     var kpis = collectNemesisKpis(student).slice(0, 6);
+    var rd = ensureRapidDrillStats(student);
+    var streakBar = (rd.winStreak || rd.bestWinStreak)
+      ? '<div style="font-size:10px;color:#e9d5ff;text-align:center;margin-bottom:8px;font-weight:700;">🏆 Racha victorias: ' + (rd.winStreak || 0) + (rd.bestWinStreak ? ' · récord ' + rd.bestWinStreak : '') + ' · trofeos ' + (rd.trophies || 0) + '</div>'
+      : '';
     if (!kpis.length) {
-      return '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Sin fallos recientes — Pulse mezcla tu módulo + estructura + KPIs</div>';
+      return streakBar + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Sin fallos recientes — Rapid drill mezcla estructura + KPIs</div>';
     }
-    return '<div style="margin-bottom:10px;">'
-      + '<div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">💀 TUS NEMESIS (temas a vencer)</div>'
+    return streakBar + '<div style="margin-bottom:10px;">'
+      + '<div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">⚡ TUS TEMAS RAPID DRILL</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">'
       + kpis.map(function (k) {
         return '<span style="font-size:10px;font-weight:700;background:rgba(245,166,35,0.18);border:1px solid rgba(245,166,35,0.45);color:#fde68a;padding:4px 10px;border-radius:16px;">' + esc(kpiLabel(k)) + '</span>';
@@ -289,6 +404,7 @@
       if (result.correct === result.total && result.total > 0) xp += 22;
       if ((result.streak || 0) >= 3) xp += 10;
       if (result.nemesisMode) xp += 5;
+      if (result.wonRound) xp += 15 + (result.winStreak || 0) * 4;
       g.xp = (g.xp || 0) + xp;
       student.jillGrowth = g;
       unlocked = JillProgress.checkBadges(student, {
@@ -329,10 +445,14 @@
     return { xp: xp, unlocked: unlocked };
   }
 
-  function mount(rootEl, student, activeBundle, onDone) {
+  function mount(rootEl, student, activeBundle, onDone, opts) {
     if (!rootEl) return;
+    opts = opts || {};
+    injectRapidDrillStyles();
+    var rdStats = ensureRapidDrillStats(student);
     var nemesisKpis = collectNemesisKpis(student);
-    var quiz = pickNemesisQuestions(student, activeBundle);
+    var qCount = opts.questionCount || QUESTIONS_PER_ROUND;
+    var quiz = pickNemesisQuestions(student, activeBundle, qCount);
     var brandLine = BRAND + ' · ' + MODE_LABEL + ' — estructura, tiempos, moneda, prep, vocab';
     if (!quiz.length) {
       rootEl.innerHTML = '<div style="text-align:center;padding:1rem;color:#fde68a;">Sin preguntas — practicá con Jill y volvé.</div>';
@@ -361,15 +481,17 @@
       var q = state.quiz[state.idx];
       var pct = Math.round((state.timeLeft / TIMER_SEC) * 100);
       var timerColor = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
-      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Pulse · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
+      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Kahoot · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
       return '<div id="jill-kahoot-inner" style="animation:jillKahootIn .35s ease;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;font-weight:800;color:#e9d5ff;">'
         + '<span>⚡ ' + MODE_LABEL + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
-        + '<span>🔥 ' + state.streak + '</span>'
+        + '<span title="Racha de aciertos">🔥 ' + state.streak + '</span>'
         + '<span>✓ ' + state.correct + '</span>'
+        + '<span title="Racha de victorias">🏆 ' + (rdStats.winStreak || 0) + '</span>'
         + '</div>'
-        + '<div style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + pct + '%;background:' + timerColor + ';transition:width .9s linear;border-radius:6px;"></div></div>'
+        + renderPressureScene(state)
+        + '<div id="jill-kahoot-timer" style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
+        + '<div id="jill-kahoot-timer-fill" style="height:100%;width:' + pct + '%;background:' + timerColor + ';transition:width .9s linear;border-radius:6px;"></div></div>'
         + '<div style="text-align:center;">' + tag + '</div>'
         + '<div style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:16px 18px;font-size:16px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;">'
         + esc(q.q)
@@ -392,14 +514,15 @@
 
     function renderFeedback(wasCorrect) {
       var q = state.quiz[state.idx];
+      var celebrate = wasCorrect ? renderMiniTrophy(state.streak) : '<div style="font-size:40px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">La llama avanzó — corregí y seguí</div>';
       return '<div style="text-align:center;padding:8px 0;">'
-        + '<div style="font-size:42px;margin-bottom:8px;">' + (wasCorrect ? '🎉' : '💀') + '</div>'
-        + '<div style="font-size:20px;font-weight:900;color:' + (wasCorrect ? '#86EFAC' : '#FCD34D') + ';margin-bottom:8px;">'
-        + (wasCorrect ? '¡Nemesis vencido!' : 'Casi — correcta: ' + esc(q.options[q.answer]))
+        + celebrate
+        + '<div style="font-size:18px;font-weight:900;color:' + (wasCorrect ? '#86EFAC' : '#FCD34D') + ';margin-bottom:8px;">'
+        + (wasCorrect ? '¡Acertaste bajo presión!' : 'Casi — correcta: ' + esc(q.options[q.answer]))
         + '</div>'
         + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain || '') + '</div>'
         + '<button type="button" id="jill-kahoot-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
-        + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver resultado')
+        + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver trofeos')
         + '</button></div>';
     }
 
@@ -407,7 +530,9 @@
       clearTimer();
       var total = state.quiz.length;
       var score = Math.round((state.correct / total) * 100);
-      var emoji = score >= 80 ? '🏆' : score >= 60 ? '⚡' : '💀';
+      var perfect = state.correct === total && total > 0;
+      var winMeta = applyWinStreak(student, score, perfect);
+      var trophy = trophyForScore(score, perfect);
       var rec = recordQuiz(student, {
         correct: state.correct,
         total: total,
@@ -416,7 +541,9 @@
         bundleId: state.bundleId,
         kpiResults: state.kpiResults,
         nemesisKpis: state.nemesisKpis,
-        nemesisMode: true
+        nemesisMode: true,
+        wonRound: winMeta.won,
+        winStreak: winMeta.rd.winStreak
       });
       if (student && score >= 70) {
         if (!student.jillPulse) student.jillPulse = {};
@@ -433,6 +560,11 @@
       if (typeof showToast === 'function' && rec.xp) {
         showToast('+' + rec.xp + ' XP · ' + BRAND);
       }
+      if (winMeta.won && typeof showToast === 'function') {
+        setTimeout(function () {
+          showToast('🏆 ' + trophy.title + ' · racha ' + winMeta.rd.winStreak);
+        }, winMeta.won ? 450 : 0);
+      }
       if (rec.unlocked && rec.unlocked.length && typeof JillProgress !== 'undefined' && typeof showToast === 'function') {
         var badgeMsg = JillProgress.renderNewBadgeToast(rec.unlocked);
         if (badgeMsg) setTimeout(function () { showToast(badgeMsg); }, 700);
@@ -440,17 +572,25 @@
 
       var reinforce = (student.nemesisState && student.nemesisState.reinforcement) || [];
       var domain = (student.nemesisState && student.nemesisState.domain) || [];
+      var streakLine = winMeta.won
+        ? '<div class="jill-streak-pill" style="margin:10px auto 12px;">🏆 Victoria · racha ' + winMeta.rd.winStreak + (winMeta.rd.bestWinStreak > winMeta.rd.winStreak ? ' · récord ' + winMeta.rd.bestWinStreak : '') + '</div>'
+        : '<div style="font-size:11px;color:#fca5a5;margin:8px 0;">Racha de victorias reiniciada — la llama sigue cerca</div>';
 
-      rootEl.innerHTML = '<div style="text-align:center;padding:12px 8px;">'
-        + '<div style="font-size:48px;margin-bottom:8px;">' + emoji + '</div>'
+      rootEl.innerHTML = (winMeta.won ? renderConfettiBurst() : '')
+        + '<div style="text-align:center;padding:12px 8px;">'
+        + '<div class="jill-trophy-burst">' + trophy.icon + '</div>'
+        + '<div style="font-size:13px;font-weight:900;color:#fcd34d;letter-spacing:.08em;margin-bottom:4px;">' + esc(trophy.title) + '</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:8px;">' + esc(trophy.sub) + '</div>'
         + '<div style="font-size:11px;font-weight:800;color:#c4b5fd;letter-spacing:0.12em;margin-bottom:4px;">' + BRAND + '</div>'
         + '<div style="font-size:26px;font-weight:900;color:#e9d5ff;">' + state.correct + '/' + total + '</div>'
-        + '<div style="font-size:14px;color:#ddd6fe;margin-bottom:8px;">' + score + '% · racha ' + state.bestStreak + '</div>'
+        + '<div style="font-size:14px;color:#ddd6fe;margin-bottom:6px;">' + score + '% · racha aciertos ' + state.bestStreak + '</div>'
+        + streakLine
+        + '<div style="font-size:11px;color:rgba(255,255,255,0.65);margin-bottom:10px;">Trofeos acumulados: ' + (winMeta.rd.trophies || 0) + ' · victorias: ' + (winMeta.rd.totalWins || 0) + '</div>'
         + (domain.length ? '<div style="font-size:11px;color:#86EFAC;margin-bottom:4px;">Dominio: ' + domain.map(kpiLabel).join(', ') + '</div>' : '')
         + (reinforce.length ? '<div style="font-size:11px;color:#fcd34d;margin-bottom:10px;">Sigue en refuerzo: ' + reinforce.map(kpiLabel).join(', ') + '</div>' : '')
         + '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:16px;">+' + (rec.xp || 0) + ' XP · Jill usará tus fallos en la próxima sesión</div>'
         + '<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
-        + '<button type="button" onclick="jillOpenKahootQuiz()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Nemesis</button>'
+        + '<button type="button" onclick="jillOpenKahootQuiz()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Rapid drill</button>'
         + '</div>';
       if (typeof onDone === 'function') onDone({ correct: state.correct, total: total, score: score, xp: rec.xp });
     }
@@ -504,15 +644,13 @@
       state.timeLeft = TIMER_SEC;
       state.timer = setInterval(function () {
         state.timeLeft--;
-        var inner = rootEl.querySelector('#jill-kahoot-inner');
-        if (inner) {
-          var track = inner.children[1];
-          if (track && track.firstElementChild) {
-            var pct = Math.max(0, Math.round((state.timeLeft / TIMER_SEC) * 100));
-            track.firstElementChild.style.width = pct + '%';
-            track.firstElementChild.style.background = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
-          }
+        var fill = document.getElementById('jill-kahoot-timer-fill');
+        if (fill) {
+          var pct = Math.max(0, Math.round((state.timeLeft / TIMER_SEC) * 100));
+          fill.style.width = pct + '%';
+          fill.style.background = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
         }
+        updatePressureDom(state);
         if (state.timeLeft <= 0 && !state.answered) {
           state.answered = true;
           clearTimer();
@@ -547,9 +685,9 @@
       startTimer();
     }
 
-    rootEl.innerHTML = '<style>@keyframes jillKahootIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}</style>'
-      + '<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
-      + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:10px;">' + esc(brandLine) + '</div>'
+    rootEl.innerHTML = '<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
+      + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
+      + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">🔥 La llama avanza hacia el polvorín — respondé antes de que explote la presión</div>'
       + '<div id="jill-kahoot-stage"></div></div>';
     var stage = document.getElementById('jill-kahoot-stage');
     rootEl = stage;

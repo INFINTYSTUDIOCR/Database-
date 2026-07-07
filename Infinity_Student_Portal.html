@@ -33,14 +33,14 @@
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-canon-visual.js?v=20260707j"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260707g"></script>
+<script src="js/jill-foundations.js?v=20260707h"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-matrix.js?v=20260707h"></script>
 <script src="js/jill-graduation.js?v=20260707b"></script>
 <script src="js/jill-trainer-insights.js?v=20260707a"></script>
 <script src="js/jill-vocab.js?v=20260707b"></script>
-<script src="js/jill-progress.js?v=20260706"></script>
-<script src="js/jill-quiz.js?v=20260707i"></script>
+<script src="js/jill-progress.js?v=20260707rd"></script>
+<script src="js/jill-quiz.js?v=20260707flame"></script>
 <script src="js/tts-chunks.js?v=20260706"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -607,6 +607,7 @@ async function verifyStudentSessionAccess(){
     if(typeof d.nexoraEnabled === 'boolean') CURRENT_STUDENT.nexoraEnabled = d.nexoraEnabled;
     if(typeof d.aliceEnabled === 'boolean') CURRENT_STUDENT.aliceEnabled = d.aliceEnabled;
     if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
+    if(typeof d.jillProEnabled === 'boolean') CURRENT_STUDENT.jillProEnabled = d.jillProEnabled;
     window._currentStudent = CURRENT_STUDENT;
     window._portalStudent = CURRENT_STUDENT;
     checkNexoraAccess(CURRENT_STUDENT);
@@ -756,8 +757,8 @@ function showPortal(s){
     +'<div class="card"><div class="card-title"><i class="ti ti-help-circle"></i>Quiz de práctica</div>'
     +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-help-circle"></i>Generar quiz de práctica</button></div>'
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-skull"></i>Nemesis Quiz</div>'
-    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="NexusPortal.renderNemesisWidget(\'portal-nemesis-container\')"><i class="ti ti-skull"></i>Iniciar Nemesis Quiz</button></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Rapid drill</div>'
+    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="NexusPortal.renderNemesisWidget(\'portal-nemesis-container\')"><i class="ti ti-bolt"></i>Iniciar Rapid drill</button></div>'
     +'</div>';
 
   // ── NOTAS DE SESIÓN ───────────────────────────────────
@@ -1044,6 +1045,24 @@ function studentJillOn(s){
 function studentJillProOn(s){
   if(!s) return false;
   return s.jillProEnabled === true;
+}
+function jillCompanionEnabled(){
+  return studentJillProOn(CURRENT_STUDENT);
+}
+function jillCompanionUiActive(){
+  return !!(_jillState.sessionActive && _jillState.sessionType === 'companion');
+}
+function resolveDefaultJillSessionType(s){
+  var jill = studentJillOn(s);
+  var pro = studentJillProOn(s);
+  if(pro && !jill) return 'companion';
+  if(_jillState.sessionType === 'companion' || _jillState.sessionType === 'tutor') return _jillState.sessionType;
+  return jill ? 'tutor' : 'companion';
+}
+function jillSessionAllowed(s){
+  if(!s) return false;
+  if(_jillState.sessionType === 'companion') return studentJillProOn(s);
+  return studentJillOn(s);
 }
 function studentJillTabOn(s){
   return studentJillOn(s) || studentJillProOn(s);
@@ -2772,6 +2791,10 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
 
 function jillInstantOpening(student, returning, calibrating){
   var name = jillStudentDisplayName(student);
+  if(_jillState.sessionType === 'companion'){
+    if(returning) return "Hola "+name+", qué bueno verte. ¿Qué tema querés hoy? Cualquier duda se convierte en lección — gerundio, tiempos, vocab, lo que sea.";
+    return "Hola "+name+", soy Jill Pro. Pedime cualquier tema y te armo una lección: regla, canon y práctica. ¿Por dónde empezamos?";
+  }
   if(calibrating && typeof JillCalibration !== 'undefined'){
     return JillCalibration.instantOpening(student);
   }
@@ -4033,6 +4056,8 @@ function aliceQueueSpeak(text){
 var _jillState = {
   history: [],
   sessionActive: false,
+  sessionType: 'tutor',
+  companionTopic: '',
   audio: null,
   recognition: null,
   micRunning: false,
@@ -4163,7 +4188,17 @@ function renderJillBundleStrip(){
 function renderJillChips(){
   var s = CURRENT_STUDENT;
   var jillOn = studentJillOn(s);
-  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">⚡ Pulse Quiz</button>';
+  var companion = jillCompanionUiActive();
+  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">⚡ Rapid drill</button>';
+  if(companion){
+    return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, quiero una lección sobre el tema que elija — empezá explicándome qué querés enseñarme hoy\')">📚 Pedir lección</button>'
+      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, ayudame con el gerundio, no lo entiendo\')">📘 Ej: gerundio</button>'
+      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, explícame presente perfecto con MSI\')">⏱ Ej: tiempos</button>'
+      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Quiero practicar conversación libre — corregime suave\')">🗣 Charla libre</button>'
+      + pulseChip
+      +'</div>';
+  }
   if(!jillOn) return pulseChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+pulseChip+'</div>' : '';
   return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
@@ -4251,7 +4286,7 @@ function renderJill(){
   if(!root) return;
   var s = CURRENT_STUDENT;
   root.setAttribute('data-jill-ui', 'v6');
-  if(_jillState.sessionActive && s && !studentJillOn(s)){
+  if(_jillState.sessionActive && s && !jillSessionAllowed(s)){
     _jillState.sessionActive = false;
     _jillState.history = [];
     _jillState.evaluation = null;
@@ -4267,8 +4302,8 @@ function renderJill(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PULSE</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Quiz interactivo — estructura, tiempos, moneda, prep, vocab</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kahoot bajo presión — llama → polvorín · trofeos y rachas</div>'
       +'</div>'
       +'<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
       +'</div>'
@@ -4282,18 +4317,19 @@ function renderJill(){
   }
   root.removeAttribute('data-jill-pro');
   var proOnly = studentJillProOn(s) && !studentJillOn(s);
-  var shell = proOnly
+  var companionSession = jillCompanionUiActive();
+  var shell = (proOnly || companionSession)
     ? 'background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border:1px solid rgba(167,139,250,0.35);box-shadow:0 8px 32px rgba(91,33,182,0.4);'
     : 'background:linear-gradient(160deg,#064e3b,#0a5c3c,#0e7a50);border:1px solid rgba(61,220,151,0.25);box-shadow:0 8px 32px rgba(10,92,60,0.35);';
-  var header = proOnly
+  var header = (proOnly || companionSession)
     ? '<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
       +'<div style="font-size:28px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">JILL PRO</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Nemesis Quest · Rachas · Premios</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Foundations Companion · Charla + corrección suave</div>'
     : '<div style="font-size:10px;letter-spacing:0.25em;color:#bbf7d0;font-weight:700;">STUDIO INFINITY CR</div>'
       +'<div style="font-size:28px;font-weight:900;color:#86EFAC;letter-spacing:0.05em;text-shadow:0 0 24px rgba(61,220,151,0.35);">JILL</div>'
       +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">Tutora Jill · Rachas · Premios · Método Nexus</div>';
-  var headerIcon = proOnly
-    ? '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💀</div>'
+  var headerIcon = (proOnly || companionSession)
+    ? '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💜</div>'
     : '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>';
   root.innerHTML =
     '<div style="'+shell+'border-radius:20px;padding:1.5rem;color:white;">'
@@ -4315,6 +4351,35 @@ function renderJill(){
       });
     }
   }
+  maybeShowJillOnboarding();
+}
+
+function maybeShowJillOnboarding(){
+  try { if(localStorage.getItem('jill_onboard_v1')) return; } catch(e) { return; }
+  if(_jillState.sessionActive || _jillState.quizActive) return;
+  var root = document.getElementById('jill-root');
+  if(!root || root.querySelector('#jill-onboard-overlay')) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'jill-onboard-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML =
+    '<div style="max-width:420px;width:100%;background:linear-gradient(160deg,#1e1b4b,#312e81);border:1px solid rgba(167,139,250,0.45);border-radius:20px;padding:22px;color:white;box-shadow:0 16px 48px rgba(0,0,0,0.45);">'
+    +'<div style="font-size:11px;font-weight:800;letter-spacing:0.14em;color:#c4b5fd;margin-bottom:8px;">BIENVENIDO A JILL</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#e9d5ff;margin-bottom:14px;">Elegí tu modo</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'
+    +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Currículo Foundations · bundles MSI · trainer calibra.</div></div>'
+    +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Modo libre → cualquier tema se vuelve lección (regla + canon + práctica).</div></div>'
+    +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Rapid drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Quiz Kahoot bajo presión · llama → polvorín · trofeos.</div></div>'
+    +'</div>'
+    +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill Pro</a></div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('jill-onboard-dismiss').onclick = function(){
+    try { localStorage.setItem('jill_onboard_v1','1'); } catch(e) {}
+    overlay.remove();
+  };
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) document.getElementById('jill-onboard-dismiss').click(); });
 }
 
 function renderJillStart(){
@@ -4325,60 +4390,80 @@ function renderJillStart(){
   var badges = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderBadgesRow(s) : '';
   var motiv = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderMotivation(s) : '';
   var bundle = (jillOn && typeof JillFoundations !== 'undefined' && s) ? JillFoundations.renderBundleBar(s, jillActiveBundle()) : '';
-  var nemesisHint = (proOn && typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
-  var proBtn = proOn
-    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:14px;padding:12px 24px;border-radius:14px;cursor:pointer;width:100%;justify-content:center;" onclick="jillOpenKahootQuiz()"><i class="ti ti-skull"></i> Jill Pro · Nemesis Quest</button>'
+  var rapidHint = (proOn && typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+  var mode = resolveDefaultJillSessionType(s);
+  var modePicker = (jillOn && proOn)
+    ? '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'
+      +'<button type="button" onclick="_jillState.sessionType=\'tutor\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='tutor'?'background:linear-gradient(135deg,rgba(61,220,151,0.35),rgba(16,185,129,0.25));border:2px solid #3DDC97;color:#ecfdf5;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Tutora</button>'
+      +'<button type="button" onclick="_jillState.sessionType=\'companion\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(91,33,182,0.25));border:2px solid #A78BFA;color:#f5f3ff;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Pro</button>'
+      +'</div>'
+    : '';
+  var rapidBtn = proOn || jillOn
+    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.45);color:#e9d5ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="jillOpenKahootQuiz()"><i class="ti ti-bolt"></i> Rapid drill</button>'
     : '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
-      +'<strong>Jill</strong> te enseña inglés con el <strong>Método Nexus</strong> — simple, sin presión. '
-      +'Explicación en español, práctica con chunks. Mantené presionado el <strong>micrófono</strong> o escribí.'
+      +'<strong>Jill Tutora</strong> — currículo Foundations con bundles y matriz MSI. Explicación en español, práctica con chunks.'
       +'</div>'
-      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick()"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
+      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'tutor\')"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
     : '';
-  var proIntro = (!jillOn && proOn)
+  var proBlock = proOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.35);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.75;">'
-      +'<strong>Jill Pro</strong> — Nemesis Quest Kahoot contra los temas que más te cuestan. Sin chat de tutora; solo práctica interactiva.'
+      +'<strong>Jill Pro</strong> — modo libre: pedí <strong>cualquier tema</strong> (gerundio, tiempos, prep, vocab, charla) y Jill lo convierte en lección MSI: regla + canon + práctica.'
       +'</div>'
+      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(91,33,182,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'companion\')"><i class="ti ti-messages"></i> Iniciar Jill Pro</button>'
     : '';
   if(!jillOn && !proOn){
     return '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.6);padding:1rem;">Jill y Jill Pro no están activos — pedí a tu trainer.</div>';
   }
+  var showTutor = jillOn && (!proOn || mode === 'tutor');
+  var showPro = proOn && (!jillOn || mode === 'companion');
   return '<div>'
     + growth
     + badges
     + motiv
-    + bundle
-    + nemesisHint
+    + (showTutor ? bundle : '')
+    + (showPro ? rapidHint : '')
     +'<div style="text-align:center;">'
-    + proIntro
-    + jillBlock
-    + proBtn
+    + modePicker
+    + (showTutor ? jillBlock : '')
+    + (showPro ? proBlock : '')
+    + rapidBtn
     +'</div></div>';
 }
 
 function renderJillSession(){
   var s = CURRENT_STUDENT;
+  var companion = jillCompanionUiActive();
   var bundle = jillActiveBundle();
-  var matrixHtml = (typeof JillMatrix !== 'undefined' && bundle) ? JillMatrix.renderPanel(s, bundle) : '';
+  var matrixHtml = (!companion && typeof JillMatrix !== 'undefined' && bundle) ? JillMatrix.renderPanel(s, bundle) : '';
   var miniStrip = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderHabitStrip(s) : '';
   var evalHtml = (_jillState.evaluation && typeof JillFoundations !== 'undefined')
     ? JillFoundations.renderEvaluationSummary(_jillState.evaluation, jillActiveBundle())
     : '';
+  var accent = companion ? '#c4b5fd' : '#86EFAC';
+  var inputBorder = companion ? 'rgba(167,139,250,0.45)' : 'rgba(61,220,151,0.35)';
+  var micBg = companion ? 'rgba(167,139,250,0.18)' : 'rgba(61,220,151,0.15)';
+  var micBorder = companion ? 'rgba(167,139,250,0.45)' : 'rgba(61,220,151,0.4)';
+  var micColor = companion ? '#e9d5ff' : '#86EFAC';
+  var sendGrad = companion ? 'linear-gradient(135deg,#5b21b6,#7c3aed)' : 'linear-gradient(135deg,#0a5c3c,#0e7a50)';
+  var placeholder = companion
+    ? 'Pedí cualquier tema — Jill lo convierte en lección (gerundio, tiempos, vocab…)'
+    : 'Escribí en español o inglés — o mantené presionado el micrófono 🎤';
   return '<div id="jill-session-main">'
     + miniStrip
     + matrixHtml
     + renderJillChips()
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
     +'<div id="jill-eval-summary">'+evalHtml+'</div>'
-    +'<div id="jill-status" style="font-size:12px;color:#86EFAC;text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
+    +'<div id="jill-status" style="font-size:12px;color:'+accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="jill-input" class="inp" placeholder="Escribí en español o inglés — o mantené presionado el micrófono 🎤" style="flex:1;background:rgba(255,255,255,0.92);border:2px solid rgba(61,220,151,0.35);color:#111827;border-radius:12px;padding:10px 14px;">'
-    +'<button id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba(61,220,151,0.15);border:1px solid rgba(61,220,151,0.4);color:#86EFAC;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
-    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendJillMsg()"><i class="ti ti-send"></i></button>'
+    +'<input id="jill-input" class="inp" placeholder="'+placeholder+'" style="flex:1;background:rgba(255,255,255,0.92);border:2px solid '+inputBorder+';color:#111827;border-radius:12px;padding:10px 14px;">'
+    +'<button id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+micBg+';border:1px solid '+micBorder+';color:'+micColor+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
+    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+sendGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendJillMsg()"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);color:#bbf7d0;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endJillSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
+    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid '+inputBorder+';color:'+(companion?'#e9d5ff':'#bbf7d0')+';font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endJillSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
     +'</div>'
     +'</div>';
 }
@@ -4413,9 +4498,16 @@ function jillRenderHistoryMessages(){
   scrollJillMessages();
 }
 
-function startJillSessionClick(){
+function startJillSessionClick(sessionType){
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
-  if(!studentJillOn(s)){
+  sessionType = sessionType || resolveDefaultJillSessionType(s);
+  _jillState.sessionType = sessionType;
+  if(sessionType === 'companion'){
+    if(!studentJillProOn(s)){
+      showToast('Jill Pro no está activo — pedí a tu trainer.','err');
+      return;
+    }
+  } else if(!studentJillOn(s)){
     showToast('Jill tutora no está activa — pedí a tu trainer.','err');
     return;
   }
@@ -4435,7 +4527,8 @@ function startJillSessionClick(){
     _jillSpeakEnabled = true;
     _jillSending = false;
     _jillState.history = [];
-    _jillState.calibrationActive = (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
+    if(sessionType === 'companion') _jillState.companionTopic = '';
+    _jillState.calibrationActive = (sessionType !== 'companion') && (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
     renderJill();
     startJillSession(s);
     });
@@ -4488,7 +4581,9 @@ async function endJillSession(){
           nemesisState: jillCtx.nemesisState,
           track: jillCtx.track,
           reinforcement: jillCtx.reinforcement || [],
-          calibrationContext: jillCtx.calibrationContext || null
+          calibrationContext: jillCtx.calibrationContext || null,
+          sessionType: _jillState.sessionType || 'tutor',
+          companionTopic: _jillState.companionTopic || ''
         })
       });
       var data = await r.json();
@@ -4566,27 +4661,30 @@ async function endJillSession(){
 
 async function startJillSession(s){
   if(!s) return;
+  var isCompanion = _jillState.sessionType === 'companion';
   if(typeof AiProfile !== 'undefined') AiProfile.purgeBadPreferredName(s);
-  if(typeof JillCalibration !== 'undefined') JillCalibration.ensure(s);
-  if(typeof JillFoundations !== 'undefined'){
+  if(!isCompanion && typeof JillCalibration !== 'undefined') JillCalibration.ensure(s);
+  if(!isCompanion && typeof JillFoundations !== 'undefined'){
     await JillFoundations.loadBundles();
     JillFoundations.autoAssignBundle(s);
     _jillState.activeBundle = JillFoundations.getActiveBundle(s);
   }
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Jill se conecta…';
+  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Pro se conecta…' : 'Jill se conecta…';
   warmInfinityApi();
   var jillCtx = jillGetContext(s);
   var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
   if(studentPayload && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
-  var needsCal = (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
-  var mode = needsCal ? 'calibration_start' : ((typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session');
+  var needsCal = !isCompanion && (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
+  var mode = isCompanion
+    ? (((typeof AiProfile !== 'undefined') && AiProfile.jillSessionMode(s) === 'return_session') ? 'return_session' : 'start_session')
+    : (needsCal ? 'calibration_start' : ((typeof AiProfile !== 'undefined') ? AiProfile.jillSessionMode(s) : 'start_session'));
   var returning = !needsCal && mode === 'return_session';
   _jillState.calibrationActive = needsCal;
   try {
     var r = await infinityFetch('/jill', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], calibrationContext: jillCtx.calibrationContext || null })
+      body: JSON.stringify({ student: studentPayload, history:[], mode: mode, sessionType: _jillState.sessionType, companionTopic: _jillState.companionTopic || '', weakKpis: jillCtx.weakKpis||s.quizWeakKpis||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], calibrationContext: jillCtx.calibrationContext || null })
     });
     var data = await r.json();
     var parsed = (typeof JillFoundations !== 'undefined')
@@ -4638,6 +4736,7 @@ function jillFormatReplyHtml(text){
 
 async function sendJillMsg(micText){
   if(_jillSending || !_jillState.sessionActive) return;
+  var isCompanion = jillCompanionUiActive();
   var inp = document.getElementById('jill-input');
   var text = (micText || (inp ? inp.value : '') || '').trim();
   if(!text) return;
@@ -4645,7 +4744,7 @@ async function sendJillMsg(micText){
   var micBtn = document.getElementById('jill-mic-btn');
   if(micBtn) micBtn.classList.add('ptt-busy');
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = 'Jill responde…';
+  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Pro responde…' : 'Jill responde…';
   var unwatchJill = voiceSendWatchdog(function(){ return _jillSending; }, function(){ _jillSending = false; });
   jillCancelSpeech();
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('jill-mic-btn'));
@@ -4653,6 +4752,9 @@ async function sendJillMsg(micText){
   _jillMicText = '';
   if(inp) inp.value = '';
   var turnStarted = _jillState.drillTurnStartedAt || Date.now();
+  if(isCompanion && !_jillState.companionTopic){
+    _jillState.companionTopic = text.slice(0, 120);
+  }
   _jillState.history.push({role:'user', content:text});
   var historyForApi = _jillState.history.slice(-10);
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
@@ -4678,7 +4780,7 @@ async function sendJillMsg(micText){
   }
   var jillCtx = jillGetContext(s);
   var responseMs = Date.now() - turnStarted;
-  if(s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle()) && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s))){
+  if(!isCompanion && s && typeof JillMatrix !== 'undefined' && jillActiveBundle() && JillMatrix.isMatrixBundle(jillActiveBundle()) && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s))){
     JillMatrix.recordResponseTime(s, responseMs);
     if(jillCtx.matrixContext && jillCtx.matrixContext.anecdoteMode){
       var anecdoteWords = text.split(/\s+/).filter(function(w){ return /[a-zA-Z]/.test(w); }).length;
@@ -4689,7 +4791,7 @@ async function sendJillMsg(micText){
     if(s.id) dbSet('infinity_students', s.id, s).catch(function(){});
   }
 
-  var drillEval = (typeof TrainerDrill !== 'undefined' && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s)))
+  var drillEval = (!isCompanion && typeof TrainerDrill !== 'undefined' && !wasCalibrating && !(typeof JillCalibration !== 'undefined' && JillCalibration.isCalibrating(s)))
     ? TrainerDrill.evaluateTurn(text, { student: s, tutor: 'jill', bundle: jillActiveBundle(), matrixContext: jillCtx.matrixContext, responseMs: responseMs })
     : null;
 
@@ -4728,7 +4830,7 @@ async function sendJillMsg(micText){
     if(studentPayload && s && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);

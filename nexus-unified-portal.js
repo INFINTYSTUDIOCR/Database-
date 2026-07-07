@@ -1,6 +1,6 @@
 /**
  * Nexus Unified System — Portal module
- * Nemesis Quiz (impacta KPI), Weekly Pulse checklist estudiante, Track badge
+ * Rapid drill (impacta KPI), Weekly Pulse checklist estudiante, Track badge
  */
 (function (global) {
   'use strict';
@@ -81,7 +81,7 @@
     global._nemesisQuiz = quiz;
     var c = document.getElementById(containerId);
     if (!c) return;
-    c.innerHTML = '<div class="ib ib-amber" style="margin-bottom:8px;"><strong>Nemesis Quiz</strong> — repregunta tus fallos. <strong>Sí impacta KPI</strong> (~30% peso semanal).</div>'
+    c.innerHTML = '<div class="ib ib-amber" style="margin-bottom:8px;"><strong>Rapid drill</strong> — repregunta tus fallos. <strong>Sí impacta KPI</strong> (~30% peso semanal).</div>'
       + (quiz.length ? quiz.map(function (item, i) {
         return '<div class="card" style="margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">' + (i + 1) + '. [' + item.kpi + '] ' + item.q + '</div>'
           + item.options.map(function (opt, j) {
@@ -89,7 +89,7 @@
           }).join('') + '</div>';
       }).join('') : '<div style="font-size:13px;color:var(--t3);">No hay preguntas disponibles.</div>')
       + '<div style="display:flex;justify-content:flex-end;margin-top:8px;">'
-      + '<button class="btn btn-navy" onclick="NexusPortal.submitNemesis(\'' + containerId + '\')"><i class="ti ti-skull"></i> Enviar Nemesis</button></div>'
+      + '<button class="btn btn-navy" onclick="NexusPortal.submitNemesis(\'' + containerId + '\')"><i class="ti ti-bolt"></i> Enviar Rapid drill</button></div>'
       + '<div id="' + containerId + '-nemesis-result"></div>';
   }
 
@@ -165,7 +165,7 @@
       + '<div style="font-size:12px;text-align:center;color:var(--t2);margin-bottom:8px;">' + msg + '</div>'
       + (domain.length ? '<div style="font-size:11px;color:var(--gm);">Dominio: ' + domain.join(', ') + '</div>' : '')
       + (reinforcement.length ? '<div style="font-size:11px;color:var(--rm);">Refuerzo: ' + reinforcement.join(', ') + '</div>' : '')
-      + '<button class="btn btn-navy btn-sm" style="margin-top:10px;" onclick="NexusPortal.renderNemesisWidget(\'' + containerId + '\')">Nuevo Nemesis</button></div>';
+      + '<button class="btn btn-navy btn-sm" style="margin-top:10px;" onclick="NexusPortal.renderNemesisWidget(\'' + containerId + '\')">Nuevo Rapid drill</button></div>';
   }
 
   function applyNemesisToTracker(s, entry) {
@@ -183,13 +183,13 @@
 
     var ktEntry = {
       date: entry.date,
-      trainer: 'Nemesis Quiz (auto)',
+      trainer: 'Rapid drill (auto)',
       scores: scores,
       observations: {},
       source: 'nemesis',
       weekId: entry.weekId,
       overall: Math.round(entry.score),
-      notes: 'Nemesis Quiz ' + entry.correct + '/' + entry.total + ' — dominio: ' + (entry.domain || []).join(',') + ' — refuerzo: ' + (entry.reinforcement || []).join(',')
+      notes: 'Rapid drill ' + entry.correct + '/' + entry.total + ' — dominio: ' + (entry.domain || []).join(',') + ' — refuerzo: ' + (entry.reinforcement || []).join(',')
     };
 
     s.kpiTracker.push(ktEntry);
@@ -302,9 +302,9 @@
     var typingDone = wc && wc.typingDone;
 
     return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><i class="ti ti-heartbeat"></i>Weekly Pulse — Semana ' + wk + '</div>'
-      + '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Las métricas se actualizan solas. Tu trainer confirma el pulso; vos completás práctica y Nemesis.</div>'
+      + '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Las métricas se actualizan solas. Tu trainer confirma el pulso; vos completás práctica y Rapid drill.</div>'
       + checklistRow('Trainer confirmó pulso semanal', trainerDone)
-      + checklistRow('Nemesis Quiz (impacta KPI)', nemesisDone)
+      + checklistRow('Rapid drill (impacta KPI)', nemesisDone)
       + checklistRow('Typing Test (opcional)', typingDone)
       + '</div>';
   }

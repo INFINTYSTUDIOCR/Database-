@@ -7,7 +7,9 @@ const crypto = require('crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_EXPIRY_STUDENT_SEC, JWT_SECRET } = require('./auth');
 const Companion = require('./alice-companion');
+const JillPro = require('./jill-companion');
 const Billing = require('./stripe-billing');
+const JillBilling = require('./jill-billing');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -448,6 +450,9 @@ function isTutorEnabledForStudent(student, tutor, opts = {}) {
     return (student.system_mode || 'jill') === 'alice';
   }
   if (tutor === 'jill') {
+    const sessionType = opts.sessionType || null;
+    if (sessionType === 'companion' && !!student.jillProEnabled) return true;
+    if (opts.allowJillProProduct && !!student.jillProEnabled) return true;
     if (typeof student.jillEnabled === 'boolean') return student.jillEnabled;
     return (student.system_mode || 'jill') !== 'alice';
   }
@@ -605,6 +610,7 @@ app.get('/auth/verify', requireProductAuth, async (req, res) => {
       payload.jillEnabled = typeof student.jillEnabled === 'boolean'
         ? student.jillEnabled
         : (student.system_mode || 'jill') !== 'alice';
+      payload.jillProEnabled = student.jillProEnabled === true;
     } catch (e) {
       return res.status(503).json({ ok: false, error: 'Could not verify student access' });
     }
@@ -1753,6 +1759,106 @@ app.post('/billing/restore', async (req, res) => {
   } catch (err) {
     console.error('Restore error:', err.message);
     return res.status(500).json({ error: 'restore_failed' });
+  }
+});
+
+/** Jill Pro Premium — standby Stripe (WhatsApp activation primary). */
+app.get('/billing/jill/config', (req, res) => {
+  try {
+    return res.json(JillBilling.publicConfig());
+  } catch (err) {
+    return res.status(500).json({ error: 'config_unavailable' });
+  }
+});
+
+app.get('/billing/jill/status', async (req, res) => {
+  try {
+    const token = String(req.query.token || '').trim();
+    if (!token) return res.json({ active: false });
+    const active = await JillBilling.isPremiumActive(token, sbGetOne);
+    const row = await sbGetOne('infinity_sessions', JillBilling.premiumRecordId(token));
+    return res.json({
+      active,
+      expiresAt: row?.data?.expiresAt || null,
+      plan: active ? 'jill_pro_premium_30d' : null
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'status_unavailable' });
+  }
+});
+
+app.post('/billing/jill/checkout', async (req, res) => {
+  try {
+    if (!JillBilling.isConfigured()) {
+      return res.status(503).json({
+        error: 'billing_unconfigured',
+        standby: true,
+        message: 'Jill Pro card checkout not connected yet. Contact us on WhatsApp.',
+        ...JillBilling.publicConfig()
+      });
+    }
+    const { email, successUrl, cancelUrl } = req.body || {};
+    const result = await JillBilling.createCheckoutSession({ email, successUrl, cancelUrl });
+    if (result.error) return res.status(503).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Jill checkout error:', err.message);
+    return res.status(500).json({ error: 'checkout_failed', message: err.message });
+  }
+});
+
+app.get('/billing/jill/activate', async (req, res) => {
+  try {
+    const checkout = req.query.checkout;
+    const result = await JillBilling.activateFromCheckout(checkout, sbGetOne, sbSet);
+    if (result.error) return res.status(400).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Jill activate error:', err.message);
+    return res.status(500).json({ error: 'activate_failed' });
+  }
+});
+
+app.post('/billing/jill/restore', async (req, res) => {
+  try {
+    const email = (req.body && req.body.email) || '';
+    const result = await JillBilling.restoreByEmail(email, sbGetOne);
+    if (result.error === 'invalid_email') return res.status(400).json(result);
+    if (result.error === 'not_found' || result.error === 'expired') return res.status(404).json(result);
+    if (result.error) return res.status(500).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('Jill restore error:', err.message);
+    return res.status(500).json({ error: 'restore_failed' });
+  }
+});
+
+app.post('/billing/jill/manual-grant', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const email = (req.body && req.body.email) || '';
+    const days = req.body?.days;
+    const phone = (req.body && req.body.phone) || '';
+    const source = (req.body && req.body.source) || 'whatsapp_bridge';
+    const result = await JillBilling.manualGrant(sbSet, sbGetOne, { email, days, source });
+    if (result.error === 'invalid_email') return res.status(400).json(result);
+    if (result.error) return res.status(500).json(result);
+
+    let whatsapp = null;
+    if (phone) {
+      const clientUrl = process.env.PUBLIC_SITE_URL || 'https://studioinfinitycr.com/Infinity_Student_Portal.html';
+      const message = JillBilling.clientActivationMessage(result.email, result.expiresAt, clientUrl);
+      whatsapp = await Billing.enqueueWhatsApp(sbSet, sbGetOne, {
+        phone,
+        message,
+        email: result.email
+      });
+    }
+
+    return res.json({ ...result, whatsapp });
+  } catch (err) {
+    console.error('Jill manual grant error:', err.message);
+    return res.status(500).json({ error: 'grant_failed', message: err.message });
   }
 });
 
@@ -3334,10 +3440,20 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext } = req.body || {};
-    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic } = req.body || {};
+    const requestedSessionType = sessionType === 'companion' ? 'companion' : 'tutor';
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { sessionType: requestedSessionType });
     if (!student) return;
+    const jillProCtx = JillPro.resolveJillProSession(student, requestedSessionType);
+    const effectiveSessionType = jillProCtx.sessionType;
+    const isJillCompanion = effectiveSessionType === 'companion';
     sanitizeStudentAiProfile(student);
+    const topicHint = isJillCompanion
+      ? JillPro.resolveSessionTopic(history, companionTopic, message)
+      : '';
+    const companionBlock = isJillCompanion
+      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint)
+      : '';
 
     const name = student?.name || student?.info?.name || 'estudiante';
     const level = student?.level || student?.info?.level || 'Foundations';
@@ -3351,8 +3467,8 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const vocabNote = formatJillVocabNote(vocabContext);
     const responseKpiNote = formatJillResponseKpiNote(matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
-      ? `\nNEMESIS REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
-      : (reinforcement?.length ? `\nNEMESIS REFUERZO: ${reinforcement.join(', ')}.` : '');
+      ? `\nRAPID DRILL REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
+      : (reinforcement?.length ? `\nRAPID DRILL REFUERZO: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current
       ? `\nTRACK ACTIVO: ${track.current}. Graduados: jill=${!!track.graduated?.jill}, alice=${!!track.graduated?.alice}, nexora=${!!track.graduated?.nexora}.`
       : '';
@@ -3386,35 +3502,38 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const display = getStudentDisplayName(student);
       const returning = mode === 'return_session' || isReturningStudent(student, 'jill');
       const profileNote = buildAiProfileNote(student, 'jill');
-      const greetInstruction = returning
-        ? `Saludo breve a ${display} y retomá el bundle/ejercicio activo — natural, sin preámbulos largos.`
-        : `Bienvenida corta usando SOLO el nombre "${display}" del registro. Decile qué chunk/tema de hoy y UNA pregunta de práctica. Nunca digas Johnny, Planning, ni otro nombre.`;
+      const greetInstruction = isJillCompanion
+        ? JillPro.buildJillProOpeningInstruction(display, returning, topicHint)
+        : (returning
+          ? `Saludo breve a ${display} y retomá el bundle/ejercicio activo — natural, sin preámbulos largos.`
+          : `Bienvenida corta usando SOLO el nombre "${display}" del registro. Decile qué chunk/tema de hoy y UNA pregunta de práctica. Nunca digas Johnny, Planning, ni otro nombre.`);
 
-      const openExtra = brainScopeExtra(student, req, `${mode}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}`);
-      const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}`, openExtra);
+      const openExtra = brainScopeExtra(student, req, `${mode}:${isJillCompanion ? 'companion' : 'tutor'}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}:${JillPro.JILL_PRO_BRAIN_VER}`);
+      const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}_${effectiveSessionType}`, openExtra);
       if (openBrain.hit && !calibrationNote.trim() && !jillReplyHasAliceLinkers(openBrain.reply)) {
         try {
           const parsed = parseJillResponse(openBrain.reply);
-          return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', brainCache: true }));
+          return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', sessionType: effectiveSessionType, brainCache: true }));
         } catch (e) {
-          return res.json({ reply: openBrain.reply, contentType: 'text', sessionMode: returning ? 'return_session' : 'start_session', brainCache: true });
+          return res.json({ reply: openBrain.reply, contentType: 'text', sessionMode: returning ? 'return_session' : 'start_session', sessionType: effectiveSessionType, brainCache: true });
         }
       }
 
+      const bundleCtx = isJillCompanion ? '' : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}`;
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 350,
-        system: JILL_SYSTEM_PROMPT + calibrationNote,
+        max_tokens: isJillCompanion ? 400 : 350,
+        system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock,
         messages: [{
           role: 'user',
-          content: `El estudiante ${display} (nivel: ${level}) abre su sesión. ${greetInstruction}${profileNote}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
+          content: `El estudiante ${display} (nivel: ${level}) abre su sesión${isJillCompanion ? ' Jill Pro Companion' : ''}. ${greetInstruction}${profileNote}${bundleCtx}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
         }]
       });
       const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
       const parsed = parseJillResponse(raw);
-      if (openBrain.hash && raw) await Brain.brainSetLLM(openBrain.hash, 'jill', 'opening', `START_${mode}`, raw, openExtra);
+      if (openBrain.hash && raw) await Brain.brainSetLLM(openBrain.hash, 'jill', 'opening', `START_${mode}_${effectiveSessionType}`, raw, openExtra);
       recordOpening(actorKey, 'jill', extractOpeningSnippet(parsed.reply)).catch(() => {});
-      return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session' }));
+      return res.json(Object.assign({}, parsed, { sessionMode: returning ? 'return_session' : 'start_session', sessionType: effectiveSessionType }));
     }
 
     if (mode === 'evaluate') {
@@ -3425,6 +3544,55 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const userTurns = metrics.turns;
       let overall_score = scoreAliceSessionFromMetrics(metrics);
       if (userTurns < 2) overall_score = Math.max(48, overall_score - 12);
+
+      if (isJillCompanion) {
+        const topic = JillPro.resolveSessionTopic(history, companionTopic, message);
+        if (!hist || hist.length < 12) {
+          return res.json({
+            evaluation: {
+              overall_score: Math.max(55, overall_score),
+              best_moment: 'Practicaste en voz alta con Jill Pro — eso suma.',
+              main_improvement: 'La próxima vez, pedí un tema concreto (gerundio, tiempos, vocab) y sostené 5 turnos.',
+              jill_message: `Buen inicio, ${getStudentDisplayName(student)}. Seguí charlando — cada tema que practiques te acerca a Alice.`,
+              sessionType: 'companion',
+              companion_topic: topic
+            }
+          });
+        }
+        const resp = await claudeCall({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 450,
+          system: 'Evaluadora Jill Pro Foundations. JSON válido únicamente.',
+          messages: [{ role: 'user', content: JillPro.buildJillProEvalPrompt(student, hist, metrics, topic) }]
+        });
+        const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+        try {
+          const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
+          const score = qual.companion_score != null ? parseInt(qual.companion_score, 10) : overall_score;
+          return res.json({
+            evaluation: {
+              overall_score: Math.min(100, Math.max(50, score || overall_score)),
+              best_moment: qual.best_moment || 'Buena actitud en la charla.',
+              main_improvement: qual.main_improvement || 'Seguí pidiendo mini-lecciones sobre tus dudas.',
+              jill_message: qual.jill_message || `Seguí así, ${getStudentDisplayName(student)}.`,
+              sessionType: 'companion',
+              companion_topic: topic
+            }
+          });
+        } catch (e) {
+          return res.json({
+            evaluation: {
+              overall_score,
+              best_moment: 'Practicaste conversación Foundations.',
+              main_improvement: 'Pedí un tema específico la próxima vez.',
+              jill_message: `Gracias por practicar, ${getStudentDisplayName(student)}.`,
+              sessionType: 'companion',
+              companion_topic: topic
+            }
+          });
+        }
+      }
+
       const bundleTitle = jillBundle?.title || 'Foundations';
       const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'estructura MSI, chunks, tiempos verbales';
       const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
@@ -3526,7 +3694,10 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const msgs = [...prevMsgs, { role: 'user', content: message }];
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceForJill(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const bundleCtxChat = isJillCompanion
+      ? `${weakNote}${nemesisNote}${trackNote}`
+      : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3629,11 +3800,21 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext } = req.body || {};
-    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic } = req.body || {};
+    const requestedSessionType = sessionType === 'companion' ? 'companion' : 'tutor';
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { sessionType: requestedSessionType });
     if (!student) return;
+    const jillProCtx = JillPro.resolveJillProSession(student, requestedSessionType);
+    const effectiveSessionType = jillProCtx.sessionType;
+    const isJillCompanion = effectiveSessionType === 'companion';
     sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();
+    const topicHint = isJillCompanion
+      ? JillPro.resolveSessionTopic(history, companionTopic, message)
+      : '';
+    const companionBlock = isJillCompanion
+      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint)
+      : '';
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
     if (!limit.ok) {
       return res.status(429).json({ error: 'limit', message: `Jill practice limit reached. Wait ${limit.wait}.`, wait: limit.wait });
@@ -3648,19 +3829,19 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const vocabNote = formatJillVocabNote(vocabContext);
     const responseKpiNote = formatJillResponseKpiNote(matrixContext);
     const nemesisNote = nemesisState?.reinforcement?.length
-      ? `\nNEMESIS: ${nemesisState.reinforcement.join(', ')}.`
-      : (reinforcement?.length ? `\nNEMESIS: ${reinforcement.join(', ')}.` : '');
+      ? `\nRAPID DRILL: ${nemesisState.reinforcement.join(', ')}.`
+      : (reinforcement?.length ? `\nRAPID DRILL: ${reinforcement.join(', ')}.` : '');
     const trackNote = track?.current ? `\nTRACK: ${track.current}.` : '';
     const calibrationNote = JillCalibration.formatCalibrationNote(calibrationContext, student);
     const calibrating = !!calibrationContext?.active;
     const responseMs = req.body?.responseMs;
-    const drillEval = calibrating ? null : TrainerModel.evaluateStudentTurn(message, {
+    const drillEval = (isJillCompanion || calibrating) ? null : TrainerModel.evaluateStudentTurn(message, {
       student, tutor: 'jill', bundle: jillBundle, matrixContext, responseMs
     });
     if (drillEval.forcedReply) {
       return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n[[CTYPE:text]]');
     }
-    const trainerNote = calibrating ? '' : (TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
+    const trainerNote = (isJillCompanion || calibrating) ? '' : (TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
       + TrainerModel.formatTrainerEvalNote(drillEval));
     mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
@@ -3673,14 +3854,19 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
       return Brain.writeBrainSSE(res, cachedPlain);
     }
-    const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+    const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student));
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
-    const teachInstr = calTeach || (convPhase
-      ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-      : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.');
+    const teachInstr = isJillCompanion
+      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
+      : (calTeach || (convPhase
+        ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
+        : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.'));
+    const bundleCtxStream = isJillCompanion
+      ? `${weakNote}${nemesisNote}${trackNote}`
+      : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     await streamAnthropicSSE(res, {
-      max_tokens: 700,
-      system: JILL_SYSTEM_PROMPT + calibrationNote + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${await tutorKnowledgeSliceForJillFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      max_tokens: isJillCompanion ? 800 : 700,
+      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

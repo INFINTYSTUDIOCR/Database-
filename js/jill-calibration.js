@@ -211,20 +211,7 @@
     };
   }
 
-  function renderPanel(s) {
-    if (isCalibrating(s)) {
-      var c = ensure(s);
-      var probe = currentProbe(s);
-      var dimLabel = probe ? (DIM_LABELS[probe.dim] || probe.dim) : '';
-      return '<div style="background:rgba(14,116,144,0.18);border:1px solid rgba(27,155,209,0.45);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11px;color:#e0f2fe;line-height:1.55;">'
-        + '<strong>Calibracion</strong> ' + (c.probeIndex || 0) + '/' + PROBE_COUNT
-        + (dimLabel ? ' &middot; midiendo <em>' + escapeHtml(dimLabel) + '</em>' : '')
-        + '<div style="margin-top:4px;opacity:0.85;">Jill mide tu base antes del bundle, sin presion.</div></div>';
-    }
-    if (s && s.jillCalibration && s.jillCalibration.route) {
-      return '<div style="background:rgba(14,116,144,0.12);border:1px solid rgba(27,155,209,0.35);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#cffafe;line-height:1.5;">'
-        + '<strong>Ruta Jill</strong> &middot; ' + escapeHtml(s.jillCalibration.route.summary || '') + '</div>';
-    }
+  function renderPanel() {
     return '';
   }
 
@@ -234,8 +221,7 @@
 
   function instantOpening(student) {
     var name = (typeof AiProfile !== 'undefined') ? AiProfile.displayName(student) : 'estudiante';
-    return 'Hola ' + name + ', soy Jill. Antes del bundle calibramos tu base, rapido y sin presion. '
-      + 'Asi se que reforzar, que probar y que mantener. Primera prueba: ' + PROBES[0].ask;
+    return 'Hola ' + name + '. Soy Jill. Antes de la leccion te hago unas preguntas cortas para ver por donde empezamos. Listo?';
   }
 
   global.JillCalibration = {

@@ -158,14 +158,46 @@
       + '</div>';
   }
 
+  var CANON_BY_COLUMN = {
+    present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
+    past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
+    progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
+    perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
+    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
+    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' }
+  };
+
+  function detectCanonColumn(text, bundle) {
+    var t = String(text || '').toLowerCase();
+    if (/\b(gerundio|gerund|-ing\b|progressive|continuo|presente continuo|\bpc\b|to be.*ing)\b/.test(t)) return 'progressive';
+    if (/\b(pasado simple|past simple|\bps\b)\b/.test(t)) return 'past';
+    if (/\b(presente simple|present simple|\bpr\b)\b/.test(t)) return 'present';
+    if (/\b(presente perfecto|present perfect|\bprp\b|have.*pp)\b/.test(t)) return 'perfect';
+    if (/\b(pasado perfecto|past perfect|\bppc\b|been.*ing|combinado)\b/.test(t)) return 'combined';
+    if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
+    if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'progressive';
+    if (/\b(art[ií]culo|article|\bthe\b)\b/.test(t)) return 'perfect';
+    if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
+    return null;
+  }
+
+  function renderCanonForMessage(text, bundle) {
+    if (typeof JillCanonVisual === 'undefined') return '';
+    var col = detectCanonColumn(text, bundle);
+    if (!col) return '';
+    return JillCanonVisual.render(col, CANON_BY_COLUMN[col]);
+  }
+
   function formatWhiteboardLines(text, bundle) {
     var lines = String(text || '').split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
     if (lines.length < 2 && bundle && bundle.whiteboard && bundle.whiteboard.length) {
       lines = bundle.whiteboard.slice(0, 4);
     }
-    return lines.map(function (line) {
+    var body = lines.map(function (line) {
       return '<div style="font-family:ui-monospace,monospace;font-size:13px;padding:6px 0;border-bottom:1px solid #e2e8f0;">' + esc(line) + '</div>';
     }).join('');
+    var canon = renderCanonForMessage(text, bundle);
+    return body + canon;
   }
 
   function formatBody(text, contentType, bundle) {
