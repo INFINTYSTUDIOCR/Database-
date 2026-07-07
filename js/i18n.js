@@ -184,6 +184,8 @@
     { s: '#contact .section-tag', en: 'Contact', es: 'Contacto' },
     { s: '#contact .section-title', html: true, en: 'Ready To <span style="color:var(--purple)">Operate</span> In English?', es: '¿Listo Para <span style="color:var(--purple)">Operar</span> En Inglés?' },
     { s: '.contact-form h3', en: 'Book your diagnostic session', es: 'Agenda tu sesión de diagnóstico' },
+    { s: '.contact-claire-hint', html: true, en: 'Questions before writing? <strong>Claire</strong> (purple bubble bottom right) answers by chat or voice about Foundations, ORT and pricing.', es: '¿Dudas antes de escribir? <strong>Claire</strong> (burbuja morada abajo a la derecha) responde por chat o voz sobre Foundations, ORT y precios.' },
+    { s: '#claire-role', en: 'Site assistant — programs & pricing', es: 'Asistente virtual — programas y precios' },
     { s: '.contact-form .form-group:nth-child(2) .form-label', en: 'Full name', es: 'Nombre completo' },
     { s: '#cf-name', attr: 'placeholder', en: 'Your name', es: 'Tu nombre' },
     { s: '.contact-form .form-group:nth-child(3) .form-label', en: 'Email', es: 'Correo' },
@@ -425,10 +427,19 @@
   }
 
   function applyClaireWidget(lang) {
+    var role = document.getElementById('claire-role');
+    if (role) role.textContent = lang === 'es' ? 'Asistente virtual — programas y precios' : 'Site assistant — programs & pricing';
     var online = document.querySelector('#claire-widget [style*="Infinity Studio CR"]');
     if (online) online.innerHTML = '<span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>' + (lang === 'es' ? 'Infinity Studio CR · En línea' : 'Infinity Studio CR · Online');
     var vi = document.getElementById('cvi');
     if (vi && vi.style.display !== 'none') vi.textContent = lang === 'es' ? '🎙 Escuchando' : '🎙 Listening';
+    var cc = document.getElementById('cc');
+    if (cc) {
+      var hint = lang === 'es' ? 'Asistente con IA · orientación sobre programas (no reemplaza al profe)' : 'AI assistant · program guidance (not a substitute for your coach)';
+      cc.setAttribute('data-default-hint', hint);
+      var t = cc.textContent || '';
+      if (!/mensaje|message/i.test(t)) cc.textContent = hint;
+    }
   }
   function detectLang() {
     var saved = localStorage.getItem(STORAGE_KEY);
@@ -500,7 +511,11 @@
     var sel = document.getElementById('cf-program');
     if (!sel || sel.dataset.i18nReady) return;
     var opts = sel.querySelectorAll('option');
-    if (opts.length >= 4) {
+    if (opts.length >= 5) {
+      sel.dataset.i18nEn = 'Foundations (from scratch)|ORT (I freeze when speaking)|Nexora / advanced practice|Corporate program|Not sure yet';
+      sel.dataset.i18nEs = 'Foundations (desde cero)|ORT (me trabo al hablar)|Nexora / práctica avanzada|Programa corporativo|Aún no estoy seguro';
+      sel.dataset.i18nReady = '1';
+    } else if (opts.length >= 4) {
       sel.dataset.i18nEn = opts[0].textContent + '|' + opts[1].textContent + '|' + opts[2].textContent + '|' + opts[3].textContent;
       sel.dataset.i18nEs = 'Programa Individual|Programa Corporativo|Programa Institucional|Aún no estoy seguro';
       sel.dataset.i18nReady = '1';

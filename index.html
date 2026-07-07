@@ -114,7 +114,7 @@
       "name": "¿Cuánto cuestan Jill, Alice, Companion, Nexora Pro y Alice+?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Jill sola ₡12.500/mes. Alice tutora ₡18.500/mes. Alice Companion ₡24.500/mes. Nexora Pro ₡28.500/mes. Alice+ (tutora + Nexora + Companion) ₡49.500/mes. Foundations y ORT con trainer: promo ₡67.500/mes. Precios en colones; LATAM tipo de cambio del día + 8%."
+        "text": "Foundations y ORT con trainer humano: promo ₡67.500/mes (regular ₡75.000). Solo IA (sin trainer): Jill ₡12.500/mes, Alice tutora ₡18.500/mes, Alice Companion ₡24.500/mes, Nexora Pro ₡28.500/mes, Alice+ ₡49.500/mes. Precios en colones; LATAM tipo de cambio del día + 8%."
       }
     },
     {
@@ -834,7 +834,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <ul>
           <li><strong>Gratis:</strong> <a href="try-alice.html">probar Alice Companion</a> en la web + charla de orientación (<a href="#contact">WhatsApp</a>).</li>
           <li><strong>Sin pagar antes:</strong> demo guiada de Jill, Alice o Nexora — <a href="hablemos.html#consulta">pedila acá</a>.</li>
-          <li><strong>De pago:</strong> programas con profe (desde ₡67.500/mes) o solo IA (desde ₡12.500/mes). Ver <a href="#pricing">precios</a>.</li>
+          <li><strong>De pago:</strong> Foundations u ORT con profe <strong>₡67.500/mes</strong>. Add-ons solo IA (sin trainer) en la <a href="#pricing">tabla de precios</a>.</li>
         </ul>
       </div>
       <div class="site-guide-card">
@@ -1526,18 +1526,19 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
     <h2 class="section-title">¿Listo para <span style="color:var(--purple)">operar</span> en inglés?</h2>
     <div class="contact-inner">
       <div class="contact-form">
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:1.5rem;">Agenda tu sesión de diagnóstico</h3>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:0.5rem;">Agenda tu sesión de diagnóstico</h3>
+        <p class="contact-claire-hint" style="font-size:13px;color:var(--t2);margin:0 0 1.25rem;line-height:1.5;">¿Dudas antes de escribir? <strong>Claire</strong> (burbuja morada abajo a la derecha) responde por chat o voz sobre Foundations, ORT y precios.</p>
         <div class="form-group"><label class="form-label">Nombre completo</label><input id="cf-name" class="form-input" placeholder="Tu nombre"></div>
         <div class="form-group"><label class="form-label">Correo</label><input id="cf-email" class="form-input" type="email" placeholder="tu@correo.com"></div>
         <div class="form-group"><label class="form-label">WhatsApp</label><input id="cf-phone" class="form-input" placeholder="+52, +56, +57…"></div>
         <div class="form-group"><label class="form-label">Programa de interés</label>
-          <select id="cf-program" class="form-input"><option>Programa individual</option><option>Programa corporativo</option><option>Programa institucional</option><option>Aún no estoy seguro</option></select>
+          <select id="cf-program" class="form-input"><option>Foundations (desde cero)</option><option>ORT (me trabo al hablar)</option><option>Nexora / práctica avanzada</option><option>Programa corporativo</option><option>Aún no estoy seguro</option></select>
         </div>
         <div class="form-group"><label class="form-label">Tu meta</label><textarea id="cf-goal" class="form-input" placeholder="¿Qué quieres lograr con inglés operacional?"></textarea></div>
         <button type="button" onclick="submitContact()" class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;border:none;cursor:pointer;"><i class="ti ti-brand-whatsapp"></i>Enviar por WhatsApp</button>
       </div>
       <div class="contact-cards">
-        <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20contactar%20Off%20The%20Clock" target="_blank" rel="noopener" class="cc cc-link">
+        <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20agendar%20mi%20sesi%C3%B3n%20de%20diagn%C3%B3stico%20con%20Infinity%20Studio%20CR" target="_blank" rel="noopener" class="cc cc-link">
           <div class="cc-icon" style="background:rgba(37,211,102,0.12);"><i class="ti ti-brand-whatsapp" style="color:#25D366;"></i></div>
           <div><div class="cc-label">WhatsApp</div><div class="cc-value">+506 6006 0981</div></div>
         </a>
@@ -1673,7 +1674,7 @@ function submitContact(){
 
 <!-- CLAIRE CHAT WIDGET -->
 <div id="claire-widget" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;font-family:'Inter',sans-serif;">
-  <div onclick="toggleClaire()" style="width:64px;height:64px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(91,33,182,0.5);position:relative;">
+  <div onclick="toggleClaire()" title="Claire — asistente virtual del sitio" aria-label="Abrir Claire, asistente virtual" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClaire();}" style="width:64px;height:64px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(91,33,182,0.5);position:relative;">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
     <div style="position:absolute;top:2px;right:2px;width:14px;height:14px;background:#25D366;border-radius:50%;border:2px solid white;animation:pd 2s infinite;"></div>
   </div>
@@ -1682,7 +1683,8 @@ function submitContact(){
       <div style="width:42px;height:42px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🤖</div>
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:700;color:white;">Claire</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:4px;">
+        <div id="claire-role" style="font-size:11px;color:rgba(255,255,255,0.9);line-height:1.35;">Asistente virtual — programas y precios</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:4px;margin-top:2px;">
           <span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>Infinity Studio CR · En línea
         </div>
       </div>
@@ -1701,7 +1703,7 @@ function submitContact(){
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
-      <div id="cc" style="text-align:center;font-size:10px;margin-top:6px;min-height:14px;"></div>
+      <div id="cc" style="text-align:center;font-size:10px;margin-top:6px;min-height:14px;color:#94A3B8;" data-default-hint="Asistente con IA · orientación sobre programas (no reemplaza al profe)">Asistente con IA · orientación sobre programas (no reemplaza al profe)</div>
     </div>
   </div>
 </div>
@@ -1878,8 +1880,9 @@ function updateCount() {
   var el = document.getElementById('cc');
   if (!el) return;
   var rem = _LIMIT - _count;
-  el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : '';
-  if (rem <= 5) el.style.color = '#F5A623';
+  var hint = el.getAttribute('data-default-hint') || 'Asistente con IA · orientación sobre programas (no reemplaza al profe)';
+  el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : hint;
+  el.style.color = rem <= 5 && rem > 0 ? '#F5A623' : '#94A3B8';
 }
 
 function showLimit() {

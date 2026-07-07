@@ -178,8 +178,9 @@ function updateCount() {
   var el = document.getElementById('cc');
   if (!el) return;
   var rem = _LIMIT - _count;
-  el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : '';
-  if (rem <= 5) el.style.color = '#F5A623';
+  var hint = el.getAttribute('data-default-hint') || 'Asistente con IA · orientación sobre programas';
+  el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : hint;
+  el.style.color = rem <= 5 && rem > 0 ? '#F5A623' : '#94A3B8';
 }
 
 function showLimit() {
