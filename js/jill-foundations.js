@@ -146,33 +146,16 @@
     }
     var pct = bundleProgressPct(s);
     var phase = bundle.phase ? '<span style="opacity:0.85;">' + bundle.phase + ' · </span>' : '';
-    var wb = (bundle.whiteboard || []).slice(0, 3);
-    var wbHtml = wb.length
-      ? '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">'
-        + wb.map(function (line) {
-          return '<code style="font-size:10px;background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:6px;color:#bbf7d0;">' + esc(line) + '</code>';
-        }).join('')
-        + '</div>'
-      : '';
     return '<div style="background:rgba(0,0,0,0.18);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
       + '<div style="font-size:11px;font-weight:800;color:#bbf7d0;letter-spacing:0.06em;">BUNDLE ACTIVO</div>'
       + '<div style="font-size:10px;color:#86EFAC;font-weight:700;">' + pct + '% ruta</div>'
       + '</div>'
       + '<div style="font-size:13px;font-weight:800;color:white;margin-top:4px;">' + phase + esc(bundle.title) + '</div>'
-      + (bundle.doctrine ? '<div style="font-size:11px;color:rgba(255,255,255,0.78);margin-top:6px;line-height:1.5;">' + esc(bundle.doctrine) + '</div>' : '')
-      + wbHtml
       + '<div style="margin-top:8px;height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">'
       + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#3DDC97,#86EFAC);"></div>'
       + '</div>'
       + '</div>';
-  }
-
-  function ctypeLabel(ct) {
-    if (ct === 'exercise') return { icon: 'ti-dumbbell', label: 'EJERCICIO', color: '#0a5c3c', bg: 'rgba(61,220,151,0.15)' };
-    if (ct === 'example') return { icon: 'ti-bulb', label: 'EJEMPLO', color: '#92400e', bg: 'rgba(251,191,36,0.2)' };
-    if (ct === 'whiteboard') return { icon: 'ti-layout-board', label: 'PIZARRÓN NEXUS', color: '#1e40af', bg: 'rgba(96,165,250,0.15)' };
-    return null;
   }
 
   function formatWhiteboardLines(text, bundle) {
@@ -181,7 +164,7 @@
       lines = bundle.whiteboard.slice(0, 4);
     }
     return lines.map(function (line) {
-      return '<div style="font-family:ui-monospace,monospace;font-size:12px;padding:6px 10px;background:rgba(30,64,175,0.12);border-left:3px solid #60a5fa;margin-bottom:4px;border-radius:0 6px 6px 0;">' + esc(line) + '</div>';
+      return '<div style="font-family:ui-monospace,monospace;font-size:13px;padding:6px 0;border-bottom:1px solid #e2e8f0;">' + esc(line) + '</div>';
     }).join('');
   }
 
@@ -198,20 +181,14 @@
     var isJill = m.role === 'assistant';
     if (!isJill) {
       return '<div style="display:flex;flex-direction:column;align-items:flex-end;">'
-        + '<div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:600;margin-bottom:4px;">VOS</div>'
         + '<div style="max-width:88%;background:rgba(61,220,151,0.18);border:1px solid rgba(61,220,151,0.35);color:#ecfdf5;border-radius:12px 4px 12px 12px;padding:10px 14px;font-size:14px;line-height:1.7;">'
         + esc(m.content) + '</div></div>';
     }
     var ct = m.contentType || 'text';
-    var badge = ctypeLabel(ct);
-    var bubbleStyle = 'background:rgba(255,255,255,0.96);border:1px solid rgba(61,220,151,0.35);border-left:4px solid #3DDC97;color:#111827;';
-    if (ct === 'whiteboard') bubbleStyle = 'background:#f0f9ff;border:1px solid #93c5fd;border-left:4px solid #2563eb;color:#0f172a;';
-    if (ct === 'exercise') bubbleStyle = 'background:#ecfdf5;border:1px solid #6ee7b7;border-left:4px solid #059669;color:#064e3b;';
-    if (ct === 'example') bubbleStyle = 'background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #d97706;color:#78350f;';
+    var bubbleStyle = 'background:rgba(255,255,255,0.96);border:1px solid rgba(61,220,151,0.25);color:#111827;';
+    if (ct === 'whiteboard') bubbleStyle = 'background:#f8fafc;border:1px solid #cbd5e1;color:#0f172a;';
     return '<div style="display:flex;flex-direction:column;align-items:flex-start;">'
-      + '<div style="font-size:10px;color:#86EFAC;font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">JILL</div>'
-      + '<div style="max-width:92%;' + bubbleStyle + 'border-radius:4px 14px 14px 14px;padding:10px 14px;font-size:14px;line-height:1.7;">'
-      + (badge ? '<div style="font-size:10px;font-weight:800;color:' + badge.color + ';letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:4px;"><i class="ti ' + badge.icon + '"></i> ' + badge.label + '</div>' : '')
+      + '<div style="max-width:92%;' + bubbleStyle + 'border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.7;">'
       + formatBody(m.content, ct, bundle)
       + '</div></div>';
   }

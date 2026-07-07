@@ -32,9 +32,9 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260707c"></script>
+<script src="js/jill-foundations.js?v=20260707f"></script>
 <script src="js/trainer-drill-engine.js?v=20260707f"></script>
-<script src="js/jill-matrix.js?v=20260707e"></script>
+<script src="js/jill-matrix.js?v=20260707f"></script>
 <script src="js/jill-graduation.js?v=20260707b"></script>
 <script src="js/jill-trainer-insights.js?v=20260707a"></script>
 <script src="js/jill-vocab.js?v=20260707b"></script>
@@ -4262,10 +4262,7 @@ function renderJillSession(){
     : '';
   return '<div id="jill-session-main">'
     + miniStrip
-    + ((typeof JillCalibration !== 'undefined' && s) ? JillCalibration.renderPanel(s) : '')
-    + renderJillBundleStrip()
     + matrixHtml
-    +'<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.2);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#bbf7d0;font-weight:600;">🌿 Jill · MSI® · P + V + C (estructura, no linkers Nexus)</div>'
     + renderJillChips()
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
     +'<div id="jill-eval-summary">'+evalHtml+'</div>'

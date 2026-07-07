@@ -250,50 +250,36 @@
     return pulseOk && anecdoteOk && timeOk;
   }
 
-  function renderCanonThumb(colId) {
-    var ref = CANON_BY_COLUMN[colId] || CANON_BY_COLUMN.present;
-    return '<div style="margin-top:8px;text-align:center;">'
-      + '<img src="' + ref.path + '?v=20260707" alt="' + ref.title + '" style="max-width:100%;height:auto;border-radius:8px;border:1px solid rgba(61,220,151,0.35);" loading="lazy">'
-      + '<div style="font-size:9px;color:#86EFAC;margin-top:4px;">Canon · ' + ref.title + '</div></div>';
+  function canonAssetUrl(path) {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path) || path.charAt(0) === '/') return path;
+    return '/' + path.replace(/^\//, '');
   }
 
+  function renderCanonThumb(colId) {
+    var ref = CANON_BY_COLUMN[colId] || CANON_BY_COLUMN.present;
+    var src = canonAssetUrl(ref.path) + '?v=20260707f';
+    return '<div style="margin-top:4px;text-align:center;">'
+      + '<img src="' + src + '" alt="' + ref.title + '" style="max-width:100%;width:min(100%,320px);height:auto;border-radius:8px;border:1px solid rgba(61,220,151,0.35);display:block;margin:0 auto;" loading="eager" decoding="async">'
+      + '</div>';
+  }
+
+  /** Vista alumno en sesión: solo referencia visual (canon), sin barras ni prerequisitos. */
   function renderPanel(student, bundle) {
     if (!student || !isMatrixBundle(bundle)) return '';
-    var m = ensureMatrix(student);
     var col = activeColumn(student);
-    var gate = gateStatus(student);
     var drill = getDrillPrompt(student);
-    var colBars = COLUMNS.map(function (c, i) {
-      var locked = i > (m.columnIndex || 0);
-      var p = locked ? 0 : columnProgress(student, i);
-      var need = locked ? '' : ' (' + HITS_TO_MASTER + '×/celda)';
-      return '<div style="margin:4px 0;font-size:10px;color:' + (locked ? 'rgba(255,255,255,0.35)' : '#bbf7d0') + ';">'
-        + c.sigla + ' · ' + c.label + (locked ? ' 🔒' : ' — ' + p + '%' + need)
-        + '<div style="height:4px;background:rgba(0,0,0,0.25);border-radius:4px;margin-top:2px;"><div style="width:' + p + '%;height:100%;background:#3DDC97;border-radius:4px;"></div></div></div>';
-    }).join('');
-    var anecdoteBtn = m.anecdoteUnlocked
-      ? '<button type="button" class="jill-chip" onclick="jillMatrixStartAnecdote()" style="border-color:#F5A623;color:#FCD34D;">📓 Anécdota 15 min</button>'
-      : '';
-    var avgLbl = m.avgResponseMs != null
-      ? '<span style="color:' + (gate.timeOk ? '#86EFAC' : '#FCD34D') + ';">⏱ ' + m.avgResponseMs + 'ms</span> meta &lt;' + TARGET_RESPONSE_MS + 'ms'
-      : '⏱ KPI tiempo: respondé en &lt;12s';
-    var markDisabled = !global._jillState || !global._jillState.lastStructureOk;
-    var markStyle = markDisabled ? 'opacity:0.45;cursor:not-allowed;' : '';
-    return '<div id="jill-matrix-panel" style="background:rgba(10,92,60,0.35);border:1px solid rgba(61,220,151,0.45);border-radius:12px;padding:12px;margin-bottom:12px;">'
-      + '<div style="font-size:11px;font-weight:800;color:#86EFAC;letter-spacing:0.06em;margin-bottom:6px;">MATRIZ · ' + col.sigla + ' · GATE 100%</div>'
-      + '<div style="font-size:12px;color:#ecfdf5;margin-bottom:6px;"><strong>' + col.label + '</strong><br><code style="font-size:11px;color:#FCD34D;">' + col.formula + '</code></div>'
-      + '<div style="font-size:11px;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;margin-bottom:8px;color:#fff;">'
-      + '🎯 ' + (drill.modal ? drill.pronoun + ' + <strong>' + drill.modal + '</strong> + ' : drill.pronoun + ' + ') + '<strong>' + drill.verb + '</strong> — ' + gate.columnPct + '% · ' + avgLbl + '</div>'
-      + colBars
+    var drillLine = drill.modal
+      ? drill.pronoun + ' + ' + drill.modal + ' + ' + drill.verb
+      : drill.pronoun + ' + ' + drill.verb;
+    return '<div id="jill-matrix-panel" style="margin-bottom:12px;">'
+      + '<div style="font-size:12px;color:#ecfdf5;text-align:center;margin-bottom:6px;"><strong>' + col.sigla + '</strong> · ' + escHtml(drillLine) + '</div>'
       + renderCanonThumb(col.id)
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
-      + '<button type="button" class="jill-chip" onclick="jillMatrixMark(true)" style="' + markStyle + '" ' + (markDisabled ? 'disabled' : '') + '>✓ Jill validó</button>'
-      + anecdoteBtn
-      + '</div>'
-      + (markDisabled ? '<div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:6px;">Practicá → Jill corrige → recién ahí marcás dominio.</div>' : '')
-      + (m.anecdoteActive ? '<div style="font-size:11px;color:#FCD34D;margin-top:8px;">📓 Cuaderno 15 min → leé o pegá. Jill: estructura + coherencia + pronunciación.</div>' : '')
-      + (typeof JillGraduation !== 'undefined' ? JillGraduation.renderGateStatus(student) : '')
       + '</div>';
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   global.JillMatrix = {
