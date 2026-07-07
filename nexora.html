@@ -589,15 +589,48 @@ function getNexoraDemoSessionId(){
   try{return localStorage.getItem('nexora_demo_session')||'';}catch(e){return '';}
 }
 
+function showNexoraAccessGate(message){
+  var gate = document.createElement('div');
+  gate.style.cssText = 'position:fixed;inset:0;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
+  gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso no disponible</h2><p style="opacity:.85;max-width:380px;line-height:1.6;">'
+    + (message || 'Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.')
+    + '</p></div>';
+  document.body.appendChild(gate);
+}
+
+async function verifyNexoraStudentAccess(){
+  if(isNexoraPublicDemo()) return true;
+  if(typeof getAuthToken !== 'function' || !getAuthToken()){
+    showNexoraAccessGate('Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.');
+    return false;
+  }
+  try{
+    var r = await infinityFetch('/auth/verify');
+    var d = {};
+    try{ d = await r.json(); }catch(e){}
+    if(!r.ok || d.ok === false){
+      if(typeof clearAuthToken === 'function') clearAuthToken();
+      var msg = (d && d.code === 'NEXORA_DISABLED')
+        ? 'Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.'
+        : 'Tu acceso ha sido suspendido o cerró la sesión. Volvé al Portal del Estudiante.';
+      showNexoraAccessGate(msg);
+      return false;
+    }
+    if(d.role === 'student' && d.nexoraEnabled === false){
+      showNexoraAccessGate('Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.');
+      return false;
+    }
+    return true;
+  }catch(e){
+    showNexoraAccessGate('No se pudo verificar tu acceso. Volvé al Portal del Estudiante e intentá de nuevo.');
+    return false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   clearNexoraDemoFlagsIfPortal();
   if(isNexoraPublicDemo()) return;
-  if(typeof getAuthToken === 'function' && !getAuthToken()){
-    var gate = document.createElement('div');
-    gate.style.cssText = 'position:fixed;inset:0;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
-    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
-    document.body.appendChild(gate);
-  }
+  verifyNexoraStudentAccess();
 });
 
 var ENGINE_TYPE_MAP={

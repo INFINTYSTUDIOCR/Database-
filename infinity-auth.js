@@ -76,6 +76,14 @@ async function infinityFetch(path, options) {
   var url = path.indexOf('http') === 0 ? path : INFINITY_API + path;
   var r = await fetch(url, options);
   if (r.status === 401) clearAuthToken();
+  if (r.status === 403) {
+    try {
+      var d = await r.clone().json();
+      if (d && (d.code === 'ACCOUNT_SUSPENDED' || d.code === 'NEXORA_DISABLED' || d.error === 'Account suspended')) {
+        clearAuthToken();
+      }
+    } catch (e) { /* ignore */ }
+  }
   return r;
 }
 

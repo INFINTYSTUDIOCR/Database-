@@ -402,6 +402,42 @@ function assertStudentScope(req, studentId) {
   return true;
 }
 
+function isStudentSuspended(student) {
+  if (!student) return false;
+  if (student.status === 'suspended') return true;
+  if (student.infinityTermsAccepted === false) return true;
+  return false;
+}
+
+function isNexoraEnabledForStudent(student) {
+  if (!student) return false;
+  if (!student.nexoraEnabled) return false;
+  if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
+  return (student.system_mode || 'jill') === 'alice';
+}
+
+async function assertNexoraStudentAccess(req, res, bodyStudent) {
+  if (req.auth.role !== 'student') return bodyStudent || resolveNexoraStudent(bodyStudent, req);
+  const student = await loadStudentRecordForAuth(req, bodyStudent);
+  if (!student?.id) {
+    res.status(403).json({ error: 'Student not found', code: 'STUDENT_NOT_FOUND' });
+    return null;
+  }
+  if (!assertStudentScope(req, student.id)) {
+    res.status(403).json({ error: 'Student scope mismatch' });
+    return null;
+  }
+  if (isStudentSuspended(student)) {
+    res.status(403).json({ error: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+    return null;
+  }
+  if (!isNexoraEnabledForStudent(student)) {
+    res.status(403).json({ error: 'Nexora access disabled', code: 'NEXORA_DISABLED' });
+    return null;
+  }
+  return student;
+}
+
 function isTutorEnabledForStudent(student, tutor, opts = {}) {
   if (!student) return true;
   if (tutor === 'alice') {
@@ -433,6 +469,10 @@ async function assertStudentTutorAccess(req, res, tutor, bodyStudent, opts = {})
   const student = await loadStudentRecordForAuth(req, bodyStudent);
   if (!assertStudentScope(req, student?.id)) {
     res.status(403).json({ error: 'Student scope mismatch' });
+    return null;
+  }
+  if (isStudentSuspended(student)) {
+    res.status(403).json({ error: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
     return null;
   }
   const sessionType = opts.sessionType || req.body?.sessionType || null;
@@ -542,14 +582,34 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-app.get('/auth/verify', requireProductAuth, (req, res) => {
-  res.json({
+app.get('/auth/verify', requireProductAuth, async (req, res) => {
+  const payload = {
     ok: true,
     role: req.auth.role,
     sub: req.auth.sub,
     name: req.auth.name,
     studentId: req.auth.studentId || null
-  });
+  };
+  if (req.auth.role === 'student' && req.auth.studentId) {
+    try {
+      const row = await sbGetOne('infinity_students', req.auth.studentId);
+      const student = row?.data;
+      if (!student || isStudentSuspended(student)) {
+        return res.status(403).json({ ok: false, error: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+      }
+      payload.status = student.status || 'active';
+      payload.nexoraEnabled = isNexoraEnabledForStudent(student);
+      payload.aliceEnabled = typeof student.aliceEnabled === 'boolean'
+        ? student.aliceEnabled
+        : (student.system_mode || 'jill') === 'alice';
+      payload.jillEnabled = typeof student.jillEnabled === 'boolean'
+        ? student.jillEnabled
+        : (student.system_mode || 'jill') !== 'alice';
+    } catch (e) {
+      return res.status(503).json({ ok: false, error: 'Could not verify student access' });
+    }
+  }
+  res.json(payload);
 });
 
 // ── DEMO: IP LIMITS + RESPONSE BUFFER ────────────────────────
@@ -4046,7 +4106,11 @@ function loadNexoraVoicesConfig() {
   };
 }
 
-app.get('/nexora/voices', requireProductAuth, (req, res) => {
+app.get('/nexora/voices', requireProductAuth, async (req, res) => {
+  if (req.auth.role === 'student') {
+    const ok = await assertNexoraStudentAccess(req, res, null);
+    if (!ok) return;
+  }
   res.json(loadNexoraVoicesConfig());
 });
 
@@ -4063,13 +4127,21 @@ function loadNexoraCharactersConfig() {
   return { characters: [] };
 }
 
-app.get('/nexora/characters', requireProductAuth, (req, res) => {
+app.get('/nexora/characters', requireProductAuth, async (req, res) => {
+  if (req.auth.role === 'student') {
+    const ok = await assertNexoraStudentAccess(req, res, null);
+    if (!ok) return;
+  }
   res.json(loadNexoraCharactersConfig());
 });
 
 // ── NEXORA VOICE PROFILES ─────────────────────────────────────
 app.post('/nexora-tts', requireProductAuth, async (req, res) => {
   try {
+    if (req.auth.role === 'student') {
+      const ok = await assertNexoraStudentAccess(req, res, null);
+      if (!ok) return;
+    }
     const { text, voiceId, firstName } = req.body || {};
     const resolved = enforceNexoraTtsVoice(firstName, voiceId || ALICE_VOICE_ID);
     return await synthesizeSpeech(req, res, {
@@ -4134,10 +4206,12 @@ function nexoraBrainExtra(student, req, suffix) {
 app.post('/nexora', requireProductAuth, async (req, res) => {
   try {
     const { message, history, profile, scenario, agentName: agentNameRaw, student: studentRaw, accountContext } = req.body || {};
-    const student = resolveNexoraStudent(studentRaw, req);
-    const agentName = resolveNexoraAgentName(student, agentNameRaw, req);
+    const student = await assertNexoraStudentAccess(req, res, studentRaw);
+    if (req.auth.role === 'student' && !student) return;
+    const scopedStudent = student || resolveNexoraStudent(studentRaw, req);
+    const agentName = resolveNexoraAgentName(scopedStudent, agentNameRaw, req);
 
-    const limit = await checkTutorLimit(student?.id, 'nexora', 'infinity_sessions');
+    const limit = await checkTutorLimit(scopedStudent?.id, 'nexora', 'infinity_sessions');
     if (!limit.ok && !/^START_/.test(String(message || ''))) {
       return res.json({
         reply: 'The line went quiet — try again in a few minutes.',
@@ -4404,6 +4478,8 @@ YOUR ROLE:
 
 app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
+    const studentOk = await assertNexoraStudentAccess(req, res, req.body?.student);
+    if (req.auth.role === 'student' && !studentOk) return;
     const ctx = await prepareNexoraRequest(req.body, req);
     const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
@@ -4427,6 +4503,10 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
 // ── NEXORA EVALUATION ─────────────────────────────────────────
 app.post('/nexora-eval', requireProductAuth, async (req, res) => {
   try {
+    if (req.auth.role === 'student') {
+      const ok = await assertNexoraStudentAccess(req, res, req.body?.student);
+      if (!ok) return;
+    }
     const { transcript, scenario, profile, agentName, talkTime, holdEvents, transferred } = req.body || {};
 
     const evalPrompt = `You are evaluating a customer service call simulation.

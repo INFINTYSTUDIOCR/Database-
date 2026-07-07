@@ -399,9 +399,13 @@ async function doLogin(){
 
 function switchPortalTab(tab){
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  if(s && !studentPortalAccessOk(s)){
+    handleStudentSuspended();
+    return;
+  }
   if(tab === 'alice' && s && !studentAliceTabOn(s)) tab = 'progreso';
   if(tab === 'jill' && s && !studentJillTabOn(s)) tab = 'progreso';
-  if(tab === 'nexora' && s && (!studentAliceOn(s) || !s.nexoraEnabled)) tab = 'progreso';
+  if(tab === 'nexora' && s && !studentNexoraOn(s)) tab = 'progreso';
   var prevTab = window._activePortalTab || 'progreso';
   if(tab !== prevTab && prevTab) window._portalPrevTab = prevTab;
   if(tab !== 'alice' && prevTab === 'alice') pauseAliceMedia();
@@ -576,6 +580,37 @@ function logout(){
   document.getElementById('l-pass').value='';
   document.getElementById('login-err').style.display='none';
   setLoginLoading(false);
+}
+
+function handleStudentSuspended(){
+  logout();
+  var err = document.getElementById('login-err');
+  if(err){
+    err.textContent = 'Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
+    err.style.display = 'block';
+  }
+}
+
+async function verifyStudentSessionAccess(){
+  if(typeof getAuthToken !== 'function' || !getAuthToken() || !CURRENT_STUDENT) return;
+  try{
+    var r = await infinityFetch('/auth/verify');
+    if(r.status === 403){
+      handleStudentSuspended();
+      return;
+    }
+    var d = await r.json();
+    if(!d || d.ok === false){
+      handleStudentSuspended();
+      return;
+    }
+    if(typeof d.nexoraEnabled === 'boolean') CURRENT_STUDENT.nexoraEnabled = d.nexoraEnabled;
+    if(typeof d.aliceEnabled === 'boolean') CURRENT_STUDENT.aliceEnabled = d.aliceEnabled;
+    if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
+    window._currentStudent = CURRENT_STUDENT;
+    window._portalStudent = CURRENT_STUDENT;
+    checkNexoraAccess(CURRENT_STUDENT);
+  }catch(e){}
 }
 
 function getPortalInfinityNewsHtml(){
@@ -985,6 +1020,16 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   });
 }
 
+function studentPortalAccessOk(s){
+  if(!s) return false;
+  if(s.status === 'suspended' || s.infinityTermsAccepted === false) return false;
+  return true;
+}
+
+function studentNexoraOn(s){
+  return studentPortalAccessOk(s) && studentAliceOn(s) && !!s.nexoraEnabled;
+}
+
 // ── TUTOR ACCESS (Alice / Jill ON-OFF — master en Engine) ───
 function studentAliceOn(s){
   if(!s) return false;
@@ -1035,25 +1080,11 @@ function syncJillNavLabel(s){
 async function checkNexoraAccess(s){
   var nexoraNav = document.getElementById('nav-nexora');
   if(!nexoraNav) return;
-  if(!studentAliceOn(s)){ nexoraNav.style.display='none'; return; }
-  if(s && s.nexoraEnabled){ nexoraNav.style.display='flex'; return; }
-  var trainerName = (s && s.info && s.info.trainer) || '';
-  if(trainerName){
-    try{
-      var rows = await dbQuery('infinity_sessions?select=id,data&id=like.ROSTER-*');
-      for(var i=0;i<rows.length;i++){
-        var r = rows[i];
-        if(r.id && r.id.indexOf('ROSTER-')===0 && r.data){
-          var d = r.data;
-          if((d.name||'').trim().toLowerCase()===trainerName.trim().toLowerCase() && d.nexoraEnabled){
-            nexoraNav.style.display='flex';
-            return;
-          }
-        }
-      }
-    }catch(e){ console.log('Nexora check error:', e); }
+  if(!studentPortalAccessOk(s) || !studentNexoraOn(s)){
+    nexoraNav.style.display='none';
+    return;
   }
-  nexoraNav.style.display='none';
+  nexoraNav.style.display='flex';
 }
 
 async function savePortalTypingResult(result){
@@ -2176,7 +2207,15 @@ async function sendAliceMessage(micText){
 
 
 function openNexoraLab(){
-  var student = window._currentStudent || window._portalStudent;
+  var student = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
+  if(!studentNexoraOn(student)){
+    if(student && !studentPortalAccessOk(student)){
+      handleStudentSuspended();
+    } else {
+      showToast('Nexora no está activo en tu cuenta. Pedí a tu trainer.','err');
+    }
+    return;
+  }
   var nxConfig = window._nexoraConfig;
   if(nxConfig) localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
   localStorage.setItem('nexora_agent', nexoraAgentName(student));
@@ -2777,6 +2816,7 @@ function aliceUnlockMicAndSend(clearStatus){
 function warmInfinityApi(){
   fetch(INFINITY_API+'/').catch(function(){});
   infinityFetch('/health',{headers:authHeaders()}).catch(function(){});
+  verifyStudentSessionAccess();
   aliceWarmApi();
   jillWarmApi();
   nexoraWarmApi();
@@ -3724,7 +3764,7 @@ function applySystemMode(s){
   var active = window._activePortalTab;
   if(active === 'alice' && !studentAliceTabOn(s)) switchPortalTab('progreso');
   else if(active === 'jill' && !studentJillTabOn(s)) switchPortalTab('progreso');
-  else if(active === 'nexora' && (!studentAliceOn(s) || !(s && s.nexoraEnabled))) switchPortalTab('progreso');
+  else if(active === 'nexora' && !studentNexoraOn(s)) switchPortalTab('progreso');
 }
 
 // ── KEEP RENDER ALIVE (ping every 8 min to prevent cold starts) ──
