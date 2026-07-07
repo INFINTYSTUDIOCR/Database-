@@ -1,11 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Artículos">
-  <rect width="320" height="180" rx="12" fill="#052e22"/>
-  <text x="160" y="24" text-anchor="middle" fill="#86EFAC" font-family="Inter,sans-serif" font-size="13" font-weight="bold">ARTÍCULOS · ranura C</text>
-  <text x="80" y="72" text-anchor="middle" fill="#F5A623" font-size="20" font-weight="bold">a / an</text>
-  <text x="80" y="94" text-anchor="middle" fill="#bbf7d0" font-size="10">a book · an hour</text>
-  <text x="240" y="72" text-anchor="middle" fill="#F5A623" font-size="20" font-weight="bold">the</text>
-  <text x="240" y="94" text-anchor="middle" fill="#bbf7d0" font-size="10">the office</text>
-  <line x1="160" y1="42" x2="160" y2="118" stroke="#3DDC97" stroke-width="1" opacity="0.45"/>
-  <text x="160" y="140" text-anchor="middle" fill="#86EFAC" font-size="10">I see a cat · The cat is black</text>
-  <text x="160" y="158" text-anchor="middle" fill="#bbf7d0" font-size="9">PRP + artículos en el complemento</text>
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="52" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="13" font-weight="bold">ARTÍCULOS · ranura C</text>
+  <text x="80" y="88" text-anchor="middle" fill="#D97706" font-size="20" font-weight="bold">a / an</text>
+  <text x="80" y="108" text-anchor="middle" fill="#312e81" font-size="10">a book · an hour</text>
+  <text x="240" y="88" text-anchor="middle" fill="#D97706" font-size="20" font-weight="bold">the</text>
+  <text x="240" y="108" text-anchor="middle" fill="#312e81" font-size="10">the office</text>
+  <line x1="160" y1="64" x2="160" y2="122" stroke="#7c3aed" stroke-width="1" opacity="0.35"/>
+  <text x="160" y="140" text-anchor="middle" fill="#5B21B6" font-size="10">I see a cat · The cat is black</text>
 </svg>
