@@ -86,7 +86,7 @@
         <label class="form-label" for="en-note">Contanos tu situación</label>
         <textarea class="form-input" id="en-note" placeholder="Meta laboral, nivel de inglés, experiencia..."></textarea>
       </div>
-      <button type="button" class="btn-primary" onclick="submitEnroll('Consulta Hablemos')">
+      <button type="button" class="btn-primary" id="en-submit">
         <i class="ti ti-send"></i> Enviar consulta por WhatsApp
       </button>
     </div>
@@ -139,6 +139,11 @@
   };
   var key = (new URLSearchParams(location.search).get('solicitar') || '').toLowerCase();
   var cfg = map[key];
+  var programLabel = cfg ? cfg.title : 'Consulta Hablemos';
+  var submitBtn = document.getElementById('en-submit');
+  if (submitBtn) {
+    submitBtn.onclick = function () { submitEnroll(programLabel); };
+  }
   if (!cfg) return;
   var banner = document.getElementById('demo-request-banner');
   var title = document.getElementById('demo-request-title');
