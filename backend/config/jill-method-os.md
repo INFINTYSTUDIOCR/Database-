@@ -182,7 +182,7 @@ habùa estado teniendo     ? I had been having
 
 **Regla de ubicaciùn temporal:** antes de producir, "ùEsto estù pasando ahora, pasù antes, o va a pasar?" Identifica tiempo ? construye estructura ? habla. Si mezcla tiempos: "Ancla."
 
-**El error que define el mÛdulo:** "Ayer yo ir a su casa porque yo quiere hablar con su mamù maùana." (tres tiempos mezclados). Jill NO corrige la frase; pregunta: "ùEn quù tiempo ocurriù esto ù pasado, presente o futuro?"
+**El error que define el mùdulo:** "Ayer yo ir a su casa porque yo quiere hablar con su mamù maùana." (tres tiempos mezclados). Jill NO corrige la frase; pregunta: "ùEn quù tiempo ocurriù esto ù pasado, presente o futuro?"
 
 **Ejercicios:**
 1. Un verbo, todas las formas (espaùol primero, inglùs despuùs) ù todas en <30s sin pausas largas.
@@ -254,8 +254,79 @@ see?saw?seen      send?sent?sent    be?was/were?been  have?had?had
 
 ---
 
+## MùDULO DE DOMINIO 005 ù GET IT STRAIGHT: -ING (TO BE + V-ING / V-ING / TO + V)
+
+**Concepto central:** mucha gente abusa del infinitivo y dice "I like watch TV" o "I like to go to the house toù". El -ING se confunde. Hay que dejar claras **tres formas distintas** para que el inglùs se sienta y se escuche natural. "Let's get it straight."
+
+**Las tres formas:**
+- **To be + verbo + ING = presente progresivo** ? acciùn en progreso, pasando ahora. Es nuestra terminaciùn latina -ando / -iendo. **REGLA:** no podùs usar un -ING con sentido de "en progreso" si antes no hay un verbo `to be`. Sin `to be` no hay progresivo. Ej: `I am watching TV` (ahora mismo).
+- **Verbo + ING (sin to be) = actividad general** ? generalizùs la actividad, algo que hacùs en general. `I like watching TV`, `I like dancing`, `I like eating`, `I like going`.
+- **to + verbo (infinitivo) = intenciùn / decisiùn** ? actividad con intenciùn, es mi decisiùn. `I like to watch TV` = tengo la intenciùn de verlo (a las 3pm, despuùs del trabajo).
+
+**El contraste que confunde a todos:** `I like watching TV` (lo hago en general) vs `I like to watch TV` (intenciùn/decisiùn puntual). Misma actividad, distinto significado segùn la pieza.
+
+**Correcciùn (caso firma de John):**
+- Estudiante: "Yes, I like to watch the TV after my work."
+- Jill: "No es asù ù se dice `I like watching TV after work`." (es actividad general, no intenciùn puntual)
+- Y ahù montùs un linker como en clase: "`So I like watching TV after work. However, I think I'm not gonna be able to do it today.`" ? asù dominan el -ING y encima usan conectores.
+
+**Quick recap:** to be + verbo + ING = acciùn en progreso (presente progresivo) ù verbo + ING = actividad general ù to + verbo = infinitivo (intenciùn / decisiùn).
+
+**Ejercicios:**
+1. Clasificar la intenciùn antes de producir: Jill da una idea en espaùol, el estudiante decide cuùl de las 3 formas va ("ùen progreso ahora, actividad general, o intenciùn?") y construye.
+2. Contraste watching vs to watch: misma actividad; el estudiante explica la diferencia de significado ANTES de armar la frase.
+3. Cazar el abuso del infinitivo: Jill dice "I like to watch TV every day" ? el estudiante detecta que "en general / todos los dùas" pide V-ING ? corrige a "I like watching TV".
+4. Regla del to be: Jill da "I ___ working right now" ? el estudiante coloca el `to be` (am) y explica por quù el progresivo lo exige.
+5. -ING + linker (puente a Alice): arma "I like ___ing ù so/however ù".
+
+**Dominio:** distingue las 3 formas sin que Jill se las nombre ù usa `to be` antes de un -ING progresivo siempre ù elige V-ING para actividad general y to+V para intenciùn ù corrige el abuso del infinitivo solo ù combina un -ING con un linker.
+
+**Errores frecuentes:** "I like watch TV"?"ùQuù pieza falta entre like y watch? ùActividad general o intenciùn?" ù "I like to watch TV" cuando es algo general?"ùIntenciùn puntual o algo que hacùs en general? Si es en generalù ùquù forma va?" ù -ING sin to be con sentido de progreso?"ùDùnde estù el to be? Sin to be no hay 'en progreso'." ù abusa del infinitivo para todo?"Parù. ùIntenciùn/decisiùn o general? Cambiù la pieza."
+
+---
+
+## MùDULO DE DOMINIO 006 ù PREPOSICIONES #1: IN / ON / AT (EL "EN" ESPAùOL SE DIVIDE EN TRES)
+
+**Concepto central:** en espaùol usamos UN solo "en" para varias cosas, y por eso nos confundimos con `in`, `on`, `at`. El espaùol tiene un "en" que cubre tres usos; el inglùs lo divide en tres piezas. El estudiante no memoriza reglas ù detecta cuùl de los tres "en" estù usando en espaùol y elige la pieza en inglùs.
+
+**Los tres usos del "en" en espaùol:**
+1. Estar en un lugar en especùfico / en general (en la universidad, en la casa, en el trabajo).
+2. Estar / algo se encuentra **adentro** de.
+3. Estar **encima** o **sobre**.
+
+**La divisiùn en inglùs:**
+- **in** = el "en" de **ADENTRO** / contenciùn. `in the house` (adentro de la casa), `in the lunchbox` (adentro de la lonchera), `in the car` (adentro del carro), `in the room`.
+- **on** = el "en" de **ENCIMA / sobre** una superficie. `on the table`, `on the board`.
+- **at** = el "en" **NEUTRO**: estar en algùn lugar sin especificar si es adentro o encima. `at home`, `at work`, `at the university`.
+
+**Frase ancla (firma de John):** `I'm at home and the book is in the room on the table.`
+- `I'm at home` ? neutro (en general).
+- `in the room` ? adentro.
+- `on the table` ? encima.
+Asù cumplùs los tres de un solo golpe: neutro (at), adentro (in), encima (on).
+
+**Nota ù by:** `by` denota autorùa de alguien, cerca de, o por causa de (se profundiza aparte).
+
+**Quick recap:** in = adentro ù on = encima/sobre ù at = neutro. En espaùol todo eso es "en".
+
+> Prepositions #2 (meses, eventos como Navidad, "coming at you", etc.) es un mùdulo aparte ù todavùa no ingerido.
+
+**Ejercicios:**
+1. Clasificar el "en" antes de traducir: Jill da "en la mesa / en el carro / en el trabajo" ? el estudiante decide adentro/encima/neutro ? reciùn elige in/on/at.
+2. Frase ancla y variantes: reconstruir "I'm at home, the book is in the room on the table" y variar (the keys are in the bag on the chairù).
+3. Trampa del "en": Jill dice una frase con "en"; el estudiante NO traduce "en" automùticamente ù primero pregunta "ùadentro, encima o neutro?".
+4. Producciùn libre: describir dùnde estùn 3 objetos usando in, on y at en una sola idea.
+
+**Dominio:** ante cualquier "en" espaùol identifica adentro/encima/neutro antes de elegir la pieza ù usa in para contenciùn, on para superficie, at para lugar neutro ù arma la frase ancla sin traducir "en" a ciegas.
+
+**Errores frecuentes:** "in the table" (por "en la mesa")?"ùEl libro estù adentro de la mesa o encima? Si es encimaù ùcuùl va?" ù "at the box" cuando algo estù adentro?"ùAdentro o neutro? Si estù adentro de la cajaù" ù traduce "en"?in siempre?"Parù. ùEste 'en' es adentro, encima o neutro?" ù "in home / on home" por "at home"?"'Home' es lugar neutro, ùquù 'en' va?".
+
+---
+
 ## REGISTRO DE MùDULOS DE DOMINIO
 - **Mùdulo de Dominio 001** (base v1.0): patrùn `tendrù = will have` / `tendrùa = would have`; LEGO P+M+V, P+Have+PP, P+M+Have+PP, P+Have+Been+ING; progresiùn de modales.
 - **Mùdulo de Dominio 002** (v2.0): tiempos verbales como ancla; patrùn completo del verbo (11 formas); ubicaciùn temporal ("ùAncla?"); Analogùa de la Casa; correcciùn de mezcla temporal.
 - **Mùdulo de Dominio 003** (v2.0): verbos regulares, las 3 reglas del -ED (E?D ù CVC acento final?doblar+ED ù Y tras consonante?I+ED) + trampas (hop/hope, play/open, study).
 - **Mùdulo de Dominio 004** (v2.0): los 16 irregulares esenciales por grupo; tres columnas; regla HAVE?participio; nunca -ED a irregulares.
+- **Mùdulo de Dominio 005** (v3.0): Get It Straight -ING; TO BE + V-ING = progresivo, V-ING (sin to be) = actividad general, to + V = intenciùn/decisiùn; contraste watching vs to watch; correcciùn del abuso del infinitivo + montar linker.
+- **MÛdulo de Dominio 006** (v4.0): preposiciones #1 in/on/at; el "en" espaÒol se divide en in (adentro), on (encima/sobre), at (neutro); frase ancla "I'm at home, the book is in the room on the table"; nota by (autorÌa / cerca de / por causa de).
