@@ -57,12 +57,15 @@ function main() {
     pass('hablemos demo WA label', 'wired');
   else fail('hablemos demo WA label', 'missing');
 
-  for (const [file, param] of [['try-jill.html', 'jill'], ['try-nexora.html', 'nexora']]) {
-    const html = read(file);
-    if (html.includes('solicitar=' + param) && html.includes('hablemos.html'))
-      pass(file + ' redirect', 'to hablemos ?solicitar=' + param);
-    else fail(file + ' redirect', 'broken');
-  }
+  const tryJill = read('try-jill.html');
+  if (tryJill.includes('JillQuiz.mount') && tryJill.includes('demoMode'))
+    pass('try-jill.html demo', 'public Rapid drill demo (brain)');
+  else fail('try-jill.html demo', 'broken');
+
+  const tryNexora = read('try-nexora.html');
+  if (tryNexora.includes('solicitar=nexora') && tryNexora.includes('hablemos.html'))
+    pass('try-nexora.html redirect', 'to hablemos ?solicitar=nexora');
+  else fail('try-nexora.html redirect', 'broken');
 
   if (enroll.includes('Infinity Studio CR') && enroll.includes('document.documentElement.lang'))
     pass('enroll.js Spanish WA', 'ok');
