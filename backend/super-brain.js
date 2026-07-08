@@ -741,6 +741,30 @@ async function chat(state, opts) {
   return talk(state, opts);
 }
 
+async function ingestFromDrillFailure({ studentName, category, categoryLabel, kpi }) {
+  if (!isSuperBrainEnabled()) return null;
+  const state = await loadState();
+  const title = `Drill refuerzo: ${categoryLabel || category}`;
+  const content = [
+    `Patrón detectado en Rapid drill (cerebro Jill).`,
+    `Categoría: ${categoryLabel || category}. KPI: ${kpi || '—'}.`,
+    `Estudiante ejemplo: ${studentName || 'anon'}.`,
+    `Acción tutor: una oración de práctica con fórmula MSI, sin siglas P+V+C.`,
+    `Priorizar esta categoría en la próxima sesión si el estudiante falla de nuevo.`
+  ].join('\n');
+  const existing = (state.lessons || []).find((l) =>
+    l.published && l.category === 'drill-reinforcement' && String(l.title || '').includes(categoryLabel || category)
+  );
+  if (existing) return existing;
+  return publishKnowledge(state, {
+    title,
+    content,
+    author: 'Jill Drill Brain',
+    category: 'drill-reinforcement',
+    source: 'drill-failure-cascade'
+  });
+}
+
 module.exports = {
   initSuperBrain,
   isSuperBrainEnabled,
@@ -758,6 +782,7 @@ module.exports = {
   getFullSummary,
   publicSummary,
   appendNexusKB,
+  ingestFromDrillFailure,
   deletePublishedLesson,
   purgeNoiseLessons,
   lessonQualityScore,

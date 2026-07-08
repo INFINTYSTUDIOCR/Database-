@@ -40,7 +40,8 @@
 <script src="js/jill-trainer-insights.js?v=20260707a"></script>
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260707rd"></script>
-<script src="js/jill-quiz.js?v=20260707flame"></script>
+<script src="js/infinity-victory.js?v=20260707v"></script>
+<script src="js/jill-quiz.js?v=20260707brain"></script>
 <script src="js/tts-chunks.js?v=20260707bilingual"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -3459,6 +3460,9 @@ async function nexoraGenerateQA(isTransfer){
     var ev = await r.json();
     if(ev.error) throw new Error(ev.error);
     nexoraRenderQA(ev, isTransfer, talkTime);
+    if (ev.aliceVictory && window._currentStudent) {
+      window._currentStudent.aliceVictory = ev.aliceVictory;
+    }
   }catch(e){
     var fallback={overall_score:70,client_satisfaction:7,wins:['You completed the simulation','Good effort on the call'],improvements:['Keep practicing connectors','Focus on resolution clarity'],connectors_used:[],connectors_missed:['however','on top of that'],hold_feedback:'',verdict:'Good effort on this call! Every simulation makes you better. Keep going!',practice_minutes:Math.ceil(talkTime/60)};
     nexoraRenderQA(fallback, isTransfer, talkTime);
@@ -4413,6 +4417,10 @@ function renderJill(){
     }
   }
   maybeShowJillOnboarding();
+  if (!_jillState.sessionActive && !_jillState.quizActive && s) {
+    var vz = document.getElementById('jill-victory-zone');
+    if (vz && typeof InfinityVictory !== 'undefined') InfinityVictory.hydrate(vz, s);
+  }
 }
 
 function maybeShowJillOnboarding(){
@@ -4480,6 +4488,7 @@ function renderJillStart(){
   var showTutor = jillOn && (!proOn || mode === 'tutor');
   var showPro = proOn && (!jillOn || mode === 'companion');
   return '<div>'
+    + '<div id="jill-victory-zone">' + ((typeof InfinityVictory !== 'undefined' && s) ? InfinityVictory.renderFromStudent(s) : '') + '</div>'
     + growth
     + badges
     + motiv

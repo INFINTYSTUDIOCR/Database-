@@ -200,7 +200,10 @@ const Brain = require('./nexus-brain');
 Brain.initNexusBrain({ sbGetOne, sbSet });
 
 const SuperBrain = require('./super-brain');
+const JillDrillBrain = require('./jill-drill-brain');
+const InfinityVictory = require('./infinity-victory');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
+JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
 const TrainerModel = require('./trainer-model');
 const JillTrainerInsights = require('./jill-trainer-insights');
@@ -280,7 +283,7 @@ app.get('/health', (req, res) => res.json({
   companion: true,
   brain: Brain.isBrainEnabled(),
   superBrain: SuperBrain.isSuperBrainEnabled(),
-  services: ['jill', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain', 'companion']
+  services: ['jill', 'jill/drill', 'jill/victory-metric', 'alice', 'nexora', 'demo/stream', 'nexora/stream', 'brain/stats', 'super-brain', 'companion']
 }));
 
 // ── KEY DIAGNOSTIC (temp) ────────────────────────────────────
@@ -3471,9 +3474,10 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const matrixExtras = jillMatrixPromptExtras(jillBundle, matrixContext, student);
     const vocabNote = formatJillVocabNote(vocabContext);
     const responseKpiNote = formatJillResponseKpiNote(matrixContext);
-    const nemesisNote = nemesisState?.reinforcement?.length
-      ? `\nRAPID DRILL REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
-      : (reinforcement?.length ? `\nRAPID DRILL REFUERZO: ${reinforcement.join(', ')}.` : '');
+    const nemesisNote = JillDrillBrain.getStudentDrillNote(student)
+      || (nemesisState?.reinforcement?.length
+        ? `\nRAPID DRILL REFUERZO (prioridad): ${nemesisState.reinforcement.join(', ')}.`
+        : (reinforcement?.length ? `\nRAPID DRILL REFUERZO: ${reinforcement.join(', ')}.` : ''));
     const trackNote = track?.current
       ? `\nTRACK ACTIVO: ${track.current}. Graduados: jill=${!!track.graduated?.jill}, alice=${!!track.graduated?.alice}, nexora=${!!track.graduated?.nexora}.`
       : '';
@@ -3702,7 +3706,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const bundleCtxChat = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
-    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3871,7 +3875,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     await streamAnthropicSSE(res, {
       max_tokens: isJillCompanion ? 800 : 700,
-      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -3906,25 +3910,32 @@ async function tutorKnowledgeSliceFast(message) {
   }
 }
 
-async function tutorKnowledgeSliceForJill(message) {
-  if (!SuperBrain.isSuperBrainEnabled()) return '';
+async function tutorKnowledgeSliceForJill(message, student) {
+  if (!SuperBrain.isSuperBrainEnabled()) {
+    const drillOnly = student ? JillDrillBrain.getStudentDrillNote(student) : '';
+    const propagated = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
+    const merged = [drillOnly, propagated].filter(Boolean).join('\n');
+    return merged ? `\n\nDRILL BRAIN (cascada tutores):\n${merged}` : '';
+  }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
     const filtered = filterJillSuperBrainContext(ctx);
-    if (!filtered) return '';
+    const drillStudent = student ? JillDrillBrain.getStudentDrillNote(student) : '';
+    const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
+    const drillBlock = [drillStudent, drillGlobal].filter(Boolean).join('\n');
+    if (!filtered && !drillBlock) return '';
     return `\n\nINSTITUTIONAL KNOWLEDGE (Super Brain — Jill MSI® filter):
 PROACTIVE RULE: MSI® only — P|M|V|C, método moneda, chunks estructurales. NO linker chains / Idea+Linker+Idea.
-${filtered}`;
+${filtered || ''}${drillBlock ? `\n\n${drillBlock}` : ''}`;
   } catch {
     return '';
   }
 }
 
-async function tutorKnowledgeSliceForJillFast(message) {
-  if (!SuperBrain.isSuperBrainEnabled()) return '';
+async function tutorKnowledgeSliceForJillFast(message, student) {
   try {
     return await Promise.race([
-      tutorKnowledgeSliceForJill(message),
+      tutorKnowledgeSliceForJill(message, student),
       new Promise((resolve) => setTimeout(() => resolve(''), 350))
     ]);
   } catch {
@@ -4165,6 +4176,115 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
+  }
+});
+
+
+// ── JILL RAPID DRILL (cerebro — banco + perfil + cascada tutores) ──
+app.get('/jill/drill/questions', requireProductAuth, async (req, res) => {
+  try {
+    const count = Math.min(20, Math.max(1, parseInt(req.query.count, 10) || JillDrillBrain.QUESTIONS_PER_ROUND));
+    const bundleId = String(req.query.bundleId || '').trim();
+    let student = await loadStudentRecordForAuth(req, null);
+    if (!student?.id) {
+      return res.status(403).json({ error: 'Student not found' });
+    }
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
+    if (!student) return;
+    const questions = JillDrillBrain.pickQuestions(student, bundleId || null, count);
+    const profile = JillDrillBrain.getDrillProfileSummary(student);
+    return res.json({ questions, profile, source: 'brain' });
+  } catch (err) {
+    console.error('jill/drill/questions:', err.message);
+    return res.status(500).json({ error: 'Drill brain unavailable' });
+  }
+});
+
+app.get('/jill/drill/profile', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
+    if (!student) return;
+    return res.json(JillDrillBrain.getDrillProfileSummary(student));
+  } catch (err) {
+    console.error('jill/drill/profile:', err.message);
+    return res.status(500).json({ error: 'Drill profile unavailable' });
+  }
+});
+
+app.post('/jill/drill/complete', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, req.body?.student || null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
+    if (!student) return;
+    const result = req.body?.result || req.body || {};
+    const outcome = await JillDrillBrain.completeDrill(student, {
+      correct: result.correct || 0,
+      total: result.total || 0,
+      score: result.score || 0,
+      streak: result.streak || 0,
+      bundleId: result.bundleId || '',
+      kpiResults: result.kpiResults || [],
+      nemesisKpis: result.nemesisKpis || [],
+      nemesisMode: true,
+      wonRound: !!result.wonRound,
+      winStreak: result.winStreak || 0
+    });
+    return res.json({ ok: true, ...outcome, source: 'brain' });
+  } catch (err) {
+    console.error('jill/drill/complete:', err.message);
+    return res.status(500).json({ error: 'Drill complete failed' });
+  }
+});
+
+app.get('/demo/jill/drill/questions', async (req, res) => {
+  try {
+    const count = Math.min(10, Math.max(1, parseInt(req.query.count, 10) || 3));
+    const demoStudent = {
+      id: 'DEMO-JILL-RAPID',
+      nemesisState: { domain: [], reinforcement: ['k3', 'k4'] },
+      jillProgress: { activeBundle: 'F1-msi' },
+      jillRapidDrill: { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 }
+    };
+    const questions = JillDrillBrain.pickQuestions(demoStudent, 'F1-msi', count);
+    return res.json({ questions, profile: JillDrillBrain.getDrillProfileSummary(demoStudent), source: 'brain-demo' });
+  } catch (err) {
+    console.error('demo/jill/drill/questions:', err.message);
+    return res.status(500).json({ error: 'Demo drill unavailable' });
+  }
+});
+
+app.get('/jill/victory-metric', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
+    if (!student) return;
+    const metric = InfinityVictory.applyJillVictoryToStudent(student);
+    const aliceMetric = InfinityVictory.applyAliceVictoryToStudent(student);
+    await sbSet('infinity_students', student.id, student);
+    return res.json({ metric, aliceMetric, source: 'brain' });
+  } catch (err) {
+    console.error('jill/victory-metric:', err.message);
+    return res.status(500).json({ error: 'Victory metric unavailable' });
+  }
+});
+
+app.post('/demo/jill/drill/complete', async (req, res) => {
+  try {
+    const result = req.body?.result || req.body || {};
+    const score = result.score || 0;
+    return res.json({
+      ok: true,
+      xp: JillDrillBrain.calcXp ? JillDrillBrain.calcXp({ ...result, nemesisMode: true }) : 0,
+      won: score >= 70,
+      source: 'brain-demo',
+      message: 'Demo — registrate en el portal para persistir perfil y cascada a tutores.'
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Demo complete failed' });
   }
 });
 
@@ -4705,9 +4825,10 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
 // ── NEXORA EVALUATION ─────────────────────────────────────────
 app.post('/nexora-eval', requireProductAuth, async (req, res) => {
   try {
+    let student = req.body?.student || null;
     if (req.auth.role === 'student') {
-      const ok = await assertNexoraStudentAccess(req, res, req.body?.student);
-      if (!ok) return;
+      student = await assertNexoraStudentAccess(req, res, student);
+      if (!student) return;
     }
     const { transcript, scenario, profile, agentName, talkTime, holdEvents, transferred } = req.body || {};
 
@@ -4749,6 +4870,17 @@ Respond ONLY with valid JSON, no markdown:
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const clean = text.replace(/```json|```/g, '').trim();
     const ev = JSON.parse(clean);
+
+    if (student?.id && req.auth.role === 'student') {
+      InfinityVictory.recordNexoraSession(student, ev, {
+        talkTime: talkTime || 0,
+        transferred: !!transferred,
+        scenarioTitle: scenario?.title || ''
+      });
+      await sbSet('infinity_students', student.id, student);
+      ev.aliceVictory = student.aliceVictory;
+    }
+
     return res.json(ev);
 
   } catch(err) {

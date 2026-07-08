@@ -26,6 +26,10 @@ if errorlevel 1 (
   goto FIN
 )
 
+echo Cerrando intentos anteriores trabados...
+powershell -NoProfile -Command "Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(chrome|node)\.exe$' -and $_.CommandLine -match 'wwebjs_auth|wa-bridge' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+timeout /t 2 /nobreak >nul
+
 if not exist node_modules (
   echo Instalando componentes ^(solo primera vez, espera^)...
   call npm install
@@ -36,6 +40,7 @@ if not exist node_modules (
   )
 )
 
+echo.
 echo Iniciando...
 echo Si se abre Chrome con un QR, escanalo con el telefono.
 echo WhatsApp del telefono: menu - Dispositivos vinculados.

@@ -17,7 +17,7 @@
 
   var KAHOOT = PULSE_OPTS;
 
-  var TIMER_SEC = 15;
+  var TIMER_SEC = 60;
   var QUESTIONS_PER_ROUND = 5;
   var WIN_SCORE_PCT = 70;
   var GOLD_SCORE_PCT = 100;
@@ -57,7 +57,13 @@
       + '.jill-pressure-danger{position:absolute;left:10px;bottom:6px;font-size:10px;font-weight:800;color:#fca5a5}'
       + '.jill-trophy-burst{font-size:52px;animation:jillTrophyPop .55s cubic-bezier(.2,1.1,.3,1) both}'
       + '.jill-streak-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(251,191,36,0.18);border:1px solid rgba(251,191,36,0.55);color:#fde68a;font-size:12px;font-weight:800;animation:jillStreakPulse 1.2s ease-in-out infinite}'
-      + '.jill-confetti span{position:absolute;top:0;width:8px;height:14px;border-radius:2px;animation:jillConfettiFall 1.1s ease-in forwards}';
+      + '.jill-confetti span{position:absolute;top:0;width:8px;height:14px;border-radius:2px;animation:jillConfettiFall 1.1s ease-in forwards}'
+      + '.jill-rapid-tier-bronze .jill-tier-badge{background:linear-gradient(135deg,#92400e,#b45309);color:#fef3c7}'
+      + '.jill-rapid-tier-silver .jill-tier-badge{background:linear-gradient(135deg,#64748b,#94a3b8);color:#f8fafc}'
+      + '.jill-rapid-tier-gold .jill-pressure-track,.jill-rapid-tier-legend .jill-pressure-track{border-color:rgba(251,191,36,0.75);box-shadow:0 0 20px rgba(251,191,36,0.25)}'
+      + '.jill-rapid-tier-gold .jill-tier-badge,.jill-rapid-tier-legend .jill-tier-badge{background:linear-gradient(135deg,#b45309,#fbbf24,#f59e0b);color:#1c1917;box-shadow:0 0 18px rgba(251,191,36,0.45)}'
+      + '.jill-rapid-tier-legend #jill-kahoot-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
+      + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}';
     document.head.appendChild(st);
   }
 
@@ -128,15 +134,16 @@
     }
     rd.lastScore = score;
     rd.lastDate = new Date().toISOString();
+    rd.tier = rapidDrillTier(student);
     return { won: won, rd: rd };
   }
 
   var COIN_QUESTIONS = [
-    { kpi: 'k3', topic: 'coin', q: 'Método Moneda: ¿Cuál es PREGUNTA?', options: ['You are ready.', 'Are you ready?', 'Ready you are?', 'You ready are?'], answer: 1, explain: 'Are a la izquierda de you → pregunta.' },
-    { kpi: 'k3', topic: 'coin', q: 'Moneda: ¿Cuál es RESPUESTA?', options: ['Did she work?', 'She worked yesterday.', 'Work she did?', 'Did work she?'], answer: 1, explain: 'worked después de she → afirmación.' },
-    { kpi: 'k3', topic: 'coin', q: 'Excepción moneda: WH-question válida…', options: ['You are what?', 'What are you doing?', 'Are what you?', 'Doing you what?'], answer: 1, explain: 'What primero; moneda aplica al bloque aux+pronombre.' },
-    { kpi: 'k3', topic: 'coin', q: '¿Pregunta con Did?', options: ['He did go.', 'Did he go?', 'He go did?', 'Go did he?'], answer: 1, explain: 'Did antes del pronombre.' },
-    { kpi: 'k14', topic: 'coin', q: 'Identificá rápido: pregunta', options: ['They are coming.', 'Are they coming?', 'Coming they are.', 'They coming are?'], answer: 1, explain: 'Velocidad + patrón moneda.' }
+    { kpi: 'k3', topic: 'coin', q: 'Completá la pregunta: ___ you ready?', options: ['Are', 'Is', 'Do', 'Does'], answer: 0, explain: 'Pregunta con to be: Are + you.' },
+    { kpi: 'k3', topic: 'coin', q: 'Completá la respuesta: Yes, I ___ ready.', options: ['am', 'is', 'are', 'be'], answer: 0, explain: 'Respuesta afirmativa: I am ready.' },
+    { kpi: 'k3', topic: 'coin', q: 'Completá la pregunta en pasado: ___ she work yesterday?', options: ['Did', 'Does', 'Do', 'Was'], answer: 0, explain: 'Pasado en pregunta: Did + sujeto + verbo base.' },
+    { kpi: 'k3', topic: 'coin', q: 'Completá la respuesta: She ___ yesterday.', options: ['worked', 'work', 'working', 'works'], answer: 0, explain: 'Afirmación en pasado: verbo en -ed.' },
+    { kpi: 'k14', topic: 'coin', q: '¿Cuál es pregunta correcta?', options: ['They are coming.', 'Are they coming?', 'Coming they are.', 'They coming are?'], answer: 1, explain: 'Auxiliar al inicio: Are they…?' }
   ];
 
   var PREP_QUESTIONS = [
@@ -152,29 +159,39 @@
     { kpi: 'k4', topic: 'article', q: 'She is ___ engineer', options: ['a', 'an', 'the', '—'], answer: 1, explain: 'an + engineer.' }
   ];
 
-  var TENSE_SIGLA_QUESTIONS = [
-    { kpi: 'k3', topic: 'tense', q: 'Sigla PR = …', options: ['P + V + C', 'P + To Be + ing', 'P + Have + PP', 'P + M + V'], answer: 0, explain: 'Presente simple.' },
-    { kpi: 'k3', topic: 'tense', q: 'Sigla PC = …', options: ['P + V + C', 'P + To Be + V+ing', 'P + Have + PP', 'P + Had + PP'], answer: 1, explain: 'Presente continuo.' },
-    { kpi: 'k3', topic: 'tense', q: 'I will go → fórmula', options: ['P + V + C', 'P + M + V', 'P + Have + PP', 'P + M + HAVE + PP'], answer: 1, explain: 'P + M + V (will = -RE).' },
-    { kpi: 'k3', topic: 'tense', q: 'I could have done → fórmula', options: ['P + M + V', 'P + M + HAVE + PP', 'P + HAVE + PP', 'P + M + HAVE + BEEN + ing'], answer: 1, explain: 'Modal perfecto.' }
+  var CONSTRUCTION_QUESTIONS = [
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente perfecto continuo: I have been ___', options: ['going', 'gone', 'go', 'went'], answer: 0, explain: 'Have been + verbo en -ing: I have been going / working.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente simple: I ___ to work every day.', options: ['go', 'goes', 'went', 'going'], answer: 0, explain: 'I + verbo base en presente: I go.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el pasado simple: She ___ the report yesterday.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Pasado regular: verbo + -ed.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente continuo: They are ___ English now.', options: ['learning', 'learned', 'learn', 'learns'], answer: 0, explain: 'Am/is/are + -ing: They are learning.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente perfecto: I have ___ there before.', options: ['been', 'be', 'being', 'was'], answer: 0, explain: 'Have + participio: I have been.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el futuro con will: I ___ call you tomorrow.', options: ['will', 'would', 'am', 'was'], answer: 0, explain: 'Will + verbo base: I will call.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar con modal: You ___ see a doctor.', options: ['should', 'shoulds', 'shoulding', 'shoulded'], answer: 0, explain: 'Modal + verbo base: You should see.' },
+    { kpi: 'k2', topic: 'tense', q: 'Para completar el pasado simple: We ___ late last night.', options: ['arrived', 'arrive', 'arriving', 'arrives'], answer: 0, explain: 'Pasado: arrived.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el pasado perfecto: She had ___ before I arrived.', options: ['left', 'leave', 'leaving', 'leaves'], answer: 0, explain: 'Had + participio: She had left.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar: I have not ___ yet.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Have + participio en negativo: have not finished.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar el continuo: He is ___ a presentation.', options: ['preparing', 'prepared', 'prepare', 'prepares'], answer: 0, explain: 'Is + -ing: He is preparing.' },
+    { kpi: 'k3', topic: 'tense', q: 'Para completar con could + perfecto: He could have ___ earlier.', options: ['come', 'came', 'coming', 'comes'], answer: 0, explain: 'Could have + participio: could have come.' },
+    { kpi: 'k1', topic: 'tense', q: 'Elige la forma correcta: She ___ coffee every morning.', options: ['drinks', 'drink', 'drinking', 'drank'], answer: 0, explain: 'Presente 3ra persona: she drinks.' },
+    { kpi: 'k2', topic: 'tense', q: 'Elige la forma correcta: ___ they working now?', options: ['Are', 'Is', 'Do', 'Did'], answer: 0, explain: 'Pregunta continua: Are they working?' }
   ];
 
-  var FOUNDATIONS_DRILL = COIN_QUESTIONS.concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(TENSE_SIGLA_QUESTIONS);
+  var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS);
 
   var CORE = [
-    { kpi: 'k10', q: 'En el Método Nexus, un "chunk" es…', options: ['Una palabra suelta', 'Un bloque listo para usar', 'Solo gramática', 'Traducción literal'], answer: 1, explain: 'Los chunks son piezas que ensamblás sin traducir palabra por palabra.' },
+    { kpi: 'k10', q: 'Completá la oración: I think ___ because…', options: ['that', 'the', 'to', 'on'], answer: 0, explain: 'Opinión + because: I think that… because…' },
     { kpi: 'k8', q: '¿Cuál conector muestra contraste?', options: ['on top of that', 'however', 'first of all', 'as well as'], answer: 1, explain: '"However" marca oposición entre ideas.' },
-    { kpi: 'k9', q: 'Respuesta corta en inglés — ¿qué conviene agregar?', options: ['Nada más', 'Because + detalle', 'Solo "yes"', 'Cambiar a español'], answer: 1, explain: 'Expandí: Yes, because… on top of that…' },
+    { kpi: 'k9', q: 'Te preguntan "Do you like your job?" — completá mejor: Yes, ___', options: ['I do because…', 'yes', 'job', 'like'], answer: 0, explain: 'Expandí: Yes, I do because…' },
     { kpi: 'k13', q: 'Si te trabás al hablar, lo mejor es…', options: ['Callar', '"Let me rephrase" y seguir', 'Colgar', 'Hablar más fuerte'], answer: 1, explain: 'Reparar y continuar — recovery sin presión.' },
-    { kpi: 'k3', q: 'Foundations enseña inglés como…', options: ['Lista infinita', 'Mecánica Estructural Infinity®', 'Solo traducción', 'Memorizar diálogos'], answer: 1, explain: 'Piezas + reglas de conexión = Método Nexus.' }
+    { kpi: 'k2', q: 'Completá: Yesterday I ___ to the office.', options: ['went', 'go', 'going', 'goes'], answer: 0, explain: 'Pasado simple: I went.' }
   ];
 
   var BY_BUNDLE = {
-    'F0-matrix': TENSE_SIGLA_QUESTIONS.concat(COIN_QUESTIONS.slice(0, 1)).concat(PREP_QUESTIONS.slice(0, 1)),
+    'F0-matrix': CONSTRUCTION_QUESTIONS.slice(0, 4).concat(COIN_QUESTIONS.slice(0, 2)).concat(PREP_QUESTIONS.slice(0, 1)),
     'F1-msi': [
-      { kpi: 'k3', q: 'Regla MSI®: después de HAVE va…', options: ['Infinitivo (-ing)', 'Participio', 'Modal solo', 'Artículo'], answer: 1, explain: 'HAVE → participio (been, worked…).' },
-      { kpi: 'k10', q: 'Con TO BE en la cadena, el verbo principal suele ir en…', options: ['-ed', '-ing', 'infinitivo', 'sin verbo'], answer: 1, explain: 'TO BE → ING: I have been working.' },
-      { kpi: 'k4', q: '¿Qué NO es el objetivo de la Mecánica Estructural Infinity®?', options: ['Ver piezas', 'Memorizar oraciones enteras', 'Diagramas', 'Reglas de conexión'], answer: 1, explain: 'No memorizar oraciones — ensamblar piezas.' }
+      { kpi: 'k3', q: 'Después de have en perfecto: I have ___ busy all week.', options: ['been', 'be', 'being', 'was'], answer: 0, explain: 'Have + participio: I have been.' },
+      { kpi: 'k3', q: 'Después de been: I have been ___ on this project.', options: ['working', 'work', 'worked', 'works'], answer: 0, explain: 'Been + -ing: I have been working.' },
+      { kpi: 'k2', q: 'Completá el pasado: They ___ the meeting early.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Pasado simple: finished.' }
     ],
     'B2-verbs': [
       { kpi: 'k1', q: 'Tres formas clave de un verbo son…', options: ['Presente · pasado · participio', 'Solo presente', 'Solo infinitivo', 'Artículo · sustantivo · verbo'], answer: 0, explain: 'Present · Past · Participle — piezas operativas.' },
@@ -232,8 +249,164 @@
     return null;
   }
 
+  function rapidDrillTier(student) {
+    var rd = ensureRapidDrillStats(student);
+    var peak = Math.max(rd.winStreak || 0, rd.bestWinStreak || 0);
+    if (peak >= 10) return 'legend';
+    if (peak >= 5) return 'gold';
+    if (peak >= 3) return 'silver';
+    if (peak >= 1) return 'bronze';
+    return 'none';
+  }
+
+  function tierBadgeHtml(tier) {
+    if (tier === 'legend') return '<div class="jill-tier-badge">👑 LEYENDA · interfaz dorada</div>';
+    if (tier === 'gold') return '<div class="jill-tier-badge">🏆 ORO · racha en fuego</div>';
+    if (tier === 'silver') return '<div class="jill-tier-badge">🥈 PLATA · subiendo nivel</div>';
+    if (tier === 'bronze') return '<div class="jill-tier-badge">🥉 BRONCE · primera victoria</div>';
+    return '';
+  }
+
+  function ensureDrillProfile(student) {
+    if (!student) return null;
+    if (!student.jillDrillProfile) {
+      student.jillDrillProfile = { weakCategories: {}, mastery: {}, lastFailures: [] };
+    }
+    return student.jillDrillProfile;
+  }
+
+  function updateDrillProfile(student, kpiResults) {
+    var prof = ensureDrillProfile(student);
+    if (!prof) return;
+    (kpiResults || []).forEach(function (r) {
+      if (!r.category) return;
+      if (!prof.mastery[r.category]) prof.mastery[r.category] = { ok: 0, fail: 0 };
+      if (r.correct) prof.mastery[r.category].ok++;
+      else {
+        prof.mastery[r.category].fail++;
+        prof.weakCategories[r.category] = (prof.weakCategories[r.category] || 0) + 1;
+        prof.lastFailures.unshift({
+          category: r.category,
+          kpi: r.kpi,
+          at: new Date().toISOString()
+        });
+      }
+    });
+    prof.lastFailures = (prof.lastFailures || []).slice(0, 24);
+  }
+
+  function collectWeakCategories(student) {
+    var prof = ensureDrillProfile(student);
+    if (!prof) return [];
+    var scored = [];
+    Object.keys(prof.mastery || {}).forEach(function (cat) {
+      var m = prof.mastery[cat];
+      var total = (m.ok || 0) + (m.fail || 0);
+      if (total < 1) return;
+      var failRate = (m.fail || 0) / total;
+      if (failRate >= 0.4 || (prof.weakCategories[cat] || 0) >= 2) {
+        scored.push({ cat: cat, weight: failRate + (prof.weakCategories[cat] || 0) * 0.15 });
+      }
+    });
+    Object.keys(prof.weakCategories || {}).forEach(function (cat) {
+      if (scored.some(function (s) { return s.cat === cat; })) return;
+      scored.push({ cat: cat, weight: prof.weakCategories[cat] });
+    });
+    scored.sort(function (a, b) { return b.weight - a.weight; });
+    return scored.map(function (s) { return s.cat; }).slice(0, 6);
+  }
+
+  function drillBankQuestions() {
+    if (typeof JillDrillBank !== 'undefined' && JillDrillBank.BANK) {
+      return JillDrillBank.BANK.slice();
+    }
+    return CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS);
+  }
+
+  function categoryLabel(cat) {
+    if (typeof JillDrillBank !== 'undefined' && JillDrillBank.categoryLabel) {
+      return JillDrillBank.categoryLabel(cat);
+    }
+    var labels = {
+      word_order: 'Orden de palabras', tense: 'Tiempos verbales', negation: 'Negaciones',
+      affirmation: 'Afirmaciones', preposition: 'Preposiciones', number: 'Números',
+      possessive: 'Posesivos', demonstrative: 'Demostrativos', personal_pronoun: 'Personales',
+      reflexive: 'Reflexivos', comparative: 'Comparativos', superlative: 'Superlativos',
+      synonym: 'Sinónimos', antonym: 'Antónimos', phrase: 'Frases', expression: 'Expresiones',
+      compound: 'Compuestas', coin: 'Pregunta / respuesta'
+    };
+    return labels[cat] || cat;
+  }
+
+  function drillApiBase(opts) {
+    opts = opts || {};
+    if (opts.demoMode) {
+      return (typeof DEMO_BACKEND !== 'undefined' ? DEMO_BACKEND : 'https://alice-by-infinity.onrender.com');
+    }
+    return '';
+  }
+
+  function mergeBrainProfile(student, profile) {
+    if (!student || !profile) return;
+    if (profile.jillRapidDrill) student.jillRapidDrill = profile.jillRapidDrill;
+    if (profile.jillDrillProfile) student.jillDrillProfile = profile.jillDrillProfile;
+    if (profile.reinforcement || profile.domain) {
+      student.nemesisState = student.nemesisState || {};
+      if (profile.reinforcement) student.nemesisState.reinforcement = profile.reinforcement;
+      if (profile.domain) student.nemesisState.domain = profile.domain;
+    }
+    if (profile.weakCategories) {
+      student.jillDrillProfile = student.jillDrillProfile || { weakCategories: {}, mastery: {}, lastFailures: [] };
+      profile.weakCategories.forEach(function (c) {
+        student.jillDrillProfile.weakCategories[c] = student.jillDrillProfile.weakCategories[c] || 1;
+      });
+    }
+  }
+
+  function fetchBrainQuestions(student, activeBundle, count, opts) {
+    opts = opts || {};
+    var bid = bundleIdFromStudent(student, activeBundle);
+    var qs = '?count=' + encodeURIComponent(count) + '&bundleId=' + encodeURIComponent(bid || '');
+    if (opts.demoMode) {
+      return fetch(drillApiBase(opts) + '/demo/jill/drill/questions' + qs)
+        .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    }
+    if (typeof infinityFetch === 'function') {
+      return infinityFetch('/jill/drill/questions' + qs, { headers: typeof authHeaders === 'function' ? authHeaders() : {} })
+        .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    }
+    return Promise.reject(new Error('brain unavailable'));
+  }
+
+  function submitBrainComplete(student, payload, opts) {
+    opts = opts || {};
+    if (opts.demoMode) {
+      return fetch(drillApiBase(opts) + '/demo/jill/drill/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result: payload })
+      }).then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    }
+    if (typeof infinityFetch === 'function') {
+      return infinityFetch('/jill/drill/complete', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, typeof authHeaders === 'function' ? authHeaders() : {}),
+        body: JSON.stringify({ result: payload })
+      }).then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    }
+    return Promise.reject(new Error('brain unavailable'));
+  }
+
+  function questionsForCategory(cat) {
+    if (typeof JillDrillBank !== 'undefined' && JillDrillBank.byCategory) {
+      return JillDrillBank.byCategory(cat);
+    }
+    return [];
+  }
+
   function allTaggedQuestions() {
     var out = CORE.slice();
+    drillBankQuestions().forEach(function (q) { out.push(q); });
     FOUNDATIONS_DRILL.forEach(function (q) { out.push(q); });
     Object.keys(BY_BUNDLE).forEach(function (bid) {
       (BY_BUNDLE[bid] || []).forEach(function (q) {
@@ -293,16 +466,42 @@
     return kpi;
   }
 
+  /** Rapid drill = construcción real. Sin siglas ni fórmulas P+V+C. */
+  function isRapidDrillQuestion(item) {
+    if (!item || !item.q) return false;
+    var q = String(item.q);
+    var ql = q.toLowerCase();
+    if (/\bsigla\b|\bfórmula\b|\bmsi®?\b|mecánica estructural|método moneda\b/i.test(ql)) return false;
+    if (/\bp\s*\+\s*v|\bp\s*\+\s*m|\bto be\s*\+|\bhave\s*\+\s*pp\b/i.test(q)) return false;
+    if (/\b(PR|PS|PC|PRP|PPC|MOD)\b/.test(q) && /\b=\b|sigla|fórmula/i.test(ql)) return false;
+    var opts = item.options || [];
+    for (var i = 0; i < opts.length; i++) {
+      if (/P\s*\+\s*[VMC]|To Be\s*\+|Have\s*\+\s*PP|M\s*\+\s*V/i.test(String(opts[i]))) return false;
+    }
+    return true;
+  }
+
   function renderNemesisTopics(student) {
     var kpis = collectNemesisKpis(student).slice(0, 6);
+    var weakCats = collectWeakCategories(student).slice(0, 5);
     var rd = ensureRapidDrillStats(student);
+    var tier = rapidDrillTier(student);
     var streakBar = (rd.winStreak || rd.bestWinStreak)
       ? '<div style="font-size:10px;color:#e9d5ff;text-align:center;margin-bottom:8px;font-weight:700;">🏆 Racha victorias: ' + (rd.winStreak || 0) + (rd.bestWinStreak ? ' · récord ' + rd.bestWinStreak : '') + ' · trofeos ' + (rd.trophies || 0) + '</div>'
       : '';
-    if (!kpis.length) {
-      return streakBar + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Sin fallos recientes — Rapid drill mezcla estructura + KPIs</div>';
+    var tierBar = tier !== 'none' ? tierBadgeHtml(tier) : '';
+    if (!kpis.length && !weakCats.length) {
+      return streakBar + tierBar + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Rapid drill adapta preguntas a tus fallos — orden, tiempos, prep, números…</div>';
     }
-    return streakBar + '<div style="margin-bottom:10px;">'
+    var catHtml = weakCats.length
+      ? '<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">🎯 ÁREAS A REFORZAR</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">'
+        + weakCats.map(function (c) {
+          return '<span style="font-size:10px;font-weight:700;background:rgba(239,68,68,0.15);border:1px solid rgba(248,113,113,0.45);color:#fecaca;padding:4px 10px;border-radius:16px;">' + esc(categoryLabel(c)) + '</span>';
+        }).join('')
+        + '</div></div>'
+      : '';
+    return streakBar + tierBar + catHtml + '<div style="margin-bottom:10px;">'
       + '<div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">⚡ TUS TEMAS RAPID DRILL</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">'
       + kpis.map(function (k) {
@@ -320,9 +519,15 @@
 
     function pushQ(item) {
       if (!item || !item.q || seenQ[item.q]) return;
+      if (!isRapidDrillQuestion(item)) return;
       seenQ[item.q] = true;
       pool.push(item);
     }
+
+    var weakCats = collectWeakCategories(student);
+    weakCats.forEach(function (cat) {
+      shuffle(questionsForCategory(cat)).slice(0, 2).forEach(pushQ);
+    });
 
     nemesisKpis.forEach(function (kpi) {
       var fromBank = questionFromQuizBank(kpi);
@@ -339,7 +544,7 @@
       });
     }
 
-    shuffle(FOUNDATIONS_DRILL).slice(0, 2).forEach(function (q) { pushQ(q); });
+    shuffle(drillBankQuestions()).slice(0, 4).forEach(function (q) { pushQ(q); });
 
     if (pool.length < count) {
       shuffle(allTaggedQuestions()).forEach(pushQ);
@@ -441,6 +646,7 @@
     if (student.jillQuizzes.length > 30) student.jillQuizzes = student.jillQuizzes.slice(-30);
 
     updateNemesisState(student, result.kpiResults || [], result.score);
+    updateDrillProfile(student, result.kpiResults || []);
 
     return { xp: xp, unlocked: unlocked };
   }
@@ -450,10 +656,29 @@
     opts = opts || {};
     injectRapidDrillStyles();
     var rdStats = ensureRapidDrillStats(student);
+    var tier = rapidDrillTier(student);
+    if (rootEl.parentElement) {
+      rootEl.parentElement.className = 'jill-rapid-tier-' + tier;
+    }
     var nemesisKpis = collectNemesisKpis(student);
     var qCount = opts.questionCount || QUESTIONS_PER_ROUND;
-    var quiz = pickNemesisQuestions(student, activeBundle, qCount);
-    var brandLine = BRAND + ' · ' + MODE_LABEL + ' — estructura, tiempos, moneda, prep, vocab';
+    var brandLine = BRAND + ' · ' + MODE_LABEL + ' — completá tiempos, preguntas y construcción';
+    var mountOpts = opts;
+
+    rootEl.innerHTML = '<div style="text-align:center;padding:24px;color:#e9d5ff;font-size:13px;">'
+      + '<div style="font-size:28px;margin-bottom:8px;">🧠</div>'
+      + 'Cargando preguntas del cerebro…</div>';
+
+    fetchBrainQuestions(student, activeBundle, qCount, mountOpts).then(function (data) {
+      if (data && data.profile) mergeBrainProfile(student, data.profile);
+      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, data.questions || [], nemesisKpis, brandLine, qCount);
+    }).catch(function () {
+      rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;font-size:13px;">'
+        + 'No se pudo conectar al cerebro Jill. Verificá sesión o redeploy del backend.</div>';
+    });
+  }
+
+  function startDrillRound(rootEl, student, activeBundle, onDone, opts, quiz, nemesisKpis, brandLine, qCount) {
     if (!quiz.length) {
       rootEl.innerHTML = '<div style="text-align:center;padding:1rem;color:#fde68a;">Sin preguntas — practicá con Jill y volvé.</div>';
       return;
@@ -531,9 +756,8 @@
       var total = state.quiz.length;
       var score = Math.round((state.correct / total) * 100);
       var perfect = state.correct === total && total > 0;
-      var winMeta = applyWinStreak(student, score, perfect);
-      var trophy = trophyForScore(score, perfect);
-      var rec = recordQuiz(student, {
+      var previewWin = score >= WIN_SCORE_PCT;
+      var payload = {
         correct: state.correct,
         total: total,
         score: score,
@@ -541,22 +765,37 @@
         bundleId: state.bundleId,
         kpiResults: state.kpiResults,
         nemesisKpis: state.nemesisKpis,
-        nemesisMode: true,
-        wonRound: winMeta.won,
-        winStreak: winMeta.rd.winStreak
-      });
-      if (student && score >= 70) {
-        if (!student.jillPulse) student.jillPulse = {};
-        student.jillPulse.lastScore = score;
-        student.jillPulse.lastDate = new Date().toISOString();
-        if (score >= 80) {
-          student.jillPulse.passed = true;
-          if (student.jillMatrix) student.jillMatrix.pulseQuizPassed = true;
+        wonRound: previewWin,
+        winStreak: previewWin ? ((student.jillRapidDrill && student.jillRapidDrill.winStreak) || 0) + 1 : 0
+      };
+
+      rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#e9d5ff;">🧠 Guardando en el cerebro…</div>';
+
+      submitBrainComplete(student, payload, opts).then(function (brain) {
+        var rec = { xp: brain.xp || 0, unlocked: [] };
+        if (brain.jillRapidDrill) student.jillRapidDrill = brain.jillRapidDrill;
+        if (brain.nemesisState) student.nemesisState = brain.nemesisState;
+        if (brain.jillDrillProfile) student.jillDrillProfile = brain.jillDrillProfile;
+        if (brain.quizWeakKpis) student.quizWeakKpis = brain.quizWeakKpis;
+        if (brain.jillGrowth) student.jillGrowth = brain.jillGrowth;
+        if (brain.jillPulse) student.jillPulse = brain.jillPulse;
+        if (brain.infinityVictory) student.infinityVictory = brain.infinityVictory;
+        if (typeof InfinityVictory !== 'undefined') InfinityVictory.invalidateCache();
+        if (typeof JillProgress !== 'undefined' && !opts.demoMode) {
+          rec.unlocked = JillProgress.checkBadges(student, { quizPerfect: perfect }) || [];
         }
-      }
-      if (student && student.id && typeof dbSet === 'function') {
-        dbSet('infinity_students', student.id, student).catch(function () {});
-      }
+        var winMeta = {
+          won: !!brain.won,
+          rd: student.jillRapidDrill || ensureRapidDrillStats(student)
+        };
+        var trophy = trophyForScore(score, perfect);
+        paintResultsUI(winMeta, rec, trophy, score, perfect);
+      }).catch(function () {
+        rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;">Error al guardar en el cerebro. Reintentá.</div>';
+      });
+    }
+
+    function paintResultsUI(winMeta, rec, trophy, score, perfect) {
       if (typeof showToast === 'function' && rec.xp) {
         showToast('+' + rec.xp + ' XP · ' + BRAND);
       }
@@ -582,22 +821,22 @@
         + '<div style="font-size:13px;font-weight:900;color:#fcd34d;letter-spacing:.08em;margin-bottom:4px;">' + esc(trophy.title) + '</div>'
         + '<div style="font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:8px;">' + esc(trophy.sub) + '</div>'
         + '<div style="font-size:11px;font-weight:800;color:#c4b5fd;letter-spacing:0.12em;margin-bottom:4px;">' + BRAND + '</div>'
-        + '<div style="font-size:26px;font-weight:900;color:#e9d5ff;">' + state.correct + '/' + total + '</div>'
+        + '<div style="font-size:26px;font-weight:900;color:#e9d5ff;">' + state.correct + '/' + state.quiz.length + '</div>'
         + '<div style="font-size:14px;color:#ddd6fe;margin-bottom:6px;">' + score + '% · racha aciertos ' + state.bestStreak + '</div>'
         + streakLine
         + '<div style="font-size:11px;color:rgba(255,255,255,0.65);margin-bottom:10px;">Trofeos acumulados: ' + (winMeta.rd.trophies || 0) + ' · victorias: ' + (winMeta.rd.totalWins || 0) + '</div>'
         + (domain.length ? '<div style="font-size:11px;color:#86EFAC;margin-bottom:4px;">Dominio: ' + domain.map(kpiLabel).join(', ') + '</div>' : '')
         + (reinforce.length ? '<div style="font-size:11px;color:#fcd34d;margin-bottom:10px;">Sigue en refuerzo: ' + reinforce.map(kpiLabel).join(', ') + '</div>' : '')
-        + '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:16px;">+' + (rec.xp || 0) + ' XP · Jill usará tus fallos en la próxima sesión</div>'
+        + '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:16px;">+' + (rec.xp || 0) + ' XP · perfil guardado en el cerebro (cascada a tutores)</div>'
         + '<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
         + '<button type="button" onclick="jillOpenKahootQuiz()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Rapid drill</button>'
         + '</div>';
-      if (typeof onDone === 'function') onDone({ correct: state.correct, total: total, score: score, xp: rec.xp });
+      if (typeof onDone === 'function') onDone({ correct: state.correct, total: state.quiz.length, score: score, xp: rec.xp });
     }
 
     function afterAnswer(wasCorrect, picked) {
       var q = state.quiz[state.idx];
-      state.kpiResults.push({ kpi: q.kpi || 'k10', correct: wasCorrect });
+      state.kpiResults.push({ kpi: q.kpi || 'k10', correct: wasCorrect, category: q.category || 'tense' });
       if (wasCorrect) {
         state.correct++;
         state.streak++;
@@ -660,7 +899,7 @@
             b.disabled = true;
             b.style.opacity = i === q.answer ? '1' : '0.35';
           });
-          state.kpiResults.push({ kpi: q.kpi || 'k10', correct: false });
+          state.kpiResults.push({ kpi: q.kpi || 'k10', correct: false, category: q.category || 'tense' });
           var fb = document.createElement('div');
           fb.style.marginTop = '14px';
           fb.innerHTML = '<div style="text-align:center;"><div style="font-size:32px;">⏱️</div>'

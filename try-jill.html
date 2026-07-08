@@ -67,7 +67,8 @@
   <div id="jill-billing-zone" style="margin-top:24px;text-align:center;"></div>
 </div>
 
-<script src="js/jill-quiz.js?v=20260707flame"></script>
+<script src="js/demo-api.js"></script>
+<script src="js/jill-quiz.js?v=20260707brain"></script>
 <script src="js/jill-billing.js?v=20260707j"></script>
 <script>
 (function () {
@@ -95,7 +96,7 @@
     stage.hidden = false;
     var zone = document.getElementById('jill-quiz-zone');
     if (typeof JillQuiz !== 'undefined') {
-      JillQuiz.mount(zone, demoStudent, null, null, { questionCount: 3 });
+      JillQuiz.mount(zone, demoStudent, null, null, { questionCount: 3, demoMode: true });
     }
   }
 
