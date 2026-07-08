@@ -3319,8 +3319,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v8-method-os';
-const ALICE_BRAIN_VER = 'v7-method-os';
+const JILL_BRAIN_VER = 'v9-method-os-c4';
+const ALICE_BRAIN_VER = 'v8-method-os-c4';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
