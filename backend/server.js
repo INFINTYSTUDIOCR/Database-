@@ -4181,19 +4181,9 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
   try {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null);
     if (req.auth.role === 'student' && !ok) return;
-    const { text, lang, language_code } = req.body || {};
-    const rawLang = String(language_code || lang || '').toLowerCase();
-    const languageCode = rawLang.indexOf('en') === 0 ? 'en' : (rawLang.indexOf('es') === 0 ? 'es' : null);
-    return await synthesizeSpeech(req, res, {
-      text,
-      voiceId: JILL_VOICE_ID || ALICE_VOICE_ID,
-      label: 'Jill',
-      stability: 0.66,
-      similarityBoost: 0.72,
-      style: 0.05,
-      speed: 0.84,
-      languageCode
-    });
+    const { text } = req.body || {};
+    // Jill usa exactamente la misma voz y ajustes que Alice (mismo voiceId + defaults).
+    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Jill' });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
