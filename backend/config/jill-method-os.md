@@ -323,10 +323,52 @@ Asù cumplùs los tres de un solo golpe: neutro (at), adentro (in), encima (on).
 
 ---
 
+## MùDULO DE DOMINIO 007 ù ESTADOS: TENER (espaùol) = TO BE (inglùs) [EDAD Y SENSACIONES]
+
+**Concepto central:** en espaùol usamos **tener** para estados (tengo 25 aùos, tengo hambre, tengo frùo). El hispanohablante traduce literal ? "I have 25 years", "I have hunger" ? error. En inglùs un estado no se **tiene**, se **ES**: `to be`. El estudiante no memoriza una lista ù detecta si eso que "tiene" es una **cosa** (posesiùn ? have) o un **estado / sensaciùn** (? to be).
+
+**La lùgica (puente espaùol ? inglùs):**
+- Posesiùn real, una cosa que poseùs ? `have`: I have a car, I have a dog.
+- Estado, sensaciùn o condiciùn (edad, hambre, frùo, miedo, razùn, sueùo, prisa) ? `to be`.
+- La pregunta que se hace el estudiante: "ùEso es una **cosa** que poseo, o un **estado** que siento/soy? Cosa ? have. Estado ? to be."
+
+**El caso ancla ù la edad ("el ejercicio de los aùos"):**
+- "tengo 25 aùos" NO es "I have 25 years". La edad es un estado ? `I am 25 years old`.
+- Estructura: Pronombre + to be (am/is/are) + nùmero + `years old`.
+- La etiqueta `years old` es obligatoria; sin ella la edad queda coja (`I am 25` a secas es incompleto en el drill).
+
+**Tabla de estados (tener ? to be):**
+```
+tengo X aùos  -> I am X years old      tengo miedo  -> I am afraid / scared
+tengo hambre  -> I am hungry           tengo sueùo  -> I am sleepy
+tengo sed     -> I am thirsty          tengo razùn  -> I am right
+tengo frùo    -> I am cold             tengo prisa  -> I am in a hurry
+tengo calor   -> I am hot              tengo suerte -> I am lucky
+```
+
+**Correcciùn (caso firma):**
+- Estudiante: "I have 25 years."
+- Jill: "ùLa edad es una cosa que tenùs, o un estado que sos? En inglùs la edad se ES, no se tiene. Armalo con `to be`." ? I am 25 years old.
+- Mismo molde para el resto: "I have hunger" ? "ùHambre es algo que poseùs o algo que sentùs? ? to be." ? I am hungry.
+
+**Ejercicios:**
+1. Clasificar cosa vs estado antes de elegir: Jill dice "un carro / hambre / 30 aùos / un perro / frùo" ? el estudiante decide have o to be y explica por quù.
+2. Rapid Fire de estados (hambre, frùo, calor, miedo, sueùo, razùn, edad) ? todo con to be.
+3. Trampa: "tengo un carro" (cosa ? have) vs "tengo frùo" (estado ? to be); el estudiante explica la diferencia antes de armar.
+4. La edad en ping-pong: Jill pregunta "How old are you?" / "How old is your mom?" ? el estudiante responde con to be + nùmero + years old.
+5. Estado + ancla temporal: "ayer tenùa frùo" ? I was cold yesterday; "ahora tengo hambre" ? I am hungry now.
+
+**Dominio:** distingue cosa (have) vs estado (to be) sin que Jill lo nombre ù arma la edad con `to be + nùmero + years old` ù nunca dice "I have X years / I have hunger" ù corrige su propio error cuando Jill pregunta "ùcosa o estado?".
+
+**Errores frecuentes:** "I have 25 years"?"ùLa edad es cosa o estado? En inglùs se ES." ù "I have hunger / I have cold"?"ùEso lo poseùs o lo sentùs? ? to be." ù "I have afraid"?"ùEstado? Entonces to be: I am afraid." ù olvida `years old`?"En inglùs la edad lleva su etiqueta: ___ years old." ù usa have con estados por costumbre del espaùol?"Parù. ùCosa o estado?".
+
+---
+
 ## REGISTRO DE MùDULOS DE DOMINIO
 - **Mùdulo de Dominio 001** (base v1.0): patrùn `tendrù = will have` / `tendrùa = would have`; LEGO P+M+V, P+Have+PP, P+M+Have+PP, P+Have+Been+ING; progresiùn de modales.
 - **Mùdulo de Dominio 002** (v2.0): tiempos verbales como ancla; patrùn completo del verbo (11 formas); ubicaciùn temporal ("ùAncla?"); Analogùa de la Casa; correcciùn de mezcla temporal.
 - **Mùdulo de Dominio 003** (v2.0): verbos regulares, las 3 reglas del -ED (E?D ù CVC acento final?doblar+ED ù Y tras consonante?I+ED) + trampas (hop/hope, play/open, study).
 - **Mùdulo de Dominio 004** (v2.0): los 16 irregulares esenciales por grupo; tres columnas; regla HAVE?participio; nunca -ED a irregulares.
 - **Mùdulo de Dominio 005** (v3.0): Get It Straight -ING; TO BE + V-ING = progresivo, V-ING (sin to be) = actividad general, to + V = intenciùn/decisiùn; contraste watching vs to watch; correcciùn del abuso del infinitivo + montar linker.
-- **MÛdulo de Dominio 006** (v4.0): preposiciones #1 in/on/at; el "en" espaÒol se divide en in (adentro), on (encima/sobre), at (neutro); frase ancla "I'm at home, the book is in the room on the table"; nota by (autorÌa / cerca de / por causa de).
+- **Mùdulo de Dominio 006** (v4.0): preposiciones #1 in/on/at; el "en" espaùol se divide en in (adentro), on (encima/sobre), at (neutro); frase ancla "I'm at home, the book is in the room on the table"; nota by (autorùa / cerca de / por causa de).
+- **MÛdulo de Dominio 007** (v5.0): estados TENER (espaÒol) = TO BE (inglÈs); edad "I am X years old" (no "I have X years"); hambre/frÌo/miedo/razÛn/prisa ? to be; detectar cosa (have) vs estado (to be); correcciÛn "øcosa o estado?".

@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v4-modulo006';
+const METHOD_OS_VERSION = 'os-v5-modulo007';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -66,7 +66,12 @@ PREPOSICIONES #1 in/on/at (Mùdulo 006) ù el "en" espaùol se divide en tres (por 
 - in = "en" de ADENTRO / contenciùn (in the house = adentro; in the room, in the car, in the lunchbox).
 - on = "en" de ENCIMA / sobre una superficie (on the table, on the board).
 - at = "en" NEUTRO, lugar sin especificar adentro/encima (at home, at work, at the university).
-Frase ancla firma: "I'm at home and the book is in the room on the table" (neutro + adentro + encima). Nota: by = autorùa de alguien / cerca de / por causa de. Correcciùn: ante un "en" espaùol, primero preguntar "ùadentro, encima o neutro?" y reciùn elegir in/on/at ù nunca traducir "en" a ciegas. (Prepositions #2 ùmeses, eventos, "coming at you"ù es mùdulo aparte, aùn no ingerido.)`;
+Frase ancla firma: "I'm at home and the book is in the room on the table" (neutro + adentro + encima). Nota: by = autorùa de alguien / cerca de / por causa de. Correcciùn: ante un "en" espaùol, primero preguntar "ùadentro, encima o neutro?" y reciùn elegir in/on/at ù nunca traducir "en" a ciegas. (Prepositions #2 ùmeses, eventos, "coming at you"ù es mùdulo aparte, aùn no ingerido.)
+
+ESTADOS: TENER (espaùol) = TO BE (inglùs) (Mùdulo 007) ù edad y sensaciones: en espaùol usamos "tener" para estados (tengo 25 aùos, tengo hambre, tengo frùo) y el hispanohablante traduce literal ("I have 25 years", "I have hunger" = error). En inglùs un estado no se TIENE, se ES (to be). Detectar: ùes una COSA que poseo (have: I have a car) o un ESTADO/sensaciùn (to be)?
+- Edad (caso ancla, "el ejercicio de los aùos"): "tengo 25 aùos" -> I am 25 years old (Pronombre + to be + nùmero + "years old"). NUNCA "I have 25 years".
+- Estados: tengo hambre -> I am hungry; tengo sed -> I am thirsty; tengo frùo -> I am cold; tengo calor -> I am hot; tengo miedo -> I am afraid/scared; tengo sueùo -> I am sleepy; tengo razùn -> I am right; tengo prisa -> I am in a hurry; tengo suerte -> I am lucky.
+Correcciùn firma: "I have 25 years" -> "ùLa edad es una cosa que tenùs o un estado que sos? En inglùs se ES, no se tiene." -> I am 25 years old. Mismo molde: "I have hunger" -> "ùLo poseùs o lo sentùs? -> to be" -> I am hungry. Errores: olvida "years old" -> "la edad lleva su etiqueta: ___ years old"; usa have por costumbre del espaùol -> "Parù. ùCosa o estado?".`;
 
 /** Nota especùfica para Alice: comparte la base, mantiene su alcance (linkers/expansiùn). */
 const METHOD_OS_ALICE_NOTE = `
