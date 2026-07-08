@@ -210,6 +210,7 @@ JillClassAnalyzer.initClassAnalyzer({ superBrain: SuperBrain, sbSet, sbGetOne })
 
 const TrainerModel = require('./trainer-model');
 const JillStructureCoach = require('./jill-structure-coach');
+const JillMethodOS = require('./jill-method-os');
 const JillTrainerInsights = require('./jill-trainer-insights');
 const JillCalibration = require('./jill-calibration');
 
@@ -3276,6 +3277,7 @@ PATIENCE: Students make mistakes. They speak slowly. They freeze. That is okay. 
 ${ALICE_BILINGUAL_INPUT}
 
 ${methodBlock}
+${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 
 LANGUAGE: Respond ONLY in English. NEVER mix Spanish into your main response. Only at the very end, on a new line, write: "ALICE: [one specific tip in Spanish, example with a connector]"
 
@@ -3317,8 +3319,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v7-msi-scope';
-const ALICE_BRAIN_VER = 'v6-coach-flex';
+const JILL_BRAIN_VER = 'v8-method-os';
+const ALICE_BRAIN_VER = 'v7-method-os';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
@@ -3432,7 +3434,7 @@ Cuando querés mostrar algo visual o estructurado, usás el campo contentType en
 RESPUESTA:
 Respondé siempre en JSON válido con este formato:
 {"reply":"tu respuesta aquí","contentType":"text|exercise|example|whiteboard"}
-No uses markdown. No uses texto fuera del JSON.` + JILL_STRUCTURE_NOTATION + JILL_COIN_METHOD_RULE;
+No uses markdown. No uses texto fuera del JSON.` + JILL_STRUCTURE_NOTATION + JILL_COIN_METHOD_RULE + JillMethodOS.METHOD_OS_CORE;
 
 // Extracts {reply, contentType} from Claude response regardless of markdown wrapping
 function parseJillResponse(raw) {
@@ -4015,6 +4017,7 @@ Tutor only — NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
 ${ALICE_BILINGUAL_INPUT}
 ${methodBlock}
+${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
@@ -4292,6 +4295,87 @@ app.post('/jill/class-audio', requireTeacherAccess,
       return res.status(500).json({ error: 'Class audio analysis failed', detail: err.message });
     }
   });
+
+// Convierte una transcripcion (TikTok/clase de John) en doctrina de ensenanza y la publica al cerebro (Jill + Alice).
+async function transcriptToTeachingDoctrine(transcript, meta = {}) {
+  const raw = String(transcript || '').trim().slice(0, 14000);
+  const fallback = {
+    title: `Doctrina · ${(meta.source || 'transcripción').slice(0, 60)}`,
+    category: 'metodologia',
+    content: raw.slice(0, 11000)
+  };
+  if (!process.env.ANTHROPIC_API_KEY) return fallback;
+  try {
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1100,
+      system: `Sos el editor pedagógico de Infinity Studio CR (método John Ramírez · Nexus · Mecánica Estructural Infinity®).
+Recibís la TRANSCRIPCIÓN de un video/clase del fundador y la convertís en material institucional que Jill (Foundations) y Alice (Intermediate+) puedan usar para enseñar, corregir y evaluar.
+Respondé SOLO JSON válido, sin markdown.`,
+      messages: [{
+        role: 'user',
+        content: `Transcripción (${meta.source || 'video'}):
+"""
+${raw}
+"""
+
+Devolvé JSON exacto:
+{"title":"título corto para la KB (máx 100 chars)","category":"metodologia|jill-foundations|conectores|ejercicios|errores","content":"texto estructurado en español claro con: DOCTRINA (1-2 frases del patrón/lógica de John), PUENTE ESPAÑOL↔INGLÉS si aplica, REGLA/ESTRUCTURA (LEGO P|M|V|C o linkers según nivel), EJEMPLO MODELO EN INGLÉS, EJERCICIO PARA EL ESTUDIANTE, CORRECCIÓN TÍPICA (con pregunta, no con la respuesta). Sin hashtags ni CTA de redes."}`
+      }]
+    });
+    const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    return {
+      title: String(parsed.title || fallback.title).slice(0, 120),
+      category: parsed.category || 'metodologia',
+      content: String(parsed.content || raw).slice(0, 11000)
+    };
+  } catch (e) {
+    console.warn('transcriptToTeachingDoctrine:', e.message);
+    return fallback;
+  }
+}
+
+app.post('/jill/ingest-teaching', requireTeacherAccess, async (req, res) => {
+  try {
+    const transcript = String(req.body?.transcript || '').trim();
+    if (transcript.length < 20) return res.status(400).json({ error: 'Pegá la transcripción (mínimo 20 caracteres).' });
+    if (!SuperBrain.isSuperBrainEnabled()) {
+      return res.status(503).json({ error: 'Super Brain no está configurado (falta Supabase). No puedo publicar la doctrina.' });
+    }
+    const meta = {
+      source: String(req.body?.source || 'transcripción').slice(0, 120),
+      url: req.body?.url ? String(req.body.url).slice(0, 300) : ''
+    };
+    const author = String(req.body?.author || 'John Ramírez').slice(0, 80);
+    const review = !!req.body?.review;
+
+    const doctrine = await transcriptToTeachingDoctrine(transcript, meta);
+    const state = await SuperBrain.loadState();
+    const out = await SuperBrain.ingest(state, {
+      title: doctrine.title,
+      content: doctrine.content,
+      author,
+      category: doctrine.category,
+      autoPublish: !review,
+      source: 'teaching-transcript',
+      meta
+    });
+    return res.json({
+      ok: true,
+      published: out.published,
+      status: out.published ? 'publicado (cascada a Jill y Alice)' : 'en pendiente de revisión',
+      title: doctrine.title,
+      category: doctrine.category,
+      lessonId: out.lesson?.id || out.pending?.id || null,
+      preview: doctrine.content.slice(0, 400),
+      source: 'teaching-brain'
+    });
+  } catch (err) {
+    console.error('jill/ingest-teaching:', err.message);
+    return res.status(500).json({ error: 'Ingesta de doctrina falló', detail: err.message });
+  }
+});
 
 app.get('/demo/jill/drill/questions', async (req, res) => {
   try {
