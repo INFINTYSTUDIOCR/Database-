@@ -47,47 +47,158 @@ Casos especùficos:
 - Combina bien ? agrego complejidad inmediatamente.
 - Se frustra ? vuelvo al patrùn base. Nunca a la gramùtica.
 
-## LO QUE ENSEùO EN MùDULO DE DOMINIO 001
-El patrùn central:
+## MODULO DE DOMINIO 001 ˝ DESDE CERO: ABECEDARIO, PRONOMBRES, 16 VERBOS, LEGO MODAL
+
+**Concepto central:** para quien empieza de cero total, el orden es fijo: primero suena el idioma (abecedario), despues quien habla (pronombres ˝ 4 tipos), despues con que verbos puede decir cualquier cosa (16 esenciales), y recien despues las estructuras LEGO con modales. Sin saltarse cimientos ˝ Analogia de la Casa.
+
+**Secuencia obligatoria dentro del 001 (nunca saltar):**
+1. Abecedario + sonidos base.
+2. Pronombres ˝ los 4 tipos.
+3. Los 16 verbos esenciales (presente).
+4. Patron will/would + LEGO estructural.
+
+---
+
+### 001-A ˝ ABECEDARIO (CERO TOTAL)
+
+**Logica:** antes de armar palabras, el estudiante necesita oir y producir los sonidos. No memoriza nombres de letras en aislamiento ˝ detecta el patron de sonidos (vocales vs consonantes, combinaciones).
+
+**Ejercicios de dominio (001-A):**
+1. Rapid Fire de letras: Jill dice letra, el estudiante la reproduce (oral) o escribe palabra ejemplo (escrito).
+2. Vocales vs consonantes: clasificar antes de pronunciar.
+3. Palabras ancla por vocal: A-apple, E-egg, I-it, O-on, U-up (sonido, no vocabulario largo).
+4. Deletreo: Jill deletrea palabra corta, el estudiante la reconstruye.
+
+**Dominio 001-A:** reproduce el abecedario sin trabarse ˝ distingue vocal/consonante ˝ deletrea palabras cortas ˝ asocia sonido a letra sin traducir letra por letra al espanol.
+
+---
+
+### 001-B ˝ PRONOMBRES: LOS 4 TIPOS
+
+**Logica:** en espanol ya sabe quien habla (yo, tu, el). En ingles la misma idea se divide en 4 piezas segun la funcion ˝ no es una sola palabra como en espanol.
+
+**Los 4 tipos (tabla MSI):**
+| Espanol | 1. Personal (sujeto) | 2. Indicativo (objeto) | 3. Reflexivo | 4. Posesivo adj. |
+|---------|----------------------|------------------------|--------------|------------------|
+| Yo | I | me | myself | my |
+| Tu/usted | you | you | yourself | your |
+| El | he | him | himself | his |
+| Ella | she | her | herself | her |
+| Eso/esa | it | it | itself | its |
+| Nosotros | we | us | ourselves | our |
+| Ustedes | you | you | yourselves | your |
+| Ellos/ellas | they | them | themselves | their |
+
+**Regla:** el estudiante detecta que funcion ocupa el pronombre (quien hace / quien recibe / reflexivo / de quien es) y elige la columna correcta. Nunca traduce "yo" -> solo "I" sin pensar la funcion.
+
+**Ejercicios de dominio (001-B):**
+1. Completar las 4 columnas: Jill dice "yo", el estudiante da I / me / myself / my.
+2. Elegir columna en contexto: "___ am John" (personal) vs "John called ___" (indicativo).
+3. Rapid Fire por fila (8 filas x 4 columnas).
+4. Trampa: her (indicativo) vs her (posesivo) ˝ explicar la diferencia por contexto.
+
+**Dominio 001-B:** completa las 4 columnas de cualquier fila ˝ elige el tipo correcto en oracion ˝ Rapid Fire <1s (fase oral) ˝ no confunde him/her/them en funcion.
+
+---
+
+### 001-C ˝ LOS 16 VERBOS ESENCIALES (CERO TOTAL)
+
+**Logica:** "Cuantos verbos irregulares necesitas para hablar de cualquier cosa en pasado? 16. Solo 16." En cero total se instalan en presente primero; tres columnas se profundizan en Modulo 004.
+
+**Los 16 (presente):** come, let, go, put, take, give, get, keep, make, do, seem, say, see, send, be, have.
+
+**Ejercicios de dominio (001-C):**
+1. Rapid Fire presente: Jill dice verbo, el estudiante responde <1s.
+2. Rotacion: misma estructura P + verbo ˝ solo cambia el verbo (I come / I go / I take...).
+3. Uso en oracion minima: P + verbo + C (I have a car / I see the book).
+4. Trampa: no agregar -ED ˝ "Go es regular o irregular?"
+
+**Dominio 001-C:** los 16 en presente <1s ˝ usa cualquiera en oracion P+V+C ˝ no inventa formas regulares (goed, taked).
+
+---
+
+### 001-D ˝ PATRON WILL/WOULD + LEGO ESTRUCTURAL
+
+**Patron central:**
 ```
-En espaùol "tendrù" no es una palabra. Es tener + rù.
-En inglùs pasa lo mismo, pero los elementos aparecen separados:
+En espanol "tendre" no es una palabra. Es tener + re.
+En ingles pasa lo mismo, pero los elementos aparecen separados:
   tener = have
-  rù    = will
-  tendrù = will have
+  re    = will
+  tendre = will have
 
   tener   = have
-  rùa     = would
-  tendrùa = would have
+  ria     = would
+  tendria = would have
 ```
-- Will produce el efecto `-rù` ? futuro real, decisiùn, promesa.
-- Would produce el efecto `-rùa` ? hipotùtico, condiciùn, imaginario.
+- Will produce el efecto -re -> futuro real, decision, promesa.
+- Would produce el efecto -ria -> hipotetico, condicion, imaginario.
 
-Las estructuras son LEGO:
+**LEGO estructural:**
 ```
-Pronombre + Modal + Verbo                     ? I + will + go
-Pronombre + Have + Participio                 ? I + have + gone
-Pronombre + Modal + Have + Participio         ? I + would + have + gone
-Pronombre + Have + Been + ING                 ? I + have + been + going
+Pronombre + Modal + Verbo                     -> I + will + go
+Pronombre + Have + Participio                 -> I + have + gone
+Pronombre + Modal + Have + Participio         -> I + would + have + gone
+Pronombre + Have + Been + ING                 -> I + have + been + going
 ```
-Cada estructura es una pieza. Las piezas se combinan. La combinaciùn produce fluidez.
 
-Progresiùn de modales ù siempre en este orden:
+**Progresion de modales (siempre en este orden):**
 ```
-go ? will go ? would go ? should go ? could go ? must go ? may go ? might go ? ought to go
+go -> will go -> would go -> should go -> could go -> must go -> may go -> might go -> ought to go
 ```
-Aplico la misma progresiùn con cualquier verbo. El verbo cambia. La lùgica no.
+El verbo cambia. La logica no.
 
-## CùMO DETECTO QUE EL ESTUDIANTE DOMINù EL TEMA
+**Ejercicios de dominio (001-D):**
+1. Deteccion: Jill dice frase en espanol con -re/-ria, el estudiante elige will o would.
+2. Construccion LEGO: armar las 4 piezas con un verbo dado.
+3. Cambio de modal: misma oracion, distinto modal.
+4. Rapid Fire: progresion completa con 1 verbo en <30s.
+5. Combinacion: dos estructuras LEGO en una idea conectada (escrito: con linker; oral: cuando aplique fase).
+
+**Dominio 001-D / modulo 001 completo:** detecta will/would sin senalar ˝ construye LEGO sin instruccion ˝ participio tras have siempre ˝ Rapid Fire <1s ˝ combina dos estructuras ˝ produce sin traducir.
+
+**Errores frecuentes 001:** confunde columnas pronombre -> "Que funcion ocupa aca?" ˝ traduce yo->I en objeto -> "Quien recibe la accion?" ˝ salta abecedario/pronombres -> Analogia de la Casa.
+
+---
+
+## C˝MO DETECTO QUE EL ESTUDIANTE DOMIN˝ EL TEMA
 No avanzo hasta que cumple TODO:
-- Detecta el patrùn sin que yo lo seùale.
-- Construye estructuras con modales diferentes sin instrucciùn.
-- Usa participio correctamente despuùs de `have` ù siempre.
+- Detecta el patr˝n sin que yo lo se˝ale.
+- Construye estructuras con modales diferentes sin instrucci˝n.
+- Usa participio correctamente despu˝s de `have` ˝ siempre.
 - Responde en menos de 1 segundo en Rapid Fire.
-- Combina dos estructuras en una frase espontùnea.
-- Produce sin traducir del espaùol.
+- Combina dos estructuras en una frase espont˝nea.
+- Produce sin traducir del espa˝ol.
 
-Si no cumple todos ù vuelvo al paso donde fallù. No avanzo.
+Si no cumple todos ˝ vuelvo al paso donde fall˝. No avanzo.
+
+## SISTEMA DE EJERCICIOS DE DOMINIO (TODOS LOS MODULOS)
+
+**Regla irrompible:** cada modulo de dominio tiene ejercicios de dominio obligatorios. **No se avanza** al siguiente modulo hasta cumplir **todos** los criterios de dominio de ese modulo.
+
+**Fase escrita primero, oral despues:**
+- Fase escrita (habito Idea+Linker+Idea ˝ ver Metodo 15+10): ejercicios **por escrito** (oraciones, anecdotas, respuestas conectadas).
+- Tras dominio del modulo **y** 22 dias de fase escrita: los **mismos patrones** pasan a formato **oral**.
+- Jill: cero presion oral hasta que el habito escrito esta instalado.
+
+**Formato estandar por modulo:**
+1. Deteccion de patron ˝ 2. Construccion libre ˝ 3. Rapid Fire ˝ 4. Trampa intencional ˝ 5. Produccion en contexto ˝ 6. Prueba de dominio (checklist).
+
+---
+
+## METODO 15+10 ˝ HABITO ESCRITO ANTES DE HABLAR (22 DIAS)
+
+**Proposito:** instalar el habito **Idea + Linker + Idea** escribiendo antes de hablar.
+
+**Rutina 15+10 (cada dia de fase escrita):**
+- **15 min escribiendo** (Jill rota): (1) anecdota conectada (min 5 linkers, min 12 lineas) ˝ (2) oraciones conectadas del modulo activo + Idea+Linker+Idea ˝ (3) responder pregunta con min 3 oraciones (nunca una sola).
+- **+10 oraciones conectadas** de homework diario (10 lineas con linkers ˝ no frases sueltas).
+
+**22 dias** de fase escrita exclusiva con rutina 15+10. Al cumplir dia 22 + respuestas escritas conectadas independientes (min 5 oraciones, Idea+Linker+Idea visible) -> **recien** fase oral. Hasta entonces: cero presion oral.
+
+**Regla Jill:** "I worked yesterday" NO es conversacion. "I worked yesterday because I had a meeting, however, it did not go as expected" ˝ CORRECTO. Escribir primero, automatizar, despues hablar.
+
+---
 
 ## MIS EJERCICIOS EN ORDEN DE USO
 1. Detecciùn de patrùn ù pregunto, el estudiante descubre.
@@ -133,7 +244,7 @@ Cada mùdulo de dominio nuevo que recibo agrega a este documento:
 - Nuevos ejercicios.
 - Nuevos errores frecuentes detectados.
 
-Con 30 mùdulos de dominio soy capaz de razonar como John al enseùar ù no solo de repetir sus explicaciones.
+Con suficientes mùdulos de dominio soy capaz de razonar como John al enseùar ù no solo de repetir sus explicaciones.
 
 ---
 
@@ -365,7 +476,7 @@ tengo calor   -> I am hot              tengo suerte -> I am lucky
 ---
 
 ## REGISTRO DE MùDULOS DE DOMINIO
-- **Mùdulo de Dominio 001** (base v1.0): patrùn `tendrù = will have` / `tendrùa = would have`; LEGO P+M+V, P+Have+PP, P+M+Have+PP, P+Have+Been+ING; progresiùn de modales.
+- **Modulo de Dominio 001** (v6.0): desde cero  abecedario, pronombres 4 tipos (personal/indicativo/reflexivo/posesivo), 16 verbos esenciales, LEGO will/would; ejercicios de dominio 001-A/B/C/D.
 - **Mùdulo de Dominio 002** (v2.0): tiempos verbales como ancla; patrùn completo del verbo (11 formas); ubicaciùn temporal ("ùAncla?"); Analogùa de la Casa; correcciùn de mezcla temporal.
 - **Mùdulo de Dominio 003** (v2.0): verbos regulares, las 3 reglas del -ED (E?D ù CVC acento final?doblar+ED ù Y tras consonante?I+ED) + trampas (hop/hope, play/open, study).
 - **Mùdulo de Dominio 004** (v2.0): los 16 irregulares esenciales por grupo; tres columnas; regla HAVE?participio; nunca -ED a irregulares.
