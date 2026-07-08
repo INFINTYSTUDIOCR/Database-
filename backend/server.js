@@ -205,7 +205,11 @@ const InfinityVictory = require('./infinity-victory');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
+const JillClassAnalyzer = require('./jill-class-analyzer');
+JillClassAnalyzer.initClassAnalyzer({ superBrain: SuperBrain, sbSet, sbGetOne });
+
 const TrainerModel = require('./trainer-model');
+const JillStructureCoach = require('./jill-structure-coach');
 const JillTrainerInsights = require('./jill-trainer-insights');
 const JillCalibration = require('./jill-calibration');
 
@@ -3850,8 +3854,22 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (drillEval.forcedReply) {
       return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n[[CTYPE:text]]');
     }
+    // Jill DJ — escucha estructural en vivo (tiempos/prep/expresiones/vocab) + ritmo adaptativo.
+    const isMetaTurn = TrainerModel.isJillCoachMetaRequest(message);
+    let structureNote = '';
+    if (!isJillCompanion && !calibrating && !isMetaTurn) {
+      const structAnalysis = JillStructureCoach.analyzeTurn(message, { student, matrixContext });
+      const turnOk = structAnalysis.findings.length
+        ? false
+        : (typeof drillEval.structureOk === 'boolean' ? drillEval.structureOk : null);
+      const dj = JillStructureCoach.djMove(student?.id, turnOk);
+      structureNote = JillStructureCoach.formatCoachNote(structAnalysis, dj);
+      if (structAnalysis.findings.length) {
+        JillDrillBrain.cascadeTurnFailures(student, structAnalysis.findings).catch(() => {});
+      }
+    }
     const trainerNote = (isJillCompanion || calibrating) ? '' : (TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
-      + TrainerModel.formatTrainerEvalNote(drillEval));
+      + TrainerModel.formatTrainerEvalNote(drillEval) + structureNote);
     mergeStudyPrefs(student, message);
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
@@ -4238,6 +4256,42 @@ app.post('/jill/drill/complete', requireProductAuth, async (req, res) => {
     return res.status(500).json({ error: 'Drill complete failed' });
   }
 });
+
+// ── Análisis de clases grabadas (cerebro analiza audio) — solo profe/admin ──
+const requireTeacherAccess = requireAuth(['trainer', 'superadmin', 'master']);
+
+app.post('/jill/class-transcript', requireTeacherAccess, async (req, res) => {
+  try {
+    const transcript = String(req.body?.transcript || '').trim();
+    if (!transcript) return res.status(400).json({ error: 'Falta transcript' });
+    const meta = req.body?.meta || {};
+    const out = await JillClassAnalyzer.analyzeClassTranscript(transcript, { meta });
+    return res.json({ ok: true, ...out, source: 'class-brain' });
+  } catch (err) {
+    console.error('jill/class-transcript:', err.message);
+    return res.status(500).json({ error: 'Class analysis failed', detail: err.message });
+  }
+});
+
+app.post('/jill/class-audio', requireTeacherAccess,
+  express.raw({ type: ['audio/*', 'application/octet-stream'], limit: '50mb' }),
+  async (req, res) => {
+    try {
+      const buffer = req.body;
+      if (!buffer || !buffer.length) return res.status(400).json({ error: 'Falta audio en el body (binario)' });
+      const meta = {};
+      ['classId', 'className', 'group'].forEach((k) => { if (req.query[k]) meta[k] = String(req.query[k]); });
+      const out = await JillClassAnalyzer.analyzeClassAudio(buffer, {
+        mimeType: req.headers['content-type'],
+        filename: req.query.filename ? String(req.query.filename) : undefined,
+        meta
+      });
+      return res.json({ ok: true, ...out, source: 'class-brain' });
+    } catch (err) {
+      console.error('jill/class-audio:', err.message);
+      return res.status(500).json({ error: 'Class audio analysis failed', detail: err.message });
+    }
+  });
 
 app.get('/demo/jill/drill/questions', async (req, res) => {
   try {

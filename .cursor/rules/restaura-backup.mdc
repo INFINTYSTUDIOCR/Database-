@@ -1,0 +1,19 @@
+---
+description: Restaurar proyecto al backup restaura-2026-07-02 cuando el usuario dice "Restaura"
+alwaysApply: true
+---
+
+# Palabra de restauración: Restaura
+
+Si el usuario escribe **`Restaura`** (solo esa palabra o como instrucción explícita de volver al punto de guardado):
+
+1. **No improvisar** — restaurar desde el snapshot oficial.
+2. Ejecutar desde la raíz del repo:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File backup\restaura-2026-07-02\restore.ps1
+   ```
+3. Leer `backup/restaura-2026-07-02/RESTORE.md` y `MANIFEST.json` si hace falta contexto.
+4. Confirmar al usuario qué se restauró y recordar Ctrl+F5 en el portal + redeploy backend si aplica.
+5. **No** borrar la carpeta `backup/restaura-2026-07-02/` ni otros backups en `backup/`.
+
+Este punto guarda el estado con Alice companion, parches TTS y Nexora sin cambios de display/embebido.

@@ -311,6 +311,24 @@ async function persistStudent(student) {
   return _sbSet('infinity_students', student.id, student);
 }
 
+/**
+ * Cascada POR TURNO de conversacin (Jill DJ): fallos de estructura detectados
+ * mientras el alumno habla, no solo en el Rapid drill. Alimenta el mismo perfil
+ * y el mismo cerebro compartido que el drill, para que las sesiones y los tutores
+ * refuercen lo que el alumno falla al conversar.
+ */
+async function cascadeTurnFailures(student, findings) {
+  if (!student) return null;
+  const results = (findings || [])
+    .filter((f) => f && f.category)
+    .map((f) => ({ category: f.category, kpi: f.kpi || 'k10', correct: false }));
+  if (!results.length) return null;
+  updateDrillProfile(student, results);
+  await cascadeFailuresToBrain(student, results);
+  await persistStudent(student);
+  return { weakCategories: collectWeakCategories(student) };
+}
+
 async function completeDrill(student, result) {
   const xp = calcXp(result);
   if (!student.jillGrowth) student.jillGrowth = { habit: {}, badges: [], xp: 0, pulses: [] };
@@ -414,6 +432,7 @@ module.exports = {
   initJillDrillBrain,
   pickQuestions,
   completeDrill,
+  cascadeTurnFailures,
   getPropagatedDrillContext,
   getStudentDrillNote,
   getDrillProfileSummary,

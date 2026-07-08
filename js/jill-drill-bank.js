@@ -23,7 +23,8 @@
     phrase: 'Frases ùtiles',
     expression: 'Expresiones',
     compound: 'Palabras compuestas',
-    coin: 'Pregunta / respuesta'
+    coin: 'Pregunta / respuesta',
+    vocab: 'Vocabulario'
   };
 
   var BANK = [
