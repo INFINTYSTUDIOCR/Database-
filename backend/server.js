@@ -3319,8 +3319,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v14-method-os-c8';
-const ALICE_BRAIN_VER = 'v13-method-os-c8';
+const JILL_BRAIN_VER = 'v18-msi-solo-tiempos';
+const ALICE_BRAIN_VER = 'v17-msi-solo-tiempos';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
@@ -4310,7 +4310,7 @@ ${raw}
 """
 
 Devolvé JSON exacto:
-{"title":"título corto para la KB (máx 100 chars)","category":"metodologia|jill-foundations|conectores|ejercicios|errores","content":"texto estructurado en español claro con: DOCTRINA (1-2 frases del patrón/lógica de John), PUENTE ESPAÑOL↔INGLÉS si aplica, REGLA/ESTRUCTURA (LEGO P|M|V|C o linkers según nivel), EJEMPLO MODELO EN INGLÉS, EJERCICIO PARA EL ESTUDIANTE, CORRECCIÓN TÍPICA (con pregunta, no con la respuesta). Sin hashtags ni CTA de redes."}`
+{"title":"título corto para la KB (máx 100 chars)","category":"metodologia|jill-foundations|conectores|ejercicios|errores","content":"texto estructurado en español claro con: DOCTRINA (1-2 frases del patrón/lógica de John), PUENTE ESPAÑOL↔INGLÉS si aplica, REGLA/ESTRUCTURA (MSI� P|M|V|C o linkers según nivel), EJEMPLO MODELO EN INGLÉS, EJERCICIO PARA EL ESTUDIANTE, CORRECCIÓN TÍPICA (con pregunta, no con la respuesta). Sin hashtags ni CTA de redes."}`
       }]
     });
     const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
