@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Comparativos y superlativos">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="40" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="12" font-weight="bold">P + V + ADJ · COMPARATIVO / SUPERLATIVO</text>
+  <text x="160" y="68" text-anchor="middle" fill="#312e81" font-size="10">corto: tall ’ taller ’ the tallest</text>
+  <text x="160" y="86" text-anchor="middle" fill="#312e81" font-size="10">largo: more important ’ the most important</text>
+  <text x="160" y="104" text-anchor="middle" fill="#D97706" font-size="10">good ’ better ’ the best</text>
+  <rect x="40" y="118" width="240" height="28" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/>
+  <text x="160" y="137" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="bold">than (2 cosas) · the (el #1) · as&as (igual)</text>
+  <text x="160" y="162" text-anchor="middle" fill="#6d28d9" font-size="9">This phone is cheaper than mine</text>
+</svg>

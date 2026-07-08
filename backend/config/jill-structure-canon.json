@@ -25,7 +25,11 @@
     { "id": "ppc", "sigla": "PPC", "notation": "P + Have/Had + been + V+ing + C", "example": "They have been going / They had been having", "whiteboard": "They | have been | going" },
     { "id": "modal", "sigla": "MOD", "notation": "P + M + V + C", "example": "I will go / I should see / She could come", "whiteboard": "I | will | go" },
     { "id": "modal-perfect", "sigla": "MP", "notation": "P + M + HAVE + PP + C", "example": "I could have done", "whiteboard": "I | could | have | done" },
-    { "id": "modal-combined", "sigla": "MC", "notation": "P + M + HAVE + BEEN + V+ing + C", "example": "We should have been going", "whiteboard": "We | should | have been | going" }
+    { "id": "modal-combined", "sigla": "MC", "notation": "P + M + HAVE + BEEN + V+ing + C", "example": "We should have been going", "whiteboard": "We | should | have been | going" },
+    { "id": "comparative", "sigla": "COMP", "notation": "P + V + ADJ-er/more + ADJ + THAN + C", "example": "She is taller than me / more important than I thought", "whiteboard": "She | is | taller | than me" },
+    { "id": "superlative", "sigla": "SUP", "notation": "P + V + THE + ADJ-est/most + ADJ + C", "example": "He is the best / the most talented", "whiteboard": "He | is | the best" },
+    { "id": "equality", "sigla": "EQ", "notation": "P + V + AS + ADJ + AS + C", "example": "Juan is as tall as Pedro", "whiteboard": "Juan | is | as tall as | Pedro" },
+    { "id": "prep-time", "sigla": "PREP-T", "notation": "P + V + C (in/on/at + tiempo)", "example": "We meet on Monday in March at 5 pm", "whiteboard": "We | meet | on Monday in March at 5 pm" }
   ],
   "modalBridge": {
     "will": { "es": "-RE (futuro)", "hint": "caminarÉ → I WILL walk", "example": "I will walk" },

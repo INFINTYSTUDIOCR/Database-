@@ -420,7 +420,6 @@ Asù cumplùs los tres de un solo golpe: neutro (at), adentro (in), encima (on).
 
 **Quick recap:** in = adentro ù on = encima/sobre ù at = neutro. En espaùol todo eso es "en".
 
-> Prepositions #2 (meses, eventos como Navidad, "coming at you", etc.) es un mùdulo aparte ù todavùa no ingerido.
 
 **Ejercicios:**
 1. Clasificar el "en" antes de traducir: Jill da "en la mesa / en el carro / en el trabajo" ? el estudiante decide adentro/encima/neutro ? reciùn elige in/on/at.
@@ -431,6 +430,53 @@ Asù cumplùs los tres de un solo golpe: neutro (at), adentro (in), encima (on).
 **Dominio:** ante cualquier "en" espaùol identifica adentro/encima/neutro antes de elegir la pieza ù usa in para contenciùn, on para superficie, at para lugar neutro ù arma la frase ancla sin traducir "en" a ciegas.
 
 **Errores frecuentes:** "in the table" (por "en la mesa")?"ùEl libro estù adentro de la mesa o encima? Si es encimaù ùcuùl va?" ù "at the box" cuando algo estù adentro?"ùAdentro o neutro? Si estù adentro de la cajaù" ù traduce "en"?in siempre?"Parù. ùEste 'en' es adentro, encima o neutro?" ù "in home / on home" por "at home"?"'Home' es lugar neutro, ùquù 'en' va?".
+
+
+---
+
+## MODULO DE DOMINIO 006-B ˝ PREPOSICIONES #2: TIEMPO (IN / ON / AT) ˝ MESES ˝ DIAS ˝ FECHAS ˝ EVENTOS
+
+**Concepto central (continuacion del 006 ˝ mismo trio in/on/at, ahora en TIEMPO):** en espanol otra vez mezclamos todo con "en" (*en marzo, en lunes, en Navidad, a las 5*). El ingles reparte las mismas tres piezas segun **que tan especifico** es el tiempo. Canon visual: `assets/canon/preposiciones-tiempo.svg`. Machote MSI: la prep va en la **ranura C** (P + V + C).
+
+**Mapa de decision (pregunta Jill antes de producir):** "˝Es un periodo largo, un dia/fecha concreta, o un punto exacto (hora/evento)?"
+
+| Pieza | Cuando (logica) | Ejemplos |
+|-------|-----------------|----------|
+| **in** | periodo largo / contenedor de tiempo | in March, in 2024, in summer, in the morning, in the afternoon |
+| **on** | dia concreto / fecha en calendario | on Monday, on March 5th, on my birthday, on Christmas Day, on weekends |
+| **at** | punto exacto: hora, noche, evento como momento | at 5 pm, at noon, at night, at Christmas (temporada/fiesta), at Easter |
+
+**Puente espanol (no traducir "en" a ciegas):**
+- *en marzo / en verano / en 2024* -> **in** (periodo)
+- *el lunes / el 5 de marzo / en Navidad (el dia)* -> **on** (dia/fecha)
+- *a las 5 / de noche / en Navidad (la epoca)* -> **at** (punto/hora/evento)
+
+**Fechas y numeros (patron canon ˝ ordinales en C):**
+- on March **5th** / on the **5th** of March
+- in **2024** (ano)
+- ordinales: 1st first ˝ 2nd second ˝ 3rd third ˝ 4th fourth ˝ 21st twenty-first (cardinal + th)
+
+**Dias y meses (dentro de oracion, no listas sueltas):**
+- Days: on Monday / on Tuesday ˝ (siempre **on** + dia)
+- Months: in January ˝ in December (siempre **in** + mes)
+
+**Eventos (firma John ˝ Navidad y "coming at you"):**
+- **at Christmas** = la temporada/epoca festiva (punto en el calendario social)
+- **on Christmas Day** = el dia 25 concreto
+- **coming at you** = direccion/objetivo hacia alguien (**at** = hacia/punto de encuentro): "The ball is coming at you."
+
+**Frase ancla:** `We meet on Monday in March at 5 pm.` (on=dia ˝ in=mes como periodo ˝ at=hora)
+
+**Ejercicios de dominio:**
+1. Clasificar tiempo: Jill da espanol ("en julio / el viernes / a las 3 / en Navidad") -> estudiante elige in/on/at y explica periodo vs dia vs punto.
+2. Fechas: construir on + mes + ordinal (on September 10th).
+3. Eventos: at Christmas vs on Christmas Day ˝ explicar diferencia antes de producir.
+4. Rapid Fire: 12 items mezclados (mes, dia, hora, ano).
+5. En contexto (Idea+Linker+Idea escrito): "I was born in 1990, on a Monday in May, at 6 am."
+
+**Dominio:** elige in/on/at temporal sin traducir "en" a ciegas ˝ fechas con ordinal ˝ distingue at vs on en eventos ˝ usa patron dias/meses en oracion ˝ frase ancla sin error.
+
+**Errores frecuentes:** in Monday -> "˝Periodo o dia concreto?" ˝ at March -> "˝Punto exacto o mes entero?" ˝ on 5 pm -> "˝Dia o hora?" ˝ in Christmas Day -> "˝Periodo o dia especifico?"
 
 ---
 
@@ -475,6 +521,65 @@ tengo calor   -> I am hot              tengo suerte -> I am lucky
 
 ---
 
+
+---
+
+## MODULO DE DOMINIO 008 ˝ GET IT STRAIGHT: COMPARATIVOS Y SUPERLATIVOS
+
+**Concepto central:** en espanol comparas con **mas ˝ que** y el extremo con **el mas ˝**. El ingles usa **piezas distintas** segun como termina el adjetivo ˝ no una sola regla. Canon / machote MSI: `P + V + ADJ(comparativo/superlativo) + C` (+ **than** / **the** segun caso). Imagen: `assets/canon/comparativos.svg`.
+
+**Pregunta Jill antes de producir:** "˝Comparo dos cosas, digo el #1 del grupo, o digo que son iguales?"
+
+**Las 3 intenciones (puente espanol):**
+| Intencion | Espanol | Ingles ˝ piezas |
+|-----------|---------|-----------------|
+| Comparar dos | mas ˝ **que** | **-er + than** O **more ˝ + than** |
+| El extremo (#1) | **el/la mas** ˝ | **the -est** O **the most** ˝ |
+| Igualdad | tan ˝ **como** | **as ˝ as** |
+
+**Regla 1 ˝ adjetivo CORTO (1-2 silabas): la palabra crece**
+```
+tall -> taller -> the tallest     (Juan is taller than Pedro / the tallest in the class)
+fast -> faster -> the fastest
+```
+LEGO: `P + V + adj-er + THAN + C` ˝ `P + V + THE + adj-est + C`
+
+**Regla 2 ˝ adjetivo LARGO (3+ silabas): pieza delante**
+```
+important -> more important -> the most important
+```
+LEGO: `P + V + MORE + adj + THAN + C` ˝ `P + V + THE MOST + adj + C`
+
+**Regla 3 ˝ irregulares (grupo pequeno, muy usados ˝ como los 16 verbos):**
+```
+good -> better -> the best
+bad -> worse -> the worst
+far -> farther/further -> the farthest/furthest
+little -> less -> the least (cantidad/cualidad)
+many/much -> more -> the most
+```
+
+**Less / fewer (menos):** less + adj (*less expensive*) ˝ fewer + plural contable (*fewer students*).
+
+**Quick recap:** -er/-est + than/the (corto) ˝ more/the most (largo) ˝ as˝as (igualdad) ˝ irregulares (good/bad/far˝).
+
+**Correccion firma:**
+- "more good" / "gooder" -> "˝Regular o irregular? -> **better**"
+- "the most bad" -> "˝Extremo de bad? -> **the worst**"
+- olvida **than** -> "˝Falta la pieza que conecta con el otro?"
+
+**Ejercicios de dominio:**
+1. Clasificar adjetivo (corto/largo/irregular) ANTES de armar la frase.
+2. Contraste comparativo vs superlativo: misma idea, dos piezas distintas.
+3. Rapid Fire: 12 items (<1s fase oral).
+4. Trampas: more cheap, more taller, as˝than.
+5. Contexto Idea+Linker+Idea: "This phone is cheaper than mine; however, that one is the most reliable in the store."
+
+**Dominio:** elige -er/more/the -est/the most sin que Jill nombre gramatica ˝ than en comparativo ˝ the en superlativo ˝ good/bad/worst ˝ as˝as ˝ no more good/gooder.
+
+**Errores frecuentes:** more taller -> "˝Corta o larga?" ˝ as˝than -> "˝Igualdad o comparacion?" ˝ the better (sin contexto de grupo) -> "˝Comparas dos o buscas el #1?"
+
+
 ## REGISTRO DE MùDULOS DE DOMINIO
 - **Modulo de Dominio 001** (v6.0): desde cero  abecedario, pronombres 4 tipos (personal/indicativo/reflexivo/posesivo), 16 verbos esenciales, LEGO will/would; ejercicios de dominio 001-A/B/C/D.
 - **Mùdulo de Dominio 002** (v2.0): tiempos verbales como ancla; patrùn completo del verbo (11 formas); ubicaciùn temporal ("ùAncla?"); Analogùa de la Casa; correcciùn de mezcla temporal.
@@ -482,4 +587,6 @@ tengo calor   -> I am hot              tengo suerte -> I am lucky
 - **Mùdulo de Dominio 004** (v2.0): los 16 irregulares esenciales por grupo; tres columnas; regla HAVE?participio; nunca -ED a irregulares.
 - **Mùdulo de Dominio 005** (v3.0): Get It Straight -ING; TO BE + V-ING = progresivo, V-ING (sin to be) = actividad general, to + V = intenciùn/decisiùn; contraste watching vs to watch; correcciùn del abuso del infinitivo + montar linker.
 - **Mùdulo de Dominio 006** (v4.0): preposiciones #1 in/on/at; el "en" espaùol se divide en in (adentro), on (encima/sobre), at (neutro); frase ancla "I'm at home, the book is in the room on the table"; nota by (autorùa / cerca de / por causa de).
+- **Modulo de Dominio 006-B** (v4.1): preposiciones #2 tiempo in/on/at; meses, anos, dias, fechas ordinales, eventos (at Christmas vs on Christmas Day), coming at you; frase ancla on Monday in March at 5 pm.
 - **MÛdulo de Dominio 007** (v5.0): estados TENER (espaÒol) = TO BE (inglÈs); edad "I am X years old" (no "I have X years"); hambre/frÌo/miedo/razÛn/prisa ? to be; detectar cosa (have) vs estado (to be); correcciÛn "øcosa o estado?".
+- **Modulo de Dominio 008** (v7.0): comparativos y superlativos; -er/more + than, the -est/the most, as˝as, irregulares good/better/best; less/fewer; LEGO P+V+ADJ en C.

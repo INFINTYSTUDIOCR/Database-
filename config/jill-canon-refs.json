@@ -16,6 +16,20 @@
       "bundles": ["F0-matrix", "F4-components"]
     },
     {
+      "id": "preposiciones-tiempo",
+      "title": "Preposiciones de tiempo (in · on · at)",
+      "path": "assets/canon/preposiciones-tiempo.svg",
+      "topics": ["prepositions", "time", "months", "days", "dates", "in", "on", "at"],
+      "bundles": ["F4-components", "B5-basics"]
+    },
+    {
+      "id": "comparativos",
+      "title": "Comparativos y superlativos",
+      "path": "assets/canon/comparativos.svg",
+      "topics": ["comparative", "superlative", "than", "as", "more", "most"],
+      "bundles": ["F4-components", "F5-vocab-functional"]
+    },
+    {
       "id": "articulos",
       "title": "Artículos (a · an · the)",
       "path": "assets/canon/articulos.svg",

@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v6-modulo001dom';
+const METHOD_OS_VERSION = 'os-v7-modulo008';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -72,7 +72,20 @@ PREPOSICIONES #1 in/on/at (M�dulo 006) � el "en" espa�ol se divide en tres
 - in = "en" de ADENTRO / contenci�n (in the house = adentro; in the room, in the car, in the lunchbox).
 - on = "en" de ENCIMA / sobre una superficie (on the table, on the board).
 - at = "en" NEUTRO, lugar sin especificar adentro/encima (at home, at work, at the university).
-Frase ancla firma: "I'm at home and the book is in the room on the table" (neutro + adentro + encima). Nota: by = autor�a de alguien / cerca de / por causa de. Correcci�n: ante un "en" espa�ol, primero preguntar "�adentro, encima o neutro?" y reci�n elegir in/on/at � nunca traducir "en" a ciegas. (Prepositions #2 �meses, eventos, "coming at you"� es m�dulo aparte, a�n no ingerido.)
+Frase ancla firma: "I'm at home and the book is in the room on the table" (neutro + adentro + encima). Nota: by = autor�a de alguien / cerca de / por causa de. Correcci�n: ante un "en" espa�ol, primero preguntar "�adentro, encima o neutro?" y reci�n elegir in/on/at � nunca traducir "en" a ciegas. 
+
+
+PREPOSICIONES #2 TIEMPO in/on/at (Modulo 006-B) � mismo trio, ahora TIEMPO (canon: preposiciones-tiempo.svg; prep en ranura C):
+- in = periodo largo: in March, in 2024, in summer, in the morning/afternoon.
+- on = dia/fecha concreta: on Monday, on March 5th, on Christmas Day, on weekends.
+- at = punto exacto: at 5 pm, at noon, at night, at Christmas (temporada/epoca), at Easter.
+Fechas: ordinales on March 5th / the 5th of March; anos in 2024. Eventos: at Christmas (epoca) vs on Christmas Day (dia). "Coming at you" = at hacia objetivo. Frase ancla: "We meet on Monday in March at 5 pm". Pregunta: periodo largo, dia/fecha, o punto (hora/evento)? Errores: in Monday, at March, on 5 pm.
+
+GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.svg; LEGO P + V + ADJ en C:
+- Comparar dos (mas�que): adj CORTO -> -er + THAN (taller than); adj LARGO -> MORE + adj + THAN; irregulares: good->better, bad->worse, far->farther.
+- El #1 (el mas�): THE + -est (the tallest) o THE MOST + adj (the most important); the best/the worst.
+- Igualdad (tan�como): AS + adj + AS (as tall as). Menos: less + adj; fewer + plural.
+Pregunta: �comparo dos, el #1 del grupo, o igualdad? Errores: more good/gooder, more taller, as�than, olvida than/the.
 
 ESTADOS: TENER (espa�ol) = TO BE (ingl�s) (M�dulo 007) � edad y sensaciones: en espa�ol usamos "tener" para estados (tengo 25 a�os, tengo hambre, tengo fr�o) y el hispanohablante traduce literal ("I have 25 years", "I have hunger" = error). En ingl�s un estado no se TIENE, se ES (to be). Detectar: �es una COSA que poseo (have: I have a car) o un ESTADO/sensaci�n (to be)?
 - Edad (caso ancla, "el ejercicio de los a�os"): "tengo 25 a�os" -> I am 25 years old (Pronombre + to be + n�mero + "years old"). NUNCA "I have 25 years".
