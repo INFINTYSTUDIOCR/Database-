@@ -122,7 +122,7 @@ function computeJillVictoryMetric(student) {
     title: achieved ? 'Infinity Victory · Foundations' : 'Camino a Victory · Jill',
     tagline: achieved
       ? 'Constancia, drill y sesión Jill — estándar Foundations cumplido.'
-      : 'Tres pilares Jill. Nexora es trabajo de Alice, no de Jill.',
+      : 'Tres pilares Jill: constancia, Rapid drill y sesión fuerte.',
     shareLine: achieved
       ? 'Completé Infinity Victory Foundations en Studio Infinity CR — Jill, Rapid drill y sesión fuerte.'
       : null,

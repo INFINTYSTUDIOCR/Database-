@@ -1,5 +1,5 @@
 /**
- * Gate F0-matrix — requisitos para salir de la matriz y avanzar de bundle.
+ * Gate F0-matrix - requisitos para salir de la matriz y avanzar de bundle.
  * Compartido cliente + servidor Node.
  */
 (function (global) {
@@ -40,9 +40,9 @@
     var m = (student && student.jillMatrix) || {};
     var matrixOk = !!(m.allColumnsMastered) || allColumnsMastered(student);
     var items = [
-      { key: 'matrix', ok: matrixOk, label: 'Matriz 100% (PR·PS·PC·PRP·PPC·MOD)' },
+      { key: 'matrix', ok: matrixOk, label: 'Matriz 100% (PR/PS/PC/PRP/PPC/MOD)' },
       { key: 'written', ok: (m.writtenDaysCompleted || 0) >= WRITTEN_DAYS_REQUIRED, label: '22 días escritos (15+10 min/día)' },
-      { key: 'pulse', ok: !!(m.pulseQuizPassed || (student && student.jillPulse && student.jillPulse.passed)), label: 'Rapid drill / Pulse ?80%' },
+      { key: 'pulse', ok: !!(m.pulseQuizPassed || (student && student.jillPulse && student.jillPulse.passed)), label: 'Rapid drill / Pulse >=80%' },
       { key: 'anecdote', ok: (m.anecdoteSessions || 0) >= 1 || !!m.anecdoteEvaluated, label: 'Anécdota del cuaderno evaluada' },
       { key: 'time', ok: m.avgResponseMs == null || m.avgResponseMs <= MAX_AVG_RESPONSE_MS, label: 'Tiempo de respuesta bajo 15s' }
     ];
@@ -60,7 +60,7 @@
     if (bundleId !== 'F0-matrix') return null;
     var check = f0ExitChecklist(student);
     if (check.ok) return null;
-    return 'F0 incompleto: ' + check.pending.map(function (p) { return p.label; }).join(' · ');
+    return 'F0 incompleto: ' + check.pending.map(function (p) { return p.label; }).join(' | ');
   }
 
   function canAdvanceFromBundle(student, bundleId) {

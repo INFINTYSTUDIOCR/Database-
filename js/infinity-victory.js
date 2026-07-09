@@ -1,5 +1,5 @@
 /**
- * Infinity Victory ù UI delgada (datos desde cerebro).
+ * Infinity Victory ? UI delgada (datos desde cerebro).
  */
 (function (global) {
   'use strict';
@@ -64,7 +64,7 @@
 
   function renderFromStudent(student) {
     if (student && student.infinityVictory) return renderCard(student.infinityVictory);
-    return '<div class="infinity-victory-card" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;padding:12px;margin-bottom:14px;">Cargando Infinity Victoryù</div>';
+    return '<div class="infinity-victory-card" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;padding:12px;margin-bottom:14px;">Cargando Infinity Victory?</div>';
   }
 
   function bindShareButtons(root) {
@@ -78,7 +78,7 @@
           navigator.share({ title: 'Infinity Victory', text: text, url: 'https://studioinfinitycr.com' }).catch(function () {});
         } else if (navigator.clipboard) {
           navigator.clipboard.writeText(text + ' https://studioinfinitycr.com').then(function () {
-            if (typeof showToast === 'function') showToast('Texto copiado ù compartilo donde quieras');
+            if (typeof showToast === 'function') showToast('Texto copiado ? compartilo donde quieras');
           });
         }
       });
