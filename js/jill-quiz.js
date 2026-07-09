@@ -510,10 +510,19 @@
       + '</div></div>';
   }
 
+  function pickMatrixQuestions(student, count) {
+    if (typeof JillMatrixQuiz === 'undefined') return [];
+    return JillMatrixQuiz.pickQuestions(student, count || QUESTIONS_PER_ROUND);
+  }
+
   function pickNemesisQuestions(student, activeBundle, count) {
     count = count || QUESTIONS_PER_ROUND;
     var nemesisKpis = collectNemesisKpis(student);
     var bid = bundleIdFromStudent(student, activeBundle);
+    if (bid === 'F0-matrix') {
+      var matrixQs = pickMatrixQuestions(student, count);
+      if (matrixQs.length >= Math.min(3, count)) return matrixQs.slice(0, count);
+    }
     var pool = [];
     var seenQ = {};
 

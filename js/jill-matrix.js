@@ -303,17 +303,58 @@
       + '</div>';
   }
 
-  /** Vista alumno en sesión: solo referencia visual (canon), sin barras ni prerequisitos. */
+  function renderGateChecklist(student) {
+    if (typeof JillF0Gate === 'undefined') return '';
+    var check = JillF0Gate.f0ExitChecklist(student);
+    if (check.ok) {
+      return '<div style="margin-top:8px;padding:8px 10px;background:rgba(61,220,151,0.15);border:1px solid rgba(134,239,172,0.45);border-radius:10px;font-size:11px;color:#bbf7d0;text-align:center;font-weight:700;">✓ F0 completo — podés avanzar a F1</div>';
+    }
+    var rows = check.items.map(function (it) {
+      var icon = it.ok ? '✓' : '○';
+      var col = it.ok ? '#86EFAC' : 'rgba(255,255,255,0.55)';
+      return '<div style="font-size:10px;color:' + col + ';margin:2px 0;">' + icon + ' ' + escHtml(it.label) + '</div>';
+    }).join('');
+    return '<div style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.22);border:1px solid rgba(61,220,151,0.3);border-radius:10px;">'
+      + '<div style="font-size:10px;font-weight:800;color:#bbf7d0;letter-spacing:0.06em;margin-bottom:6px;">GATE F0 — para avanzar de bundle</div>'
+      + rows
+      + '</div>';
+  }
+
+  function renderWrittenDayPanel(student) {
+    var m = ensureMatrix(student);
+    var done = m.writtenDaysCompleted || 0;
+    var pct = Math.min(100, Math.round((done / WRITTEN_DAYS_REQUIRED) * 100));
+    var today = new Date().toISOString().slice(0, 10);
+    var alreadyToday = m.writtenPhaseLastDate === today;
+    var btnLabel = alreadyToday ? '✓ Hoy registrado' : 'Registrar práctica escrita de hoy';
+    var btnStyle = alreadyToday
+      ? 'background:rgba(61,220,151,0.2);border:1px solid rgba(134,239,172,0.5);color:#86EFAC;cursor:default;'
+      : 'background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;cursor:pointer;';
+    return '<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,0.25);border:1px solid rgba(61,220,151,0.35);border-radius:10px;">'
+      + '<div style="font-size:10px;font-weight:800;color:#bbf7d0;letter-spacing:0.06em;">CUADERNO · 15+10 min/día</div>'
+      + '<div style="font-size:12px;color:#ecfdf5;margin:6px 0;">Día ' + done + '/' + WRITTEN_DAYS_REQUIRED + '</div>'
+      + '<div style="height:4px;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;margin-bottom:8px;">'
+      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#3DDC97,#86EFAC);"></div>'
+      + '</div>'
+      + '<button type="button" id="jill-written-day-btn" onclick="jillRecordWrittenDay()" style="width:100%;font-size:11px;font-weight:800;padding:8px 12px;border-radius:8px;' + btnStyle + '">' + btnLabel + '</button>'
+      + '<div style="font-size:9px;color:rgba(255,255,255,0.45);margin-top:6px;text-align:center;">Un registro por día · obligatorio antes de conversación oral</div>'
+      + '</div>';
+  }
+
+  /** Vista alumno en sesión: canon + progreso escrito + gate F0. */
   function renderPanel(student, bundle) {
     if (!student || !isMatrixBundle(bundle)) return '';
     var col = activeColumn(student);
     var drill = getDrillPrompt(student);
+    var gate = gateStatus(student);
     var drillLine = drill.modal
       ? drill.pronoun + ' + ' + drill.modal + ' + ' + drill.verb
       : drill.pronoun + ' + ' + drill.verb;
     return '<div id="jill-matrix-panel" style="margin-bottom:12px;">'
-      + '<div style="font-size:12px;color:#ecfdf5;text-align:center;margin-bottom:6px;"><strong>' + col.sigla + '</strong> · ' + escHtml(drillLine) + '</div>'
+      + '<div style="font-size:12px;color:#ecfdf5;text-align:center;margin-bottom:6px;"><strong>' + col.sigla + '</strong> · ' + escHtml(drillLine) + ' · ' + gate.columnPct + '%</div>'
       + renderCanonThumb(col.id)
+      + renderWrittenDayPanel(student)
+      + renderGateChecklist(student)
       + '</div>';
   }
 
@@ -344,6 +385,8 @@
     allColumnsMastered: allColumnsMastered,
     isStructureComplete: isStructureComplete,
     recordWrittenDay: recordWrittenDay,
+    renderWrittenDayPanel: renderWrittenDayPanel,
+    renderGateChecklist: renderGateChecklist,
     WRITTEN_DAYS_REQUIRED: WRITTEN_DAYS_REQUIRED
   };
 })(typeof window !== 'undefined' ? window : globalThis);

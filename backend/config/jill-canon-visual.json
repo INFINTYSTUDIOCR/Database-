@@ -15,7 +15,7 @@
     { "id": "preposiciones", "columns": ["progressive"], "svg": "assets/canon/preposiciones.svg", "gif": null, "title": "Preposiciones lugar" },
     { "id": "preposiciones-tiempo", "columns": ["progressive"], "svg": "assets/canon/preposiciones-tiempo.svg", "gif": null, "title": "Preposiciones tiempo" },
     { "id": "comparativos", "columns": ["present"], "svg": "assets/canon/comparativos.svg", "gif": null, "title": "Comparativos" },
-    { "id": "articulos", "columns": ["perfect"], "svg": "assets/canon/articulos.svg", "gif": null, "title": "Artículos" },
+    { "id": "articulos", "columns": ["perfect", "present", "past"], "svg": "assets/canon/articulos.svg", "gif": null, "title": "Artículos y cuantificadores" },
     { "id": "moneda", "columns": ["modal"], "svg": "assets/canon/moneda.svg", "gif": null, "title": "Método moneda" }
   ]
 }

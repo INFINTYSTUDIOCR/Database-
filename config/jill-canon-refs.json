@@ -31,9 +31,9 @@
     },
     {
       "id": "articulos",
-      "title": "Artículos (a · an · the)",
+      "title": "Artículos y cuantificadores (a · an · the · much/many)",
       "path": "assets/canon/articulos.svg",
-      "topics": ["articles", "a", "an", "the"],
+      "topics": ["articles", "a", "an", "the", "quantifiers", "much", "many", "little", "few", "several", "a lot of", "countable"],
       "bundles": ["F0-matrix", "F4-components"]
     },
     {

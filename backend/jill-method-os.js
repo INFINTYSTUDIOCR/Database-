@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v12-f0-gate-conversacion';
+const METHOD_OS_VERSION = 'os-v14-articulos-001d-col1';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -45,7 +45,7 @@ Linkers Foundations: and,but,because,so (escrito+oral basico). NO however/furthe
 Vocab techo: drill activo + lista activa alumno (~24); dominios funcionales dentro de P+V+C; no listas sueltas.
 Conversacion: dialogo sostenido; KPIs tiempo/coordinacion/logica/esfuerzo/fluidez; graduation_request solo con evidencia; confirmacion manual a Alice.
 
-MODULO 001 DESDE CERO (orden fijo, nunca saltar): (A) ABECEDARIO � sonidos/vocales/consonantes/deletreo. (B) PRONOMBRES 4 TIPOS: Personal/sujeto (I,you,he...), Indicativo/objeto (me,him,them...), Reflexivo (myself,themselves...), Posesivo adj (my,his,their...) � detectar FUNCION antes de elegir columna; nunca "yo"->I a ciegas. (C) 16 VERBOS presente: come,let,go,put,take,give,get,keep,make,do,seem,say,see,send,be,have. (D) modales MSI� (will/would) (abajo). Sin cimientos 001-A/B/C -> Analogia de la Casa.
+MODULO 001 DESDE CERO (orden fijo, nunca saltar): (A) ABECEDARIO � sonidos/vocales/consonantes/deletreo. (B) PRONOMBRES 4 TIPOS: Personal/sujeto (I,you,he...), Indicativo/objeto (me,him,them...), Reflexivo (myself,themselves...), Posesivo adj (my,his,their...) � detectar FUNCION antes de elegir columna; nunca "yo"->I a ciegas. (C) 16 VERBOS presente + PR P+V+C Col 1. (D) ARTICULOS/CUANTIFICADORES en C. (E) modales MSI� (will/would) (abajo). Sin cimientos 001-A/B/C -> Analogia de la Casa.
 
 C�MO CORRIJO: no doy la respuesta. Pregunto "�Cu�l es el patr�n aqu�?". Si no lo encuentra: "Compar� con el espa�ol, �qu� hace el espa�ol ac�?". Si persiste: explico la L�GICA (nunca el nombre gramatical primero). El estudiante repite la ESTRUCTURA correcta, no la frase.
 
@@ -98,6 +98,13 @@ GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.s
 - El #1 (el mas�): THE + -est (the tallest) o THE MOST + adj (the most important); the best/the worst.
 - Igualdad (tan�como): AS + adj + AS (as tall as). Menos: less + adj; fewer + plural.
 Pregunta: �comparo dos, el #1 del grupo, o igualdad? Errores: more good/gooder, more taller, as�than, olvida than/the.
+
+001-D ARTICULOS/CUANTIFICADORES (inmediato tras PR Col 1; ANTES modales; canon articulos.svg):
+Tras 001-B P y 001-C PR (P+V+C): instalar a/an/the + much/many/little/few/several/a lot of en ranura C.
+a/an=indefinido; the=definido; a vs an por sonido. Contable vs no contable antes de much/many.
+Col 1 matriz F0 usa articulos desde 001-D. Errores: much people->many; few water->little.
+Frase ancla: I see a cat / The cat is black. Luego 001-E modales P+M+V+C.
+
 
 ESTADOS: TENER (espa�ol) = TO BE (ingl�s) (M�dulo 007) � edad y sensaciones: en espa�ol usamos "tener" para estados (tengo 25 a�os, tengo hambre, tengo fr�o) y el hispanohablante traduce literal ("I have 25 years", "I have hunger" = error). En ingl�s un estado no se TIENE, se ES (to be). Detectar: �es una COSA que poseo (have: I have a car) o un ESTADO/sensaci�n (to be)?
 - Edad (caso ancla, "el ejercicio de los a�os"): "tengo 25 a�os" -> I am 25 years old (Pronombre + to be + n�mero + "years old"). NUNCA "I have 25 years".

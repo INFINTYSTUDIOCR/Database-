@@ -464,6 +464,13 @@
     if (!s || !s.jillProgress.activeBundle) return;
     ensureStudentFields(s);
     var id = s.jillProgress.activeBundle;
+    if (typeof JillF0Gate !== 'undefined') {
+      var gate = JillF0Gate.canAdvanceFromBundle(s, id);
+      if (!gate.ok) {
+        showToast(gate.reason || 'Completá el gate F0 antes de avanzar', 'err');
+        return;
+      }
+    }
     var meta = JILL_BUNDLES.find(function (b) { return b.id === id; });
     if (s.jillProgress.completedBundles.indexOf(id) < 0) s.jillProgress.completedBundles.push(id);
     var next = meta && meta.nextBundle;

@@ -238,13 +238,37 @@
       + (ev.best_moment ? '<div style="font-size:12px;margin-bottom:6px;"><span style="color:#86EFAC;font-weight:700;">✓ </span>' + esc(ev.best_moment) + '</div>' : '')
       + (ev.main_improvement ? '<div style="font-size:12px;margin-bottom:8px;"><span style="color:#FCD34D;font-weight:700;">→ </span>' + esc(ev.main_improvement) + '</div>' : '')
       + (ev.jill_message ? '<div style="font-size:13px;line-height:1.6;padding:10px;background:rgba(255,255,255,0.08);border-radius:10px;color:#ecfdf5;">' + esc(ev.jill_message).replace(/\n/g, '<br>') + '</div>' : '')
-      + (ev.bundle_ready ? '<div style="margin-top:10px;font-size:11px;color:#86EFAC;font-weight:700;">Listo para avanzar al siguiente bundle — pedile a tu trainer que confirme.</div>' : '')
+      + (ev.bundle_ready && !ev.bundle_blocked ? '<div style="margin-top:10px;font-size:11px;color:#86EFAC;font-weight:700;">Listo para avanzar al siguiente bundle — pedile a tu trainer que confirme.</div>' : '')
+      + (ev.bundle_blocked ? '<div style="margin-top:10px;font-size:11px;color:#FCD34D;font-weight:700;line-height:1.5;">⏳ Avance bloqueado: ' + esc(ev.bundle_block_reason || 'completá el gate F0') + '</div>' : '')
       + (ev.graduation_request ? '<div style="margin-top:12px;padding:12px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:10px;">'
         + '<div style="font-size:12px;font-weight:800;color:#FCD34D;margin-bottom:6px;">🎓 Jill solicita graduación a Alice</div>'
         + (ev.graduation_reason ? '<div style="font-size:11px;color:rgba(255,255,255,0.8);margin-bottom:10px;line-height:1.5;">' + esc(ev.graduation_reason) + '</div>' : '')
         + '<button type="button" onclick="jillConfirmGraduation()" style="background:linear-gradient(135deg,#0a5c3c,#0e7a50);border:none;color:white;font-weight:800;font-size:13px;padding:10px 20px;border-radius:10px;cursor:pointer;">Confirmar graduación</button>'
         + '<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">Solo si sentís que podés conversar como Jill evaluó.</div></div>' : '')
       + '</div>';
+  }
+
+  function canAdvanceBundle(s, bundleId) {
+    bundleId = bundleId || (s && s.jillProgress && s.jillProgress.activeBundle);
+    if (typeof JillF0Gate !== 'undefined') {
+      return JillF0Gate.canAdvanceFromBundle(s, bundleId);
+    }
+    return { ok: true, reason: null, checklist: null };
+  }
+
+  function tryAdvanceBundle(s, bundleId) {
+    ensureProgress(s);
+    bundleId = bundleId || s.jillProgress.activeBundle;
+    if (!bundleId) return { ok: false, reason: 'Sin bundle activo' };
+    var gate = canAdvanceBundle(s, bundleId);
+    if (!gate.ok) return gate;
+    if (s.jillProgress.completedBundles.indexOf(bundleId) < 0) {
+      s.jillProgress.completedBundles.push(bundleId);
+    }
+    var meta = bundleById(bundleId);
+    var next = meta && meta.nextBundle;
+    s.jillProgress.activeBundle = next || null;
+    return { ok: true, nextBundle: next, completed: bundleId };
   }
 
   function recordSession(s, ev, bundle) {
@@ -274,6 +298,8 @@
     renderEvaluationSummary: renderEvaluationSummary,
     recordSession: recordSession,
     ensureProgress: ensureProgress,
-    bundleById: bundleById
+    bundleById: bundleById,
+    canAdvanceBundle: canAdvanceBundle,
+    tryAdvanceBundle: tryAdvanceBundle
   };
 })(typeof window !== 'undefined' ? window : this);

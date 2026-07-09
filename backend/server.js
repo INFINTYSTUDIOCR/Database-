@@ -213,6 +213,7 @@ const JillStructureCoach = require('./jill-structure-coach');
 const JillMethodOS = require('./jill-method-os');
 const JillTrainerInsights = require('./jill-trainer-insights');
 const JillCalibration = require('./jill-calibration');
+const JillF0Gate = require('../js/jill-f0-gate.js');
 
 const TikTokJill = require('./tiktok-jill');
 TikTokJill.initTikTokJill({ sbGetOne, sbSet });
@@ -3022,9 +3023,17 @@ function jillStructurePrerequisitesMet(student, matrixContext) {
   const timeOk = m.avgResponseMs == null || m.avgResponseMs <= 15000;
   const writtenOk = (m.writtenDaysCompleted || 0) >= (ctx.writtenDaysRequired || 22)
     || !!ctx.writtenPhaseOk;
-  const colsOk = !!(m.allColumnsMastered || ctx.allColumnsMastered);
+  const colsOk = !!(m.allColumnsMastered || ctx.allColumnsMastered)
+    || JillF0Gate.allColumnsMastered(student);
   if (!pulseOk || !anecdoteOk || !timeOk || !writtenOk || !colsOk) return false;
   return true;
+}
+
+function jillBundleAdvanceAllowed(student, jillBundle) {
+  const bid = jillBundle?.id || student?.jillProgress?.activeBundle;
+  if (bid !== 'F0-matrix') return { ok: true, reason: null };
+  const gate = JillF0Gate.canAdvanceFromBundle(student, bid);
+  return { ok: gate.ok, reason: gate.reason };
 }
 
 function formatJillConversationNote(matrixContext, student) {
@@ -3326,8 +3335,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v19-f0-gate-conversacion';
-const ALICE_BRAIN_VER = 'v18-f0-gate-conversacion';
+const JILL_BRAIN_VER = 'v21-articulos-001d-col1';
+const ALICE_BRAIN_VER = 'v20-articulos-001d-col1';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
@@ -3657,6 +3666,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
         const gradRequest = convPhase && structPrereq && !!qual.graduation_request
           && overall_score >= 78 && userTurns >= 5;
+        const advanceGate = jillBundleAdvanceAllowed(student, jillBundle);
+        const bundleReadyRaw = !!qual.bundle_ready && overall_score >= 72 && userTurns >= 4;
+        const bundleReady = bundleReadyRaw && advanceGate.ok;
         return res.json(await finalizeJillEvaluation(student, {
           overall_score,
           student_turns: userTurns,
@@ -3666,16 +3678,22 @@ app.post('/jill', requireProductAuth, async (req, res) => {
           best_moment: qual.best_moment || 'Practicaste con constancia.',
           main_improvement: qual.main_improvement || 'Seguí con chunks del bundle activo.',
           jill_message: qual.jill_message || `Muy bien, ${getStudentDisplayName(student)}.`,
-          bundle_ready: !!qual.bundle_ready && overall_score >= 72 && userTurns >= 4,
+          bundle_ready: bundleReady,
+          bundle_blocked: bundleReadyRaw && !advanceGate.ok,
+          bundle_block_reason: advanceGate.reason || null,
           graduation_request: gradRequest,
           graduation_reason: gradRequest ? (qual.graduation_reason || '') : (qual.graduation_reason || qual.main_improvement || ''),
           conversation_kpis: qual.conversation_kpis || null
         }, hist));
       } catch (e) {
+        const advanceGate = jillBundleAdvanceAllowed(student, jillBundle);
+        const bundleReadyRaw = overall_score >= 75 && userTurns >= 5;
         return res.json(await finalizeJillEvaluation(student, {
           overall_score,
           student_turns: userTurns,
-          bundle_ready: overall_score >= 75 && userTurns >= 5,
+          bundle_ready: bundleReadyRaw && advanceGate.ok,
+          bundle_blocked: bundleReadyRaw && !advanceGate.ok,
+          bundle_block_reason: advanceGate.reason || null,
           graduation_request: false,
           best_moment: 'Buen esfuerzo en la sesión.',
           main_improvement: 'Repetí el chunk del bundle en voz alta 3 veces.',

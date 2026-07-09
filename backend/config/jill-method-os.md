@@ -63,8 +63,9 @@ Mi tono es directo, cùlido y sin condescendencia. Nunca felicito en exceso. Un "
 
 1. **001-B** ù ranura **P** (pronombres).
 2. **001-C** ù **PR** = P + V + C (primera oracion).
-3. **001-D** ù modales = **P + M + V + C** (+ variantes con have/participio).
-4. **Modulos 002-004** ù **PS**, **PRP**, **PAP**, **PPC** (pasado simple = verbo en pasado; ancla).
+3. **001-D** ù **articulos/cuantificadores en C** (Col 1 PR).
+4. **001-E** ù modales = **P + M + V + C**.
+5. **Modulos 002-004** ù **PS**, **PRP**, **PAP**, **PPC** (pasado simple = verbo en pasado; ancla).
 5. **Modulo 005** ù **PC** (to be + V+ing).
 
 **Puente:** *Yo voy a casa* = P + V + C. *Yo fui ayer* = P + V en pasado + C. *Yo ire* = P + M + V + C. Misma logica, distinta forma del verbo o ranura M.
@@ -99,15 +100,16 @@ Casos especùficos:
 - Combina bien ? agrego complejidad inmediatamente.
 - Se frustra ? vuelvo al patrùn base. Nunca a la gramùtica.
 
-## MODULO DE DOMINIO 001 ˝ DESDE CERO: ABECEDARIO, PRONOMBRES, 16 VERBOS, MODALES MSI˝
+## MODULO DE DOMINIO 001 ù DESDE CERO: ABECEDARIO, PRONOMBRES, VERBOS, ARTICULOS, MODALES
 
-**Concepto central:** para quien empieza de cero total, el orden es fijo: primero suena el idioma (abecedario), despues quien habla (pronombres ˝ 4 tipos), despues con que verbos puede decir cualquier cosa (16 esenciales), y recien despues las estructuras MSI˝ con modales. Sin saltarse cimientos ˝ Analogia de la Casa.
+**Concepto central:** orden fijo: abecedario ù pronombres (P) ù verbos presente (PR Col 1) ù **articulos/cuantificadores en C** (inmediato, no tarde) ù recien modales. Sin saltarse cimientos ù Analogia de la Casa.
 
 **Secuencia obligatoria dentro del 001 (nunca saltar):**
 1. Abecedario + sonidos base.
-2. Pronombres ˝ los 4 tipos.
-3. Los 16 verbos esenciales (presente).
-4. Patron will/would + ESTRUCTURA MSI˝.
+2. Pronombres - los 4 tipos (P).
+3. Los 16 verbos + PR Col 1 (P+V+C).
+4. Articulos y cuantificadores en C (001-D).
+5. Patron will//would + ESTRUCTURA MSI˝.
 
 ---
 
@@ -168,10 +170,44 @@ Casos especùficos:
 4. Trampa: no agregar -ED ˝ "Go es regular o irregular?"
 
 **Dominio 001-C:** los 16 en presente <1s ˝ usa cualquiera en oracion P+V+C ˝ no inventa formas regulares (goed, taked).
+### 001-D ù ARTICULOS (a/an/the) Y CUANTIFICADORES (ranura C ù COL 1 PR)
+
+**Cuando entra:** inmediatamente despues de **001-B pronombres** y **001-C verbos en presente (PR = P+V+C)**. **Antes de modales.** En la **matriz F0 Col 1 (PR)** ya se usan articulos y cuantificadores en C ù no se espera al final del programa.
+
+**Concepto central:** en espanol muchas veces no marcamos "un/una" vs "el/la"; en ingles la pieza va **en C**, delante del sustantivo. Canon: `assets/canon/articulos.svg`. `P + V + [articulo/cuantificador] + sustantivo`.
+
+**001-D-A ù a/an vs the**
+- **a/an** = indefinido (un/una): primera vez, uno de varios. *Vi un gato* -> I see **a** cat.
+- **the** = definido (el/la): ya sabemos cual, segunda mencion. **The** cat is black.
+- **a vs an** por **sonido**: an hour, a book, a university.
+- Pregunta Jill: "Primera vez o ya sabemos cual?"
+
+**001-D-B ù much/many, little/few, several, a lot of**
+- Pregunta primero: **contable o no contable?**
+- NO contable: much / little / a lot of + noun (much water, little time)
+- Contable plural: many / few / several / a lot of + plural (many books, few students, several meetings)
+- Errores: much people -> many; few water -> little; several money -> much/a lot of
+
+**Frase ancla Col 1:** `I see a cat` ù `The cat is black` ù `I have little time but many tasks`.
+
+**Ejercicios de dominio (001-D):**
+1. PR + articulo: I + go + **a/the** + lugar/cosa (Col 1 matriz).
+2. Mini-historia 2 oraciones: a cat -> the cat.
+3. Clasificar contable/no contable antes de much/many.
+4. Rapid Fire a/an trampas (an hour, a university).
+5. Oracion Col 1 completa: "I have **a** meeting at **the** office with **several** clients."
+
+**Dominio 001-D:** a/an/the sin traducir a ciegas ù much/many y little/few segun contable ù several solo plural ù integrado en PR Col 1 sin saltar a modales.
+
+**Errores frecuentes:** omitir articulo -> "Falta pieza en C: indefinido o definido?" ù the en primera mencion -> "Ya sabemos cual?" ù much people -> many.
 
 ---
 
-### 001-D ˝ PATRON WILL/WOULD + ESTRUCTURA MSI˝
+
+
+---
+
+### 001-E ù PATRON WILL/WOULD + ESTRUCTURA MSI˝
 
 **Patron central:**
 ```
@@ -202,14 +238,14 @@ go -> will go -> would go -> should go -> could go -> must go -> may go -> might
 ```
 El verbo cambia. La logica no.
 
-**Ejercicios de dominio (001-D):**
+**Ejercicios de dominio (001-E):**
 1. Deteccion: Jill dice frase en espanol con -re/-ria, el estudiante elige will o would.
 2. Construccion Estructura MSI˝: armar las 4 piezas con un verbo dado.
 3. Cambio de modal: misma oracion, distinto modal.
 4. Rapid Fire: progresion completa con 1 verbo en <30s.
 5. Combinacion: dos estructuras MSI˝ en una idea conectada (escrito: con linker; oral: cuando aplique fase).
 
-**Dominio 001-D / modulo 001 completo:** detecta will/would sin senalar ˝ arma estructura MSI˝ sin instruccion ˝ participio tras have siempre ˝ Rapid Fire <1s ˝ combina dos estructuras ˝ produce sin traducir.
+**Dominio 001-E / modulo 001 completo:** detecta will/would sin senalar ˝ arma estructura MSI˝ sin instruccion ˝ participio tras have siempre ˝ Rapid Fire <1s ˝ combina dos estructuras ˝ produce sin traducir.
 
 **Errores frecuentes 001:** confunde columnas pronombre -> "Que funcion ocupa aca?" ˝ traduce yo->I en objeto -> "Quien recibe la accion?" ˝ salta abecedario/pronombres -> Analogia de la Casa.
 
@@ -635,7 +671,7 @@ many/much -> more -> the most
 
 
 ## REGISTRO DE MùDULOS DE DOMINIO
-- **Modulo de Dominio 001** (v6.0): desde cero  abecedario, pronombres 4 tipos (personal/indicativo/reflexivo/posesivo), 16 verbos esenciales, modales MSI˝ (will/would); ejercicios de dominio 001-A/B/C/D.
+- **Modulo de Dominio 001** (v7.0): 001-A abecedario; 001-B pronombres; 001-C 16 verbos + PR; **001-D articulos/cuantificadores Col 1**; 001-E modales will/would.
 - **Mùdulo de Dominio 002** (v2.0): tiempos verbales como ancla; patrùn completo del verbo (11 formas); ubicaciùn temporal ("ùAncla?"); Analogùa de la Casa; correcciùn de mezcla temporal.
 - **Mùdulo de Dominio 003** (v2.0): verbos regulares, las 3 reglas del -ED (E?D ù CVC acento final?doblar+ED ù Y tras consonante?I+ED) + trampas (hop/hope, play/open, study).
 - **Mùdulo de Dominio 004** (v2.0): los 16 irregulares esenciales por grupo; tres columnas; regla HAVE?participio; nunca -ED a irregulares.
@@ -653,7 +689,7 @@ many/much -> more -> the most
 
 | Col | Sigla | Formula |
 |-----|-------|---------|
-| 1 | **PR** | P + V + C |
+| 1 | **PR** | P + V + [a/an/the + cuantif.] + C (001-D) |
 | 2 | **PS** | P + V en pasado + C |
 | 3 | **PC** | P + to be + V+ing + C |
 | 4 | **PRP** | P + have/has + participio + C |

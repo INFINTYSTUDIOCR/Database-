@@ -3,6 +3,7 @@
  * Banco, seleccin adaptativa, perfil por estudiante, persistencia y cascada a tutores.
  */
 const JillDrillBank = require('../js/jill-drill-bank.js');
+const JillMatrixQuiz = require('../js/jill-matrix-quiz.js');
 
 const DRILL_BRAIN_ID = 'JILL-DRILL-BRAIN';
 const QUESTIONS_PER_ROUND = 10;
@@ -128,8 +129,12 @@ function allTaggedQuestions() {
 
 function pickQuestions(student, activeBundle, count) {
   count = count || QUESTIONS_PER_ROUND;
+  const bid = resolveBundleId(bundleIdFromStudent(student, activeBundle));
+  if (bid === 'F0-matrix') {
+    const matrixQs = JillMatrixQuiz.pickQuestions(student, count);
+    if (matrixQs.length >= Math.min(3, count)) return matrixQs.slice(0, count);
+  }
   const nemesisKpis = collectNemesisKpis(student);
-  const bid = bundleIdFromStudent(student, activeBundle);
   const pool = [];
   const seenQ = {};
 
