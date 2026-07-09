@@ -25,6 +25,7 @@
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/ai-profile.js"></script>
+<script src="js/celebration-sfx.js?v=20260708"></script>
 <script src="js/alice-progress.js?v=20260703"></script>
 <script src="js/alice-badges-cefr.js"></script>
 <script src="js/alice-pronunciation.js"></script>
@@ -2345,7 +2346,7 @@ async function endAliceSession(){
         var mins = _aliceState.sessionStartedAt
           ? Math.max(0.5, Math.round((Date.now() - _aliceState.sessionStartedAt) / 60000 * 10) / 10)
           : AliceProgress.estimateMinutes(turns, AliceProgress.countWords(_aliceState.history));
-        AliceProgress.recordSessionEnd(s, {
+        var aliceRec = AliceProgress.recordSessionEnd(s, {
           sessionType: _aliceState.sessionType,
           score: _aliceState.evaluation.overall_score,
           topic: _aliceState.companionTopic || '',
@@ -2356,6 +2357,7 @@ async function endAliceSession(){
           focus_kpi_scores: _aliceState.evaluation.focus_kpi_scores || null,
           clarity_score: clarity ? clarity.clarity_score : null
         });
+        if(typeof CelebrationSfx !== 'undefined') CelebrationSfx.onSessionGrowth(aliceRec);
         if(clarity) _aliceState.evaluation.clarity = clarity;
         if(typeof AliceBadgesCefr !== 'undefined'){
           var unlocked = AliceBadgesCefr.checkBadges(s, {
@@ -2363,6 +2365,7 @@ async function endAliceSession(){
             clarityScore: clarity ? clarity.clarity_score : 0
           });
           var toast = AliceBadgesCefr.renderNewBadgeToast(unlocked);
+          if(unlocked.length && typeof CelebrationSfx !== 'undefined') CelebrationSfx.onBadgesUnlocked(unlocked);
           if(toast) showPortalToast(toast.split('\n')[0]);
         }
       }
@@ -2829,8 +2832,8 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
 function jillInstantOpening(student, returning, calibrating){
   var name = jillStudentDisplayName(student);
   if(_jillState.sessionType === 'companion'){
-    if(returning) return "Hola "+name+", qué bueno verte. ¿Qué tema querés hoy? Cualquier duda se convierte en lección — gerundio, tiempos, vocab, lo que sea.";
-    return "Hola "+name+", soy Jill Pro. Pedime cualquier tema y te armo una lección: regla, canon y práctica. ¿Por dónde empezamos?";
+    if(returning) return "Hola "+name+", qué bueno verte. ¿Qué vamos a practicar hoy?";
+    return "Hola "+name+", soy Jill Pro. ¿Qué vamos a practicar hoy? Traé tu duda de clase y la vemos juntos.";
   }
   if(calibrating && typeof JillCalibration !== 'undefined'){
     return JillCalibration.instantOpening(student);
@@ -4711,7 +4714,9 @@ async function endJillSession(){
           });
           if(s.id) await dbSet('infinity_students', s.id, s);
           if(jRec && jRec.xpGain) showToast('+' + jRec.xpGain + ' XP con Jill');
+          if(typeof CelebrationSfx !== 'undefined') CelebrationSfx.onSessionGrowth(jRec);
           if(jUnlocked && jUnlocked.length){
+            if(typeof CelebrationSfx !== 'undefined') CelebrationSfx.onBadgesUnlocked(jUnlocked);
             var badgeMsg = JillProgress.renderNewBadgeToast(jUnlocked);
             if(badgeMsg) setTimeout(function(){ showToast(badgeMsg); }, 600);
           }

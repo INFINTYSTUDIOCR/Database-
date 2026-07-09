@@ -188,7 +188,8 @@
     { kpi: 'k3', topic: 'there', q: 'Existe un libro (no identificación) →', options: ['There is a book', 'It is a book', 'There are a book', 'Is a book'], answer: 0, explain: 'Existencia → there is. It is = identificación.' },
     { kpi: 'k3', topic: 'there', q: 'Afirmación: There is a meeting. → Pregunta (moneda):', options: ['Is there a meeting?', 'There is a meeting?', 'Does there a meeting?', 'Is there are a meeting?'], answer: 0, explain: 'Inversión: Is + there + C.' },
     { kpi: 'k3', topic: 'coin', q: 'Afirmación: She worked yesterday. → Pregunta (moneda):', options: ['Did she work yesterday?', 'She did work yesterday?', 'Does she worked yesterday?', 'Worked she yesterday?'], answer: 0, explain: 'Pasado pregunta: Did al frente + verbo base.' },
-    { kpi: 'k3', topic: 'coin', q: 'Afirmación: They are working. → Pregunta (moneda):', options: ['Are they working?', 'They are working?', 'Do they working?', 'Are working they?'], answer: 0, explain: 'PC pregunta: Are al frente.' },
+    { kpi: 'k3', topic: 'coin', q: 'Afirmación: They are working. → Pregunta (moneda):', options: ['Are they working?', 'They are working?', 'Do they working?', 'Are working they?'], answer: 0, explain: 'PC pregunta: Are al frente.' }
+  ];
 
   var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(THERE_QUESTIONS);
 
@@ -237,6 +238,7 @@
       { kpi: 'k4', topic: 'there', q: '¿Habrá tiempo para preguntas? →', options: ['Will there be time for questions?', 'Will there time for questions?', 'Is there will be time?', 'There will be time for questions?'], answer: 0, explain: 'Will there be = futuro existencial.' },
       { kpi: 'k4', topic: 'prep', q: 'I live ___ San José (ciudad)', options: ['in', 'on', 'at', 'by'], answer: 0, explain: 'in + ciudad/país.' }
     ],
+    'B6-recovery': [
       { kpi: 'k13', q: 'Frase de reparación útil…', options: ['Let me rephrase that', 'I quit', 'No English', 'Louder please'], answer: 0, explain: 'Reformulá y seguí.' },
       { kpi: 'k12', q: 'Después de un error, Jill quiere que…', options: ['Pares', 'Cierres la idea igual', 'Cambies de idioma', 'Te disculpes 10 veces'], answer: 1, explain: '…and that is basically it — cerrá la idea.' },
       { kpi: 'k2', q: 'Recovery bajo presión significa…', options: ['No arriesgar', 'Seguir con frase de reparo', 'Evitar hablar', 'Solo escribir'], answer: 1, explain: 'Equivocarse no tiene costo emocional.' }
@@ -865,6 +867,11 @@
     }
 
     function paintResultsUI(winMeta, rec, trophy, score, perfect) {
+      if (typeof CelebrationSfx !== 'undefined') {
+        if (winMeta.won) CelebrationSfx.victory();
+        else if (rec.xp) CelebrationSfx.xp();
+        if (rec.unlocked && rec.unlocked.length) CelebrationSfx.onBadgesUnlocked(rec.unlocked);
+      }
       if (typeof showToast === 'function' && rec.xp) {
         showToast('+' + rec.xp + ' XP · ' + BRAND);
       }
@@ -910,8 +917,13 @@
         state.correct++;
         state.streak++;
         state.bestStreak = Math.max(state.bestStreak, state.streak);
+        if (typeof CelebrationSfx !== 'undefined') {
+          CelebrationSfx.correct();
+          if (state.streak >= 3) CelebrationSfx.streak(state.streak);
+        }
       } else {
         state.streak = 0;
+        if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
       }
       rootEl.querySelectorAll('.jill-kahoot-opt').forEach(function (b, i) {
         b.disabled = true;
@@ -963,6 +975,7 @@
           state.answered = true;
           clearTimer();
           state.streak = 0;
+          if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
           var q = state.quiz[state.idx];
           rootEl.querySelectorAll('.jill-kahoot-opt').forEach(function (b, i) {
             b.disabled = true;

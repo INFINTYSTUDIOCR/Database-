@@ -3742,11 +3742,14 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const bundleCtxChat = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
-    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const teachInstrChat = isJillCompanion
+      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message, history)
+      : '';
+    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${isJillCompanion ? `\n\nFASE JILL PRO: ${JillPro.resolveCompanionPhase(history, message, topicHint)}\n\n${teachInstrChat}` : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
+      max_tokens: isJillCompanion ? 1100 : 600,
       system: systemWithContext,
       messages: msgs
     });
@@ -3916,7 +3919,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext));
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
     const teachInstr = isJillCompanion
-      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
+      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message, history)
       : (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
         : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.'));
@@ -3924,8 +3927,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 800 : 700,
-      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      max_tokens: isJillCompanion ? 1100 : 700,
+      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}\n\nFASE JILL PRO: ${isJillCompanion ? JillPro.resolveCompanionPhase(history, message, topicHint) : 'tutor'}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

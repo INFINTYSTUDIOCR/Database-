@@ -168,6 +168,9 @@
     var minutes = opts.minutes != null ? opts.minutes : estimateMinutes(turns, opts.wordCount || 0);
     var score = opts.score != null ? parseInt(opts.score, 10) || 0 : 0;
     var today = todayKey();
+    var prevDate = habit.lastPracticeDate;
+    var prevTodayMin = habit.todayDate === today ? (habit.todayMinutes || 0) : 0;
+    var goalMin = habit.dailyGoalMinutes || DAILY_GOAL_MINUTES;
 
     updateStreak(habit, today);
     updateTodayMinutes(habit, minutes, today);
@@ -201,7 +204,13 @@
     });
     if (student.jillSessions.length > 40) student.jillSessions = student.jillSessions.slice(-40);
 
-    return { growth: growth, xpGain: xpGain };
+    return {
+      growth: growth,
+      xpGain: xpGain,
+      streakExtended: prevDate !== today,
+      newStreak: habit.streak || 0,
+      dailyGoalJustMet: habit.todayDate === today && prevTodayMin < goalMin && (habit.todayMinutes || 0) >= goalMin
+    };
   }
 
   function renderHabitStrip(student) {

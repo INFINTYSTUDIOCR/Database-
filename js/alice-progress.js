@@ -176,6 +176,9 @@
     var turns = opts.turns != null ? opts.turns : 0;
     var minutes = opts.minutes != null ? opts.minutes : estimateMinutes(turns, opts.wordCount || 0);
     var today = todayKey();
+    var prevDate = habit.lastPracticeDate;
+    var prevTodayMin = habit.todayDate === today ? (habit.todayMinutes || 0) : 0;
+    var goalMin = habit.dailyGoalMinutes || DAILY_GOAL_MINUTES;
 
     updateStreak(habit, today);
     updateTodayMinutes(habit, minutes, today);
@@ -205,7 +208,12 @@
     }
 
     student.aliceGrowth = growth;
-    return growth;
+    return {
+      growth: growth,
+      streakExtended: prevDate !== today,
+      newStreak: habit.streak || 0,
+      dailyGoalJustMet: habit.todayDate === today && prevTodayMin < goalMin && (habit.todayMinutes || 0) >= goalMin
+    };
   }
 
   function applyCompanionKpiHints(student, focusScores, sessionScore) {

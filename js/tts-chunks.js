@@ -208,6 +208,7 @@ var _ttsAudioUnlocked = false;
 
 /** Unlock browser audio after a user gesture (laptops often block autoplay after several plays). */
 function unlockTtsAudio() {
+  if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.unlock();
   if (_ttsAudioUnlocked) return Promise.resolve();
   return new Promise(function (resolve) {
     try {
