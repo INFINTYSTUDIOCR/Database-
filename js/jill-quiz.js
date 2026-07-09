@@ -176,7 +176,20 @@
     { kpi: 'k2', topic: 'tense', q: 'Elige la forma correcta: ___ they working now?', options: ['Are', 'Is', 'Do', 'Did'], answer: 0, explain: 'Pregunta continua: Are they working?' }
   ];
 
-  var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS);
+  var THERE_QUESTIONS = [
+    { kpi: 'k3', topic: 'there', q: 'Hay un gato en la mesa →', options: ['There is a cat on the table', 'It has a cat on the table', 'There are a cat on the table', 'Have a cat on the table'], answer: 0, explain: 'Hay = there + be. Singular → there is.' },
+    { kpi: 'k3', topic: 'there', q: 'Hay problemas →', options: ['There are problems', 'There is problems', 'It is problems', 'Have problems'], answer: 0, explain: 'Plural → there are.' },
+    { kpi: 'k3', topic: 'there', q: '¿Hay una reunión mañana? →', options: ['Is there a meeting tomorrow?', 'There is a meeting tomorrow?', 'Are there a meeting tomorrow?', 'Does there a meeting tomorrow?'], answer: 0, explain: 'Pregunta moneda: be al frente → Is there…?' },
+    { kpi: 'k3', topic: 'there', q: '¿Hay preguntas? →', options: ['Are there any questions?', 'Is there any questions?', 'There are questions?', 'Do there questions?'], answer: 0, explain: 'Questions = plural → Are there…?' },
+    { kpi: 'k2', topic: 'there', q: 'Había mucha gente →', options: ['There were many people', 'There was many people', 'There had many people', 'It was many people'], answer: 0, explain: 'Pasado plural → there were.' },
+    { kpi: 'k2', topic: 'there', q: 'Habrá tiempo →', options: ['There will be time', 'There will time', 'Will there time', 'There is will time'], answer: 0, explain: 'Futuro: there will be + C.' },
+    { kpi: 'k3', topic: 'there', q: 'Habría un problema →', options: ['There would be a problem', 'There would a problem', 'Would there a problem', 'There will be a problem'], answer: 0, explain: 'Condicional: there would be.' },
+    { kpi: 'k3', topic: 'there', q: 'Ha habido retrasos →', options: ['There have been delays', 'There has been delays', 'There have delay', 'There is been delays'], answer: 0, explain: 'Perfecto plural → there have been.' },
+    { kpi: 'k3', topic: 'there', q: 'Existe un libro (no identificación) →', options: ['There is a book', 'It is a book', 'There are a book', 'Is a book'], answer: 0, explain: 'Existencia → there is. It is = identificación.' },
+    { kpi: 'k3', topic: 'there', q: '¿Había un error? →', options: ['Was there an error?', 'Were there an error?', 'Was there are an error?', 'Did there an error?'], answer: 0, explain: 'Pasado singular pregunta → Was there…?' }
+  ];
+
+  var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(THERE_QUESTIONS);
 
   var CORE = [
     { kpi: 'k10', q: 'Completá la oración: I think ___ because…', options: ['that', 'the', 'to', 'on'], answer: 0, explain: 'Opinión + because: I think that… because…' },
@@ -218,7 +231,11 @@
       { kpi: 'k11', q: 'Opinión completa = …', options: ['I think', 'I think because… for example…', 'Yes', 'Maybe'], answer: 1, explain: 'Opinión + razón + ejemplo.' },
       { kpi: 'k6', q: 'En narración, el orden típico es…', options: ['Finally first', 'First → Then → Finally', 'Random', 'Solo pasado'], answer: 1, explain: 'Primero, después, al final.' }
     ],
-    'B6-recovery': [
+    'F4-components': [
+      { kpi: 'k4', topic: 'there', q: 'Hay tres libros en la mesa →', options: ['There are three books on the table', 'There is three books on the table', 'It has three books', 'Have three books on the table'], answer: 0, explain: 'Hay plural → there are.' },
+      { kpi: 'k4', topic: 'there', q: '¿Habrá tiempo para preguntas? →', options: ['Will there be time for questions?', 'Will there time for questions?', 'Is there will be time?', 'There will be time for questions?'], answer: 0, explain: 'Will there be = futuro existencial.' },
+      { kpi: 'k4', topic: 'prep', q: 'I live ___ San José (ciudad)', options: ['in', 'on', 'at', 'by'], answer: 0, explain: 'in + ciudad/país.' }
+    ],
       { kpi: 'k13', q: 'Frase de reparación útil…', options: ['Let me rephrase that', 'I quit', 'No English', 'Louder please'], answer: 0, explain: 'Reformulá y seguí.' },
       { kpi: 'k12', q: 'Después de un error, Jill quiere que…', options: ['Pares', 'Cierres la idea igual', 'Cambies de idioma', 'Te disculpes 10 veces'], answer: 1, explain: '…and that is basically it — cerrá la idea.' },
       { kpi: 'k2', q: 'Recovery bajo presión significa…', options: ['No arriesgar', 'Seguir con frase de reparo', 'Evitar hablar', 'Solo escribir'], answer: 1, explain: 'Equivocarse no tiene costo emocional.' }

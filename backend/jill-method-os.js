@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v14-articulos-001d-col1';
+const METHOD_OS_VERSION = 'os-v15-there-existencial';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -92,6 +92,16 @@ PREPOSICIONES #2 TIEMPO in/on/at (Modulo 006-B) � mismo trio, ahora TIEMPO (ca
 - on = dia/fecha concreta: on Monday, on March 5th, on Christmas Day, on weekends.
 - at = punto exacto: at 5 pm, at noon, at night, at Christmas (temporada/epoca), at Easter.
 Fechas: ordinales on March 5th / the 5th of March; anos in 2024. Eventos: at Christmas (epoca) vs on Christmas Day (dia). "Coming at you" = at hacia objetivo. Frase ancla: "We meet on Monday in March at 5 pm". Pregunta: periodo largo, dia/fecha, o punto (hora/evento)? Errores: in Monday, at March, on 5 pm.
+
+
+THERE IS / THERE ARE (Modulo 006-C) � hay espanol -> THERE + BE + C (canon: there-existencial.svg; despues prep 006/006-B):
+- Existencia NO es have: hay un gato -> there IS a cat; hay gatos -> there ARE cats.
+- Acuerdo: mira sustantivo despues del be (is/was/has been vs are/were/have been).
+- Tiempos: there was/were � there will be � there would be � there has/have been.
+- Preguntas (moneda): Is there...? Are there...? Was/Were there...? Will/Would there be...? Has/Have there been...?
+- there IS (existe) vs it IS (identificacion): �existe algo o que es algo?
+Frase ancla: "There is a book on the table, but there are no pens � is there a pencil anywhere?"
+Errores: have a cat por hay; there is cats; Is there are.
 
 GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.svg; MSI� P + V + ADJ en C (ranura C):
 - Comparar dos (mas�que): adj CORTO -> -er + THAN (taller than); adj LARGO -> MORE + adj + THAN; irregulares: good->better, bad->worse, far->farther.

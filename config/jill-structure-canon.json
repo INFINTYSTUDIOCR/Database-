@@ -30,6 +30,8 @@
     { "id": "superlative", "sigla": "SUP", "notation": "P + V + THE + ADJ-est/most + ADJ + C", "example": "He is the best / the most talented", "whiteboard": "He | is | the best" },
     { "id": "equality", "sigla": "EQ", "notation": "P + V + AS + ADJ + AS + C", "example": "Juan is as tall as Pedro", "whiteboard": "Juan | is | as tall as | Pedro" },
     { "id": "prep-time", "sigla": "PREP-T", "notation": "P + V + C (in/on/at + tiempo)", "example": "We meet on Monday in March at 5 pm", "whiteboard": "We | meet | on Monday in March at 5 pm" },
+    { "id": "there-ex", "sigla": "THERE", "notation": "THERE + BE + C", "example": "There is a cat on the table", "whiteboard": "There | is | a cat on the table" },
+    { "id": "there-q", "sigla": "THERE?", "notation": "BE + there + C (pregunta moneda)", "example": "Is there a meeting? / Are there questions?", "whiteboard": "Is | there | a meeting?" },
     { "id": "art-indef", "sigla": "ART-IND", "notation": "P + V + a/an + sustantivo + C", "example": "I see a cat / I need an hour", "whiteboard": "I | see | a cat" },
     { "id": "art-def", "sigla": "ART-DEF", "notation": "P + V + the + sustantivo + C", "example": "The cat is black / I went to the office", "whiteboard": "I | read | the book" },
     { "id": "qty-unc", "sigla": "QTY-U", "notation": "P + V + much/little/a lot of + sustantivo (no contable)", "example": "I have little time / much water", "whiteboard": "I | have | little time" },

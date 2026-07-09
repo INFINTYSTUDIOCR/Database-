@@ -23,7 +23,12 @@
       "bundles": ["F4-components", "B5-basics"]
     },
     {
-      "id": "comparativos",
+      "id": "there-existencial",
+      "title": "There is / There are (hay → existe)",
+      "path": "assets/canon/there-existencial.svg",
+      "topics": ["there", "there is", "there are", "existential", "hay", "was there", "will there be"],
+      "bundles": ["F4-components", "F0-matrix"]
+    },
       "title": "Comparativos y superlativos",
       "path": "assets/canon/comparativos.svg",
       "topics": ["comparative", "superlative", "than", "as", "more", "most"],

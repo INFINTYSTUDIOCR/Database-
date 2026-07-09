@@ -164,7 +164,8 @@
     progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
-    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' }
+    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' },
+    there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -176,6 +177,7 @@
     if (/\b(pasado perfecto|past perfect|\bppc\b|been.*ing|combinado)\b/.test(t)) return 'combined';
     if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
     if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'progressive';
+    if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
     if (/\b(art[ií]culo|article|\bthe\b)\b/.test(t)) return 'perfect';
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;
