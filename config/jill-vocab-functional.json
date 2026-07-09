@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "title": "Vocabulario funcional Foundations — dentro de estructuras MSI",
+  "ceiling": "Solo palabras del drill activo, lista activa del alumno (max 24), o dominios abajo ya introducidos en practica.",
+  "domains": {
+    "work": ["work", "office", "job", "meeting", "project", "team", "boss", "schedule", "report", "task"],
+    "daily": ["home", "today", "yesterday", "morning", "night", "breakfast", "lunch", "routine", "weekend"],
+    "family": ["family", "mother", "father", "brother", "sister", "children", "parents", "cousin"],
+    "technology": ["computer", "phone", "email", "system", "update", "configure", "install", "network"],
+    "business": ["client", "customer", "service", "order", "delivery", "payment", "invoice", "contract"],
+    "education": ["school", "class", "study", "teacher", "student", "homework", "exam", "lesson"],
+    "travel": ["trip", "airport", "hotel", "ticket", "flight", "passport", "luggage", "reservation"],
+    "health": ["doctor", "hospital", "medicine", "appointment", "pain", "exercise", "rest", "healthy"],
+    "opinions": ["think", "believe", "prefer", "agree", "disagree", "important", "better", "reason"]
+  },
+  "starterSeed": ["work", "study", "home", "today", "yesterday", "office", "family", "time", "meeting", "because"],
+  "jillRule": "Introducir palabra nueva solo en complemento (C) de estructura del drill. Reutilizar en siguientes practicas. No ampliar lexico antes de gate F0."
+}

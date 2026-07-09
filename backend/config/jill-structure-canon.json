@@ -101,7 +101,9 @@
     "rule": "Foundations Infinity: 16 verbos operativos en matriz MSI antes de ampliar vocabulario o tiempos avanzados.",
     "coreVerbs16": ["be", "have", "do", "work", "study", "go", "make", "take", "get", "see", "know", "think", "want", "need", "say", "tell"],
     "vocabCeiling": "Vocabulario funcional gradual — solo palabras del drill y lista activa del alumno.",
-    "sequence": "No avanzar de bundle hasta gate F0 (matriz + Pulse + anecdota). Cuaderno de bolsillo obligatorio.",
+    "linkersFoundations": "and, but, because, so (escrito y oral básico)",
+    "linkersAlice": "however, furthermore, on top of that, in addition — post-graduación Alice",
+    "sequence": "No avanzar de bundle hasta gate F0 (matriz + Pulse + anecdota + 22 días escritos + conversación). Cuaderno de bolsillo obligatorio.",
     "jillRule": "Corregir por ranuras P|M|V|C. Estructurar, no traducir."
   },
   "notebook": {

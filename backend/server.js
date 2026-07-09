@@ -2963,7 +2963,7 @@ MÉTODO DE LA MONEDA (pregunta vs respuesta):
 
 function formatJillVocabNote(vocabContext) {
   if (!vocabContext || !vocabContext.activeWords?.length) return '';
-  return `\nVOCAB ACTIVO (gradual, solo estas + drill): ${vocabContext.activeWords.slice(0, 14).join(', ')}.`;
+  return `\nVOCAB ACTIVO (techo gradual — drill + lista activa, max ~24): ${vocabContext.activeWords.slice(0, 14).join(', ')}. Solo palabras dentro de P+V+C; dominios funcionales ya introducidos.`;
 }
 
 function formatJillResponseKpiNote(matrixContext) {
@@ -3014,22 +3014,21 @@ FASE CONVERSACIÓN FOUNDATIONS (matrixContext.conversationPhase true — estruct
 - NUNCA gradués automáticamente. Solo al terminar sesión (modo evaluate) podés marcar graduation_request:true si TODOS los KPIs conversacionales de Johnny se cumplen en la evidencia del transcript.
 - Si aún hay errores de tiempo, coordinación o esfuerzo evidente: seguí puliendo — graduation_request:false.`;
 
-function jillStructurePrerequisitesMet(student) {
+function jillStructurePrerequisitesMet(student, matrixContext) {
   const m = student?.jillMatrix || {};
+  const ctx = matrixContext || {};
   const pulseOk = !!(m.pulseQuizPassed || student?.jillPulse?.passed);
   const anecdoteOk = (m.anecdoteSessions || 0) >= 1 || !!m.anecdoteEvaluated;
   const timeOk = m.avgResponseMs == null || m.avgResponseMs <= 15000;
-  const cols = m.columnIndex;
-  const cells = m.cells || {};
-  if (!pulseOk || !anecdoteOk || !timeOk) return false;
-  if (student?.jillMatrix && typeof cols === 'number' && cols < 5) {
-    /* client tracks columnIndex; full mastery verified client-side */
-  }
-  return !!(m.anecdoteUnlocked || student?.jillMatrix?.conversationPhase);
+  const writtenOk = (m.writtenDaysCompleted || 0) >= (ctx.writtenDaysRequired || 22)
+    || !!ctx.writtenPhaseOk;
+  const colsOk = !!(m.allColumnsMastered || ctx.allColumnsMastered);
+  if (!pulseOk || !anecdoteOk || !timeOk || !writtenOk || !colsOk) return false;
+  return true;
 }
 
 function formatJillConversationNote(matrixContext, student) {
-  const phase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+  const phase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext);
   if (!phase) return '';
   const pending = student?.jillGraduationRequest?.pending;
   return pending ? '\nSOLICITUD GRADUACIÓN PENDIENTE: el estudiante puede confirmar — vos ya evaluaste que cumple KPIs conversacionales.' : '';
@@ -3069,6 +3068,14 @@ function formatJillMatrixNote(matrixContext) {
     matrixContext.columnsSummary ? `Estado columnas: ${matrixContext.columnsSummary}` : '',
     matrixContext.anecdoteMode ? 'MODO ANÉCDOTA — cuaderno 15 min → leer → coaching estructura/coherencia/pronunciación.' : '',
     matrixContext.anecdoteUnlocked && !matrixContext.anecdoteMode ? 'Anécdota desbloqueada cuando 100% columnas.' : '',
+    matrixContext.writtenDaysCompleted != null
+      ? `FASE ESCRITA 15+10: día ${matrixContext.writtenDaysCompleted}/${matrixContext.writtenDaysRequired || 22} (obligatorio antes de conversación oral).`
+      : '',
+    matrixContext.writtenPhaseOk ? '22 días escritos cumplidos — puede activar fase conversación si matriz+Pulse+anécdota OK.' : '',
+    matrixContext.allColumnsMastered ? 'Matriz 100% columnas PR·PS·PC·PRP·PPC·MOD.' : '',
+    matrixContext.linkersFoundations
+      ? `LINKERS FOUNDATIONS (solo): ${matrixContext.linkersFoundations}. NO however/furthermore (Alice).`
+      : 'LINKERS FOUNDATIONS: and, but, because, so. NO however/furthermore (Alice).',
     matrixContext.cronogramHint === 'explain_alternate_channel'
       ? 'CRONOGRAMA: falla sistemática 3+ — explicá el MISMO tema de 3 formas distintas (verbal → tabla PR/PS → método moneda) antes de avanzar.'
       : '',
@@ -3079,7 +3086,7 @@ function formatJillMatrixNote(matrixContext) {
 
 function jillMatrixPromptExtras(jillBundle, matrixContext, student) {
   const isF0 = jillBundle?.id === 'F0-matrix' || jillBundle?.gateMode === 'matrix-only' || matrixContext?.gateMode === 'matrix-only';
-  const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
+  const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext);
   return {
     isF0,
     matrixNote: formatJillMatrixNote(matrixContext),
@@ -3319,8 +3326,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v18-msi-solo-tiempos';
-const ALICE_BRAIN_VER = 'v17-msi-solo-tiempos';
+const JILL_BRAIN_VER = 'v19-f0-gate-conversacion';
+const ALICE_BRAIN_VER = 'v18-f0-gate-conversacion';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
@@ -3610,8 +3617,8 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
       const bundleTitle = jillBundle?.title || 'Foundations';
       const bundleKpis = (jillBundle?.kpis || []).join(', ') || 'estructura MSI, chunks, tiempos verbales';
-      const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student);
-      const structPrereq = jillStructurePrerequisitesMet(student);
+      const convPhase = matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext);
+      const structPrereq = jillStructurePrerequisitesMet(student, matrixContext);
 
       if (!hist || hist.length < 16) {
         return res.json(await finalizeJillEvaluation(student, {
@@ -3883,7 +3890,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     if (!isJillCompanion && brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
       return Brain.writeBrainSSE(res, cachedPlain);
     }
-    const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student));
+    const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext));
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
     const teachInstr = isJillCompanion
       ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)

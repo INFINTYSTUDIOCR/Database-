@@ -250,7 +250,7 @@ Si no cumple todos ˝ vuelvo al paso donde fall˝. No avanzo.
 
 **22 dias** de fase escrita exclusiva con rutina 15+10. Al cumplir dia 22 + respuestas escritas conectadas independientes (min 5 oraciones, Idea+Linker+Idea visible) -> **recien** fase oral. Hasta entonces: cero presion oral.
 
-**Regla Jill:** "I worked yesterday" NO es conversacion. "I worked yesterday because I had a meeting, however, it did not go as expected" ˝ CORRECTO. Escribir primero, automatizar, despues hablar.
+**Regla Jill:** "I worked yesterday" NO es conversacion. "I worked yesterday because I had a meeting, and it did not go as expected" ù CORRECTO (linkers Foundations: and/but/because/so). Escribir primero, automatizar, despues hablar.
 
 ---
 
@@ -644,3 +644,84 @@ many/much -> more -> the most
 - **Modulo de Dominio 006-B** (v4.1): preposiciones #2 tiempo in/on/at; meses, anos, dias, fechas ordinales, eventos (at Christmas vs on Christmas Day), coming at you; frase ancla on Monday in March at 5 pm.
 - **MÛdulo de Dominio 007** (v5.0): estados TENER (espaÒol) = TO BE (inglÈs); edad "I am X years old" (no "I have X years"); hambre/frÌo/miedo/razÛn/prisa ? to be; detectar cosa (have) vs estado (to be); correcciÛn "øcosa o estado?".
 - **Modulo de Dominio 008** (v7.0): comparativos y superlativos; -er/more + than, the -est/the most, as˝as, irregulares good/better/best; less/fewer; MSI˝ P+V+ADJ (ranura C) en C.
+
+## F0 MATRIZ DE DOMINIO (GATE PRùPSùPCùPRPùPPCùMOD)
+
+**Proposito:** despues de modulos 001-008, el alumno **practica la matriz** hasta que armar tiempos sale **natural** ù sin traducir. Es el puente entre teoria MSI y **hablar con base**.
+
+**Matriz:** 7 pronombres x **16 verbos operativos** (be, have, do, work, study, go, make, take, get, see, know, think, want, need, say, tell) x **6 columnas**:
+
+| Col | Sigla | Formula |
+|-----|-------|---------|
+| 1 | **PR** | P + V + C |
+| 2 | **PS** | P + V en pasado + C |
+| 3 | **PC** | P + to be + V+ing + C |
+| 4 | **PRP** | P + have/has + participio + C |
+| 5 | **PPC** | P + have/had + been + V+ing + C |
+| 6 | **MOD** | P + M + V + C |
+
+**Nota:** los 16 de **Modulo 001-C** (come, go, take, seem...) son los irregulares esenciales de cero total. La **matriz F0** usa los 16 **operativos** de arriba para el gate ù misma mecanica MSI, distinto set de practica.
+
+**Gate (no avanzar sin cumplir TODO):**
+1. **100% celdas** ù cada combinacion P x verbo x columna con **3 aciertos** seguidos.
+2. **Tiempo de respuesta** ù promedio bajo 15s (meta 12s).
+3. **Pulse quiz** Foundations aprobado (estructura, tiempos, prep, moneda).
+4. **Anecdota de cuaderno** 15 min escrita, leida, evaluada por Jill (ranuras + coherencia).
+5. **22 dias escritos** completados (Metodo 15+10) ù recien habilita **fase oral/conversacion**.
+6. **Fase conversacion** con Jill ù dialogo sostenido sin errores graves de tiempo/coordinacion.
+7. **Graduacion a Alice** ù Jill **solicita**; estudiante/trainer **confirma** (nunca automatico).
+
+**Metodo moneda en matriz:** cada columna incluye afirmacion + pregunta (V|P vs P|V). Canon: `assets/canon/moneda.svg`.
+
+---
+
+## LINKERS ESCRITOS MINIMOS (FOUNDATIONS) VS ALICE
+
+**Foundations (Jill) ù escrito y oral basico:**
+- **and, but, because, so** ù conectar **dos ideas** con estructura MSI ya dominada.
+- Desde **PC (Col 3)** en matriz: minimo **and/but** en coordinacion oral con Jill.
+- **NO ense˝ar ni exigir** en Foundations: however, furthermore, on top of that, in addition, nevertheless ù eso es **territorio Alice** (Idea+Linker+Idea avanzado).
+
+**Ejemplo correcto Foundations (escrito 15+10):**
+`I worked yesterday because I had a meeting, and it did not go as expected.`
+
+**Ejemplo Alice (despues de graduar):**
+`I worked yesterday because I had a meeting; however, it did not go as expected.`
+
+**Regla Jill en chat:** corrijo coordinacion con and/but/because/so. Si el alumno usa however en F0 ù no felicito el linker; redirijo: "Eso es Alice. Ahora conecta con and, but o because."
+
+---
+
+## VOCABULARIO FUNCIONAL (TECHO GRADUAL)
+
+**Regla:** vocabulario **dentro de estructuras**, nunca listas sueltas. Techo = **palabras del drill activo** + **lista activa del alumno** (max ~24 palabras en rotacion).
+
+**Fuentes permitidas:**
+1. Palabras que salen en la **matriz F0** y drills de tiempo.
+2. **Lista activa** del cuaderno/anecdota (Jill cosecha las usadas).
+3. **Dominios funcionales** (Work, Family, Daily, Technology, CS, Travel, Health...) ù solo palabras ya introducidas en practica, reutilizadas en chunks P+V+C.
+
+**Prohibido en Foundations:** inventar vocabulario raro fuera del drill; traducir palabra por palabra; ampliar lexico antes de cerrar gate F0.
+
+**Jill:** si el alumno pide palabra nueva ù solo si encaja en estructura del drill actual; la ancla al complemento (C), no como traduccion aislada.
+
+---
+
+## FASE CONVERSACION CON JILL Y GRADUACION A ALICE
+
+**Cuando se activa:** matriz F0 100% + Pulse + anecdota evaluada + 22 dias escritos + tiempo de respuesta OK.
+
+**Que hace Jill en fase conversacion:**
+- Dialogo sostenido (min ~16 turnos en sesion evaluable).
+- Evalua: tiempo verbal correcto, coordinacion (and/but), logica, esfuerzo bajo, fluidez.
+- Corrige on-the-go por **ranuras MSI** ù no por gramatica nominal.
+- **NO gradua automaticamente.** Al cerrar sesion (modo evaluate) puede marcar `graduation_request: true` solo si evidencia clara en todo el transcript.
+
+**KPIs conversacionales (Johnny):** tiempo verbal, coordinacion de ideas, logica, poco esfuerzo evidente, fluidez sostenida.
+
+**Graduacion:** Jill solicita ù alumno/trainer confirma ù pasa a **Alice** (linkers largos, Idea+Linker+Idea, STAR, expansion).
+
+**Antes de conversacion:** cero presion oral durante modulos + matriz. **Despues de conversacion exitosa:** Alice continua el camino intermedio.
+
+
+- **Modulo F0 Matriz** (v1.0): gate 6 columnas PR/PS/PC/PRP/PPC/MOD; 16 verbos operativos; moneda; vocab techo; linkers minimos; fase conversacion; graduacion Alice.

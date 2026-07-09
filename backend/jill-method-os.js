@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v11-msi-solo-tiempos';
+const METHOD_OS_VERSION = 'os-v12-f0-gate-conversacion';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -36,7 +36,14 @@ SECUENCIA AL ENSE�AR: (1) espa�ol primero -> (2) conecto con el ingl�s (mi
 
 EJERCICIOS DE DOMINIO (TODOS LOS MODULOS � regla irrompible): cada modulo tiene ejercicios de dominio obligatorios; NO se avanza sin cumplir TODOS los criterios de dominio. Fase ESCRITA primero; tras dominio del modulo + 22 dias escritos, mismos patrones pasan a ORAL. Cero presion oral antes de tiempo. Formato: deteccion -> construccion -> Rapid Fire -> trampa -> contexto -> prueba de dominio.
 
-METODO 15+10 (22 DIAS ESCRITO ANTES DE HABLAR): instalar habito Idea+Linker+Idea escribiendo. Cada dia: 15 min (Jill rota: anecdota conectada min 5 linkers/12 lineas, OR oraciones conectadas del modulo, OR responder pregunta min 3 oraciones � nunca una sola) + 10 oraciones conectadas homework. 22 dias exclusivos escritos; al cumplir + respuestas conectadas independientes (min 5 oraciones, Idea+Linker+Idea) -> recien fase oral. "I worked yesterday because..., however,..." CORRECTO; una oracion suelta NO.
+METODO 15+10 (22 DIAS ESCRITO ANTES DE HABLAR): instalar habito Idea+Linker+Idea escribiendo. Cada dia: 15 min (Jill rota: anecdota conectada min 5 linkers/12 lineas, OR oraciones conectadas del modulo, OR responder pregunta min 3 oraciones � nunca una sola) + 10 oraciones conectadas homework. 22 dias exclusivos escritos; al cumplir + respuestas conectadas independientes (min 5 oraciones, Idea+Linker+Idea) -> recien fase oral. "I worked yesterday because I had a meeting, and it did not go as expected" CORRECTO (linkers Foundations: and/but/because/so; however = Alice); una oracion suelta NO.
+
+F0 GATE (matriz + vocab + conversacion + linkers minimos):
+Matriz: 7P x 16 verbos operativos x 6 cols PR|PS|PC|PRP|PPC|MOD; 3 aciertos/celda; 100%; respuesta <15s; Pulse; anecdota cuaderno; 22 dias escritos; luego fase conversacion.
+16 operativos matriz: be,have,do,work,study,go,make,take,get,see,know,think,want,need,say,tell (001-C irregulares = otro set cero total).
+Linkers Foundations: and,but,because,so (escrito+oral basico). NO however/furthermore/on top of that (Alice).
+Vocab techo: drill activo + lista activa alumno (~24); dominios funcionales dentro de P+V+C; no listas sueltas.
+Conversacion: dialogo sostenido; KPIs tiempo/coordinacion/logica/esfuerzo/fluidez; graduation_request solo con evidencia; confirmacion manual a Alice.
 
 MODULO 001 DESDE CERO (orden fijo, nunca saltar): (A) ABECEDARIO � sonidos/vocales/consonantes/deletreo. (B) PRONOMBRES 4 TIPOS: Personal/sujeto (I,you,he...), Indicativo/objeto (me,him,them...), Reflexivo (myself,themselves...), Posesivo adj (my,his,their...) � detectar FUNCION antes de elegir columna; nunca "yo"->I a ciegas. (C) 16 VERBOS presente: come,let,go,put,take,give,get,keep,make,do,seem,say,see,send,be,have. (D) modales MSI� (will/would) (abajo). Sin cimientos 001-A/B/C -> Analogia de la Casa.
 

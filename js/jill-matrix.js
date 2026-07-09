@@ -11,6 +11,7 @@
   var MASTERY_RATIO = 1;
   var TARGET_RESPONSE_MS = 12000;
   var MAX_AVG_RESPONSE_MS = 15000;
+  var WRITTEN_DAYS_REQUIRED = 22;
 
   var MODALS = ['will', 'would', 'can', 'could', 'should'];
 
@@ -46,13 +47,41 @@
         avgResponseMs: null,
         failStreak: {},
         pulseQuizPassed: false,
-        drillStartedAt: null
+        drillStartedAt: null,
+        writtenDaysCompleted: 0,
+        writtenPhaseLastDate: null,
+        allColumnsMastered: false
       };
     }
     if (!student.jillMatrix.cells) student.jillMatrix.cells = {};
     if (!student.jillMatrix.responseSamples) student.jillMatrix.responseSamples = [];
     if (!student.jillMatrix.failStreak) student.jillMatrix.failStreak = {};
+    if (student.jillMatrix.writtenDaysCompleted == null) student.jillMatrix.writtenDaysCompleted = 0;
+    if (student.jillMatrix.allColumnsMastered == null) student.jillMatrix.allColumnsMastered = false;
     return student.jillMatrix;
+  }
+
+  function allColumnsMastered(student) {
+    for (var i = 0; i < COLUMNS.length; i++) {
+      if (!isColumnMastered(student, i)) return false;
+    }
+    return true;
+  }
+
+  function syncMatrixFlags(student) {
+    var m = ensureMatrix(student);
+    m.allColumnsMastered = allColumnsMastered(student);
+    if (m.allColumnsMastered && !m.anecdoteUnlocked) m.anecdoteUnlocked = true;
+    return m;
+  }
+
+  function recordWrittenDay(student) {
+    var m = ensureMatrix(student);
+    var today = new Date().toISOString().slice(0, 10);
+    if (m.writtenPhaseLastDate === today) return m.writtenDaysCompleted || 0;
+    m.writtenDaysCompleted = (m.writtenDaysCompleted || 0) + 1;
+    m.writtenPhaseLastDate = today;
+    return m.writtenDaysCompleted;
   }
 
   function cellKey(pronoun, verb, colId) {
@@ -131,6 +160,7 @@
     }
     m.drillCursor = (cursor + 1) % total;
     m.drillStartedAt = new Date().toISOString();
+    syncMatrixFlags(student);
     return { pronoun: pronoun, verb: verb, column: col };
   }
 
@@ -203,6 +233,7 @@
     var m = ensureMatrix(student);
     var col = activeColumn(student);
     var drill = getDrillPrompt(student);
+    syncMatrixFlags(student);
     var gate = gateStatus(student);
     var cols = COLUMNS.map(function (c, i) {
       return c.sigla + (i <= (m.columnIndex || 0) ? ' ' + columnProgress(student, i) + '%' : ' 🔒');
@@ -232,22 +263,27 @@
       cronogramHint: gate.failStreak >= 3 ? 'explain_alternate_channel' : 'normal',
       hitsRequired: HITS_TO_MASTER,
       masteryRequiredPct: 100,
+      allColumnsMastered: !!m.allColumnsMastered,
+      writtenDaysCompleted: m.writtenDaysCompleted || 0,
+      writtenDaysRequired: WRITTEN_DAYS_REQUIRED,
+      writtenPhaseOk: (m.writtenDaysCompleted || 0) >= WRITTEN_DAYS_REQUIRED,
+      linkersFoundations: 'and, but, because, so',
       conversationPhase: isStructureComplete(student)
     };
   }
 
   function isStructureComplete(student) {
-    for (var i = 0; i < COLUMNS.length; i++) {
-      if (!isColumnMastered(student, i)) return false;
-    }
+    syncMatrixFlags(student);
+    if (!allColumnsMastered(student)) return false;
     var m = ensureMatrix(student);
     var pulseOk = !!(m.pulseQuizPassed);
-  if (!pulseOk && student) {
+    if (!pulseOk && student) {
       pulseOk = !!(student.jillPulse && student.jillPulse.passed);
     }
     var anecdoteOk = (m.anecdoteSessions || 0) >= 1 || !!m.anecdoteEvaluated;
     var timeOk = m.avgResponseMs == null || m.avgResponseMs <= MAX_AVG_RESPONSE_MS;
-    return pulseOk && anecdoteOk && timeOk;
+    var writtenOk = (m.writtenDaysCompleted || 0) >= WRITTEN_DAYS_REQUIRED;
+    return pulseOk && anecdoteOk && timeOk && writtenOk;
   }
 
   function canonAssetUrl(path) {
@@ -305,6 +341,9 @@
     columnProgress: columnProgress,
     gateStatus: gateStatus,
     isColumnMastered: isColumnMastered,
-    isStructureComplete: isStructureComplete
+    allColumnsMastered: allColumnsMastered,
+    isStructureComplete: isStructureComplete,
+    recordWrittenDay: recordWrittenDay,
+    WRITTEN_DAYS_REQUIRED: WRITTEN_DAYS_REQUIRED
   };
 })(typeof window !== 'undefined' ? window : globalThis);

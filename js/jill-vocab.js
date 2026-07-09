@@ -5,7 +5,7 @@
   'use strict';
 
   var MAX_ACTIVE = 24;
-  var SEED = ['work', 'study', 'home', 'today', 'yesterday', 'office', 'family', 'time'];
+  var SEED = ['work', 'study', 'home', 'today', 'yesterday', 'office', 'family', 'time', 'meeting', 'because'];
 
   function ensureVocab(student) {
     if (!student) return null;
