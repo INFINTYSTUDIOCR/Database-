@@ -67,6 +67,9 @@ var DemoVoice = (function () {
       return;
     }
     _audio = new Audio(URL.createObjectURL(blob));
+    _audio.volume = 1;
+    _audio.muted = false;
+    _audio.preload = 'auto';
     _audio.onended = function () { if (typeof onEnd === 'function') onEnd(); };
     _audio.play().catch(function () { if (typeof onEnd === 'function') onEnd(); });
   }

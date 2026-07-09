@@ -256,6 +256,9 @@ function playAudioBlob(blob, handlers) {
   }
   var url = URL.createObjectURL(blob);
   var audio = new Audio(url);
+  audio.volume = 1;
+  audio.muted = false;
+  audio.preload = 'auto';
   var dead = false;
   var attempts = 0;
 
