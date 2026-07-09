@@ -145,6 +145,8 @@
   --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;--gray-light:#E2E8F0;
   --r:8px;--rl:16px;--rxl:24px;
   --companion-ribbon-h:56px;
+  --heritage-ribbon-h:40px;
+  --top-ribbons-h:calc(var(--companion-ribbon-h) + var(--heritage-ribbon-h));
 }
 html{scroll-behavior:smooth;}
 body{font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden;background:var(--page-bg);background-image:radial-gradient(ellipse 90% 55% at 0% 0%,rgba(91,33,182,0.09),transparent 58%),radial-gradient(ellipse 75% 50% at 100% 8%,rgba(245,166,35,0.08),transparent 52%),linear-gradient(180deg,#F5EEFF 0%,#FFF8F0 38%,#F3EBFF 100%);background-attachment:fixed;}
@@ -159,7 +161,13 @@ body{font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden;backgrou
 .companion-ribbon-cta{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#FBBF24,#F5A623);color:#1E1E2E;padding:8px 16px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:nowrap;}
 .companion-ribbon-cta i{font-size:16px;}
 
-nav{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:100;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.12);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
+.heritage-ribbon{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:109;min-height:var(--heritage-ribbon-h);display:flex;align-items:center;background:linear-gradient(90deg,#1E1B4B 0%,#312E81 42%,#4C1D95 100%);color:#fff;text-decoration:none;border-bottom:1px solid rgba(251,191,36,0.35);box-shadow:0 4px 16px rgba(30,27,75,0.22);transition:filter .2s;}
+.heritage-ribbon:hover{filter:brightness(1.08);color:#fff;}
+.heritage-ribbon .companion-ribbon-inner{padding:6px 1.25rem;}
+.heritage-ribbon .companion-ribbon-text{font-size:12px;max-width:none;}
+.heritage-ribbon .companion-ribbon-badge{background:rgba(251,191,36,0.22);border-color:rgba(251,191,36,0.45);color:#FDE68A;}
+
+nav{position:fixed;top:var(--top-ribbons-h);left:0;right:0;z-index:100;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.12);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
 .nav-logo{height:52px;width:52px;object-fit:contain;border-radius:12px;display:block;image-rendering:auto;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 .nav-links{display:flex;align-items:center;gap:2rem;}
 .nav-links a{text-decoration:none;font-size:14px;font-weight:600;color:var(--t2);transition:color 0.2s;}
@@ -167,7 +175,7 @@ nav{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:100;back
 .nav-cta{background:var(--purple);color:white !important;padding:10px 22px;border-radius:var(--r);font-size:14px;font-weight:700;text-decoration:none;transition:all 0.2s;}
 .nav-cta:hover{background:var(--purple-light);box-shadow:0 4px 20px rgba(91,33,182,0.35);}
 
-.hero{min-height:100vh;padding:calc(120px + var(--companion-ribbon-h)) 2rem 80px;display:flex;align-items:center;background:linear-gradient(135deg,rgba(245,238,255,0.95) 0%,rgba(237,233,254,0.92) 48%,rgba(255,248,238,0.9) 100%);position:relative;overflow:hidden;}
+.hero{min-height:100vh;padding:calc(120px + var(--top-ribbons-h)) 2rem 80px;display:flex;align-items:center;background:linear-gradient(135deg,rgba(245,238,255,0.95) 0%,rgba(237,233,254,0.92) 48%,rgba(255,248,238,0.9) 100%);position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(91,33,182,0.14) 0%,transparent 70%);pointer-events:none;}
 .hero::after{content:'';position:absolute;bottom:-120px;left:-80px;width:480px;height:480px;background:radial-gradient(circle,rgba(245,166,35,0.12) 0%,transparent 68%);pointer-events:none;}
 .hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.05fr 0.95fr;gap:3.5rem;align-items:center;width:100%;}
@@ -624,9 +632,10 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
 @media(max-width:768px){
   .para-mi-checkgrid{grid-template-columns:1fr;}
-  :root{--companion-ribbon-h:72px;}
+  :root{--companion-ribbon-h:72px;--heritage-ribbon-h:48px;}
   .companion-ribbon-text{font-size:12px;}
   .companion-ribbon-text .ribbon-detail{display:none;}
+  .heritage-ribbon .companion-ribbon-text{font-size:11px;}
   .hero-inner,.problem-grid,.alice-inner,.jill-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
   .hero-headline{max-width:none;font-size:clamp(1.85rem,7vw,2.35rem);}
   .hero-photo-single,.hero-photo-single img{min-height:280px;}
@@ -649,6 +658,13 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       <span class="ribbon-detail"> Moda, vida, trabajo — lo que quieras, sin cortes.</span>
     </p>
     <span class="companion-ribbon-cta">Probar Alice Companion <i class="ti ti-arrow-right"></i></span>
+  </div>
+</a>
+
+<a href="#comparar" class="heritage-ribbon" id="heritage-ribbon" aria-label="26 años complementando lo que las academias no pueden hacer">
+  <div class="companion-ribbon-inner">
+    <span class="companion-ribbon-badge"><i class="ti ti-award"></i> 26 años</span>
+    <p class="companion-ribbon-text"><strong>26 años complementando lo que las academias no pueden hacer.</strong></p>
   </div>
 </a>
 
