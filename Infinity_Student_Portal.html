@@ -44,7 +44,7 @@
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260707v"></script>
-<script src="js/jill-quiz.js?v=20260708fallback"></script>
+<script src="js/jill-quiz.js?v=20260709games"></script>
 <script src="js/tts-chunks.js?v=20260707bilingual"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -412,7 +412,10 @@ function switchPortalTab(tab){
   if(tab === 'nexora' && s && !studentNexoraOn(s)) tab = 'progreso';
   var prevTab = window._activePortalTab || 'progreso';
   if(tab !== prevTab && prevTab) window._portalPrevTab = prevTab;
-  if(tab !== 'alice' && prevTab === 'alice') pauseAliceMedia();
+  if(tab !== 'alice' && prevTab === 'alice'){
+    pauseAliceMedia();
+    _aliceState.quizActive = false;
+  }
   if(tab === 'alice'){
     if(restoreAliceRuntimeStorage() || _aliceState.sessionActive) resumeAliceRuntime();
   }
@@ -762,7 +765,8 @@ function showPortal(s){
     +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-help-circle"></i>Generar quiz de práctica</button></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Rapid drill</div>'
-    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="NexusPortal.renderNemesisWidget(\'portal-nemesis-container\')"><i class="ti ti-bolt"></i>Iniciar Rapid drill</button></div>'
+    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i>Rapid drill Kahoot</button>'
+    +'<button class="btn btn-outline" style="margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i>Quiz de práctica</button></div>'
     +'</div>';
 
   // ── NOTAS DE SESIÓN ───────────────────────────────────
@@ -1077,6 +1081,85 @@ function studentCompanionOn(s){
 /** Tab Alice visible si tutora Alice O Companion premium están ON (Engine master). */
 function studentAliceTabOn(s){
   return studentAliceOn(s) || studentCompanionOn(s);
+}
+/** Jill, Jill Pro, Alice o Alice+ — acceso a juegos (Rapid drill, quiz). */
+function studentGamesOn(s){
+  return studentJillTabOn(s) || studentAliceTabOn(s);
+}
+function portalQuizBundle(){
+  if(typeof JillFoundations !== 'undefined' && CURRENT_STUDENT){
+    return JillFoundations.getActiveBundle(CURRENT_STUDENT);
+  }
+  return null;
+}
+function portalOpenPracticeQuiz(){
+  if(!studentGamesOn(CURRENT_STUDENT)){
+    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    return;
+  }
+  switchPortalTab('recursos');
+  setTimeout(function(){ renderQuizWidget('portal-quiz-container'); }, 150);
+}
+function renderPortalGamesButtons(variant){
+  if(!studentGamesOn(CURRENT_STUDENT)) return '';
+  var accent = variant === 'alice' ? '#C084FC' : '#e9d5ff';
+  var border = variant === 'alice' ? 'rgba(192,132,252,0.45)' : 'rgba(167,139,250,0.45)';
+  return '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;width:100%;">'
+    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kahoot</button>'
+    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>'
+    +'</div>';
+}
+function portalCloseRapidDrill(refresh){
+  if(_aliceState.quizActive){
+    _aliceState.quizActive = false;
+    if(refresh) renderAlice();
+    else {
+      var az = document.getElementById('alice-quiz-zone');
+      if(az) az.innerHTML = '';
+      var aw = document.getElementById('alice-session-main');
+      if(aw) aw.style.display = '';
+    }
+    return;
+  }
+  jillCloseKahootQuiz(refresh);
+}
+function aliceOpenRapidDrillCore(){
+  if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
+  _aliceState.quizActive = true;
+  alicePauseMedia();
+  aliceCancelSpeech();
+  renderAlice();
+}
+function aliceOpenRapidDrill(){
+  var s = CURRENT_STUDENT;
+  if(!studentAliceTabOn(s)){
+    showToast('Alice no está activa — pedí a tu trainer.','err');
+    return;
+  }
+  if(window._activePortalTab !== 'alice') switchPortalTab('alice');
+  aliceOpenRapidDrillCore();
+}
+function portalOpenRapidDrill(){
+  var s = CURRENT_STUDENT;
+  if(!studentGamesOn(s)){
+    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    return;
+  }
+  if(typeof JillQuiz === 'undefined'){
+    showToast('Quiz no disponible','err');
+    return;
+  }
+  var tab = window._activePortalTab || 'progreso';
+  if(tab === 'alice' && studentAliceTabOn(s)){
+    aliceOpenRapidDrill();
+    return;
+  }
+  if(studentJillTabOn(s)){
+    if(tab !== 'jill') switchPortalTab('jill');
+    jillOpenKahootQuizCore();
+    return;
+  }
+  if(studentAliceTabOn(s)) aliceOpenRapidDrill();
 }
 function syncAliceNavLabel(s){
   var nav = document.getElementById('nav-alice');
@@ -1564,6 +1647,7 @@ var _aliceState = {
   sessionType: 'practice',
   companionTopic: '',
   evaluation: null,
+  quizActive: false,
   speaking: false,
   listening: false,
   recognition: null,
@@ -1752,6 +1836,29 @@ function aliceTheme(){
 function renderAlice(){
   var root = document.getElementById('alice-root');
   if(!root) return;
+  var s = CURRENT_STUDENT;
+  if(_aliceState.quizActive && s && !studentAliceTabOn(s)){
+    _aliceState.quizActive = false;
+  }
+  if(_aliceState.quizActive){
+    var nemesisPreview = (typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+    root.innerHTML =
+      '<div style="background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(91,33,182,0.45);border:1px solid rgba(167,139,250,0.35);">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
+      +'<div>'
+      +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kahoot bajo presión — trofeos y rachas</div>'
+      +'</div>'
+      +'<button type="button" onclick="portalCloseRapidDrill(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Alice</button>'
+      +'</div>'
+      + nemesisPreview
+      +'<div id="alice-quiz-zone"></div>'
+      +'</div>';
+    var zone = document.getElementById('alice-quiz-zone');
+    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, portalQuizBundle());
+    return;
+  }
   var th = aliceTheme();
   var isGold = aliceCompanionUiActive();
   var accentOptions = Object.keys(ALICE_ACCENTS).map(function(k){
@@ -1836,6 +1943,7 @@ function renderAliceStart(){
     +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:'+(companionOnly||mode==='companion'?'2px solid rgba(255,215,0,0.55)':'none')+';color:'+(companionOnly||mode==='companion'?'#1a1200':'white')+';font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startAliceSession('+(companionOnly?"'companion'":"(_aliceState.sessionType||'practice')")+')"><i class="ti ti-player-play"></i> '+startLabel+'</button>'
     +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.3);color:'+th.accent+';font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
+    + renderPortalGamesButtons('alice')
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
     +'</div>';
 }
@@ -1847,7 +1955,14 @@ function renderAliceSession(){
   var badgeText = (_aliceState.sessionType==='companion')
     ? '💬 Alice Companion · Charla libre · cualquier tema, sin cortes'
     : '🎓 Alice · Tutora · Método Nexus';
-  return '<div>'
+  var gameChips = studentGamesOn(CURRENT_STUDENT)
+    ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+      +'<button type="button" class="jill-chip jill-chip-kahoot" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>'
+      +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
+      +'</div>'
+    : '';
+  return '<div id="alice-session-main">'
+    + gameChips
     +(scn
       ?'<div style="background:rgba('+th.rgb+',0.08);border:1px solid rgba('+th.rgb+',0.18);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.55);display:flex;gap:16px;flex-wrap:wrap;">'
         +'<span style="font-weight:700;"><i class="ti ti-building"></i> '+scn.department.replace(/_/g,' ').toUpperCase()+'</span>'
@@ -4259,13 +4374,14 @@ function renderJillChips(){
   var s = CURRENT_STUDENT;
   var jillOn = studentJillOn(s);
   var companion = jillCompanionUiActive();
-  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="jillOpenKahootQuiz()">⚡ Rapid drill</button>';
+  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>';
   if(companion){
     return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, quiero una lección sobre el tema que elija — empezá explicándome qué querés enseñarme hoy\')">📚 Pedir lección</button>'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, ayudame con el gerundio, no lo entiendo\')">📘 Ej: gerundio</button>'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, explícame presente perfecto con MSI\')">⏱ Ej: tiempos</button>'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Quiero practicar conversación libre — corregime suave\')">🗣 Charla libre</button>'
+      +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
       + pulseChip
       +'</div>';
   }
@@ -4275,6 +4391,7 @@ function renderJillChips(){
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
+    +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
     + pulseChip
     +'</div>';
 }
@@ -4342,16 +4459,24 @@ async function jillRecordWrittenDay(){
   renderJill();
 }
 
-function jillOpenKahootQuiz(){
-  var s = CURRENT_STUDENT;
-  if(!studentJillTabOn(s)){
-    showToast('Jill no está activa — pedí a tu trainer.','err');
-    return;
-  }
+function jillOpenKahootQuizCore(){
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
   _jillState.quizActive = true;
   jillStopAll();
   renderJill();
+}
+
+function jillOpenKahootQuiz(){
+  var s = CURRENT_STUDENT;
+  if(!studentGamesOn(s)){
+    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    return;
+  }
+  if(!studentJillTabOn(s)){
+    portalOpenRapidDrill();
+    return;
+  }
+  jillOpenKahootQuizCore();
 }
 
 function jillCloseKahootQuiz(refresh){
@@ -4375,7 +4500,7 @@ function renderJill(){
     _jillState.history = [];
     _jillState.evaluation = null;
   }
-  if(_jillState.quizActive && s && !studentJillTabOn(s)){
+  if(_jillState.quizActive && s && !studentGamesOn(s)){
     _jillState.quizActive = false;
   }
   if(_jillState.quizActive){
@@ -4396,7 +4521,7 @@ function renderJill(){
       +'</div>';
     var zone = document.getElementById('jill-quiz-zone');
     var s = CURRENT_STUDENT;
-    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, jillActiveBundle());
+    if(zone && typeof JillQuiz !== 'undefined') JillQuiz.mount(zone, s, portalQuizBundle());
     return;
   }
   root.removeAttribute('data-jill-pro');
@@ -4478,7 +4603,7 @@ function renderJillStart(){
   var badges = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderBadgesRow(s) : '';
   var motiv = (typeof JillProgress !== 'undefined' && s) ? JillProgress.renderMotivation(s) : '';
   var bundle = (jillOn && typeof JillFoundations !== 'undefined' && s) ? JillFoundations.renderBundleBar(s, jillActiveBundle()) : '';
-  var rapidHint = (proOn && typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
+  var rapidHint = (typeof JillQuiz !== 'undefined' && s && studentGamesOn(s)) ? JillQuiz.renderNemesisTopics(s) : '';
   var mode = resolveDefaultJillSessionType(s);
   var modePicker = (jillOn && proOn)
     ? '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'
@@ -4486,8 +4611,8 @@ function renderJillStart(){
       +'<button type="button" onclick="_jillState.sessionType=\'companion\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(91,33,182,0.25));border:2px solid #A78BFA;color:#f5f3ff;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Pro</button>'
       +'</div>'
     : '';
-  var rapidBtn = proOn || jillOn
-    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.45);color:#e9d5ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="jillOpenKahootQuiz()"><i class="ti ti-bolt"></i> Rapid drill</button>'
+  var rapidBtn = studentGamesOn(s)
+    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.45);color:#e9d5ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kahoot</button>'
     : '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
@@ -4512,12 +4637,13 @@ function renderJillStart(){
     + badges
     + motiv
     + (showTutor ? bundle : '')
-    + (showPro ? rapidHint : '')
+    + (studentGamesOn(s) ? rapidHint : '')
     +'<div style="text-align:center;">'
     + modePicker
     + (showTutor ? jillBlock : '')
     + (showPro ? proBlock : '')
     + rapidBtn
+    + (studentGamesOn(s) ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>' : '')
     +'</div></div>';
 }
 

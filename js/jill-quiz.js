@@ -419,15 +419,23 @@
     opts = opts || {};
     var bid = bundleIdFromStudent(student, activeBundle);
     var qs = '?count=' + encodeURIComponent(count) + '&bundleId=' + encodeURIComponent(bid || '');
+    var localPack = function () {
+      return { questions: pickQuestions(student, activeBundle, count), source: 'local' };
+    };
     if (opts.demoMode) {
       return fetch(drillApiBase(opts) + '/demo/jill/drill/questions' + qs)
-        .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); })
+        .catch(function () { return localPack(); });
     }
-    if (typeof infinityFetch === 'function') {
-      return infinityFetch('/jill/drill/questions' + qs, { headers: typeof authHeaders === 'function' ? authHeaders() : {} })
-        .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    if (typeof infinityFetch !== 'function') {
+      return Promise.resolve(localPack());
     }
-    return Promise.reject(new Error('brain unavailable'));
+    var brain = infinityFetch('/jill/drill/questions' + qs, { headers: typeof authHeaders === 'function' ? authHeaders() : {} })
+      .then(function (r) { if (!r.ok) throw new Error('brain'); return r.json(); });
+    var timeout = new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error('brain timeout')); }, 6000);
+    });
+    return Promise.race([brain, timeout]).catch(function () { return localPack(); });
   }
 
   function submitBrainComplete(student, payload, opts) {
@@ -751,6 +759,8 @@
       return;
     }
 
+    var rdStats = ensureRapidDrillStats(student);
+
     var state = {
       idx: 0,
       correct: 0,
@@ -800,7 +810,7 @@
         }).join('')
         + '</div>'
         + '<div style="margin-top:12px;text-align:center;">'
-        + '<button type="button" onclick="jillCloseKahootQuiz()" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
+        + '<button type="button" onclick="portalCloseRapidDrill()" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
         + '</div></div>';
     }
 
@@ -839,13 +849,13 @@
       rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#e9d5ff;">🧠 Guardando en el cerebro…</div>';
 
       submitBrainComplete(student, payload, opts).then(function (brain) {
-        paintBrainResults(brain);
+        paintBrainResults(brain, score, perfect);
       }).catch(function () {
-        paintBrainResults(completeDrillLocal(student, payload, opts));
+        paintBrainResults(completeDrillLocal(student, payload, opts), score, perfect);
       });
     }
 
-    function paintBrainResults(brain) {
+    function paintBrainResults(brain, score, perfect) {
         var rec = { xp: brain.xp || 0, unlocked: brain.unlocked || [] };
         if (brain.jillRapidDrill) student.jillRapidDrill = brain.jillRapidDrill;
         if (brain.nemesisState) student.nemesisState = brain.nemesisState;
@@ -904,8 +914,8 @@
         + (domain.length ? '<div style="font-size:11px;color:#86EFAC;margin-bottom:4px;">Dominio: ' + domain.map(kpiLabel).join(', ') + '</div>' : '')
         + (reinforce.length ? '<div style="font-size:11px;color:#fcd34d;margin-bottom:10px;">Sigue en refuerzo: ' + reinforce.map(kpiLabel).join(', ') + '</div>' : '')
         + '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:16px;">+' + (rec.xp || 0) + ' XP · perfil guardado en el cerebro (cascada a tutores)</div>'
-        + '<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
-        + '<button type="button" onclick="jillOpenKahootQuiz()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Rapid drill</button>'
+        + '<button type="button" onclick="portalCloseRapidDrill(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
+        + '<button type="button" onclick="portalOpenRapidDrill()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Rapid drill</button>'
         + '</div>';
       if (typeof onDone === 'function') onDone({ correct: state.correct, total: state.quiz.length, score: score, xp: rec.xp });
     }
