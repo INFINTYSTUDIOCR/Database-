@@ -4215,8 +4215,9 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null);
     if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
-    // Jill usa exactamente la misma voz y ajustes que Alice (mismo voiceId + defaults).
-    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Jill' });
+    // Jill siempre voz femenina fija (mismo timbre que Alice) — nunca voiceId del cliente.
+    const jillVoiceId = ALICE_VOICE_ID;
+    return await synthesizeSpeech(req, res, { text, voiceId: jillVoiceId, label: 'Jill' });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });

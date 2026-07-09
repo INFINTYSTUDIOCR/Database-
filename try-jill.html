@@ -7,7 +7,7 @@
 <link rel="canonical" href="https://studioinfinitycr.com/try-jill.html">
 <link rel="icon" href="icon-192.png?v=20260704" type="image/png">
 <meta name="theme-color" content="#5B21B6">
-<meta name="description" content="Demo pública Rapid drill — 1 ronda Kahoot bajo presión con Jill. Estructura, tiempos, moneda. Infinity Studio CR Foundations.">
+<meta name="description" content="Demo pública Rapid drill — 1 ronda Kaboom bajo presión con Jill. Estructura, tiempos, moneda. Infinity Studio CR Foundations.">
 <meta property="og:title" content="Rapid drill Jill — Demo gratis">
 <meta property="og:description" content="Una ronda de quiz bajo presión: llama → polvorín. Probá Foundations sin registrarte.">
 <script src="js/site-config.js"></script>
@@ -43,7 +43,7 @@
     <div class="jill-demo-badge"><i class="ti ti-bolt"></i> Rapid drill · Demo pública</div>
     <h1 style="font-size:26px;font-weight:900;color:#5B21B6;margin:0 0 10px;">Una ronda bajo presión</h1>
     <p style="font-size:14px;color:#4A4A6A;line-height:1.7;margin:0 0 8px;">
-      <strong>Rapid drill</strong> es el quiz Kahoot de Jill: la llama avanza hacia el polvorín mientras respondés.
+      <strong>Rapid drill</strong> es el quiz Kaboom de Jill: la llama avanza hacia el polvorín mientras respondés.
       Estructura MSI, tiempos, moneda y vocab — <strong>3 preguntas</strong> en esta demo.
     </p>
     <p style="font-size:12px;color:#8888AA;margin:0;">Sin registro · una ronda · trofeos y rachas en el portal completo</p>
@@ -69,7 +69,7 @@
 
 <script src="js/demo-api.js"></script>
 <script src="js/celebration-sfx.js?v=20260708"></script>
-<script src="js/jill-quiz.js?v=20260709games"></script>
+<script src="js/jill-quiz.js?v=20260709kaboom"></script>
 <script src="js/jill-billing.js?v=20260707j"></script>
 <script>
 (function () {
@@ -80,13 +80,13 @@
     jillRapidDrill: { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 }
   };
 
-  window.jillCloseKahootQuiz = function () {
+  window.jillCloseKaboomQuiz = function () {
     document.getElementById('jill-demo-stage').hidden = true;
     document.getElementById('jill-demo-start-wrap').style.display = '';
     document.getElementById('jill-demo-hero').style.display = '';
   };
 
-  window.jillOpenKahootQuiz = function () {
+  window.jillOpenKaboomQuiz = function () {
     startRapidDrill();
   };
 
@@ -102,7 +102,7 @@
   }
 
   document.getElementById('btn-start-rapid-drill').addEventListener('click', startRapidDrill);
-  document.getElementById('jill-demo-exit').addEventListener('click', jillCloseKahootQuiz);
+  document.getElementById('jill-demo-exit').addEventListener('click', jillCloseKaboomQuiz);
 
   if (typeof JillBilling !== 'undefined') {
     JillBilling.renderUpgradeButton(document.getElementById('jill-billing-zone'), {

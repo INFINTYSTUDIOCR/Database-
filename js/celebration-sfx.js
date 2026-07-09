@@ -1,6 +1,6 @@
 /**
  * Gamified celebration SFX — Web Audio API (no external files).
- * Rachas, badges, confetti, aciertos Kahoot, meta diaria, XP.
+ * Rachas, badges, confetti, aciertos Kaboom, meta diaria, XP.
  */
 var CelebrationSfx = (function () {
   'use strict';
@@ -69,7 +69,7 @@ var CelebrationSfx = (function () {
     });
   }
 
-  /** Acierto Kahoot — ding corto */
+  /** Acierto Kaboom — ding corto */
   function correct() {
     playSeq([
       { f: 523.25, t: 'square', v: 0.11, d: 0.08 },

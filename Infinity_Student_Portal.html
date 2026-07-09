@@ -44,7 +44,7 @@
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260707v"></script>
-<script src="js/jill-quiz.js?v=20260709games"></script>
+<script src="js/jill-quiz.js?v=20260709kaboom"></script>
 <script src="js/tts-chunks.js?v=20260707bilingual"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
@@ -106,9 +106,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
   .jill-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(61,220,151,0.35);color:#bbf7d0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
   .jill-chip:hover{background:rgba(61,220,151,0.22);}
-  .jill-chip-kahoot{background:rgba(91,33,182,0.35);border-color:rgba(167,139,250,0.55);color:#e9d5ff;}
-  .jill-kahoot-opt:active{transform:translateY(2px)!important;box-shadow:0 2px 0 rgba(0,0,0,0.22)!important;}
+  .jill-chip-kaboom{background:rgba(91,33,182,0.35);border-color:rgba(167,139,250,0.55);color:#e9d5ff;}
+  .jill-kaboom-opt:active{transform:translateY(2px)!important;box-shadow:0 2px 0 rgba(0,0,0,0.22)!important;}
   #jill-root[data-jill-pro="1"] .jill-pro-accent{color:#c4b5fd;}
+  #jill-lesson-shell{position:relative;}
+  #jill-lesson-shell:fullscreen{
+    width:100%;height:100%;overflow:auto;box-sizing:border-box;
+    border-radius:0!important;display:flex;flex-direction:column;
+  }
+  #jill-lesson-shell:fullscreen #jill-session-main{
+    flex:1;min-height:0;display:flex;flex-direction:column;
+  }
+  #jill-lesson-shell:fullscreen #jill-messages{
+    flex:1;min-height:120px;max-height:none!important;
+  }
+  #jill-lesson-shell:fullscreen #jill-matrix-panel img{
+    max-height:min(38vh,320px);width:auto;margin:0 auto;display:block;
+  }
+  .jill-fs-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.88);
+    border-radius:10px;cursor:pointer;font-size:16px;flex-shrink:0;
+  }
+  .jill-fs-btn:hover{background:rgba(255,255,255,0.16);}
 @media (max-width:640px){
   #alice-messages{max-height:min(52vh,320px)!important;}
   #jill-messages{max-height:min(52vh,320px)!important;}
@@ -765,7 +786,7 @@ function showPortal(s){
     +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-help-circle"></i>Generar quiz de práctica</button></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Rapid drill</div>'
-    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i>Rapid drill Kahoot</button>'
+    +'<div id="portal-nemesis-container"><button class="btn" style="background:var(--ad);color:white;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i>Rapid drill Kaboom</button>'
     +'<button class="btn btn-outline" style="margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i>Quiz de práctica</button></div>'
     +'</div>';
 
@@ -1105,7 +1126,7 @@ function renderPortalGamesButtons(variant){
   var accent = variant === 'alice' ? '#C084FC' : '#e9d5ff';
   var border = variant === 'alice' ? 'rgba(192,132,252,0.45)' : 'rgba(167,139,250,0.45)';
   return '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;width:100%;">'
-    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kahoot</button>'
+    +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kaboom</button>'
     +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>'
     +'</div>';
 }
@@ -1121,7 +1142,7 @@ function portalCloseRapidDrill(refresh){
     }
     return;
   }
-  jillCloseKahootQuiz(refresh);
+  jillCloseKaboomQuiz(refresh);
 }
 function aliceOpenRapidDrillCore(){
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
@@ -1156,7 +1177,7 @@ function portalOpenRapidDrill(){
   }
   if(studentJillTabOn(s)){
     if(tab !== 'jill') switchPortalTab('jill');
-    jillOpenKahootQuizCore();
+    jillOpenKaboomQuizCore();
     return;
   }
   if(studentAliceTabOn(s)) aliceOpenRapidDrill();
@@ -1848,7 +1869,7 @@ function renderAlice(){
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
       +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kahoot bajo presión — trofeos y rachas</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kaboom bajo presión — trofeos y rachas</div>'
       +'</div>'
       +'<button type="button" onclick="portalCloseRapidDrill(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Alice</button>'
       +'</div>'
@@ -1957,7 +1978,7 @@ function renderAliceSession(){
     : '🎓 Alice · Tutora · Método Nexus';
   var gameChips = studentGamesOn(CURRENT_STUDENT)
     ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-      +'<button type="button" class="jill-chip jill-chip-kahoot" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>'
+      +'<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>'
       +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
       +'</div>'
     : '';
@@ -3959,6 +3980,61 @@ var _jillSpeakGen = 0;
 var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 var _jillTtsRetry = {};
+var _jillLockedFemaleVoices = { es: null, en: null };
+
+function jillPickLockedFemaleVoice(lang){
+  var key = (lang === 'en' || lang === 'en-US') ? 'en' : 'es';
+  if(_jillLockedFemaleVoices[key]) return _jillLockedFemaleVoices[key];
+  if(!window.speechSynthesis) return null;
+  var voices = speechSynthesis.getVoices() || [];
+  if(!voices.length) return null;
+  var pref = key;
+  var pool = voices.filter(function(v){ return (v.lang || '').toLowerCase().indexOf(pref) === 0; });
+  if(!pool.length) pool = voices.slice();
+  var femaleRx = /female|woman|mujer|paulina|helena|lucia|lucía|soledad|monica|mónica|sabina|maria|maría|zira|samantha|karen|victoria|google español|google us english|español/i;
+  var maleRx = /\bmale\b|hombre|\bdavid\b|\bdiego\b|\bjorge\b|\bpablo\b|\bdaniel\b|\bmark\b|\bjames\b|\bgeorge\b|\balex\b/i;
+  var picked = pool.find(function(v){ return femaleRx.test(v.name); })
+    || pool.find(function(v){ return !maleRx.test(v.name); })
+    || pool[0];
+  _jillLockedFemaleVoices[key] = picked || null;
+  return _jillLockedFemaleVoices[key];
+}
+
+function jillWarmFemaleVoice(){
+  jillPickLockedFemaleVoice('es');
+  jillPickLockedFemaleVoice('en');
+}
+if(typeof window !== 'undefined' && window.speechSynthesis){
+  speechSynthesis.addEventListener('voiceschanged', jillWarmFemaleVoice);
+  jillWarmFemaleVoice();
+}
+
+function jillSyncFullscreenBtn(){
+  var btn = document.getElementById('jill-fs-btn');
+  var shell = document.getElementById('jill-lesson-shell');
+  if(!btn) return;
+  var on = shell && (document.fullscreenElement === shell || document.webkitFullscreenElement === shell);
+  btn.title = on ? 'Salir de pantalla completa' : 'Pantalla completa';
+  btn.innerHTML = on ? '<i class="ti ti-arrows-minimize"></i>' : '<i class="ti ti-arrows-maximize"></i>';
+}
+
+function jillToggleFullscreen(){
+  var shell = document.getElementById('jill-lesson-shell');
+  if(!shell){ showToast('Abrí una sesión con Jill primero','err'); return; }
+  var active = document.fullscreenElement || document.webkitFullscreenElement;
+  if(active === shell){
+    var exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+    if(exitFs) exitFs.call(document);
+    return;
+  }
+  var req = shell.requestFullscreen || shell.webkitRequestFullscreen;
+  if(!req){ showToast('Pantalla completa no disponible en este navegador','err'); return; }
+  req.call(shell).catch(function(){ showToast('No se pudo activar pantalla completa','err'); });
+}
+if(typeof document !== 'undefined'){
+  document.addEventListener('fullscreenchange', jillSyncFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', jillSyncFullscreenBtn);
+}
 
 function jillShowTtsError(status){
   var st = document.getElementById('jill-status');
@@ -3988,12 +4064,16 @@ function jillPlayBrowserTts(text, lang, onEnded, onError){
   var u = new SpeechSynthesisUtterance(text);
   u.lang = (lang === 'en') ? 'en-US' : 'es-CR';
   u.rate = 0.82;
-  u.pitch = 1.0;
-  var voices = speechSynthesis.getVoices() || [];
-  var pref = u.lang.slice(0, 2);
-  var v = voices.find(function(vo){ return vo.lang === u.lang; })
-    || voices.find(function(vo){ return (vo.lang || '').indexOf(pref) === 0; });
-  if(v) u.voice = v;
+  u.pitch = 1.05;
+  var locked = jillPickLockedFemaleVoice(lang);
+  if(locked) u.voice = locked;
+  else {
+    var voices = speechSynthesis.getVoices() || [];
+    var pref = u.lang.slice(0, 2);
+    var v = voices.find(function(vo){ return vo.lang === u.lang; })
+      || voices.find(function(vo){ return (vo.lang || '').indexOf(pref) === 0; });
+    if(v) u.voice = v;
+  }
   u.onend = function(){ if(onEnded) onEnded(); };
   u.onerror = function(){ if(onError) onError(); };
   speechSynthesis.speak(u);
@@ -4374,7 +4454,7 @@ function renderJillChips(){
   var s = CURRENT_STUDENT;
   var jillOn = studentJillOn(s);
   var companion = jillCompanionUiActive();
-  var pulseChip = '<button type="button" class="jill-chip jill-chip-kahoot" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>';
+  var pulseChip = '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>';
   if(companion){
     return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, quiero una lección sobre el tema que elija — empezá explicándome qué querés enseñarme hoy\')">📚 Pedir lección</button>'
@@ -4459,14 +4539,14 @@ async function jillRecordWrittenDay(){
   renderJill();
 }
 
-function jillOpenKahootQuizCore(){
+function jillOpenKaboomQuizCore(){
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
   _jillState.quizActive = true;
   jillStopAll();
   renderJill();
 }
 
-function jillOpenKahootQuiz(){
+function jillOpenKaboomQuiz(){
   var s = CURRENT_STUDENT;
   if(!studentGamesOn(s)){
     showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
@@ -4476,10 +4556,10 @@ function jillOpenKahootQuiz(){
     portalOpenRapidDrill();
     return;
   }
-  jillOpenKahootQuizCore();
+  jillOpenKaboomQuizCore();
 }
 
-function jillCloseKahootQuiz(refresh){
+function jillCloseKaboomQuiz(refresh){
   _jillState.quizActive = false;
   if(refresh) renderJill();
   else {
@@ -4512,9 +4592,9 @@ function renderJill(){
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
       +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kahoot bajo presión — llama → polvorín · trofeos y rachas</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kaboom bajo presión — llama → polvorín · trofeos y rachas</div>'
       +'</div>'
-      +'<button type="button" onclick="jillCloseKahootQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
+      +'<button type="button" onclick="jillCloseKaboomQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
       +'</div>'
       + nemesisPreview
       +'<div id="jill-quiz-zone"></div>'
@@ -4540,16 +4620,20 @@ function renderJill(){
   var headerIcon = (proOnly || companionSession)
     ? '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💜</div>'
     : '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>';
+  var fsBtn = _jillState.sessionActive
+    ? '<button type="button" id="jill-fs-btn" class="jill-fs-btn" title="Pantalla completa" onclick="jillToggleFullscreen()"><i class="ti ti-arrows-maximize"></i></button>'
+    : '';
   root.innerHTML =
-    '<div style="'+shell+'border-radius:20px;padding:1.5rem;color:white;">'
+    '<div id="jill-lesson-shell" style="'+shell+'border-radius:20px;padding:1.5rem;color:white;">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'+header+'</div>'
-    + headerIcon
+    +'<div style="display:flex;gap:8px;align-items:center;">'+fsBtn+headerIcon+'</div>'
     +'</div>'
     +(!_jillState.sessionActive ? renderJillStart() : renderJillSession())
     +'</div>';
   if(_jillState.sessionActive){
     _jillSpeakEnabled = true;
+    jillWarmFemaleVoice();
     warmInfinityApi();
     scrollJillMessages();
     try { bindJillPttMic(); } catch(e) {}
@@ -4560,6 +4644,7 @@ function renderJill(){
       });
     }
   }
+  jillSyncFullscreenBtn();
   maybeShowJillOnboarding();
   if (!_jillState.sessionActive && !_jillState.quizActive && s) {
     var vz = document.getElementById('jill-victory-zone');
@@ -4582,7 +4667,7 @@ function maybeShowJillOnboarding(){
     +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'
     +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Currículo Foundations · bundles MSI · trainer calibra.</div></div>'
     +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Modo libre → cualquier tema se vuelve lección (regla + canon + práctica).</div></div>'
-    +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Rapid drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Quiz Kahoot bajo presión · llama → polvorín · trofeos.</div></div>'
+    +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Rapid drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Quiz Kaboom bajo presión · llama → polvorín · trofeos.</div></div>'
     +'</div>'
     +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
     +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill Pro</a></div>'
@@ -4612,7 +4697,7 @@ function renderJillStart(){
       +'</div>'
     : '';
   var rapidBtn = studentGamesOn(s)
-    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.45);color:#e9d5ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kahoot</button>'
+    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.45);color:#e9d5ff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenRapidDrill()"><i class="ti ti-bolt"></i> Rapid drill Kaboom</button>'
     : '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'

@@ -1,5 +1,5 @@
 /**
- * Jill — Rapid drill Kahoot
+ * Jill — Rapid drill Kaboom
  * Preguntas priorizadas por KPIs/temas que el estudiante falla (rapid drill + quizzes + refuerzo Jill).
  */
 (function (global) {
@@ -15,7 +15,7 @@
     { bg: '#7C3AED', shape: '◇' }
   ];
 
-  var KAHOOT = PULSE_OPTS;
+  var KABOOM = PULSE_OPTS;
 
   var TIMER_SEC = 60;
   var QUESTIONS_PER_ROUND = 5;
@@ -42,7 +42,7 @@
     var st = document.createElement('style');
     st.id = 'jill-rapid-drill-styles';
     st.textContent = ''
-      + '@keyframes jillKahootIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'
+      + '@keyframes jillKaboomIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'
       + '@keyframes jillFlameFlicker{0%,100%{transform:scale(1) rotate(-4deg);filter:brightness(1)}50%{transform:scale(1.14) rotate(4deg);filter:brightness(1.2)}}'
       + '@keyframes jillPressureShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}'
       + '@keyframes jillTrophyPop{0%{transform:scale(0.2) rotate(-20deg);opacity:0}60%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}'
@@ -62,7 +62,7 @@
       + '.jill-rapid-tier-silver .jill-tier-badge{background:linear-gradient(135deg,#64748b,#94a3b8);color:#f8fafc}'
       + '.jill-rapid-tier-gold .jill-pressure-track,.jill-rapid-tier-legend .jill-pressure-track{border-color:rgba(251,191,36,0.75);box-shadow:0 0 20px rgba(251,191,36,0.25)}'
       + '.jill-rapid-tier-gold .jill-tier-badge,.jill-rapid-tier-legend .jill-tier-badge{background:linear-gradient(135deg,#b45309,#fbbf24,#f59e0b);color:#1c1917;box-shadow:0 0 18px rgba(251,191,36,0.45)}'
-      + '.jill-rapid-tier-legend #jill-kahoot-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
+      + '.jill-rapid-tier-legend #jill-kaboom-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
       + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}';
     document.head.appendChild(st);
   }
@@ -783,8 +783,8 @@
       var q = state.quiz[state.idx];
       var pct = Math.round((state.timeLeft / TIMER_SEC) * 100);
       var timerColor = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
-      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Kahoot · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
-      return '<div id="jill-kahoot-inner" style="animation:jillKahootIn .35s ease;">'
+      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Kaboom · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
+      return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;font-weight:800;color:#e9d5ff;">'
         + '<span>⚡ ' + MODE_LABEL + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
         + '<span title="Racha de aciertos">🔥 ' + state.streak + '</span>'
@@ -792,19 +792,19 @@
         + '<span title="Racha de victorias">🏆 ' + (rdStats.winStreak || 0) + '</span>'
         + '</div>'
         + renderPressureScene(state)
-        + '<div id="jill-kahoot-timer" style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
-        + '<div id="jill-kahoot-timer-fill" style="height:100%;width:' + pct + '%;background:' + timerColor + ';transition:width .9s linear;border-radius:6px;"></div></div>'
+        + '<div id="jill-kaboom-timer" style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
+        + '<div id="jill-kaboom-timer-fill" style="height:100%;width:' + pct + '%;background:' + timerColor + ';transition:width .9s linear;border-radius:6px;"></div></div>'
         + '<div style="text-align:center;">' + tag + '</div>'
         + '<div style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:16px 18px;font-size:16px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;">'
         + esc(q.q)
         + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + q.options.map(function (opt, i) {
-          return '<button type="button" class="jill-kahoot-opt" data-idx="' + i + '" style="'
-            + 'background:' + KAHOOT[i].bg + ';color:white;border:none;border-radius:14px;padding:16px 12px;'
+          return '<button type="button" class="jill-kaboom-opt" data-idx="' + i + '" style="'
+            + 'background:' + KABOOM[i].bg + ';color:white;border:none;border-radius:14px;padding:16px 12px;'
             + 'font-size:14px;font-weight:800;cursor:pointer;min-height:72px;display:flex;align-items:center;gap:10px;'
             + 'box-shadow:0 4px 0 rgba(0,0,0,0.22);transition:transform .12s;">'
-            + '<span style="font-size:20px;opacity:0.9;">' + KAHOOT[i].shape + '</span>'
+            + '<span style="font-size:20px;opacity:0.9;">' + KABOOM[i].shape + '</span>'
             + '<span style="text-align:left;line-height:1.3;">' + esc(opt) + '</span>'
             + '</button>';
         }).join('')
@@ -823,7 +823,7 @@
         + (wasCorrect ? '¡Acertaste bajo presión!' : 'Casi — correcta: ' + esc(q.options[q.answer]))
         + '</div>'
         + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain || '') + '</div>'
-        + '<button type="button" id="jill-kahoot-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
+        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
         + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver trofeos')
         + '</button></div>';
     }
@@ -935,7 +935,7 @@
         state.streak = 0;
         if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
       }
-      rootEl.querySelectorAll('.jill-kahoot-opt').forEach(function (b, i) {
+      rootEl.querySelectorAll('.jill-kaboom-opt').forEach(function (b, i) {
         b.disabled = true;
         b.style.opacity = i === q.answer ? '1' : (i === picked && !wasCorrect ? '0.55' : '0.35');
         b.style.transform = i === q.answer ? 'scale(1.03)' : 'none';
@@ -944,8 +944,8 @@
       var fb = document.createElement('div');
       fb.style.marginTop = '14px';
       fb.innerHTML = renderFeedback(wasCorrect);
-      rootEl.querySelector('#jill-kahoot-inner').appendChild(fb);
-      var nextBtn = document.getElementById('jill-kahoot-next');
+      rootEl.querySelector('#jill-kaboom-inner').appendChild(fb);
+      var nextBtn = document.getElementById('jill-kaboom-next');
       if (nextBtn) {
         nextBtn.addEventListener('click', function () {
           state.idx++;
@@ -957,7 +957,7 @@
     }
 
     function bindOptions() {
-      rootEl.querySelectorAll('.jill-kahoot-opt').forEach(function (btn) {
+      rootEl.querySelectorAll('.jill-kaboom-opt').forEach(function (btn) {
         btn.addEventListener('click', function () {
           if (state.answered) return;
           state.answered = true;
@@ -974,7 +974,7 @@
       state.timeLeft = TIMER_SEC;
       state.timer = setInterval(function () {
         state.timeLeft--;
-        var fill = document.getElementById('jill-kahoot-timer-fill');
+        var fill = document.getElementById('jill-kaboom-timer-fill');
         if (fill) {
           var pct = Math.max(0, Math.round((state.timeLeft / TIMER_SEC) * 100));
           fill.style.width = pct + '%';
@@ -987,7 +987,7 @@
           state.streak = 0;
           if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
           var q = state.quiz[state.idx];
-          rootEl.querySelectorAll('.jill-kahoot-opt').forEach(function (b, i) {
+          rootEl.querySelectorAll('.jill-kaboom-opt').forEach(function (b, i) {
             b.disabled = true;
             b.style.opacity = i === q.answer ? '1' : '0.35';
           });
@@ -997,10 +997,10 @@
           fb.innerHTML = '<div style="text-align:center;"><div style="font-size:32px;">⏱️</div>'
             + '<div style="color:#FCD34D;font-weight:800;margin:8px 0 12px;">Tiempo — seguí practicando este tema</div>'
             + '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:14px;">Correcta: <strong>' + esc(q.options[q.answer]) + '</strong></div>'
-            + '<button type="button" id="jill-kahoot-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
+            + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
             + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver resultado') + '</button></div>';
-          rootEl.querySelector('#jill-kahoot-inner').appendChild(fb);
-          document.getElementById('jill-kahoot-next').addEventListener('click', function () {
+          rootEl.querySelector('#jill-kaboom-inner').appendChild(fb);
+          document.getElementById('jill-kaboom-next').addEventListener('click', function () {
             state.idx++;
             state.answered = false;
             if (state.idx >= state.quiz.length) renderResults();
@@ -1019,8 +1019,8 @@
     rootEl.innerHTML = '<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
       + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
       + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">🔥 La llama avanza hacia el polvorín — respondé antes de que explote la presión</div>'
-      + '<div id="jill-kahoot-stage"></div></div>';
-    var stage = document.getElementById('jill-kahoot-stage');
+      + '<div id="jill-kaboom-stage"></div></div>';
+    var stage = document.getElementById('jill-kaboom-stage');
     rootEl = stage;
     showQuestion();
   }
