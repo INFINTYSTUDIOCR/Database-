@@ -3000,20 +3000,23 @@ F0 MATRIX MODE (OBLIGATORIO cuando bundle F0-matrix o matrixContext activo):
 - Columnas 1-5 primero; Col 6 MOD (will=-RE / would=-RÍA) solo cuando matrixContext.activeColumn=modal o columnas previas dominadas.
 - NO Nexora, entrevistas STAR ni chunking avanzado hasta anecdoteUnlocked.
 - Evalúa cada respuesta por RANURAS: P | M | V | C (modal en col 6).
-- Si falla una ranura: nombra la ranura, muestra la fórmula en whiteboard, pide UNA oración con el pronombre+verbo del drillPrompt.
-- Usa matrixContext.drillPrompt como objetivo del turno si el estudiante no pide otra cosa Foundations válida.
+- IMPERATIVO MÉTODO: rotar pronombre (no solo I) y tiempo/columna; cada afirmación exige par pregunta con inversión (método moneda: aux/be/modal al frente).
+- Si falla una ranura: nombra la ranura, muestra la fórmula en whiteboard, pide UNA oración + la MISMA en pregunta (inversión).
+- Usa matrixContext.drillPrompt como objetivo del turno; luego pide variante (otro pronombre del drill o pregunta moneda).
 - Modo anécdota (anecdoteMode true): corrige pronunciación, tiempos, coordinación, preposiciones en el texto leído/pegado — sin cambiar de tema.
-- Ritmo: regla corta + 1 ejemplo modelo + 1 práctica. Explicación en español; práctica en inglés estructurado.`;
+- Ritmo: regla corta + 1 ejemplo modelo + 1 práctica afirmación + 1 práctica pregunta. Explicación en español; práctica en inglés estructurado.`;
 
 const JILL_CONVERSATION_POLISH_RULE = `
 FASE CONVERSACIÓN FOUNDATIONS (matrixContext.conversationPhase true — estructura y teoría dominadas):
 - YA NO es solo drill de una oración: FORZÁ conversación sostenida. Jill habla poco; el estudiante habla mucho.
+- IMPERATIVO: el estudiante DEMUESTRA dominio conjugando tiempos y pronombres en contexto, haciendo preguntas con inversión (moneda), y combinando estructuras (MSI + prep + there + artículos) sin que vos nombres la gramática.
+- Pedí variantes en vivo: "ahora en pasado", "otro pronombre", "hacelo pregunta", "combiná con in/on/at o there is".
 - Escuchá cada turno, compará contra MSI® (ranuras P|M|V|C) y canon — NO exijas linkers Nexus (however, furthermore, on top of that). Eso es Alice.
-- Analizá: tiempo verbal correcto, coordinación básica (and/but), lógica, improvisación, esfuerzo evidente bajo, fluidez.
+- Analizá: tiempo verbal correcto, preguntas invertidas, coordinación básica (and/but), lógica, improvisación, esfuerzo evidente bajo, fluidez.
 - Corregí on-the-go con afecto firme — como trainer en sala, no como chatbot.
 - Hacé preguntas de seguimiento, cambiá de tema dentro de Foundations, pedí que amplíe con detalle concreto.
-- NUNCA gradués automáticamente. Solo al terminar sesión (modo evaluate) podés marcar graduation_request:true si TODOS los KPIs conversacionales de Johnny se cumplen en la evidencia del transcript.
-- Si aún hay errores de tiempo, coordinación o esfuerzo evidente: seguí puliendo — graduation_request:false.`;
+- NUNCA gradués automáticamente. Solo al terminar sesión (modo evaluate) podés marcar graduation_request:true si TODOS los KPIs conversacionales de Johnny se cumplen en la evidencia del transcript (incluye conjugación + inversión + combinación).
+- Si aún hay errores de tiempo, inversión en preguntas, coordinación o esfuerzo evidente: seguí puliendo — graduation_request:false.`;
 
 function jillStructurePrerequisitesMet(student, matrixContext) {
   const m = student?.jillMatrix || {};
@@ -3073,6 +3076,8 @@ function formatJillMatrixNote(matrixContext) {
     matrixContext.sigla ? `Sigla: ${matrixContext.sigla}` : '',
     matrixContext.formula ? `Fórmula: ${matrixContext.formula}` : '',
     matrixContext.drillPrompt ? `Drill activo: ${matrixContext.drillPrompt}` : '',
+    matrixContext.drillQuestionPrompt ? `Drill pregunta: ${matrixContext.drillQuestionPrompt}` : '',
+    matrixContext.conjugationRule ? `Conjugacion: ${matrixContext.conjugationRule}` : '',
     matrixContext.columnProgress != null ? `Progreso columna: ${matrixContext.columnProgress}%` : '',
     matrixContext.columnsSummary ? `Estado columnas: ${matrixContext.columnsSummary}` : '',
     matrixContext.anecdoteMode ? 'MODO ANÉCDOTA — cuaderno 15 min → leer → coaching estructura/coherencia/pronunciación.' : '',
@@ -3335,8 +3340,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v22-there-existencial-006c';
-const ALICE_BRAIN_VER = 'v21-there-existencial-006c';
+const JILL_BRAIN_VER = 'v23-conjugar-invertir-domino';
+const ALICE_BRAIN_VER = 'v22-conjugar-invertir-domino';
 
 const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
 
@@ -3647,11 +3652,11 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const statsNote = `Bundle: ${bundleTitle}. KPIs del bundle: ${bundleKpis}. Turnos estudiante: ${userTurns}. Palabras: ${metrics.wordCount}. Conectores: ${metrics.connectors.join(', ') || 'ninguno'}. Score calculado: ${overall_score}/100. Fase conversación: ${convPhase ? 'SÍ' : 'NO'}. Prerequisitos estructura: ${structPrereq ? 'cumplidos' : 'pendientes'}.`;
 
       const evalSystem = convPhase
-        ? `Sos Jill evaluadora Foundations en FASE CONVERSACIÓN. El estudiante ya dominó estructura/teoría. Evaluá si DEMOSTRÓ en el transcript: conversar sin errores graves, tiempo verbal correcto, coordinación de ideas, lógica, poco esfuerzo evidente, fluidez sostenida con Jill. Compará contra Mecánica Estructural Infinity (P|M|V|C). NUNCA gradués automáticamente — solo podés SOLICITAR graduación (graduation_request:true) si la evidencia es clara y consistente en TODA la sesión. Si hay duda, graduation_request:false y seguí puliendo. Respondé SOLO JSON válido. Sin markdown. Sin overall_score.`
+        ? `Sos Jill evaluadora Foundations en FASE CONVERSACIÓN. El estudiante ya dominó estructura/teoría. Evaluá si DEMOSTRÓ en el transcript: conjugación correcta de tiempos y pronombres, preguntas con inversión (método moneda), combinación natural de estructuras (MSI+prep+there), conversar sin errores graves, coordinación, lógica, poco esfuerzo evidente, fluidez sostenida. Compará contra Mecánica Estructural Infinity (P|M|V|C). NUNCA gradués automáticamente — solo podés SOLICITAR graduación (graduation_request:true) si la evidencia es clara y consistente en TODA la sesión. Si hay duda, graduation_request:false y seguí puliendo. Respondé SOLO JSON válido. Sin markdown. Sin overall_score.`
         : 'Sos Jill evaluadora Foundations. Respondé SOLO JSON válido. Sin markdown. Sin overall_score — ya está calculado.';
 
       const evalJsonSchema = convPhase
-        ? `{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus","jill_message":"2-3 frases cálidas en español + feedback conversacional","bundle_ready":true o false,"graduation_request":true solo si KPIs conversacionales Johnny satisfechos en evidencia,"graduation_reason":"por qué solicitás o no graduación a Alice","conversation_kpis":{"tense_accuracy":"ok|weak|fail","coordination":"ok|weak|fail","logic":"ok|weak|fail","effort":"ok|weak|fail","fluency":"ok|weak|fail"}}`
+        ? `{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus","jill_message":"2-3 frases cálidas en español + feedback conversacional","bundle_ready":true o false,"graduation_request":true solo si KPIs conversacionales Johnny satisfechos en evidencia,"graduation_reason":"por qué solicitás o no graduación a Alice","conversation_kpis":{"tense_accuracy":"ok|weak|fail","question_inversion":"ok|weak|fail","combination":"ok|weak|fail","coordination":"ok|weak|fail","logic":"ok|weak|fail","effort":"ok|weak|fail","fluency":"ok|weak|fail"}}`
         : `{"best_moment":"logro específico en español","main_improvement":"un tip concreto del método Nexus/bundle","jill_message":"2-3 frases cálidas en español + una frase modelo en inglés del chunk de hoy","bundle_ready":true o false si dominó el bundle según evidencia,"graduation_request":false}`;
 
       const resp = await claudeCall({

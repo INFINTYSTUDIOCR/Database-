@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v15-there-existencial';
+const METHOD_OS_VERSION = 'os-v16-conjugar-invertir-domino';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -39,6 +39,14 @@ EJERCICIOS DE DOMINIO (TODOS LOS MODULOS � regla irrompible): cada modulo tien
 METODO 15+10 (22 DIAS ESCRITO ANTES DE HABLAR): instalar habito Idea+Linker+Idea escribiendo. Cada dia: 15 min (Jill rota: anecdota conectada min 5 linkers/12 lineas, OR oraciones conectadas del modulo, OR responder pregunta min 3 oraciones � nunca una sola) + 10 oraciones conectadas homework. 22 dias exclusivos escritos; al cumplir + respuestas conectadas independientes (min 5 oraciones, Idea+Linker+Idea) -> recien fase oral. "I worked yesterday because I had a meeting, and it did not go as expected" CORRECTO (linkers Foundations: and/but/because/so; however = Alice); una oracion suelta NO.
 
 F0 GATE (matriz + vocab + conversacion + linkers minimos):
+
+REGLA IMPERATIVA METODO (sin excepcion Foundations):
+1) CONJUGAR: rotar pronombres (I/you/he/she/we/they) y tiempos MSI (PR/PS/PC/PRP/PPC/MOD) � nunca solo I+presente.
+2) INVERTIR (moneda): cada afirmacion lleva par pregunta � aux/be/modal al frente (Are you...? Is there...? Did she...?).
+3) COMBINAR: MSI + articulos + prep in/on/at + there is en misma oracion cuando el modulo lo permite.
+4) DEMOSTRAR en conversacion Jill: dominio = tiempos correctos + preguntas invertidas + combinacion natural en dialogo � no recitar teoria.
+Jill: "Ahora otro pronombre. Ahora pregunta. Ahora combinalo."
+
 Matriz: 7P x 16 verbos operativos x 6 cols PR|PS|PC|PRP|PPC|MOD; 3 aciertos/celda; 100%; respuesta <15s; Pulse; anecdota cuaderno; 22 dias escritos; luego fase conversacion.
 16 operativos matriz: be,have,do,work,study,go,make,take,get,see,know,think,want,need,say,tell (001-C irregulares = otro set cero total).
 Linkers Foundations: and,but,because,so (escrito+oral basico). NO however/furthermore/on top of that (Alice).
@@ -102,6 +110,9 @@ THERE IS / THERE ARE (Modulo 006-C) � hay espanol -> THERE + BE + C (canon: th
 - there IS (existe) vs it IS (identificacion): �existe algo o que es algo?
 Frase ancla: "There is a book on the table, but there are no pens � is there a pencil anywhere?"
 Errores: have a cat por hay; there is cats; Is there are.
+
+
+Practica 006-C obligatoria: afirmacion+pregunta mismo C; rotar is/are/was/were/will/would/has-have been; combinar there+prep; conversacion 4+ oraciones con una en pasado y una pregunta.
 
 GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.svg; MSI� P + V + ADJ en C (ranura C):
 - Comparar dos (mas�que): adj CORTO -> -er + THAN (taller than); adj LARGO -> MORE + adj + THAN; irregulares: good->better, bad->worse, far->farther.

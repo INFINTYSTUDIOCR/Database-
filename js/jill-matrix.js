@@ -249,6 +249,8 @@
       formula: col.formula,
       notation: col.notation,
       drillPrompt: drillLine,
+      drillQuestionPrompt: 'Pregunta (moneda): invertir aux/be/modal al frente — mismo pronombre+verbo/columna.',
+      conjugationRule: 'Rotar pronombres y tiempos; afirmacion + pregunta cada practica.',
       drillModal: drill.modal || null,
       drillVerb: drill.verb || null,
       columnProgress: gate.columnPct,

@@ -186,8 +186,9 @@
     { kpi: 'k3', topic: 'there', q: 'Habría un problema →', options: ['There would be a problem', 'There would a problem', 'Would there a problem', 'There will be a problem'], answer: 0, explain: 'Condicional: there would be.' },
     { kpi: 'k3', topic: 'there', q: 'Ha habido retrasos →', options: ['There have been delays', 'There has been delays', 'There have delay', 'There is been delays'], answer: 0, explain: 'Perfecto plural → there have been.' },
     { kpi: 'k3', topic: 'there', q: 'Existe un libro (no identificación) →', options: ['There is a book', 'It is a book', 'There are a book', 'Is a book'], answer: 0, explain: 'Existencia → there is. It is = identificación.' },
-    { kpi: 'k3', topic: 'there', q: '¿Había un error? →', options: ['Was there an error?', 'Were there an error?', 'Was there are an error?', 'Did there an error?'], answer: 0, explain: 'Pasado singular pregunta → Was there…?' }
-  ];
+    { kpi: 'k3', topic: 'there', q: 'Afirmación: There is a meeting. → Pregunta (moneda):', options: ['Is there a meeting?', 'There is a meeting?', 'Does there a meeting?', 'Is there are a meeting?'], answer: 0, explain: 'Inversión: Is + there + C.' },
+    { kpi: 'k3', topic: 'coin', q: 'Afirmación: She worked yesterday. → Pregunta (moneda):', options: ['Did she work yesterday?', 'She did work yesterday?', 'Does she worked yesterday?', 'Worked she yesterday?'], answer: 0, explain: 'Pasado pregunta: Did al frente + verbo base.' },
+    { kpi: 'k3', topic: 'coin', q: 'Afirmación: They are working. → Pregunta (moneda):', options: ['Are they working?', 'They are working?', 'Do they working?', 'Are working they?'], answer: 0, explain: 'PC pregunta: Are al frente.' },
 
   var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(THERE_QUESTIONS);
 
