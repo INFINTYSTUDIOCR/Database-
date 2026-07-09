@@ -213,7 +213,7 @@ const JillStructureCoach = require('./jill-structure-coach');
 const JillMethodOS = require('./jill-method-os');
 const JillTrainerInsights = require('./jill-trainer-insights');
 const JillCalibration = require('./jill-calibration');
-const JillF0Gate = require('../js/jill-f0-gate.js');
+const JillF0Gate = require('./jill-f0-gate.js');
 
 const TikTokJill = require('./tiktok-jill');
 TikTokJill.initTikTokJill({ sbGetOne, sbSet });

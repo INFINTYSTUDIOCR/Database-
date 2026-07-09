@@ -363,6 +363,38 @@
     }
   }
 
+  function completeDrillLocal(student, payload, opts) {
+    opts = opts || {};
+    var perfect = payload.correct === payload.total && payload.total > 0;
+    var previewWin = payload.score >= WIN_SCORE_PCT;
+    payload.wonRound = previewWin;
+    payload.winStreak = previewWin ? ((student.jillRapidDrill && student.jillRapidDrill.winStreak) || 0) + 1 : 0;
+    var rec = recordQuiz(student, payload);
+    var winMeta = applyWinStreak(student, payload.score, perfect);
+    if (payload.score >= 80) {
+      if (!student.jillPulse) student.jillPulse = {};
+      student.jillPulse.lastScore = payload.score;
+      student.jillPulse.lastDate = new Date().toISOString();
+      student.jillPulse.passed = true;
+      if (student.jillMatrix) student.jillMatrix.pulseQuizPassed = true;
+    }
+    if (!opts.demoMode && student.id && typeof dbSet === 'function') {
+      dbSet('infinity_students', student.id, student).catch(function () {});
+    }
+    return {
+      xp: rec.xp || 0,
+      unlocked: rec.unlocked || [],
+      won: winMeta.won,
+      jillRapidDrill: student.jillRapidDrill,
+      nemesisState: student.nemesisState,
+      jillDrillProfile: student.jillDrillProfile,
+      quizWeakKpis: student.quizWeakKpis,
+      jillGrowth: student.jillGrowth,
+      jillPulse: student.jillPulse,
+      source: 'local'
+    };
+  }
+
   function fetchBrainQuestions(student, activeBundle, count, opts) {
     opts = opts || {};
     var bid = bundleIdFromStudent(student, activeBundle);
@@ -680,10 +712,16 @@
 
     fetchBrainQuestions(student, activeBundle, qCount, mountOpts).then(function (data) {
       if (data && data.profile) mergeBrainProfile(student, data.profile);
-      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, data.questions || [], nemesisKpis, brandLine, qCount);
+      var qs = (data && data.questions && data.questions.length) ? data.questions : pickQuestions(student, activeBundle, qCount);
+      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount);
     }).catch(function () {
-      rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;font-size:13px;">'
-        + 'No se pudo conectar al cerebro Jill. Verificá sesión o redeploy del backend.</div>';
+      var qs = pickQuestions(student, activeBundle, qCount);
+      if (!qs.length) {
+        rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;font-size:13px;">'
+          + 'No se pudo conectar al cerebro Jill. Verificá sesión o redeploy del backend.</div>';
+        return;
+      }
+      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount);
     });
   }
 
@@ -781,7 +819,14 @@
       rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#e9d5ff;">🧠 Guardando en el cerebro…</div>';
 
       submitBrainComplete(student, payload, opts).then(function (brain) {
-        var rec = { xp: brain.xp || 0, unlocked: [] };
+        paintBrainResults(brain);
+      }).catch(function () {
+        paintBrainResults(completeDrillLocal(student, payload, opts));
+      });
+    }
+
+    function paintBrainResults(brain) {
+        var rec = { xp: brain.xp || 0, unlocked: brain.unlocked || [] };
         if (brain.jillRapidDrill) student.jillRapidDrill = brain.jillRapidDrill;
         if (brain.nemesisState) student.nemesisState = brain.nemesisState;
         if (brain.jillDrillProfile) student.jillDrillProfile = brain.jillDrillProfile;
@@ -790,7 +835,7 @@
         if (brain.jillPulse) student.jillPulse = brain.jillPulse;
         if (brain.infinityVictory) student.infinityVictory = brain.infinityVictory;
         if (typeof InfinityVictory !== 'undefined') InfinityVictory.invalidateCache();
-        if (typeof JillProgress !== 'undefined' && !opts.demoMode) {
+        if (typeof JillProgress !== 'undefined' && !opts.demoMode && !rec.unlocked.length) {
           rec.unlocked = JillProgress.checkBadges(student, { quizPerfect: perfect }) || [];
         }
         var winMeta = {
@@ -799,9 +844,6 @@
         };
         var trophy = trophyForScore(score, perfect);
         paintResultsUI(winMeta, rec, trophy, score, perfect);
-      }).catch(function () {
-        rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;">Error al guardar en el cerebro. Reintentá.</div>';
-      });
     }
 
     function paintResultsUI(winMeta, rec, trophy, score, perfect) {

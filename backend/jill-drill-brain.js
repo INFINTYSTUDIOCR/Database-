@@ -3,7 +3,7 @@
  * Banco, selecciùn adaptativa, perfil por estudiante, persistencia y cascada a tutores.
  */
 const JillDrillBank = require('../js/jill-drill-bank.js');
-const JillMatrixQuiz = require('../js/jill-matrix-quiz.js');
+const JillMatrixQuiz = require('./jill-matrix-quiz.js');
 
 const DRILL_BRAIN_ID = 'JILL-DRILL-BRAIN';
 const QUESTIONS_PER_ROUND = 10;
