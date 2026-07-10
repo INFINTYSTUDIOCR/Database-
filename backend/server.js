@@ -37,9 +37,21 @@ app.use((req, res, next) => {
 });
 
 // ── CORS (allowed origins only) ──────────────────────────────
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://infintystudiocr.github.io,https://studioinfinitycr.com,https://www.studioinfinitycr.com,http://localhost:8765,http://127.0.0.1:8765,http://127.0.0.1:5500,http://localhost:5500'
-).split(',').map(s => s.trim()).filter(Boolean);
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://infintystudiocr.github.io',
+  'https://studioinfinitycr.com',
+  'https://www.studioinfinitycr.com',
+  'http://localhost:8765',
+  'http://127.0.0.1:8765',
+  'http://127.0.0.1:5500',
+  'http://localhost:5500'
+];
+const ENV_ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+/** Env se SUMA a defaults (no reemplaza) — evita que falte www y tumbe el portal. */
+const ALLOWED_ORIGINS = Array.from(new Set(DEFAULT_ALLOWED_ORIGINS.concat(ENV_ALLOWED_ORIGINS)));
 
 function isLocalDevOrigin(origin) {
   if (!origin) return false;
@@ -51,13 +63,33 @@ function isLocalDevOrigin(origin) {
   }
 }
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (isLocalDevOrigin(origin)) return true;
+  if (ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith(o.replace(/\/$/, '')))) {
+    return true;
+  }
+  // Apex <-> www equivalentes para el mismo host de marca
+  try {
+    const u = new URL(origin);
+    const host = u.hostname.replace(/^www\./i, '').toLowerCase();
+    return ALLOWED_ORIGINS.some((o) => {
+      try {
+        const ao = new URL(o);
+        const ah = ao.hostname.replace(/^www\./i, '').toLowerCase();
+        return ao.protocol === u.protocol && ah === host;
+      } catch (e) {
+        return false;
+      }
+    });
+  } catch (e) {
+    return false;
+  }
+}
+
 app.use(cors({
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (isLocalDevOrigin(origin)) return callback(null, true);
-    if (ALLOWED_ORIGINS.some(o => origin === o || origin.startsWith(o.replace(/\/$/, '')))) {
-      return callback(null, true);
-    }
+    if (isAllowedOrigin(origin)) return callback(null, true);
     console.warn('CORS blocked:', origin);
     return callback(new Error('CORS not allowed'));
   },
@@ -657,7 +689,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-q7plus';
+const APP1_BUILD = '20260710-corsfix
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
