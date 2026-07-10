@@ -1,5 +1,5 @@
 /**
- * Jill F0 — Rapid drill atado a celdas de la matriz (pronombre × verbo × columna).
+ * Jill F0 - Rapid drill atado a celdas de la matriz (pronombre x verbo x columna).
  * Compartido cliente + servidor Node.
  */
 (function (global) {
@@ -19,7 +19,15 @@
     { id: 'modal', sigla: 'MOD', label: 'Modales' }
   ];
 
-  var COMPLEMENTS = ['today', 'yesterday', 'at home', 'at the office', 'every day', 'now', 'before', 'soon', 'hard', 'English'];
+  /** Complementos por columna - evita PR + "now" / PS + "now" (preguntas incoherentes). */
+  var COMPLEMENTS_BY_COL = {
+    present: ['every day', 'at home', 'at the office', 'hard', 'English', 'today'],
+    past: ['yesterday', 'before', 'at home', 'at the office', 'hard'],
+    progressive: ['now', 'today', 'at the office', 'hard', 'English'],
+    perfect: ['before', 'today', 'this week', 'already'],
+    combined: ['today', 'all week', 'hard', 'at the office'],
+    modal: ['soon', 'today', 'at the office', 'hard', 'English']
+  };
 
   var VERB_FORMS = {
     be: { base: 'be', pres: { I: 'am', you: 'are', he: 'is', she: 'is', it: 'is', we: 'are', they: 'are' }, past: { I: 'was', you: 'were', he: 'was', she: 'was', it: 'was', we: 'were', they: 'were' }, pp: 'been', ing: 'being' },
@@ -49,12 +57,31 @@
     return f.base || verb;
   }
 
-  function pastForm(verb) {
+  function pastForm(verb, pronoun) {
     var f = VERB_FORMS[verb] || { base: verb };
-    if (f.past && f.past.all) return f.past.all;
+    if (f.past) {
+      if (f.past.all) return f.past.all;
+      if (pronoun && f.past[pronoun]) return f.past[pronoun];
+      return f.past.I || f.past.he || 'was';
+    }
     if (f.regularY) return verb.replace(/y$/, 'ied');
     if (f.regular) return verb + 'ed';
-    return f.base + 'ed';
+    return (f.base || verb) + 'ed';
+  }
+
+  function baseForm(verb) {
+    var f = VERB_FORMS[verb] || { base: verb };
+    return f.base || verb;
+  }
+
+  function pickComplement(colId, seed) {
+    var list = COMPLEMENTS_BY_COL[colId] || COMPLEMENTS_BY_COL.present;
+    return list[Math.abs(seed) % list.length];
+  }
+
+  /** Solo ASCII en el enunciado - el punto medio se rompe en algunos encodings. */
+  function qPrefix(sigla, bits) {
+    return 'Completa (' + sigla + ' - ' + bits + '): ';
   }
 
   function ppForm(verb) {
@@ -151,69 +178,70 @@
     var v = cell.verb;
     var col = cell.column;
     var modal = cell.modal || MODALS[0];
-    var comp = COMPLEMENTS[(p.length + v.length) % COMPLEMENTS.length];
+    var comp = pickComplement(col.id, p.length + v.length + (col.sigla || '').length);
     var correct = '';
     var q = '';
     var pool = [];
     var explain = '';
+    var base = baseForm(v);
 
     if (col.id === 'present') {
       correct = presForm(v, p);
-      q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ___ ' + comp + '.';
-      pool = [presForm(v, 'he'), pastForm(v), ingForm(v), presForm(v, p === 'I' ? 'you' : 'I')];
+      q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ___ ' + comp + '.';
+      pool = [presForm(v, 'he'), pastForm(v, p), ingForm(v), presForm(v, p === 'I' ? 'you' : 'I')];
       explain = col.sigla + ': ' + p + ' + ' + correct + ' + C.';
     } else if (col.id === 'past') {
-      correct = pastForm(v);
-      q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ___ ' + comp + '.';
-      pool = [presForm(v, p), ingForm(v), ppForm(v), pastForm(v === 'go' ? 'make' : v)];
-      explain = col.sigla + ': pasado ? ' + correct + '.';
+      correct = pastForm(v, p);
+      q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ___ ' + comp + '.';
+      pool = [presForm(v, p), ingForm(v), ppForm(v), pastForm(v === 'go' ? 'make' : v, p)];
+      explain = col.sigla + ': pasado -> ' + correct + '.';
     } else if (col.id === 'progressive') {
       if (Math.random() < 0.5) {
         correct = tbPres(p);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '-ing): ' + p + ' ___ ' + ingForm(v) + ' ' + comp + '.';
+        q = qPrefix(col.sigla, p + ' + ' + v + '-ing') + p + ' ___ ' + ingForm(v) + ' ' + comp + '.';
         pool = [presForm('be', p === 'I' ? 'you' : 'I'), 'was', 'were', 'been'];
         explain = 'PC: To Be (' + correct + ') + -ing.';
       } else {
         correct = ingForm(v);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ' + tbPres(p) + ' ___ ' + comp + '.';
-        pool = [presForm(v, p), pastForm(v), ppForm(v), ingForm(v === 'work' ? 'study' : v)];
+        q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ' + tbPres(p) + ' ___ ' + comp + '.';
+        pool = [presForm(v, p), pastForm(v, p), ppForm(v), ingForm(v === 'work' ? 'study' : v)];
         explain = 'PC: ' + tbPres(p) + ' + ' + correct + '.';
       }
     } else if (col.id === 'perfect') {
       if (Math.random() < 0.45) {
         correct = haveForm(p);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + have + ' + v + '): ' + p + ' ___ ' + ppForm(v) + ' ' + comp + '.';
+        q = qPrefix(col.sigla, p + ' + have + ' + v) + p + ' ___ ' + ppForm(v) + ' ' + comp + '.';
         pool = ['have', 'has', 'had', 'having'];
         explain = 'PRP: ' + correct + ' + participio (' + ppForm(v) + ').';
       } else {
         correct = ppForm(v);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ' + haveForm(p) + ' ___ ' + comp + '.';
-        pool = [presForm(v, p), pastForm(v), ingForm(v), ppForm(v === 'see' ? 'know' : v)];
-        explain = 'PRP: have + participio ? ' + correct + '.';
+        q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ' + haveForm(p) + ' ___ ' + comp + '.';
+        pool = [presForm(v, p), pastForm(v, p), ingForm(v), ppForm(v === 'see' ? 'know' : v)];
+        explain = 'PRP: have + participio -> ' + correct + '.';
       }
     } else if (col.id === 'combined') {
       if (Math.random() < 0.45) {
         correct = 'been';
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ' + haveForm(p) + ' ___ ' + ingForm(v) + ' ' + comp + '.';
+        q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ' + haveForm(p) + ' ___ ' + ingForm(v) + ' ' + comp + '.';
         pool = ['be', 'being', 'was', 'were'];
         explain = 'PPC: have + been + -ing.';
       } else {
         correct = ingForm(v);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + v + '): ' + p + ' ' + haveForm(p) + ' been ___ ' + comp + '.';
-        pool = [presForm(v, p), pastForm(v), ppForm(v), ingForm(v === 'work' ? 'go' : v)];
+        q = qPrefix(col.sigla, p + ' + ' + v) + p + ' ' + haveForm(p) + ' been ___ ' + comp + '.';
+        pool = [presForm(v, p), pastForm(v, p), ppForm(v), ingForm(v === 'work' ? 'go' : v)];
         explain = 'PPC: have been + ' + correct + '.';
       }
     } else {
       if (Math.random() < 0.5) {
         correct = modal;
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + modal + ' + ' + v + '): ' + p + ' ___ ' + presForm(v, p) + ' ' + comp + '.';
+        q = qPrefix(col.sigla, p + ' + ' + modal + ' + ' + v) + p + ' ___ ' + base + ' ' + comp + '.';
         pool = MODALS.slice();
         explain = 'MOD: ' + modal + ' + verbo base.';
       } else {
-        correct = presForm(v, p);
-        q = 'Completa (' + col.sigla + ' · ' + p + ' + ' + modal + '): ' + p + ' ' + modal + ' ___ ' + comp + '.';
-        pool = [pastForm(v), ingForm(v), ppForm(v), presForm(v, p === 'I' ? 'they' : 'I')];
-        explain = 'MOD: modal + verbo base ? ' + correct + '.';
+        correct = base;
+        q = qPrefix(col.sigla, p + ' + ' + modal) + p + ' ' + modal + ' ___ ' + comp + '.';
+        pool = [pastForm(v, p), ingForm(v), ppForm(v), presForm(v, p === 'I' ? 'they' : 'I')];
+        explain = 'MOD: modal + verbo base -> ' + correct + '.';
       }
     }
 
