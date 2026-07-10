@@ -40,8 +40,15 @@
 
   function isExplainTurn(contentType, text, userTopic) {
     if (contentType === 'whiteboard' || contentType === 'example') return true;
-    var blob = String(userTopic || '') + ' ' + String(text || '');
-    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|to be|will have|there is|there are|preposici|tiempo|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta)\b/i.test(blob);
+    var user = String(userTopic || '');
+    var reply = String(text || '');
+    // Never treat a greeting / open chat invite as an explanation board
+    if (/qu[eé] gusto|de nuevo|podemos charlar|qu[eé] quer[eé]s (hoy|hacer|charlar)|bienvenid/i.test(reply)
+      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal)\b/i.test(user)) {
+      return false;
+    }
+    var blob = user + ' ' + reply;
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|to be|will have|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta)\b/i.test(blob);
   }
 
   function shouldShow(contentType, text, bundle, userTopic) {

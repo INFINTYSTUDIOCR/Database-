@@ -33,7 +33,7 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-canon-visual.js?v=20260710q7"></script>
-<script src="js/jill-visual-stage.js?v=20260710q7"></script>
+<script src="js/jill-visual-stage.js?v=20260710mic"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710q7"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -118,20 +118,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-lesson-shell:fullscreen #jill-session-main{
     flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;
   }
-  #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:10px;min-height:0;position:relative;z-index:2;}
-  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:280px;}
-  #jill-stage-media{flex:1;min-height:240px;position:relative;}
-  #jill-stage-caption{
-    display:none!important;
-  }
+  #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
+  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:0;}
+  #jill-stage-media{flex:1;min-height:160px;position:relative;}
+  #jill-stage-caption{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
-  /* Stage mode: board only — no chat, no transcript */
-  #jill-lesson-shell.jill-stage-active #jill-messages{
-    display:none!important;
-  }
+  #jill-lesson-shell.jill-stage-active #jill-messages{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}
-  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:320px;}
-  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-media{min-height:72vh;}
+  #jill-lesson-shell.jill-stage-active #jill-chips,
+  #jill-lesson-shell.jill-stage-active .jill-habit-strip,
+  #jill-lesson-shell.jill-stage-active #jill-matrix-panel{display:none!important;}
+  /* Always keep mic/input dock visible in stage + fullscreen */
+  #jill-control-dock{
+    flex-shrink:0;position:relative;z-index:5;
+    display:flex;flex-direction:column;gap:8px;
+    padding-top:4px;
+  }
+  #jill-lesson-shell.jill-stage-active #jill-control-dock,
+  #jill-lesson-shell:fullscreen #jill-control-dock{
+    background:rgba(15,10,40,0.92);
+    border:1px solid rgba(167,139,250,0.4);
+    border-radius:16px;
+    padding:12px;
+    box-shadow:0 -8px 32px rgba(0,0,0,0.35);
+  }
+  #jill-lesson-shell.jill-stage-active #jill-mic-btn,
+  #jill-lesson-shell:fullscreen #jill-mic-btn{
+    width:56px!important;height:56px!important;font-size:24px!important;
+    border-width:2px!important;
+    box-shadow:0 0 0 3px rgba(167,139,250,0.25);
+  }
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-media{
+    min-height:0;max-height:calc(100vh - 200px);
+  }
   #jill-lesson-shell:fullscreen:not(.jill-stage-active) #jill-messages{
     flex:1;min-height:120px;max-height:none!important;
   }
@@ -5025,17 +5044,19 @@ function renderJillSession(){
     + '<div id="jill-stage-media"></div>'
     + '<div id="jill-stage-caption" aria-live="polite"></div>'
     + '</div>'
-    + renderJillChips()
+    + '<div id="jill-chips">' + renderJillChips() + '</div>'
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
     +'<div id="jill-eval-summary">'+evalHtml+'</div>'
-    +'<div id="jill-status" style="font-size:12px;color:'+accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
-    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
+    +'<div id="jill-control-dock">'
+    +'<div id="jill-status" style="font-size:12px;color:'+accent+';text-align:center;min-height:18px;font-weight:600;"></div>'
+    +'<div style="display:flex;gap:8px;align-items:center;">'
     +'<input id="jill-input" class="inp" placeholder="'+placeholder+'" style="flex:1;background:rgba(255,255,255,0.92);border:2px solid '+inputBorder+';color:#111827;border-radius:12px;padding:10px 14px;">'
-    +'<button id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+micBg+';border:1px solid '+micBorder+';color:'+micColor+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
-    +'<button style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+sendGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendJillMsg()"><i class="ti ti-send"></i></button>'
+    +'<button type="button" id="jill-mic-btn" title="Mantené presionado para hablar (PTT)" aria-label="Micrófono — mantené presionado" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+micBg+';border:1px solid '+micBorder+';color:'+micColor+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;flex-shrink:0;"><i class="ti ti-microphone"></i></button>'
+    +'<button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+sendGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;flex-shrink:0;" onclick="sendJillMsg()" aria-label="Enviar"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
     +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid '+inputBorder+';color:'+(companion?'#e9d5ff':'#bbf7d0')+';font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endJillSession()"><i class="ti ti-check"></i>Terminar y evaluar</button>'
+    +'</div>'
     +'</div>'
     +'</div>';
 }
