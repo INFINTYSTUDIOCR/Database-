@@ -647,6 +647,7 @@ async function verifyStudentSessionAccess(){
     if(typeof d.aliceEnabled === 'boolean') CURRENT_STUDENT.aliceEnabled = d.aliceEnabled;
     if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
     if(typeof d.jillProEnabled === 'boolean') CURRENT_STUDENT.jillProEnabled = d.jillProEnabled;
+    if(typeof d.companionEnabled === 'boolean') CURRENT_STUDENT.companionEnabled = d.companionEnabled;
     window._currentStudent = CURRENT_STUDENT;
     window._portalStudent = CURRENT_STUDENT;
     checkNexoraAccess(CURRENT_STUDENT);
@@ -1108,7 +1109,7 @@ function studentJillTabOn(s){
   return studentJillOn(s) || studentJillProOn(s);
 }
 function studentCompanionOn(s){
-  return !!(s && s.companionEnabled === true);
+  return !!(s && (s.companionEnabled === true || s.companionEnabled === 'true'));
 }
 /** Tab Alice visible si tutora Alice O Companion premium están ON (Engine master). */
 function studentAliceTabOn(s){
@@ -1691,6 +1692,19 @@ var _aliceState = {
 };
 var _aliceStartGen = 0;
 var _aliceStarting = false;
+var _aliceStartAt = 0;
+
+function aliceSetStartStatus(msg){
+  var st = document.getElementById('alice-status');
+  if(st && msg) st.textContent = msg;
+}
+
+function aliceResetStartLockIfStale(){
+  if(!_aliceStarting) return false;
+  if(Date.now() - _aliceStartAt < 45000) return true;
+  _aliceStarting = false;
+  return false;
+}
 
 // ── ALICE: pausa vs stop completo ─────────────────────────
 function aliceClearSilenceTimer(){ /* PTT — no auto-silence timer */ }
@@ -1872,7 +1886,7 @@ function renderAlice(){
   if(_aliceState.quizActive && s && !studentAliceTabOn(s)){
     _aliceState.quizActive = false;
   }
-  if(_aliceState.quizActive){
+  if(_aliceState.quizActive && !_aliceState.sessionActive){
     var nemesisPreview = (typeof JillQuiz !== 'undefined' && s) ? JillQuiz.renderNemesisTopics(s) : '';
     root.innerHTML =
       '<div style="background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(91,33,182,0.45);border:1px solid rgba(167,139,250,0.35);">'
@@ -1925,7 +1939,7 @@ function renderAlice(){
 
 function aliceCompanionEnabled(){
   var s = CURRENT_STUDENT;
-  return !!(s && s.companionEnabled === true);
+  return !!(s && (s.companionEnabled === true || s.companionEnabled === 'true'));
 }
 
 function aliceApplyCompanionDefaults(){
@@ -2050,7 +2064,10 @@ function renderAliceEvaluation(){
 
 // ── ACCIONES ──────────────────────────────────────────────
 async function startAliceCompanionQuick(continueTopic){
-  if(!aliceCompanionEnabled()) return;
+  if(!aliceCompanionEnabled()){
+    showToast('Companion no está activo en tu cuenta — pedí al trainer que lo active en Engine.','err');
+    return;
+  }
   await startAliceSession('companion', { continueTopic: continueTopic || '' });
 }
 
@@ -2067,20 +2084,28 @@ async function syncCurrentStudentFlags(){
 }
 
 async function startAliceSession(sessionType, opts){
-  if(_aliceStarting) return;
+  if(_aliceStarting){
+    if(aliceResetStartLockIfStale()){
+      aliceSetStartStatus('Alice ya está iniciando… esperá unos segundos.');
+      return;
+    }
+  }
   opts = opts || {};
   _aliceStarting = true;
+  _aliceStartAt = Date.now();
   var startGen = ++_aliceStartGen;
   stopAlice();
   await syncCurrentStudentFlags();
   if(!getAuthToken()){
-    showToast('Sin sesión de voz — salí del portal y volvé a ingresar.','err');
+    aliceSetStartStatus('No se pudo conectar la voz — usá el botón Actualizar arriba o salí y volvé a entrar.');
+    showToast('No se pudo iniciar Companion — reintentá con Actualizar (↻) arriba.','err');
     _aliceStarting = false;
     renderAlice();
     return;
   }
   _aliceState.history = [];
   _aliceState.evaluation = null;
+  _aliceState.quizActive = false;
   _aliceState.sessionActive = true;
   _aliceState.sessionType = sessionType || _aliceState.sessionType || 'practice';
   if(!studentAliceOn(CURRENT_STUDENT) && studentCompanionOn(CURRENT_STUDENT)){
@@ -2113,7 +2138,7 @@ async function startAliceSession(sessionType, opts){
   var mode = (typeof AiProfile !== 'undefined') ? AiProfile.aliceSessionMode(CURRENT_STUDENT) : 'start_session';
   var returning = mode === 'return_session';
   var statusEl = document.getElementById('alice-status');
-  if(statusEl) statusEl.textContent = 'Alice se conecta…';
+  if(statusEl) statusEl.textContent = _aliceState.sessionType === 'companion' ? 'Companion se conecta…' : 'Alice se conecta…';
   warmInfinityApi();
   _aliceSpeakEnabled = true;
   _aliceSending = false;
@@ -2146,6 +2171,7 @@ async function startAliceSession(sessionType, opts){
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
     aliceSpeak(fallback);
+    showToast('Companion en modo local — el servidor tardó; si persiste, tocá Actualizar (↻).','err');
   }finally{
     if(startGen === _aliceStartGen) _aliceStarting = false;
   }

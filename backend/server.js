@@ -620,6 +620,7 @@ app.get('/auth/verify', requireProductAuth, async (req, res) => {
         ? student.jillEnabled
         : (student.system_mode || 'jill') !== 'alice';
       payload.jillProEnabled = student.jillProEnabled === true;
+      payload.companionEnabled = student.companionEnabled === true;
     } catch (e) {
       return res.status(503).json({ ok: false, error: 'Could not verify student access' });
     }
