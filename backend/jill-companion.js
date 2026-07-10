@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v11-intent-interpret';
+const JILL_PRO_BRAIN_VER = 'v11-intent-interpret-b';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -25,7 +25,7 @@ function studentWantsEnglishPractice(message) {
 function isEnglishDoubtRequest(message) {
   const t = String(message || '');
   if (!t.trim()) return false;
-  const ask = /\b(explain|teach me|ens[eé][aá]me|explic[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayudame (a )?entender|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|no s[eé] c[oó]mo|me ayudas|me ayud[aá]s|charlar acerca|hablar de|quiero (saber|entender|aprender))\b/i.test(t);
+  const ask = /\b(explain|teach me|ens[eé][aá]me|expl[ií]c[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayud[aá]me( a )?entender|ayud[aá]me|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|confused|no s[eé] c[oó]mo|me ayudas|me ayud[aá]s|charlar acerca|hablar de|quiero (saber|entender|aprender))\b/i.test(t);
   const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future (simple|continuous|perfect)|futuro(?:\s+perfecto)?|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not|will have)\b/i.test(t);
   return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend|duda|ayud|forma|charlar|hablar)\b/i.test(t));
 }
@@ -55,7 +55,9 @@ function looksLikeBrokenEnglish(message) {
     /\bi\s+is\b|\byou\s+is\b|\bhe\s+are\b|\bshe\s+are\b|\bthey\s+is\b/i,
     /\b(yesterday|last\s+\w+)\s+i\s+(go|see|eat|work|do|have|make)\b/i, // past with base verb
     /\bi\s+have\s+\w+ed\s+yesterday\b/i,
+    /\bi\s+have\s+(see|go|eat|do|make|write|speak)\b/i, // wrong PP
     /\b(me|him|her)\s+(is|are|go|want|like)\b/i, // object as subject
+    /\b(he|she|it)\s+no\s+\w+/i, // She no like
     /\bwant\s+go\b|\blike\s+go\b|\bneed\s+go\b/i,
     /\b(to\s+)?be\s+go\b/i,
     /^[a-zA-Z']+(\s+[a-zA-Z']+){0,2}$/ // ultra-short fragment when longer expected
