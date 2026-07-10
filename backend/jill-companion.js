@@ -1,60 +1,111 @@
 /**
- * Jill Pro — Foundations Companion (charla libre + duda bajo demanda).
+ * Jill Pro — Foundations Companion.
+ * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v8-doubt-explain-practice';
+const JILL_PRO_BRAIN_VER = 'v9-live-coach-flow';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
-- Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, todo.
-- Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés ("practiquemos en inglés", "let's speak English", "quiero practicar en inglés", "respóndeme en inglés").
-- Ejemplos modelo en inglés cuando enseñás una frase/chunk están OK; el resto de tu respuesta sigue en español salvo que pidan practicar en inglés.
-- Entendés si escriben en español, inglés o mezclado — sin reproche. Nunca mezcles inglés en la charla si no pidieron practicar.`;
+- Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
+- Inglés ÚNICAMENTE cuando el estudiante pide practicar/hablar en inglés, o como EJEMPLO MODELO corto dentro de una corrección/explicación.
+- Entendés español, inglés o Spanglish — sin reproche. Nunca mezcles inglés en la charla si no pidieron practicar.`;
 
-/** Detecta pedido explícito de practicar/hablar en inglés. */
 function studentWantsEnglishPractice(message) {
   const t = String(message || '');
   return /\b(practicar en ingl[eé]s|practice english|speak english|let'?s (talk|speak|practice) in english|hablar en ingl[eé]s|hablemos en ingl[eé]s|quiero practicar|resp[oó]ndeme en ingl[eé]s|in english please|dec[ií]melo en ingl[eé]s|charlemos en ingl[eé]s|en ingl[eé]s por favor)\b/i.test(t);
 }
 
-/**
- * Duda de clase / mini-lección bajo demanda (cualquier tema de inglés Foundations).
- * Incluye: "hoy en clase vimos…", "no entiendo X", "enséñame", gerundio, PC, etc.
- */
 function isEnglishDoubtRequest(message) {
   const t = String(message || '');
   if (!t.trim()) return false;
-  const ask = /\b(explain|teach me|ens[eé][aá]me|explic[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayudame (a )?entender|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n)\b/i.test(t);
+  const ask = /\b(explain|teach me|ens[eé][aá]me|explic[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayudame (a )?entender|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|no s[eé] c[oó]mo)\b/i.test(t);
   const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future continuous|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing)\b/i.test(t);
-  return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend)/i.test(t));
+  return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend|duda|ayud)/i.test(t));
 }
 
-/** Respuesta corta de claridad tras una explicación. */
 function isClarityReply(message) {
   const t = String(message || '').trim().toLowerCase();
   if (!t || t.length > 80) return false;
   return /^(s[ií]|sip|claro|ok|okay|dale|listo|ya|entend[ií]|me qued[oó]|no|nop|todav[ií]a no|casi|more or less|m[aá]s o menos|un poco|yes|yeah|yep)([.!?\s]|$)/i.test(t)
-    || /\b(me qued[oó] claro|ya entend[ií]|todav[ií]a no|no del todo|explicalo otra vez|otra vez)\b/i.test(t);
+    || /\b(me qued[oó] claro|ya entend[ií]|todav[ií]a no|no del todo|explicalo otra vez|otra vez|ahora s[ií])\b/i.test(t);
 }
 
-const JILL_PRO_DOUBT_MODE = `MODO DUDA BAJO DEMANDA (cuando piden gramática / duda de clase / "enséñame X"):
-Flujo OBLIGATORIO — no sos tutora de bundle, pero SÍ aclarás cualquier tema Foundations:
-1) EXPLICÁ en español: puente con español → fórmula/patrón → 1-2 ejemplos en inglés (máx ~5 oraciones).
-2) CHECK: preguntá "¿Te quedó claro?" (o similar). Si dicen que no → re-explicá más simple con otro ejemplo.
-3) PRÁCTICA CORTA: si quedó claro, invitá 3-6 turnos de producción oral (ellos arman oraciones; vos corregís suave por ranura P|M|V|C si aplica). Sin whiteboard, sin bundle, sin MSI de clase completa.
-4) Después de la práctica corta: volvé a charla libre o preguntá si quieren otro tema.
-Cualquier tema Foundations vale: gerundio/-ING, PC, PR, PS, PRP, PPC, modales, preposiciones, there is/are, inversión, ING vs TO, etc.
-Si piden linkers avanzados / STAR / Nexora / customer service: redirigí a Alice en 1 frase.`;
+/** Heurística: intento en inglés mal armado (estructura rota / ranuras rotas). */
+function looksLikeBrokenEnglish(message) {
+  const t = String(message || '').trim();
+  if (t.length < 4) return false;
+  const hasLatin = /[áéíóúñ¿¡]/i.test(t);
+  const enWords = (t.match(/\b[a-zA-Z']+\b/g) || []).length;
+  const esCue = /\b(el|la|los|las|que|con|para|por|hoy|estoy|estás|porque|también|después)\b/i.test(t);
+  // Mostly Spanish chat → not a broken English production turn
+  if (hasLatin && esCue && enWords < 4) return false;
+  if (enWords < 2) return false;
 
-const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION MODE (charla libre + duda bajo demanda):
-- Sos Jill, compañera de práctica en inglés (Foundations). Voz y energía femenina, cálida, natural.
+  const lower = t.toLowerCase();
+  const brokenPatterns = [
+    /\b(i|you|he|she|we|they)\s+(going|doing|working|eating|studying|watching)\b/i, // missing am/is/are
+    /\b(i|you|he|she|we|they)\s+\w+ing\b/i,
+    /\bi\s+is\b|\byou\s+is\b|\bhe\s+are\b|\bshe\s+are\b|\bthey\s+is\b/i,
+    /\b(yesterday|last\s+\w+)\s+i\s+(go|see|eat|work|do|have|make)\b/i, // past with base verb
+    /\bi\s+have\s+\w+ed\s+yesterday\b/i,
+    /\b(me|him|her)\s+(is|are|go|want|like)\b/i, // object as subject
+    /\bwant\s+go\b|\blike\s+go\b|\bneed\s+go\b/i,
+    /\b(to\s+)?be\s+go\b/i,
+    /^[a-zA-Z']+(\s+[a-zA-Z']+){0,2}$/ // ultra-short fragment when longer expected
+  ];
+  if (brokenPatterns.some((re) => re.test(lower))) return true;
+
+  // Spanglish mash with English verbs but Spanish glue and no clear P+V+C
+  if (enWords >= 3 && esCue && !/\b(i|you|he|she|we|they)\s+(am|is|are|was|were|will|have|has|had|do|does|did|can|could|would|should)\b/i.test(lower)) {
+    if (/\b(go|going|work|working|eat|eating|do|doing|see|seeing|make|making)\b/i.test(lower)) return true;
+  }
+  return false;
+}
+
+function lastAssistantAskedForEnglish(history) {
+  const prev = [...(history || [])].reverse().find((m) => m.role === 'assistant');
+  const t = String(prev?.content || '');
+  return /\b(arm[aá]s|armá|dec[ií]melo en ingl[eé]s|en ingl[eé]s|tu turno|prob[aá]|modelo:|I am |You are |practica|practicá|oraci[oó]n en ingl[eé]s)\b/i.test(t);
+}
+
+/**
+ * Flujo OBLIGATORIO cuando hay duda O estructura rota:
+ * DETENER → feedback → explicar → ejemplo → confirmar → continuar.
+ */
+const JILL_PRO_LIVE_COACH = `COACH EN VIVO (OBLIGATORIO — cualquier tema, por complejo que sea):
+Conversás con sentido: seguí el hilo, reaccioná, profundizá. NO ignores el contenido de lo que dicen.
+
+Si hay DUDA ("no entiendo", "enséñame", duda de clase) O producen inglés MAL ESTRUCTURADO:
+1) DETENÉ el flujo de charla libre un momento (sin regañar).
+2) FEEDBACK claro en español: qué falló o qué no quedó (1 frase).
+3) EXPLICÁ en español: puente con español → patrón/fórmula simple.
+4) EJEMPLO: 1 modelo corto en inglés bien armado.
+5) CONFIRMAR: "¿Te quedó claro?" / "¿Lo armamos de nuevo?"
+6) CONTINUAR: si sí → pedí que lo digan ellos; si no → re-explicá más simple + otro ejemplo; luego retomá la charla del tema.
+
+Evaluación en tiempo real en CADA turno donde intenten inglés:
+- Mirás ranuras P | M/aux | V | C (Foundations).
+- Si está bien: confirmá breve ("Bien armado") y seguí la conversación.
+- Si está mal: aplicá el flujo 1-6 arriba — NO sigas de largo como si nada.
+
+Charla de temas complejos (ciencia, trabajo, historia, sentimientos, etc.): OK total.
+Cuando charlan en español sobre el tema: escuchá y conversá; invitá a meter 1 frase en inglés cuando fluya.
+NO bundles, NO whiteboards, NO matriz F0 forzada, NO sermones.
+Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
+
+const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido explícito de gramática/clase):
+Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
+Cualquier tema Foundations: gerundio/-ING, tiempos, modales, preposiciones, there is/are, inversión, ING vs TO, etc.`;
+
+const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION + COACH EN VIVO:
+- Sos Jill, compañera de práctica en inglés (Foundations). Voz femenina, cálida, natural, inteligente.
 ${JILL_LANGUAGE_RULE}
-- NO sos Jill Tutora: NO bundles, NO whiteboards, NO matriz MSI como clase, NO currículo F0 forzado.
-- Charla libre en español por defecto: vida, trabajo, hobbies, historias, comida, viajes, lo que quieran.
-- Si solo saludan: preguntá qué quieren hoy — charlar de cualquier tema O traer una duda de clase. 2-3 oraciones. NO empieces a enseñar gramática sola.
-- Corrección SUAVE en español; ejemplo en inglés solo si practican una frase o lo piden.
+- NO sos Jill Tutora de bundle: sin whiteboards, sin currículo F0 forzado.
+- Charlá de CUALQUIER tema con sentido (simple o complejo): vida, trabajo, ciencia, historias, dudas de clase.
+- Si solo saludan: preguntá qué quieren hoy — charlar o traer una duda. 2-3 oraciones.
+${JILL_PRO_LIVE_COACH}
 ${JILL_PRO_DOUBT_MODE}
-- Si piden simulación ORT, Nexora, linkers avanzados o customer service: redirige a Alice en 1 frase (en español).
-- 2-6 oraciones (hasta ~8 en explicación de duda). Completá cada oración. NUNCA cortes a mitad.
+- 2-7 oraciones (hasta ~9 en explicación). Completá cada oración. NUNCA cortes a mitad.
 - contentType: casi siempre "text".`;
 
 function isJillProEnabled(student) {
@@ -87,14 +138,15 @@ function inferChatTopic(text) {
     return 'doubt:english';
   }
   const patterns = [
-    { re: /\b(work|job|office|career|interview)\b/, topic: 'work' },
-    { re: /\b(travel|trip|vacation|flight|country)\b/, topic: 'travel' },
-    { re: /\b(food|recipe|cook|restaurant|coffee|dinner)\b/, topic: 'food' },
-    { re: /\b(family|kids|parents|friends|home)\b/, topic: 'family' },
-    { re: /\b(sport|football|soccer|gym|exercise)\b/, topic: 'sports' },
-    { re: /\b(movie|music|book|series|netflix)\b/, topic: 'entertainment' },
-    { re: /\b(study|school|class|university|homework)\b/, topic: 'school' },
-    { re: /\b(weekend|today|yesterday|plans)\b/, topic: 'daily life' }
+    { re: /\b(work|job|office|career|interview|trabajo)\b/, topic: 'work' },
+    { re: /\b(travel|trip|vacation|flight|viaje|viajar)\b/, topic: 'travel' },
+    { re: /\b(food|recipe|cook|restaurant|comida)\b/, topic: 'food' },
+    { re: /\b(family|kids|parents|familia)\b/, topic: 'family' },
+    { re: /\b(sport|football|soccer|gym|deporte)\b/, topic: 'sports' },
+    { re: /\b(movie|music|book|series|netflix|pel[ií]cula)\b/, topic: 'entertainment' },
+    { re: /\b(science|space|history|politic|econom|ciencia|historia)\b/, topic: 'deep topic' },
+    { re: /\b(study|school|class|university|clase|estudio)\b/, topic: 'school' },
+    { re: /\b(weekend|today|yesterday|plans|hoy|ayer)\b/, topic: 'daily life' }
   ];
   for (const p of patterns) {
     if (p.re.test(t)) return p.topic;
@@ -123,9 +175,16 @@ function resolveCompanionPhase(message, history) {
   if (isClarityReply(message)) {
     const prev = [...(history || [])].reverse().find((m) => m.role === 'assistant');
     const prevText = String(prev?.content || '');
-    if (/qued[oó] claro|entendiste|te queda|did that make sense|clear\?/i.test(prevText)) {
+    if (/qued[oó] claro|entendiste|te queda|did that make sense|clear\?|lo armamos|prob[aá] de nuevo/i.test(prevText)) {
       return 'doubt_practice';
     }
+  }
+  if (looksLikeBrokenEnglish(message) || (lastAssistantAskedForEnglish(history) && looksLikeBrokenEnglish(message))) {
+    return 'live_correct';
+  }
+  if (lastAssistantAskedForEnglish(history) && /\b[a-zA-Z]{2,}\b/.test(message) && !/[áéíóúñ¿¡]/.test(message)) {
+    // They answered in English after being asked — evaluate this turn
+    return 'live_evaluate';
   }
   const topic = resolveSessionTopic(history, '', message);
   if (String(topic).startsWith('doubt:')) return 'doubt_practice';
@@ -135,15 +194,15 @@ function resolveCompanionPhase(message, history) {
 function buildJillProCoachBlock(student, topic) {
   const topicLine = topic && topic !== 'open chat'
     ? (String(topic).startsWith('doubt:')
-      ? `MODO DUDA ACTIVO: "${topic.replace(/^doubt:/, '')}" — explicá → check → práctica corta.`
-      : `TEMA DE CHARLA: "${topic}" — seguí la conversación; si piden duda de inglés, entrá al modo duda.`)
-    : 'Sin tema fijo: preguntá si quieren charlar o traer una duda de clase.';
+      ? `MODO DUDA ACTIVO: "${topic.replace(/^doubt:/, '')}" — detener → feedback → explicar → ejemplo → confirmar → continuar.`
+      : `TEMA DE CHARLA: "${topic}" — conversá con sentido; si duda o mala estructura, coach en vivo.`)
+    : 'Sin tema fijo: charlá o duda — cualquier tema vale.';
   return `${JILL_PRO_COMPANION_RULES}\n${topicLine}`;
 }
 
 function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic) {
   return `Sos Jill Pro — compañera de inglés en Infinity Studio CR (Foundations).
-Tu nombre es Jill. Sos mujer, voz femenina, cálida. NUNCA hables como hombre ni como profesor formal de bundle.
+Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente. NUNCA hables como hombre ni como profesora de bundle rígida.
 ${JILL_PRO_COMPANION_RULES}
 ESTUDIANTE: ${displayName} | Nivel: ${level || 'Foundations'}${profileNote || ''}${adaptNote || ''}
 TEMA: ${topic || 'open chat'}`;
@@ -151,9 +210,9 @@ TEMA: ${topic || 'open chat'}`;
 
 function buildJillProOpeningInstruction(display, returning, topic) {
   if (returning) {
-    return `Bienvenida breve a ${display} EN ESPAÑOL (2-3 oraciones). Preguntá qué quieren hoy: charlar de cualquier tema O traer una duda de clase (gerundio, tiempos, etc.). NO lección de golpe.${topic ? ` Si retoman: "${topic}".` : ''}`;
+    return `Bienvenida breve a ${display} EN ESPAÑOL (2-3 oraciones). Preguntá qué quieren hoy: charlar de cualquier tema (aunque sea complejo) O traer una duda. Dejá claro que si se traban o lo arman mal, pausás, explicás con ejemplo y seguís.${topic ? ` Si retoman: "${topic}".` : ''}`;
   }
-  return `Primera sesión Jill Pro con ${display}: saludo cálido EN ESPAÑOL. Sos companion — charla libre + dudas bajo demanda. Preguntá de qué quieren hablar o qué duda traen de clase. 2-3 oraciones. NO lección sola.`;
+  return `Primera sesión Jill Pro con ${display}: saludo cálido EN ESPAÑOL. Companion + coach en vivo. Preguntá de qué quieren hablar o qué duda traen. 2-3 oraciones.`;
 }
 
 function buildJillProStreamTeachInstruction(topic, message, history) {
@@ -161,44 +220,62 @@ function buildJillProStreamTeachInstruction(topic, message, history) {
   const phase = resolveCompanionPhase(msg, history);
 
   if (phase === 'english_practice') {
-    return `MODO PRÁCTICA EN INGLÉS — el estudiante pidió hablar/practicar en inglés. Este turno en inglés (corrección suave). Si no insisten, el siguiente turno volvé a español. [[CTYPE:text]]`;
+    return `MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
+Si la estructura está mal: DETENÉ → feedback en español → explicación corta → 1 ejemplo → "¿Te quedó?" → pedí que lo digan de nuevo.
+Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_explain') {
-    return `MODO DUDA — EXPLICACIÓN: el estudiante trae una duda de inglés/clase.
-1) Explicá EN ESPAÑOL: puente con español → fórmula/patrón → 1-2 ejemplos en inglés (claro, sin sermón).
-2) Preguntá "¿Te quedó claro?"
-3) NO whiteboard, NO bundle, NO "unidad del libro".
-Tema: "${topic || 'la duda que trajeron'}". [[CTYPE:text]]`;
+    return `MODO DUDA — DETENER Y ACLARAR (tema: "${topic || 'su duda'}").
+1) Feedback: reconocé la duda en 1 frase.
+2) Explicá EN ESPAÑOL (puente → patrón).
+3) 1-2 ejemplos en inglés.
+4) "¿Te quedó claro?"
+Sin whiteboard, sin bundle. [[CTYPE:text]]`;
+  }
+
+  if (phase === 'live_correct') {
+    return `MODO COACH EN VIVO — ESTRUCTURA ROTA detectada.
+DETENÉ la charla un momento. EN ESPAÑOL:
+1) Feedback: qué falló (ranura/auxiliar/tiempo) en 1 frase.
+2) Explicá el patrón correcto.
+3) Mostrá 1 ejemplo modelo en inglés.
+4) Confirmá: "¿Te quedó? Probá de nuevo."
+NO ignores el error. NO sigas de largo. [[CTYPE:text]]`;
+  }
+
+  if (phase === 'live_evaluate') {
+    return `MODO EVALUACIÓN EN VIVO — produjeron inglés.
+Si está BIEN armado (P+aux/V+C): "Bien" + 1 reacción al CONTENIDO + seguí la charla.
+Si está MAL: mismo flujo coach (feedback → explicar → ejemplo → confirmar → que lo digan otra vez).
+Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `MODO DUDA — RE-EXPLICÁ: no les quedó claro. Otra explicación más simple EN ESPAÑOL + un ejemplo nuevo en inglés. Luego "¿Ahora sí te quedó?". [[CTYPE:text]]`;
+      return `RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo. Luego "¿Ahora sí te quedó?". [[CTYPE:text]]`;
     }
-    return `MODO DUDA — PRÁCTICA CORTA: ya explicaste (o están en práctica del tema "${topic || 'duda'}").
-Pedí que produzcan 1 oración en inglés sobre el tema; corregí suave en español (ranura si aplica); invitá la siguiente.
-3-6 turnos máx; después ofrecé charla libre u otra duda. Sin whiteboard. [[CTYPE:text]]`;
+    return `PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés; evaluá en vivo; si mal → coach; si bien → confirmá y seguí charla. [[CTYPE:text]]`;
   }
 
-  return `TURNO COMPANION — SOLO ESPAÑOL sobre "${topic || 'lo que sea'}". Reaccioná, escuchá, UNA pregunta. Si traen duda de inglés, entrá al modo duda. NO inglés salvo ejemplo corto si practican una frase. [[CTYPE:text]]`;
+  return `TURNO COMPANION — conversá EN ESPAÑOL con sentido sobre "${topic || 'lo que sea'}" (aunque sea complejo).
+Escuchá, reaccioná, UNA pregunta de seguimiento.
+Si aparece duda o inglés mal armado: DETENÉ → feedback → explicar → ejemplo → confirmar → continuar.
+NO ignores errores de estructura cuando practiquen inglés. [[CTYPE:text]]`;
 }
 
 function buildJillProEvalPrompt(student, hist, metrics, topic) {
   const name = student?.info?.name || student?.name || 'el estudiante';
-  const doubtNote = String(topic || '').startsWith('doubt:')
-    ? 'Hubo modo duda/práctica — valorá claridad de explicación y si produjeron oraciones.'
-    : 'Charla libre — valorá fluidez conversacional.';
-  return `Evalua esta sesion Jill Pro (companion) de ${name}.
+  return `Evalua esta sesion Jill Pro (companion + coach en vivo) de ${name}.
 Tema: ${topic || 'charla libre'}. Turnos: ${metrics.turns || 0}.
-${doubtNote}
+Valorá: conversación con sentido, correcciones a tiempo, claridad de explicaciones, si confirmó entendimiento.
 
 Sesion:
 ${hist}
 
 JSON unicamente:
-{"best_moment":"...","main_improvement":"...","jill_message":"2-3 frases calidas en espanol animando a seguir (charla o traer otra duda)","companion_score":0-100}`;
+{"best_moment":"...","main_improvement":"...","jill_message":"2-3 frases calidas en espanol","companion_score":0-100}`;
 }
 
 module.exports = {
@@ -207,6 +284,8 @@ module.exports = {
   studentWantsEnglishPractice,
   isEnglishDoubtRequest,
   isClarityReply,
+  looksLikeBrokenEnglish,
+  JILL_PRO_LIVE_COACH,
   JILL_PRO_DOUBT_MODE,
   JILL_PRO_COMPANION_RULES,
   isJillProEnabled,

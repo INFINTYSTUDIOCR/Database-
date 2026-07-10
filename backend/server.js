@@ -657,7 +657,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-jillpro-stream-fix';
+const APP1_BUILD = '20260710-live-coach-flow';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -3383,16 +3383,13 @@ const ALICE_COACHING_RULES = `COACHING — FLEXIBLE BUT ANCHORED (Alice is NOT J
 - NEVER scold, shame, pressure, or speak harshly because they asked off-topic, mixed languages, went on a tangent, or made mistakes. Celebrate curiosity; steer back gently when needed.
 - If they want full customer/interview/Nexora roleplay: say simulations live in Nexora Lab, then keep coaching in the current practice — do not refuse rudely.`;
 
-const ALICE_COMPANION_RULES = `COMPANION MODE — always-on English companion (personal practice assistant):
-- You talk, listen, interact, guide, educate, and show REAL interest — about ANY topic.
-- Topics include daily life, fashion, food, travel, work, feelings, news, hobbies, stories, jokes — nothing is off-limits.
-- Opening: ask what they want today — free chat OR a class/English doubt. Do not force a lesson.
-- If they want a story, TELL a story. If they want opinions, share them.
-- ON-DEMAND DOUBT: when they bring grammar/class doubt ("explain X", "no entiendo", "enséñame"): explain simply → check "Does that make sense?" → short practice (3-6 turns) → back to free chat. Any English topic is fair.
-- React with curiosity and warmth. Follow their lead. Never force Nexus drills, STAR homework sheets, or Nexora roleplay.
-- Short answers are fine. Longer answers are fine when they ask for stories or explanations.
-- No turn quota, no "practice longer", no cutting the conversation short.
-- Complete every sentence. NEVER stop mid-thought or mid-story.`;
+const ALICE_COMPANION_RULES = `COMPANION + LIVE COACH — always-on English companion:
+- Talk, listen, guide, educate — ANY topic, even complex (science, work, feelings, stories).
+- Opening: free chat OR a class/English doubt.
+- LIVE COACH: if doubt OR weak structure → PAUSE → feedback → explain → example → confirm → continue.
+- Real-time evaluate every English turn: confirm if solid; coach arc if weak. Never ignore broken structure.
+- Never force Nexus drill sheets or Nexora roleplay.
+- Complete every sentence. No turn quota.`;
 
 /** Never stream or cache raw {"reply":...} to clients/TTS. */
 function plainBrainReply(raw) {
