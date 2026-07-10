@@ -5038,7 +5038,7 @@ function renderJillSession(){
     ? 'Charlá en inglés — cualquier tema (vida, trabajo, hobbies…)'
     : 'Escribí en español o inglés — o mantené presionado el micrófono 🎤';
   return '<div id="jill-session-main">'
-    + miniStrip
+    + '<div id="jill-habit-wrap">' + miniStrip + '</div>'
     + matrixHtml
     + '<div id="jill-visual-stage" hidden>'
     + '<div id="jill-stage-media"></div>'
