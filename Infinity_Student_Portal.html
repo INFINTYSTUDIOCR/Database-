@@ -46,7 +46,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260709jill"></script>
 <script src="js/jill-quiz.js?v=20260709kaboom"></script>
-<script src="js/tts-chunks.js?v=20260709smooth"></script>
+<script src="js/tts-chunks.js?v=20260710fastpause"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -2475,6 +2475,10 @@ async function sendAliceMessage(micText){
     }
 
     fullText = aliceExtractReply(fullText);
+    if(!fullText || fullText.trim().length < 4){
+      var fbAlice = await alicePostFallbackReply(text, _aliceState.history.slice(0, streamIdx).slice(-10));
+      if(fbAlice) fullText = fbAlice;
+    }
     _aliceState.history[streamIdx] = { role:'assistant', content: fullText || 'I did not get that — could you try again?' };
     if(fullText && fullText.trim().length > 2){
       aliceQueueFullReply(fullText);
@@ -2485,6 +2489,17 @@ async function sendAliceMessage(micText){
 
   } catch(e){
     if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
+    try {
+      var fbCatch = await alicePostFallbackReply(text, _aliceState.history.slice(0, streamIdx).slice(-10));
+      if(fbCatch){
+        _aliceState.history[streamIdx] = { role:'assistant', content: fbCatch };
+        aliceQueueFullReply(fbCatch);
+        aliceRenderHistoryMessages();
+        saveAliceRuntimeStorage();
+        if(statusEl) statusEl.textContent = '';
+        return;
+      }
+    } catch(fbErr){}
     _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez o escribí tu mensaje.';
@@ -3013,7 +3028,7 @@ function aliceQueueFullReply(text){
   if(!main || main.length < 3) return;
   // Clear stale queue so a new full reply is never mixed with a half-played one
   _aliceTTSQueue = [];
-  ttsSpeakLines(main, 700).forEach(function(line){
+  ttsSpeakLines(main, 1200).forEach(function(line){
     if(line && line.length >= 3) aliceQueueSpeak(line);
   });
 }
@@ -3047,38 +3062,10 @@ function jillDetectCompanionTopic(text){
 }
 
 function jillInstantCoachReply(userText){
-  var isCompanion = jillCompanionUiActive();
-  var t = String(userText || '').toLowerCase();
-  if(isCompanion){
-    var topic = jillDetectCompanionTopic(userText) || _jillState.companionTopic || '';
-    if(/futuro|future|\bwill\b/.test(t) || /futuro|will/i.test(topic)){
-      return 'Claro, futuro — Regla MSI: P + will + verbo base + C. Modelo: I will study tomorrow. ¿Armás una con will + tu plan de mañana?';
-    }
-    if(/no entiendo|m[aá]s simple|explic/.test(t)){
-      if(topic && !/no entiendo/i.test(topic)){
-        return 'Ok, más simple sobre "'+topic+'" — decime si no te queda la fórmula o las palabras en inglés y lo armamos con una ranura MSI paso a paso.';
-      }
-      return 'Te escucho — ¿qué tema querés que simplifique? Futuro, gerundio, pasado… decime cuál y lo vemos con fórmula + ejemplo.';
-    }
-    return 'Seguimos — pedime cualquier tema (futuro, tiempos, vocab) y te armo la lección MSI.';
-  }
-  if(/futuro|future|\bwill\b/.test(t)){
-    return 'Claro — futuro con will: P + will + verbo base + C. Modelo: I will study tomorrow. ¿Armás una con will + tu plan?';
-  }
-  if(/no entiendo|m[aá]s simple|explic/.test(t)){
-    if(/\b(be|am|is|are|to be)\b/.test(t)){
-      return 'Claro — en simple: be une pronombre + idea. Modelo: I am at home. ¿Podés armar una con I am + un lugar o cómo te sentís?';
-    }
-    return 'Te escucho — ¿qué parte no te quedó clara? Fórmula, ejemplo o palabras en inglés. Lo vemos paso a paso.';
-  }
-  if(/otro ejemplo|dame otro/.test(t)){
-    return 'Ejemplo: I am in San José. / I am tired. / I am ready. Armá la tuya con I + am + una idea concreta.';
-  }
-  if(/ingl[eé]s|despacio/.test(t)){
-    return 'Slow English: I am here. I am ready. Now you — I am + your idea.';
-  }
-  if(/corto|2 frases/.test(t)){
-    return 'Be = am / is / are. Hoy: I am + un lugar o sentimiento. Tu turno en inglés.';
+  // Last-resort only — real answers come from /jill or /jill/stream (any topic).
+  var name = jillStudentDisplayName(window._currentStudent || CURRENT_STUDENT);
+  if(jillCompanionUiActive()){
+    return 'Te escucho, ' + name + '. Contame otra vez tu duda o de qué querés charlar y te ayudo al toque.';
   }
   return 'Te escucho — decime qué parte no te quedó clara y lo vemos paso a paso.';
 }
@@ -3109,6 +3096,30 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
     var data = await resp.json();
     var raw = data.reply || '';
     return (typeof JillFoundations !== 'undefined') ? JillFoundations.parseReply(raw) : { reply: jillExtractReply(raw), contentType: data.contentType || 'text' };
+  } catch(e){
+    return null;
+  }
+}
+
+async function alicePostFallbackReply(text, historyForApi){
+  try {
+    var resp = await infinityFetch('/alice', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        student: getAliceStudentPayload(),
+        scenario: _aliceState.scenario,
+        history: historyForApi || _aliceState.history.slice(-10),
+        message: text,
+        secret: ALICE_SECRET,
+        sessionType: _aliceState.sessionType || 'practice',
+        companionTopic: _aliceState.companionTopic || ''
+      })
+    });
+    if(!resp.ok) return null;
+    var data = await resp.json();
+    var reply = String(data.reply || '').trim();
+    return reply.length > 4 ? reply : null;
   } catch(e){
     return null;
   }
@@ -4059,7 +4070,7 @@ function _nxTTSFlushPortal(){
       _nxPlayingChunk = chunk;
       _nxTTSBusy = false;
       clearTimeout(_nxTtsWatchdog);
-      setTimeout(_nxTTSFlushPortal, 120);
+      setTimeout(_nxTTSFlushPortal, 40);
       return;
     }
     if(!b){
@@ -4106,7 +4117,7 @@ function _nxTTSFlushPortal(){
     else delete _nxTtsRetry[clean];
     _nxPlayingChunk = chunk;
     _nxTTSBusy=false;
-    setTimeout(_nxTTSFlushPortal, 180);
+    setTimeout(_nxTTSFlushPortal, 40);
   });
 }
 
@@ -4288,7 +4299,7 @@ function jillCleanTtsText(text){
 
 function jillPrefetchTTS(text){
   var segments = typeof jillTtsSegments === 'function'
-    ? jillTtsSegments(text, 480)
+    ? jillTtsSegments(text, 900)
     : [{ text: jillCleanTtsText(text), lang: 'es' }];
   segments.forEach(function(seg){
     var clean = jillCleanTtsText(seg.text);
@@ -4322,7 +4333,7 @@ function _jillTTSFlush(){
 
   var nextItem = _jillTTSQueue[0];
   var nextLang = nextItem ? (typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
-  var langPause = (nextLang && nextLang !== lang) ? 240 : 0;
+  var langPause = (nextLang && nextLang !== lang) ? 40 : 0;
 
   function finishJillLine(){
     _jillState.audio = null;
@@ -4383,7 +4394,7 @@ function _jillTTSFlush(){
     else delete _jillTtsRetry[rk];
     _jillTTSBusy=false;
     _jillState.speaking=_jillTTSQueue.length>0;
-    setTimeout(_jillTTSFlush, 180);
+    setTimeout(_jillTTSFlush, 40);
   });
 }
 
@@ -4484,7 +4495,7 @@ function _aliceTTSFlush(){
     else delete _aliceTtsRetry[clean];
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
-    setTimeout(_aliceTTSFlush, 220);
+    setTimeout(_aliceTTSFlush, 40);
   });
 }
 
@@ -5397,6 +5408,24 @@ async function sendJillMsg(micText){
     if(statusEl) statusEl.textContent = '';
 
   } catch(e){
+    try {
+      var fb = await jillPostFallbackReply(studentPayload, historyForApi, text, jillCtx, responseMs);
+      if(fb && fb.reply && fb.reply.trim().length > 4){
+        _jillState.history[streamIdx] = {role:'assistant', content: fb.reply, contentType: fb.contentType || 'text'};
+        jillSpeakTurn(fb.reply, fb.contentType || 'text');
+        jillRenderHistoryMessages();
+        if(statusEl) statusEl.textContent = '';
+        return;
+      }
+    } catch(fbErr){}
+    var instant = jillInstantCoachReply(text);
+    if(instant && instant.length > 4){
+      _jillState.history[streamIdx] = {role:'assistant', content: instant, contentType: 'text'};
+      jillSpeakTurn(instant, 'text');
+      jillRenderHistoryMessages();
+      if(statusEl) statusEl.textContent = '';
+      return;
+    }
     _jillState.history[streamIdx] = {role:'assistant', content:'Error de conexión. Intentá de nuevo.'};
     jillRenderHistoryMessages();
     if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez.';
@@ -5416,8 +5445,8 @@ function jillSpeak(text){
   }
   jillStopMic();
   var segments = typeof jillTtsSegments === 'function'
-    ? jillTtsSegments(text, 480)
-    : ttsSpeakLines(text, 480).map(function(line){
+    ? jillTtsSegments(text, 900)
+    : ttsSpeakLines(text, 900).map(function(line){
         return { text: line, lang: jillDetectTtsLang(line) === 'en-US' ? 'en' : 'es' };
       });
   segments.forEach(function(seg){

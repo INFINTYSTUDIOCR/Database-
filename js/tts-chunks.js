@@ -35,15 +35,18 @@ function isCompleteSpokenLine(text, minWords) {
   return /[.!?]$/.test(t);
 }
 
-/** One flowing TTS line — softer punctuation, fewer dramatic pauses at periods. */
+/** One flowing TTS line — strip pause-heavy punctuation (periods, dashes, ellipsis). */
 function prepareTtsLine(text) {
   return String(text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
-    .replace(/\.{2,}/g, ',')
-    .replace(/([.!?])\s+/g, ', ')
+    .replace(/[¿¡]/g, '')
+    .replace(/[—–―…]/g, ' ')
+    .replace(/\.{2,}/g, ' ')
+    .replace(/([.!?])\s+/g, ' ')
     .replace(/[.!?;:]+$/g, '')
     .replace(/[,;:/]+/g, ' ')
+    .replace(/\s*[-]{1,3}\s*/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -104,12 +107,50 @@ function splitBilingualTtsSegments(text) {
   return segments.filter(function (s) { return s.text && s.text.length > 0; });
 }
 
-/** Jill / bilingual tutors: segment by language, then length-cap each segment. */
+/** Merge tiny bilingual clips so speech does not pause between every language hop. */
+function mergeShortTtsSegments(segments, minKeep) {
+  minKeep = minKeep || 64;
+  if (!segments || !segments.length) return [];
+  var out = [];
+  segments.forEach(function (seg) {
+    var t = String(seg.text || '').replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    var last = out[out.length - 1];
+    if (last && (t.length < minKeep || last.text.length < minKeep)) {
+      var merged = (last.text + ' ' + t).replace(/\s+/g, ' ').trim();
+      var preferNew = t.length > last.text.length;
+      out[out.length - 1] = { text: merged, lang: preferNew ? seg.lang : last.lang };
+    } else {
+      out.push({ text: t, lang: seg.lang || 'es' });
+    }
+  });
+  return out;
+}
+
+function detectJillLineLang(line) {
+  var t = String(line || '');
+  if (/[áéíóúñ]/i.test(t)) return 'es';
+  var words = t.match(/[\wáéíóúñüÁÉÍÓÚÑÜ']+/g) || [];
+  var en = 0;
+  var es = 0;
+  words.forEach(function (w) {
+    var c = classifyTtsWord(w);
+    if (c === 'en') en++;
+    if (c === 'es') es++;
+  });
+  return en > es * 1.4 ? 'en' : 'es';
+}
+
+/** Jill / bilingual tutors: prefer one flowing clip; split only when very long. */
 function jillTtsSegments(text, maxLen) {
-  maxLen = maxLen || 480;
+  maxLen = maxLen || 900;
   var line = prepareTtsLine(text);
   if (!line) return [];
-  var segments = splitBilingualTtsSegments(line);
+  // Short/medium replies → single audio (no punctuation or language-gap pauses)
+  if (line.length <= maxLen) {
+    return [{ text: line, lang: detectJillLineLang(line) }];
+  }
+  var segments = mergeShortTtsSegments(splitBilingualTtsSegments(line), 72);
   var out = [];
   segments.forEach(function (seg) {
     if (seg.text.length <= maxLen) {
@@ -120,7 +161,7 @@ function jillTtsSegments(text, maxLen) {
       out.push({ text: chunk, lang: seg.lang });
     });
   });
-  return out;
+  return mergeShortTtsSegments(out, 48);
 }
 
 /** Debounced TTS warm-up while LLM is still streaming. */
@@ -140,7 +181,7 @@ function scheduleTtsPrefetch(text, prefetchFn, state) {
 
 /** Prefer one TTS request; split only when text is very long. */
 function ttsSpeakLines(text, maxLen) {
-  maxLen = maxLen || 900;
+  maxLen = maxLen || 1200;
   var line = prepareTtsLine(text);
   if (!line) return [];
   if (line.length <= maxLen) return [line];

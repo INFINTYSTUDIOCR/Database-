@@ -657,7 +657,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260706-companion-buffered';
+const APP1_BUILD = '20260710-jillpro-stream-fix';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2338,7 +2338,8 @@ Visitor: ${guest}. Goal: ${goal}. Level: ${level}.
 WHO YOU ARE:
 - You talk, listen, interact, guide, educate, and show genuine interest.
 - ANY topic is welcome: daily life, fashion, food, travel, work, feelings, news, hobbies, stories — anything.
-- If they want a story, tell one. If they want opinions (fashion, life, trends), share warmly. If they want to learn, explain simply and keep chatting.
+- If they want a story, tell one. If they want opinions (fashion, life, trends), share warmly.
+- If they bring an English/class doubt: explain simply → ask if it makes sense → short practice (a few turns) → back to free chat.
 
 FLOW RULES (critical):
 - Unlimited flowing conversation — never stop after a fixed number of turns.
@@ -2632,10 +2633,13 @@ function cleanTtsText(text) {
   return (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
-    .replace(/\.{2,}/g, ',')
-    .replace(/([.!?])\s+/g, ', ')
+    .replace(/[¿¡]/g, '')
+    .replace(/[—–―…]/g, ' ')
+    .replace(/\.{2,}/g, ' ')
+    .replace(/([.!?])\s+/g, ' ')
     .replace(/[.!?;:]+$/g, '')
     .replace(/[,;:/]+/g, ' ')
+    .replace(/\s*[-]{1,3}\s*/g, ' ')
     .replace(/<br>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/[ ]{2,}/g, ' ')
@@ -3278,11 +3282,19 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const aliceLangTurn = Companion.studentWantsSpanishExplanation(message)
-      ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
-      : '\nTURN: English ONLY — no Spanish unless they ask to explain.';
+    const teachInstr = companion
+      ? (function () {
+          try { return Companion.buildCompanionStreamTeachInstruction(topicHint, message, history); }
+          catch (e) { return 'TURN: Help with any English doubt or free chat.'; }
+        })()
+      : '';
+    const aliceLangTurn = companion
+      ? `\n${teachInstr}`
+      : (Companion.studentWantsSpanishExplanation(message)
+        ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
+        : '\nTURN: English ONLY — no Spanish unless they ask to explain.');
     const methodBlock = companion
-      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}\n\nIf they ask about grammar or English tips — explain simply in Spanish if they ask, then return to English.`
+      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
     const systemPrompt = companion
@@ -3290,7 +3302,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 ${INSTITUTIONAL_BRAIN_RULE}
 
 ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic: daily life, fashion, food, travel, work, feelings, stories, news, hobbies — no limits.
-If they want a story, tell one fully. If they want opinions, share them. If they want to learn, explain simply and keep chatting.
+Free chat OR on-demand English doubt (explain → check → short practice). If they want a story, tell one fully. If they want opinions, share them.
 
 PERSONALITY: Warm, curious, human, never robotic. You sound like a friend in their ear 24/7.
 
@@ -3300,7 +3312,7 @@ ${aliceLangTurn}
 ${methodBlock}
 
 RESPONSE STYLE:
-- Match length to the moment (2 sentences or a full story)
+- Match length to the moment (2 sentences or a full story / clear explanation)
 - Complete every sentence and every story — NEVER cut off mid-thought
 - Show real interest; react before you teach
 - Unlimited flowing conversation — no turn caps
@@ -3374,8 +3386,10 @@ const ALICE_COACHING_RULES = `COACHING — FLEXIBLE BUT ANCHORED (Alice is NOT J
 const ALICE_COMPANION_RULES = `COMPANION MODE — always-on English companion (personal practice assistant):
 - You talk, listen, interact, guide, educate, and show REAL interest — about ANY topic.
 - Topics include daily life, fashion, food, travel, work, feelings, news, hobbies, stories, jokes — nothing is off-limits.
-- If they want a story, TELL a story. If they want opinions, share them. If they want to learn, explain simply then keep chatting.
-- React with curiosity and warmth. Follow their lead. Never force drills, Nexus, STAR, or homework.
+- Opening: ask what they want today — free chat OR a class/English doubt. Do not force a lesson.
+- If they want a story, TELL a story. If they want opinions, share them.
+- ON-DEMAND DOUBT: when they bring grammar/class doubt ("explain X", "no entiendo", "enséñame"): explain simply → check "Does that make sense?" → short practice (3-6 turns) → back to free chat. Any English topic is fair.
+- React with curiosity and warmth. Follow their lead. Never force Nexus drills, STAR homework sheets, or Nexora roleplay.
 - Short answers are fine. Longer answers are fine when they ask for stories or explanations.
 - No turn quota, no "practice longer", no cutting the conversation short.
 - Complete every sentence. NEVER stop mid-thought or mid-story.`;
@@ -3760,7 +3774,10 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const teachInstrChat = isJillCompanion
-      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
+      ? (function () {
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history); }
+          catch (e) { return 'TURNO COMPANION — ayudá con cualquier duda de inglés o charlá. [[CTYPE:text]]'; }
+        })()
       : (JillPro.studentWantsEnglishPractice(message)
         ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
         : '');
@@ -3906,10 +3923,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const calibrationNote = JillCalibration.formatCalibrationNote(calibrationContext, student);
     const calibrating = !!calibrationContext?.active;
     const responseMs = req.body?.responseMs;
-    const drillEval = (isJillCompanion || calibrating) ? null : TrainerModel.evaluateStudentTurn(message, {
-      student, tutor: 'jill', bundle: jillBundle, matrixContext, responseMs
-    });
-    if (drillEval.forcedReply) {
+    const drillEval = (isJillCompanion || calibrating)
+      ? { forcedReply: null, structureOk: null }
+      : TrainerModel.evaluateStudentTurn(message, {
+          student, tutor: 'jill', bundle: jillBundle, matrixContext, responseMs
+        });
+    if (drillEval && drillEval.forcedReply) {
       return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n[[CTYPE:text]]');
     }
     // Jill DJ — escucha estructural en vivo (tiempos/prep/expresiones/vocab) + ritmo adaptativo.
@@ -3945,7 +3964,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno. '
       : '';
     const teachInstr = isJillCompanion
-      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
+      ? (function () {
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history); }
+          catch (e) { return 'TURNO COMPANION — respondé en español, ayudá con cualquier duda de inglés, luego charla. [[CTYPE:text]]'; }
+        })()
       : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
         : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.')));
@@ -3965,7 +3987,13 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Jill stream error:', err.message);
-    if (!res.headersSent) res.status(500).end(); else res.end();
+    try {
+      if (!res.headersSent) {
+        return Brain.writeBrainSSE(res, 'Perdón, tuve un corte. Decime de nuevo tu duda o tema y te ayudo al toque.\n[[CTYPE:text]]');
+      }
+    } catch (e2) { /* fall through */ }
+    if (!res.headersSent) res.status(500).json({ error: 'Jill stream failed', detail: err.message });
+    else res.end();
   }
 });
 
@@ -4062,9 +4090,14 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
         + TrainerModel.formatTrainerEvalNote(drillEval)
         + '\n' + TrainerModel.JOHNNY_TRAINER_RULE;
     }
-    const aliceLangTurn = Companion.studentWantsSpanishExplanation(message)
-      ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
-      : '\nTURN: English ONLY — no Spanish unless they ask to explain.';
+    const aliceLangTurn = companion
+      ? (function () {
+          try { return '\n' + Companion.buildCompanionStreamTeachInstruction(topicHint, message, history); }
+          catch (e) { return '\nTURN: Help with any English doubt or free chat. English by default.'; }
+        })()
+      : (Companion.studentWantsSpanishExplanation(message)
+        ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
+        : '\nTURN: English ONLY — no Spanish unless they ask to explain.');
     const methodBlock = companion
       ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
@@ -4072,7 +4105,7 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
       ? `You are Alice Companion — always-on English voice companion (personal practice assistant). Name: ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
 Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
-If they want a story — tell it fully. If they want opinions — share them. If they want to learn — explain simply and keep chatting.
+Free chat OR on-demand English doubt (explain → check → short practice). If they want a story — tell it fully. If they want opinions — share them.
 ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
@@ -4104,7 +4137,13 @@ EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(mes
     });
   } catch (err) {
     console.error('Alice stream error:', err.message);
-    if (!res.headersSent) res.status(500).end(); else res.end();
+    try {
+      if (!res.headersSent) {
+        return Brain.writeBrainSSE(res, "Sorry — I hit a glitch. Say that again and I'll help you right away.");
+      }
+    } catch (e2) { /* fall through */ }
+    if (!res.headersSent) res.status(500).json({ error: 'Alice stream failed', detail: err.message });
+    else res.end();
   }
 });
 

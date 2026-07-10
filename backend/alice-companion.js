@@ -1,10 +1,11 @@
 /**
  * Alice Companion — KPI-aware session logic (testable, server-only).
+ * Free chat + on-demand doubt → explain → check → short practice (same arc as Jill Pro).
  */
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v3-english-only-unless-explain';
+const COMPANION_BRAIN_VER = 'v4-doubt-explain-practice';
 
 const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
 - Speak ONLY in English by default — greetings, chat, stories, coaching, corrections, everything.
@@ -16,6 +17,33 @@ function studentWantsSpanishExplanation(message) {
   const t = String(message || '');
   return /\b(explic[aá]me|explain in spanish|en espa[nñ]ol|no entiendo|no comprendo|don't understand|do not understand|what does .+ mean|qu[eé] significa|c[oó]mo se dice|traduc|translate|dime en espa[nñ]ol|in spanish please|habl[aá]me en espa[nñ]ol)\b/i.test(t);
 }
+
+/**
+ * Class doubt / on-demand mini-lesson — any English topic (grammar, linkers, STAR, phrases).
+ */
+function isEnglishDoubtRequest(message) {
+  const t = String(message || '');
+  if (!t.trim()) return false;
+  const ask = /\b(explain|teach me|ens[eé][aá]me|explic[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|what (is|are|does)|help me (understand|with)|can you (explain|help)|en clase|hoy (en clase |vimos |nos ense[nñ])|me ense[nñ]aron|no me qued[oó] claro|ayudame (a )?entender|pod[eé]s ayudarme|podes ayudarme)\b/i.test(t);
+  const topic = /\b(gramm|gerund|tense|linker|connectors?|star (method|structure)|phrasal|prepos|modals?|conditionals?|present perfect|past perfect|reported speech|passive voice|collocation|idiom|recovery phrase)\b/i.test(t);
+  return ask || (topic && /\b(no |don'?t |how |what |qu[eé] |c[oó]mo |explain|ense|entend|help)/i.test(t));
+}
+
+function isClarityReply(message) {
+  const t = String(message || '').trim().toLowerCase();
+  if (!t || t.length > 80) return false;
+  return /^(s[ií]|sip|claro|ok|okay|dale|listo|ya|entend[ií]|me qued[oó]|no|nop|todav[ií]a no|casi|more or less|m[aá]s o menos|un poco|yes|yeah|yep|got it|makes sense|not really|still confused)([.!?\s]|$)/i.test(t)
+    || /\b(me qued[oó] claro|ya entend[ií]|todav[ií]a no|no del todo|explicalo otra vez|otra vez|makes sense|got it|still (confused|lost)|not really)\b/i.test(t);
+}
+
+const ALICE_COMPANION_DOUBT_MODE = `ON-DEMAND DOUBT MODE (when they ask grammar / class doubt / "explain X" / "enséñame"):
+Required flow — you are NOT the classroom tutor, but you DO clarify ANY English topic:
+1) EXPLAIN simply (English by default; Spanish if they asked for Spanish explanation): pattern → 1-2 examples → one tip they can use now.
+2) CHECK: ask "Does that make sense?" / "¿Te quedó claro?" (match their language).
+3) SHORT PRACTICE: if clear, invite 3-6 turns of production (they try; you soft-correct and nudge). No Nexus drills, no STAR homework sheet, no Nexora roleplay.
+4) After short practice: return to free chat or ask if they want another topic.
+Any topic is fair: linkers, STAR, tenses, phrasals, recovery phrases, professional tone, etc.
+If they want full customer/interview simulation: point to Nexora Lab in one warm line, then keep companion chat.`;
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',
@@ -110,6 +138,11 @@ function resolveCompanionSession(student, sessionType) {
 function inferTopicFromText(text) {
   const t = String(text || '').toLowerCase();
   if (!t || t.length < 4) return '';
+  if (isEnglishDoubtRequest(t)) {
+    const topicHit = t.match(/\b(linker|connector|however|star|phrasal|gerund|present perfect|past perfect|conditionals?|modal|prepos|recovery|idiom|collocation)\b/i);
+    if (topicHit) return `doubt:${topicHit[1].toLowerCase()}`;
+    return 'doubt:english';
+  }
   const patterns = [
     { re: /\b(history|historical|war|century|ancient|empire|revolution|story|stories|tale|legend)\b/, topic: 'stories' },
     { re: /\b(science|space|nasa|planet|physics|chemistry|biology|discovery)\b/, topic: 'science' },
@@ -133,13 +166,61 @@ function inferTopicFromText(text) {
 
 function resolveSessionTopic(history, companionTopic, lastUserMessage) {
   if (companionTopic && String(companionTopic).trim()) return String(companionTopic).trim().slice(0, 80);
+  const fromLast = inferTopicFromText(lastUserMessage);
+  if (fromLast && fromLast !== 'general') return fromLast;
   const users = (history || []).filter((m) => m.role === 'user');
   for (let i = users.length - 1; i >= 0; i--) {
     const hit = inferTopicFromText(users[i].content);
     if (hit && hit !== 'general') return hit;
   }
-  const fromLast = inferTopicFromText(lastUserMessage);
   return fromLast || 'open conversation';
+}
+
+function resolveCompanionPhase(message, history) {
+  if (isEnglishDoubtRequest(message)) return 'doubt_explain';
+  if (isClarityReply(message)) {
+    const prev = [...(history || [])].reverse().find((m) => m.role === 'assistant');
+    const prevText = String(prev?.content || '');
+    if (/make sense|qued[oó] claro|entendiste|clear\?|got it\?/i.test(prevText)) {
+      return 'doubt_practice';
+    }
+  }
+  const topic = resolveSessionTopic(history, '', message);
+  if (String(topic).startsWith('doubt:')) return 'doubt_practice';
+  return 'free_chat';
+}
+
+function buildCompanionStreamTeachInstruction(topic, message, history) {
+  const msg = String(message || '');
+  const phase = resolveCompanionPhase(msg, history);
+  const wantSpanish = studentWantsSpanishExplanation(msg);
+
+  if (phase === 'doubt_explain') {
+    const lang = wantSpanish
+      ? 'Explain in Spanish (bilingual OK for examples), then return to English for the check question.'
+      : 'Explain in English (clear, simple). Use Spanish only if they asked for it.';
+    return `DOUBT MODE — EXPLAIN: student brought an English/class doubt.
+1) ${lang} Pattern → 1-2 examples → one usable tip.
+2) Ask "Does that make sense?" (or "¿Te quedó claro?" if they are in Spanish).
+3) No Nexus drill sheet, no Nexora roleplay.
+Topic: "${topic || 'their doubt'}".`;
+  }
+
+  if (phase === 'doubt_practice') {
+    const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez|not really|still (confused|lost)|don't get it)\b/i.test(msg);
+    if (negative && isClarityReply(msg)) {
+      return `DOUBT MODE — RE-EXPLAIN: it was not clear. Simpler explanation + a new example. Then check again. ${wantSpanish ? 'Spanish OK for the explanation.' : 'English by default.'}`;
+    }
+    return `DOUBT MODE — SHORT PRACTICE: they understood (or are practicing) "${topic || 'the doubt'}".
+Ask them to produce one sentence/answer using the pattern; soft-correct; invite the next try.
+3-6 turns max; then offer free chat or another topic. Stay in English unless they ask for Spanish explanation.`;
+  }
+
+  if (wantSpanish) {
+    return `TURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English chat.`;
+  }
+
+  return `TURN: Free companion chat on "${topic || 'whatever they want'}". English ONLY. Listen, react, one follow-up. If they bring an English doubt, enter doubt mode.`;
 }
 
 function buildFocusKpiCoachLines(focusKpis) {
@@ -151,9 +232,12 @@ function buildFocusKpiCoachLines(focusKpis) {
 
 function buildCompanionCoachBlock(student, config, topic) {
   const cfg = normalizeCompanionConfig(config, student);
+  const isDoubt = String(topic || '').startsWith('doubt:');
   const topicLine = topic
-    ? `ACTIVE TOPIC: "${topic}" — lean in with real interest. Ask, react, share, and go deeper when they want.`
-    : 'They choose the topic — fashion, stories, daily life, work, food, feelings, anything.';
+    ? (isDoubt
+      ? `ACTIVE DOUBT: "${String(topic).replace(/^doubt:/, '')}" — explain → check → short practice, then free chat.`
+      : `ACTIVE TOPIC: "${topic}" — lean in with real interest. Ask, react, share, and go deeper when they want.`)
+    : 'They choose: free chat about anything OR bring a class/English doubt.';
   const seeds = cfg.topicSeeds ? `Trainer soft hints (only if natural): ${cfg.topicSeeds}.` : '';
   const focusBlock = buildFocusKpiCoachLines(cfg.focusKpis);
   const rigor = cfg.evalMode === 'rigorous'
@@ -167,17 +251,16 @@ ${seeds}
 WHO YOU ARE:
 - A voice companion they can talk to anytime: chat, listen, tell stories, guide, educate, and show genuine interest.
 - You talk about ANYTHING: normal daily life, fashion, food, travel, work, feelings, news, hobbies, stories — no topic is off-limits.
-- You are NOT a classroom tutor in this mode. You are a friend who happens to help their English by speaking naturally.
+- You are NOT a classroom tutor in this mode. You are a friend who clarifies English doubts on demand and practices with them.
 
 HOW YOU BEHAVE:
 - LISTEN first. React with real interest ("Oh nice!", "Wait, tell me more", "I love that").
 - If they want a STORY — tell one (short or longer). If they want opinions on fashion, food, life — share yours warmly.
-- If they want to learn something — explain simply, then keep chatting. Guide and educate without sounding like homework.
-- Match their energy: casual when they are casual, deeper when they open up.
-- Short replies are fine. Long replies are fine when they ask for stories or explanations.
+- Opening: ask what they want today — free chat OR a class/English doubt. Do not force a lesson.
 - ${rigor}
 - NEVER cut off mid-sentence. NEVER stop the conversation after a fixed number of turns.
-- Do NOT force Nexus drills, STAR, or "practice longer". Do NOT roleplay as Nexora customer/interviewer.
+- Do NOT force Nexus drills, STAR homework, or "practice longer". Do NOT roleplay as Nexora customer/interviewer.
+${ALICE_COMPANION_DOUBT_MODE}
 - Optional soft English growth (invisible):
 ${focusBlock}
 
@@ -286,13 +369,18 @@ function enrichCompanionEvaluation(qual, scored, metrics, config) {
 module.exports = {
   COMPANION_BRAIN_VER,
   ALICE_LANGUAGE_RULE,
+  ALICE_COMPANION_DOUBT_MODE,
   studentWantsSpanishExplanation,
+  isEnglishDoubtRequest,
+  isClarityReply,
   COMPANION_KPI_COACH,
   isCompanionEnabled,
   normalizeCompanionConfig,
   resolveCompanionSession,
   inferTopicFromText,
   resolveSessionTopic,
+  resolveCompanionPhase,
+  buildCompanionStreamTeachInstruction,
   buildCompanionCoachBlock,
   scoreCompanionSession,
   buildCompanionEvalUserPrompt,
