@@ -420,6 +420,28 @@ function isStudentSuspended(student) {
   return false;
 }
 
+function normalizeCompanionEnabled(student) {
+  if (!student) return false;
+  const v = student.companionEnabled;
+  return v === true || v === 'true' || v === 1;
+}
+
+function studentAccessFlags(student) {
+  if (!student) return {};
+  return {
+    status: student.status || 'active',
+    nexoraEnabled: isNexoraEnabledForStudent(student),
+    aliceEnabled: typeof student.aliceEnabled === 'boolean'
+      ? student.aliceEnabled
+      : (student.system_mode || 'jill') === 'alice',
+    jillEnabled: typeof student.jillEnabled === 'boolean'
+      ? student.jillEnabled
+      : (student.system_mode || 'jill') !== 'alice',
+    jillProEnabled: student.jillProEnabled === true,
+    companionEnabled: normalizeCompanionEnabled(student)
+  };
+}
+
 function isNexoraEnabledForStudent(student) {
   if (!student) return false;
   if (!student.nexoraEnabled) return false;
@@ -453,8 +475,8 @@ function isTutorEnabledForStudent(student, tutor, opts = {}) {
   if (!student) return true;
   if (tutor === 'alice') {
     const sessionType = opts.sessionType || null;
-    if (sessionType === 'companion' && !!student.companionEnabled) return true;
-    if (opts.allowCompanionProduct && !!student.companionEnabled) return true;
+    if (sessionType === 'companion' && normalizeCompanionEnabled(student)) return true;
+    if (opts.allowCompanionProduct && normalizeCompanionEnabled(student)) return true;
     if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
     return (student.system_mode || 'jill') === 'alice';
   }
@@ -532,12 +554,14 @@ app.post('/auth/login', async (req, res) => {
         studentId: match.id,
         name: match.data.info?.name || loginUser
       }, JWT_EXPIRY_STUDENT_SEC);
+      const st = match.data;
       return res.json({
         token,
         expiresIn: JWT_EXPIRY_STUDENT_SEC,
         role: 'student',
         studentId: match.id,
-        name: match.data.info?.name || loginUser
+        name: st.info?.name || loginUser,
+        ...studentAccessFlags(st)
       });
     }
 
@@ -611,16 +635,7 @@ app.get('/auth/verify', requireProductAuth, async (req, res) => {
       if (!student || isStudentSuspended(student)) {
         return res.status(403).json({ ok: false, error: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
       }
-      payload.status = student.status || 'active';
-      payload.nexoraEnabled = isNexoraEnabledForStudent(student);
-      payload.aliceEnabled = typeof student.aliceEnabled === 'boolean'
-        ? student.aliceEnabled
-        : (student.system_mode || 'jill') === 'alice';
-      payload.jillEnabled = typeof student.jillEnabled === 'boolean'
-        ? student.jillEnabled
-        : (student.system_mode || 'jill') !== 'alice';
-      payload.jillProEnabled = student.jillProEnabled === true;
-      payload.companionEnabled = student.companionEnabled === true;
+      Object.assign(payload, studentAccessFlags(student));
     } catch (e) {
       return res.status(503).json({ ok: false, error: 'Could not verify student access' });
     }
@@ -3113,7 +3128,10 @@ function jillMatrixPromptExtras(jillBundle, matrixContext, student) {
 app.post('/alice', requireProductAuth, async (req, res) => {
   try {
     let { student, history, message, mode, secret, nexora, sessionType, companionTopic } = req.body || {};
-    student = await assertStudentTutorAccess(req, res, 'alice', student);
+    student = await assertStudentTutorAccess(req, res, 'alice', student, {
+      sessionType: sessionType || req.body?.sessionType || null,
+      allowCompanionProduct: sessionType === 'companion'
+    });
     if (!student) return;
     sanitizeStudentAiProfile(student);
     const companionCtx = Companion.resolveCompanionSession(student, sessionType);
@@ -4001,7 +4019,10 @@ async function tutorKnowledgeSliceForJillFast(message, student) {
 app.post('/alice/stream', requireProductAuth, async (req, res) => {
   try {
     let { student, history, message, scenario, secret, sessionType, companionTopic } = req.body || {};
-    student = await assertStudentTutorAccess(req, res, 'alice', student);
+    student = await assertStudentTutorAccess(req, res, 'alice', student, {
+      sessionType: sessionType || req.body?.sessionType || null,
+      allowCompanionProduct: sessionType === 'companion'
+    });
     if (!student) return;
     sanitizeStudentAiProfile(student);
     if (!message) return res.status(400).end();

@@ -397,7 +397,8 @@ async function doLogin(){
     }
 
     try {
-      await infinityLogin(user, pass, 'student', { silent: true });
+      var loginData = await infinityLogin(user, pass, 'student', { silent: true });
+      if(loginData) applyServerStudentFlags(loginData);
       if(!getAuthToken()) showToast('Acceso al portal OK, pero la voz necesita re-login — salí y volvé a ingresar.','err');
     } catch(e) {
       showToast('Servidor de voz no respondió — salí y volvé a ingresar antes de Companion.','err');
@@ -461,7 +462,15 @@ function switchPortalTab(tab){
   document.querySelectorAll('.portal-nav-item').forEach(function(item){
     item.classList.toggle('active', item.dataset.tab===tab);
   });
-  if(tab==='alice') renderAlice();
+  if(tab==='alice'){
+    renderAlice();
+    syncCurrentStudentFlags().then(function(){
+      return verifyStudentSessionAccess();
+    }).then(function(){
+      if(CURRENT_STUDENT) applySystemMode(CURRENT_STUDENT);
+      renderAlice();
+    });
+  }
   if(tab==='jill') renderJill();
   if(tab==='progreso'){
     var ps = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
@@ -630,6 +639,18 @@ function handleStudentSuspended(){
   }
 }
 
+function applyServerStudentFlags(d){
+  if(!d || !CURRENT_STUDENT) return;
+  if(typeof d.nexoraEnabled === 'boolean') CURRENT_STUDENT.nexoraEnabled = d.nexoraEnabled;
+  if(typeof d.aliceEnabled === 'boolean') CURRENT_STUDENT.aliceEnabled = d.aliceEnabled;
+  if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
+  if(typeof d.jillProEnabled === 'boolean') CURRENT_STUDENT.jillProEnabled = d.jillProEnabled;
+  if(typeof d.companionEnabled === 'boolean') CURRENT_STUDENT.companionEnabled = d.companionEnabled;
+  if(d.companionEnabled === true || d.companionEnabled === 'true' || d.companionEnabled === 1) CURRENT_STUDENT.companionEnabled = true;
+  window._currentStudent = CURRENT_STUDENT;
+  window._portalStudent = CURRENT_STUDENT;
+}
+
 async function verifyStudentSessionAccess(){
   if(typeof getAuthToken !== 'function' || !getAuthToken() || !CURRENT_STUDENT) return;
   try{
@@ -643,14 +664,9 @@ async function verifyStudentSessionAccess(){
       handleStudentSuspended();
       return;
     }
-    if(typeof d.nexoraEnabled === 'boolean') CURRENT_STUDENT.nexoraEnabled = d.nexoraEnabled;
-    if(typeof d.aliceEnabled === 'boolean') CURRENT_STUDENT.aliceEnabled = d.aliceEnabled;
-    if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
-    if(typeof d.jillProEnabled === 'boolean') CURRENT_STUDENT.jillProEnabled = d.jillProEnabled;
-    if(typeof d.companionEnabled === 'boolean') CURRENT_STUDENT.companionEnabled = d.companionEnabled;
-    window._currentStudent = CURRENT_STUDENT;
-    window._portalStudent = CURRENT_STUDENT;
+    applyServerStudentFlags(d);
     checkNexoraAccess(CURRENT_STUDENT);
+    applySystemMode(CURRENT_STUDENT);
   }catch(e){}
 }
 
@@ -846,6 +862,9 @@ function showPortal(s){
   loadNexoraConfig(s);
   applySystemMode(s);
   restoreAliceRuntimeStorage();
+  verifyStudentSessionAccess().then(function(){
+    if(CURRENT_STUDENT) applySystemMode(CURRENT_STUDENT);
+  });
 
   setTimeout(function(){ initPortalLiveCharts(s); startPortalProgressPoll(); },100);
   afterPortalReady(s, opts);
@@ -1109,7 +1128,9 @@ function studentJillTabOn(s){
   return studentJillOn(s) || studentJillProOn(s);
 }
 function studentCompanionOn(s){
-  return !!(s && (s.companionEnabled === true || s.companionEnabled === 'true'));
+  if(!s) return false;
+  var v = s.companionEnabled;
+  return v === true || v === 'true' || v === 1;
 }
 /** Tab Alice visible si tutora Alice O Companion premium están ON (Engine master). */
 function studentAliceTabOn(s){
@@ -1780,6 +1801,10 @@ function restoreAliceRuntimeStorage(){
     if(!raw) return false;
     var s = JSON.parse(raw);
     if(!s.sessionActive) return false;
+    if(s.sessionType === 'companion' && !studentCompanionOn(CURRENT_STUDENT)){
+      sessionStorage.removeItem('portal_alice_runtime');
+      return false;
+    }
     _aliceState.history = s.history || [];
     _aliceState.scenario = s.scenario || null;
     if(s.accent) _aliceState.accent = s.accent;
@@ -1938,8 +1963,7 @@ function renderAlice(){
 }
 
 function aliceCompanionEnabled(){
-  var s = CURRENT_STUDENT;
-  return !!(s && (s.companionEnabled === true || s.companionEnabled === 'true'));
+  return studentCompanionOn(CURRENT_STUDENT);
 }
 
 function aliceApplyCompanionDefaults(){
@@ -2078,6 +2102,7 @@ async function syncCurrentStudentFlags(){
     if(row && row.data){
       Object.assign(CURRENT_STUDENT, row.data);
       CURRENT_STUDENT.id = row.id;
+      if(studentCompanionOn(CURRENT_STUDENT)) CURRENT_STUDENT.companionEnabled = true;
       ALL_STUDENTS[row.id] = CURRENT_STUDENT;
     }
   }catch(e){}
@@ -2096,6 +2121,7 @@ async function startAliceSession(sessionType, opts){
   var startGen = ++_aliceStartGen;
   stopAlice();
   await syncCurrentStudentFlags();
+  await verifyStudentSessionAccess();
   if(!getAuthToken()){
     aliceSetStartStatus('No se pudo conectar la voz — usá el botón Actualizar arriba o salí y volvé a entrar.');
     showToast('No se pudo iniciar Companion — reintentá con Actualizar (↻) arriba.','err');
@@ -2150,6 +2176,22 @@ async function startAliceSession(sessionType, opts){
       body: JSON.stringify({ mode:mode, student:getAliceStudentPayload(), secret:ALICE_SECRET, sessionType:_aliceState.sessionType, companionTopic:_aliceState.companionTopic || '' })
     });
     if(startGen !== _aliceStartGen) return;
+    if(!r.ok){
+      var errBody = {};
+      try{ errBody = await r.json(); }catch(parseErr){}
+      _aliceState.sessionActive = false;
+      try{ sessionStorage.removeItem('portal_alice_runtime'); }catch(clearErr){}
+      var denied = errBody.error === 'Tutor access disabled' || errBody.tutorOff === 'alice';
+      var errMsg = denied
+        ? (_aliceState.sessionType === 'companion'
+          ? 'Companion no está habilitado en el servidor — pedí al trainer que lo reactive en Engine y tocá Actualizar (↻).'
+          : 'Práctica Alice no está habilitada — pedí a tu trainer.')
+        : (errBody.error || ('No se pudo iniciar Alice (HTTP '+r.status+').'));
+      showToast(errMsg,'err');
+      aliceSetStartStatus(errMsg);
+      renderAlice();
+      return;
+    }
     var data = await r.json();
     var opening = (typeof TutorReply !== 'undefined') ? TutorReply.extract(data.opening || '') : (data.opening || '');
     if(!opening || opening.length < 8) opening = aliceInstantOpening(CURRENT_STUDENT, returning, _aliceState.sessionType);

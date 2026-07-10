@@ -21,7 +21,9 @@ const COMPANION_KPI_COACH = {
 };
 
 function isCompanionEnabled(student) {
-  return !!(student && student.companionEnabled === true);
+  if (!student) return false;
+  const v = student.companionEnabled;
+  return v === true || v === 'true' || v === 1;
 }
 
 function sanitizeFocusKpis(list) {
