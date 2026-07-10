@@ -161,20 +161,20 @@
   ];
 
   var CONSTRUCTION_QUESTIONS = [
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente perfecto continuo: I have been ___', options: ['going', 'gone', 'go', 'went'], answer: 0, explain: 'Have been + verbo en -ing: I have been going / working.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente simple: I ___ to work every day.', options: ['go', 'goes', 'went', 'going'], answer: 0, explain: 'I + verbo base en presente: I go.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el pasado simple: She ___ the report yesterday.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Pasado regular: verbo + -ed.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente continuo: They are ___ English now.', options: ['learning', 'learned', 'learn', 'learns'], answer: 0, explain: 'Am/is/are + -ing: They are learning.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el presente perfecto: I have ___ there before.', options: ['been', 'be', 'being', 'was'], answer: 0, explain: 'Have + participio: I have been.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el futuro con will: I ___ call you tomorrow.', options: ['will', 'would', 'am', 'was'], answer: 0, explain: 'Will + verbo base: I will call.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar con modal: You ___ see a doctor.', options: ['should', 'shoulds', 'shoulding', 'shoulded'], answer: 0, explain: 'Modal + verbo base: You should see.' },
-    { kpi: 'k2', topic: 'tense', q: 'Para completar el pasado simple: We ___ late last night.', options: ['arrived', 'arrive', 'arriving', 'arrives'], answer: 0, explain: 'Pasado: arrived.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el pasado perfecto: She had ___ before I arrived.', options: ['left', 'leave', 'leaving', 'leaves'], answer: 0, explain: 'Had + participio: She had left.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar: I have not ___ yet.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Have + participio en negativo: have not finished.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar el continuo: He is ___ a presentation.', options: ['preparing', 'prepared', 'prepare', 'prepares'], answer: 0, explain: 'Is + -ing: He is preparing.' },
-    { kpi: 'k3', topic: 'tense', q: 'Para completar con could + perfecto: He could have ___ earlier.', options: ['come', 'came', 'coming', 'comes'], answer: 0, explain: 'Could have + participio: could have come.' },
-    { kpi: 'k1', topic: 'tense', q: 'Elige la forma correcta: She ___ coffee every morning.', options: ['drinks', 'drink', 'drinking', 'drank'], answer: 0, explain: 'Presente 3ra persona: she drinks.' },
-    { kpi: 'k2', topic: 'tense', q: 'Elige la forma correcta: ___ they working now?', options: ['Are', 'Is', 'Do', 'Did'], answer: 0, explain: 'Pregunta continua: Are they working?' }
+    { kpi: 'k3', category: 'structure', topic: 'structure', q: 'Arma la oracion: [yesterday / home / went / she]', options: ['She went home yesterday.', 'Yesterday she home went.', 'She yesterday went home.', 'Went she home yesterday.'], answer: 0, explain: 'Sujeto + verbo + complemento.' },
+    { kpi: 'k3', category: 'reverse', topic: 'reverse', q: 'Afirmacion: She worked yesterday. -> Pregunta:', options: ['Did she work yesterday?', 'She did work yesterday?', 'Does she worked yesterday?', 'Worked she yesterday?'], answer: 0, explain: 'Did + sujeto + verbo base.' },
+    { kpi: 'k2', category: 'tense_var', topic: 'tense_var', q: 'Misma idea en CONTINUO: "She writes emails."', options: ['She is writing emails now.', 'She writing emails now.', 'She writes emails now is.', 'She does writing emails.'], answer: 0, explain: 'be + -ing para ahora.' },
+    { kpi: 'k8', category: 'transition', topic: 'transition', q: 'Une con CAUSA: "I stayed home ___ it was raining."', options: ['because', 'however', 'despite', 'although'], answer: 0, explain: 'because = causa.' },
+    { kpi: 'k3', category: 'structure', topic: 'structure', q: 'Arma la pregunta: [live / where / you / do]', options: ['Where do you live?', 'Where you live?', 'Do where you live?', 'Where live you do?'], answer: 0, explain: 'WH + auxiliar + sujeto + verbo base.' },
+    { kpi: 'k3', category: 'reverse', topic: 'reverse', q: 'ES -> EN: Ella no trabaja los lunes.', options: ["She doesn't work on Mondays.", "She don't work on Mondays.", "She isn't work on Mondays.", "She not works on Mondays."], answer: 0, explain: "She + doesn't + verbo base." },
+    { kpi: 'k2', category: 'tense_var', topic: 'tense_var', q: 'Cual marca HABITO (presente simple)?', options: ['He takes the bus every morning.', 'He is taking the bus right now.', 'He took the bus yesterday.', 'He has taken the bus already.'], answer: 0, explain: 'every morning = presente simple.' },
+    { kpi: 'k8', category: 'transition', topic: 'transition', q: 'Une con CONTRASTE: "I wanted to go, ___ I was tired."', options: ['but', 'so', 'because', 'and'], answer: 0, explain: 'but = contraste.' },
+    { kpi: 'k3', category: 'structure', topic: 'structure', q: 'Mejor oracion completa (idea + razon):', options: ['I like my job because I learn every day.', 'I like job.', 'Because I like.', 'Job good because learn.'], answer: 0, explain: 'idea + because + desarrollo.' },
+    { kpi: 'k3', category: 'reverse', topic: 'reverse', q: 'Afirmacion: He goes to the gym. -> Pregunta:', options: ['Does he go to the gym?', 'Does he goes to the gym?', 'Do he go to the gym?', 'Goes he to the gym?'], answer: 0, explain: 'Does + he + verbo base.' },
+    { kpi: 'k2', category: 'tense_var', topic: 'tense_var', q: 'Pasado vs perfecto: "Ayer termine el informe."', options: ['I finished the report yesterday.', 'I have finished the report yesterday.', 'I finish the report yesterday.', 'I was finish the report yesterday.'], answer: 0, explain: 'yesterday = pasado simple.' },
+    { kpi: 'k8', category: 'transition', topic: 'transition', q: 'Secuencia: "First we reviewed the brief. ___, we called the client."', options: ['Then', 'Because', 'Despite', 'Although'], answer: 0, explain: 'Then = siguiente paso.' },
+    { kpi: 'k3', category: 'structure', topic: 'structure', q: 'Orden correcto con dos objetos:', options: ['I gave her the book.', 'I gave the book her.', 'I her gave the book.', 'Gave I her the book.'], answer: 0, explain: 'give + persona + cosa.' },
+    { kpi: 'k8', category: 'transition', topic: 'transition', q: 'Contraste formal: "The plan failed; ___, we learned a lot."', options: ['however', 'because', 'so', 'and'], answer: 0, explain: 'however = contraste.' }
   ];
 
   var THERE_QUESTIONS = [
@@ -377,10 +377,14 @@
   }
 
   function categoryLabel(cat) {
+    if (typeof JillStructureDrill !== 'undefined' && JillStructureDrill.LABELS && JillStructureDrill.LABELS[cat]) {
+      return JillStructureDrill.LABELS[cat];
+    }
     if (typeof JillDrillBank !== 'undefined' && JillDrillBank.categoryLabel) {
       return JillDrillBank.categoryLabel(cat);
     }
     var labels = {
+      structure: 'Estructura', reverse: 'Derecho / reves', tense_var: 'Tiempos (variacion)', transition: 'Transiciones',
       word_order: 'Orden de palabras', tense: 'Tiempos verbales', negation: 'Negaciones',
       affirmation: 'Afirmaciones', preposition: 'Preposiciones', number: 'Números',
       possessive: 'Posesivos', demonstrative: 'Demostrativos', personal_pronoun: 'Personales',
@@ -560,7 +564,7 @@
     return kpi;
   }
 
-  /** Rapid drill = construcción real. Sin siglas ni fórmulas P+V+C. */
+  /** Rapid drill = estructura real. Sin siglas ni celdas PR/PS basicas. */
   function isRapidDrillQuestion(item) {
     if (!item || !item.q) return false;
     var q = String(item.q);
@@ -568,6 +572,7 @@
     if (/\bsigla\b|\bfórmula\b|\bmsi®?\b|mecánica estructural|método moneda\b/i.test(ql)) return false;
     if (/\bp\s*\+\s*v|\bp\s*\+\s*m|\bto be\s*\+|\bhave\s*\+\s*pp\b/i.test(q)) return false;
     if (/\b(PR|PS|PC|PRP|PPC|MOD)\b/.test(q) && /\b=\b|sigla|fórmula/i.test(ql)) return false;
+    if (/Complet[ae]\s*\(\s*(PR|PS|PC|PRP|PPC|MOD)\b/i.test(q)) return false;
     var opts = item.options || [];
     for (var i = 0; i < opts.length; i++) {
       if (/P\s*\+\s*[VMC]|To Be\s*\+|Have\s*\+\s*PP|M\s*\+\s*V/i.test(String(opts[i]))) return false;
@@ -585,7 +590,7 @@
       : '';
     var tierBar = tier !== 'none' ? tierBadgeHtml(tier) : '';
     if (!kpis.length && !weakCats.length) {
-      return streakBar + tierBar + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Rapid drill adapta preguntas a tus fallos — orden, tiempos, prep, números…</div>';
+      return streakBar + tierBar + '<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:8px;">Rapid drill: estructura, oraciones ida/vuelta, tiempos y transiciones</div>';
     }
     var catHtml = weakCats.length
       ? '<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#fcd34d;margin-bottom:6px;">🎯 ÁREAS A REFORZAR</div>'
@@ -605,8 +610,16 @@
   }
 
   function pickMatrixQuestions(student, count) {
+    if (typeof JillStructureDrill !== 'undefined' && JillStructureDrill.pickQuestions) {
+      return JillStructureDrill.pickQuestions(count || QUESTIONS_PER_ROUND);
+    }
     if (typeof JillMatrixQuiz === 'undefined') return [];
     return JillMatrixQuiz.pickQuestions(student, count || QUESTIONS_PER_ROUND);
+  }
+
+  function pickStructureQuestions(count) {
+    if (typeof JillStructureDrill === 'undefined' || !JillStructureDrill.pickQuestions) return [];
+    return JillStructureDrill.pickQuestions(count || QUESTIONS_PER_ROUND);
   }
 
   function pickAdvancedQuestions(student, count) {
@@ -633,9 +646,9 @@
     count = count || QUESTIONS_PER_ROUND;
     var nemesisKpis = collectNemesisKpis(student);
     var bid = bundleIdFromStudent(student, activeBundle);
-    if (bid === 'F0-matrix') {
-      var matrixQs = pickMatrixQuestions(student, count);
-      if (matrixQs.length >= Math.min(3, count)) return matrixQs.slice(0, count);
+    if (bid === 'F0-matrix' || !bid) {
+      var structureQs = pickStructureQuestions(count);
+      if (structureQs.length >= Math.min(3, count)) return structureQs.slice(0, count);
     }
     var pool = [];
     var seenQ = {};
@@ -646,6 +659,8 @@
       seenQ[item.q] = true;
       pool.push(item);
     }
+
+    pickStructureQuestions(Math.min(6, count)).forEach(pushQ);
 
     var weakCats = collectWeakCategories(student);
     weakCats.forEach(function (cat) {
@@ -789,7 +804,7 @@
     var nemesisKpis = collectNemesisKpis(student);
     var qCount = opts.questionCount || (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND);
     var modeLabel = isAdvanced ? 'Challenge drill' : MODE_LABEL;
-    var brandLine = BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — completá tiempos, preguntas y construcción');
+    var brandLine = BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — estructura, ida/vuelta, tiempos y transiciones');
     var mountOpts = opts;
     if (isAdvanced) mountOpts.timerSec = CHALLENGE_TIMER_SEC;
 

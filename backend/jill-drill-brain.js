@@ -1,9 +1,10 @@
 /**
- * Jill Rapid drill  cerebro servidor.
- * Banco, seleccin adaptativa, perfil por estudiante, persistencia y cascada a tutores.
+ * Jill Rapid drill ? cerebro servidor.
+ * Banco, selecci?n adaptativa, perfil por estudiante, persistencia y cascada a tutores.
  */
 const JillDrillBank = require('../js/jill-drill-bank.js');
 const JillMatrixQuiz = require('./jill-matrix-quiz.js');
+const JillStructureDrill = require('./jill-structure-drill.js');
 
 const DRILL_BRAIN_ID = 'JILL-DRILL-BRAIN';
 const QUESTIONS_PER_ROUND = 10;
@@ -14,51 +15,51 @@ let _sbGetOne = null;
 let _superBrain = null;
 
 const CORE = [
-  { kpi: 'k10', category: 'phrase', q: 'Complet la oracin: I think ___ because', options: ['that', 'the', 'to', 'on'], answer: 0, explain: 'Opinin + because: I think that because' },
-  { kpi: 'k8', category: 'expression', q: 'Cul conector muestra contraste?', options: ['on top of that', 'however', 'first of all', 'as well as'], answer: 1, explain: '"However" marca oposicin entre ideas.' },
-  { kpi: 'k9', category: 'phrase', q: 'Te preguntan "Do you like your job?"  complet mejor: Yes, ___', options: ['I do because', 'yes', 'job', 'like'], answer: 0, explain: 'Expand: Yes, I do because' },
-  { kpi: 'k13', category: 'phrase', q: 'Si te trabs al hablar, lo mejor es', options: ['Callar', '"Let me rephrase" y seguir', 'Colgar', 'Hablar ms fuerte'], answer: 1, explain: 'Reparar y continuar  recovery sin presin.' },
-  { kpi: 'k2', category: 'tense', q: 'Complet: Yesterday I ___ to the office.', options: ['went', 'go', 'going', 'goes'], answer: 0, explain: 'Pasado simple: I went.' }
+  { kpi: 'k10', category: 'phrase', q: 'Complet? la oraci?n: I think ___ because?', options: ['that', 'the', 'to', 'on'], answer: 0, explain: 'Opini?n + because: I think that? because?' },
+  { kpi: 'k8', category: 'expression', q: '?Cu?l conector muestra contraste?', options: ['on top of that', 'however', 'first of all', 'as well as'], answer: 1, explain: '"However" marca oposici?n entre ideas.' },
+  { kpi: 'k9', category: 'phrase', q: 'Te preguntan "Do you like your job?" ? complet? mejor: Yes, ___', options: ['I do because?', 'yes', 'job', 'like'], answer: 0, explain: 'Expand?: Yes, I do because?' },
+  { kpi: 'k13', category: 'phrase', q: 'Si te trab?s al hablar, lo mejor es?', options: ['Callar', '"Let me rephrase" y seguir', 'Colgar', 'Hablar m?s fuerte'], answer: 1, explain: 'Reparar y continuar ? recovery sin presi?n.' },
+  { kpi: 'k2', category: 'tense', q: 'Complet?: Yesterday I ___ to the office.', options: ['went', 'go', 'going', 'goes'], answer: 0, explain: 'Pasado simple: I went.' }
 ];
 
-/** Challenge drill — Jill Pro / Alice Companion (linkers, STAR, presion, expansion). */
+/** Challenge drill ? Jill Pro / Alice Companion (linkers, STAR, presion, expansion). */
 const ADVANCED_DRILL = [
-  { kpi: 'k10', category: 'linker', q: 'Completá: I wanted to apply, ___ I lacked experience.', options: ['however', 'therefore', 'first', 'plus'], answer: 0, explain: 'Contraste ? however.' },
+  { kpi: 'k10', category: 'linker', q: 'Complet?: I wanted to apply, ___ I lacked experience.', options: ['however', 'therefore', 'first', 'plus'], answer: 0, explain: 'Contraste ? however.' },
   { kpi: 'k8', category: 'linker', q: 'We missed the deadline, ___ the client was understanding.', options: ['however', 'so', 'because', 'although'], answer: 0, explain: 'Resultado inesperado ? however.' },
   { kpi: 'k10', category: 'linker', q: '___ the rain, we still held the outdoor event.', options: ['Despite', 'Therefore', 'So far', 'On top'], answer: 0, explain: 'Despite + contraste.' },
-  { kpi: 'k9', category: 'expansion', q: 'Mejor expansión a "Yes":', options: ['Yes, I do because it fits my goals.', 'Yes.', 'Yes, job.', 'Yes, because.'], answer: 0, explain: 'Idea + razón completa.' },
+  { kpi: 'k9', category: 'expansion', q: 'Mejor expansi?n a "Yes":', options: ['Yes, I do because it fits my goals.', 'Yes.', 'Yes, job.', 'Yes, because.'], answer: 0, explain: 'Idea + raz?n completa.' },
   { kpi: 'k20', category: 'star', q: 'En STAR, la "T" significa:', options: ['Task you had to complete', 'Time you spent', 'Team you led only', 'Title of project'], answer: 0, explain: 'Situation, Task, Action, Result.' },
   { kpi: 'k20', category: 'star', q: 'Which sentence is the ACTION in STAR?', options: ['I coordinated three teams and delivered ahead of schedule.', 'The company was struggling.', 'My role was important.', 'In conclusion, I learned a lot.'], answer: 0, explain: 'Action = verbos concretos.' },
-  { kpi: 'k13', category: 'recovery', q: 'Under pressure you forget a word — best move:', options: ['"Let me rephrase that…" and continue', 'Stop talking', 'Switch to Spanish only', 'Repeat the same word louder'], answer: 0, explain: 'Recovery phrase + seguir.' },
+  { kpi: 'k13', category: 'recovery', q: 'Under pressure you forget a word ? best move:', options: ['"Let me rephrase that?" and continue', 'Stop talking', 'Switch to Spanish only', 'Repeat the same word louder'], answer: 0, explain: 'Recovery phrase + seguir.' },
   { kpi: 'k21', category: 'closure', q: 'Professional email close:', options: ['I look forward to your reply.', 'Ok bye', 'See u', 'Thanks and thats it'], answer: 0, explain: 'Cierre profesional.' },
-  { kpi: 'k10', category: 'linker', q: 'On top of that, we ___ reduced costs.', options: ['also', 'however', 'although', 'despite'], answer: 0, explain: 'On top of that = además.' },
+  { kpi: 'k10', category: 'linker', q: 'On top of that, we ___ reduced costs.', options: ['also', 'however', 'although', 'despite'], answer: 0, explain: 'On top of that = adem?s.' },
   { kpi: 'k8', category: 'linker', q: 'We improved quality; ___, customer complaints dropped.', options: ['therefore', 'however', 'although', 'despite'], answer: 0, explain: 'Causa ? resultado: therefore.' },
   { kpi: 'k18', category: 'clarity', q: 'Before answering a complex question, you should:', options: ['Confirm you understood in one sentence', 'Guess immediately', 'Change the topic', 'Ask them to repeat in Spanish'], answer: 0, explain: 'Multi-step clarity.' },
   { kpi: 'k10', category: 'linker', q: 'Even though it was late, ___', options: ['we finished the report', 'we late the report', 'report finish we', 'finishing report'], answer: 0, explain: 'Even though + clause completa.' },
   { kpi: 'k9', category: 'expansion', q: 'Expand: "I like my job."', options: ['I like my job because I learn every day and work with a great team.', 'I like job.', 'Job good.', 'Like job because.'], answer: 0, explain: 'Idea + desarrollo.' },
-  { kpi: 'PS', category: 'pressure', q: 'In a heated call, best first response:', options: ['I understand this is frustrating — let me check that now.', 'Calm down.', 'Not my problem.', 'Wait.'], answer: 0, explain: 'Pressure stability.' },
-  { kpi: 'k10', category: 'linker', q: 'In other words, ___ means we need more time.', options: ['this', 'however', 'despite', 'although'], answer: 0, explain: 'In other words + reformulación.' },
+  { kpi: 'PS', category: 'pressure', q: 'In a heated call, best first response:', options: ['I understand this is frustrating ? let me check that now.', 'Calm down.', 'Not my problem.', 'Wait.'], answer: 0, explain: 'Pressure stability.' },
+  { kpi: 'k10', category: 'linker', q: 'In other words, ___ means we need more time.', options: ['this', 'however', 'despite', 'although'], answer: 0, explain: 'In other words + reformulaci?n.' },
   { kpi: 'k8', category: 'linker', q: 'So far, we ___ completed phase one.', options: ['have', 'has', 'had', 'having'], answer: 0, explain: 'So far + present perfect.' },
   { kpi: 'k20', category: 'star', q: 'Weak STAR answer:', options: ['We had a problem and it was hard.', 'I identified the bottleneck, reallocated two analysts, and cut delays by 40%.', 'I used Excel and email.', 'The team was busy.'], answer: 0, explain: 'Vago vs Action concreta.' },
-  { kpi: 'R', category: 'risk', q: 'Take a risk with vocabulary — better option:', options: ['Use a new phrase you practiced, even if imperfect', 'Only use words you memorized', 'Stay silent', 'Switch languages'], answer: 0, explain: 'Risk taking.' },
+  { kpi: 'R', category: 'risk', q: 'Take a risk with vocabulary ? better option:', options: ['Use a new phrase you practiced, even if imperfect', 'Only use words you memorized', 'Stay silent', 'Switch languages'], answer: 0, explain: 'Risk taking.' },
   { kpi: 'k10', category: 'linker', q: 'Besides cost, ___ factor matters for clients.', options: ['another key', 'however key', 'despite key', 'although key'], answer: 0, explain: 'Besides + another idea.' },
-  { kpi: 'k8', category: 'linker', q: 'The plan failed; ___, we learned what to fix.', options: ['nevertheless', 'so far', 'on top of', 'first of all'], answer: 0, explain: 'Nevertheless = aun así.' },
+  { kpi: 'k8', category: 'linker', q: 'The plan failed; ___, we learned what to fix.', options: ['nevertheless', 'so far', 'on top of', 'first of all'], answer: 0, explain: 'Nevertheless = aun as?.' },
   { kpi: 'k10', category: 'linker', q: 'I enjoy the role. ___, the commute is exhausting.', options: ['However', 'Therefore', 'So far', 'Besides'], answer: 0, explain: 'Contraste entre ideas.' },
-  { kpi: 'k9', category: 'expansion', q: 'Best follow-up to "What do you do?"', options: ['I manage client accounts and coordinate weekly reports with two teams.', 'I work.', 'Job.', 'I do things.'], answer: 0, explain: 'Expansión operacional.' },
+  { kpi: 'k9', category: 'expansion', q: 'Best follow-up to "What do you do?"', options: ['I manage client accounts and coordinate weekly reports with two teams.', 'I work.', 'Job.', 'I do things.'], answer: 0, explain: 'Expansi?n operacional.' },
   { kpi: 'k8', category: 'linker', q: 'She prepared well; ___, she passed the interview.', options: ['as a result', 'however', 'although', 'despite'], answer: 0, explain: 'Causa ? resultado.' },
-  { kpi: 'k13', category: 'recovery', q: 'You lose your train of thought mid-answer:', options: ['"What I mean is…" and restate the point', 'Stop the interview', 'Laugh it off only', 'Ask to restart from zero'], answer: 0, explain: 'Recovery sin congelarse.' },
-  { kpi: 'k10', category: 'linker', q: 'Not only did we save time, ___ we improved quality.', options: ['but we also', 'however we', 'despite we', 'although we'], answer: 0, explain: 'Not only… but also.' }
+  { kpi: 'k13', category: 'recovery', q: 'You lose your train of thought mid-answer:', options: ['"What I mean is?" and restate the point', 'Stop the interview', 'Laugh it off only', 'Ask to restart from zero'], answer: 0, explain: 'Recovery sin congelarse.' },
+  { kpi: 'k10', category: 'linker', q: 'Not only did we save time, ___ we improved quality.', options: ['but we also', 'however we', 'despite we', 'although we'], answer: 0, explain: 'Not only? but also.' }
 ];
 
 const BY_BUNDLE = {
   'F1-msi': [
-    { kpi: 'k3', category: 'tense', q: 'Despus de have en perfecto: I have ___ busy all week.', options: ['been', 'be', 'being', 'was'], answer: 0, explain: 'Have + participio: I have been.' },
-    { kpi: 'k3', category: 'tense', q: 'Despus de been: I have been ___ on this project.', options: ['working', 'work', 'worked', 'works'], answer: 0, explain: 'Been + -ing: I have been working.' },
-    { kpi: 'k2', category: 'tense', q: 'Complet el pasado: They ___ the meeting early.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Pasado simple: finished.' }
+    { kpi: 'k3', category: 'tense', q: 'Despu?s de have en perfecto: I have ___ busy all week.', options: ['been', 'be', 'being', 'was'], answer: 0, explain: 'Have + participio: I have been.' },
+    { kpi: 'k3', category: 'tense', q: 'Despu?s de been: I have been ___ on this project.', options: ['working', 'work', 'worked', 'works'], answer: 0, explain: 'Been + -ing: I have been working.' },
+    { kpi: 'k2', category: 'tense', q: 'Complet? el pasado: They ___ the meeting early.', options: ['finished', 'finish', 'finishing', 'finishes'], answer: 0, explain: 'Pasado simple: finished.' }
   ],
   'F2-pronouns': [
-    { kpi: 'k4', category: 'possessive', q: '"This is ___ book"  posesivo de I', options: ['me', 'my', 'mine', 'myself'], answer: 1, explain: 'Antes del sustantivo: my book.' },
-    { kpi: 'k4', category: 'reflexive', q: 'Reflexivo de "she" es', options: ['hers', 'herself', 'sheself', 'her'], answer: 1, explain: 'She did it herself.' },
+    { kpi: 'k4', category: 'possessive', q: '"This is ___ book" ? posesivo de I', options: ['me', 'my', 'mine', 'myself'], answer: 1, explain: 'Antes del sustantivo: my book.' },
+    { kpi: 'k4', category: 'reflexive', q: 'Reflexivo de "she" es?', options: ['hers', 'herself', 'sheself', 'her'], answer: 1, explain: 'She did it herself.' },
     { kpi: 'k4', category: 'demonstrative', q: 'Demostrativo cerca: ___', options: ['that', 'this', 'those', 'them'], answer: 1, explain: 'This = cerca; That = lejos.' }
   ]
 };
@@ -84,7 +85,7 @@ function isRapidDrillQuestion(item) {
   if (!item || !item.q) return false;
   const q = String(item.q);
   if (/P\s*\+\s*V\s*\+\s*C/i.test(q)) return false;
-  if (/frmula\s+P\+V/i.test(q)) return false;
+  if (/Complet[ae]\s*\(\s*(PR|PS|PC|PRP|PPC|MOD)\b/i.test(q)) return false;
   return true;
 }
 
@@ -187,9 +188,10 @@ function pickQuestions(student, activeBundle, count, tier) {
   if (tier === 'advanced') return pickAdvancedQuestions(student, count);
   count = count || QUESTIONS_PER_ROUND;
   const bid = resolveBundleId(bundleIdFromStudent(student, activeBundle));
-  if (bid === 'F0-matrix') {
-    const matrixQs = JillMatrixQuiz.pickQuestions(student, count);
-    if (matrixQs.length >= Math.min(3, count)) return matrixQs.slice(0, count);
+  // Foundations / F0: estructura, derecho-reves, tiempos con variacion, transiciones
+  if (bid === 'F0-matrix' || !bid) {
+    const structureQs = JillStructureDrill.pickQuestions(count);
+    if (structureQs.length >= Math.min(3, count)) return structureQs.slice(0, count);
   }
   const nemesisKpis = collectNemesisKpis(student);
   const pool = [];
@@ -202,8 +204,18 @@ function pickQuestions(student, activeBundle, count, tier) {
     pool.push(item);
   }
 
+  // Priorizar banco de estructura en foundations
+  shuffle(JillStructureDrill.BANK || []).slice(0, Math.min(6, count)).forEach((item) => {
+    pushQ(JillStructureDrill.withShuffledOptions(item));
+  });
+
   collectWeakCategories(student).forEach((cat) => {
     shuffle(JillDrillBank.byCategory(cat)).slice(0, 2).forEach(pushQ);
+    if (JillStructureDrill.byCategory) {
+      shuffle(JillStructureDrill.byCategory(cat) || []).slice(0, 2).forEach((item) => {
+        pushQ(JillStructureDrill.withShuffledOptions(item));
+      });
+    }
   });
 
   nemesisKpis.forEach((kpi) => {
@@ -226,10 +238,10 @@ function pickQuestions(student, activeBundle, count, tier) {
 
   return shuffle(pool).slice(0, count).map((q) => ({
     kpi: q.kpi || 'k10',
-    category: q.category || 'tense',
+    category: q.category || 'structure',
     q: q.q,
     options: (q.options || []).slice(),
-    answer: q.answer,
+    answer: q.answer != null ? q.answer : 0,
     explain: q.explain || ''
   }));
 }
@@ -374,7 +386,7 @@ async function persistStudent(student) {
 }
 
 /**
- * Cascada POR TURNO de conversacin (Jill DJ): fallos de estructura detectados
+ * Cascada POR TURNO de conversaci?n (Jill DJ): fallos de estructura detectados
  * mientras el alumno habla, no solo en el Rapid drill. Alimenta el mismo perfil
  * y el mismo cerebro compartido que el drill, para que las sesiones y los tutores
  * refuercen lo que el alumno falla al conversar.
@@ -459,7 +471,7 @@ async function getPropagatedDrillContext(charLimit = 900) {
     .sort((a, b) => (b.count || 0) - (a.count || 0))
     .slice(0, 8);
   if (!patterns.length) return '';
-  const lines = ['RAPID DRILL PATTERNS (cerebro  reforzar en sesin):'];
+  const lines = ['RAPID DRILL PATTERNS (cerebro ? reforzar en sesi?n):'];
   patterns.forEach((p) => {
     lines.push(`- ${p.label || p.category} (${p.kpi}): ${p.count} fallos recientes entre estudiantes`);
   });
@@ -470,11 +482,11 @@ function getStudentDrillNote(student) {
   const weak = collectWeakCategories(student);
   const reinforce = student?.nemesisState?.reinforcement || [];
   const parts = [];
-  if (weak.length) parts.push(`Categoras dbiles drill: ${weak.map(JillDrillBank.categoryLabel).join(', ')}.`);
+  if (weak.length) parts.push(`Categor?as d?biles drill: ${weak.map(JillDrillBank.categoryLabel).join(', ')}.`);
   if (reinforce.length) parts.push(`KPI refuerzo: ${reinforce.join(', ')}.`);
   const fails = (student?.jillDrillProfile?.lastFailures || []).slice(0, 4);
   if (fails.length) {
-    parts.push(`ltimos fallos: ${fails.map((f) => JillDrillBank.categoryLabel(f.category)).join(', ')}.`);
+    parts.push(`?ltimos fallos: ${fails.map((f) => JillDrillBank.categoryLabel(f.category)).join(', ')}.`);
   }
   return parts.length ? `\nDRILL BRAIN (estudiante): ${parts.join(' ')}` : '';
 }

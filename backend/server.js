@@ -4532,11 +4532,11 @@ app.get('/demo/jill/drill/questions', async (req, res) => {
     const count = Math.min(10, Math.max(1, parseInt(req.query.count, 10) || 3));
     const demoStudent = {
       id: 'DEMO-JILL-RAPID',
-      nemesisState: { domain: [], reinforcement: ['k3', 'k4'] },
-      jillProgress: { activeBundle: 'F1-msi' },
+      nemesisState: { domain: [], reinforcement: ['k3', 'k8'] },
+      jillProgress: { activeBundle: 'F0-matrix' },
       jillRapidDrill: { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 }
     };
-    const questions = JillDrillBrain.pickQuestions(demoStudent, 'F1-msi', count);
+    const questions = JillDrillBrain.pickQuestions(demoStudent, 'F0-matrix', count);
     return res.json({ questions, profile: JillDrillBrain.getDrillProfileSummary(demoStudent), source: 'brain-demo' });
   } catch (err) {
     console.error('demo/jill/drill/questions:', err.message);
