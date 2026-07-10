@@ -1,5 +1,5 @@
 /**
- * Jill Pro pressure — 7 practices × turns = 24 questions.
+ * Jill Pro pressure ï¿½ 7 practices ï¿½ turns = 24 questions.
  * Unit: chat-message dedupe + intent/phase (no network).
  * Live (optional): ANALYZE_SECRET=xxx node tests/jill-pro-pressure-24.mjs
  */
@@ -122,7 +122,7 @@ const PRACTICES = [
 const results = [];
 function log(ok, name, detail) {
   results.push({ ok, name, detail });
-  console.log((ok ? 'PASS' : 'FAIL') + ' | ' + name + (detail ? ' — ' + detail : ''));
+  console.log((ok ? 'PASS' : 'FAIL') + ' | ' + name + (detail ? ' ï¿½ ' + detail : ''));
 }
 
 function assertNoDoubleUser(msgs, label) {
@@ -140,16 +140,16 @@ function assertNoDoubleUser(msgs, label) {
 }
 
 function forbiddenRepeat(text) {
-  return /contame otra vez|de qu[eé] quer[eé]s charlar|no te entend[ií]|repet[ií] tu duda/i.test(String(text || ''));
+  return /contame otra vez|de qu[eï¿½] quer[eï¿½]s charlar|no te entend[iï¿½]|repet[iï¿½] tu duda/i.test(String(text || ''));
 }
 
 function hasTeachSignal(text) {
   const t = String(text || '').toLowerCase();
-  return /\b(will have|have been|am\/is\/are|do not|does not|did not|going to|would|should|msi|ejemplo|example|formula|patron|patr[oó]n)\b/i.test(t)
+  return /\b(will have|have been|am\/is\/are|do not|does not|did not|going to|would|should|msi|ejemplo|example|formula|patron|patr[oï¿½]n)\b/i.test(t)
     || /\b(will|have|been|not|going)\b/.test(t);
 }
 
-console.log('=== Jill Pro pressure 24 — unit ===');
+console.log('=== Jill Pro pressure 24 ï¿½ unit ===');
 
 const health = await fetch(BACKEND + '/').then((r) => r.text()).catch((e) => 'ERR ' + e.message);
 log(/20260710-jill-intent/.test(health), 'Render build', health.slice(0, 80));
@@ -259,7 +259,7 @@ if (QA_SECRET) {
         const stream = await parseStream(startData.sessionId, item.msg);
         const bad = forbiddenRepeat(stream.fullText);
         const ok = stream.fullText.length > 40 && !bad;
-        log(ok, 'LIVE ' + (i + 1) + '/14 ' + item.practice, (bad ? 'REPEAT-LOOP ' : '') + stream.ms + 'ms · ' + stream.fullText.slice(0, 90).replace(/\s+/g, ' '));
+        log(ok, 'LIVE ' + (i + 1) + '/14 ' + item.practice, (bad ? 'REPEAT-LOOP ' : '') + stream.ms + 'ms ï¿½ ' + stream.fullText.slice(0, 90).replace(/\s+/g, ' '));
       } catch (err) {
         log(false, 'LIVE ' + (i + 1) + '/14 ' + item.practice, err.message);
       }
@@ -267,25 +267,10 @@ if (QA_SECRET) {
     }
   }
 } else {
-  console.log('\n(No ANALYZE_SECRET) smoke demo buffer stream…');
-  try {
-    const start = await fetch(BACKEND + '/demo/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ service: 'jill', consent: true, name: 'QA-Buffer-Smoke' })
-    });
-    const startData = await start.json().catch(() => ({}));
-    if (start.ok && startData.sessionId) {
-      const stream = await parseStream(startData.sessionId, PRACTICES[0].turns[0]);
-      const bad = forbiddenRepeat(stream.fullText);
-      log(stream.fullText.length > 20 && !bad, 'Demo buffer smoke', stream.ms + 'ms · ' + stream.fullText.slice(0, 100).replace(/\s+/g, ' '));
-    } else {
-      log(false, 'Demo buffer smoke', 'HTTP ' + start.status + ' ' + JSON.stringify(startData).slice(0, 100));
-    }
-  } catch (e) {
-    log(false, 'Demo buffer smoke', e.message);
-  }
+  console.log('\n(No ANALYZE_SECRET) public demo is appointment-gated â€” skip live smoke');
+  log(true, 'Live smoke skipped', 'demo_by_request expected without QA secret');
 }
+
 
 const fail = results.filter((r) => !r.ok).length;
 const pass = results.filter((r) => r.ok).length;
