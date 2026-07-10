@@ -46,7 +46,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260709jill"></script>
 <script src="js/jill-quiz.js?v=20260709kaboom"></script>
-<script src="js/tts-chunks.js?v=20260710fastpause"></script>
+<script src="js/tts-chunks.js?v=20260710ttsfull"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -4206,6 +4206,19 @@ var _jillSpeakGen = 0;
 var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 var _jillTtsRetry = {};
+var _jillTtsWatchdog = null;
+
+function jillArmTtsWatchdog(textLen){
+  clearTimeout(_jillTtsWatchdog);
+  var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
+  _jillTtsWatchdog = setTimeout(function(){
+    if(!_jillTTSBusy) return;
+    _jillTTSBusy = false;
+    if(_jillState.audio){ try{ _jillState.audio.pause(); }catch(e){} _jillState.audio = null; }
+    _jillState.speaking = _jillTTSQueue.length > 0;
+    _jillTTSFlush();
+  }, ms);
+}
 
 function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
@@ -4337,13 +4350,15 @@ function _jillTTSFlush(){
   var text = typeof item === 'string' ? item : item.text;
   var lang = typeof item === 'string' ? (jillDetectTtsLang(text) === 'en-US' ? 'en' : 'es') : (item.lang || 'es');
   var clean = jillCleanTtsText(text);
-  if(clean.length < 3){ _jillTTSBusy=false; _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
+  jillArmTtsWatchdog(clean.length);
+  if(clean.length < 3){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
 
   var nextItem = _jillTTSQueue[0];
   var nextLang = nextItem ? (typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
   var langPause = (nextLang && nextLang !== lang) ? 40 : 0;
 
   function finishJillLine(){
+    clearTimeout(_jillTtsWatchdog);
     _jillState.audio = null;
     _jillTTSBusy = false;
     _jillState.speaking = _jillTTSQueue.length > 0;
@@ -4354,6 +4369,7 @@ function _jillTTSFlush(){
   function playBlob(b){
     if(!_jillSpeakEnabled || gen !== _jillSpeakGen){
       _jillTTSBusy=false;
+      clearTimeout(_jillTtsWatchdog);
       _jillState.speaking=_jillTTSQueue.length>0;
       if(gen === _jillSpeakGen) _jillTTSFlush();
       return;
@@ -4395,12 +4411,13 @@ function _jillTTSFlush(){
   jillFetchTtsBlob(clean, lang)
   .then(playBlob)
   .catch(function(){
-    if(gen !== _jillSpeakGen){ _jillTTSBusy=false; return; }
+    if(gen !== _jillSpeakGen){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); return; }
     var rk = jillTtsCacheKey(clean, lang);
     _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
     if(_jillTtsRetry[rk] < 3) _jillTTSQueue.unshift({ text: text, lang: lang });
     else delete _jillTtsRetry[rk];
     _jillTTSBusy=false;
+    clearTimeout(_jillTtsWatchdog);
     _jillState.speaking=_jillTTSQueue.length>0;
     setTimeout(_jillTTSFlush, 40);
   });
@@ -5451,9 +5468,10 @@ function jillSpeak(text){
     JillVisualStage.updateCaption(text);
   }
   jillStopMic();
+  // Chunk ~450 so long lessons never depend on one poisoned/short clip
   var segments = typeof jillTtsSegments === 'function'
-    ? jillTtsSegments(text, 900)
-    : ttsSpeakLines(text, 900).map(function(line){
+    ? jillTtsSegments(text, 450)
+    : ttsSpeakLines(text, 450).map(function(line){
         return { text: line, lang: jillDetectTtsLang(line) === 'en-US' ? 'en' : 'es' };
       });
   segments.forEach(function(seg){

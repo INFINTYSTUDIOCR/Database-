@@ -657,7 +657,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-jill-intent';
+const APP1_BUILD = '20260710-tts-fullhash';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2615,7 +2615,10 @@ const TTS_CACHE_MAX = 200; // máximo de entradas
 
 function getTTSCacheKey(text, voiceId, languageCode){
   const lang = languageCode ? String(languageCode).slice(0, 4) : 'auto';
-  return voiceId + ':' + lang + ':' + text.slice(0, 100);
+  // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
+  // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
+  const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
+  return voiceId + ':' + lang + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2629,7 +2632,14 @@ function cacheTTS(key, buffer){
 function cleanTtsText(text) {
   return (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-•]\s+/gm, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
+    .replace(/\+/g, ' plus ')
+    .replace(/\bV3\b/gi, ' past participle ')
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, ' ')
     .replace(/\.{2,}/g, ' ')

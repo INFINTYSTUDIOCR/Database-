@@ -35,11 +35,19 @@ function isCompleteSpokenLine(text, minWords) {
   return /[.!?]$/.test(t);
 }
 
-/** One flowing TTS line — strip pause-heavy punctuation (periods, dashes, ellipsis). */
+/** One flowing TTS line — strip markdown/pause junk; keep full spoken content. */
 function prepareTtsLine(text) {
   return String(text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-•]\s+/gm, '')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
+    .replace(/\+/g, ' plus ')
+    .replace(/\bV3\b/gi, ' past participle ')
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, ' ')
     .replace(/\.{2,}/g, ' ')
@@ -164,13 +172,16 @@ function jillTtsSegments(text, maxLen) {
   return mergeShortTtsSegments(out, 48);
 }
 
-/** Debounced TTS warm-up while LLM is still streaming. */
+/** Debounced TTS warm-up while LLM is still streaming — only complete sentences. */
 function scheduleTtsPrefetch(text, prefetchFn, state) {
   state = state || {};
-  var minLen = state.minLen || 48;
-  var ms = state.ms || 200;
+  var minLen = state.minLen || 80;
+  var ms = state.ms || 280;
   var line = prepareTtsLine(text);
   if (line.length < minLen) return;
+  // Never prefetch a truncated mid-stream clip — it used to poison server TTS cache.
+  if (!/[.!?…]$/.test(String(text || '').replace(/\s+/g, ' ').trim()) && line.length < 220) return;
+  if (!isCompleteSpokenLine(line, 8) && line.length < 180) return;
   clearTimeout(state.timer);
   state.timer = setTimeout(function () {
     if (line === state.last) return;
