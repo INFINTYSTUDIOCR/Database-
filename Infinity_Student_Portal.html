@@ -3100,8 +3100,8 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
 function jillInstantOpening(student, returning, calibrating){
   var name = jillStudentDisplayName(student);
   if(_jillState.sessionType === 'companion'){
-    if(returning) return "Hey! Good to see you again. What do you want to chat about today?";
-    return "Hi "+name+", I'm Jill. Let's practice English through conversation — any topic you like. What do you want to talk about?";
+    if(returning) return "¡Qué bueno verte de nuevo! ¿De qué querés charlar hoy?";
+    return "Hola "+name+", soy Jill. Charlemos — cualquier tema, sin presión de clase. ¿De qué querés hablar hoy?";
   }
   if(calibrating && typeof JillCalibration !== 'undefined'){
     return JillCalibration.instantOpening(student);
