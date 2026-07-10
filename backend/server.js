@@ -3762,9 +3762,13 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const teachInstrChat = isJillCompanion
-      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message, history)
+      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
       : '';
-    const systemWithContext = JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${getStudentDisplayName(student)} | Nivel: ${level}${buildAiProfileNote(student, 'jill')}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${isJillCompanion ? `\n\nFASE JILL PRO: ${JillPro.resolveCompanionPhase(history, message, topicHint)}\n\n${teachInstrChat}` : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+    const displayChat = getStudentDisplayName(student);
+    const profileNoteChat = buildAiProfileNote(student, 'jill');
+    const systemWithContext = isJillCompanion
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3938,16 +3942,21 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext));
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
     const teachInstr = isJillCompanion
-      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message, history)
+      ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
       : (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
         : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.'));
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
+    const jillCompanionSystem = isJillCompanion
+      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint)
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 1100 : 700,
-      system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}\n\nFASE JILL PRO: ${isJillCompanion ? JillPro.resolveCompanionPhase(history, message, topicHint) : 'tutor'}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+      max_tokens: isJillCompanion ? 900 : 700,
+      system: isJillCompanion
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] salvo ejemplo escrito breve explícito: [[CTYPE:example]]. NEVER cut off mid-sentence.`
+        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
@@ -4234,10 +4243,10 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
 
 app.post('/jill-tts', requireProductAuth, async (req, res) => {
   try {
-    const ok = await assertStudentTutorAccess(req, res, 'jill', null);
+    const ok = await assertStudentTutorAccess(req, res, 'jill', null, { allowJillProProduct: true });
     if (req.auth.role === 'student' && !ok) return;
     const { text } = req.body || {};
-    // Jill siempre voz femenina fija (mismo timbre que Alice) — nunca voiceId del cliente.
+    // Jill y Jill Pro: misma voz femenina que Alice — nunca voiceId del cliente.
     const jillVoiceId = ALICE_VOICE_ID;
     return await synthesizeSpeech(req, res, { text, voiceId: jillVoiceId, label: 'Jill' });
   } catch (err) {
