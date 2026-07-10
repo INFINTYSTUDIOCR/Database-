@@ -5,13 +5,19 @@
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v5-live-coach-flow';
+const COMPANION_BRAIN_VER = 'v6-intent-interpret';
 
 const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
 - Speak ONLY in English by default — greetings, chat, stories, coaching, corrections, everything.
 - Spanish ONLY when the student explicitly asks you to EXPLAIN something (e.g. "explain in Spanish", "explicame", "no entiendo", "en español"). Explain clearly in Spanish (bilingual OK for that explanation), then return to English.
 - NEVER sprinkle Spanish tips unless they asked for an explanation in Spanish.
 - Understand English, Spanish, or Spanglish — never scold for mixing.`;
+
+const ALICE_COMPANION_INTENT_RULE = `INTENT INTERPRETATION (REQUIRED — you are Claude, not a menu bot):
+- Read the FULL message even if messy, typo-filled, Spanglish, or voice-to-text garbage.
+- Infer what they WANT: explanation, chat, practice, correction, example.
+- If intent is recoverable, answer it immediately. FORBIDDEN: "tell me again", "what do you want to talk about" when they already said it.
+- Greeting + topic in one message → greet briefly and address the topic.`;
 
 function studentWantsSpanishExplanation(message) {
   const t = String(message || '');
@@ -60,6 +66,7 @@ function looksLikeBrokenEnglish(message) {
 }
 
 const ALICE_COMPANION_LIVE_COACH = `LIVE COACH (REQUIRED — any topic, even complex):
+${ALICE_COMPANION_INTENT_RULE}
 Talk with real sense: follow their thread, react, go deeper. Never ignore content.
 
 If they have a DOUBT OR produce poorly structured English:
@@ -416,6 +423,7 @@ function enrichCompanionEvaluation(qual, scored, metrics, config) {
 module.exports = {
   COMPANION_BRAIN_VER,
   ALICE_LANGUAGE_RULE,
+  ALICE_COMPANION_INTENT_RULE,
   looksLikeBrokenEnglish,
   ALICE_COMPANION_LIVE_COACH,
   ALICE_COMPANION_DOUBT_MODE,

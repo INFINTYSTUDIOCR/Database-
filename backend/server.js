@@ -657,7 +657,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-negaciones';
+const APP1_BUILD = '20260710-jill-intent';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2303,10 +2303,7 @@ async function prepareNexoraRequest(body, req) {
     prompt += buildNexoraOpeningNote(scType, variation);
   }
   const hist = (history || []).slice(-14);
-  const last = hist[hist.length - 1];
-  const msgs = (last && last.role === 'user' && last.content === message)
-    ? hist
-    : [...hist, { role: 'user', content: message }];
+  const msgs = buildTutorChatMessages(hist, message, 14);
   const brainSlice = await tutorKnowledgeSliceFast(msgStr);
   const finalPrompt = brainSlice ? `${prompt}${brainSlice}` : prompt;
   return { systemPrompt: finalPrompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
@@ -3345,9 +3342,7 @@ RESPONSE STYLE:
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
 EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 
-    const msgs = history?.length
-      ? [...history.slice(-20), { role:'user', content:message }]
-      : [{ role:'user', content:message }];
+    const msgs = buildTutorChatMessages(history, message, 20);
 
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
     const brain = await Brain.brainGetLLM('alice', 'chat', message, levelExtra);
@@ -3395,6 +3390,39 @@ const ALICE_COMPANION_RULES = `COMPANION + LIVE COACH — always-on English comp
 function plainBrainReply(raw) {
   const parsed = parseJillResponse(raw);
   return parsed.reply || String(raw || '').trim();
+}
+
+/**
+ * Portal often pushes the user turn into history AND sends `message`.
+ * Appending again creates two consecutive `user` roles → Anthropic 400 → our 500.
+ */
+function buildTutorChatMessages(history, message, limit) {
+  const lim = Math.max(4, Math.min(40, limit || 20));
+  const msg = String(message || '').trim();
+  const hist = (history || [])
+    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && String(m.content || '').trim())
+    .map((m) => ({ role: m.role, content: String(m.content).trim() }))
+    .slice(-lim);
+  if (!msg) {
+    const out = hist.slice();
+    while (out.length && out[0].role !== 'user') out.shift();
+    return out.length ? out : [{ role: 'user', content: '(empty)' }];
+  }
+  let msgs;
+  const last = hist[hist.length - 1];
+  if (last && last.role === 'user') {
+    msgs = hist.slice(0, -1).concat([{ role: 'user', content: msg }]);
+  } else {
+    msgs = hist.concat([{ role: 'user', content: msg }]);
+  }
+  const out = [];
+  for (let i = 0; i < msgs.length; i++) {
+    const m = msgs[i];
+    if (out.length && out[out.length - 1].role === m.role) out[out.length - 1] = m;
+    else out.push(m);
+  }
+  while (out.length && out[0].role !== 'user') out.shift();
+  return out.length ? out : [{ role: 'user', content: msg }];
 }
 const JILL_FOUNDATIONS_SCOPE = `
 ALCANCE JILL (Foundations) — NO ES ALICE:
@@ -3763,8 +3791,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       }
     }
 
-    const prevMsgs = (history || []).slice(-12);
-    const msgs = [...prevMsgs, { role: 'user', content: message }];
+    const msgs = buildTutorChatMessages(history, message, 12);
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
     const bundleCtxChat = isJillCompanion
@@ -3948,7 +3975,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
+    const msgs = buildTutorChatMessages(history, message, 20);
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     const cachedPlain = brain.hit ? plainBrainReply(brain.reply) : '';
@@ -3986,7 +4013,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     console.error('Jill stream error:', err.message);
     try {
       if (!res.headersSent) {
-        return Brain.writeBrainSSE(res, 'Perdón, tuve un corte. Decime de nuevo tu duda o tema y te ayudo al toque.\n[[CTYPE:text]]');
+        return Brain.writeBrainSSE(res, 'Perdón, tuve un corte técnico. Mandame de nuevo el mismo mensaje y te respondo al toque.\n[[CTYPE:text]]');
       }
     } catch (e2) { /* fall through */ }
     if (!res.headersSent) res.status(500).json({ error: 'Jill stream failed', detail: err.message });
@@ -4122,7 +4149,7 @@ ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
-    const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];
+    const msgs = buildTutorChatMessages(history, message, 20);
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
@@ -4240,9 +4267,7 @@ RITMO: Hablás despacio, con calma. Dejás espacio para que el cliente piense y 
 LONGITUD: Una sola idea por respuesta. Máximo 2 oraciones. Luego UNA pregunta o UNA observación. Nunca dos preguntas a la vez.
 COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a LO QUE DIJO, no a lo que suponés. Si no entendés, preguntá con calma.${brainSlice}`;
 
-    const msgs = history?.length
-      ? [...history.slice(-12), { role:'user', content:message }]
-      : [{ role:'user', content:message }];
+    const msgs = buildTutorChatMessages(history, message, 12);
 
     const resp = await claudeCall({
       model: 'claude-sonnet-4-6', max_tokens: 150,
@@ -4979,9 +5004,7 @@ YOUR ROLE:
       systemPrompt += buildNexoraOpeningNote(scType, variation);
     }
 
-    const msgs = history && history.length > 0
-      ? [...history.slice(-14), { role: 'user', content: message }]
-      : [{ role: 'user', content: message }];
+    const msgs = buildTutorChatMessages(history, message, 14);
 
     const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}${isOpening ? ':opening-v2' : ''}`);
     const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);

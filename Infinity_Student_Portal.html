@@ -1928,7 +1928,7 @@ function aliceTheme(){
       btnGrad: 'linear-gradient(135deg,#B45309,#EAB308,#FFD700)',
       btnShadow: '0 4px 20px rgba(255,215,0,0.55)',
       headline: 'ALICE',
-      subtitle: 'Companion · Charla libre en inglés',
+      subtitle: 'Companion · Conversación + corrección on the go',
       badgeBg: 'rgba(255,215,0,0.14)',
       msgBg: 'rgba(255,215,0,0.16)'
     };
@@ -1946,7 +1946,7 @@ function aliceTheme(){
     btnGrad: 'linear-gradient(135deg,#5B21B6,#7C3AED)',
     btnShadow: '0 4px 16px rgba(192,132,252,0.4)',
     headline: 'ALICE',
-    subtitle: 'Nexus 2.5 — Tu tutora de inglés',
+    subtitle: 'Intermedio/avanzado — linkers, STAR, hablar con flujo',
     badgeBg: 'rgba(192,132,252,0.07)',
     msgBg: 'rgba(192,132,252,0.1)'
   };
@@ -2046,10 +2046,10 @@ function renderAliceStart(){
       +'</div>'
     : '';
   var intro = companionOnly
-    ? '<strong>Alice Companion</strong> está activo en tu plan — charla libre en inglés, cualquier tema, sin cortes. Mantené presionado el micrófono o escribí para hablar.'
+    ? '<strong>Alice Companion</strong> — conversación libre en inglés (cualquier tema). Corrección on the go: si te trabás, pausa, explica, ejemplo y sigue. Para quien lee/escribe/entiende pero necesita hablar.'
     : (companionOn
-      ? '<strong>Alice</strong> (tutora) = práctica Nexus con ejercicios y conectores. <strong>Alice Companion</strong> (premium) = charla libre ilimitada — producto incluido en tu plan.'
-      : '<strong>Alice</strong> es tu tutora de inglés con el <strong>Método Nexus</strong> — Idea + Linker + Idea. <span style="opacity:.85;">Alice Companion (charla libre) es premium — pedí a tu trainer activarlo.</span>');
+      ? '<strong>Alice</strong> (intermedio/avanzado) = conversación + linkers + STAR + transiciones. <strong>Alice Companion</strong> = mismo cerebro en charla libre ilimitada. No es Jill (Foundations/MSI).'
+      : '<strong>Alice</strong> — intermedio/avanzado: te sigue el ritmo, corrige en vivo y refuerza linkers, estructura avanzada e improvisación (STAR). Ideal si entendés pero no hablás fluido. <span style="opacity:.85;">Companion (charla libre) es premium — pedí a tu trainer.</span>');
   var startLabel = companionOnly ? 'Iniciar Companion' : 'Iniciar sesión';
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba('+th.rgb+',0.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
@@ -3051,6 +3051,7 @@ function nexoraStudentPayload(student){
 
 function jillDetectCompanionTopic(text){
   var t = String(text || '').toLowerCase();
+  if(/\b(futuro\s+perfecto|future\s+perfect|will\s+have)\b/.test(t)) return 'futuro perfecto (will have + V3)';
   if(/\b(futuro|future)\b/.test(t)) return 'futuro MOD (P + will + V + C)';
   if(/\b(gerundio|gerund|-ing|progressive|continuo|\bpc\b)/.test(t)) return 'gerundio / PC';
   if(/\b(presente simple|present simple|\bpr\b)/.test(t)) return 'presente simple PR';
@@ -3062,12 +3063,19 @@ function jillDetectCompanionTopic(text){
 }
 
 function jillInstantCoachReply(userText){
-  // Last-resort only — real answers come from /jill or /jill/stream (any topic).
+  // Last resort only when /jill and /jill/stream both fail — never fake "Te escucho".
   var name = jillStudentDisplayName(window._currentStudent || CURRENT_STUDENT);
-  if(jillCompanionUiActive()){
-    return 'Te escucho, ' + name + '. Contame otra vez tu duda o de qué querés charlar y te ayudo al toque.';
+  var t = String(userText || '').toLowerCase();
+  if(/\b(futuro\s+perfecto|future\s+perfect|will\s+have)\b/.test(t)){
+    return (name ? name + ', ' : '') + 'el futuro perfecto es: will have + past participle (V3). Ejemplo: By Friday, I will have finished the report. Fórmula: P + will have + V3 + C. ¿Te quedó? Armá una con "by tomorrow".';
   }
-  return 'Te escucho — decime qué parte no te quedó clara y lo vemos paso a paso.';
+  if(/\b(gerundio|gerund|to be \+ ?ing|present continuous)\b/.test(t)){
+    return (name ? name + ', ' : '') + 'el gerundio / continuo es: P + am/is/are + V-ing + C. Ejemplo: I am studying English now. ¿Te quedó? Decime una con "she".';
+  }
+  if(/\b(negaci[oó]n|don'?t|doesn'?t|didn'?t)\b/.test(t)){
+    return (name ? name + ', ' : '') + 'negación: P + AUX + not + V + C. Ejemplo: I do not like coffee / She does not work today. ¿Te quedó?';
+  }
+  return 'Hubo un corte con el servidor. Reintentá en unos segundos — tu mensaje fue: "' + String(userText || '').slice(0, 90) + '".';
 }
 
 async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCtx, responseMs){
@@ -4861,9 +4869,10 @@ function maybeShowJillOnboarding(){
     +'<div style="font-size:11px;font-weight:800;letter-spacing:0.14em;color:#c4b5fd;margin-bottom:8px;">BIENVENIDO A JILL</div>'
     +'<div style="font-size:20px;font-weight:900;color:#e9d5ff;margin-bottom:14px;">Elegí tu modo</div>'
     +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'
-    +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Currículo Foundations · bundles MSI · trainer calibra.</div></div>'
-    +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion — charla libre en inglés, cualquier tema. No es tutora ni da clases.</div></div>'
-    +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — nivel Jill Pro / Alice Companion.</div></div>'
+    +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Foundations: estructura MSI, tiempos, gerundio, negaciones, preguntas — clase + práctica hasta que lo implementés.</div></div>'
+    +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion Foundations: charla + dudas. Corrige en vivo, explica y confirma — no es Alice (linkers/STAR).</div></div>'
+    +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Alice</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Intermedio/avanzado: conversación, linkers, transiciones, STAR — para quien entiende pero necesita hablar.</div></div>'
+    +'<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:12px;padding:12px;"><strong style="color:#e9d5ff;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — Jill Pro / Alice Companion.</div></div>'
     +'</div>'
     +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
     +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill Pro</a></div>'
@@ -4900,13 +4909,13 @@ function renderJillStart(){
     : '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
-      +'<strong>Jill Tutora</strong> — currículo Foundations con bundles y matriz MSI. Explicación en español, práctica con chunks.'
+      +'<strong>Jill Tutora</strong> — Foundations: pronombres, tiempos, preposiciones, gerundio, preguntas, negaciones, estructura MSI (P|M|V|C) y conectores básicos. Explica como clase, te hace producir y confirma que lo implementás.'
       +'</div>'
       +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'tutor\')"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
     : '';
   var proBlock = proOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.35);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.75;">'
-      +'<strong>Jill Pro</strong> — companion de inglés: charla libre, cualquier tema. Jill escucha y conversa contigo — no da clases ni bundles.'
+      +'<strong>Jill Pro</strong> — misma base Foundations, en modo companion: charlá de cualquier tema + dudas bajo demanda. Si te trabás o lo armás mal, pausa, explica, da ejemplo y sigue. No es Alice (linkers/STAR).'
       +'</div>'
       +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(91,33,182,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'companion\')"><i class="ti ti-messages"></i> Iniciar Jill Pro</button>'
     : '';
@@ -5264,9 +5273,6 @@ async function sendJillMsg(micText){
   _jillMicText = '';
   if(inp) inp.value = '';
   var turnStarted = _jillState.drillTurnStartedAt || Date.now();
-  if(isCompanion && !_jillState.companionTopic){
-    _jillState.companionTopic = text.slice(0, 120);
-  }
   if(isCompanion){
     var newTopic = jillDetectCompanionTopic(text);
     if(newTopic) _jillState.companionTopic = newTopic.slice(0, 120);
