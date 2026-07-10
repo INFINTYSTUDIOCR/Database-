@@ -32,7 +32,8 @@
   }
 
   function pressureRatio(state) {
-    var timeP = 1 - (state.timeLeft / TIMER_SEC);
+    var total = state.timerSec || TIMER_SEC;
+    var timeP = 1 - (state.timeLeft / total);
     var qP = state.idx / Math.max(1, state.quiz.length);
     return Math.min(0.98, Math.max(0.05, timeP * 0.72 + qP * 0.28));
   }
@@ -192,6 +193,38 @@
   ];
 
   var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(THERE_QUESTIONS);
+
+  /** Challenge drill — Jill Pro / Alice Companion (no verbos básicos). */
+  var ADVANCED_DRILL = [
+    { kpi: 'k10', category: 'linker', q: 'Completá: I wanted to apply, ___ I lacked experience.', options: ['however', 'therefore', 'first', 'plus'], answer: 0, explain: 'Contraste → however.' },
+    { kpi: 'k8', category: 'linker', q: 'We missed the deadline, ___ the client was understanding.', options: ['however', 'so', 'because', 'although'], answer: 0, explain: 'Resultado inesperado → however.' },
+    { kpi: 'k10', category: 'linker', q: '___ the rain, we still held the outdoor event.', options: ['Despite', 'Therefore', 'So far', 'On top'], answer: 0, explain: 'Despite + contraste.' },
+    { kpi: 'k9', category: 'expansion', q: 'Mejor expansión a "Yes":', options: ['Yes, I do because it fits my goals.', 'Yes.', 'Yes, job.', 'Yes, because.'], answer: 0, explain: 'Idea + razón completa.' },
+    { kpi: 'k20', category: 'star', q: 'En STAR, la "T" significa:', options: ['Task you had to complete', 'Time you spent', 'Team you led only', 'Title of project'], answer: 0, explain: 'Situation, Task, Action, Result.' },
+    { kpi: 'k20', category: 'star', q: 'Which sentence is the ACTION in STAR?', options: ['I coordinated three teams and delivered ahead of schedule.', 'The company was struggling.', 'My role was important.', 'In conclusion, I learned a lot.'], answer: 0, explain: 'Action = verbos concretos.' },
+    { kpi: 'k13', category: 'recovery', q: 'Under pressure you forget a word — best move:', options: ['"Let me rephrase that…" and continue', 'Stop talking', 'Switch to Spanish only', 'Repeat the same word louder'], answer: 0, explain: 'Recovery phrase + seguir.' },
+    { kpi: 'k21', category: 'closure', q: 'Professional email close:', options: ['I look forward to your reply.', 'Ok bye', 'See u', 'Thanks and thats it'], answer: 0, explain: 'Cierre profesional.' },
+    { kpi: 'k10', category: 'linker', q: 'On top of that, we ___ reduced costs.', options: ['also', 'however', 'although', 'despite'], answer: 0, explain: 'On top of that = además.' },
+    { kpi: 'k8', category: 'linker', q: 'We improved quality; ___, customer complaints dropped.', options: ['therefore', 'however', 'although', 'despite'], answer: 0, explain: 'Causa → resultado: therefore.' },
+    { kpi: 'k18', category: 'clarity', q: 'Before answering a complex question, you should:', options: ['Confirm you understood in one sentence', 'Guess immediately', 'Change the topic', 'Ask them to repeat in Spanish'], answer: 0, explain: 'Multi-step clarity.' },
+    { kpi: 'k10', category: 'linker', q: 'Even though it was late, ___', options: ['we finished the report', 'we late the report', 'report finish we', 'finishing report'], answer: 0, explain: 'Even though + clause completa.' },
+    { kpi: 'k9', category: 'expansion', q: 'Expand: "I like my job."', options: ['I like my job because I learn every day and work with a great team.', 'I like job.', 'Job good.', 'Like job because.'], answer: 0, explain: 'Idea + desarrollo.' },
+    { kpi: 'PS', category: 'pressure', q: 'In a heated call, best first response:', options: ['I understand this is frustrating — let me check that now.', 'Calm down.', 'Not my problem.', 'Wait.'], answer: 0, explain: 'Pressure stability.' },
+    { kpi: 'k10', category: 'linker', q: 'In other words, ___ means we need more time.', options: ['this', 'however', 'despite', 'although'], answer: 0, explain: 'In other words + reformulación.' },
+    { kpi: 'k8', category: 'linker', q: 'So far, we ___ completed phase one.', options: ['have', 'has', 'had', 'having'], answer: 0, explain: 'So far + present perfect.' },
+    { kpi: 'k20', category: 'star', q: 'Weak STAR answer:', options: ['We had a problem and it was hard.', 'I identified the bottleneck, reallocated two analysts, and cut delays by 40%.', 'I used Excel and email.', 'The team was busy.'], answer: 0, explain: 'Vago vs Action concreta.' },
+    { kpi: 'R', category: 'risk', q: 'Take a risk with vocabulary — better option:', options: ['Use a new phrase you practiced, even if imperfect', 'Only use words you memorized', 'Stay silent', 'Switch languages'], answer: 0, explain: 'Risk taking.' },
+    { kpi: 'k10', category: 'linker', q: 'Besides cost, ___ factor matters for clients.', options: ['another key', 'however key', 'despite key', 'although key'], answer: 0, explain: 'Besides + another idea.' },
+    { kpi: 'k8', category: 'linker', q: 'The plan failed; ___, we learned what to fix.', options: ['nevertheless', 'so far', 'on top of', 'first of all'], answer: 0, explain: 'Nevertheless = aun así.' },
+    { kpi: 'k10', category: 'linker', q: 'I enjoy the role. ___, the commute is exhausting.', options: ['However', 'Therefore', 'So far', 'Besides'], answer: 0, explain: 'Contraste entre ideas.' },
+    { kpi: 'k9', category: 'expansion', q: 'Best follow-up to "What do you do?"', options: ['I manage client accounts and coordinate weekly reports with two teams.', 'I work.', 'Job.', 'I do things.'], answer: 0, explain: 'Expansión operacional.' },
+    { kpi: 'k8', category: 'linker', q: 'She prepared well; ___, she passed the interview.', options: ['as a result', 'however', 'although', 'despite'], answer: 0, explain: 'Causa → resultado.' },
+    { kpi: 'k13', category: 'recovery', q: 'You lose your train of thought mid-answer:', options: ['"What I mean is…" and restate the point', 'Stop the interview', 'Laugh it off only', 'Ask to restart from zero'], answer: 0, explain: 'Recovery sin congelarse.' },
+    { kpi: 'k10', category: 'linker', q: 'Not only did we save time, ___ we improved quality.', options: ['but we also', 'however we', 'despite we', 'although we'], answer: 0, explain: 'Not only… but also.' }
+  ];
+
+  var CHALLENGE_QUESTIONS_PER_ROUND = 8;
+  var CHALLENGE_TIMER_SEC = 45;
 
   var CORE = [
     { kpi: 'k10', q: 'Completá la oración: I think ___ because…', options: ['that', 'the', 'to', 'on'], answer: 0, explain: 'Opinión + because: I think that… because…' },
@@ -418,9 +451,10 @@
   function fetchBrainQuestions(student, activeBundle, count, opts) {
     opts = opts || {};
     var bid = bundleIdFromStudent(student, activeBundle);
-    var qs = '?count=' + encodeURIComponent(count) + '&bundleId=' + encodeURIComponent(bid || '');
+    var tier = opts.drillTier || 'foundations';
+    var qs = '?count=' + encodeURIComponent(count) + '&bundleId=' + encodeURIComponent(bid || '') + '&tier=' + encodeURIComponent(tier);
     var localPack = function () {
-      return { questions: pickQuestions(student, activeBundle, count), source: 'local' };
+      return { questions: pickQuestions(student, activeBundle, count, tier), source: 'local' };
     };
     if (opts.demoMode) {
       return fetch(drillApiBase(opts) + '/demo/jill/drill/questions' + qs)
@@ -575,6 +609,26 @@
     return JillMatrixQuiz.pickQuestions(student, count || QUESTIONS_PER_ROUND);
   }
 
+  function pickAdvancedQuestions(student, count) {
+    count = count || CHALLENGE_QUESTIONS_PER_ROUND;
+    var nemesisKpis = collectNemesisKpis(student);
+    var pool = [];
+    var seenQ = {};
+    function pushQ(item) {
+      if (!item || !item.q || seenQ[item.q]) return;
+      seenQ[item.q] = true;
+      pool.push(item);
+    }
+    nemesisKpis.forEach(function (kpi) {
+      ADVANCED_DRILL.forEach(function (q) { if (q.kpi === kpi) pushQ(q); });
+    });
+    collectWeakCategories(student).forEach(function (cat) {
+      shuffle(ADVANCED_DRILL.filter(function (q) { return q.category === cat; })).slice(0, 2).forEach(pushQ);
+    });
+    shuffle(ADVANCED_DRILL).forEach(pushQ);
+    return shuffle(pool).slice(0, count);
+  }
+
   function pickNemesisQuestions(student, activeBundle, count) {
     count = count || QUESTIONS_PER_ROUND;
     var nemesisKpis = collectNemesisKpis(student);
@@ -629,7 +683,8 @@
     return pool.slice(0, count);
   }
 
-  function pickQuestions(student, activeBundle, count) {
+  function pickQuestions(student, activeBundle, count, tier) {
+    if (tier === 'advanced') return pickAdvancedQuestions(student, count);
     return pickNemesisQuestions(student, activeBundle, count);
   }
 
@@ -725,41 +780,47 @@
     opts = opts || {};
     injectRapidDrillStyles();
     var rdStats = ensureRapidDrillStats(student);
-    var tier = rapidDrillTier(student);
+    var tier = opts.drillTier || 'foundations';
+    var isAdvanced = tier === 'advanced';
+    var tierClass = rapidDrillTier(student);
     if (rootEl.parentElement) {
-      rootEl.parentElement.className = 'jill-rapid-tier-' + tier;
+      rootEl.parentElement.className = 'jill-rapid-tier-' + tierClass + (isAdvanced ? ' jill-rapid-tier-challenge' : '');
     }
     var nemesisKpis = collectNemesisKpis(student);
-    var qCount = opts.questionCount || QUESTIONS_PER_ROUND;
-    var brandLine = BRAND + ' · ' + MODE_LABEL + ' — completá tiempos, preguntas y construcción';
+    var qCount = opts.questionCount || (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND);
+    var modeLabel = isAdvanced ? 'Challenge drill' : MODE_LABEL;
+    var brandLine = BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — completá tiempos, preguntas y construcción');
     var mountOpts = opts;
+    if (isAdvanced) mountOpts.timerSec = CHALLENGE_TIMER_SEC;
 
     rootEl.innerHTML = '<div style="text-align:center;padding:24px;color:#e9d5ff;font-size:13px;">'
-      + '<div style="font-size:28px;margin-bottom:8px;">🧠</div>'
+      + '<div style="font-size:28px;margin-bottom:8px;">' + (isAdvanced ? '⚔️' : '🧠') + '</div>'
       + 'Cargando preguntas del cerebro…</div>';
 
     fetchBrainQuestions(student, activeBundle, qCount, mountOpts).then(function (data) {
       if (data && data.profile) mergeBrainProfile(student, data.profile);
-      var qs = (data && data.questions && data.questions.length) ? data.questions : pickQuestions(student, activeBundle, qCount);
-      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount);
+      var qs = (data && data.questions && data.questions.length) ? data.questions : pickQuestions(student, activeBundle, qCount, tier);
+      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount, modeLabel);
     }).catch(function () {
-      var qs = pickQuestions(student, activeBundle, qCount);
+      var qs = pickQuestions(student, activeBundle, qCount, tier);
       if (!qs.length) {
         rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;font-size:13px;">'
           + 'No se pudo conectar al cerebro Jill. Verificá sesión o redeploy del backend.</div>';
         return;
       }
-      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount);
+      startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount, modeLabel);
     });
   }
 
-  function startDrillRound(rootEl, student, activeBundle, onDone, opts, quiz, nemesisKpis, brandLine, qCount) {
+  function startDrillRound(rootEl, student, activeBundle, onDone, opts, quiz, nemesisKpis, brandLine, qCount, modeLabel) {
     if (!quiz.length) {
       rootEl.innerHTML = '<div style="text-align:center;padding:1rem;color:#fde68a;">Sin preguntas — practicá con Jill y volvé.</div>';
       return;
     }
 
     var rdStats = ensureRapidDrillStats(student);
+    var roundTimer = opts.timerSec || TIMER_SEC;
+    modeLabel = modeLabel || MODE_LABEL;
 
     var state = {
       idx: 0,
@@ -768,7 +829,8 @@
       bestStreak: 0,
       answered: false,
       timer: null,
-      timeLeft: TIMER_SEC,
+      timeLeft: roundTimer,
+      timerSec: roundTimer,
       quiz: quiz,
       bundleId: bundleIdFromStudent(student, activeBundle),
       nemesisKpis: nemesisKpis,
@@ -781,12 +843,13 @@
 
     function renderGrid() {
       var q = state.quiz[state.idx];
-      var pct = Math.round((state.timeLeft / TIMER_SEC) * 100);
+      var totalSec = state.timerSec || TIMER_SEC;
+      var pct = Math.round((state.timeLeft / totalSec) * 100);
       var timerColor = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
       var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Kaboom · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
       return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;font-weight:800;color:#e9d5ff;">'
-        + '<span>⚡ ' + MODE_LABEL + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
+        + '<span>⚡ ' + modeLabel + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
         + '<span title="Racha de aciertos">🔥 ' + state.streak + '</span>'
         + '<span>✓ ' + state.correct + '</span>'
         + '<span title="Racha de victorias">🏆 ' + (rdStats.winStreak || 0) + '</span>'
@@ -971,12 +1034,13 @@
 
     function startTimer() {
       clearTimer();
-      state.timeLeft = TIMER_SEC;
+      var totalSec = state.timerSec || TIMER_SEC;
+      state.timeLeft = totalSec;
       state.timer = setInterval(function () {
         state.timeLeft--;
         var fill = document.getElementById('jill-kaboom-timer-fill');
         if (fill) {
-          var pct = Math.max(0, Math.round((state.timeLeft / TIMER_SEC) * 100));
+          var pct = Math.max(0, Math.round((state.timeLeft / totalSec) * 100));
           fill.style.width = pct + '%';
           fill.style.background = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
         }
@@ -1029,6 +1093,7 @@
     BRAND: BRAND,
     MODE_LABEL: MODE_LABEL,
     pickQuestions: pickQuestions,
+    pickAdvancedQuestions: pickAdvancedQuestions,
     pickNemesisQuestions: pickNemesisQuestions,
     pickCoinQuestions: pickCoinQuestions,
     collectNemesisKpis: collectNemesisKpis,

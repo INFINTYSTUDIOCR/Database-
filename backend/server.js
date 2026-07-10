@@ -4267,7 +4267,8 @@ app.get('/jill/drill/questions', requireProductAuth, async (req, res) => {
     }
     student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
     if (!student) return;
-    const questions = JillDrillBrain.pickQuestions(student, bundleId || null, count);
+    const tier = String(req.query.tier || 'foundations').trim();
+    const questions = JillDrillBrain.pickQuestions(student, bundleId || null, count, tier);
     const profile = JillDrillBrain.getDrillProfileSummary(student);
     return res.json({ questions, profile, source: 'brain' });
   } catch (err) {
