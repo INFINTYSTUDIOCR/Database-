@@ -18,7 +18,7 @@
   var CANON_BY_COLUMN = {
     present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
     past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
-    progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
+    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio · PC (P + To Be + V+ing + C)' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' }

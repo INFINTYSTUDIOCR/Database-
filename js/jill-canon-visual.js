@@ -1,5 +1,5 @@
 /**
- * Motor visual Jill ù canon SVG inline + GIF opcional, mismo fondo en todos.
+ * Motor visual Jill ó canon SVG inline + GIF opcional + escenario fullscreen.
  */
 (function (global) {
   'use strict';
@@ -7,13 +7,12 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260707j';
+  var CACHE_VER = '20260709stage';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
     if (!path) return '';
     if (/^https?:\/\//i.test(path)) return path;
-    if (path.charAt(0) === '/') return path;
     return path.replace(/^\//, '');
   }
 
@@ -48,7 +47,11 @@
 
   function loadConfig() {
     if (_cfg) {
-      var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+      var paths = (_cfg.clips || []).reduce(function (acc, c) {
+        if (c.svg) acc.push(c.svg);
+        if (c.animatedSvg) acc.push(c.animatedSvg);
+        return acc;
+      }, []);
       return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
     }
     if (_load) return _load;
@@ -56,7 +59,11 @@
       .then(function (r) { return r.ok ? r.json() : {}; })
       .then(function (data) {
         _cfg = data || {};
-        var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+        var paths = (_cfg.clips || []).reduce(function (acc, c) {
+          if (c.svg) acc.push(c.svg);
+          if (c.animatedSvg) acc.push(c.animatedSvg);
+          return acc;
+        }, []);
         return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
       })
       .catch(function () {
@@ -84,48 +91,80 @@
     return 'background-color:' + bg + ';';
   }
 
-  function inlineSvgMarkup(svgText, alt) {
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function inlineSvgMarkup(svgText, alt, fullBleed) {
     var inner = String(svgText || '').replace(/<\?xml[\s\S]*?\?>/gi, '').trim();
     if (!inner || inner.indexOf('<svg') < 0) return '';
-    inner = inner.replace(/<svg\b/i, '<svg style="width:100%;height:100%;display:block" role="img" aria-label="' + esc(alt) + '"');
-    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px 8px;box-sizing:border-box;pointer-events:none;">'
+    var svgStyle = fullBleed
+      ? 'width:100%;height:100%;display:block;max-height:100%;object-fit:contain'
+      : 'width:100%;height:100%;display:block';
+    inner = inner.replace(/<svg\b/i, '<svg style="' + svgStyle + '" role="img" aria-label="' + esc(alt) + '"');
+    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:' + (fullBleed ? '0' : '6px 8px') + ';box-sizing:border-box;pointer-events:none;">'
       + inner
       + '</div>';
   }
 
-  function render(columnId, fallbackRef) {
-    var clip = clipForColumn(columnId, fallbackRef);
-    if (!clip) return '';
-    var isGif = !!clip.gif;
+  function mediaForClip(clip, fallbackRef, mode) {
     var alt = clip.title || (fallbackRef && fallbackRef.title) || 'Canon Jill';
-    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);';
+    var fullBleed = mode === 'stage';
 
-    if (isGif) {
+    if (clip.gif) {
       var gifSrc = assetUrl(clip.gif) + '?v=' + CACHE_VER;
-      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
-        + '<img src="' + gifSrc + '" alt="' + esc(alt) + '" style="display:block;width:100%;height:100%;object-fit:contain;" loading="eager" decoding="async">'
-        + '</div>';
+      var imgStyle = fullBleed
+        ? 'display:block;width:100%;height:100%;object-fit:contain;'
+        : 'display:block;width:100%;height:100%;object-fit:contain;';
+      return { type: 'gif', html: '<img src="' + gifSrc + '" alt="' + esc(alt) + '" style="' + imgStyle + '" loading="eager" decoding="async">' };
+    }
+
+    var animPath = clip.animatedSvg;
+    if (animPath) {
+      var animRel = assetUrl(animPath);
+      var animCached = _svgCache[animRel] || _svgCache['/' + animRel.replace(/^\//, '')];
+      if (animCached) {
+        return { type: 'svg', html: inlineSvgMarkup(animCached, alt, fullBleed) };
+      }
     }
 
     var svgPath = clip.svg || (fallbackRef && fallbackRef.path);
     var rel = assetUrl(svgPath);
     var cached = _svgCache[rel] || _svgCache['/' + rel.replace(/^\//, '')];
-    var inline = cached ? inlineSvgMarkup(cached, alt) : '';
-
-    if (inline) {
-      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
-        + inline
-        + '</div>';
+    if (cached) {
+      return { type: 'svg', html: inlineSvgMarkup(cached, alt, fullBleed) };
     }
 
     var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
+    var pad = fullBleed ? '0' : '6px 8px';
+    return {
+      type: 'img',
+      html: '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:' + pad + ';box-sizing:border-box;" loading="eager" decoding="async">'
+    };
+  }
+
+  function render(columnId, fallbackRef) {
+    var clip = clipForColumn(columnId, fallbackRef);
+    if (!clip) return '';
+    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);';
+    var media = mediaForClip(clip, fallbackRef, 'thumb');
     return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
-      + '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px 8px;box-sizing:border-box;" loading="eager" decoding="async">'
+      + media.html
       + '</div>';
   }
 
-  function esc(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  function renderStage(columnId, fallbackRef) {
+    var clip = clipForColumn(columnId, fallbackRef);
+    if (!clip) return '';
+    var title = clip.title || (fallbackRef && fallbackRef.title) || 'LecciÛn Jill';
+    var media = mediaForClip(clip, fallbackRef, 'stage');
+    return '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
+      + '<div style="position:absolute;top:0;left:0;right:0;padding:10px 16px;background:linear-gradient(180deg,rgba(30,27,75,0.72),transparent);z-index:2;pointer-events:none;">'
+      + '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#c4b5fd;">CANON VISUAL</div>'
+      + '<div style="font-size:15px;font-weight:800;color:#f5f3ff;">' + esc(title) + '</div>'
+      + '</div>'
+      + media.html
+      + '</div>';
   }
 
   function setGif(columnId, gifPath) {
@@ -138,8 +177,9 @@
   global.JillCanonVisual = {
     loadConfig: loadConfig,
     render: render,
+    renderStage: renderStage,
     assetUrl: assetUrl,
     setGif: setGif,
     DEFAULT_BG: DEFAULT_BG
   };
-})(typeof window !== 'undefined' ? window : global);
+})(typeof window !== 'undefined' ? window : globalThis);

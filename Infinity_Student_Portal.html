@@ -32,9 +32,10 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260707j"></script>
+<script src="js/jill-canon-visual.js?v=20260709stage"></script>
+<script src="js/jill-visual-stage.js?v=20260709stage"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260708gate"></script>
+<script src="js/jill-foundations.js?v=20260709stage"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-matrix-quiz.js?v=20260708"></script>
@@ -117,11 +118,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-lesson-shell:fullscreen #jill-session-main{
     flex:1;min-height:0;display:flex;flex-direction:column;
   }
+  #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:10px;min-height:0;}
+  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1;min-height:280px;}
+  #jill-stage-media{flex:1;min-height:240px;position:relative;}
+  #jill-stage-caption{
+    font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);
+    background:rgba(0,0,0,0.28);border:1px solid rgba(167,139,250,0.35);
+    border-radius:12px;padding:10px 14px;max-height:88px;overflow-y:auto;
+  }
+  #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
+  #jill-lesson-shell.jill-stage-active #jill-messages{max-height:140px!important;flex-shrink:0;}
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-media{min-height:62vh;}
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-messages{max-height:18vh!important;}
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-caption{max-height:12vh;}
   #jill-lesson-shell:fullscreen #jill-messages{
     flex:1;min-height:120px;max-height:none!important;
-  }
-  #jill-lesson-shell:fullscreen #jill-matrix-panel img{
-    max-height:min(38vh,320px);width:auto;margin:0 auto;display:block;
   }
   .jill-fs-btn{
     display:inline-flex;align-items:center;justify-content:center;
@@ -4069,6 +4080,22 @@ if(typeof window !== 'undefined' && window.speechSynthesis){
   jillWarmFemaleVoice();
 }
 
+function jillActivateVisualStage(text, contentType){
+  if(typeof JillVisualStage === 'undefined') return;
+  var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
+  var ct = contentType || 'text';
+  if(JillVisualStage.shouldShow(ct, text, bundle)){
+    JillVisualStage.show(text, ct, bundle);
+  } else if(!JillVisualStage.isActive()){
+    JillVisualStage.hide();
+  }
+}
+
+function jillSpeakTurn(text, contentType){
+  jillActivateVisualStage(text, contentType);
+  jillSpeak(text);
+}
+
 function jillSyncFullscreenBtn(){
   var btn = document.getElementById('jill-fs-btn');
   var shell = document.getElementById('jill-lesson-shell');
@@ -4486,6 +4513,7 @@ function jillStopAll(){
   jillStopMic();
   _jillSending = false;
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('jill-mic-btn'));
+  if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide();
 }
 
 var _jillMicText = '';
@@ -4515,18 +4543,22 @@ function renderJillChips(){
   var jillOn = studentJillOn(s);
   var companion = jillCompanionUiActive();
   var pulseChip = '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill()">⚡ Rapid drill</button>';
+  var painChips =
+    '<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, no entiendo el gerundio — explicámelo con la fórmula MSI en la pizarra\')">📘 Gerundio</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Mañana tengo examen y este tema no me quedó claro — enseñame y dame rutina de 15 min\')">📅 Examen mañana</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'El profe habló muy rápido y no pude tomar apuntes — reexplicame el tema de clase\')">⚡ Profe rápido</button>'
+    +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Pasé el nivel pero siento que no entendí — ayudame a dominar la estructura\')">🎯 Pasé sin entender</button>';
   if(companion){
     return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, quiero una lección sobre el tema que elija — empezá explicándome qué querés enseñarme hoy\')">📚 Pedir lección</button>'
-      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, ayudame con el gerundio, no lo entiendo\')">📘 Ej: gerundio</button>'
-      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, explícame presente perfecto con MSI\')">⏱ Ej: tiempos</button>'
-      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Quiero practicar conversación libre — corregime suave\')">🗣 Charla libre</button>'
+      + painChips
+      +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, explícame presente perfecto con MSI en la pizarra\')">⏱ Tiempos</button>'
       +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
       + pulseChip
       +'</div>';
   }
   if(!jillOn) return pulseChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+pulseChip+'</div>' : '';
   return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+    + painChips
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
@@ -4813,6 +4845,10 @@ function renderJillSession(){
   return '<div id="jill-session-main">'
     + miniStrip
     + matrixHtml
+    + '<div id="jill-visual-stage" hidden>'
+    + '<div id="jill-stage-media"></div>'
+    + '<div id="jill-stage-caption" aria-live="polite"></div>'
+    + '</div>'
     + renderJillChips()
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
     +'<div id="jill-eval-summary">'+evalHtml+'</div>'
@@ -4887,6 +4923,7 @@ function startJillSessionClick(sessionType){
     _jillSpeakEnabled = true;
     _jillSending = false;
     _jillState.history = [];
+    if(typeof JillVisualStage !== 'undefined') JillVisualStage.resetSession();
     if(sessionType === 'companion') _jillState.companionTopic = '';
     _jillState.calibrationActive = (sessionType !== 'companion') && (typeof JillCalibration !== 'undefined') && JillCalibration.needsCalibration(s);
     renderJill();
@@ -5006,7 +5043,7 @@ async function endJillSession(){
           JillTrainerInsights.refreshCharts(s);
         }
         if(s.id) await dbSet('infinity_students', s.id, s);
-        if(data.evaluation.jill_message) jillSpeak(data.evaluation.jill_message);
+        if(data.evaluation.jill_message) jillSpeakTurn(data.evaluation.jill_message, 'text');
       }
     } catch(e){
       if(statusEl) statusEl.textContent = 'No se pudo evaluar — intentá de nuevo.';
@@ -5018,6 +5055,7 @@ async function endJillSession(){
     _jillState.sessionActive = false;
     _jillState.history = [];
     _jillState.evaluation = null;
+    if(typeof JillVisualStage !== 'undefined') JillVisualStage.resetSession();
     renderJill();
     return;
   }
@@ -5061,7 +5099,7 @@ async function startJillSession(s){
     if(!reply || reply.length < 8) reply = jillInstantOpening(s, returning, needsCal);
     _jillState.history = [{role:'assistant', content: reply, contentType: parsed.contentType || 'text'}];
     jillRenderHistoryMessages();
-    jillSpeak(reply);
+    jillSpeakTurn(reply, parsed.contentType || 'text');
     if(s.id) await dbSet('infinity_students', s.id, s);
     if(typeof AiProfile !== 'undefined' && !needsCal){
       await AiProfile.saveAiProfilePatch({ firstGreetingJill: true }, dbSet, s);
@@ -5071,7 +5109,7 @@ async function startJillSession(s){
     var fallback = jillInstantOpening(s, returning, needsCal);
     _jillState.history = [{role:'assistant', content: fallback, contentType: 'text'}];
     jillRenderHistoryMessages();
-    jillSpeak(fallback);
+    jillSpeakTurn(fallback, 'text');
     if(statusEl) statusEl.textContent = '';
   }
 }
@@ -5180,7 +5218,7 @@ async function sendJillMsg(micText){
     _jillState.history[streamIdx] = {role:'assistant', content: drillEval.forcedReply, contentType: 'text'};
     _jillState.lastStructureOk = false;
     _jillState.drillTurnStartedAt = Date.now();
-    jillSpeak(drillEval.forcedReply);
+    jillSpeakTurn(drillEval.forcedReply, 'text');
     jillRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
     if(micBtn) micBtn.classList.remove('ptt-busy');
@@ -5258,7 +5296,7 @@ async function sendJillMsg(micText){
       var mp = document.getElementById('jill-matrix-panel');
       if(mp) renderJill();
     }
-    if(parsed.reply && parsed.reply.trim().length > 2) jillSpeak(parsed.reply);
+    if(parsed.reply && parsed.reply.trim().length > 2) jillSpeakTurn(parsed.reply, parsed.contentType || 'text');
     jillRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';
 
@@ -5277,6 +5315,9 @@ async function sendJillMsg(micText){
 
 function jillSpeak(text){
   if(!text || !_jillSpeakEnabled) return;
+  if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive()){
+    JillVisualStage.updateCaption(text);
+  }
   jillStopMic();
   var segments = typeof jillTtsSegments === 'function'
     ? jillTtsSegments(text, 480)

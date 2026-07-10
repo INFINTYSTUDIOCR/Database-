@@ -161,11 +161,12 @@
   var CANON_BY_COLUMN = {
     present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
     past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
-    progressive: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'PC + prep en C' },
+    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio · PC (P + To Be + V+ing + C)' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' },
-    there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' }
+    there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
+    prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -176,7 +177,7 @@
     if (/\b(presente perfecto|present perfect|\bprp\b|have.*pp)\b/.test(t)) return 'perfect';
     if (/\b(pasado perfecto|past perfect|\bppc\b|been.*ing|combinado)\b/.test(t)) return 'combined';
     if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
-    if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'progressive';
+    if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'prepositions';
     if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
     if (/\b(art[ií]culo|article|\bthe\b)\b/.test(t)) return 'perfect';
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
@@ -184,6 +185,7 @@
   }
 
   function renderCanonForMessage(text, bundle) {
+    if (typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive()) return '';
     if (typeof JillCanonVisual === 'undefined') return '';
     var col = detectCanonColumn(text, bundle);
     if (!col) return '';
@@ -302,6 +304,8 @@
     ensureProgress: ensureProgress,
     bundleById: bundleById,
     canAdvanceBundle: canAdvanceBundle,
-    tryAdvanceBundle: tryAdvanceBundle
+    tryAdvanceBundle: tryAdvanceBundle,
+    detectCanonColumn: detectCanonColumn,
+    CANON_BY_COLUMN: CANON_BY_COLUMN
   };
 })(typeof window !== 'undefined' ? window : this);
