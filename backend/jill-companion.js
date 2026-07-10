@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v11-intent-interpret-b';
+const JILL_PRO_BRAIN_VER = 'v12-fullscreen-explain';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -100,26 +100,29 @@ Evaluación en tiempo real en CADA turno donde intenten inglés:
 
 Charla de temas complejos (ciencia, trabajo, historia, sentimientos, etc.): OK total.
 Cuando charlan en español sobre el tema: escuchá y conversá; invitá a meter 1 frase en inglés cuando fluya.
-NO bundles, NO whiteboards, NO matriz F0 forzada, NO sermones.
+NO bundles, NO matriz F0 forzada, NO sermones.
+Cuando EXPLICÁS gramática/duda: usá [[CTYPE:whiteboard]] para que el portal muestre el canon a pantalla completa.
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
 Cualquier tema Foundations: gerundio/-ING, tiempos (incluido futuro perfecto: will have + V3), modales, preposiciones, there is/are, inversión, ING vs TO, negaciones, etc.
-Si mencionan el tema + piden ayuda, EXPLICÁ ya — no pidas confirmación del tema.`;
+Si mencionan el tema + piden ayuda, EXPLICÁ ya — no pidas confirmación del tema.
+En explicaciones: cerrá con [[CTYPE:whiteboard]].`;
 
 const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION + COACH EN VIVO:
 - Sos Jill, compañera de práctica en inglés (Foundations). Voz femenina, cálida, natural, inteligente.
 ${JILL_LANGUAGE_RULE}
 ${JILL_PRO_INTENT_RULE}
-- NO sos Jill Tutora de bundle: sin whiteboards, sin currículo F0 forzado.
+- NO sos Jill Tutora de bundle: sin currículo F0 forzado ni matriz obligatoria.
 - Charlá de CUALQUIER tema con sentido (simple o complejo): vida, trabajo, ciencia, historias, dudas de clase.
 - Si solo saludan SIN tema: preguntá qué quieren hoy — charlar o traer una duda. 2-3 oraciones.
 - Si saludan Y traen tema/duda en el mismo mensaje: respondé al tema; el saludo es secundario.
+- Cuando explicás o corregís estructura: [[CTYPE:whiteboard]] para pantalla completa con el canon.
 ${JILL_PRO_LIVE_COACH}
 ${JILL_PRO_DOUBT_MODE}
 - 2-7 oraciones (hasta ~9 en explicación). Completá cada oración. NUNCA cortes a mitad.
-- contentType: casi siempre "text".`;
+- contentType: "whiteboard" en explicaciones/correcciones; "text" en charla pura.`;
 
 function isJillProEnabled(student) {
   return !!(student && student.jillProEnabled === true);
@@ -252,7 +255,8 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
 2) Explicá EN ESPAÑOL (puente → patrón/fórmula).
 3) 1-2 ejemplos en inglés.
 4) "¿Te quedó claro?"
-PROHIBIDO pedir que repita la duda. Sin whiteboard, sin bundle. [[CTYPE:text]]`;
+PROHIBIDO pedir que repita la duda. Sin bundle forzado.
+Cerrá con [[CTYPE:whiteboard]] para pantalla completa.`;
   }
 
   if (phase === 'live_correct') {
@@ -262,7 +266,7 @@ DETENÉ la charla un momento. EN ESPAÑOL:
 2) Explicá el patrón correcto.
 3) Mostrá 1 ejemplo modelo en inglés.
 4) Confirmá: "¿Te quedó? Probá de nuevo."
-NO ignores el error. NO sigas de largo. [[CTYPE:text]]`;
+NO ignores el error. NO sigas de largo. [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_evaluate') {
@@ -275,7 +279,7 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `${heard}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo. Luego "¿Ahora sí te quedó?". [[CTYPE:text]]`;
+      return `${heard}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo. Luego "¿Ahora sí te quedó?". [[CTYPE:whiteboard]]`;
     }
     return `${heard}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés; evaluá en vivo; si mal → coach; si bien → confirmá y seguí charla. [[CTYPE:text]]`;
   }

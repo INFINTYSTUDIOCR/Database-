@@ -253,6 +253,53 @@ section{padding:100px 2rem;}
 .freeze-word{font-size:72px;font-weight:900;font-family:'Space Grotesk',sans-serif;background:linear-gradient(135deg,var(--purple-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;line-height:1.1;}
 .freeze-sub{color:rgba(255,255,255,0.5);font-size:14px;margin-top:12px;line-height:1.6;}
 
+/* VS IA — Apps · ChatGPT · Infinity */
+.vs-ia{background:#0B0B12;padding:88px 2rem;position:relative;overflow:hidden;}
+.vs-ia::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 80% 20%,rgba(245,166,35,0.14),transparent 55%),radial-gradient(ellipse 50% 40% at 10% 90%,rgba(91,33,182,0.18),transparent 50%);pointer-events:none;}
+.vs-ia .section-inner{position:relative;z-index:1;}
+.vs-ia-head{text-align:center;max-width:720px;margin:0 auto 2.5rem;}
+.vs-ia-head .section-tag{color:var(--gold);}
+.vs-ia-head .section-title{color:#fff;margin-bottom:0.75rem;}
+.vs-ia-head .section-title em{font-style:normal;color:var(--gold);}
+.vs-ia-lead{font-size:17px;line-height:1.65;color:rgba(255,255,255,0.62);margin:0 auto;}
+.vs-ia-lead strong{color:#fff;}
+.vs-ia-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:2rem;}
+.vs-ia-card{border-radius:20px;padding:1.5rem 1.35rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);display:flex;flex-direction:column;min-height:100%;transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;}
+.vs-ia-card:hover{transform:translateY(-4px);}
+.vs-ia-card.muted{opacity:0.92;}
+.vs-ia-card.muted:hover{border-color:rgba(255,255,255,0.2);}
+.vs-ia-card.win{background:linear-gradient(165deg,rgba(245,166,35,0.16),rgba(91,33,182,0.22) 55%,rgba(15,15,22,0.95));border:2px solid rgba(245,166,35,0.55);box-shadow:0 0 0 1px rgba(245,166,35,0.15),0 24px 60px rgba(0,0,0,0.45);animation:vsIaPulse 3.2s ease-in-out infinite;}
+@keyframes vsIaPulse{0%,100%{box-shadow:0 0 0 1px rgba(245,166,35,0.15),0 24px 60px rgba(0,0,0,0.45);}50%{box-shadow:0 0 0 1px rgba(245,166,35,0.35),0 28px 70px rgba(245,166,35,0.12);}}
+.vs-ia-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px;margin-bottom:12px;width:fit-content;}
+.vs-ia-card.muted .vs-ia-badge{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.55);}
+.vs-ia-card.win .vs-ia-badge{background:rgba(245,166,35,0.2);color:var(--gold);}
+.vs-ia-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;color:#fff;margin:0 0 6px;letter-spacing:-0.02em;}
+.vs-ia-card .vs-ia-one{font-size:14px;font-weight:700;color:rgba(255,255,255,0.78);margin-bottom:1rem;line-height:1.45;}
+.vs-ia-card.win .vs-ia-one{color:#FDE68A;}
+.vs-ia-card ul{list-style:none;margin:0;padding:0;flex:1;}
+.vs-ia-card li{font-size:13px;line-height:1.5;color:rgba(255,255,255,0.58);padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;align-items:flex-start;}
+.vs-ia-card li:last-child{border-bottom:none;}
+.vs-ia-card li i{flex-shrink:0;margin-top:2px;font-size:14px;}
+.vs-ia-card.muted li i{color:#F87171;}
+.vs-ia-card.win li{color:rgba(255,255,255,0.88);font-weight:500;}
+.vs-ia-card.win li i{color:var(--gold);}
+.vs-ia-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1.75rem;}
+.vs-ia-role{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px 12px;text-align:center;}
+.vs-ia-role strong{display:block;font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;}
+.vs-ia-role span{font-size:12px;color:rgba(255,255,255,0.55);line-height:1.45;}
+.vs-ia-claude{margin-top:1.75rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 18px;padding:14px 18px;border-radius:14px;background:rgba(0,0,0,0.35);border:1px solid rgba(245,166,35,0.28);}
+.vs-ia-claude-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);}
+.vs-ia-claude-seal i{font-size:18px;}
+.vs-ia-claude p{margin:0;font-size:13px;color:rgba(255,255,255,0.65);line-height:1.5;max-width:520px;text-align:left;}
+.vs-ia-claude p strong{color:#fff;}
+.vs-ia-cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:1.5rem;}
+@media(max-width:900px){
+  .vs-ia-grid,.vs-ia-roles{grid-template-columns:1fr;}
+  .vs-ia-card.win{order:-1;}
+  .vs-ia-claude{flex-direction:column;text-align:center;}
+  .vs-ia-claude p{text-align:center;}
+}
+
 .comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;}
 .comp-card{border-radius:var(--rxl);padding:2rem;border:2px solid;}
 .comp-card.trad{border-color:var(--gray-light);background:white;}
@@ -672,6 +719,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <a href="index.html" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" srcset="assets/logos/infinity-studio-cr-nav.png?v=20260703 1x, assets/logos/infinity-studio-cr-nav@2x.png?v=20260703 2x" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo" width="52" height="52"></a>
   <div class="nav-links">
     <a href="#para-mi">¿Es para mí?</a>
+    <a href="#vs-ia">Nuestras IAs</a>
     <a href="#comparar">Comparar</a>
     <a href="#pricing">Precios</a>
     <a href="try-alice.html">Alice Companion</a>
@@ -836,6 +884,77 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         <span class="freeze-word">Te<br>trabás.</span>
         <div class="freeze-sub">Eso no se arregla con más gramática.<br>Se arregla practicando situaciones reales, con alguien que te guíe.<br><br><strong>Infinity Studio CR</strong> — clases privadas por videollamada, desde Costa Rica para toda Latinoamérica.</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="vs-ia" id="vs-ia" aria-labelledby="vs-ia-title">
+  <div class="section-inner">
+    <div class="vs-ia-head">
+      <div class="section-tag">Apps · ChatGPT · Infinity</div>
+      <h2 class="section-title" id="vs-ia-title">No somos otra app.<br>No somos ChatGPT suelto.<br><em>Somos entrenamiento con IA.</em></h2>
+      <p class="vs-ia-lead">La gente confunde “hablar con una IA” con <strong>entrenar para operar en inglés</strong>. Acá la diferencia, sin humo.</p>
+    </div>
+
+    <div class="vs-ia-grid">
+      <article class="vs-ia-card muted">
+        <span class="vs-ia-badge"><i class="ti ti-device-mobile"></i> Apps</span>
+        <h3>Duolingo y similares</h3>
+        <p class="vs-ia-one">Gamificación y vocabulario.</p>
+        <ul>
+          <li><i class="ti ti-x"></i> Poco feedback de estructura real al hablar</li>
+          <li><i class="ti ti-x"></i> Progreso “suave” — no mide presión laboral</li>
+          <li><i class="ti ti-x"></i> No te prepara para entrevista o llamada</li>
+        </ul>
+      </article>
+
+      <article class="vs-ia-card muted">
+        <span class="vs-ia-badge"><i class="ti ti-message-chatbot"></i> ChatGPT</span>
+        <h3>Chat genérico</h3>
+        <p class="vs-ia-one">Responde de todo — sin tu método.</p>
+        <ul>
+          <li><i class="ti ti-x"></i> No conoce MSI, KPIs ni tu nivel Infinity</li>
+          <li><i class="ti ti-x"></i> Sin coach, sin drills, sin simulación de trabajo</li>
+          <li><i class="ti ti-x"></i> Cada chat empieza de cero — no hay sistema</li>
+        </ul>
+      </article>
+
+      <article class="vs-ia-card win">
+        <span class="vs-ia-badge"><i class="ti ti-bolt"></i> Infinity</span>
+        <h3>Jill · Alice · Nexora</h3>
+        <p class="vs-ia-one">IA con rol, método y resultado.</p>
+        <ul>
+          <li><i class="ti ti-check"></i> Jill: Foundations — estructura MSI hasta que la armes</li>
+          <li><i class="ti ti-check"></i> Alice: hablar con flujo, linkers y corrección en vivo</li>
+          <li><i class="ti ti-check"></i> Nexora: presión real — llamadas, entrevistas, stakeholders</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="vs-ia-roles" aria-label="Roles de nuestras IAs">
+      <div class="vs-ia-role">
+        <strong>Jill</strong>
+        <span>Base sólida · companion Foundations</span>
+      </div>
+      <div class="vs-ia-role">
+        <strong>Alice</strong>
+        <span>Fluidez · coach + companion 24/7</span>
+      </div>
+      <div class="vs-ia-role">
+        <strong>Nexora</strong>
+        <span>Simulación laboral bajo fuego</span>
+      </div>
+    </div>
+
+    <div class="vs-ia-claude">
+      <span class="vs-ia-claude-seal"><i class="ti ti-cpu"></i> Powered by Claude</span>
+      <p>El motor es <strong>Claude</strong> (Anthropic). El sistema — método Nexus, roles, drills, voz y métricas — es <strong>Infinity Studio CR</strong>. Tecnología de punta + entrenamiento operacional.</p>
+    </div>
+
+    <div class="vs-ia-cta">
+      <a href="try-alice.html" class="btn-primary"><i class="ti ti-player-play"></i> Probar Companion</a>
+      <a href="#comparar" class="btn-secondary" style="margin-top:0;border-color:rgba(255,255,255,0.35);color:#fff;background:transparent;"><i class="ti ti-table"></i> Ver comparación completa</a>
+      <a href="#contact" class="btn-secondary" style="margin-top:0;border-color:rgba(245,166,35,0.45);color:var(--gold);background:rgba(245,166,35,0.08);"><i class="ti ti-brand-whatsapp"></i> Diagnóstico</a>
     </div>
   </div>
 </section>
@@ -1783,7 +1902,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 <footer>
   <img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" srcset="assets/logos/infinity-studio-cr-nav.png?v=20260703 1x, assets/logos/infinity-studio-cr-nav@2x.png?v=20260703 2x" alt="Infinity Studio CR" class="footer-logo" width="60" height="60">
   <div class="footer-links">
-    <a href="#para-mi">¿Es para mí?</a><a href="#comparar">Comparar</a><a href="#pricing">Precios</a><a href="#contact">Contacto</a>
+    <a href="#para-mi">¿Es para mí?</a><a href="#vs-ia">Nuestras IAs</a><a href="#comparar">Comparar</a><a href="#pricing">Precios</a><a href="#contact">Contacto</a>
     <a href="#programs">Programas</a>
     <a href="#jill">Jill</a><a href="#alice-companion">Alice</a><a href="#pricing">Precios</a><a href="#about">Nosotros</a>
     <a href="#success-stories">Casos de éxito</a><a href="para-quien.html">Para quién</a><a href="ingles-operacional-latinoamerica.html">LATAM</a><a href="casos-de-exito.html">Casos documentados</a><a href="#contact">Contacto</a>

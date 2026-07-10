@@ -257,22 +257,25 @@ function drainTtsPending(pending, onSentence, onPrefetch) {
 }
 
 var _ttsAudioUnlocked = false;
+var _ttsSharedCtx = null;
 
-/** Unlock browser audio after a user gesture (laptops often block autoplay after several plays). */
+/** Unlock browser audio after a user gesture. Always re-resume — context often suspends after mic/TTS. */
 function unlockTtsAudio() {
   if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.unlock();
-  if (_ttsAudioUnlocked) return Promise.resolve();
   return new Promise(function (resolve) {
+    var settled = false;
+    function done() {
+      if (settled) return;
+      settled = true;
+      _ttsAudioUnlocked = true;
+      resolve();
+    }
     try {
       var Ctx = window.AudioContext || window.webkitAudioContext;
       if (Ctx) {
-        var ctx = new Ctx();
-        var p = ctx.resume();
-        var done = function () {
-          _ttsAudioUnlocked = true;
-          try { ctx.close(); } catch (e) {}
-          resolve();
-        };
+        if (!_ttsSharedCtx || _ttsSharedCtx.state === 'closed') _ttsSharedCtx = new Ctx();
+        var ctx = _ttsSharedCtx;
+        var p = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
         if (p && typeof p.then === 'function') p.then(done).catch(done);
         else done();
         return;
@@ -282,17 +285,11 @@ function unlockTtsAudio() {
       var a = new Audio();
       a.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
       a.volume = 0.001;
-      var p = a.play();
-      if (p && typeof p.then === 'function') {
-        p.then(function () { _ttsAudioUnlocked = true; resolve(); })
-          .catch(function () { _ttsAudioUnlocked = true; resolve(); });
-      } else {
-        _ttsAudioUnlocked = true;
-        resolve();
-      }
+      var p2 = a.play();
+      if (p2 && typeof p2.then === 'function') p2.then(done).catch(done);
+      else done();
     } catch (e2) {
-      _ttsAudioUnlocked = true;
-      resolve();
+      done();
     }
   });
 }

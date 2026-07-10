@@ -1,13 +1,12 @@
 /**
  * Escenario visual Jill - pantalla completa mientras habla y explica.
- * Jill Tutora y Jill Pro comparten este motor; solo cambia el flujo companion en backend/UI.
+ * Jill Tutora y Jill Pro comparten este motor.
  */
 (function (global) {
   'use strict';
 
   var active = false;
   var currentColumn = null;
-  var autoFsDone = false;
 
   function shell() {
     return document.getElementById('jill-lesson-shell');
@@ -32,13 +31,19 @@
     return null;
   }
 
-  function shouldShow(contentType, text, bundle) {
-    if (contentType === 'whiteboard') return true;
-    var col = detectColumn(text, bundle);
-    if (!col) return false;
+  function isExplainText(text) {
     var t = String(text || '');
+    return /\b(explic|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|P\s*\+|AUX|whiteboard|pizarr|to be|will have|there is|there are)\b/i.test(t);
+  }
+
+  function shouldShow(contentType, text, bundle) {
+    if (contentType === 'whiteboard' || contentType === 'example') return true;
+    var col = detectColumn(text, bundle);
+    var t = String(text || '');
+    if (isExplainText(t)) return true;
+    if (!col) return false;
     if (/\b(formula|msi|ranura|whiteboard|pizarr|PC|P \+|V\+ing|gerundio|gerund|-ing\b|to be)\b/i.test(t)) return true;
-    if (t.length > 120 && col) return true;
+    if (t.length > 100 && col) return true;
     return false;
   }
 
@@ -47,24 +52,22 @@
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\n+/g, ' ')
       .trim()
-      .slice(0, 280);
+      .slice(0, 320);
   }
 
-  function requestFullscreenOnce() {
-    if (autoFsDone) return;
+  /** Enter fullscreen while we still have a user gesture (send/mic). */
+  function requestFullscreen() {
     var sh = shell();
     if (!sh) return;
     var already = document.fullscreenElement === sh || document.webkitFullscreenElement === sh;
-    if (already) { autoFsDone = true; return; }
+    if (already) return;
     var req = sh.requestFullscreen || sh.webkitRequestFullscreen;
     if (!req) return;
-    autoFsDone = true;
-    req.call(sh).catch(function () { autoFsDone = false; });
+    req.call(sh).catch(function () {});
   }
 
   function show(text, contentType, bundle) {
     if (!shouldShow(contentType, text, bundle)) {
-      hide();
       return false;
     }
     var col = detectColumn(text, bundle) || 'progressive';
@@ -85,7 +88,7 @@
       stage.hidden = false;
       active = true;
       currentColumn = col;
-      requestFullscreenOnce();
+      requestFullscreen();
     });
 
     return true;
@@ -108,7 +111,6 @@
   }
 
   function resetSession() {
-    autoFsDone = false;
     hide();
   }
 
@@ -122,6 +124,7 @@
     updateCaption: updateCaption,
     shouldShow: shouldShow,
     isActive: isActive,
-    resetSession: resetSession
+    resetSession: resetSession,
+    requestFullscreen: requestFullscreen
   };
 })(typeof window !== 'undefined' ? window : globalThis);
