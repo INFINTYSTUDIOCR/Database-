@@ -166,7 +166,8 @@
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
-    prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' }
+    prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' },
+    negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones · AUX + NOT' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -179,6 +180,7 @@
     if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
     if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'prepositions';
     if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
+    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|not work|no work|aux\s*\+?\s*not)\b/.test(t)) return 'negations';
     if (/\b(art[ií]culo|article|\bthe\b)\b/.test(t)) return 'perfect';
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;

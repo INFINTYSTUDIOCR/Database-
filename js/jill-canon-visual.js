@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260709stage';
+  var CACHE_VER = '20260710neg';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {

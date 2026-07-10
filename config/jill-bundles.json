@@ -9,6 +9,7 @@
     "B2-verbs",
     "F2-pronouns",
     "B3-tenses",
+    "F2b-negations",
     "F3-modals",
     "F4-components",
     "B1-chunking",
@@ -239,6 +240,56 @@
       ],
       "images": [
         "tense-line"
+      ],
+      "nextBundle": "F2b-negations"
+    },
+    {
+      "id": "F2b-negations",
+      "order": 4.5,
+      "phase": "F4",
+      "title": "Negaciones — AUX + NOT (no español → inglés)",
+      "level": "Emerging",
+      "foundationsSection": "Módulo de Dominio 006-D · Negaciones",
+      "canonColumn": "negations",
+      "doctrine": "En español: no + verbo. En inglés: P + AUX + NOT + V + C. Nunca I no work / I not work. El AUX depende de la estructura (do/does, did, be, have, will). Canon: assets/canon/negaciones.svg.",
+      "structureRules": [
+        "PR: P + do/does + not + V base",
+        "PS: P + did + not + V base",
+        "BE/PC: P + am/is/are + not (+ V+ing)",
+        "PRP: P + have/has + not + PP",
+        "MOD: P + will/would/can + not + V",
+        "Pregunta Jill: ¿Qué auxiliar pide esta estructura?",
+        "Tras do/does/did el verbo vuelve a base (doesn't work, no works)"
+      ],
+      "kpis": [
+        "k2",
+        "k3",
+        "k10"
+      ],
+      "topics": [
+        "Puente español no+verbo → AUX+NOT",
+        "don't / doesn't / didn't",
+        "isn't / aren't / wasn't / weren't",
+        "haven't / hasn't",
+        "won't / wouldn't / can't",
+        "Trampas: I no work, She don't, He doesn't works"
+      ],
+      "whiteboard": [
+        "P | AUX | NOT | V | C",
+        "I | don't | work | on Sundays",
+        "She | isn't | working | now",
+        "We | didn't | go | yesterday",
+        "I | won't | be | late"
+      ],
+      "structures": [
+        "PR-: P + do/does + not + V + C",
+        "PS-: P + did + not + V + C",
+        "BE-/PC-: P + be + not (+ V+ing) + C",
+        "PRP-: P + have/has + not + PP + C",
+        "MOD-: P + M + not + V + C"
+      ],
+      "images": [
+        "negaciones"
       ],
       "nextBundle": "F3-modals"
     },

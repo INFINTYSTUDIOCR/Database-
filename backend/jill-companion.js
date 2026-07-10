@@ -19,7 +19,7 @@ function isEnglishDoubtRequest(message) {
   const t = String(message || '');
   if (!t.trim()) return false;
   const ask = /\b(explain|teach me|ens[eé][aá]me|explic[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayudame (a )?entender|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|no s[eé] c[oó]mo)\b/i.test(t);
-  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future continuous|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing)\b/i.test(t);
+  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future continuous|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not)\b/i.test(t);
   return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend|duda|ayud)/i.test(t));
 }
 

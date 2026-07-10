@@ -668,6 +668,59 @@ Pregunta Jill: "˝Estoy diciendo que **existe** algo, o **que es** algo?"
 
 ---
 
+## MODULO DE DOMINIO 006-D ? NEGACIONES (NO ESPA?OL ? AUX + NOT)
+
+**Concepto central (firma John ? despues de tiempos / BE):** en espa?ol neg·s con **no + verbo** (*yo no trabajo, ella no fue, no estoy cansado*). El hispanohablante calca ? "I no work", "I not work", "She don't go" ? error. En inglÈs la negaciÛn **no va pegada al verbo principal**: va en el **auxiliar** (AUX) + **not**. Canon visual: `assets/canon/negaciones.svg`.
+
+**La formula (MSI? ? ranuras):**
+```
+P + AUX + NOT + V + C
+```
+- **P** = pronombre / sujeto
+- **AUX** = el auxiliar que pide la estructura (do/does, did, am/is/are, have/has, will/would?)
+- **NOT** = la negaciÛn (contracciÛn oral: don't, didn't, isn't?)
+- **V** = verbo en la forma que pide el AUX (base / ing / PP)
+- **C** = complemento
+
+**Puente espa?ol (detectar el "no" antes de producir):**
+
+| Estructura | Espa?ol | InglÈs (formula) | Modelo |
+|------------|---------|------------------|--------|
+| PR | yo no trabajo | P + do/does + not + V | I **don't** work / She **doesn't** work |
+| PS | yo no fui | P + did + not + V | I **didn't** go |
+| BE | no estoy cansado | P + am/is/are + not + C | I **am not** / I'm **not** tired |
+| PC | no estoy trabajando | P + am/is/are + not + V+ing | She **isn't** working |
+| PRP | no he terminado | P + have/has + not + PP | We **haven't** finished |
+| MOD | no voy a / no irÌa | P + will/would + not + V | I **won't** / I **wouldn't** go |
+
+**Pregunta Jill (antes de meter not):** "?QuÈ auxiliar pide esta estructura?" ? si no hay auxiliar visible (PR/PS), se **instala** do/does/did.
+
+**Reglas de oro:**
+1. Nunca `I no work` / `I not work`.
+2. Con do/does/did el verbo principal vuelve a **base** (She doesn't **work**, no *works*).
+3. Con BE/PC el not va **despuÈs** del be: She **isn't** working.
+4. Contracciones para habla: don't, doesn't, didn't, isn't, aren't, wasn't, weren't, won't, wouldn't, haven't, hasn't, can't.
+
+**Metodo moneda (pregunta negativa):**
+- AfirmaciÛn: You work here.
+- NegaciÛn: You **don't** work here.
+- Pregunta: **Don't** you work here? (el AUX sube al frente ? misma lÛgica moneda).
+
+**Frase ancla:** `I don't work on Sundays, she isn't tired, and we didn't go yesterday.`
+
+**Ejercicios de dominio:**
+1. Jill da afirmativo ? estudiante arma negativo (mismo C).
+2. Rapid Fire 8 items mezclando PR/PS/BE/PC/PRP/MOD.
+3. Atrapar trampas: I no/not + V; She don't; He doesn't works.
+4. ProducciÛn: 1 oraciÛn propia negativa sobre su dÌa.
+5. ConfirmaciÛn: "?Te quedÛ? Arm· otra con didn't / isn't / won't."
+
+**Dominio:** elige el AUX correcto por estructura ? nunca calca "no + verbo" ? contracciones orales ? verbo base tras do/does/did ? confirma entendimiento antes de seguir.
+
+**Errores frecuentes:** I no work ? "?DÛnde va el auxiliar?" ? I not work ? "not viaja con el AUX" ? She don't ? "3? persona: does + not" ? He doesn't works ? "do/does ya marca ? verbo en base" ? I am not go ? "PC pide V+ing o BE + C, no go suelto".
+
+---
+
 ## MùDULO DE DOMINIO 007 ù ESTADOS: TENER (espaùol) = TO BE (inglùs) [EDAD Y SENSACIONES]
 
 **Concepto central:** en espaùol usamos **tener** para estados (tengo 25 aùos, tengo hambre, tengo frùo). El hispanohablante traduce literal ? "I have 25 years", "I have hunger" ? error. En inglùs un estado no se **tiene**, se **ES**: `to be`. El estudiante no memoriza una lista ù detecta si eso que "tiene" es una **cosa** (posesiùn ? have) o un **estado / sensaciùn** (? to be).

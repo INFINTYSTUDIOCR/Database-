@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v16-conjugar-invertir-domino';
+const METHOD_OS_VERSION = 'os-v17-negaciones';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -102,17 +102,32 @@ PREPOSICIONES #2 TIEMPO in/on/at (Modulo 006-B) � mismo trio, ahora TIEMPO (ca
 Fechas: ordinales on March 5th / the 5th of March; anos in 2024. Eventos: at Christmas (epoca) vs on Christmas Day (dia). "Coming at you" = at hacia objetivo. Frase ancla: "We meet on Monday in March at 5 pm". Pregunta: periodo largo, dia/fecha, o punto (hora/evento)? Errores: in Monday, at March, on 5 pm.
 
 
-THERE IS / THERE ARE (Modulo 006-C) � hay espanol -> THERE + BE + C (canon: there-existencial.svg; despues prep 006/006-B):
+THERE IS / THERE ARE (Modulo 006-C) — hay espanol -> THERE + BE + C (canon: there-existencial.svg; despues prep 006/006-B):
 - Existencia NO es have: hay un gato -> there IS a cat; hay gatos -> there ARE cats.
 - Acuerdo: mira sustantivo despues del be (is/was/has been vs are/were/have been).
-- Tiempos: there was/were � there will be � there would be � there has/have been.
+- Tiempos: there was/were — there will be — there would be — there has/have been.
 - Preguntas (moneda): Is there...? Are there...? Was/Were there...? Will/Would there be...? Has/Have there been...?
-- there IS (existe) vs it IS (identificacion): �existe algo o que es algo?
-Frase ancla: "There is a book on the table, but there are no pens � is there a pencil anywhere?"
+- there IS (existe) vs it IS (identificacion): ¿existe algo o que es algo?
+Frase ancla: "There is a book on the table, but there are no pens — is there a pencil anywhere?"
 Errores: have a cat por hay; there is cats; Is there are.
 
 
+NEGACIONES (Modulo 006-D) — espanol "no + verbo" -> ingles P + AUX + NOT + V + C (canon: negaciones.svg; despues de tiempos/BE):
+- Puente: en espanol "yo no trabajo". En ingles NUNCA "I no work" ni "I not work" — hace falta AUXILIAR + NOT.
+- Formula MSI: P + AUX + NOT + V + C. El AUX depende de la estructura ya instalada.
+- PR (sin be): do/does + not + V base → I don't work / She doesn't work.
+- PS: did + not + V base → I didn't go.
+- BE / PC: am/is/are/was/were + not (+ V+ing) → She isn't here / She isn't working.
+- PRP: have/has + not + PP → We haven't finished.
+- MOD: will/would/can/should + not + V → I won't / I wouldn't / I can't.
+- Contracciones orales: don't doesn't didn't isn't aren't wasn't weren't won't wouldn't haven't hasn't.
+- Pregunta Jill: "¿Que auxiliar pide esta estructura?" Antes de meter not.
+Frase ancla: "I don't work on Sundays, she isn't tired, and we didn't go yesterday."
+Errores: I no work; I not work; She don't; He doesn't works (doble marca); I am not go.
+
+
 Practica 006-C obligatoria: afirmacion+pregunta mismo C; rotar is/are/was/were/will/would/has-have been; combinar there+prep; conversacion 4+ oraciones con una en pasado y una pregunta.
+Practica 006-D obligatoria: mismo C en afirmativo→negativo; rotar PR/PS/BE/PC/PRP/MOD; atrapar "I no/not + V"; 8 items Rapid Fire + 1 oracion propia.
 
 GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.svg; MSI� P + V + ADJ en C (ranura C):
 - Comparar dos (mas�que): adj CORTO -> -er + THAN (taller than); adj LARGO -> MORE + adj + THAN; irregulares: good->better, bad->worse, far->farther.
