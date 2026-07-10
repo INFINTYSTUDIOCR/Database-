@@ -1,5 +1,5 @@
 /**
- * Infinity Victory ? UI delgada (datos desde cerebro).
+ * Infinity Victory — UI delgada (datos desde cerebro).
  */
 (function (global) {
   'use strict';
@@ -11,14 +11,14 @@
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  function pillarRow(p, icon) {
+  function pillarRow(p, iconHtml) {
     var pct = p.required ? Math.min(100, Math.round((p.current / p.required) * 100)) : 0;
     var color = p.met ? '#86EFAC' : '#FCD34D';
     var bar = p.met ? 100 : pct;
     return '<div style="margin-bottom:10px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
-      + '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);">' + icon + ' ' + esc(p.label) + '</span>'
-      + '<span style="font-size:11px;font-weight:800;color:' + color + ';">' + (p.met ? '?' : (p.current + '/' + p.required)) + '</span>'
+      + '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);display:inline-flex;align-items:center;gap:6px;">' + iconHtml + ' ' + esc(p.label) + '</span>'
+      + '<span style="font-size:11px;font-weight:800;color:' + color + ';">' + (p.met ? '<i class="ti ti-check"></i>' : (p.current + '/' + p.required)) + '</span>'
       + '</div>'
       + '<div style="height:5px;background:rgba(0,0,0,0.25);border-radius:4px;overflow:hidden;">'
       + '<div style="height:100%;width:' + bar + '%;background:' + (p.met ? 'linear-gradient(90deg,#0a5c3c,#86EFAC)' : 'linear-gradient(90deg,#b45309,#fbbf24)') + ';border-radius:4px;"></div>'
@@ -34,13 +34,15 @@
       ? 'border:1px solid rgba(251,191,36,0.65);box-shadow:0 0 24px rgba(251,191,36,0.2);'
       : 'border:1px solid rgba(167,139,250,0.35);';
     var head = achieved
-      ? '<div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#fcd34d;margin-bottom:4px;">?? INFINITY VICTORY</div>'
-      : '<div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#c4b5fd;margin-bottom:4px;">?? INFINITY VICTORY</div>';
+      ? '<div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#fcd34d;margin-bottom:4px;"><i class="ti ti-trophy"></i> INFINITY VICTORY</div>'
+      : '<div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#c4b5fd;margin-bottom:4px;"><i class="ti ti-flag"></i> INFINITY VICTORY</div>';
     var sub = '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:12px;line-height:1.5;">' + esc(metric.tagline) + '</div>';
     var progress = '<div style="font-size:22px;font-weight:900;color:' + (achieved ? '#fcd34d' : '#e9d5ff') + ';margin-bottom:10px;">'
       + metric.progressPct + '%</div>';
     var pillars = metric.pillars
-      ? pillarRow(metric.pillars.streak, '??') + pillarRow(metric.pillars.drill, '?') + pillarRow(metric.pillars.session, '??')
+      ? pillarRow(metric.pillars.streak, '<i class="ti ti-flame" style="color:#fb923c;"></i>')
+        + pillarRow(metric.pillars.drill, '<i class="ti ti-bolt" style="color:#86EFAC;"></i>')
+        + pillarRow(metric.pillars.session || metric.pillars.nexora, '<i class="ti ti-message-circle" style="color:#c4b5fd;"></i>')
       : '';
     var share = achieved && metric.shareLine
       ? '<button type="button" class="infinity-victory-share" data-share="' + esc(metric.shareLine) + '" style="margin-top:10px;width:100%;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.45);color:#fde68a;font-weight:700;font-size:12px;padding:10px;border-radius:10px;cursor:pointer;">Compartir logro</button>'
@@ -64,7 +66,7 @@
 
   function renderFromStudent(student) {
     if (student && student.infinityVictory) return renderCard(student.infinityVictory);
-    return '<div class="infinity-victory-card" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;padding:12px;margin-bottom:14px;">Cargando Infinity Victory?</div>';
+    return '<div class="infinity-victory-card" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;padding:12px;margin-bottom:14px;">Cargando Infinity Victory…</div>';
   }
 
   function bindShareButtons(root) {
@@ -78,7 +80,7 @@
           navigator.share({ title: 'Infinity Victory', text: text, url: 'https://studioinfinitycr.com' }).catch(function () {});
         } else if (navigator.clipboard) {
           navigator.clipboard.writeText(text + ' https://studioinfinitycr.com').then(function () {
-            if (typeof showToast === 'function') showToast('Texto copiado ? compartilo donde quieras');
+            if (typeof showToast === 'function') showToast('Texto copiado — compartilo donde quieras');
           });
         }
       });

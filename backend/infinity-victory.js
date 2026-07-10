@@ -1,5 +1,5 @@
 /**
- * Métricas de victoria — Jill (Foundations) y Alice (+ Nexora).
+ * MÃ©tricas de victoria Â— Jill (Foundations) y Alice (+ Nexora).
  * Vive en el cerebro; Jill y Nexora no se mezclan.
  */
 const STREAK_REQUIRED = 30;
@@ -71,7 +71,7 @@ function bestAliceSessionScore(student) {
   return best;
 }
 
-/** Infinity Victory — solo Foundations / Jill (sin Nexora). */
+/** Infinity Victory Â— solo Foundations / Jill (sin Nexora). */
 function computeJillVictoryMetric(student) {
   const streak = streakValue(student);
   const drillScore = bestDrillScore(student);
@@ -83,21 +83,21 @@ function computeJillVictoryMetric(student) {
       required: STREAK_REQUIRED,
       current: streak,
       met: streak >= STREAK_REQUIRED,
-      hint: 'Practicá con Jill ' + STREAK_REQUIRED + ' días seguidos.'
+      hint: 'PracticÃ¡ con Jill ' + STREAK_REQUIRED + ' dÃ­as seguidos.'
     },
     drill: {
       label: 'Rapid drill',
       required: DRILL_SCORE_REQUIRED,
       current: drillScore,
       met: drillScore >= DRILL_SCORE_REQUIRED,
-      hint: 'Ganá una ronda Rapid drill con ' + DRILL_SCORE_REQUIRED + '% o más.'
+      hint: 'GanÃ¡ una ronda Rapid drill con ' + DRILL_SCORE_REQUIRED + '% o mÃ¡s.'
     },
     session: {
-      label: 'Sesión Jill fuerte',
+      label: 'SesiÃ³n Jill fuerte',
       required: JILL_SESSION_SCORE_REQUIRED,
       current: sessionScore,
       met: sessionScore >= JILL_SESSION_SCORE_REQUIRED,
-      hint: 'Completá una sesión con Jill evaluada en ' + JILL_SESSION_SCORE_REQUIRED + '+ (tutora Foundations).'
+      hint: 'CompletÃ¡ una sesiÃ³n con Jill evaluada en ' + JILL_SESSION_SCORE_REQUIRED + '+ (tutora Foundations).'
     }
   };
 
@@ -119,18 +119,18 @@ function computeJillVictoryMetric(student) {
     progressPct: achieved ? 100 : Math.min(99, progressPct),
     metCount,
     totalPillars: 3,
-    title: achieved ? 'Infinity Victory · Foundations' : 'Camino a Victory · Jill',
+    title: achieved ? 'Infinity Victory Â· Foundations' : 'Camino a Victory Â· Jill',
     tagline: achieved
-      ? 'Constancia, drill y sesión Jill — estándar Foundations cumplido.'
-      : 'Tres pilares Jill: constancia, Rapid drill y sesión fuerte.',
+      ? 'Constancia, drill y sesiÃ³n Jill Â— estÃ¡ndar Foundations cumplido.'
+      : 'Tres pilares Jill: constancia, Rapid drill y sesiÃ³n fuerte.',
     shareLine: achieved
-      ? 'Completé Infinity Victory Foundations en Studio Infinity CR — Jill, Rapid drill y sesión fuerte.'
+      ? 'CompletÃ© Infinity Victory Foundations en Studio Infinity CR Â— Jill, Rapid drill y sesiÃ³n fuerte.'
       : null,
     updatedAt: new Date().toISOString()
   };
 }
 
-/** Alice Victory — incluye Nexora (simulación). */
+/** Alice Victory Â— incluye Nexora (simulaciÃ³n). */
 function computeAliceVictoryMetric(student) {
   const streak = aliceStreakValue(student);
   const aliceScore = bestAliceSessionScore(student);
@@ -143,21 +143,21 @@ function computeAliceVictoryMetric(student) {
       required: STREAK_REQUIRED,
       current: streak,
       met: streak >= STREAK_REQUIRED,
-      hint: 'Practicá con Alice ' + STREAK_REQUIRED + ' días seguidos.'
+      hint: 'PracticÃ¡ con Alice ' + STREAK_REQUIRED + ' dÃ­as seguidos.'
     },
     session: {
-      label: 'Sesión Alice',
+      label: 'SesiÃ³n Alice',
       required: JILL_SESSION_SCORE_REQUIRED,
       current: aliceScore,
       met: aliceScore >= JILL_SESSION_SCORE_REQUIRED,
-      hint: 'Sesión Alice evaluada en ' + JILL_SESSION_SCORE_REQUIRED + '+.'
+      hint: 'SesiÃ³n Alice evaluada en ' + JILL_SESSION_SCORE_REQUIRED + '+.'
     },
     nexora: {
       label: 'Nexora en vivo',
       required: NEXORA_SCORE_REQUIRED,
       current: nexoraLast ? (parseInt(nexoraLast.score, 10) || 0) : 0,
       met: !!nexoraOk,
-      hint: 'Simulación Nexora ' + NEXORA_SCORE_REQUIRED + '+ pts, sin transferir a supervisor.'
+      hint: 'SimulaciÃ³n Nexora ' + NEXORA_SCORE_REQUIRED + '+ pts, sin transferir a supervisor.'
     }
   };
 
@@ -179,12 +179,12 @@ function computeAliceVictoryMetric(student) {
     progressPct: achieved ? 100 : Math.min(99, progressPct),
     metCount,
     totalPillars: 3,
-    title: achieved ? 'Infinity Victory · Alice' : 'Camino a Victory · Alice',
+    title: achieved ? 'Infinity Victory Â· Alice' : 'Camino a Victory Â· Alice',
     tagline: achieved
-      ? 'Alice + Nexora — producción real bajo presión.'
-      : 'Alice enseña y acompaña; Nexora pone a prueba en llamadas.',
+      ? 'Alice + Nexora Â— producciÃ³n real bajo presiÃ³n.'
+      : 'Alice enseÃ±a y acompaÃ±a; Nexora pone a prueba en llamadas.',
     shareLine: achieved
-      ? 'Completé Infinity Victory Alice en Studio Infinity CR — coaching y Nexora.'
+      ? 'CompletÃ© Infinity Victory Alice en Studio Infinity CR Â— coaching y Nexora.'
       : null,
     updatedAt: new Date().toISOString()
   };
