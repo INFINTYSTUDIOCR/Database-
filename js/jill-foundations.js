@@ -164,7 +164,8 @@
     progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio - PC (P + To Be + V+ing + C)' },
     perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + articulos' },
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
-    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda / modales' },
+    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda (inversion)' },
+    modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Modales - P + MODAL + V base' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' },
     prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones tiempo' },
@@ -198,7 +199,14 @@
     if (/\b(presente perfecto|present perfect|\bprp\b|have\/has|have been)\b/.test(t)) return 'perfect';
     if (/\b(pasado simple|past simple|\bps\b|yesterday|last week)\b/.test(t)) return 'past';
     if (/\b(presente simple|present simple|\bpr\b|habits?|todos los d[ií]as)\b/.test(t)) return 'present';
-    if (/\b(futuro|going to|will\b|would\b|modal|moneda|inversi[oó]n|pregunta|can\b|could|should|must)\b/.test(t)) return 'modal';
+    // Modales ≠ Método Moneda (inversión to be)
+    if (/\b(modales?|can\b|could\b|should\b|must\b|may\b|might\b)\b/.test(t)
+      && !/\b(moneda|inversi[oó]n|m[eé]todo de la moneda)\b/.test(t)) {
+      return 'modales';
+    }
+    if (/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|are you\b|v\s*\+\s*p|p\s*\+\s*v)\b/.test(t)) return 'modal';
+    if (/\b(futuro perfecto|future perfect|will have)\b/.test(t)) return 'combined';
+    if (/\b(futuro|going to|will\b|would\b)\b/.test(t)) return 'present';
     if (/\b(preposici|prep\b|\bin on at\b|lugar)\b/.test(t)) return 'prepositions';
     if (/\b(tiempo(?:s)? verbal|tiempos)\b/.test(t)) return 'present';
     if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';

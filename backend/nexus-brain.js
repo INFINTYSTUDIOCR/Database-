@@ -119,9 +119,9 @@ async function brainSetLLM(hash, tutor, intent, userMessage, reply, extra) {
   });
 }
 
-async function brainGetTTS(cleanText, voiceId) {
+async function brainGetTTS(cleanText, voiceId, languageCode) {
   if (!cleanText || !voiceId) return { hit: false, hash: null };
-  const hash = brainHash(['tts', voiceId, cleanText]);
+  const hash = brainHash(['tts', voiceId, languageCode || 'auto', cleanText]);
   const row = await brainGetRow('BRAIN-TTS', hash);
   if (row?.audioB64) {
     try {
@@ -138,7 +138,7 @@ async function brainGetTTS(cleanText, voiceId) {
   return { hit: false, hash };
 }
 
-async function brainSetTTS(hash, cleanText, voiceId, buffer) {
+async function brainSetTTS(hash, cleanText, voiceId, buffer, languageCode) {
   if (!hash || !buffer || !Buffer.isBuffer(buffer)) return;
   const b64 = buffer.toString('base64');
   if (b64.length > BRAIN_TTS_MAX_B64) {
@@ -147,6 +147,7 @@ async function brainSetTTS(hash, cleanText, voiceId, buffer) {
   }
   await brainSetRow('BRAIN-TTS', hash, {
     voiceId,
+    languageCode: languageCode || 'auto',
     textPreview: String(cleanText).slice(0, 160),
     audioB64: b64,
     hits: 0,

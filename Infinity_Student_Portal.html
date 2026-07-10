@@ -33,10 +33,10 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260710q7"></script>
+<script src="js/jill-canon-visual.js?v=20260710modales"></script>
 <script src="js/jill-visual-stage.js?v=20260710mic"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710q7"></script>
+<script src="js/jill-foundations.js?v=20260710modales"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -3079,7 +3079,9 @@ function jillDetectCompanionTopic(text){
   if(/\b(presente simple|present simple|\bpr\b)/.test(t)) return 'presente simple PR';
   if(/\b(pasado simple|past simple|\bps\b)/.test(t)) return 'pasado simple PS';
   if(/\b(present perfect|presente perfecto|\bprp\b)/.test(t)) return 'presente perfecto PRP';
-  if(/\b(modal|will|would|should|can|could)\b/.test(t)) return 'modales MOD';
+  if(/\b(modales?|should|can|could|must|may|might)\b/.test(t) && !/\b(moneda|inversi)/.test(t)) return 'modales (P + MODAL + V base)';
+  if(/\b(moneda|inversi[oó]n)\b/.test(t)) return 'metodo moneda (inversion)';
+  if(/\b(will|would)\b/.test(t)) return 'futuro / would';
   if(/\b(explic|ayud|lecci|enseñ|help me|teach|no entiendo)/.test(t)) return String(text || '').slice(0, 120);
   return '';
 }

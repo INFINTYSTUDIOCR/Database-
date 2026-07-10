@@ -689,7 +689,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-cors';
+const APP1_BUILD = '20260710-modales-tts';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2752,7 +2752,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
 
-  const brainTts = await Brain.brainGetTTS(clean, voiceId);
+  const brainTts = await Brain.brainGetTTS(clean, voiceId, languageCode);
   if (brainTts.hit) {
     cacheTTS(cacheKey, brainTts.buffer);
     return { buffer: brainTts.buffer, cache: 'HIT', clean };
@@ -2788,7 +2788,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 
   const buf = Buffer.from(await r.arrayBuffer());
   cacheTTS(cacheKey, buf);
-  if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf);
+  if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf, languageCode);
   return { buffer: buf, cache: 'MISS', clean };
 }
 
@@ -4372,9 +4372,16 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
   try {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null, { allowJillProProduct: true });
     if (req.auth.role === 'student' && !ok) return;
-    const { text } = req.body || {};
-    // Jill y Jill Pro: SIEMPRE voz Alice (femenina) — nunca voiceId del cliente ni JILL_VOICE_ID en env.
-    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Jill' });
+    const { text, lang } = req.body || {};
+    const rawLang = String(lang || 'es').toLowerCase();
+    // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
+    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es';
+    return await synthesizeSpeech(req, res, {
+      text,
+      voiceId: ALICE_VOICE_ID,
+      label: 'Jill',
+      languageCode
+    });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });

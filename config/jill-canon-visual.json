@@ -112,6 +112,15 @@
       "svg": "assets/canon/moneda.svg",
       "gif": null,
       "title": "Metodo moneda"
+    },
+    {
+      "id": "modales",
+      "columns": [
+        "modales"
+      ],
+      "svg": "assets/canon/modales.svg",
+      "gif": null,
+      "title": "Modales"
     }
   ]
 }
