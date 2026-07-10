@@ -2669,7 +2669,7 @@ function aliceShowTtsError(status){
   if(!st) return;
   if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
   else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Companion.';
-  else if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
+  else if(status === 500 || status === 503) st.textContent = 'Voz Alice no disponible — reintentá en unos segundos.';
   else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
 }
 
@@ -2695,14 +2695,31 @@ function alicePlayBrowserTts(text, onEnded, onError){
   return true;
 }
 
-function aliceFetchTtsBlob(clean){
+function aliceFetchTtsBlob(clean, attempt){
+  attempt = attempt || 0;
   return infinityFetch('/alice-tts', {method:'POST', headers:authHeaders(), body: aliceTtsRequestBody(clean)})
   .then(function(r){
-    if(!r.ok){ aliceShowTtsError(r.status); return null; }
+    if(!r.ok){
+      if(attempt < 4 && (r.status === 429 || r.status >= 500)){
+        return new Promise(function(resolve){
+          setTimeout(function(){ resolve(aliceFetchTtsBlob(clean, attempt + 1)); }, 300 * (attempt + 1));
+        });
+      }
+      aliceShowTtsError(r.status);
+      return null;
+    }
     var ct = (r.headers.get('content-type') || '').toLowerCase();
     if(ct.indexOf('audio') === -1) return null;
     aliceClearTtsStatus();
     return r.blob();
+  })
+  .catch(function(){
+    if(attempt < 4){
+      return new Promise(function(resolve){
+        setTimeout(function(){ resolve(aliceFetchTtsBlob(clean, attempt + 1)); }, 300 * (attempt + 1));
+      });
+    }
+    return null;
   });
 }
 
@@ -4162,7 +4179,7 @@ function applySystemMode(s){
 // ── KEEP RENDER ALIVE (ping every 8 min to prevent cold starts) ──
 setInterval(function(){ fetch(INFINITY_API+'/').catch(function(){}); }, 8*60*1000);
 
-// ── JILL TTS QUEUE (sentence-by-sentence + prefetch + browser fallback) ──
+// ── JILL TTS QUEUE — solo ElevenLabs voz Alice (sin fallback navegador) ──
 var _jillSpeakEnabled = true;
 var _jillTTSQueue = [];
 var _jillTTSBusy = false;
@@ -4170,34 +4187,6 @@ var _jillSpeakGen = 0;
 var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 var _jillTtsRetry = {};
-var _jillLockedFemaleVoices = { es: null, en: null };
-
-function jillPickLockedFemaleVoice(lang){
-  var key = (lang === 'en' || lang === 'en-US') ? 'en' : 'es';
-  if(_jillLockedFemaleVoices[key]) return _jillLockedFemaleVoices[key];
-  if(!window.speechSynthesis) return null;
-  var voices = speechSynthesis.getVoices() || [];
-  if(!voices.length) return null;
-  var pref = key;
-  var pool = voices.filter(function(v){ return (v.lang || '').toLowerCase().indexOf(pref) === 0; });
-  if(!pool.length) pool = voices.slice();
-  var femaleRx = /female|woman|mujer|paulina|helena|lucia|lucía|soledad|monica|mónica|sabina|maria|maría|zira|samantha|karen|victoria|google español|google us english|español/i;
-  var maleRx = /\bmale\b|hombre|\bdavid\b|\bdiego\b|\bjorge\b|\bpablo\b|\bdaniel\b|\bmark\b|\bjames\b|\bgeorge\b|\balex\b/i;
-  var picked = pool.find(function(v){ return femaleRx.test(v.name); })
-    || pool.find(function(v){ return !maleRx.test(v.name); });
-  if(!picked || maleRx.test(picked.name)) return null;
-  _jillLockedFemaleVoices[key] = picked;
-  return picked;
-}
-
-function jillWarmFemaleVoice(){
-  jillPickLockedFemaleVoice('es');
-  jillPickLockedFemaleVoice('en');
-}
-if(typeof window !== 'undefined' && window.speechSynthesis){
-  speechSynthesis.addEventListener('voiceschanged', jillWarmFemaleVoice);
-  jillWarmFemaleVoice();
-}
 
 function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
@@ -4247,7 +4236,7 @@ function jillShowTtsError(status){
   if(!st) return;
   if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
   else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Jill o Jill Pro.';
-  else if(status === 500 || status === 503) st.textContent = 'ElevenLabs en pausa — usando voz del navegador…';
+  else if(status === 500 || status === 503) st.textContent = 'Voz Jill (Alice) no disponible — reintentá en unos segundos.';
   else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
 }
 
@@ -4264,31 +4253,32 @@ function jillTtsCacheKey(clean, lang){
   return (lang || 'es') + '::' + clean;
 }
 
-function jillPlayBrowserTts(text, lang, onEnded, onError){
-  if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
-  try{ window.speechSynthesis.cancel(); }catch(e){}
-  var u = new SpeechSynthesisUtterance(text);
-  u.lang = (lang === 'en') ? 'en-US' : 'es-CR';
-  u.rate = 0.82;
-  u.pitch = 1.05;
-  var locked = jillPickLockedFemaleVoice(lang);
-  if(locked) u.voice = locked;
-  else return false;
-  u.onend = function(){ if(onEnded) onEnded(); };
-  u.onerror = function(){ if(onError) onError(); };
-  speechSynthesis.speak(u);
-  return true;
-}
-
-function jillFetchTtsBlob(clean, lang){
+function jillFetchTtsBlob(clean, lang, attempt){
+  attempt = attempt || 0;
   return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: lang || 'es'})})
   .then(function(r){
-    if(!r.ok){ jillShowTtsError(r.status); return null; }
+    if(!r.ok){
+      if(attempt < 4 && (r.status === 429 || r.status >= 500)){
+        return new Promise(function(resolve){
+          setTimeout(function(){ resolve(jillFetchTtsBlob(clean, lang, attempt + 1)); }, 300 * (attempt + 1));
+        });
+      }
+      jillShowTtsError(r.status);
+      return null;
+    }
     var ct = (r.headers.get('content-type') || '').toLowerCase();
     if(ct.indexOf('audio') === -1) return null;
     var st = document.getElementById('jill-status');
-    if(st && st.textContent && st.textContent.indexOf('ElevenLabs') >= 0) st.textContent = '';
+    if(st && st.textContent && st.textContent.indexOf('Voz') >= 0) st.textContent = '';
     return r.blob();
+  })
+  .catch(function(){
+    if(attempt < 4){
+      return new Promise(function(resolve){
+        setTimeout(function(){ resolve(jillFetchTtsBlob(clean, lang, attempt + 1)); }, 300 * (attempt + 1));
+      });
+    }
+    return null;
   });
 }
 
@@ -4350,8 +4340,10 @@ function _jillTTSFlush(){
       return;
     }
     if(!b){
-      delete _jillTtsRetry[jillTtsCacheKey(clean, lang)];
-      if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
+      var rk0 = jillTtsCacheKey(clean, lang);
+      _jillTtsRetry[rk0] = (_jillTtsRetry[rk0] || 0) + 1;
+      if(_jillTtsRetry[rk0] < 5) _jillTTSQueue.unshift({ text: text, lang: lang });
+      else delete _jillTtsRetry[rk0];
       finishJillLine();
       return;
     }
@@ -4365,17 +4357,10 @@ function _jillTTSFlush(){
       onError: function(){
         if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
-        if(jillPlayBrowserTts(clean, lang, finishJillLine, function(){
-          var rk = jillTtsCacheKey(clean, lang);
-          _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
-          if(_jillTtsRetry[rk] < 2) _jillTTSQueue.unshift({ text: text, lang: lang });
-          else delete _jillTtsRetry[rk];
-          finishJillLine();
-        })) return;
-        var rk2 = jillTtsCacheKey(clean, lang);
-        _jillTtsRetry[rk2] = (_jillTtsRetry[rk2] || 0) + 1;
-        if(_jillTtsRetry[rk2] < 3) _jillTTSQueue.unshift({ text: text, lang: lang });
-        else delete _jillTtsRetry[rk2];
+        var rk = jillTtsCacheKey(clean, lang);
+        _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
+        if(_jillTtsRetry[rk] < 5) _jillTTSQueue.unshift({ text: text, lang: lang });
+        else delete _jillTtsRetry[rk];
         finishJillLine();
       }
     });
@@ -4463,8 +4448,9 @@ function _aliceTTSFlush(){
   function playBlob(b){
     if(!_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
     if(!b){
-      delete _aliceTtsRetry[clean];
-      if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
+      _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
+      if(_aliceTtsRetry[clean] < 5) _aliceTTSQueue.unshift(text);
+      else delete _aliceTtsRetry[clean];
       finishAliceLine();
       return;
     }
@@ -4475,14 +4461,8 @@ function _aliceTTSFlush(){
       onError: function(){
         window._aliceAudio = null;
         clearTimeout(_aliceTtsWatchdog);
-        if(alicePlayBrowserTts(clean, finishAliceLine, function(){
-          _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-          if(_aliceTtsRetry[clean] < 2) _aliceTTSQueue.unshift(text);
-          else delete _aliceTtsRetry[clean];
-          finishAliceLine();
-        })) return;
         _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-        if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
+        if(_aliceTtsRetry[clean] < 5) _aliceTTSQueue.unshift(text);
         else delete _aliceTtsRetry[clean];
         finishAliceLine();
       }
@@ -4838,7 +4818,6 @@ function renderJill(){
     +'</div>';
   if(_jillState.sessionActive){
     _jillSpeakEnabled = true;
-    jillWarmFemaleVoice();
     warmInfinityApi();
     scrollJillMessages();
     try { bindJillPttMic(); } catch(e) {}
