@@ -2322,7 +2322,7 @@ COACHING: Answer questions and explain concepts warmly (linkers, recovery, tone,
 METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.
 RESPONSE STYLE: 3-4 natural sentences max. Complete every sentence. React to what the visitor said. Ask ONE follow-up question.
 ROLE: Tutor only. NEVER roleplay as customer, interviewer, or Nexora character.
-LANGUAGE: English in main response. End with: ALICE: [one specific tip in Spanish]
+LANGUAGE: English ONLY. Spanish ONLY if they explicitly ask you to explain something — then explain in Spanish and return to English. No automatic Spanish tips.
 
 DEMO MODE: This is a REAL mini-session for website visitor ${guest} — not a recording. Adapt every reply to their words.`;
 }
@@ -2346,9 +2346,9 @@ FLOW RULES (critical):
 - 2-8 natural English sentences depending on what they need (short chat vs story).
 - React with real interest. Ask follow-ups when it fits — not as a test.
 - No markdown headers (#). No "demo", no "Infinity Studio CR", no product meta-talk.
-- Opening: warm greeting + ask what they want to talk about (or dive in if they already said).
-- Optional line at the end: ALICE: [short tip in Spanish] — only if natural; skip during stories.
-- Sound like a friend in their ear 24/7 — bus, car, lunch break, anytime.`;
+- Opening: warm greeting in English + ask what they want to talk about (or dive in if they already said).
+- Sound like a friend in their ear 24/7 — bus, car, lunch break, anytime.
+- English ONLY. Spanish ONLY when they explicitly ask you to explain something.`;
 }
 
 function sanitizeDemoCompanionReply(text) {
@@ -3178,8 +3178,8 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 400 : 250,
         messages: [{ role: 'user', content: companion
-          ? `You are Alice Companion (always ALICE). You are an always-on English voice companion — a personal practice assistant. You talk, listen, tell stories, show interest, and chat about anything. ${greetInstruction}\n\nStudent: ${student?.level||'Functional'}.${profileNote}${variation}${companionBlock}\n\nNever cut off mid-sentence. Optional: ALICE: [brief tip in Spanish] only if natural.`
-          : `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\nEnd with: ALICE: [one motivating tip in Spanish]` }]
+          ? `You are Alice Companion (always ALICE). You are an always-on English voice companion — a personal practice assistant. You talk, listen, tell stories, show interest, and chat about anything. ${greetInstruction}\n\nStudent: ${student?.level||'Functional'}.${profileNote}${variation}${companionBlock}\n\n${Companion.ALICE_LANGUAGE_RULE}\nNever cut off mid-sentence.`
+          : `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\n${Companion.ALICE_LANGUAGE_RULE}` }]
       });
       const opening = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
       if (openBrain.hash && opening) await Brain.brainSetLLM(openBrain.hash, 'alice', 'opening', `START_${mode}`, opening, openExtra);
@@ -3238,7 +3238,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001', max_tokens: 400,
         system: 'You are Alice, a warm English tutor. Respond ONLY with valid JSON. No markdown. No overall_score field — score is already computed from the transcript.',
-        messages: [{ role: 'user', content: `Evaluate this English practice session for ${student?.name || 'the student'} (level: ${student?.level || 'Functional'}).\n\n${statsNote}\n\nSession:\n${hist}\n\nReturn ONLY this JSON (no overall_score):\n{"best_moment":"One specific warm thing they did well","main_improvement":"One concrete tip tied to what they actually said","alice_message":"2-3 warm encouraging sentences. End with: ALICE: [one motivating sentence in Spanish]"}` }]
+        messages: [{ role: 'user', content: `Evaluate this English practice session for ${student?.name || 'the student'} (level: ${student?.level || 'Functional'}).\n\n${statsNote}\n\nSession:\n${hist}\n\nReturn ONLY this JSON (no overall_score):\n{"best_moment":"One specific warm thing they did well","main_improvement":"One concrete tip tied to what they actually said","alice_message":"2-3 warm encouraging sentences in English only"}` }]
       });
 
       const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -3278,8 +3278,11 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     mergeStudyPrefs(student, message);
     const adaptNote = buildStudyAdaptationNote(student, message);
+    const aliceLangTurn = Companion.studentWantsSpanishExplanation(message)
+      ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
+      : '\nTURN: English ONLY — no Spanish unless they ask to explain.';
     const methodBlock = companion
-      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}\n\nIf they ask about grammar or English tips — explain simply, then return to the conversation.`
+      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}\n\nIf they ask about grammar or English tips — explain simply in Spanish if they ask, then return to English.`
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
     const systemPrompt = companion
@@ -3291,11 +3294,10 @@ If they want a story, tell one fully. If they want opinions, share them. If they
 
 PERSONALITY: Warm, curious, human, never robotic. You sound like a friend in their ear 24/7.
 
-${ALICE_BILINGUAL_INPUT}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
 
 ${methodBlock}
-
-LANGUAGE: Main reply in English. Optional final line only when natural: "ALICE: [brief tip in Spanish]" — skip during stories or deep chat.
 
 RESPONSE STYLE:
 - Match length to the moment (2 sentences or a full story)
@@ -3314,12 +3316,11 @@ PERSONALITY: Warm, human, celebratory, patient. You speak like a real person —
 
 PATIENCE: Students make mistakes. They speak slowly. They freeze. That is okay. You wait. You encourage. You never pressure. If they write a short answer, you gently push for more — but with kindness. You always complete your full thought before asking anything.
 
-${ALICE_BILINGUAL_INPUT}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
 
 ${methodBlock}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
-
-LANGUAGE: Respond ONLY in English. NEVER mix Spanish into your main response. Only at the very end, on a new line, write: "ALICE: [one specific tip in Spanish, example with a connector]"
 
 RESPONSE STYLE: 
 - 3-4 natural sentences max
@@ -3359,10 +3360,8 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v23-conjugar-invertir-domino';
-const ALICE_BRAIN_VER = 'v22-conjugar-invertir-domino';
-
-const ALICE_BILINGUAL_INPUT = `STUDENT INPUT: They may write or speak in English, Spanish, or mixed (Spanglish). Understand all three — infer intent even from messy voice transcripts. Never reject or scold for language choice or mixing. You reply in English only (except the ALICE: tip line in Spanish at the end).`;
+const JILL_BRAIN_VER = 'v24-spanish-only-unless-practice';
+const ALICE_BRAIN_VER = 'v23-english-only-unless-explain';
 
 const ALICE_COACHING_RULES = `COACHING — FLEXIBLE BUT ANCHORED (Alice is NOT Jill):
 - You are a warm coach, not a rigid script. Answer questions and explain concepts clearly: linkers, recovery phrases, tone, vocabulary, grammar, Nexus Method, connectors, STAR structure, etc.
@@ -3379,8 +3378,7 @@ const ALICE_COMPANION_RULES = `COMPANION MODE — always-on English companion (p
 - React with curiosity and warmth. Follow their lead. Never force drills, Nexus, STAR, or homework.
 - Short answers are fine. Longer answers are fine when they ask for stories or explanations.
 - No turn quota, no "practice longer", no cutting the conversation short.
-- Complete every sentence. NEVER stop mid-thought or mid-story.
-- Optional: end with ALICE: [brief tip in Spanish] only when natural — skip during stories or deep chat.`;
+- Complete every sentence. NEVER stop mid-thought or mid-story.`;
 
 /** Never stream or cache raw {"reply":...} to clients/TTS. */
 function plainBrainReply(raw) {
@@ -3422,10 +3420,10 @@ RITMO HABLADO:
 - Una sola respuesta fluida; preferí comas antes que muchos puntos seguidos.
 - Sin elipsis (...) ni frases teatrales con pausas dramáticas.
 
-IDIOMA — BILINGÜE:
+IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
-Hablás en español durante explicaciones, teoría, análisis y correcciones.
-Practicás en inglés cuando el ejercicio lo pide; si mezclan, tomá lo útil de cada idioma y ayudá a completar el chunk en inglés.
+Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
+Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 Nunca rechaces un mensaje por idioma, mezcla o transcripción imperfecta del micrófono.
 
@@ -3763,12 +3761,14 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const teachInstrChat = isJillCompanion
       ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
-      : '';
+      : (JillPro.studentWantsEnglishPractice(message)
+        ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
+        : '');
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
     const systemWithContext = isJillCompanion
       ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
@@ -3941,11 +3941,14 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     const convPhase = !isJillCompanion && (matrixContext?.conversationPhase || jillStructurePrerequisitesMet(student, matrixContext));
     const calTeach = JillCalibration.calibrationTeachInstruction(calibrationContext);
+    const jillLangTurn = JillPro.studentWantsEnglishPractice(message)
+      ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno. '
+      : '';
     const teachInstr = isJillCompanion
       ? JillPro.buildJillProStreamTeachInstruction(topicHint, message)
-      : (calTeach || (convPhase
+      : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-        : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.'));
+        : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.')));
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
@@ -4053,12 +4056,15 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
         student, tutor: 'alice', bundle: null, responseMs: req.body?.responseMs
       });
       if (drillEval.forcedReply) {
-        return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n\nALICE: Seguí expandiendo la idea.');
+        return Brain.writeBrainSSE(res, drillEval.forcedReply + '\n\nKeep expanding your idea.');
       }
       trainerNote = TrainerModel.formatTrainerDrillNote(student, 'alice', null)
         + TrainerModel.formatTrainerEvalNote(drillEval)
         + '\n' + TrainerModel.JOHNNY_TRAINER_RULE;
     }
+    const aliceLangTurn = Companion.studentWantsSpanishExplanation(message)
+      ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
+      : '\nTURN: English ONLY — no Spanish unless they ask to explain.';
     const methodBlock = companion
       ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
@@ -4067,9 +4073,9 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
 ${INSTITUTIONAL_BRAIN_RULE}
 Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
 If they want a story — tell it fully. If they want opinions — share them. If they want to learn — explain simply and keep chatting.
-${ALICE_BILINGUAL_INPUT}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
 ${methodBlock}
-Main reply in English. Optional ALICE: [Spanish tip] only when natural — skip during stories.
 2-8 sentences as needed. Complete every sentence and story. NEVER cut off. Unlimited flowing conversation.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
 ${sceneNote}${await tutorKnowledgeSliceFast(message)}`
@@ -4079,10 +4085,11 @@ ROLE: Tutor for Intermediate and Advanced students (ORT track) at Infinity Studi
 You share the same institutional KB as Jill and Companion (Super Brain); Jill covers Foundations, you cover higher levels — same data, different student level and delivery.
 Tutor only — NEVER roleplay as customer/interviewer/Nexora character.
 PERSONALITY: Warm, human, celebratory, patient. Speak like a real person.
-${ALICE_BILINGUAL_INPUT}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
 ${methodBlock}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
-RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. End with: ALICE: [one tip in Spanish]. Always finish the full reply.
+RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
     const msgs = [...(history || []).slice(-20), { role: 'user', content: message }];

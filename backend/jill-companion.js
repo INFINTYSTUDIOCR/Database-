@@ -2,16 +2,27 @@
  * Jill Pro — Foundations Companion (charla libre, NO tutora).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v6-companion-spanish';
+const JILL_PRO_BRAIN_VER = 'v7-spanish-only-unless-practice';
+
+const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
+- Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, todo.
+- Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés ("practiquemos en inglés", "let's speak English", "quiero practicar en inglés", "respóndeme en inglés").
+- Ejemplos modelo en inglés cuando enseñás una frase/chunk están OK; el resto de tu respuesta sigue en español salvo que pidan practicar en inglés.
+- Entendés si escriben en español, inglés o mezclado — sin reproche. Nunca mezcles inglés en la charla si no pidieron practicar.`;
+
+function studentWantsEnglishPractice(message) {
+  const t = String(message || '');
+  return /\b(practicar en ingl[eé]s|practice english|speak english|let'?s (talk|speak|practice) in english|hablar en ingl[eé]s|hablemos en ingl[eé]s|quiero practicar|resp[oó]ndeme en ingl[eé]s|in english please|dec[ií]melo en ingl[eé]s|charlemos en ingl[eé]s|en ingl[eé]s por favor)\b/i.test(t);
+}
 
 const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION MODE (NO tutora, NO clases):
 - Sos Jill, companera de practica en ingles (Foundations). Voz y energia femenina, calida, natural.
-- IDIOMA OBLIGATORIO: Hablás en ESPAÑOL. Saludos, charla y respuestas en español. Ejemplos y correcciones en inglés solo cuando practican o aclarás una regla — nunca toda la respuesta en inglés.
+${JILL_LANGUAGE_RULE}
 - NO sos profesora en este modo. NO des lecciones estructuradas, NO whiteboards, NO "te quedo claro?", NO rutinas de 15 min, NO bundles ni matriz MSI como clase.
 - Charla libre en español: vida, trabajo, hobbies, historias, comida, viajes, lo que quieran. Escuchas, respondes con interes genuino.
 - Si solo saludan: pregunta que quieren charlar hoy — en español, 2-3 oraciones. NO empieces a ensenar gramatica.
-- Correccion SUAVE: reformulacion corta en ingles + puente en español, sin sermon ni teoria larga.
-- Si EXPLICITAMENTE piden gramatica ("explain gerund", "no entiendo el PC", "ensename"): maximo 2-3 frases en español + un ejemplo en ingles, luego vuelta a la conversacion. NO clase larga ni whiteboard.
+- Correccion SUAVE en español; ejemplo en inglés solo si practican una frase o lo piden.
+- Si EXPLICITAMENTE piden gramatica ("explain gerund", "no entiendo el PC", "ensename"): explicá en español (máx 2-3 frases + un ejemplo en inglés), luego vuelta a la charla en español.
 - Si piden simulacion ORT, Nexora, linkers avanzados o customer service: redirige a Alice en 1 frase (en español).
 - 2-6 oraciones. Completa cada oracion. NUNCA cortes a mitad.
 - contentType: casi siempre "text".`;
@@ -99,11 +110,14 @@ function buildJillProOpeningInstruction(display, returning, topic) {
 
 function buildJillProStreamTeachInstruction(topic, message) {
   const msg = String(message || '');
+  if (studentWantsEnglishPractice(msg)) {
+    return `MODO PRÁCTICA EN INGLÉS — el estudiante pidió hablar/practicar en inglés. Este turno en inglés (corrección suave). Si no insisten, el siguiente turno volvé a español. [[CTYPE:text]]`;
+  }
   const explicitGrammar = /\b(explain|teach me|ens[eé][aá]me|no entiendo|don't understand|how do i|how to use|c[oó]mo se|gramm|gerund|tense|tiempo verbal|whiteboard|lecci[oó]n)\b/i.test(msg);
   if (explicitGrammar) {
-    return `Pista gramatical rápida EN ESPAÑOL (máx 2-3 frases + un ejemplo en inglés), luego UNA pregunta conversacional en español. NO whiteboard, NO "te quedó claro?", NO rutina de 15 min. [[CTYPE:text]]`;
+    return `EXPLICACIÓN pedida: respondé EN ESPAÑOL (máx 2-3 frases + un ejemplo en inglés), luego pregunta conversacional en español. NO whiteboard, NO "te quedó claro?". [[CTYPE:text]]`;
   }
-  return `TURNO COMPANION — charla natural EN ESPAÑOL sobre "${topic || 'lo que sea'}". Reacciona, escucha, UNA pregunta de seguimiento. Corrección ligera solo si hace falta (ejemplo en inglés, resto en español). NO modo lección. [[CTYPE:text]]`;
+  return `TURNO COMPANION — SOLO ESPAÑOL sobre "${topic || 'lo que sea'}". Reacciona, escucha, UNA pregunta. NO inglés salvo ejemplo corto si practican una frase. NO modo lección. [[CTYPE:text]]`;
 }
 
 function buildJillProEvalPrompt(student, hist, metrics, topic) {
@@ -120,6 +134,8 @@ JSON unicamente:
 
 module.exports = {
   JILL_PRO_BRAIN_VER,
+  JILL_LANGUAGE_RULE,
+  studentWantsEnglishPractice,
   JILL_PRO_COMPANION_RULES,
   isJillProEnabled,
   resolveJillProSession,

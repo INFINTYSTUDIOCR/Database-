@@ -2415,7 +2415,7 @@ async function sendAliceMessage(micText){
   aliceRenderHistoryMessages();
 
   if(drillEval && drillEval.forcedReply){
-    var forcedAlice = drillEval.forcedReply + '\n\nALICE: Seguí expandiendo la idea.';
+    var forcedAlice = drillEval.forcedReply + '\n\nKeep expanding your idea.';
     _aliceState.history[streamIdx] = { role:'assistant', content: forcedAlice };
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = '';

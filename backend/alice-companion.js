@@ -4,7 +4,18 @@
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v2-practice-assistant';
+const COMPANION_BRAIN_VER = 'v3-english-only-unless-explain';
+
+const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
+- Speak ONLY in English by default — greetings, chat, stories, coaching, corrections, everything.
+- Spanish ONLY when the student explicitly asks you to EXPLAIN something (e.g. "explain in Spanish", "explicame", "no entiendo", "en español", "what does X mean — explain it"). Explain clearly in Spanish (bilingual OK for that explanation), then return to English for the conversation.
+- NEVER sprinkle Spanish tips, "ALICE: [tip]", or random Spanish lines unless they asked for an explanation in Spanish.
+- Understand student input in English, Spanish, or Spanglish — never scold for mixing.`;
+
+function studentWantsSpanishExplanation(message) {
+  const t = String(message || '');
+  return /\b(explic[aá]me|explain in spanish|en espa[nñ]ol|no entiendo|no comprendo|don't understand|do not understand|what does .+ mean|qu[eé] significa|c[oó]mo se dice|traduc|translate|dime en espa[nñ]ol|in spanish please|habl[aá]me en espa[nñ]ol)\b/i.test(t);
+}
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',
@@ -169,7 +180,8 @@ HOW YOU BEHAVE:
 - Do NOT force Nexus drills, STAR, or "practice longer". Do NOT roleplay as Nexora customer/interviewer.
 - Optional soft English growth (invisible):
 ${focusBlock}
-- End with ALICE: [one brief tip in Spanish] ONLY when it feels natural — skip it if you are mid-story or deep in chat.`;
+
+${ALICE_LANGUAGE_RULE}`;
 }
 
 function scoreDimensionFluency(metrics) {
@@ -250,7 +262,7 @@ Session transcript:
 ${hist}
 
 Return ONLY valid JSON (no overall_score field):
-{"best_moment":"Quote or paraphrase something specific they did well on THIS topic","main_improvement":"One concrete improvement tied to focus KPIs and what they said","topic_follow_up":"One sentence challenge for next session on the same topic","alice_message":"2-3 sentences. End with: ALICE: [motivating Spanish line]","kpi_feedback":{"${cfg.focusKpis[0] || 'k10'}":"one line"}}`;
+{"best_moment":"Quote or paraphrase something specific they did well on THIS topic","main_improvement":"One concrete improvement tied to focus KPIs and what they said","topic_follow_up":"One sentence challenge for next session on the same topic","alice_message":"2-3 warm sentences in English only","kpi_feedback":{"${cfg.focusKpis[0] || 'k10'}":"one line"}}`;
 }
 
 function enrichCompanionEvaluation(qual, scored, metrics, config) {
@@ -266,13 +278,15 @@ function enrichCompanionEvaluation(qual, scored, metrics, config) {
     best_moment: qual.best_moment || 'You showed up and practiced — that matters.',
     main_improvement: qual.main_improvement || 'Whenever you want, pick up the same topic and keep chatting.',
     topic_follow_up: qual.topic_follow_up || 'Next time, go deeper with one more example.',
-    alice_message: qual.alice_message || 'Great conversation today!\nALICE: ¡Seguí practicando con temas que te importan!',
+    alice_message: qual.alice_message || 'Great conversation today — keep chatting about topics that matter to you.',
     kpi_feedback: qual.kpi_feedback || {}
   };
 }
 
 module.exports = {
   COMPANION_BRAIN_VER,
+  ALICE_LANGUAGE_RULE,
+  studentWantsSpanishExplanation,
   COMPANION_KPI_COACH,
   isCompanionEnabled,
   normalizeCompanionConfig,
