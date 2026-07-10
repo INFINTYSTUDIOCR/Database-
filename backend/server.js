@@ -657,7 +657,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-jill-fs-tts';
+const APP1_BUILD = '20260710-tts-coherent';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2630,16 +2630,33 @@ function cacheTTS(key, buffer){
 }
 
 function cleanTtsText(text) {
-  return (text || '')
+  let t = (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
     .replace(/__([^_]+)__/g, '$1')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/^\s*[-•]\s+/gm, '')
-    .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
-    .replace(/\+/g, ' plus ')
-    .replace(/\bV3\b/gi, ' past participle ')
+    .replace(/[*_#\[\]{}<>|~`^]/g, ' ');
+  // Don't read parentheses
+  t = t.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  // MSI formulas → Spanish "más" (never English "plus" mixed in)
+  t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
+  t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
+  t = t.replace(/\bP\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más V más C ');
+  t = t.replace(/\+/g, ' más ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' V I N G ');
+  t = t.replace(/\bV3\b/gi, ' past participle ');
+  t = t.replace(/\bAUX\b/g, ' auxiliar ');
+  t = t.replace(/\bTO\s+BE\b/gi, ' to be ');
+  t = t.replace(/\bBE\b/g, ' be ');
+  t = t.replace(/\bAM\b/g, ' am ');
+  t = t.replace(/\bIS\b/g, ' is ');
+  t = t.replace(/\bARE\b/g, ' are ');
+  t = t.replace(/\bWAS\b/g, ' was ');
+  t = t.replace(/\bWERE\b/g, ' were ');
+  t = t.replace(/\bNOT\b/g, ' not ');
+  return t
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, ' ')
     .replace(/\.{2,}/g, ' ')
