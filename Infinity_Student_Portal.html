@@ -32,10 +32,10 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260709stage"></script>
-<script src="js/jill-visual-stage.js?v=20260710fs"></script>
+<script src="js/jill-canon-visual.js?v=20260710clean"></script>
+<script src="js/jill-visual-stage.js?v=20260710clean"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710neg"></script>
+<script src="js/jill-foundations.js?v=20260710clean"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-matrix-quiz.js?v=20260708"></script>
@@ -112,26 +112,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-root[data-jill-pro="1"] .jill-pro-accent{color:#c4b5fd;}
   #jill-lesson-shell{position:relative;}
   #jill-lesson-shell:fullscreen{
-    width:100%;height:100%;overflow:auto;box-sizing:border-box;
+    width:100%;height:100%;overflow:hidden;box-sizing:border-box;
     border-radius:0!important;display:flex;flex-direction:column;
   }
   #jill-lesson-shell:fullscreen #jill-session-main{
-    flex:1;min-height:0;display:flex;flex-direction:column;
+    flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;
   }
-  #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:10px;min-height:0;}
-  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1;min-height:280px;}
+  #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:10px;min-height:0;position:relative;z-index:2;}
+  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:280px;}
   #jill-stage-media{flex:1;min-height:240px;position:relative;}
   #jill-stage-caption{
-    font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);
-    background:rgba(0,0,0,0.28);border:1px solid rgba(167,139,250,0.35);
-    border-radius:12px;padding:10px 14px;max-height:88px;overflow-y:auto;
+    font-size:14px;line-height:1.55;color:#111827;
+    background:rgba(255,255,255,0.96);border:1px solid rgba(167,139,250,0.45);
+    border-radius:12px;padding:12px 14px;max-height:28vh;overflow-y:auto;
+    flex-shrink:0;position:relative;z-index:3;
   }
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
-  #jill-lesson-shell.jill-stage-active #jill-messages{max-height:140px!important;flex-shrink:0;}
-  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-media{min-height:62vh;}
-  #jill-lesson-shell:fullscreen.jill-stage-active #jill-messages{max-height:18vh!important;}
-  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-caption{max-height:12vh;}
-  #jill-lesson-shell:fullscreen #jill-messages{
+  /* Stage mode: diagram + caption only — no chat bubble over the board */
+  #jill-lesson-shell.jill-stage-active #jill-messages{
+    display:none!important;
+  }
+  #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-media{min-height:58vh;}
+  #jill-lesson-shell:fullscreen.jill-stage-active #jill-stage-caption{max-height:22vh;}
+  #jill-lesson-shell:fullscreen:not(.jill-stage-active) #jill-messages{
     flex:1;min-height:120px;max-height:none!important;
   }
   .jill-fs-btn{

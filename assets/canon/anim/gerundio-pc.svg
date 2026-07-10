@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Gerundio PC  P + To Be + V+ing + C">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Gerundio PC - P + To Be + V+ing + C">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#f3ebff"/>
@@ -30,32 +31,32 @@
     </style>
   </defs>
   <rect width="960" height="540" fill="url(#bg)" rx="16"/>
-  <text x="480" y="52" text-anchor="middle" class="title" font-size="28">GERUNDIO · PC (Presente Continuo)</text>
-  <text x="480" y="82" text-anchor="middle" class="sub" font-size="16">Mecánica Estructural Infinity®  ranuras P | To Be | V+ing | C</text>
+  <text x="480" y="52" text-anchor="middle" class="title" font-size="28">GERUNDIO - PC (Presente Continuo)</text>
+  <text x="480" y="82" text-anchor="middle" class="sub" font-size="16">Mecanica Estructural Infinity - ranuras P | To Be | V+ing | C</text>
 
   <g id="s-p" class="slot">
     <rect x="48" y="120" width="180" height="100" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
     <text x="138" y="162" text-anchor="middle" class="slot-label">P</text>
     <text x="138" y="192" text-anchor="middle" class="slot-hint">Pronombre</text>
-    <text x="138" y="214" text-anchor="middle" class="slot-hint" font-size="14">I · You · He · She · They</text>
+    <text x="138" y="214" text-anchor="middle" class="slot-hint" font-size="14">I | You | He | She | They</text>
   </g>
   <g id="s-be" class="slot">
     <rect x="258" y="120" width="180" height="100" rx="14" fill="#ddd6fe" stroke="#7c3aed" stroke-width="2"/>
     <text x="348" y="162" text-anchor="middle" class="slot-label">To Be</text>
-    <text x="348" y="192" text-anchor="middle" class="slot-hint">am · is · are</text>
+    <text x="348" y="192" text-anchor="middle" class="slot-hint">am | is | are</text>
     <text x="348" y="214" text-anchor="middle" class="slot-hint" font-size="14">concuerda con P</text>
   </g>
   <g id="s-v" class="slot pulse">
     <rect x="468" y="120" width="210" height="100" rx="14" fill="#fef3c7" stroke="#D97706" stroke-width="2.5"/>
     <text x="573" y="162" text-anchor="middle" class="slot-label" fill="#B45309">V + ing</text>
     <text x="573" y="192" text-anchor="middle" class="slot-hint" fill="#92400E">gerundio</text>
-    <text x="573" y="214" text-anchor="middle" class="slot-hint" font-size="14" fill="#92400E">work’working · go’going</text>
+    <text x="573" y="214" text-anchor="middle" class="slot-hint" font-size="14" fill="#92400E">work - working | go - going</text>
   </g>
   <g id="s-c" class="slot">
     <rect x="708" y="120" width="204" height="100" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
     <text x="810" y="162" text-anchor="middle" class="slot-label">C</text>
     <text x="810" y="192" text-anchor="middle" class="slot-hint">Complemento</text>
-    <text x="810" y="214" text-anchor="middle" class="slot-hint" font-size="14">now · at home · today</text>
+    <text x="810" y="214" text-anchor="middle" class="slot-hint" font-size="14">now | at home | today</text>
   </g>
 
   <g id="formula" class="example">
@@ -84,6 +85,6 @@
   </g>
 
   <g id="note" class="example">
-    <text x="480" y="510" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" fill="#312e81">Acción en progreso · ahora · en este momento</text>
+    <text x="480" y="510" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" fill="#312e81">Accion en progreso - ahora - en este momento</text>
   </g>
 </svg>

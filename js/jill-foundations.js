@@ -167,21 +167,31 @@
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' },
-    negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones · AUX + NOT' }
+    gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
+    negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' }
   };
 
   function detectCanonColumn(text, bundle) {
     var t = String(text || '').toLowerCase();
-    if (/\b(gerundio|gerund|-ing\b|progressive|continuo|presente continuo|\bpc\b|to be.*ing)\b/.test(t)) return 'progressive';
+    // ING after prepositions is NOT Present Continuous — dedicated board
+    if (/\b(preposici[oó]n|before|after|without|by\b|instead of|good at|interested in|afraid of|antes de|despues de|después de|sin\b|en vez de)\b/.test(t)
+      && /\b(-ing|gerundio|ing\b|leaving|going|working|coming|doing)\b/.test(t)
+      && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are|est[aá]s?\s+\w+ando)\b/.test(t)) {
+      return 'gerund_prep';
+    }
+    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|not work|no work|aux\s*\+?\s*not)\b/.test(t)) return 'negations';
+    if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
+    if (/\b(presente continuo|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando)\b/.test(t)) return 'progressive';
+    if (/\b(gerundio|gerund|v\+ing|progressive|continuo)\b/.test(t) && /\b(to be|presente|pc|progres|continuo|am|is|are)\b/.test(t)) return 'progressive';
     if (/\b(pasado simple|past simple|\bps\b)\b/.test(t)) return 'past';
     if (/\b(presente simple|present simple|\bpr\b)\b/.test(t)) return 'present';
     if (/\b(presente perfecto|present perfect|\bprp\b|have.*pp)\b/.test(t)) return 'perfect';
     if (/\b(pasado perfecto|past perfect|\bppc\b|been.*ing|combinado)\b/.test(t)) return 'combined';
     if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
     if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'prepositions';
-    if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
-    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|not work|no work|aux\s*\+?\s*not)\b/.test(t)) return 'negations';
-    if (/\b(art[ií]culo|article|\bthe\b)\b/.test(t)) return 'perfect';
+    if (/\b(art[ií]culo|article)\b/.test(t)) return 'perfect';
+    // Bare "-ing / gerundio" without PC cues → still progressive only if MSI PC formula present
+    if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;
   }

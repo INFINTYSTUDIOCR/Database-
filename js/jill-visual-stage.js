@@ -50,9 +50,10 @@
   function plainCaption(text) {
     return String(text || '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\n+/g, ' ')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/\n{3,}/g, '\n\n')
       .trim()
-      .slice(0, 320);
+      .slice(0, 900);
   }
 
   /** Enter fullscreen while we still have a user gesture (send/mic). */
@@ -70,11 +71,25 @@
     if (!shouldShow(contentType, text, bundle)) {
       return false;
     }
-    var col = detectColumn(text, bundle) || 'progressive';
+    var col = detectColumn(text, bundle);
+    // Never force a random PC board — if no column match, caption-only stage
     var sh = shell();
     var stage = stageEl();
     var media = mediaEl();
-    if (!sh || !stage || !media || typeof JillCanonVisual === 'undefined') return false;
+    if (!sh || !stage || !media) return false;
+
+    var caption = plainCaption(text);
+    if (captionEl()) captionEl().textContent = caption;
+
+    if (!col || typeof JillCanonVisual === 'undefined') {
+      media.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:200px;padding:24px;color:#312e81;font-size:15px;font-weight:700;text-align:center;background:#f3ebff;border-radius:16px;">Explicacion Jill</div>';
+      sh.classList.add('jill-stage-active');
+      stage.hidden = false;
+      active = true;
+      currentColumn = null;
+      requestFullscreen();
+      return true;
+    }
 
     var fallback = null;
     if (typeof JillFoundations !== 'undefined' && JillFoundations.CANON_BY_COLUMN) {
@@ -83,7 +98,7 @@
 
     JillCanonVisual.loadConfig().then(function () {
       media.innerHTML = JillCanonVisual.renderStage(col, fallback);
-      if (captionEl()) captionEl().textContent = plainCaption(text);
+      if (captionEl()) captionEl().textContent = caption;
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;

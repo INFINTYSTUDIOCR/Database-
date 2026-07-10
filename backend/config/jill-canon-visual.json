@@ -1,8 +1,16 @@
 {
-  "version": 1,
+  "version": 3,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
-  "frame": { "width": 320, "height": 180, "radius": 12 },
+  "frame": {
+    "width": 320,
+    "height": 180,
+    "radius": 12
+  },
+  "stage": {
+    "aspectRatio": "16/9",
+    "minHeightVh": 52
+  },
   "palette": {
     "title": "#5B21B6",
     "label": "#6d28d9",
@@ -11,12 +19,94 @@
     "example": "#D97706"
   },
   "clips": [
-    { "id": "tiempos", "columns": ["present", "past", "combined"], "svg": "assets/canon/tiempos.svg", "gif": null, "title": "Tiempos verbales" },
-    { "id": "preposiciones", "columns": ["progressive"], "svg": "assets/canon/preposiciones.svg", "gif": null, "title": "Preposiciones lugar" },
-    { "id": "preposiciones-tiempo", "columns": ["progressive"], "svg": "assets/canon/preposiciones-tiempo.svg", "gif": null, "title": "Preposiciones tiempo" },
-    { "id": "there-existencial", "columns": ["present", "past", "perfect"], "svg": "assets/canon/there-existencial.svg", "gif": null, "title": "There is / There are" },
-    { "id": "comparativos", "columns": ["present"], "svg": "assets/canon/comparativos.svg", "gif": null, "title": "Comparativos" },
-    { "id": "articulos", "columns": ["perfect", "present", "past"], "svg": "assets/canon/articulos.svg", "gif": null, "title": "Artículos y cuantificadores" },
-    { "id": "moneda", "columns": ["modal"], "svg": "assets/canon/moneda.svg", "gif": null, "title": "Método moneda" }
+    {
+      "id": "gerundio-pc",
+      "columns": [
+        "progressive"
+      ],
+      "svg": "assets/canon/anim/gerundio-pc.svg",
+      "animatedSvg": "assets/canon/anim/gerundio-pc.svg",
+      "gif": null,
+      "title": "Gerundio - PC (P + To Be + V+ing + C)"
+    },
+    {
+      "id": "gerundio-prep",
+      "columns": [
+        "gerund_prep"
+      ],
+      "svg": "assets/canon/gerundio-prep.svg",
+      "gif": null,
+      "title": "Gerundio despues de preposicion"
+    },
+    {
+      "id": "tiempos",
+      "columns": [
+        "present",
+        "past",
+        "combined"
+      ],
+      "svg": "assets/canon/tiempos.svg",
+      "gif": null,
+      "title": "Tiempos verbales"
+    },
+    {
+      "id": "preposiciones",
+      "columns": [
+        "prepositions"
+      ],
+      "svg": "assets/canon/preposiciones.svg",
+      "gif": null,
+      "title": "Preposiciones"
+    },
+    {
+      "id": "preposiciones-tiempo",
+      "columns": [],
+      "svg": "assets/canon/preposiciones-tiempo.svg",
+      "gif": null,
+      "title": "Preposiciones tiempo"
+    },
+    {
+      "id": "there-existencial",
+      "columns": [
+        "there"
+      ],
+      "svg": "assets/canon/there-existencial.svg",
+      "gif": null,
+      "title": "There is / There are"
+    },
+    {
+      "id": "negaciones",
+      "columns": [
+        "negations"
+      ],
+      "svg": "assets/canon/negaciones.svg",
+      "gif": null,
+      "title": "Negaciones - AUX + NOT"
+    },
+    {
+      "id": "comparativos",
+      "columns": [],
+      "svg": "assets/canon/comparativos.svg",
+      "gif": null,
+      "title": "Comparativos"
+    },
+    {
+      "id": "articulos",
+      "columns": [
+        "perfect"
+      ],
+      "svg": "assets/canon/articulos.svg",
+      "gif": null,
+      "title": "Articulos y cuantificadores"
+    },
+    {
+      "id": "moneda",
+      "columns": [
+        "modal"
+      ],
+      "svg": "assets/canon/moneda.svg",
+      "gif": null,
+      "title": "Metodo moneda"
+    }
   ]
 }

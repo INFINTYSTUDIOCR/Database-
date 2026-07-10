@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v12-fullscreen-explain';
+const JILL_PRO_BRAIN_VER = 'v13-topic-match-visual';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -252,8 +252,11 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   if (phase === 'doubt_explain') {
     return `${heard}MODO DUDA — DETENER Y ACLARAR YA (tema: "${topic || 'su duda'}").
 1) Reconocé la duda en 1 frase (demostrá que entendiste QUÉ preguntó).
-2) Explicá EN ESPAÑOL (puente → patrón/fórmula).
-3) 1-2 ejemplos en inglés.
+2) Explicá EN ESPAÑOL SOLO ESE tema (puente → patrón/fórmula). NO mezcles otro tema.
+   - Si preguntan ING después de preposición (before/after/without): explicá ESO — NO Presente Continuo / PC.
+   - Si preguntan Presente Continuo / PC: P + To Be + V+ing + C.
+   - Si preguntan negaciones: P + AUX + NOT + V + C.
+3) 1-2 ejemplos en inglés del MISMO tema.
 4) "¿Te quedó claro?"
 PROHIBIDO pedir que repita la duda. Sin bundle forzado.
 Cerrá con [[CTYPE:whiteboard]] para pantalla completa.`;
