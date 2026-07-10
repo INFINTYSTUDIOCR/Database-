@@ -1,6 +1,6 @@
 /**
- * Escenario visual Jill - pantalla completa mientras habla y explica.
- * Jill Tutora y Jill Pro comparten este motor.
+ * Escenario visual Jill — pantalla completa, solo el tablero del tema.
+ * Sin transcripcion: el audio basta (todos hablan espanol).
  */
 (function (global) {
   'use strict';
@@ -31,32 +31,25 @@
     return null;
   }
 
-  function isExplainText(text) {
-    var t = String(text || '');
-    return /\b(explic|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|P\s*\+|AUX|whiteboard|pizarr|to be|will have|there is|there are)\b/i.test(t);
+  /** Prefer the student's ask for accuracy; fall back to Jill's reply. */
+  function resolveColumn(replyText, bundle, userTopic) {
+    var fromUser = userTopic ? detectColumn(userTopic, bundle) : null;
+    if (fromUser) return fromUser;
+    return detectColumn(replyText, bundle);
   }
 
-  function shouldShow(contentType, text, bundle) {
+  function isExplainTurn(contentType, text, userTopic) {
     if (contentType === 'whiteboard' || contentType === 'example') return true;
-    var col = detectColumn(text, bundle);
-    var t = String(text || '');
-    if (isExplainText(t)) return true;
-    if (!col) return false;
-    if (/\b(formula|msi|ranura|whiteboard|pizarr|PC|P \+|V\+ing|gerundio|gerund|-ing\b|to be)\b/i.test(t)) return true;
-    if (t.length > 100 && col) return true;
-    return false;
+    var blob = String(userTopic || '') + ' ' + String(text || '');
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|to be|will have|there is|there are|preposici|tiempo|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta)\b/i.test(blob);
   }
 
-  function plainCaption(text) {
-    return String(text || '')
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim()
-      .slice(0, 900);
+  function shouldShow(contentType, text, bundle, userTopic) {
+    if (!isExplainTurn(contentType, text, userTopic)) return false;
+    // Show board for any Foundations explain turn — column may come from user ask
+    return true;
   }
 
-  /** Enter fullscreen while we still have a user gesture (send/mic). */
   function requestFullscreen() {
     var sh = shell();
     if (!sh) return;
@@ -67,27 +60,47 @@
     req.call(sh).catch(function () {});
   }
 
-  function show(text, contentType, bundle) {
-    if (!shouldShow(contentType, text, bundle)) {
+  function clearCaption() {
+    var cap = captionEl();
+    if (cap) {
+      cap.textContent = '';
+      cap.hidden = true;
+    }
+  }
+
+  function show(text, contentType, bundle, opts) {
+    opts = opts || {};
+    var userTopic = opts.userTopic || '';
+    if (!shouldShow(contentType, text, bundle, userTopic)) {
       return false;
     }
-    var col = detectColumn(text, bundle);
-    // Never force a random PC board — if no column match, caption-only stage
+    var col = opts.column || resolveColumn(text, bundle, userTopic);
     var sh = shell();
     var stage = stageEl();
     var media = mediaEl();
     if (!sh || !stage || !media) return false;
 
-    var caption = plainCaption(text);
-    if (captionEl()) captionEl().textContent = caption;
+    clearCaption();
 
-    if (!col || typeof JillCanonVisual === 'undefined') {
-      media.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:200px;padding:24px;color:#312e81;font-size:15px;font-weight:700;text-align:center;background:#f3ebff;border-radius:16px;">Explicacion Jill</div>';
+    function activate(html) {
+      media.innerHTML = html || '';
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;
-      currentColumn = null;
+      currentColumn = col || null;
       requestFullscreen();
+    }
+
+    if (!col || typeof JillCanonVisual === 'undefined') {
+      var label = (userTopic || text || 'Tema').replace(/\s+/g, ' ').trim().slice(0, 80);
+      activate(
+        '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:52vh;padding:32px;background:#f3ebff;border-radius:16px;">'
+        + '<div style="text-align:center;max-width:640px;">'
+        + '<div style="font-size:12px;font-weight:800;letter-spacing:0.14em;color:#7c3aed;margin-bottom:10px;">JILL · EXPLICACION</div>'
+        + '<div style="font-size:22px;font-weight:800;color:#312e81;line-height:1.35;">' + String(label).replace(/</g, '&lt;') + '</div>'
+        + '<div style="margin-top:14px;font-size:14px;color:#6d28d9;">Escucha la explicacion — el tablero sigue el tema que pediste</div>'
+        + '</div></div>'
+      );
       return true;
     }
 
@@ -97,21 +110,16 @@
     }
 
     JillCanonVisual.loadConfig().then(function () {
-      media.innerHTML = JillCanonVisual.renderStage(col, fallback);
-      if (captionEl()) captionEl().textContent = caption;
-      sh.classList.add('jill-stage-active');
-      stage.hidden = false;
-      active = true;
-      currentColumn = col;
-      requestFullscreen();
+      activate(JillCanonVisual.renderStage(col, fallback));
+      clearCaption();
     });
 
     return true;
   }
 
-  function updateCaption(text) {
-    if (!active || !captionEl()) return;
-    captionEl().textContent = plainCaption(text);
+  function updateCaption() {
+    // No transcript overlay — audio only
+    clearCaption();
   }
 
   function hide() {
@@ -120,7 +128,9 @@
     if (sh) sh.classList.remove('jill-stage-active');
     if (stage) stage.hidden = true;
     if (mediaEl()) mediaEl().innerHTML = '';
-    if (captionEl()) captionEl().textContent = '';
+    clearCaption();
+    var cap = captionEl();
+    if (cap) cap.hidden = false;
     active = false;
     currentColumn = null;
   }
@@ -137,9 +147,10 @@
     show: show,
     hide: hide,
     updateCaption: updateCaption,
-    shouldShow: shouldShow,
+    shouldShow: function (ct, text, bundle) { return shouldShow(ct, text, bundle, ''); },
     isActive: isActive,
     resetSession: resetSession,
-    requestFullscreen: requestFullscreen
+    requestFullscreen: requestFullscreen,
+    resolveColumn: resolveColumn
   };
 })(typeof window !== 'undefined' ? window : globalThis);

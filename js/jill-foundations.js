@@ -161,36 +161,46 @@
   var CANON_BY_COLUMN = {
     present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
     past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
-    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio · PC (P + To Be + V+ing + C)' },
-    perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + artículos' },
+    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio - PC (P + To Be + V+ing + C)' },
+    perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + articulos' },
     combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
-    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'MOD · will=-RE / would=-RÍA' },
+    modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda / modales' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' },
+    prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones tiempo' },
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
-    negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' }
+    negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
+    comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },
+    articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos' }
   };
 
   function detectCanonColumn(text, bundle) {
     var t = String(text || '').toLowerCase();
-    // ING after prepositions is NOT Present Continuous — dedicated board
-    if (/\b(preposici[oó]n|before|after|without|by\b|instead of|good at|interested in|afraid of|antes de|despues de|después de|sin\b|en vez de)\b/.test(t)
-      && /\b(-ing|gerundio|ing\b|leaving|going|working|coming|doing)\b/.test(t)
-      && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are|est[aá]s?\s+\w+ando)\b/.test(t)) {
+    if (!t.trim()) {
+      if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
+      return null;
+    }
+
+    // Priority: most specific topic first (accuracy over generic -ing / gerundio)
+    if (/\b(preposici[oó]n|before|after|without|instead of|good at|interested in|afraid of|antes de|despues de|después de|en vez de)\b/.test(t)
+      && /\b(-ing|gerundio|leaving|going|working|coming|doing|saying)\b/.test(t)
+      && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are)\b/.test(t)) {
       return 'gerund_prep';
     }
-    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|not work|no work|aux\s*\+?\s*not)\b/.test(t)) return 'negations';
-    if (/\b(there is|there are|there was|there were|there will|there would|is there|are there|hay\b|exist)\b/.test(t)) return 'there';
-    if (/\b(presente continuo|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando)\b/.test(t)) return 'progressive';
-    if (/\b(gerundio|gerund|v\+ing|progressive|continuo)\b/.test(t) && /\b(to be|presente|pc|progres|continuo|am|is|are)\b/.test(t)) return 'progressive';
-    if (/\b(pasado simple|past simple|\bps\b)\b/.test(t)) return 'past';
-    if (/\b(presente simple|present simple|\bpr\b)\b/.test(t)) return 'present';
-    if (/\b(presente perfecto|present perfect|\bprp\b|have.*pp)\b/.test(t)) return 'perfect';
-    if (/\b(pasado perfecto|past perfect|\bppc\b|been.*ing|combinado)\b/.test(t)) return 'combined';
-    if (/\b(modal|will|would|should|could|can|must|moneda|pregunta.*respuesta)\b/.test(t)) return 'modal';
-    if (/\b(preposici|prep\b|\bin on at\b)\b/.test(t)) return 'prepositions';
-    if (/\b(art[ií]culo|article)\b/.test(t)) return 'perfect';
-    // Bare "-ing / gerundio" without PC cues → still progressive only if MSI PC formula present
+    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|no work|i no )\b/.test(t)) return 'negations';
+    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|\bhay\b)\b/.test(t)) return 'there';
+    if (/\b(comparativ|more than|less than|-er than|as .+ as|mejor que|peor que|m[aá]s .+ que)\b/.test(t)) return 'comparatives';
+    if (/\b(art[ií]culo|articles?|a\/an|\bthe\b|cuantificador)\b/.test(t) && !/\b(presente perfecto|perfect)\b/.test(t)) return 'articles';
+    if (/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in on at.*time|at \d|in the morning|on monday|preposiciones tiempo)\b/.test(t)) return 'prepositions_time';
+    if (/\b(presente continuo|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando|p\s*\+\s*to be\s*\+\s*v)\b/.test(t)) return 'progressive';
+    if (/\b(gerundio|gerund|v\+ing|progressive)\b/.test(t) && /\b(to be|presente continuo|\bpc\b|progres|continuo)\b/.test(t)) return 'progressive';
+    if (/\b(pasado perfecto|past perfect|\bppc\b|had\s+\w+ed|combinado)\b/.test(t)) return 'combined';
+    if (/\b(presente perfecto|present perfect|\bprp\b|have\/has|have been)\b/.test(t)) return 'perfect';
+    if (/\b(pasado simple|past simple|\bps\b|yesterday|last week)\b/.test(t)) return 'past';
+    if (/\b(presente simple|present simple|\bpr\b|habits?|todos los d[ií]as)\b/.test(t)) return 'present';
+    if (/\b(futuro|going to|will\b|would\b|modal|moneda|inversi[oó]n|pregunta|can\b|could|should|must)\b/.test(t)) return 'modal';
+    if (/\b(preposici|prep\b|\bin on at\b|lugar)\b/.test(t)) return 'prepositions';
+    if (/\b(tiempo(?:s)? verbal|tiempos)\b/.test(t)) return 'present';
     if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;

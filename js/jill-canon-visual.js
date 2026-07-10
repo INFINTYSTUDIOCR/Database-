@@ -1,5 +1,5 @@
 /**
- * Motor visual Jill ó canon SVG inline + GIF opcional + escenario fullscreen.
+ * Motor visual Jill ù canon SVG inline + GIF opcional + escenario fullscreen.
  */
 (function (global) {
   'use strict';
@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260710clean';
+  var CACHE_VER = '20260710acc';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
@@ -156,13 +156,9 @@
   function renderStage(columnId, fallbackRef) {
     var clip = clipForColumn(columnId, fallbackRef);
     if (!clip) return '';
-    var title = clip.title || (fallbackRef && fallbackRef.title) || 'LecciÛn Jill';
     var media = mediaForClip(clip, fallbackRef, 'stage');
+    // Full-bleed board only ù no title bar / no transcript overlay
     return '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
-      + '<div style="position:absolute;top:0;left:0;right:0;padding:10px 16px;background:linear-gradient(180deg,rgba(30,27,75,0.72),transparent);z-index:2;pointer-events:none;">'
-      + '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#c4b5fd;">CANON VISUAL</div>'
-      + '<div style="font-size:15px;font-weight:800;color:#f5f3ff;">' + esc(title) + '</div>'
-      + '</div>'
       + media.html
       + '</div>';
   }

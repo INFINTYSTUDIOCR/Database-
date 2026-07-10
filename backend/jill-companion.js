@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v13-topic-match-visual';
+const JILL_PRO_BRAIN_VER = 'v14-topic-accuracy';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -250,26 +250,34 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   }
 
   if (phase === 'doubt_explain') {
-    return `${heard}MODO DUDA — DETENER Y ACLARAR YA (tema: "${topic || 'su duda'}").
-1) Reconocé la duda en 1 frase (demostrá que entendiste QUÉ preguntó).
-2) Explicá EN ESPAÑOL SOLO ESE tema (puente → patrón/fórmula). NO mezcles otro tema.
-   - Si preguntan ING después de preposición (before/after/without): explicá ESO — NO Presente Continuo / PC.
-   - Si preguntan Presente Continuo / PC: P + To Be + V+ing + C.
-   - Si preguntan negaciones: P + AUX + NOT + V + C.
-3) 1-2 ejemplos en inglés del MISMO tema.
+    return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
+REGLA DE ORO: explicá ÚNICAMENTE lo que el estudiante pidió. Cero temas vecinos. Cero relleno.
+1) 1 frase: "Pediste X" (nombrá el tema exacto).
+2) Explicá EN ESPAÑOL solo X (puente → patrón/fórmula de X).
+   Mapas (elegí UNO, el que pidió):
+   - ING tras prep (before/after/without) → PREP + V-ing — NO Presente Continuo
+   - Presente Continuo / PC → P + To Be + V+ing + C
+   - Negaciones → P + AUX + NOT + V + C
+   - There is/are → there + be
+   - Preposiciones lugar/tiempo → ranura C
+   - Tiempos (PR/PS/PRP/PPC) → la fórmula de ESE tiempo
+   - Modales / moneda / preguntas → inversión / will-would
+   - Artículos / comparativos → solo eso
+   - Cualquier otra duda Foundations → explicá ESA, no inventes otro módulo
+3) 1-2 ejemplos en inglés SOLO de X.
 4) "¿Te quedó claro?"
-PROHIBIDO pedir que repita la duda. Sin bundle forzado.
-Cerrá con [[CTYPE:whiteboard]] para pantalla completa.`;
+PROHIBIDO: mezclar PC con gerundio-prep, listar temas extra, pedir que repita la duda.
+Cerrá con [[CTYPE:whiteboard]].`;
   }
 
   if (phase === 'live_correct') {
-    return `${heard}MODO COACH EN VIVO — ESTRUCTURA ROTA detectada.
-DETENÉ la charla un momento. EN ESPAÑOL:
-1) Feedback: qué falló (ranura/auxiliar/tiempo) en 1 frase.
-2) Explicá el patrón correcto.
-3) Mostrá 1 ejemplo modelo en inglés.
-4) Confirmá: "¿Te quedó? Probá de nuevo."
-NO ignores el error. NO sigas de largo. [[CTYPE:whiteboard]]`;
+    return `${heard}MODO COACH EN VIVO — ESTRUCTURA ROTA.
+DETENÉ. EN ESPAÑOL, solo el error de ESTE turno:
+1) Feedback (ranura/auxiliar/tiempo) 1 frase.
+2) Patrón correcto de ESE error.
+3) 1 ejemplo modelo.
+4) "¿Te quedó? Probá de nuevo."
+NO cambies de tema. [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_evaluate') {

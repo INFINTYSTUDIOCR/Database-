@@ -60,7 +60,9 @@
     },
     {
       "id": "preposiciones-tiempo",
-      "columns": [],
+      "columns": [
+        "prepositions_time"
+      ],
       "svg": "assets/canon/preposiciones-tiempo.svg",
       "gif": null,
       "title": "Preposiciones tiempo"
@@ -85,7 +87,9 @@
     },
     {
       "id": "comparativos",
-      "columns": [],
+      "columns": [
+        "comparatives"
+      ],
       "svg": "assets/canon/comparativos.svg",
       "gif": null,
       "title": "Comparativos"
@@ -93,7 +97,8 @@
     {
       "id": "articulos",
       "columns": [
-        "perfect"
+        "perfect",
+        "articles"
       ],
       "svg": "assets/canon/articulos.svg",
       "gif": null,
