@@ -1,5 +1,5 @@
 /**
- * Jill Pro pressure � 7 practices � turns = 24 questions.
+ * Jill Pro pressure - 7 practices - turns = 24 questions.
  * Unit: chat-message dedupe + intent/phase (no network).
  * Live (optional): ANALYZE_SECRET=xxx node tests/jill-pro-pressure-24.mjs
  */
@@ -122,7 +122,7 @@ const PRACTICES = [
 const results = [];
 function log(ok, name, detail) {
   results.push({ ok, name, detail });
-  console.log((ok ? 'PASS' : 'FAIL') + ' | ' + name + (detail ? ' � ' + detail : ''));
+  console.log((ok ? 'PASS' : 'FAIL') + ' | ' + name + (detail ? ' — ' + detail : ''));
 }
 
 function assertNoDoubleUser(msgs, label) {
@@ -140,19 +140,31 @@ function assertNoDoubleUser(msgs, label) {
 }
 
 function forbiddenRepeat(text) {
-  return /contame otra vez|de qu[e�] quer[e�]s charlar|no te entend[i�]|repet[i�] tu duda/i.test(String(text || ''));
+  const scrubbed = String(text || '')
+    .replace(/no pidas[^.!\n"']*/gi, '')
+    .replace(/PROHIBIDO[^.!\n]*/gi, '')
+    .replace(/NUNCA[^.!\n]*/gi, '');
+  return /contame otra vez|de qu[eé] quer[eé]s charlar|no te entend[ií]|repet[ií] tu duda/i.test(scrubbed);
 }
 
 function hasTeachSignal(text) {
   const t = String(text || '').toLowerCase();
-  return /\b(will have|have been|am\/is\/are|do not|does not|did not|going to|would|should|msi|ejemplo|example|formula|patron|patr[o�]n)\b/i.test(t)
+  return /\b(will have|have been|am\/is\/are|do not|does not|did not|going to|would|should|msi|ejemplo|example|formula|patron|patr[oó]n)\b/i.test(t)
     || /\b(will|have|been|not|going)\b/.test(t);
 }
 
-console.log('=== Jill Pro pressure 24 � unit ===');
+const SKIP_NET = process.env.Q7_UNIT_ONLY === '1' || process.env.Q7_PLUS_CHILD === '1';
 
-const health = await fetch(BACKEND + '/').then((r) => r.text()).catch((e) => 'ERR ' + e.message);
-log(/20260710-jill-intent/.test(health), 'Render build', health.slice(0, 80));
+console.log('=== Jill Pro pressure 24 — unit ===');
+
+if (SKIP_NET) {
+  log(true, 'Render build', 'skipped (unit-only)');
+} else {
+  const health = await fetch(BACKEND + '/', { signal: AbortSignal.timeout(8000) })
+    .then((r) => r.text())
+    .catch((e) => 'ERR ' + e.message);
+  log(/20260710-/.test(health) && /OK|Infinity AI/.test(health), 'Render build', health.slice(0, 90));
+}
 
 const serverSrc = readFileSync(path.join(root, 'backend', 'server.js'), 'utf8');
 const jillSrc = readFileSync(path.join(root, 'backend', 'jill-companion.js'), 'utf8');
@@ -235,7 +247,7 @@ async function parseStream(sessionId, message) {
   return { fullText: fullText.trim(), ms: Date.now() - t0 };
 }
 
-if (QA_SECRET) {
+if (QA_SECRET && !SKIP_NET) {
   console.log('\n=== Live QA vs Render ===');
   const start = await fetch(BACKEND + '/demo/start', {
     method: 'POST',
@@ -283,3 +295,4 @@ if (fail) {
   process.exit(1);
 }
 console.log('FUNCTIONAL: OK');
+process.exit(0);

@@ -187,7 +187,7 @@
       && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are)\b/.test(t)) {
       return 'gerund_prep';
     }
-    if (/\b(negaci[oó]n|negation|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|no work|i no )\b/.test(t)) return 'negations';
+    if (/\b(negaci[oó]n(?:es)?|negations?|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|no work|i no )\b/.test(t)) return 'negations';
     if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|\bhay\b)\b/.test(t)) return 'there';
     if (/\b(comparativ|more than|less than|-er than|as .+ as|mejor que|peor que|m[aá]s .+ que)\b/.test(t)) return 'comparatives';
     if (/\b(art[ií]culo|articles?|a\/an|\bthe\b|cuantificador)\b/.test(t) && !/\b(presente perfecto|perfect)\b/.test(t)) return 'articles';

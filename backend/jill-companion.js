@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v14-topic-accuracy';
+const JILL_PRO_BRAIN_VER = 'v14-topic-accuracy-b';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -58,6 +58,7 @@ function looksLikeBrokenEnglish(message) {
     /\bi\s+have\s+(see|go|eat|do|make|write|speak)\b/i, // wrong PP
     /\b(me|him|her)\s+(is|are|go|want|like)\b/i, // object as subject
     /\b(he|she|it)\s+no\s+\w+/i, // She no like
+    /\b(will|would|should|can|could|must)\s+(can|could|will|would|must|should)\b/i, // I will can
     /\bwant\s+go\b|\blike\s+go\b|\bneed\s+go\b/i,
     /\b(to\s+)?be\s+go\b/i,
     /^[a-zA-Z']+(\s+[a-zA-Z']+){0,2}$/ // ultra-short fragment when longer expected
@@ -296,7 +297,7 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   }
 
   return `${heard}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
-Si trae duda/tema gramatical mezclado con saludo: EXPLICÁ el tema; no pidas "de qué querés charlar".
+Si trae duda/tema gramatical mezclado con saludo: EXPLICÁ el tema; no pidas que elija tema otra vez.
 Si es charla: reaccioná + UNA pregunta de seguimiento.
 Si aparece duda o inglés mal armado: DETENÉ → feedback → explicar → ejemplo → confirmar → continuar.
 [[CTYPE:text]]`;

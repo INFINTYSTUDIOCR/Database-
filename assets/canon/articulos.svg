@@ -1,23 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="Artículos y cuantificadores — ranura C">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="Articulos y cuantificadores - ranura C">
   <rect width="320" height="220" rx="12" fill="none"/>
-  <text x="160" y="28" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="12" font-weight="bold">ARTÍCULOS + CUANTIFICADORES · ranura C</text>
+  <text x="160" y="28" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="12" font-weight="bold">ARTICULOS + CUANTIFICADORES - ranura C</text>
   <text x="160" y="46" text-anchor="middle" fill="#6d28d9" font-size="9">P + V + [pieza en C] + sustantivo</text>
   <line x1="24" y1="54" x2="296" y2="54" stroke="#7c3aed" stroke-width="1" opacity="0.35"/>
   <text x="80" y="72" text-anchor="middle" fill="#D97706" font-size="11" font-weight="bold">a / an</text>
-  <text x="80" y="86" text-anchor="middle" fill="#312e81" font-size="9">indefinido · 1 de muchos</text>
-  <text x="80" y="100" text-anchor="middle" fill="#312e81" font-size="9">a book · an hour</text>
+  <text x="80" y="86" text-anchor="middle" fill="#312e81" font-size="9">indefinido - 1 de muchos</text>
+  <text x="80" y="100" text-anchor="middle" fill="#312e81" font-size="9">a book | an hour</text>
   <text x="240" y="72" text-anchor="middle" fill="#D97706" font-size="11" font-weight="bold">the</text>
-  <text x="240" y="86" text-anchor="middle" fill="#312e81" font-size="9">definido · ya sabemos cuál</text>
-  <text x="240" y="100" text-anchor="middle" fill="#312e81" font-size="9">the office · the cat</text>
+  <text x="240" y="86" text-anchor="middle" fill="#312e81" font-size="9">definido - ya sabemos cual</text>
+  <text x="240" y="100" text-anchor="middle" fill="#312e81" font-size="9">the office | the cat</text>
   <line x1="160" y1="58" x2="160" y2="108" stroke="#7c3aed" stroke-width="1" opacity="0.35"/>
   <rect x="20" y="114" width="280" height="88" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/>
-  <text x="160" y="130" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="bold">¿Contable o no contable?</text>
+  <text x="160" y="130" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="bold">Contable o no contable?</text>
   <text x="90" y="148" text-anchor="middle" fill="#312e81" font-size="9">NO contable</text>
-  <text x="90" y="162" text-anchor="middle" fill="#D97706" font-size="9">much · little · a lot of</text>
-  <text x="90" y="176" text-anchor="middle" fill="#312e81" font-size="8">much water · little time</text>
-  <text x="230" y="148" text-anchor="middle" fill="#312e81" font-size="9">SÍ contable (plural)</text>
-  <text x="230" y="162" text-anchor="middle" fill="#D97706" font-size="9">many · few · several · a lot of</text>
-  <text x="230" y="176" text-anchor="middle" fill="#312e81" font-size="8">many books · few students</text>
-  <text x="160" y="194" text-anchor="middle" fill="#312e81" font-size="8">several = varios · a lot of = mucho/muchos (informal)</text>
-  <text x="160" y="212" text-anchor="middle" fill="#6d28d9" font-size="9">I see a cat · The cat is black · I have little time but many tasks</text>
+  <text x="90" y="162" text-anchor="middle" fill="#D97706" font-size="9">much | little | a lot of</text>
+  <text x="90" y="176" text-anchor="middle" fill="#312e81" font-size="8">much water | little time</text>
+  <text x="230" y="148" text-anchor="middle" fill="#312e81" font-size="9">SI contable (plural)</text>
+  <text x="230" y="162" text-anchor="middle" fill="#D97706" font-size="9">many | few | several | a lot of</text>
+  <text x="230" y="176" text-anchor="middle" fill="#312e81" font-size="8">many books | few students</text>
+  <text x="160" y="194" text-anchor="middle" fill="#312e81" font-size="8">several = varios | a lot of = mucho/muchos (informal)</text>
+  <text x="160" y="212" text-anchor="middle" fill="#6d28d9" font-size="9">I see a cat | The cat is black | I have little time but many tasks</text>
 </svg>
