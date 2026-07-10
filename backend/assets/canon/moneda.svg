@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Metodo de la Moneda">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="52" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="13" font-weight="bold">METODO DE LA MONEDA</text>
+  <circle cx="160" cy="108" r="42" fill="#F5A623" stroke="#7c3aed" stroke-width="2"/>
+  <text x="160" y="96" text-anchor="middle" fill="#312e81" font-size="10" font-weight="bold">PREGUNTA</text>
+  <text x="160" y="112" text-anchor="middle" fill="#312e81" font-size="9">Are you...? = V + P</text>
+  <text x="160" y="126" text-anchor="middle" fill="#312e81" font-size="10" font-weight="bold">RESPUESTA = P + V</text>
+  <text x="160" y="158" text-anchor="middle" fill="#6d28d9" font-size="9">WH- primero | imperativo sin pronombre</text>
+</svg>
