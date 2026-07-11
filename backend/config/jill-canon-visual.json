@@ -64,10 +64,17 @@
     },
     {
       "id": "tiempos",
-      "columns": ["combined"],
+      "columns": ["overview"],
       "svg": "assets/canon/tiempos.svg",
       "gif": null,
       "title": "Tiempos verbales overview"
+    },
+    {
+      "id": "have-been-ing",
+      "columns": ["combined"],
+      "svg": "assets/canon/have-been-ing.svg",
+      "gif": null,
+      "title": "Have + been + V-ing"
     },
     {
       "id": "preposiciones",

@@ -163,7 +163,7 @@
     past: { id: 'tiempos-ps', path: 'assets/canon/tiempos-ps.svg', title: 'Pasado simple PS' },
     progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Presente continuo PC' },
     perfect: { id: 'tiempos-prp', path: 'assets/canon/tiempos-prp.svg', title: 'Presente perfecto PRP' },
-    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos / PPC' },
+    combined: { id: 'have-been-ing', path: 'assets/canon/have-been-ing.svg', title: 'Have + been + V-ing (PPC)' },
     future: { id: 'tiempos-fut', path: 'assets/canon/tiempos-fut.svg', title: 'Futuro will / going to' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda (inversion)' },
     modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Modales - P + MODAL + V base' },
@@ -174,7 +174,8 @@
     negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
     comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },
     articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos a/an/the' },
-    have_had: { id: 'have-had', path: 'assets/canon/have-had.svg', title: 'Have / Has / Had + PP' }
+    have_had: { id: 'have-had', path: 'assets/canon/have-had.svg', title: 'Have / Has / Had + PP' },
+    overview: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos overview' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -191,11 +192,21 @@
     if (/\bhave\s*\/\s*has\s*\/\s*had\b/.test(t) || /\bhave\s+has\s+had\b/.test(t)) return 'have_had';
     if (/\b(have\s+vs\s+had|has\s+vs\s+had|diferencia\s+entre\s+have\s+y\s+had)\b/.test(t)) return 'have_had';
     if (/\bhad\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect|participio)/.test(t)
-      && !/\b(pasado simple|past simple|yesterday)\b/.test(t)) {
+      && !/\b(pasado simple|past simple|yesterday|been\s+\w+ing|been\s*\+?\s*v)/.test(t)) {
       return 'have_had';
     }
+
+    // Have + been + V-ing (PPC) — antes que PRP / have solo
+    if (/\b(have|has|had)\s*\+?\s*been\s*\+?\s*(v\s*\+?\s*ing|ving|ing|-ing)\b/.test(t)
+      || /\b(have|has|had)\s+been\s+\w+ing\b/.test(t)
+      || /\b(presente\s+perfecto\s+continuo|present\s+perfect\s+continuous|perfecto\s+continuo|\bppc\b)\b/.test(t)
+      || /\bhave\s*\+?\s*been\s*\+?\s*v/i.test(t)
+      || /\bbeen\s*\+?\s*(v\s*)?\+?\s*ing\b/.test(t) && /\b(have|has|had|perfecto|perfect|explic)\b/.test(t)) {
+      return 'combined';
+    }
+
     if (/\bhave\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect)/.test(t)
-      && !/\b(had|going to|will have)\b/.test(t)) {
+      && !/\b(had|going to|will have|been)\b/.test(t)) {
       return 'perfect';
     }
     if (/\b(preposici[oó]n|before|after|without|instead of|good at|interested in|afraid of|antes de|despues de|después de|en vez de)\b/.test(t)
@@ -243,9 +254,10 @@
       return 'progressive';
     }
 
-    // Futuro perfecto / PPC
-    if (/\b(futuro perfecto|future perfect|will have|pasado perfecto|past perfect|\bppc\b|perfecto continuo|have been \w+ing)\b/.test(t)) {
-      return 'combined';
+    // Futuro perfecto / past perfect (no confundir con have+been+ing ya capturado)
+    if (/\b(futuro perfecto|future perfect|will have|pasado perfecto|past perfect)\b/.test(t)
+      && !/\bbeen\b/.test(t)) {
+      return 'overview';
     }
 
     // Presente perfecto PRP (NO articulos)
@@ -285,7 +297,7 @@
 
     // Overview tiempos
     if (/\b(tiempo(?:s)? verbal(?:es)?|tiempos|siglas\s+pr|matriz de tiempos)\b/.test(t)) {
-      return 'combined';
+      return 'overview';
     }
 
     if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';

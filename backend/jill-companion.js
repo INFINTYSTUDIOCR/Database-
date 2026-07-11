@@ -116,6 +116,7 @@ Si piden PASADO SIMPLE / PS: tablero PS (no PR, no moneda).
 Si piden IN ON AT BY / preposiciones: tablero preposiciones (core IN|ON|AT|BY).
 Si piden MODALES: can/could/should/must + verbo base. NO abras Método Moneda.
 Si piden MONEDA / inversión: Are you…? = V+P. NO abras el tablero de modales.
+Si piden HAVE + BEEN + V-ing / perfecto continuo / PPC: tablero have + been + V-ing (no PRP ni PC).
 Si piden HAVE Y HAD / have has had: tablero have/has (presente perfecto) vs had (pasado perfecto).
 Si mencionan el tema + piden ayuda, EXPLICÁ ya — no pidas confirmación del tema.
 En explicaciones: cerrá con [[CTYPE:whiteboard]].`;
