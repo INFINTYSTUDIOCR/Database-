@@ -63,7 +63,8 @@
         "estructura + sensacion",
         "should have studied",
         "must have forgotten",
-        "will have finished"
+        "will have finished",
+        "modal + have"
       ]
     },
     {
@@ -132,7 +133,8 @@
         "segundo condicional",
         "second conditional",
         "condicional hipotetico",
-        "hipotesis irreal"
+        "hipotesis irreal",
+        "was were"
       ]
     },
     {
@@ -154,7 +156,8 @@
         "tres columnas",
         "3 columnas",
         "presente pasado participio",
-        "1a 2a 3a columna"
+        "1a 2a 3a columna",
+        "irregulares"
       ]
     },
     {
@@ -182,7 +185,32 @@
         "tener vs hay",
         "there is vs have",
         "there exists",
-        "there is y there are"
+        "there is y there are",
+        "hay"
+      ]
+    },
+    {
+      "id": "gerundio",
+      "svg": "assets/canon/gerundio-prep.svg",
+      "title": "Gerundio = V-ing como sustantivo",
+      "formula": "V-ing funciona como SUSTANTIVO (sujeto u objeto). Tras prep: PREP + V-ing.",
+      "example": "I like running. / Playing guitar is fun.",
+      "never": [
+        "presente continuo (am/is/are + ing)",
+        "IN ON AT lugar"
+      ],
+      "aliases": [
+        "gerundio",
+        "el gerundio",
+        "que es el gerundio",
+        "qué es el gerundio",
+        "imagen del gerundio",
+        "imagen gerundio",
+        "sustantivo con -ing",
+        "v-ing como sustantivo",
+        "gerund",
+        "el gerund",
+        "que es gerundio"
       ]
     },
     {
@@ -206,7 +234,8 @@
         "good at",
         "interested in going",
         "afraid of",
-        "instead of"
+        "instead of",
+        "despues de preposicion"
       ]
     },
     {
@@ -265,7 +294,9 @@
         "at the office",
         "at home",
         "explicame in on at",
-        "corregime in on at"
+        "corregime in on at",
+        "in on",
+        "on at"
       ]
     },
     {
@@ -289,7 +320,9 @@
         "won't",
         "haven't",
         "aux + not",
-        "auxiliar + not"
+        "auxiliar + not",
+        "negacion",
+        "negación"
       ]
     },
     {
@@ -335,7 +368,9 @@
         "definido",
         "cuantificadores",
         "much/many",
-        "a lot of"
+        "a lot of",
+        "a an the",
+        "a/an/the"
       ]
     },
     {
@@ -358,7 +393,10 @@
         "to be + ing",
         "to be + v + ing",
         "ahora mismo",
-        "pronombre + to be"
+        "pronombre + to be",
+        "continuo",
+        "el continuo",
+        "ing continuo"
       ]
     },
     {
@@ -379,7 +417,9 @@
         "prp",
         "have/has + participio",
         "have has participio",
-        "pronombre + have + participio"
+        "pronombre + have + participio",
+        "perfecto",
+        "el perfecto"
       ]
     },
     {
@@ -399,7 +439,11 @@
         "past simple",
         "ps",
         "explicame el pasado simple",
-        "explicame pasado simple"
+        "explicame pasado simple",
+        "pasado",
+        "el pasado",
+        "pizarron del pasado",
+        "imagen del pasado"
       ]
     },
     {
@@ -422,7 +466,9 @@
         "todos los dias",
         "every day",
         "he/she/it + s",
-        "explicame el presente simple"
+        "explicame el presente simple",
+        "presente",
+        "el presente"
       ]
     },
     {
@@ -440,7 +486,8 @@
       "aliases": [
         "modales",
         "pronombre + modal",
-        "explicame modales"
+        "explicame modales",
+        "los modales"
       ]
     },
     {
@@ -461,7 +508,9 @@
         "inversion",
         "are you",
         "v + p",
-        "pregunta / respuesta"
+        "pregunta / respuesta",
+        "la moneda",
+        "metodo de moneda"
       ]
     },
     {
@@ -480,7 +529,8 @@
         "future",
         "going to",
         "explicame el futuro",
-        "futuro simple"
+        "futuro simple",
+        "el futuro"
       ]
     },
     {
@@ -498,7 +548,8 @@
         "siglas pr",
         "matriz de tiempos",
         "overview tiempos",
-        "todos los tiempos"
+        "todos los tiempos",
+        "matriz"
       ]
     }
   ]
@@ -506,7 +557,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260710dj2';
+  var CACHE_VER = '20260710lib';
 
   function normalize(text) {
     return String(text || '')
@@ -576,6 +627,49 @@
     return t ? t.id : null;
   }
 
+  function wantsVisual(text) {
+    return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
+  }
+
+  function stripAskShell(text) {
+    var t = String(text || '');
+    t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
+    t = t.replace(/\b(la|el|una|un)\s+(imagen|pizarr[oó]n|tablero|whiteboard|visual|diagrama|cuadro)\b/gi, ' ');
+    t = t.replace(/\b(imagen|pizarr[oó]n|tablero|whiteboard|visual|diagrama|cuadro)\b/gi, ' ');
+    t = t.replace(/\b(de|del|de\s+la|sobre|con|acerca\s+de)\b/gi, ' ');
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  function resolveAsk(userAsk, stickyTopic) {
+    var ask = String(userAsk || '').trim();
+    var sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
+    var hit = pickTrack(ask);
+    if (hit) return hit;
+    var stripped = stripAskShell(ask);
+    if (stripped) {
+      hit = pickTrack(stripped);
+      if (hit) return hit;
+    }
+    if (sticky) {
+      hit = pickTrack(sticky);
+      if (hit) return hit;
+      var ss = stripAskShell(sticky);
+      if (ss) {
+        hit = pickTrack(ss);
+        if (hit) return hit;
+      }
+    }
+    hit = pickTrack([ask, sticky].filter(Boolean).join(' '));
+    if (hit) return hit;
+    return pickTrack([stripped, sticky].filter(Boolean).join(' ')) || null;
+  }
+
+  function resolveAskId(userAsk, stickyTopic) {
+    var t = resolveAsk(userAsk, stickyTopic);
+    return t ? t.id : null;
+  }
+
+
   function formatLock(track) {
     if (!track) return '';
     var never = (track.never || []).join('; ');
@@ -609,6 +703,10 @@
     normalize: normalize,
     pickTrack: pickTrack,
     pickTrackId: pickTrackId,
+    wantsVisual: wantsVisual,
+    stripAskShell: stripAskShell,
+    resolveAsk: resolveAsk,
+    resolveAskId: resolveAskId,
     formatLock: formatLock,
     byColumn: byColumn,
     CACHE_VER: CACHE_VER

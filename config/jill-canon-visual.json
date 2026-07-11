@@ -1,9 +1,16 @@
 {
-  "version": 6,
+  "version": 7,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
-  "frame": { "width": 320, "height": 180, "radius": 12 },
-  "stage": { "aspectRatio": "16/9", "minHeightVh": 52 },
+  "frame": {
+    "width": 320,
+    "height": 180,
+    "radius": 12
+  },
+  "stage": {
+    "aspectRatio": "16/9",
+    "minHeightVh": 52
+  },
   "palette": {
     "title": "#5B21B6",
     "label": "#6d28d9",
@@ -14,147 +21,190 @@
   "clips": [
     {
       "id": "presente-continuo",
-      "columns": ["progressive"],
+      "columns": [
+        "progressive"
+      ],
       "svg": "assets/canon/presente-continuo.svg",
       "gif": null,
       "title": "Pronombre + To Be + Verbo (ING)"
     },
     {
       "id": "gerundio-prep",
-      "columns": ["gerund_prep"],
+      "columns": [
+        "gerund_prep",
+        "gerundio"
+      ],
       "svg": "assets/canon/gerundio-prep.svg",
       "gif": null,
       "title": "Gerundio despues de preposicion"
     },
     {
       "id": "tiempos-pr",
-      "columns": ["present"],
+      "columns": [
+        "present"
+      ],
       "svg": "assets/canon/tiempos-pr.svg",
       "gif": null,
       "title": "Presente simple PR"
     },
     {
       "id": "tiempos-ps",
-      "columns": ["past"],
+      "columns": [
+        "past"
+      ],
       "svg": "assets/canon/tiempos-ps.svg",
       "gif": null,
       "title": "Pasado simple PS"
     },
     {
       "id": "tiempos-prp",
-      "columns": ["perfect"],
+      "columns": [
+        "perfect"
+      ],
       "svg": "assets/canon/tiempos-prp.svg",
       "gif": null,
       "title": "Pronombre + Have/Has + Participio"
     },
     {
       "id": "tiempos-fut",
-      "columns": ["future"],
+      "columns": [
+        "future"
+      ],
       "svg": "assets/canon/tiempos-fut.svg",
       "gif": null,
       "title": "Futuro will / going to"
     },
     {
       "id": "tiempos",
-      "columns": ["overview"],
+      "columns": [
+        "overview"
+      ],
       "svg": "assets/canon/tiempos.svg",
       "gif": null,
       "title": "Tiempos verbales overview"
     },
     {
       "id": "have-been-ing",
-      "columns": ["combined"],
+      "columns": [
+        "combined"
+      ],
       "svg": "assets/canon/have-been-ing.svg",
       "gif": null,
       "title": "Pronombre + Have + Been + Verbo (ING)"
     },
     {
       "id": "modales",
-      "columns": ["modales"],
+      "columns": [
+        "modales"
+      ],
       "svg": "assets/canon/modales.svg",
       "gif": null,
       "title": "Pronombre + Modal + Verbo"
     },
     {
       "id": "modal-have-been-ing",
-      "columns": ["modal_have_been"],
+      "columns": [
+        "modal_have_been"
+      ],
       "svg": "assets/canon/modal-have-been-ing.svg",
       "gif": null,
       "title": "Pronombre + Modal + Have Been + Verbo ING"
     },
     {
       "id": "modal-have-pp",
-      "columns": ["modal_have_pp"],
+      "columns": [
+        "modal_have_pp"
+      ],
       "svg": "assets/canon/modal-have-pp.svg",
       "gif": null,
       "title": "Modal + Have + Participio"
     },
     {
       "id": "preposiciones",
-      "columns": ["prepositions"],
+      "columns": [
+        "prepositions"
+      ],
       "svg": "assets/canon/preposiciones.svg",
       "gif": null,
       "title": "Preposiciones IN ON AT BY"
     },
     {
       "id": "preposiciones-tiempo",
-      "columns": ["prepositions_time"],
+      "columns": [
+        "prepositions_time"
+      ],
       "svg": "assets/canon/preposiciones-tiempo.svg",
       "gif": null,
       "title": "Preposiciones de tiempo"
     },
     {
       "id": "there-existencial",
-      "columns": ["there"],
+      "columns": [
+        "there"
+      ],
       "svg": "assets/canon/there-existencial.svg",
       "gif": null,
       "title": "There is / There are / To Have / Exist"
     },
     {
       "id": "if-was-were",
-      "columns": ["if_was_were"],
+      "columns": [
+        "if_was_were"
+      ],
       "svg": "assets/canon/if-was-were.svg",
       "gif": null,
       "title": "If I was / If I were / If I were to"
     },
     {
       "id": "verbos-irregulares",
-      "columns": ["irregular_verbs"],
+      "columns": [
+        "irregular_verbs"
+      ],
       "svg": "assets/canon/verbos-irregulares.svg",
       "gif": null,
       "title": "Verbos irregulares (Presente / PS / Participio)"
     },
     {
       "id": "negaciones",
-      "columns": ["negations"],
+      "columns": [
+        "negations"
+      ],
       "svg": "assets/canon/negaciones.svg",
       "gif": null,
       "title": "Negaciones - AUX + NOT"
     },
     {
       "id": "comparativos",
-      "columns": ["comparatives"],
+      "columns": [
+        "comparatives"
+      ],
       "svg": "assets/canon/comparativos.svg",
       "gif": null,
       "title": "Comparativos"
     },
     {
       "id": "articulos",
-      "columns": ["articles"],
+      "columns": [
+        "articles"
+      ],
       "svg": "assets/canon/articulos.svg",
       "gif": null,
       "title": "Articulos a/an/the"
     },
     {
       "id": "moneda",
-      "columns": ["modal"],
+      "columns": [
+        "modal"
+      ],
       "svg": "assets/canon/moneda.svg",
       "gif": null,
       "title": "Metodo moneda"
     },
     {
       "id": "have-had",
-      "columns": ["have_had"],
+      "columns": [
+        "have_had"
+      ],
       "svg": "assets/canon/have-had.svg",
       "gif": null,
       "title": "Have / Has / Had"

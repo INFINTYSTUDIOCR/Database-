@@ -1,5 +1,5 @@
 /**
- * Jill DJ — batería anti-regresión del catálogo completo.
+ * Jill DJ — batería anti-regresión del catálogo completo + pedidos visuales.
  * node tests/canon-router-battery.mjs
  */
 import { createRequire } from 'module';
@@ -41,17 +41,34 @@ const cases = [
   ['there is y there are', 'there'],
   ['there is', 'there'],
   ['hay vs tener', 'there'],
+  ['gerundio', 'gerundio'],
+  ['qué es el gerundio', 'gerundio'],
+  ['imagen del gerundio', 'gerundio'],
   ['gerundio despues de preposicion', 'gerund_prep'],
   ['before leaving', 'gerund_prep'],
   ['if i were', 'if_was_were'],
   ['was vs were', 'if_was_were'],
   ['verbos irregulares', 'irregular_verbs'],
   ['negaciones', 'negations'],
-  ['don\'t', 'negations'],
+  ["don't", 'negations'],
   ['comparativos', 'comparatives'],
   ['articulos', 'articles'],
   ['have vs had', 'have_had'],
   ['tiempos verbales', 'overview'],
+];
+
+// Pedidos visuales / sticky — misma pista que explicación
+const resolveCases = [
+  ['dame la imagen', 'gerundio', 'gerundio'],
+  ['dame la imagen', 'pasado simple', 'past'],
+  ['pizarrón del pasado', '', 'past'],
+  ['imagen de in on at', '', 'prepositions'],
+  ['muéstrame el presente continuo', '', 'progressive'],
+  ['tablero de there is', '', 'there'],
+  ['imagen de las negaciones', '', 'negations'],
+  ['dame la imagen', 'modales', 'modales'],
+  ['explicame el futuro', '', 'future'],
+  ['imagen del metodo moneda', '', 'modal'],
 ];
 
 let fail = 0;
@@ -59,6 +76,13 @@ for (const [q, expect] of cases) {
   const got = router.pickTrackId(q);
   const ok = got === expect;
   console.log(ok ? 'OK' : 'FAIL', JSON.stringify(q), '->', got, ok ? '' : `(expected ${expect})`);
+  if (!ok) fail++;
+}
+
+for (const [ask, sticky, expect] of resolveCases) {
+  const got = router.resolveAskId(ask, sticky);
+  const ok = got === expect;
+  console.log(ok ? 'OK' : 'FAIL', 'resolve', JSON.stringify(ask), '+', JSON.stringify(sticky), '->', got, ok ? '' : `(expected ${expect})`);
   if (!ok) fail++;
 }
 
@@ -70,6 +94,8 @@ const never = [
   ['futuro perfecto', 'future'],
   ['pasado simple', 'present'],
   ['presente continuo', 'gerund_prep'],
+  ['presente continuo', 'gerundio'],
+  ['gerundio', 'progressive'],
 ];
 for (const [q, bad] of never) {
   const got = router.pickTrackId(q);
@@ -82,4 +108,4 @@ if (fail) {
   console.error('\nFAILED', fail);
   process.exit(1);
 }
-console.log('\nALL PASS', cases.length + never.length);
+console.log('\nALL PASS', cases.length + resolveCases.length + never.length);

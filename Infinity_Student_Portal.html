@@ -33,11 +33,11 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-router.js?v=20260710dj2"></script>
-<script src="js/jill-canon-visual.js?v=20260710dj2"></script>
-<script src="js/jill-visual-stage.js?v=20260710dj2"></script>
+<script src="js/jill-canon-router.js?v=20260710lib"></script>
+<script src="js/jill-canon-visual.js?v=20260710lib"></script>
+<script src="js/jill-visual-stage.js?v=20260710lib"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710cr"></script>
+<script src="js/jill-foundations.js?v=20260710lib"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -4254,10 +4254,31 @@ function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
   var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
   var ct = contentType || 'text';
-  var userTopic = jillLastUserTopic();
+  var userAsk = jillLastUserTopic();
+  var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
+  // Pedido + sticky: misma fuente que el backend (toda la biblioteca)
+  var userTopic = userAsk;
+  if(typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId){
+    var locked = JillCanonRouter.resolveAskId(userAsk, sticky);
+    if(locked){
+      userTopic = (userAsk + ' ' + sticky).trim();
+    } else if(sticky){
+      userTopic = (userAsk + ' ' + sticky).trim();
+    }
+  } else if(sticky){
+    userTopic = (userAsk + ' ' + sticky).trim();
+  }
   var col = (typeof JillVisualStage.resolveColumn === 'function')
     ? JillVisualStage.resolveColumn(text, bundle, userTopic)
     : null;
+  if(!col && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId){
+    col = JillCanonRouter.resolveAskId(userAsk, sticky);
+  }
+  // Pedido de imagen/pizarrón → forzar whiteboard si hay track
+  if(col && (ct === 'text' || !ct || /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual)\b/i.test(userAsk || ''))){
+    ct = 'whiteboard';
+  }
+  if(col && (ct === 'text' || !ct)) ct = 'whiteboard';
   var shown = JillVisualStage.show(text, ct, bundle, { userTopic: userTopic, column: col });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
 }
@@ -4351,8 +4372,12 @@ function jillFetchTtsBlob(clean, lang, attempt){
 
 function jillScrubNonCr(text){
   return String(text || '')
+    .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/(^|[\s,.\u2014\u2013\-\u00bf\u00a1])che\b[,!.\u2026]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
+    // Re-greetings mid-session (solo primera vez)
+    .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')
+    .replace(/\bclaro\s*,\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s*[—–\.]\s*(?=ac[aá]\s+te\s+va)/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/\s+([,.!?])/g, '$1')
     .trim();

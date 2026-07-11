@@ -2645,12 +2645,13 @@ async function demoGenerateEvaluation(session) {
 const ttsCache = new Map();
 const TTS_CACHE_MAX = 200; // máximo de entradas
 
-function getTTSCacheKey(text, voiceId, languageCode){
-  const lang = languageCode ? String(languageCode).slice(0, 4) : 'auto';
+function getTTSCacheKey(text, voiceId, languageCode, speed){
+  const lang = languageCode ? String(languageCode).slice(0, 8) : 'auto';
+  const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2717,8 +2718,11 @@ function applyLatAmSeseoForTts(text) {
 /** Strip Rioplatense / Spain fillers that must never reach the student. */
 function scrubNonCrSpanish(text) {
   return String(text || '')
+    .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
+    .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')
+    .replace(/\bclaro\s*,\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s*[—–\.]\s*(?=ac[aá]\s+te\s+va)/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/\s+([,.!?])/g, '$1')
     .trim();
@@ -2767,17 +2771,20 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   let clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
   const languageCode = opts.languageCode || null;
+  const speed = opts.speed ?? 1.08;
   const isSpanish = languageCode && String(languageCode).toLowerCase().startsWith('es');
   // LatAm seseo for Spanish Jill/Alice — busts Spain-ceceo cache via languageCode es-CR
   if (isSpanish) clean = applyLatAmSeseoForTts(clean);
   if (!clean) throw new Error('Empty text');
 
-  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode);
+  // Include speed in cache keys so slower Jill audio is not poisoned by old 1.08 clips
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}`;
+  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
 
-  const brainTts = await Brain.brainGetTTS(clean, voiceId, languageCode);
+  const brainTts = await Brain.brainGetTTS(clean, voiceId, brainLang);
   if (brainTts.hit) {
     cacheTTS(cacheKey, brainTts.buffer);
     return { buffer: brainTts.buffer, cache: 'HIT', clean };
@@ -2791,7 +2798,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
       similarity_boost: opts.similarityBoost ?? 0.78,
       style: opts.style ?? 0.12,
       use_speaker_boost: true,
-      speed: opts.speed ?? 1.08
+      speed
     }
   };
   // multilingual_v2 ignores language_code; still send es for models that accept it
@@ -2814,7 +2821,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 
   const buf = Buffer.from(await r.arrayBuffer());
   cacheTTS(cacheKey, buf);
-  if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf, languageCode);
+  if (brainTts.hash) await Brain.brainSetTTS(brainTts.hash, clean, voiceId, buf, brainLang);
   return { buffer: buf, cache: 'MISS', clean };
 }
 
@@ -4411,11 +4418,14 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
     // Spanish → es-CR cache key + LatAm seseo (no Spain ceceo).
     const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
+    // Jill habla más despacio que el default 1.08 (se sentía rapidísimo)
+    const speed = (languageCode === 'en') ? 1.0 : 0.92;
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
-      languageCode
+      languageCode,
+      speed
     });
   } catch (err) {
     console.error('Jill TTS error:', err.message);

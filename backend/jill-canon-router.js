@@ -70,6 +70,49 @@ function pickTrackId(text) {
   return t ? t.id : null;
 }
 
+function wantsVisual(text) {
+  return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
+}
+
+function stripAskShell(text) {
+  let t = String(text || '');
+  t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
+  t = t.replace(/\b(la|el|una|un)\s+(imagen|pizarr[oó]n|tablero|whiteboard|visual|diagrama|cuadro)\b/gi, ' ');
+  t = t.replace(/\b(imagen|pizarr[oó]n|tablero|whiteboard|visual|diagrama|cuadro)\b/gi, ' ');
+  t = t.replace(/\b(de|del|de\s+la|sobre|con|acerca\s+de)\b/gi, ' ');
+  return t.replace(/\s+/g, ' ').trim();
+}
+
+function resolveAsk(userAsk, stickyTopic) {
+  const ask = String(userAsk || '').trim();
+  const sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
+  let hit = pickTrack(ask);
+  if (hit) return hit;
+  const stripped = stripAskShell(ask);
+  if (stripped) {
+    hit = pickTrack(stripped);
+    if (hit) return hit;
+  }
+  if (sticky) {
+    hit = pickTrack(sticky);
+    if (hit) return hit;
+    const ss = stripAskShell(sticky);
+    if (ss) {
+      hit = pickTrack(ss);
+      if (hit) return hit;
+    }
+  }
+  hit = pickTrack([ask, sticky].filter(Boolean).join(' '));
+  if (hit) return hit;
+  return pickTrack([stripped, sticky].filter(Boolean).join(' ')) || null;
+}
+
+function resolveAskId(userAsk, stickyTopic) {
+  const t = resolveAsk(userAsk, stickyTopic);
+  return t ? t.id : null;
+}
+
+
 function formatLock(track) {
   if (!track) return '';
   const never = (track.never || []).join('; ');
@@ -102,6 +145,10 @@ module.exports = {
   normalize,
   pickTrack,
   pickTrackId,
+  wantsVisual,
+  stripAskShell,
+  resolveAsk,
+  resolveAskId,
   formatLock,
   byColumn
 };

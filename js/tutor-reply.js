@@ -33,11 +33,14 @@
 
   function streamPlainText(raw) {
     var t = extractTutorReply(raw);
-    if (t && t.indexOf('{') !== 0) return t;
+    if (t && t.indexOf('{') !== 0) {
+      return String(t).replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+    }
     return String(raw || '')
       .replace(JSON_PREFIX, '')
       .replace(/\\n/g, '\n')
       .replace(/"\s*,\s*"contentType"[\s\S]*$/,'')
+      .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
       .trim();
   }
 

@@ -20,7 +20,7 @@
     s.jillProgress.completedBundles = (s.jillProgress.completedBundles || []).map(resolveBundleId);
   }
 
-  var CTYPE_RE = /\[\[CTYPE:(text|exercise|example|whiteboard)\]\]\s*$/i;
+  var CTYPE_RE = /\[\[CTYPE:(text|exercise|example|whiteboard)\]\]/gi;
   var CTYPE_LINE = /^\s*JILL_META:\s*\{[^}]*"contentType"\s*:\s*"(text|exercise|example|whiteboard)"/im;
 
   function loadBundles() {
@@ -107,9 +107,14 @@
   function parseReply(raw) {
     var text = String(raw || '').trim();
     var contentType = 'text';
-    var m = text.match(CTYPE_RE);
-    if (m) {
-      contentType = m[1].toLowerCase();
+    var m;
+    var lastType = null;
+    CTYPE_RE.lastIndex = 0;
+    while ((m = CTYPE_RE.exec(text)) !== null) {
+      lastType = m[1].toLowerCase();
+    }
+    if (lastType) {
+      contentType = lastType;
       text = text.replace(CTYPE_RE, '').trim();
     } else {
       var ml = text.match(CTYPE_LINE);
@@ -119,7 +124,7 @@
       }
     }
     if (typeof TutorReply !== 'undefined') text = TutorReply.extract(text);
-    text = text.replace(/▋/g, '').trim();
+    text = text.replace(/▋/g, '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
     if (!contentType || contentType === 'text') contentType = guessContentType(text);
     return { reply: text, contentType: contentType };
   }
@@ -174,6 +179,7 @@
     irregular_verbs: { id: 'verbos-irregulares', path: 'assets/canon/verbos-irregulares.svg', title: 'Verbos irregulares (Presente / PS / Participio)' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones IN ON AT BY' },
     prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones de tiempo' },
+    gerundio: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio = V-ing como sustantivo' },
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
     negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
     comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },
@@ -182,19 +188,28 @@
     overview: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos overview' }
   };
 
+  function canonFallback(col) {
+    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.byColumn) {
+      var fromMap = JillCanonRouter.byColumn()[col];
+      if (fromMap) return fromMap;
+    }
+    return CANON_BY_COLUMN[col] || null;
+  }
+
   function detectCanonColumn(text, bundle) {
     var t = String(text || '');
     if (!t.trim()) {
-      if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
+      if (bundle && bundle.canonColumn && canonFallback(bundle.canonColumn)) return bundle.canonColumn;
       return null;
     }
-    // Jill DJ — catálogo único (config/jill-canon-map.json)
-    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
-      var id = JillCanonRouter.pickTrackId(t);
-      if (id && CANON_BY_COLUMN[id]) return id;
+    // Jill DJ — catálogo completo (pedido + sticky + shell visual)
+    if (typeof JillCanonRouter !== 'undefined') {
+      var id = JillCanonRouter.resolveAskId
+        ? JillCanonRouter.resolveAskId(t, '')
+        : (JillCanonRouter.pickTrackId ? JillCanonRouter.pickTrackId(t) : null);
       if (id) return id;
     }
-    if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
+    if (bundle && bundle.canonColumn && canonFallback(bundle.canonColumn)) return bundle.canonColumn;
     return null;
   }
 
@@ -206,7 +221,7 @@
     if (!String(source).trim()) return '';
     var col = detectCanonColumn(source, bundle);
     if (!col) return '';
-    return JillCanonVisual.render(col, CANON_BY_COLUMN[col]);
+    return JillCanonVisual.render(col, canonFallback(col));
   }
 
   function formatWhiteboardLines(text, bundle, userTopic) {

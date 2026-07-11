@@ -56,7 +56,8 @@
         "estructura + sensacion",
         "should have studied",
         "must have forgotten",
-        "will have finished"
+        "will have finished",
+        "modal + have"
       ]
     },
     {
@@ -125,7 +126,8 @@
         "segundo condicional",
         "second conditional",
         "condicional hipotetico",
-        "hipotesis irreal"
+        "hipotesis irreal",
+        "was were"
       ]
     },
     {
@@ -147,7 +149,8 @@
         "tres columnas",
         "3 columnas",
         "presente pasado participio",
-        "1a 2a 3a columna"
+        "1a 2a 3a columna",
+        "irregulares"
       ]
     },
     {
@@ -175,7 +178,32 @@
         "tener vs hay",
         "there is vs have",
         "there exists",
-        "there is y there are"
+        "there is y there are",
+        "hay"
+      ]
+    },
+    {
+      "id": "gerundio",
+      "svg": "assets/canon/gerundio-prep.svg",
+      "title": "Gerundio = V-ing como sustantivo",
+      "formula": "V-ing funciona como SUSTANTIVO (sujeto u objeto). Tras prep: PREP + V-ing.",
+      "example": "I like running. / Playing guitar is fun.",
+      "never": [
+        "presente continuo (am/is/are + ing)",
+        "IN ON AT lugar"
+      ],
+      "aliases": [
+        "gerundio",
+        "el gerundio",
+        "que es el gerundio",
+        "qué es el gerundio",
+        "imagen del gerundio",
+        "imagen gerundio",
+        "sustantivo con -ing",
+        "v-ing como sustantivo",
+        "gerund",
+        "el gerund",
+        "que es gerundio"
       ]
     },
     {
@@ -199,7 +227,8 @@
         "good at",
         "interested in going",
         "afraid of",
-        "instead of"
+        "instead of",
+        "despues de preposicion"
       ]
     },
     {
@@ -258,7 +287,9 @@
         "at the office",
         "at home",
         "explicame in on at",
-        "corregime in on at"
+        "corregime in on at",
+        "in on",
+        "on at"
       ]
     },
     {
@@ -282,7 +313,9 @@
         "won't",
         "haven't",
         "aux + not",
-        "auxiliar + not"
+        "auxiliar + not",
+        "negacion",
+        "negación"
       ]
     },
     {
@@ -328,7 +361,9 @@
         "definido",
         "cuantificadores",
         "much/many",
-        "a lot of"
+        "a lot of",
+        "a an the",
+        "a/an/the"
       ]
     },
     {
@@ -351,7 +386,10 @@
         "to be + ing",
         "to be + v + ing",
         "ahora mismo",
-        "pronombre + to be"
+        "pronombre + to be",
+        "continuo",
+        "el continuo",
+        "ing continuo"
       ]
     },
     {
@@ -372,7 +410,9 @@
         "prp",
         "have/has + participio",
         "have has participio",
-        "pronombre + have + participio"
+        "pronombre + have + participio",
+        "perfecto",
+        "el perfecto"
       ]
     },
     {
@@ -392,7 +432,11 @@
         "past simple",
         "ps",
         "explicame el pasado simple",
-        "explicame pasado simple"
+        "explicame pasado simple",
+        "pasado",
+        "el pasado",
+        "pizarron del pasado",
+        "imagen del pasado"
       ]
     },
     {
@@ -415,7 +459,9 @@
         "todos los dias",
         "every day",
         "he/she/it + s",
-        "explicame el presente simple"
+        "explicame el presente simple",
+        "presente",
+        "el presente"
       ]
     },
     {
@@ -433,7 +479,8 @@
       "aliases": [
         "modales",
         "pronombre + modal",
-        "explicame modales"
+        "explicame modales",
+        "los modales"
       ]
     },
     {
@@ -454,7 +501,9 @@
         "inversion",
         "are you",
         "v + p",
-        "pregunta / respuesta"
+        "pregunta / respuesta",
+        "la moneda",
+        "metodo de moneda"
       ]
     },
     {
@@ -473,7 +522,8 @@
         "future",
         "going to",
         "explicame el futuro",
-        "futuro simple"
+        "futuro simple",
+        "el futuro"
       ]
     },
     {
@@ -491,7 +541,8 @@
         "siglas pr",
         "matriz de tiempos",
         "overview tiempos",
-        "todos los tiempos"
+        "todos los tiempos",
+        "matriz"
       ]
     }
   ]
