@@ -591,19 +591,18 @@ function buildProactiveCanonBlock(published, charLimit = 1000) {
   ranked.forEach(({ lesson, topic }) => {
     if (seenTopics.has(topic)) return;
     seenTopics.add(topic);
-    const excerpt = String(lesson.content || '').replace(/\s+/g, ' ').slice(0, 240);
+    const excerpt = String(lesson.content || '').replace(/\s+/g, ' ').slice(0, 700);
     lines.push(`• ${lesson.title}: ${excerpt}`);
   });
   return lines.join('\n').slice(0, charLimit);
 }
 
-async function getPropagatedContext(query, charLimit = 2200) {
+async function getPropagatedContext(query, charLimit = 4500) {
   const sources = await loadKnowledgeSources(query);
-  const canonBudget = Math.floor(charLimit * 0.42);
-  const reactiveBudget = charLimit - canonBudget - 80;
+  const canonBudget = Math.floor(charLimit * 0.38);
   const canon = buildProactiveCanonBlock(sources.published, canonBudget);
   const lines = [];
-  lines.push(STRUCTURE_CANON.slice(0, Math.min(900, Math.floor(charLimit * 0.4))));
+  lines.push(STRUCTURE_CANON.slice(0, Math.min(900, Math.floor(charLimit * 0.28))));
   if (canon.trim()) {
     lines.push('\nPUBLISHED DOCTRINE (canon):');
     lines.push(canon);
@@ -611,16 +610,16 @@ async function getPropagatedContext(query, charLimit = 2200) {
   const reactive = [];
   sources.relevantPublished.slice(0, 6).forEach(l => {
     if (isNoiseLesson(l)) return;
-    reactive.push(`- ${l.title}: ${String(l.content || '').slice(0, 200)}`);
+    reactive.push(`- ${l.title}: ${String(l.content || '').slice(0, 900)}`);
   });
   sources.relevantKb.slice(-6).forEach(e => {
-    reactive.push(`- ${String(e.text || '').slice(0, 160)}`);
+    reactive.push(`- ${String(e.text || '').slice(0, 400)}`);
   });
   sources.relevantFiles.slice(0, 4).forEach(f => {
-    reactive.push(`- [${f.title}]: ${String(f.content || '').slice(0, 160)}`);
+    reactive.push(`- [${f.title}]: ${String(f.content || '').slice(0, 400)}`);
   });
   if (reactive.length) {
-    lines.push('\nQUERY-RELEVANT:');
+    lines.push('\nQUERY-RELEVANT (estilo de clase — usá este lenguaje, no ESL genérico):');
     lines.push(reactive.join('\n'));
   }
   return lines.join('\n').slice(0, charLimit);

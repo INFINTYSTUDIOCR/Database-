@@ -120,6 +120,22 @@ function resolveAskId(userAsk, stickyTopic) {
 }
 
 
+function loadVoiceScript(trackId) {
+  try {
+    const paths = [
+      path.join(__dirname, 'config', 'john-voice-scripts.json'),
+      path.join(__dirname, '..', 'config', 'john-voice-scripts.json')
+    ];
+    for (let i = 0; i < paths.length; i++) {
+      if (!fs.existsSync(paths[i])) continue;
+      const pack = JSON.parse(fs.readFileSync(paths[i], 'utf8'));
+      const v = pack && pack.tracks && pack.tracks[trackId];
+      if (v && v.say) return v;
+    }
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
 function formatLock(track) {
   if (!track) return '';
   const never = (track.never || []).join('; ');
@@ -162,6 +178,17 @@ function formatLock(track) {
   };
   if (locks[track.id]) antiMix.push(...locks[track.id]);
   else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '".');
+  const voice = loadVoiceScript(track.id);
+  const voiceBlock = voice
+    ? [
+        'GUION ORAL JOHN (estilo de clase — DEBES DECIRLO; no ESL genérico):',
+        voice.say,
+        Array.isArray(voice.mustSay) && voice.mustSay.length
+          ? `PALABRAS OBLIGATORIAS EN VOZ: ${voice.mustSay.join(', ')}.`
+          : '',
+        voice.exampleAsk ? `CIERRE ORAL: ${voice.exampleAsk}` : ''
+      ].filter(Boolean)
+    : [];
   return [
     'CANON LOCK + METODOLOGÍA JOHN (rige TODO — no solo este módulo):',
     `Tablero: ${track.title}`,
@@ -171,10 +198,11 @@ function formatLock(track) {
     `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO: ${never}` : '',
     ...antiMix,
+    ...voiceBlock,
     'CHECKLIST OBLIGATORIO EN ESTE TURNO (si falta 1 ítem = FALLASTE):',
     '1) Nombrar el tema.',
     '2) Decir la FÓRMULA en español (ranuras).',
-    '3) Decir el PUENTE / analogía John de arriba (ando/endo, estar→to be, -ré/-ría, moneda, hay, etc. según el track).',
+    '3) Decir el GUION / PUENTE John de arriba (ando/endo, estar→to be, -ré/-ría, moneda, hay, etc. según el track).',
     '4) 1 ejemplo en inglés.',
     '5) Pedir práctica oral mirando el tablero.',
     'PROHIBIDO: explicación genérica ESL; omitir el puente; inventar otro método; cambiar de módulo.',

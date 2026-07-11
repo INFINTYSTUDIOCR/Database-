@@ -704,7 +704,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-john-method-all';
+const APP1_BUILD = '20260711-john-voice-scripts';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -3562,7 +3562,7 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'al
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v25-john-doctrine-all';
+const JILL_BRAIN_VER = 'v26-john-voice-scripts';
 const ALICE_BRAIN_VER = 'v24-john-doctrine-all';
 
 const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Alice is NOT Jill):
@@ -4244,24 +4244,31 @@ async function tutorKnowledgeSlice(message, student, tutor) {
   const learner = SharedLearner.buildSharedLearnerNote(student);
   const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(600).catch(() => '');
   const drillStudent = student && who === 'jill' ? JillDrillBrain.getStudentDrillNote(student) : '';
+  let trackVoice = '';
+  if (who === 'jill') {
+    try {
+      const hit = JillCanonRouter.pickTrack(String(message || ''));
+      if (hit) trackVoice = JohnDoctrine.trackVoiceBlock(hit.id) || '';
+    } catch (_) { /* ignore */ }
+  }
   if (!SuperBrain.isSuperBrainEnabled()) {
-    const merged = [drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    const merged = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     return JohnDoctrine.wrapKnowledgeSlice(
-      merged ? `LEARNER + DRILL BRAIN:\n${merged}` : '',
+      merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
       who === 'jill' ? 'jill' : 'alice'
     );
   }
   try {
-    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
+    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 400), 4500);
     let body = ctx.trim()
-      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Use John/Nexus canon doctrine every teaching turn when it fits.\n${ctx}`
+      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer the language of published class doctrine over generic ESL. Local john-voice-scripts still win on Foundations tracks.\n${ctx}`
       : '';
     if (who === 'jill' && body) body = filterJillSuperBrainContext(body);
-    const extras = [drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    const extras = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
     return JohnDoctrine.wrapKnowledgeSlice(body, who === 'jill' ? 'jill' : 'alice');
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice(learner || '', who === 'jill' ? 'jill' : 'alice');
+    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who === 'jill' ? 'jill' : 'alice');
   }
 }
 
@@ -4269,7 +4276,7 @@ async function tutorKnowledgeSliceFast(message, student, tutor) {
   try {
     return await Promise.race([
       tutorKnowledgeSlice(message, student, tutor),
-      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice') + (SharedLearner.buildSharedLearnerNote(student) || '')), 800))
+      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice') + (SharedLearner.buildSharedLearnerNote(student) || '')), 2500))
     ]);
   } catch {
     return JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice');
@@ -4284,7 +4291,7 @@ async function tutorKnowledgeSliceForJillFast(message, student) {
   try {
     return await Promise.race([
       tutorKnowledgeSliceForJill(message, student),
-      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('jill') + (SharedLearner.buildSharedLearnerNote(student) || '')), 800))
+      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('jill') + (SharedLearner.buildSharedLearnerNote(student) || '')), 2500))
     ]);
   } catch {
     return JohnDoctrine.mandateBlock('jill');

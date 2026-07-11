@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v33-john-method-all-tracks';
+const JILL_PRO_BRAIN_VER = 'v34-john-voice-scripts';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -198,7 +198,11 @@ const TRACK_TEACH_HINTS = {
 function trackTeachHint(track) {
   if (!track) return '';
   const tip = TRACK_TEACH_HINTS[track.id];
-  return tip ? `\nHINT DE ESTE TRACK: ${tip}\n` : '';
+  const voice = JohnDoctrine.trackVoiceBlock(track.id);
+  const parts = [];
+  if (tip) parts.push(`HINT DE ESTE TRACK: ${tip}`);
+  if (voice) parts.push(voice);
+  return parts.length ? `\n${parts.join('\n')}\n` : '';
 }
 
 function isJillProEnabled(student) {

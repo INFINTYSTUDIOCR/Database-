@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "title": "Guion oral John Ramírez — Foundations (estilo de clase, no ESL genérico)",
+  "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar.",
+  "globalVoice": "Empezá SIEMPRE desde el español. Detectá el patrón, no memorices reglas. Explicá el porqué antes del nombre gramatical. Pedí producción oral. Corregí con preguntas. Tono: directo, cálido, sin condescendencia. Voseo CR.",
+  "tracks": {
+    "gerundio": {
+      "say": "Mirá: en español el ando y el endo es lo mismo que el I N G en inglés. Cuando decís 'me gusta correr', 'correr' es como un sustantivo — en inglés eso es VERBO más I N G: I like running. Ahí NO va to be. Pero OJO el contraste: si en español usás ESTAR más ando o endo — 'estoy trabajando' — en inglés es OBLIGATORIO el verbo TO BE: I am working. Estar se convierte en to be; ando/endo se convierte en I N G. Sin to be no hay continuo. Gerundio suelto = ando/endo como sustantivo, sin am/is/are.",
+      "mustSay": ["ando", "endo", "to be", "estar"],
+      "exampleAsk": "Decime: I like swimming — y después: I am swimming. ¿Cuál lleva to be?"
+    },
+    "progressive": {
+      "say": "Presente continuo. En español el auxiliar es ESTAR: estoy, estás, está, más ando o endo. En inglés ese ESTAR es el verbo TO BE: am, is, are. Fórmula: pronombre + to be + VERBO más I N G + complemento. Ejemplo: estoy comiendo → I am eating. Sin to be NO hay continuo. Ando/endo = I N G. Decí en voz: estar pasa a to be; ando/endo pasa a I N G.",
+      "mustSay": ["estar", "to be", "ando", "endo"],
+      "exampleAsk": "Armá una: They are studying now."
+    },
+    "gerund_prep": {
+      "say": "Después de una preposición, el verbo va en I N G — eso es ando/endo. Before leaving = antes de salir. After eating = después de comer. No es presente continuo: acá NO va am/is/are delante. Solo prep + VERBO más I N G. Decí ando/endo.",
+      "mustSay": ["ando", "endo"],
+      "exampleAsk": "Completá: Before ______ (go), call me."
+    },
+    "combined": {
+      "say": "Have been más VERBO más I N G = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + I N G. Decí ando/endo.",
+      "mustSay": ["ando", "endo", "been"],
+      "exampleAsk": "Decí: She has been working all day."
+    },
+    "past": {
+      "say": "Pasado simple = una foto terminada de ayer. Pronombre + verbo en pasado + yesterday, ago o last. I worked yesterday. She went home. NO es have/has/had más participio — eso es otro módulo. Acá solo el verbo en pasado.",
+      "mustSay": ["pasado", "yesterday"],
+      "exampleAsk": "Decí una con went y yesterday."
+    },
+    "perfect": {
+      "say": "Presente perfecto: have o has más participio — he o ha más participio. Conecta el pasado con ahora. I have finished. NO es pasado simple: no digas worked yesterday con have. Had más participio = había — pasado perfecto.",
+      "mustSay": ["have", "participio"],
+      "exampleAsk": "Decí: I have seen that movie."
+    },
+    "present": {
+      "say": "Presente simple: hábito o hecho. Pronombre + verbo + complemento. He, she, it llevan ese en el verbo: she works. Empezá desde el español: yo trabajo → I work.",
+      "mustSay": ["hábito", "verbo"],
+      "exampleAsk": "Decí: She works every day."
+    },
+    "future": {
+      "say": "Will = el ré del español: caminaré → I will walk. Going to = voy a, plan. Will más verbo base; going to más verbo base. No mezcles con continuo.",
+      "mustSay": ["will", "ré"],
+      "exampleAsk": "Decí un plan con going to y una decisión con will."
+    },
+    "modales": {
+      "say": "Modales: will es ré; would es ría; should es debería; can es puedo; could es podría. Fórmula: pronombre + modal + verbo base + complemento. Sin to después del modal. I will go. She should study.",
+      "mustSay": ["will", "ré", "would", "ría"],
+      "exampleAsk": "Decí: I would help you."
+    },
+    "modal": {
+      "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",
+      "mustSay": ["moneda", "pregunta"],
+      "exampleAsk": "Convertí a pregunta: They are here."
+    },
+    "there": {
+      "say": "There is / there are = hay. Existencia. Have/has es posesión — tengo un carro, no hay un carro. There is a cat. There are books. Pregunta: Is there…? Are there…?",
+      "mustSay": ["hay", "there"],
+      "exampleAsk": "Decí: There is a meeting at five."
+    },
+    "negations": {
+      "say": "En español: yo no trabajo. En inglés NUNCA I no work ni I not work. Hace falta auxiliar más not: I do not work. She does not work. I did not go. El auxiliar carga el not.",
+      "mustSay": ["auxiliar", "not"],
+      "exampleAsk": "Negá: She works on Sundays."
+    },
+    "prepositions": {
+      "say": "El en español se parte en tres. IN = adentro, caja. ON = encima, superficie. AT = punto neutro. I'm at home and the book is in the room on the table.",
+      "mustSay": ["in", "on", "at"],
+      "exampleAsk": "Decí la frase ancla con at, in y on."
+    },
+    "prepositions_time": {
+      "say": "Mismo trío, ahora tiempo. IN = mes, año, parte del día. ON = día o fecha. AT = hora puntual. We meet on Monday in March at 5 pm.",
+      "mustSay": ["in", "on", "at"],
+      "exampleAsk": "Decí: on Friday at noon."
+    },
+    "articles": {
+      "say": "A / an = uno cualquiera, indefinido. The = el o la específico, definido. A cat vs the cat. An hour por el sonido.",
+      "mustSay": ["a", "the"],
+      "exampleAsk": "Decí: I see a cat. The cat is black."
+    },
+    "comparatives": {
+      "say": "Comparar dos: más… que → -er o more + than. El más… → -est o most. Tan… como → as… as. She is taller than me. He is the best.",
+      "mustSay": ["than", "as"],
+      "exampleAsk": "Decí: as tall as Pedro."
+    },
+    "irregular_verbs": {
+      "say": "Irregulares: tres columnas, tres fotos. Presente, pasado, participio. Decí con pausa: go. went. gone. Do. did. done. Si hay have delante, tercera columna.",
+      "mustSay": ["go", "went", "gone"],
+      "exampleAsk": "Decí: do. did. done."
+    },
+    "have_had": {
+      "say": "Have. has. had. Tres formas con pausa. Have/has auxiliar de perfecto; had de pasado perfecto. Decílas en voz.",
+      "mustSay": ["have", "has", "had"],
+      "exampleAsk": "Repetí: have. has. had."
+    },
+    "if_was_were": {
+      "say": "Was = pasado real. Were = hipótesis irreal: If I were… como soñar. Were to = poco probable.",
+      "mustSay": ["were", "was"],
+      "exampleAsk": "Decí: If I were you…"
+    },
+    "modal_have_pp": {
+      "say": "Should have = debería haber más participio. Could have = podría haber. Modal + have + participio. You should have studied more.",
+      "mustSay": ["have", "participio"],
+      "exampleAsk": "Decí: I could have gone."
+    },
+    "modal_have_been": {
+      "say": "Modal + have + been + VERBO más I N G. Must have been working = debió haber estado trabajando. Ando/endo = I N G.",
+      "mustSay": ["been", "ando", "endo"],
+      "exampleAsk": "Decí: She must have been sleeping."
+    },
+    "overview": {
+      "say": "Mapa: presente simple, pasado simple, presente continuo, presente perfecto, futuro. Cada uno con su fórmula. Preguntá cuál practicar y quedate en ese.",
+      "mustSay": ["presente", "pasado"],
+      "exampleAsk": "¿Cuál tiempo querés practicar ahora?"
+    }
+  },
+  "alice": {
+    "say": "Alice enseña con la misma pedagogía John: español primero, patrón, analogía, producción. Alcance: Idea + Linker + Idea, chunking, STAR. Fluidez = estructuras encadenadas, no palabras sueltas. No Foundations drill sheets; sí paciencia y doctrina de clase.",
+    "linkers": "Fluidez = alternar conectores (linkers) con ideas completas. Chunking: agrupá palabras en bloques, no palabra por palabra. Idea + linker + idea. Rompé la zona de confort con cadenas mentales."
+  }
+}

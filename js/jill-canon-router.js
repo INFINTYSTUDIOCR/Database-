@@ -606,7 +606,41 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711john';
+  var CACHE_VER = '20260711voice';
+  var VOICE_PACK = {
+    tracks: {
+      gerundio: {
+        say: "Mirá: en español el ando y el endo es lo mismo que el I N G en inglés. Cuando decís 'me gusta correr', eso es VERBO más I N G: I like running — NO va to be. Pero si usás ESTAR más ando/endo — 'estoy trabajando' — en inglés es OBLIGATORIO TO BE: I am working. Estar → to be; ando/endo → I N G."
+      },
+      progressive: {
+        say: "Presente continuo: en español ESTAR + ando/endo; en inglés TO BE (am/is/are) + VERBO más I N G. Sin to be no hay continuo. Ando/endo = I N G."
+      },
+      gerund_prep: {
+        say: "Tras prep, VERBO más I N G = ando/endo. Before leaving. No lleva am/is/are."
+      },
+      past: {
+        say: "Pasado simple = foto terminada de ayer. Verbo en pasado + yesterday/ago/last. No es have + participio."
+      },
+      modales: {
+        say: "Will = -ré; would = -ría; should = debería; can = puedo. Modal + verbo base."
+      },
+      there: {
+        say: "There is/are = hay. Have/has = posesión."
+      }
+    }
+  };
+
+  function loadVoicePack() {
+    try {
+      fetch('config/john-voice-scripts.json?v=' + CACHE_VER)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (data && data.tracks) VOICE_PACK = data;
+        })
+        .catch(function () { /* keep embedded */ });
+    } catch (e) { /* ignore */ }
+  }
+  loadVoicePack();
 
   function normalize(text) {
     return String(text || '')
@@ -763,7 +797,13 @@
     };
     if (locks[track.id]) antiMix = antiMix.concat(locks[track.id]);
     else antiMix.push('ANTIMEZCLA: SOLO el track "' + track.title + '".');
-    return [
+    var voiceSay = '';
+    try {
+      if (VOICE_PACK && VOICE_PACK.tracks && VOICE_PACK.tracks[track.id] && VOICE_PACK.tracks[track.id].say) {
+        voiceSay = VOICE_PACK.tracks[track.id].say;
+      }
+    } catch (e) { /* ignore */ }
+    var lines = [
       'CANON LOCK + METODOLOGÍA JOHN (rige TODO):',
       'Tablero: ' + track.title,
       'Track id: ' + track.id,
@@ -772,10 +812,12 @@
       'Ejemplo: ' + track.example,
       never ? 'PROHIBIDO: ' + never : '',
       antiMix.join('\n'),
+      voiceSay ? ('GUION ORAL JOHN: ' + voiceSay) : '',
       'CHECKLIST: fórmula + puente/analogía John + ejemplo + práctica. Omitir puente = FALLAR.',
       'La metodología de John rige TODOS los módulos.',
       'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
-    ].filter(Boolean).join('\n');
+    ];
+    return lines.filter(Boolean).join('\n');
   }
 
   function byColumn() {
