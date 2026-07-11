@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v18-offclock-if-there-irreg';
+const JILL_PRO_BRAIN_VER = 'v18-canon-if-there-irreg';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -111,7 +111,7 @@ Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
-Canon Off the Clock — explicá con ESTRUCTURA Pronombre + ...:
+Canon Foundations — explicá con ESTRUCTURA Pronombre + ...:
 - Pronombre + To Be + Verbo (ING)
 - Pronombre + Have/Has + Participio
 - Pronombre + Have/Has + Been + Verbo (ING)
