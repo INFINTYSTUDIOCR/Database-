@@ -68,8 +68,8 @@ const samples = [
   },
   {
     in: 'Before leaving, call me. (antes de irte)',
-    mustInclude: ['Before leaving'],
-    mustNot: ['(', ')', 'antes de irte']
+    mustInclude: ['Before leaving', 'antes de irte'],
+    mustNot: ['(', ')', 'plus']
   }
 ];
 
@@ -124,10 +124,17 @@ for (const clip of cfg.clips || []) {
 
 // ── 4) Topic board accuracy (any Foundations topic) ──────────
 console.log('\n=== Q7+ D: Topic → board accuracy ===');
+// Load DJ router first — detectCanonColumn depends on JillCanonRouter
+const routerSrc = fs.readFileSync(path.join(root, 'js/jill-canon-router.js'), 'utf8');
+try {
+  new Function('window', 'globalThis', routerSrc + '\n;return window.JillCanonRouter;')(globalThis, globalThis);
+} catch (e) {
+  assert(false, 'load JillCanonRouter', e.message);
+}
 const foundationsSrc = fs.readFileSync(path.join(root, 'js/jill-foundations.js'), 'utf8');
 let JF;
 try {
-  JF = new Function('window', foundationsSrc + '\n;return window.JillFoundations;')(globalThis);
+  JF = new Function('window', 'globalThis', foundationsSrc + '\n;return window.JillFoundations;')(globalThis, globalThis);
 } catch (e) {
   JF = null;
   assert(false, 'load JillFoundations', e.message);
@@ -140,10 +147,12 @@ const topicCases = [
   ['explicame presente continuo PC', 'progressive'],
   ['ayudame con pasado simple PS', 'past'],
   ['present perfect PRP no me queda', 'perfect'],
-  ['will would should modales', 'modal'],
+  ['will would should modales', 'modales'],
   ['preposiciones in on at lugar', 'prepositions'],
   ['comparativos more than', 'comparatives'],
-  ['articulos the a an', 'articles']
+  ['articulos the a an', 'articles'],
+  ['qué es el gerundio', 'gerundio'],
+  ['dame la imagen gerundio', 'gerundio']
 ];
 
 if (JF && typeof JF.detectCanonColumn === 'function') {
@@ -151,8 +160,12 @@ if (JF && typeof JF.detectCanonColumn === 'function') {
     const got = JF.detectCanonColumn(msg, null);
     assert(got === expect, 'topic "' + expect + '"', 'got=' + got + ' for: ' + msg);
   }
+} else if (globalThis.JillCanonRouter && globalThis.JillCanonRouter.resolveAskId) {
+  for (const [msg, expect] of topicCases) {
+    const got = globalThis.JillCanonRouter.resolveAskId(msg, '');
+    assert(got === expect, 'topic "' + expect + '"', 'got=' + got + ' for: ' + msg);
+  }
 } else {
-  // Source-level smoke if IIFE load failed
   assert(/gerund_prep/.test(foundationsSrc) && /negations/.test(foundationsSrc), 'detectCanonColumn topics in source', 'ok');
 }
 
