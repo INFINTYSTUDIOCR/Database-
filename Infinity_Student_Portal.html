@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/live-kpi-charts.js?v=20260627"></script>
-<script src="infinity-auth.js"></script>
+<script src="infinity-auth.js?v=20260711auth"></script>
 <script src="nexora-profile.js?v=voice-sync-6"></script>
 <script src="js/nexora-voice-lock.js?v=6"></script>
 <script src="nexora-characters.js"></script>
@@ -584,17 +584,25 @@ async function doLogin(){
       return;
     }
 
+    // JWT is mandatory — without it Jill/Alice/Nexora all return 401 "sesión expirada"
+    var loginData = null;
     try {
-      var loginData = await infinityLogin(user, pass, 'student', { silent: true });
-      if(loginData) applyServerStudentFlags(loginData);
-      if(!getAuthToken()) showToast('Acceso al portal OK, pero la voz necesita re-login — salí y volvé a ingresar.','err');
-    } catch(e) {
-      showToast('Servidor de voz no respondió — salí y volvé a ingresar antes de Companion.','err');
+      loginData = await infinityLogin(user, pass, 'student', { silent: true });
+      if(!getAuthToken() && typeof infinityEnsureAuth === 'function'){
+        await infinityEnsureAuth({ user: user, password: pass, role: 'student', attempts: 3, force: true });
+      }
+    } catch(e) { /* handled below */ }
+    if(!getAuthToken()){
+      err.textContent = 'No se pudo activar la voz con el servidor. Esperá unos segundos e intentá de nuevo.';
+      err.style.display = 'block';
+      setLoginLoading(false);
+      return;
     }
     warmInfinityApi();
 
     CURRENT_STUDENT = student;
     ALL_STUDENTS[student.id] = student;
+    if(loginData) applyServerStudentFlags(loginData);
     if(typeof AiProfile !== 'undefined'){
       AiProfile.purgeBadPreferredName(student);
       AiProfile.repairPoisonedProfile(dbSet, student).catch(function(){});
@@ -807,6 +815,7 @@ function showPortalToast(msg){
 
 function logout(){
   clearAuthToken();
+  if(typeof clearAuthCredentials === 'function') clearAuthCredentials();
   CURRENT_STUDENT=null;
   document.getElementById('student-portal').style.display='none';
   document.getElementById('login-screen').style.display='block';
@@ -2367,10 +2376,11 @@ async function startAliceSession(sessionType, opts){
   var startGen = ++_aliceStartGen;
   stopAlice();
   await syncCurrentStudentFlags();
+  if(typeof infinityEnsureAuth === 'function') await infinityEnsureAuth({ attempts: 2 });
   await verifyStudentSessionAccess();
   if(!getAuthToken()){
-    aliceSetStartStatus('No se pudo conectar la voz — usá el botón Actualizar arriba o salí y volvé a entrar.');
-    showToast('No se pudo iniciar Companion — reintentá con Actualizar (↻) arriba.','err');
+    aliceSetStartStatus('No se pudo conectar la voz — salí y volvé a ingresar.');
+    showToast('No se pudo iniciar — salí y volvé a ingresar para activar la voz.','err');
     _aliceStarting = false;
     renderAlice();
     return;
@@ -5709,6 +5719,18 @@ async function startJillSession(s){
   }
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = isCompanion ? 'Jill Pro se conecta…' : 'Jill se conecta…';
+  if(typeof infinityEnsureAuth === 'function'){
+    var okAuth = await infinityEnsureAuth({ attempts: 2 });
+    if(!okAuth || !getAuthToken()){
+      if(statusEl) statusEl.textContent = 'Sesión de voz caída — salí y volvé a ingresar.';
+      showToast('No hay sesión de voz activa. Salí y volvé a ingresar.','err');
+      return;
+    }
+  } else if(!getAuthToken()){
+    if(statusEl) statusEl.textContent = 'Sesión de voz caída — salí y volvé a ingresar.';
+    showToast('No hay sesión de voz activa. Salí y volvé a ingresar.','err');
+    return;
+  }
   warmInfinityApi();
   var jillCtx = jillGetContext(s);
   var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
