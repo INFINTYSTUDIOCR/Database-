@@ -42,31 +42,44 @@
     var reply = String(replyText || '').trim();
     var preferNexus = tutor === 'alice';
 
+    // Alice Nexus: user primero, luego reply
     if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nx = global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply);
+      var nx = global.JillLessonClip.resolveNexusId(user);
       if (nx) return nx;
     }
 
+    // STUDENT WINS — si el pedido lockea un track, NUNCA usar el reply de Jill
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
-      var id = JillCanonRouter.resolveAskId(user, '');
-      if (id) return id;
-      if (reply) {
-        id = JillCanonRouter.resolveAskId(reply, user);
-        if (id) return id;
-        if (JillCanonRouter.pickTrackId) {
-          id = JillCanonRouter.pickTrackId(reply);
-          if (id) return id;
+      var userId = JillCanonRouter.resolveAskId(user, '');
+      if (userId) return userId;
+    }
+
+    // Pedido con contenido que NO matcheó: no abrir tablero ajeno por lo que diga Jill
+    if (user && user.length >= 4 && !preferNexus) {
+      var stripped = (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.stripAskShell)
+        ? JillCanonRouter.stripAskShell(user)
+        : user;
+      var visualOnly = typeof JillCanonRouter !== 'undefined' && JillCanonRouter.wantsVisual
+        && JillCanonRouter.wantsVisual(user) && (!stripped || stripped.length < 2);
+      if (!visualOnly) {
+        // Usuario pidió algo (o sticky ya iba en user): sin match → no fallback a reply
+        if (typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
+          var fromUser = detectColumn(user, bundle);
+          if (fromUser) return fromUser;
         }
+        return null;
       }
     }
 
-    if (!preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nx2 = global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply);
-      if (nx2) return nx2;
+    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      var nxReply = global.JillLessonClip.resolveNexusId(reply);
+      if (nxReply) return nxReply;
     }
 
+    // Sin pedido claro del estudiante: no abrir tablero solo porque Jill inventó un módulo
+    if (!user || user.length < 2) return null;
+
     if (user) return detectColumn(user, bundle);
-    if (reply) return detectColumn(reply, bundle);
     return null;
   }
 
@@ -86,7 +99,8 @@
       if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(user)) return true;
       if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(user)) return true;
     }
-    if (reply && typeof JillCanonRouter !== 'undefined') {
+    // No abrir stage solo porque el reply de Jill menciona un módulo
+    if (tutor === 'alice' && reply && typeof JillCanonRouter !== 'undefined') {
       if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(reply)) return true;
     }
     var blob = user + ' ' + reply;

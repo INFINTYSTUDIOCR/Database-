@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v31-track-lock-hard';
+const JILL_PRO_BRAIN_VER = 'v32-canon-router-lock';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');

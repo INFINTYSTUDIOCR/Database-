@@ -160,17 +160,18 @@ function formatLock(track) {
   if (locks[track.id]) antiMix.push(...locks[track.id]);
   else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". No cambies de módulo.');
   return [
-    'JILL DJ — TRACK LOCK DURO (el tablero del portal muestra ESTE módulo — tu explicación DEBE ser el mismo)',
+    'CANON LOCK (pedido del estudiante):',
+    `Tablero: ${track.title}`,
     `Track id: ${track.id}`,
-    `Track: ${track.title}`,
-    `Fórmula oficial: ${track.formula}`,
+    `Fórmula: ${track.formula}`,
     track.bridge || '',
-    `Ejemplo canónico: ${track.example}`,
-    never ? `PROHIBIDO mezclar: ${never}` : '',
+    `Ejemplo: ${track.example}`,
+    never ? `PROHIBIDO: ${never}` : '',
     ...antiMix,
-    'VOZ: decí ranuras en español (pronombre/modal/verbo/complemento). VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
+    'Explicá SOLO esto. No cambies de módulo.',
+    'VOZ: ranuras en español. VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
     'ESTILO JOHN: paciencia + flujo normal. Fórmula + bridge + 1 analogía. Sin improvisar otro tiempo/módulo.',
-    'Hablás exactamente lo que se ve en el tablero. Cero "además te explico otro módulo" si el lock es este.',
+    'Hablás exactamente lo que se ve en el tablero.',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

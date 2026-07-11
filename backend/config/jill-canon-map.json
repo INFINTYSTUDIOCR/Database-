@@ -422,14 +422,17 @@
       "aliases": [
         "presente perfecto",
         "present perfect",
+        "pasado perfecto",
+        "past perfect",
         "prp",
         "have/has + participio",
         "have has participio",
+        "had + participio",
         "pronombre + have + participio",
         "perfecto",
         "el perfecto"
       ],
-      "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio."
+      "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). NO es pasado simple (worked/went)."
     },
     {
       "id": "past",

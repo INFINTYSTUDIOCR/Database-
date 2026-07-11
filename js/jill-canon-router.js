@@ -606,7 +606,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260710svg';
+  var CACHE_VER = '20260711canon';
 
   function normalize(text) {
     return String(text || '')
@@ -766,14 +766,15 @@
     if (locks[track.id]) antiMix = antiMix.concat(locks[track.id]);
     else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". No cambies de módulo.');
     return [
-      'JILL DJ — TRACK LOCK DURO (tablero = voz)',
+      'CANON LOCK (pedido del estudiante):',
+      'Tablero: ' + track.title,
       'Track id: ' + track.id,
-      'Track: ' + track.title,
-      'Fórmula oficial: ' + track.formula,
+      'Fórmula: ' + track.formula,
       track.bridge ? track.bridge : '',
-      'Ejemplo canónico: ' + track.example,
-      never ? 'PROHIBIDO mezclar: ' + never : '',
+      'Ejemplo: ' + track.example,
+      never ? 'PROHIBIDO: ' + never : '',
       antiMix.join('\n'),
+      'Explicá SOLO esto. No cambies de módulo.',
       'VOZ: ranuras en español. VERBO+ING = "verbo más I N G".',
       'Hablás exactamente lo que se ve en el tablero.',
       'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
