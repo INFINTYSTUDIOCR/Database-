@@ -82,7 +82,7 @@ PASADOS REGULARES � 3 reglas (detectar el final, no memorizar): (1) termina en
 16 IRREGULARES ESENCIALES (por grupo, nunca -ED): no cambian: put/let/cut. Cambia vocal media: come/came/come, get/got/gotten, give/gave/given, take/took/taken, see/saw/seen, keep/kept/kept, make/made/made. Cambian del todo: go/went/gone, do/did/done, say/said/said. Dobles (aux+principal): have/had/had, be/was-were/been, send/sent/sent, seem/seemed/seemed. REGLA: si hay HAVE antes -> 3ra columna (participio) siempre; pasado simple con ancla -> 2da columna.
 Correcciones nuevas: -ED a irregular -> "�Go es regular o irregular?"; pasado vs participio -> "�Hay un have antes? Si hay have, tercera columna"; have con infinitivo -> "Despu�s de have, �qu� viene siempre?".
 
-GET IT STRAIGHT -ING (Off the Clock / Modulo 005) — leccion John Ramirez, tres formas (mucha gente abusa del infinitivo: "I like watch TV", "I like to..." para todo):
+ING — tres formas del curso (progreso / general / intencion) (mucha gente abusa del infinitivo: "I like watch TV", "I like to..." para todo):
 - TO BE + verbo + ING = presente progresivo (accion en progreso; = ando/endo). REGLA: sin "to be" no hay ING progresivo (I am watching TV).
 - verbo + ING (sin to be) = actividad GENERAL (I like watching TV, I like dancing, I like eating).
 - to + verbo = infinitivo = INTENCION/decision (I like to watch TV = tengo la intencion de verlo a las tres / despues del trabajo).
@@ -95,14 +95,14 @@ PREPOSICIONES #1 in/on/at (M�dulo 006) � el "en" espa�ol se divide en tres
 Frase ancla firma: "I'm at home and the book is in the room on the table" (neutro + adentro + encima). Nota: by = autor�a de alguien / cerca de / por causa de. Correcci�n: ante un "en" espa�ol, primero preguntar "�adentro, encima o neutro?" y reci�n elegir in/on/at � nunca traducir "en" a ciegas. 
 
 
-PREPOSICIONES #2 TIEMPO in/on/at (Modulo 006-B) � mismo trio, ahora TIEMPO (canon: preposiciones-tiempo.svg; prep en ranura C):
+PREPOSICIONES #2 TIEMPO in/on/at  � mismo trio, ahora TIEMPO (canon: preposiciones-tiempo.svg; prep en ranura C):
 - in = periodo largo: in March, in 2024, in summer, in the morning/afternoon.
 - on = dia/fecha concreta: on Monday, on March 5th, on Christmas Day, on weekends.
 - at = punto exacto: at 5 pm, at noon, at night, at Christmas (temporada/epoca), at Easter.
 Fechas: ordinales on March 5th / the 5th of March; anos in 2024. Eventos: at Christmas (epoca) vs on Christmas Day (dia). "Coming at you" = at hacia objetivo. Frase ancla: "We meet on Monday in March at 5 pm". Pregunta: periodo largo, dia/fecha, o punto (hora/evento)? Errores: in Monday, at March, on 5 pm.
 
 
-THERE IS / THERE ARE (Modulo 006-C) — hay espanol -> THERE + BE + C (canon: there-existencial.svg; despues prep 006/006-B):
+THERE IS / THERE ARE  — hay espanol -> THERE + BE + C (canon: there-existencial.svg; despues prep 006/006-B):
 - Existencia NO es have: hay un gato -> there IS a cat; hay gatos -> there ARE cats.
 - Acuerdo: mira sustantivo despues del be (is/was/has been vs are/were/have been).
 - Tiempos: there was/were — there will be — there would be — there has/have been.
@@ -112,7 +112,7 @@ Frase ancla: "There is a book on the table, but there are no pens — is there a
 Errores: have a cat por hay; there is cats; Is there are.
 
 
-NEGACIONES (Modulo 006-D) — espanol "no + verbo" -> ingles P + AUX + NOT + V + C (canon: negaciones.svg; despues de tiempos/BE):
+NEGACIONES  — espanol "no + verbo" -> ingles P + AUX + NOT + V + C (canon: negaciones.svg; despues de tiempos/BE):
 - Puente: en espanol "yo no trabajo". En ingles NUNCA "I no work" ni "I not work" — hace falta AUXILIAR + NOT.
 - Formula MSI: P + AUX + NOT + V + C. El AUX depende de la estructura ya instalada.
 - PR (sin be): do/does + not + V base → I don't work / She doesn't work.
@@ -129,7 +129,7 @@ Errores: I no work; I not work; She don't; He doesn't works (doble marca); I am 
 Practica 006-C obligatoria: afirmacion+pregunta mismo C; rotar is/are/was/were/will/would/has-have been; combinar there+prep; conversacion 4+ oraciones con una en pasado y una pregunta.
 Practica 006-D obligatoria: mismo C en afirmativo→negativo; rotar PR/PS/BE/PC/PRP/MOD; atrapar "I no/not + V"; 8 items Rapid Fire + 1 oracion propia.
 
-GET IT STRAIGHT COMPARATIVOS/SUPERLATIVOS (Modulo 008) � canon: comparativos.svg; MSI� P + V + ADJ en C (ranura C):
+COMPARATIVOS / SUPERLATIVOS � canon: comparativos.svg; MSI� P + V + ADJ en C (ranura C):
 - Comparar dos (mas�que): adj CORTO -> -er + THAN (taller than); adj LARGO -> MORE + adj + THAN; irregulares: good->better, bad->worse, far->farther.
 - El #1 (el mas�): THE + -est (the tallest) o THE MOST + adj (the most important); the best/the worst.
 - Igualdad (tan�como): AS + adj + AS (as tall as). Menos: less + adj; fewer + plural.

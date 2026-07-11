@@ -2688,6 +2688,12 @@ function cleanTtsText(text) {
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
     .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
+    .replace(/\bJohn\s+Ram[ií]rez\b/gi, '')
+    .replace(/\bJohnny(?:\s+Ram[ií]rez)?\b/gi, '')
+    .replace(/\bPuente\s+JOHN\b[:\s—–\-]*/gi, 'Puente: ')
+    .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
+    .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
+    .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
     .replace(/__([^_]+)__/g, '$1')
@@ -2787,14 +2793,18 @@ function applyLatAmSeseoForTts(text) {
   return t;
 }
 
-/** Strip Rioplatense / Spain fillers that must never reach the student. */
+/** Strip Rioplatense / Spain / internal lesson labels — never reach the student. */
 function scrubNonCrSpanish(text) {
   return String(text || '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
-    // Internal lesson titles — never speak to students
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
     .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
-    .replace(/\blecci[oó]n John(?:\s+Off the Clock)?\b[:\s—–\-]*/gi, '')
+    .replace(/\bJohn\s+Ram[ií]rez\b/gi, '')
+    .replace(/\bJohnny(?:\s+Ram[ií]rez)?\b/gi, '')
+    .replace(/\bPuente\s+JOHN\b[:\s—–\-]*/gi, 'Puente: ')
+    .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
+    .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
+    .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
     .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')

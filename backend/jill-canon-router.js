@@ -181,7 +181,7 @@ function formatLock(track) {
   const voice = loadVoiceScript(track.id);
   const voiceBlock = voice
     ? [
-        'GUION ORAL JOHN (estilo de clase — DEBES DECIRLO; no ESL genérico):',
+        'GUION ORAL DEL CURSO (estilo de clase — DEBES DECIRLO; no ESL genérico):',
         voice.say,
         Array.isArray(voice.mustSay) && voice.mustSay.length
           ? `PALABRAS OBLIGATORIAS EN VOZ: ${voice.mustSay.join(', ')}.`
@@ -189,14 +189,21 @@ function formatLock(track) {
         voice.exampleAsk ? `CIERRE ORAL: ${voice.exampleAsk}` : ''
       ].filter(Boolean)
     : [];
+  const bridgeClean = String(track.bridge || '')
+    .replace(/\bGet It Straight(?:\s*ING)?\b/gi, '')
+    .replace(/\b(?:John\s+)?Off the Clock\b/gi, '')
+    .replace(/\bPuente\s+JOHN\b/gi, 'Puente')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
   return [
-    'CANON LOCK + METODOLOGÍA JOHN (rige TODO — no solo este módulo):',
+    'CANON LOCK + METODOLOGÍA INFINITY (rige TODO — no solo este módulo):',
     `Tablero: ${track.title}`,
     `Track id: ${track.id}`,
     `Fórmula oficial: ${track.formula}`,
-    `Puente John (DEBES DECIRLO EN VOZ — no lo saltees): ${track.bridge || '(usar analogía del track)'}`,
+    `Puente pedagógico (DEBES DECIRLO EN VOZ — el CONTENIDO, no nombres internos): ${bridgeClean || '(usar analogía del track)'}`,
     `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO: ${never}` : '',
+    'PROHIBIDO EN VOZ/CHAT: nombres internos de lección, shows o trainers.',
     ...antiMix,
     ...voiceBlock,
     'CHECKLIST OBLIGATORIO EN ESTE TURNO (si falta 1 ítem = FALLASTE):',

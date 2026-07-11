@@ -606,7 +606,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711voice';
+  var CACHE_VER = '20260711clean';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
@@ -803,18 +803,24 @@
         voiceSay = VOICE_PACK.tracks[track.id].say;
       }
     } catch (e) { /* ignore */ }
+    var bridgeClean = String(track.bridge || '')
+      .replace(/\bGet It Straight(?:\s*ING)?\b/gi, '')
+      .replace(/\b(?:John\s+)?Off the Clock\b/gi, '')
+      .replace(/\bPuente\s+JOHN\b/gi, 'Puente')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
     var lines = [
-      'CANON LOCK + METODOLOGÍA JOHN (rige TODO):',
+      'CANON LOCK + METODOLOGÍA INFINITY (rige TODO):',
       'Tablero: ' + track.title,
       'Track id: ' + track.id,
       'Fórmula: ' + track.formula,
-      'Puente John (DEBES DECIRLO EN VOZ): ' + (track.bridge || ''),
+      'Puente pedagógico (DEBES DECIRLO EN VOZ — contenido, no nombres internos): ' + (bridgeClean || ''),
       'Ejemplo: ' + track.example,
       never ? 'PROHIBIDO: ' + never : '',
+      'PROHIBIDO EN VOZ/CHAT: nombres internos de lección, shows o trainers.',
       antiMix.join('\n'),
-      voiceSay ? ('GUION ORAL JOHN: ' + voiceSay) : '',
-      'CHECKLIST: fórmula + puente/analogía John + ejemplo + práctica. Omitir puente = FALLAR.',
-      'La metodología de John rige TODOS los módulos.',
+      voiceSay ? ('GUION ORAL DEL CURSO: ' + voiceSay) : '',
+      'CHECKLIST: fórmula + puente/analogía + ejemplo + práctica. Omitir puente = FALLAR.',
       'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
     ];
     return lines.filter(Boolean).join('\n');

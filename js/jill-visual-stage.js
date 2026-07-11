@@ -48,10 +48,26 @@
       if (nx) return nx;
     }
 
-    // STUDENT WINS — si el pedido lockea un track, NUNCA usar el reply de Jill
+    // STUDENT WINS — if user ask locks a track, use it
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
       var userId = JillCanonRouter.resolveAskId(user, '');
       if (userId) return userId;
+    }
+
+    // Sticky / reply fallback when teaching (so exercises always appear on explain turns)
+    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      var nxReply = global.JillLessonClip.resolveNexusId(reply);
+      if (nxReply) return nxReply;
+    }
+    if (reply && typeof JillCanonRouter !== 'undefined') {
+      if (JillCanonRouter.resolveAskId) {
+        var replyAsk = JillCanonRouter.resolveAskId(reply, user || '');
+        if (replyAsk) return replyAsk;
+      }
+      if (JillCanonRouter.pickTrackId) {
+        var replyTrack = JillCanonRouter.pickTrackId(reply);
+        if (replyTrack) return replyTrack;
+      }
     }
 
     // Pedido con contenido que NO matcheó: no abrir tablero ajeno por lo que diga Jill
@@ -62,22 +78,38 @@
       var visualOnly = typeof JillCanonRouter !== 'undefined' && JillCanonRouter.wantsVisual
         && JillCanonRouter.wantsVisual(user) && (!stripped || stripped.length < 2);
       if (!visualOnly) {
-        // Usuario pidió algo (o sticky ya iba en user): sin match → no fallback a reply
         if (typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
           var fromUser = detectColumn(user, bundle);
           if (fromUser) return fromUser;
+        }
+        // Still try reply so whiteboard exercises show when Jill taught a module
+        if (reply && reply.length >= 8) {
+          var fromReply = detectColumn(reply, bundle);
+          if (fromReply) return fromReply;
+          if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
+            var rt = JillCanonRouter.pickTrackId(reply);
+            if (rt) return rt;
+          }
         }
         return null;
       }
     }
 
     if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nxReply = global.JillLessonClip.resolveNexusId(reply);
-      if (nxReply) return nxReply;
+      var nxReply2 = global.JillLessonClip.resolveNexusId(reply);
+      if (nxReply2) return nxReply2;
     }
 
-    // Sin pedido claro del estudiante: no abrir tablero solo porque Jill inventó un módulo
-    if (!user || user.length < 2) return null;
+    if (!user || user.length < 2) {
+      if (reply && reply.length >= 8) {
+        if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
+          var onlyReply = JillCanonRouter.pickTrackId(reply);
+          if (onlyReply) return onlyReply;
+        }
+        return detectColumn(reply, bundle);
+      }
+      return null;
+    }
 
     if (user) return detectColumn(user, bundle);
     return null;

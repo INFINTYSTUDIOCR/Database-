@@ -140,11 +140,15 @@ function prepareTtsLine(text) {
   return normalizeTtsTeachingForms(
     String(text || '')
       .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
-      // Internal lesson titles — NEVER speak these to students
+      // Internal labels — NEVER reach student ears
       .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
       .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
-      .replace(/\blecci[oó]n John\b[:\s—–\-]*/gi, '')
-      .replace(/\bModulo\s*00\d\b/gi, '')
+      .replace(/\bJohn\s+Ram[ií]rez\b/gi, '')
+      .replace(/\bJohnny(?:\s+Ram[ií]rez)?\b/gi, '')
+      .replace(/\bPuente\s+JOHN\b[:\s—–\-]*/gi, 'Puente: ')
+      .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
+      .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
+      .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/\*([^*]+)\*/g, '$1')
       .replace(/__([^_]+)__/g, '$1')

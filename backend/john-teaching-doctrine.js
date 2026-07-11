@@ -94,7 +94,7 @@ function getCanonDigest(maxLen) {
   const critical = ['gerundio', 'progressive', 'gerund_prep', 'past', 'modales', 'there', 'negations', 'prepositions'];
   lines.push('GUIONES ORALES CLAVE (clase John — DEBES HABLAR ASÍ):');
   if (pack.lessons && pack.lessons.getItStraightIng && (pack.lessons.getItStraightIng.say || pack.lessons.getItStraightIng.full)) {
-    lines.push('LECCION CANONICA ING (enseñá el contenido; NUNCA digas Get It Straight ni Off the Clock en voz): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));
+    lines.push('LECCION CANONICA ING (solo contenido del curso — sin nombres internos): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));
   }
   critical.forEach((id) => {
     const v = pack.tracks && pack.tracks[id];
