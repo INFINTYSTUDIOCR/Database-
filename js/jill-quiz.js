@@ -194,7 +194,7 @@
 
   var FOUNDATIONS_DRILL = CONSTRUCTION_QUESTIONS.concat(COIN_QUESTIONS).concat(PREP_QUESTIONS).concat(ARTICLE_QUESTIONS).concat(THERE_QUESTIONS);
 
-  /** Challenge drill — Jill Pro / Alice Companion (no verbos básicos). */
+  /** Challenge drill — Alice / Companion ONLY (STAR, linkers, CS). Never serve this on Jill. */
   var ADVANCED_DRILL = [
     { kpi: 'k10', category: 'linker', q: 'Completá: I wanted to apply, ___ I lacked experience.', options: ['however', 'therefore', 'first', 'plus'], answer: 0, explain: 'Contraste → however.' },
     { kpi: 'k8', category: 'linker', q: 'We missed the deadline, ___ the client was understanding.', options: ['however', 'so', 'because', 'although'], answer: 0, explain: 'Resultado inesperado → however.' },
@@ -456,9 +456,13 @@
     opts = opts || {};
     var bid = bundleIdFromStudent(student, activeBundle);
     var tier = opts.drillTier || 'foundations';
-    var qs = '?count=' + encodeURIComponent(count) + '&bundleId=' + encodeURIComponent(bid || '') + '&tier=' + encodeURIComponent(tier);
+    if (opts.drillOwner === 'jill') tier = 'foundations';
+    var qs = '?count=' + encodeURIComponent(count)
+      + '&bundleId=' + encodeURIComponent(bid || '')
+      + '&tier=' + encodeURIComponent(tier)
+      + '&owner=' + encodeURIComponent(opts.drillOwner || 'jill');
     var localPack = function () {
-      return { questions: pickQuestions(student, activeBundle, count, tier), source: 'local' };
+      return { questions: pickQuestions(student, activeBundle, count, tier, opts), source: 'local' };
     };
     if (opts.demoMode) {
       return fetch(drillApiBase(opts) + '/demo/jill/drill/questions' + qs)
@@ -698,7 +702,10 @@
     return pool.slice(0, count);
   }
 
-  function pickQuestions(student, activeBundle, count, tier) {
+  function pickQuestions(student, activeBundle, count, tier, opts) {
+    opts = opts || {};
+    // Jill owner can never pull Alice/Nexora Challenge bank
+    if (opts.drillOwner === 'jill' || opts.forceFoundations) tier = 'foundations';
     if (tier === 'advanced') return pickAdvancedQuestions(student, count);
     return pickNemesisQuestions(student, activeBundle, count);
   }
@@ -796,6 +803,7 @@
     injectRapidDrillStyles();
     var rdStats = ensureRapidDrillStats(student);
     var tier = opts.drillTier || 'foundations';
+    if (opts.drillOwner === 'jill') tier = 'foundations';
     var isAdvanced = tier === 'advanced';
     var isMini = !!opts.mini;
     var moduleId = opts.moduleId || null;
@@ -808,11 +816,12 @@
       || (isMini ? 5 : (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND));
     var modeLabel = isMini
       ? ('Mini Kaboom' + (moduleId ? ' · ' + moduleId : ''))
-      : (isAdvanced ? 'Challenge drill' : MODE_LABEL);
+      : (isAdvanced ? 'Challenge drill (Alice)' : MODE_LABEL);
     var brandLine = isMini
       ? 'Mini Kaboom — gate del módulo (llama → polvorín)'
-      : (BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — estructura, ida/vuelta, tiempos y transiciones'));
+      : (BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión (Alice)' : ' — oraciones, tiempos, estructura, preposiciones'));
     var mountOpts = opts;
+    mountOpts.drillTier = tier;
     if (isAdvanced && !isMini) mountOpts.timerSec = CHALLENGE_TIMER_SEC;
     if (isMini && !mountOpts.timerSec) mountOpts.timerSec = 30;
 
@@ -842,10 +851,10 @@
 
     fetchBrainQuestions(student, activeBundle, qCount, mountOpts).then(function (data) {
       if (data && data.profile) mergeBrainProfile(student, data.profile);
-      var qs = (data && data.questions && data.questions.length) ? data.questions : pickQuestions(student, activeBundle, qCount, tier);
+      var qs = (data && data.questions && data.questions.length) ? data.questions : pickQuestions(student, activeBundle, qCount, tier, mountOpts);
       startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount, modeLabel);
     }).catch(function () {
-      var qs = pickQuestions(student, activeBundle, qCount, tier);
+      var qs = pickQuestions(student, activeBundle, qCount, tier, mountOpts);
       if (!qs.length) {
         rootEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fecaca;font-size:13px;">'
           + 'No se pudo conectar al cerebro Jill. Verificá sesión o redeploy del backend.</div>';

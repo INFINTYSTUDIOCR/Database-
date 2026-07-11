@@ -52,7 +52,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260711modules"></script>
-<script src="js/jill-quiz.js?v=20260711modules"></script>
+<script src="js/jill-quiz.js?v=20260711jillonly"></script>
 <script src="js/tts-chunks.js?v=20260711human"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260711speak"></script>
@@ -1035,11 +1035,11 @@ function showPortal(s){
   var lastTt = (s.typingTests&&s.typingTests.length)?s.typingTests[s.typingTests.length-1]:null;
   var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
   var drillRecursosBtns = '';
-  if(studentJillOn(s) || studentAliceOn(s)){
+  if(studentJillOn(s) || studentAliceOn(s) || studentJillProOn(s)){
     drillRecursosBtns += '<button class="btn" style="background:var(--ad);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
   }
-  if(studentJillProOn(s) || studentCompanionOn(s)){
-    drillRecursosBtns += '<button class="btn" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>';
+  if(studentCompanionOn(s)){
+    drillRecursosBtns += '<button class="btn" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill (Alice)</button>';
   }
   if(!drillRecursosBtns){
     drillRecursosBtns = '<div style="font-size:13px;color:var(--t3);">Activá Jill o Alice con tu trainer.</div>';
@@ -1390,31 +1390,35 @@ function studentCompanionOn(s){
 function studentAliceTabOn(s){
   return studentAliceOn(s) || studentCompanionOn(s);
 }
-/** Jill Tutora / Alice práctica — rapid drill Foundations. Jill Pro / Alice Companion — Challenge drill. */
+/** Jill = Foundations ONLY. Challenge (STAR/linkers/CS) = Alice / Companion only. */
 function resolveRapidDrillTier(force){
-  if(force === 'advanced' || force === 'challenge') return 'advanced';
-  if(force === 'foundations' || force === 'basic') return 'foundations';
   var s = CURRENT_STUDENT;
   var tab = window._activePortalTab || 'progreso';
+  // Explicit Challenge → only valid on Alice / Companion
+  if(force === 'advanced' || force === 'challenge'){
+    if(tab === 'jill') return 'foundations';
+    if(studentAliceTabOn(s) || studentCompanionOn(s)) return 'advanced';
+    return 'foundations';
+  }
+  if(force === 'foundations' || force === 'basic') return 'foundations';
   if(tab === 'alice'){
     if(_aliceState.sessionType === 'companion' || aliceCompanionUiActive()) return 'advanced';
     if(studentCompanionOn(s) && !studentAliceOn(s)) return 'advanced';
     return 'foundations';
   }
-  if(tab === 'jill'){
-    if(_jillState.sessionType === 'companion' || jillCompanionUiActive()) return 'advanced';
-    if(studentJillProOn(s) && !studentJillOn(s)) return 'advanced';
-    return 'foundations';
-  }
-  if(studentCompanionOn(s) && !studentAliceOn(s)) return 'advanced';
-  if(studentJillProOn(s) && !studentJillOn(s)) return 'advanced';
+  // Jill Tutora + Jill Pro → always Foundations (oraciones, tiempos, estructura, prep)
+  if(tab === 'jill') return 'foundations';
+  if(studentCompanionOn(s) && !studentAliceOn(s) && !studentJillTabOn(s)) return 'advanced';
   return 'foundations';
 }
 function rapidDrillLabel(tier){
-  return tier === 'advanced' ? 'Challenge drill' : 'Rapid drill Kaboom';
+  return tier === 'advanced' ? 'Challenge drill (Alice)' : 'Rapid drill Kaboom';
 }
 function drillMountOpts(){
-  return { drillTier: window._rapidDrillTier || resolveRapidDrillTier() };
+  var tab = window._activePortalTab || 'progreso';
+  var tier = window._rapidDrillTier || resolveRapidDrillTier();
+  if(tab === 'jill') tier = 'foundations';
+  return { drillTier: tier, drillOwner: tab === 'alice' ? 'alice' : 'jill' };
 }
 /** Jill, Jill Pro, Alice o Alice+ — acceso a juegos (Rapid drill, quiz). */
 function studentGamesOn(s){
@@ -1446,10 +1450,9 @@ function renderPortalGamesButtons(variant){
     if(studentCompanionOn(s) || aliceCompanionUiActive())
       html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.45);color:#FFEB3B;font-weight:800;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>';
   } else {
-    if(studentJillOn(s) && !jillCompanionUiActive())
+    // Jill Tutora / Jill Pro — Foundations only (never STAR / CS / linkers)
+    if(studentJillOn(s) || studentJillProOn(s) || jillCompanionUiActive())
       html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
-    if(studentJillProOn(s) || jillCompanionUiActive())
-      html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.55);color:#e9d5ff;font-weight:800;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>';
   }
   html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>';
   return html + '</div>';
@@ -1494,13 +1497,31 @@ function portalOpenRapidDrill(tierOverride){
     showToast('Quiz no disponible','err');
     return;
   }
-  window._rapidDrillTier = resolveRapidDrillTier(tierOverride);
+  var wantChallenge = (tierOverride === 'advanced' || tierOverride === 'challenge');
+  // Challenge = Alice / Nexora soft skills — never Jill
+  if(wantChallenge){
+    if(!studentAliceTabOn(s) && !studentCompanionOn(s)){
+      showToast('Challenge drill es de Alice — Jill solo Foundations.','err');
+      window._rapidDrillTier = 'foundations';
+      if(studentJillTabOn(s)){
+        if(window._activePortalTab !== 'jill') switchPortalTab('jill');
+        jillOpenKaboomQuizCore();
+      }
+      return;
+    }
+    window._rapidDrillTier = 'advanced';
+    if(window._activePortalTab !== 'alice') switchPortalTab('alice');
+    aliceOpenRapidDrill();
+    return;
+  }
+  window._rapidDrillTier = resolveRapidDrillTier(tierOverride || 'foundations');
   var tab = window._activePortalTab || 'progreso';
   if(tab === 'alice' && studentAliceTabOn(s)){
     aliceOpenRapidDrill();
     return;
   }
   if(studentJillTabOn(s)){
+    window._rapidDrillTier = 'foundations';
     if(tab !== 'jill') switchPortalTab('jill');
     jillOpenKaboomQuizCore();
     return;
@@ -5175,7 +5196,6 @@ function renderJillChips(){
   var jillOn = studentJillOn(s);
   var companion = jillCompanionUiActive();
   var foundationsChip = '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'foundations\')">⚡ Rapid drill</button>';
-  var challengeChip = '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'advanced\')">⚡ Challenge drill</button>';
   var painChips =
     '<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, no entiendo el gerundio — explicámelo con la fórmula MSI en la pizarra\')">📘 Gerundio</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Jill, ensename las negaciones con la formula AUX + NOT y el canon — dont / isnt / didnt\')">🚫 Negaciones</button>'
@@ -5187,10 +5207,10 @@ function renderJillChips(){
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Quiero charlar de mi semana — si me trabo, corregime\')">💬 Mi semana</button>'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicame have has had — qué es HAD en el pasado perfecto\')">📘 Have / Has / Had</button>'
       +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo el gerundio — explicámelo con la fórmula\')">📗 Gerundio</button>'
-      + challengeChip
+      + foundationsChip
       +'</div>';
   }
-  if(!jillOn) return challengeChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+challengeChip+'</div>' : '';
+  if(!jillOn) return foundationsChip ? '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+foundationsChip+'</div>' : '';
   return '<div id="jill-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
     + painChips
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'No entiendo, ¿me lo explicás más simple?\')">🤔 No entiendo</button>'
@@ -5267,6 +5287,7 @@ async function jillRecordWrittenDay(){
 
 function jillOpenKaboomQuizCore(){
   if(typeof JillQuiz === 'undefined'){ showToast('Quiz no disponible','err'); return; }
+  window._rapidDrillTier = 'foundations';
   _jillState.quizActive = true;
   jillStopAll();
   renderJill();
@@ -5515,7 +5536,7 @@ function maybeShowJillOnboarding(){
     +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Foundations: estructura MSI, tiempos, gerundio, negaciones, preguntas — clase + práctica hasta que lo implementés.</div></div>'
     +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion Foundations: charla + dudas. Corrige en vivo, explica y confirma — no es Alice (linkers/STAR).</div></div>'
     +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Alice</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Intermedio/avanzado: conversación, linkers, transiciones, STAR — para quien entiende pero necesita hablar.</div></div>'
-    +'<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:12px;padding:12px;"><strong style="color:#e9d5ff;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — Jill Pro / Alice Companion.</div></div>'
+    +'<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:12px;padding:12px;"><strong style="color:#e9d5ff;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — solo Alice / Companion. Jill nunca pregunta eso.</div></div>'
     +'</div>'
     +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
     +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill Pro</a></div>'
@@ -5544,12 +5565,10 @@ function renderJillStart(){
       +'<button type="button" onclick="_jillState.sessionType=\'companion\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(91,33,182,0.25));border:2px solid #A78BFA;color:#f5f3ff;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Pro</button>'
       +'</div>'
     : '';
-  var tutorDrillBtn = (studentGamesOn(s) && jillOn)
+  var tutorDrillBtn = (studentGamesOn(s) && (jillOn || proOn))
     ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.45);color:#86EFAC;font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>'
     : '';
-  var challengeDrillBtn = (studentGamesOn(s) && proOn)
-    ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.55);color:#e9d5ff;font-weight:800;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>'
-    : '';
+  var challengeDrillBtn = '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
       +'<strong>Jill Tutora</strong> — Foundations: pronombres, tiempos, preposiciones, gerundio, preguntas, negaciones, estructura MSI (P|M|V|C) y conectores básicos. Explica como clase, te hace producir y confirma que lo implementás.'

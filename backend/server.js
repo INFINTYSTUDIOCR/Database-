@@ -4728,7 +4728,10 @@ app.get('/jill/drill/questions', requireProductAuth, async (req, res) => {
     }
     student = await assertStudentTutorAccess(req, res, 'jill', student, { allowJillProProduct: true });
     if (!student) return;
-    const tier = String(req.query.tier || 'foundations').trim();
+    const owner = String(req.query.owner || 'jill').trim().toLowerCase();
+    let tier = String(req.query.tier || 'foundations').trim();
+    // Jill product never serves Alice/Nexora Challenge (STAR / CS / heated call)
+    if (owner === 'jill' || owner === '') tier = 'foundations';
     const questions = JillDrillBrain.pickQuestions(student, bundleId || null, count, tier);
     const profile = JillDrillBrain.getDrillProfileSummary(student);
     return res.json({ questions, profile, source: 'brain' });

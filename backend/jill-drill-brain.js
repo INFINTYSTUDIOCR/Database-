@@ -22,7 +22,7 @@ const CORE = [
   { kpi: 'k2', category: 'tense', q: 'Complet?: Yesterday I ___ to the office.', options: ['went', 'go', 'going', 'goes'], answer: 0, explain: 'Pasado simple: I went.' }
 ];
 
-/** Challenge drill ? Jill Pro / Alice Companion (linkers, STAR, presion, expansion). */
+/** Challenge drill — Alice / Companion ONLY (linkers, STAR, pressure). Never for Jill. */
 const ADVANCED_DRILL = [
   { kpi: 'k10', category: 'linker', q: 'Complet?: I wanted to apply, ___ I lacked experience.', options: ['however', 'therefore', 'first', 'plus'], answer: 0, explain: 'Contraste ? however.' },
   { kpi: 'k8', category: 'linker', q: 'We missed the deadline, ___ the client was understanding.', options: ['however', 'so', 'because', 'although'], answer: 0, explain: 'Resultado inesperado ? however.' },
