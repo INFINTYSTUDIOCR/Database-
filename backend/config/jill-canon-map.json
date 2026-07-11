@@ -1,12 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "Jill DJ — Foundations canon tracks",
   "tracks": [
     {
       "id": "modal_have_been",
       "svg": "assets/canon/modal-have-been-ing.svg",
       "title": "Pronombre + Modal + Have Been + Verbo ING",
-      "formula": "P + MODAL + HAVE + BEEN + V-ing + C",
+      "formula": "pronombre + modal + have + been + VERBO + ING + complemento",
       "example": "She must have been working.",
       "never": [
         "presente continuo solo",
@@ -27,13 +27,14 @@
         "should have been working",
         "could have been working",
         "modal + have been + ing"
-      ]
+      ],
+      "bridge": "Puente: must have been working = debió haber estado trabajando (modal + have + been + VERBO+ING)."
     },
     {
       "id": "modal_have_pp",
       "svg": "assets/canon/modal-have-pp.svg",
       "title": "Modal + Have + Participio",
-      "formula": "MODAL + HAVE + PARTICIPIO (will/would/should/could/must have + PP)",
+      "formula": "modal + have + PARTICIPIO (should/could/must have + participio)",
       "example": "You should have studied more.",
       "never": [
         "have been + ing",
@@ -58,13 +59,14 @@
         "must have forgotten",
         "will have finished",
         "modal + have"
-      ]
+      ],
+      "bridge": "Puente: should have = debería haber + participio; could have = podría haber."
     },
     {
       "id": "combined",
       "svg": "assets/canon/have-been-ing.svg",
       "title": "Pronombre + Have + Been + Verbo (ING)",
-      "formula": "P + HAVE/HAS/HAD + BEEN + V-ing + C",
+      "formula": "pronombre + have/has/had + been + VERBO + ING + complemento",
       "example": "I have been studying English.",
       "never": [
         "presente continuo sin have",
@@ -83,13 +85,14 @@
         "presente perfecto continuo",
         "ppc",
         "have been + v"
-      ]
+      ],
+      "bridge": "Puente: have been + VERBO+ING = he estado + ando/endo (duración hasta ahora)."
     },
     {
       "id": "have_had",
       "svg": "assets/canon/have-had.svg",
       "title": "Have / Has / Had",
-      "formula": "HAVE/HAS + PP (presente perfecto) vs HAD + PP (pasado perfecto)",
+      "formula": "have. has. had. — paradigm con pausa",
       "example": "I have finished. / I had finished.",
       "never": [
         "to have posesion / there is",
@@ -103,13 +106,14 @@
         "have has had",
         "diferencia entre have y had",
         "have had"
-      ]
+      ],
+      "bridge": "Puente: have/has/had — decir con pausa: have. has. had."
     },
     {
       "id": "if_was_were",
       "svg": "assets/canon/if-was-were.svg",
       "title": "If I was / If I were / If I were to",
-      "formula": "was = pasado real/posible | were = hipotesis irreal | were to = futuro poco probable",
+      "formula": "was = pasado real/posible | were = hipótesis irreal | were to = futuro poco probable",
       "example": "If I were rich, I would travel.",
       "never": [
         "pasado simple sin if",
@@ -128,7 +132,8 @@
         "condicional hipotetico",
         "hipotesis irreal",
         "was were"
-      ]
+      ],
+      "bridge": "Puente: was = pasado real; were = hipótesis irreal (If I were…); were to = poco probable."
     },
     {
       "id": "irregular_verbs",
@@ -151,13 +156,14 @@
         "presente pasado participio",
         "1a 2a 3a columna",
         "irregulares"
-      ]
+      ],
+      "bridge": "Puente: col1 presente / col2 pasado / col3 participio — siempre con pausa: go. went. gone."
     },
     {
       "id": "there",
       "svg": "assets/canon/there-existencial.svg",
       "title": "There is / There are / To Have / Exist",
-      "formula": "There is + 1 | There are + 2+ | Sujeto + have/has (posesion) | There exist(s) (formal)",
+      "formula": "There is + 1 | There are + 2+ | Sujeto + have/has (posesión) | There exist(s) (formal)",
       "example": "There is a book on the table. / I have a book.",
       "never": [
         "thee is",
@@ -180,13 +186,14 @@
         "there exists",
         "there is y there are",
         "hay"
-      ]
+      ],
+      "bridge": "Puente: There is = hay (1); There are = hay (2+); have/has = posesión (no “hay”)."
     },
     {
       "id": "gerundio",
       "svg": "assets/canon/gerundio-prep.svg",
-      "title": "Gerundio = V-ing como sustantivo",
-      "formula": "V-ing funciona como SUSTANTIVO (sujeto u objeto). Tras prep: PREP + V-ing.",
+      "title": "Gerundio = VERBO + ING como sustantivo",
+      "formula": "VERBO + ING (= ando/endo) funciona como SUSTANTIVO. Tras prep: preposición + VERBO + ING.",
       "example": "I like running. / Playing guitar is fun.",
       "never": [
         "presente continuo (am/is/are + ing)",
@@ -204,14 +211,15 @@
         "gerund",
         "el gerund",
         "que es gerundio"
-      ]
+      ],
+      "bridge": "Puente: VERBO+ING = ando/endo como sustantivo (I like running = me gusta correr/corriendo)."
     },
     {
       "id": "gerund_prep",
       "svg": "assets/canon/gerundio-prep.svg",
       "title": "Gerundio despues de preposicion",
-      "formula": "PREP (before/after/without/by/good at) + V-ing + C",
-      "example": "Before leaving, call me.",
+      "formula": "preposición (before/after/without/by/good at) + VERBO + ING (= ando/endo) + complemento",
+      "example": "Before leaving, call me. (saliendo → leaving)",
       "never": [
         "presente continuo",
         "IN ON AT como tema",
@@ -229,13 +237,14 @@
         "afraid of",
         "instead of",
         "despues de preposicion"
-      ]
+      ],
+      "bridge": "Puente: tras prep, VERBO+ING = ando/endo (Before leaving = antes de salir/saliendo)."
     },
     {
       "id": "prepositions_time",
       "svg": "assets/canon/preposiciones-tiempo.svg",
       "title": "Preposiciones de tiempo",
-      "formula": "IN (mes/año/parte del dia) | ON (dia/fecha) | AT (hora puntual)",
+      "formula": "IN (mes/año/parte del día) | ON (día/fecha) | AT (hora puntual)",
       "example": "We meet on Monday in March at 5 pm.",
       "never": [
         "gerundio",
@@ -253,13 +262,14 @@
         "at 5",
         "in march",
         "preposiciones tiempo"
-      ]
+      ],
+      "bridge": "Puente: IN = mes/año/parte del día; ON = día/fecha; AT = hora puntual."
     },
     {
       "id": "prepositions",
       "svg": "assets/canon/preposiciones.svg",
       "title": "Preposiciones IN ON AT BY",
-      "formula": "IN = dentro | ON = encima/superficie | AT = punto exacto | BY = medio — van en ranura C",
+      "formula": "IN = dentro | ON = encima/superficie | AT = punto exacto | BY = medio — van en el complemento",
       "example": "The book is on the table. / I am at home.",
       "never": [
         "gerundio",
@@ -290,13 +300,14 @@
         "corregime in on at",
         "in on",
         "on at"
-      ]
+      ],
+      "bridge": "Puente: IN = dentro; ON = encima; AT = punto; BY = medio — van en el complemento."
     },
     {
       "id": "negations",
       "svg": "assets/canon/negaciones.svg",
       "title": "Negaciones - AUX + NOT",
-      "formula": "P + AUX + NOT + V + C",
+      "formula": "pronombre + auxiliar + not + verbo + complemento",
       "example": "I do not work. / She doesn't go.",
       "never": [
         "modales sin not",
@@ -316,13 +327,14 @@
         "auxiliar + not",
         "negacion",
         "negación"
-      ]
+      ],
+      "bridge": "Puente: auxiliar + not + verbo base (I do not work — nunca “I no work”)."
     },
     {
       "id": "comparatives",
       "svg": "assets/canon/comparativos.svg",
       "title": "Comparativos",
-      "formula": "ADJ-er / more + ADJ + than | the + ADJ-est / most + ADJ | as + ADJ + as",
+      "formula": "adjetivo-er / more + adjetivo + than | the + adjetivo-est / most + adjetivo | as + adjetivo + as",
       "example": "She is taller than me.",
       "never": [
         "preposiciones",
@@ -340,7 +352,8 @@
         "peor que",
         "the most",
         "the least"
-      ]
+      ],
+      "bridge": "Puente: -er/more + than = más… que; -est/most = el más…; as…as = tan…como."
     },
     {
       "id": "articles",
@@ -364,13 +377,14 @@
         "a lot of",
         "a an the",
         "a/an/the"
-      ]
+      ],
+      "bridge": "Puente: a/an = uno/una (indefinido); the = el/la (definido)."
     },
     {
       "id": "progressive",
       "svg": "assets/canon/presente-continuo.svg",
       "title": "Pronombre + To Be + Verbo (ING)",
-      "formula": "P + am/is/are + V-ing + C",
+      "formula": "pronombre + am/is/are + VERBO + ING (= ando/endo) + complemento",
       "example": "I am studying English now.",
       "never": [
         "gerundio-prep",
@@ -390,13 +404,14 @@
         "continuo",
         "el continuo",
         "ing continuo"
-      ]
+      ],
+      "bridge": "Puente: am/is/are + VERBO+ING = estoy/está + ando/endo (presente continuo, no gerundio suelto)."
     },
     {
       "id": "perfect",
       "svg": "assets/canon/tiempos-prp.svg",
       "title": "Pronombre + Have/Has + Participio",
-      "formula": "P + HAVE/HAS + PARTICIPIO + C",
+      "formula": "have/has + PARTICIPIO (presente perfecto) vs had + PARTICIPIO (pasado perfecto)",
       "example": "He has done it.",
       "never": [
         "pasado simple",
@@ -413,13 +428,14 @@
         "pronombre + have + participio",
         "perfecto",
         "el perfecto"
-      ]
+      ],
+      "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio."
     },
     {
       "id": "past",
       "svg": "assets/canon/tiempos-ps.svg",
       "title": "Pasado simple PS",
-      "formula": "P + V(pasado) + C",
+      "formula": "pronombre + verbo(pasado) + complemento",
       "example": "She worked yesterday.",
       "never": [
         "presente perfecto",
@@ -437,13 +453,14 @@
         "el pasado",
         "pizarron del pasado",
         "imagen del pasado"
-      ]
+      ],
+      "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada."
     },
     {
       "id": "present",
       "svg": "assets/canon/tiempos-pr.svg",
       "title": "Presente simple PR",
-      "formula": "P + V + C (he/she/it + V-s)",
+      "formula": "pronombre + verbo + complemento (he/she/it + verbo+s)",
       "example": "I go home every day.",
       "never": [
         "presente continuo",
@@ -462,13 +479,14 @@
         "explicame el presente simple",
         "presente",
         "el presente"
-      ]
+      ],
+      "bridge": "Puente: hábito/hecho; he/she/it lleva verbo+s (she works)."
     },
     {
       "id": "modales",
       "svg": "assets/canon/modales.svg",
       "title": "Pronombre + Modal + Verbo",
-      "formula": "P + MODAL + V(base, sin to) + C",
+      "formula": "pronombre + modal + verbo(base, sin to) + complemento",
       "example": "I can work. / She should study.",
       "never": [
         "metodo moneda",
@@ -481,13 +499,14 @@
         "pronombre + modal",
         "explicame modales",
         "los modales"
-      ]
+      ],
+      "bridge": "Puente: will=-ré; would=-ría; should=debería; can=puedo; could=podría — modal + verbo base (sin to)."
     },
     {
       "id": "modal",
       "svg": "assets/canon/moneda.svg",
       "title": "Metodo moneda (inversion)",
-      "formula": "V aux ANTES de P = pregunta | V aux DESPUES de P = respuesta",
+      "formula": "verbo auxiliar ANTES del pronombre = pregunta | DESPUÉS del pronombre = respuesta",
       "example": "Are you coming? / You are coming.",
       "never": [
         "modales can/should",
@@ -504,13 +523,14 @@
         "pregunta / respuesta",
         "la moneda",
         "metodo de moneda"
-      ]
+      ],
+      "bridge": "Puente: método moneda — auxiliar ANTES del pronombre = pregunta; DESPUÉS = respuesta."
     },
     {
       "id": "future",
       "svg": "assets/canon/tiempos-fut.svg",
       "title": "Futuro will / going to",
-      "formula": "P + WILL + V + C | P + BE + GOING TO + V + C",
+      "formula": "pronombre + will + verbo + complemento | pronombre + be + going to + verbo + complemento",
       "example": "I will call you tomorrow. / I am going to study.",
       "never": [
         "futuro perfecto / will have",
@@ -524,13 +544,14 @@
         "explicame el futuro",
         "futuro simple",
         "el futuro"
-      ]
+      ],
+      "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención)."
     },
     {
       "id": "overview",
       "svg": "assets/canon/tiempos.svg",
       "title": "Tiempos overview",
-      "formula": "PR | PS | PC | PRP | futuro — overview de tiempos",
+      "formula": "presente simple | pasado simple | presente continuo | presente perfecto | futuro",
       "example": "I work / I worked / I am working / I have worked",
       "never": [
         "un solo tiempo como si fuera overview"
@@ -543,7 +564,8 @@
         "overview tiempos",
         "todos los tiempos",
         "matriz"
-      ]
+      ],
+      "bridge": "Puente: PR=presente simple; PS=pasado simple; PC=presente continuo; PRP=presente perfecto."
     }
   ]
 }

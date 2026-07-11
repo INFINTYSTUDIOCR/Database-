@@ -24,7 +24,7 @@
     modal_have_pp: 3,
     modal_have_been: 3,
     gerundio: 2,
-    gerund_prep: 2,
+    gerund_prep: 3,
     comparatives: 2,
     have_had: 3,
     if_was_were: 2,

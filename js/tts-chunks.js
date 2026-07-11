@@ -36,55 +36,87 @@ function isCompleteSpokenLine(text, minWords) {
 }
 
 /**
- * Teaching forms for TTS — one language at a time:
- * - KEEP parentheses content (read the aside; drop only the marks)
- * - MSI slots with Spanish "más" (never English "plus" inside Spanish)
- * - AM / BE / IS… as English verb words (spoken in EN clips)
+ * Teaching forms for TTS — cascada TODA la biblioteca MSI:
+ * ranuras/siglas se LEEN (pronombre, verbo, presente perfecto…), nunca "ve"/"pe pe".
+ * V+ing → "verbo más I N G" (ai · en · yi en inglés).
  */
 function normalizeTtsTeachingForms(text) {
   var t = String(text || '');
-  // Read what is inside parentheses/brackets — strip marks only
   t = t.replace(/\(([^)]*)\)/g, ' $1 ');
   t = t.replace(/\[([^\]]*)\]/g, ' $1 ');
   t = t.replace(/（([^）]*)）/g, ' $1 ');
-  // Drop CTYPE / markdown control tags if any leaked
   t = t.replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ');
-  // Verb paradigms: slashes → spoken pauses (never "dodiddone" / "havehashad")
   t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2. $3.');
   t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
-  t = t.replace(/\b([A-Za-z]{2,14})\s*-\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
-  // Common irregular triples written without separators
   var triples = [
     ['do', 'did', 'done'], ['go', 'went', 'gone'], ['come', 'came', 'come'],
     ['take', 'took', 'taken'], ['give', 'gave', 'given'], ['get', 'got', 'gotten'],
     ['make', 'made', 'made'], ['see', 'saw', 'seen'], ['say', 'said', 'said'],
     ['send', 'sent', 'sent'], ['keep', 'kept', 'kept'], ['let', 'let', 'let'],
-    ['put', 'put', 'put'], ['have', 'has', 'had'], ['be', 'was', 'been'],
-    ['be', 'been', 'been'], ['be', 'been', 'been']
+    ['put', 'put', 'put'], ['have', 'has', 'had'], ['be', 'was', 'been']
   ];
   triples.forEach(function (tr) {
     var re = new RegExp('\\b(' + tr[0] + ')\\s+(' + tr[1] + ')\\s+(' + tr[2] + ')\\b', 'gi');
     t = t.replace(re, tr[0] + '. ' + tr[1] + '. ' + tr[2] + '.');
   });
-  // "I do did done" / "I have has had" mash
   t = t.replace(/\bI\s+do\s*\.?\s*did\s*\.?\s*done\b/gi, 'I do. did. done.');
   t = t.replace(/\bI\s+have\s*\.?\s*has\s*\.?\s*had\b/gi, 'I have. has. had.');
-  // MSI / slot formulas → coherent Spanish connector
-  t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
-  t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
-  t = t.replace(/\bP\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más V más C ');
-  t = t.replace(/\b([PMVC])\s*\+\s*([PMVC])\s*\+\s*([PMVC])(?:\s*\+\s*([PMVC]))?\b/gi, function (_, a, b, c, d) {
-    return d ? (' ' + a + ' más ' + b + ' más ' + c + ' más ' + d + ' ') : (' ' + a + ' más ' + b + ' más ' + c + ' ');
-  });
-  // Any leftover + between teaching tokens → más (not English "plus")
-  t = t.replace(/\+/g, ' más ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' V I N G ');
-  t = t.replace(/\bV\+ing\b/gi, ' V I N G ');
-  t = t.replace(/\bVing\b/gi, ' V I N G ');
-  t = t.replace(/\bV3\b/gi, ' past participle ');
-  t = t.replace(/\bAUX\b/g, ' auxiliar ');
-  // English verb labels (caps or clear grammar) → lowercase EN words for EN voice clips
+
+  // Siglas largas ANTES de ranuras de 1 letra
+  t = t.replace(/\bGOING\s+TO\b/gi, ' going to ');
   t = t.replace(/\bTO\s+BE\b/gi, ' to be ');
+  t = t.replace(/\bPARTICIPIO\b/gi, ' participio ');
+  t = t.replace(/\bPREP\b/gi, ' preposicion ');
+  t = t.replace(/\bMODAL(?:ES)?\b/gi, ' modal ');
+  t = t.replace(/\bAUX(?:ILIAR)?\b/gi, ' auxiliar ');
+  t = t.replace(/\bADJ(?:ECTIVE|ETIVO)?\b/gi, ' adjetivo ');
+  t = t.replace(/\bPRP\b/gi, ' presente perfecto ');
+  t = t.replace(/\bPPC\b/gi, ' pasado perfecto continuo ');
+  t = t.replace(/\bPAP\b/gi, ' pasado perfecto ');
+  t = t.replace(/\bPR\b/gi, ' presente simple ');
+  t = t.replace(/\bPS\b/gi, ' pasado simple ');
+  t = t.replace(/\bPC\b/gi, ' presente continuo ');
+  t = t.replace(/\bPP\b/gi, ' participio ');
+  t = t.replace(/\bTB\b/gi, ' to be ');
+  t = t.replace(/\bBEEN\b/gi, ' been ');
+  t = t.replace(/\bHAVE\b/gi, ' have ');
+  t = t.replace(/\bHAS\b/gi, ' has ');
+  t = t.replace(/\bHAD\b/gi, ' had ');
+  t = t.replace(/\bWILL\b/gi, ' will ');
+
+  // V+ing / VERBO+ING / V+s antes de expandir ranura V
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bVing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bV\s*-\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bV3\b/gi, ' past participle ');
+
+  t = t.replace(/\bP\s*[|+/]\s*AUX(?:ILIAR)?\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más auxiliar más not más verbo más complemento ');
+  t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más modal más verbo más complemento ');
+  t = t.replace(/\bP\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más verbo más complemento ');
+  t = t.replace(/\b([PMVC])\s*\+\s*([PMVC])\s*\+\s*([PMVC])(?:\s*\+\s*([PMVC]))?\b/gi, function (_, a, b, c, d) {
+    var map = { P: 'pronombre', M: 'modal', V: 'verbo', C: 'complemento', p: 'pronombre', m: 'modal', v: 'verbo', c: 'complemento' };
+    var parts = [map[a] || a, map[b] || b, map[c] || c];
+    if (d) parts.push(map[d] || d);
+    return ' ' + parts.join(' más ') + ' ';
+  });
+
+  t = t.replace(/\+/g, ' más ');
+  t = t.replace(/\s*\|\s*/g, ' más ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
+
+  t = t.replace(/\bP\b/g, ' pronombre ');
+  t = t.replace(/\bM\b/g, ' modal ');
+  t = t.replace(/\bV\b/g, ' verbo ');
+  t = t.replace(/\bC\b/g, ' complemento ');
+
   t = t.replace(/\bBE\b/g, ' be ');
   t = t.replace(/\bAM\b/g, ' am ');
   t = t.replace(/\bIS\b/g, ' is ');
@@ -92,6 +124,9 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bWAS\b/g, ' was ');
   t = t.replace(/\bWERE\b/g, ' were ');
   t = t.replace(/\bNOT\b/g, ' not ');
+  t = t.replace(/\bTHAN\b/gi, ' than ');
+  t = t.replace(/\bTHE\b/g, ' the ');
+  t = t.replace(/\bAS\b/g, ' as ');
   t = t.replace(/\bING\b/g, ' I N G ');
   return t;
 }
@@ -129,6 +164,8 @@ function classifyTtsWord(word) {
   if (!w) return null;
   // Single MSI letters stay with surrounding language (usually Spanish)
   if (/^[PMVC]$/i.test(w)) return null;
+  // Spelled ING suffix letters → English names (ai · en · yi)
+  if (/^[ING]$/i.test(w)) return 'en';
   if (/[áéíóúñ¿¡]/i.test(w)) return 'es';
   var bare = w.toLowerCase().replace(/['']/g, "'");
   if (_TTS_EN_GRAMMAR.test(bare)) return 'en';

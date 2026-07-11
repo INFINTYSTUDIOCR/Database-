@@ -2672,9 +2672,7 @@ function cleanTtsText(text) {
     .replace(/^\s*[-•]\s+/gm, '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ');
-  // Keep parenthesis content; drop only the marks
   t = t.replace(/\(([^)]*)\)/g, ' $1 ').replace(/\[([^\]]*)\]/g, ' $1 ');
-  // Verb paradigms with pauses (never dodiddone / havehashad)
   t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2. $3.');
   t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
   t = t.replace(/\b(do)\s+(did)\s+(done)\b/gi, 'do. did. done.');
@@ -2682,15 +2680,54 @@ function cleanTtsText(text) {
   t = t.replace(/\b(have)\s+(has)\s+(had)\b/gi, 'have. has. had.');
   t = t.replace(/\bI\s+do\s+did\s+done\b/gi, 'I do. did. done.');
   t = t.replace(/\bI\s+have\s+has\s+had\b/gi, 'I have. has. had.');
-  // MSI formulas → Spanish "más" (never English "plus" mixed in)
-  t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
-  t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
-  t = t.replace(/\bP\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más V más C ');
-  t = t.replace(/\+/g, ' más ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' V I N G ');
-  t = t.replace(/\bV3\b/gi, ' past participle ');
-  t = t.replace(/\bAUX\b/g, ' auxiliar ');
+  // Cascada MSI — toda la biblioteca (mismas reglas que js/tts-chunks.js)
+  t = t.replace(/\bGOING\s+TO\b/gi, ' going to ');
   t = t.replace(/\bTO\s+BE\b/gi, ' to be ');
+  t = t.replace(/\bPARTICIPIO\b/gi, ' participio ');
+  t = t.replace(/\bPREP\b/gi, ' preposicion ');
+  t = t.replace(/\bMODAL(?:ES)?\b/gi, ' modal ');
+  t = t.replace(/\bAUX(?:ILIAR)?\b/gi, ' auxiliar ');
+  t = t.replace(/\bADJ(?:ECTIVE|ETIVO)?\b/gi, ' adjetivo ');
+  t = t.replace(/\bPRP\b/gi, ' presente perfecto ');
+  t = t.replace(/\bPPC\b/gi, ' pasado perfecto continuo ');
+  t = t.replace(/\bPAP\b/gi, ' pasado perfecto ');
+  t = t.replace(/\bPR\b/gi, ' presente simple ');
+  t = t.replace(/\bPS\b/gi, ' pasado simple ');
+  t = t.replace(/\bPC\b/gi, ' presente continuo ');
+  t = t.replace(/\bPP\b/gi, ' participio ');
+  t = t.replace(/\bTB\b/gi, ' to be ');
+  t = t.replace(/\bBEEN\b/gi, ' been ');
+  t = t.replace(/\bHAVE\b/gi, ' have ');
+  t = t.replace(/\bHAS\b/gi, ' has ');
+  t = t.replace(/\bHAD\b/gi, ' had ');
+  t = t.replace(/\bWILL\b/gi, ' will ');
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bVing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bV3\b/gi, ' past participle ');
+  t = t.replace(/\bP\s*[|+/]\s*AUX(?:ILIAR)?\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más auxiliar más not más verbo más complemento ');
+  t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más modal más verbo más complemento ');
+  t = t.replace(/\bP\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
+    ' pronombre más verbo más complemento ');
+  t = t.replace(/\b([PMVC])\s*\+\s*([PMVC])\s*\+\s*([PMVC])(?:\s*\+\s*([PMVC]))?\b/gi, (_, a, b, c, d) => {
+    const map = { P: 'pronombre', M: 'modal', V: 'verbo', C: 'complemento', p: 'pronombre', m: 'modal', v: 'verbo', c: 'complemento' };
+    const parts = [map[a] || a, map[b] || b, map[c] || c];
+    if (d) parts.push(map[d] || d);
+    return ' ' + parts.join(' más ') + ' ';
+  });
+  t = t.replace(/\+/g, ' más ');
+  t = t.replace(/\s*\|\s*/g, ' más ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bP\b/g, ' pronombre ');
+  t = t.replace(/\bM\b/g, ' modal ');
+  t = t.replace(/\bV\b/g, ' verbo ');
+  t = t.replace(/\bC\b/g, ' complemento ');
   t = t.replace(/\bBE\b/g, ' be ');
   t = t.replace(/\bAM\b/g, ' am ');
   t = t.replace(/\bIS\b/g, ' is ');
@@ -2698,11 +2735,14 @@ function cleanTtsText(text) {
   t = t.replace(/\bWAS\b/g, ' was ');
   t = t.replace(/\bWERE\b/g, ' were ');
   t = t.replace(/\bNOT\b/g, ' not ');
+  t = t.replace(/\bTHAN\b/gi, ' than ');
+  t = t.replace(/\bTHE\b/g, ' the ');
+  t = t.replace(/\bAS\b/g, ' as ');
+  t = t.replace(/\bING\b/g, ' I N G ');
   return t
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, '. ')
     .replace(/\.{2,}/g, '. ')
-    // Keep . ! ? , as pauses — do not mash teaching tokens
     .replace(/[;:/]+/g, ' ')
     .replace(/\s*[-]{1,3}\s*/g, ' ')
     .replace(/<br>/gi, ' ')
@@ -3915,7 +3955,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint)}${await tutorKnowledgeSliceForJill(message, student)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
@@ -4105,9 +4145,10 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
+    const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student);
     const jillCompanionSystem = isJillCompanion
-      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint)
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${await tutorKnowledgeSliceForJillFast(message, student)}${TUTOR_LATENCY_RULE}`;
+      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint) + jillDoctrineSlice
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${TUTOR_LATENCY_RULE}`;
     await streamAnthropicSSE(res, {
       max_tokens: isJillCompanion ? 900 : 700,
       system: isJillCompanion

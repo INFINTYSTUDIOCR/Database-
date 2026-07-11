@@ -53,18 +53,33 @@ const ttsApi = new Function(
 const samples = [
   {
     in: 'La formula es P + V + C (ranuras MSI). El verbo BE (ser/estar) y AM.',
-    mustInclude: ['P más V más C', 'be', 'am'],
-    mustNot: ['(', ')', 'plus', '\uFFFD', '�']
+    mustInclude: ['pronombre más verbo más complemento', 'be', 'am'],
+    mustNot: ['(', ')', 'plus', '\uFFFD', '�', 'P más V']
   },
   {
     in: 'Negacion: P + AUX + NOT + V + C. No digas "I no work".',
-    mustInclude: ['más', 'auxiliar', 'not'],
+    mustInclude: ['más', 'auxiliar', 'not', 'pronombre', 'verbo'],
     mustNot: ['plus', '(', ')']
   },
   {
     in: 'Usas V+ing despues de BE.',
-    mustInclude: ['V I N G', 'be'],
-    mustNot: ['plus', 'V+ing']
+    mustInclude: ['verbo más I N G', 'be'],
+    mustNot: ['plus', 'V+ing', 'V I N G']
+  },
+  {
+    in: 'La formula es VERBO + ING como ando endo.',
+    mustInclude: ['verbo más I N G'],
+    mustNot: ['plus', 'V I N G']
+  },
+  {
+    in: 'En PC: P + am/is/are + V-ing + C. En PRP: HAVE + PP.',
+    mustInclude: ['presente continuo', 'verbo más I N G', 'presente perfecto', 'participio'],
+    mustNot: ['plus', 'V-ing', 'PP']
+  },
+  {
+    in: 'Overview: PR PS PC PRP. Modales: P + M + V + C.',
+    mustInclude: ['presente simple', 'pasado simple', 'presente continuo', 'presente perfecto', 'pronombre más modal más verbo más complemento'],
+    mustNot: ['plus']
   },
   {
     in: 'Before leaving, call me. (antes de irte)',

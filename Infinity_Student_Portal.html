@@ -33,12 +33,12 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-router.js?v=20260710drill2"></script>
-<script src="js/jill-canon-visual.js?v=20260710drill2"></script>
-<script src="js/jill-canon-drill.js?v=20260710drill2"></script>
-<script src="js/jill-visual-stage.js?v=20260710drill2"></script>
+<script src="js/jill-canon-router.js?v=20260710john"></script>
+<script src="js/jill-canon-visual.js?v=20260710ando"></script>
+<script src="js/jill-canon-drill.js?v=20260710ando"></script>
+<script src="js/jill-visual-stage.js?v=20260710ando"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710drill2"></script>
+<script src="js/jill-foundations.js?v=20260710ando"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -50,7 +50,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-quiz.js?v=20260710struct"></script>
-<script src="js/tts-chunks.js?v=20260710all"></script>
+<script src="js/tts-chunks.js?v=20260710john"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -127,23 +127,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-stage-media{flex:1;min-height:160px;position:relative;}
   #jill-stage-caption{display:none!important;}
   .jill-svg-interact{
-    position:absolute;inset:0;z-index:4;display:flex;pointer-events:none;
+    position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:8px;
+    padding:10px 12px 12px;pointer-events:none;align-items:flex-end;
+    background:linear-gradient(to top,rgba(49,46,129,0.18),transparent 70%);
   }
   .jill-svg-hotspot{
-    flex:1;margin:0;padding:0;border:0;background:transparent;cursor:pointer;
-    pointer-events:auto;transition:box-shadow .35s ease, background .35s ease;
+    flex:1;height:36px;margin:0;padding:0;border:0;border-radius:10px;
+    background:rgba(255,255,255,0.55);cursor:pointer;pointer-events:auto;
+    box-shadow:inset 0 0 0 1px rgba(124,58,237,0.25);
+    transition:box-shadow .25s ease, background .25s ease, transform .15s ease;
   }
   .jill-svg-hotspot.is-lit{
-    background:rgba(124,58,237,0.14);
-    box-shadow:inset 0 0 0 3px rgba(167,139,250,0.85), 0 0 28px rgba(124,58,237,0.35);
+    background:rgba(167,139,250,0.55);
+    box-shadow:inset 0 0 0 2px #7c3aed, 0 0 14px rgba(124,58,237,0.45);
+    transform:translateY(-2px);
   }
   .jill-svg-hotspot.is-ok{
-    background:rgba(52,211,153,0.22)!important;
-    box-shadow:inset 0 0 0 3px #34d399, 0 0 32px rgba(52,211,153,0.45)!important;
+    background:rgba(52,211,153,0.55)!important;
+    box-shadow:inset 0 0 0 2px #34d399, 0 0 14px rgba(52,211,153,0.45)!important;
   }
   .jill-svg-hotspot.is-miss{
-    background:rgba(248,113,113,0.2)!important;
-    box-shadow:inset 0 0 0 3px #f87171, 0 0 28px rgba(248,113,113,0.4)!important;
+    background:rgba(248,113,113,0.45)!important;
+    box-shadow:inset 0 0 0 2px #f87171, 0 0 14px rgba(248,113,113,0.4)!important;
   }
   .jill-drill-ring{
     position:absolute;right:14px;top:14px;z-index:6;width:44px;height:44px;

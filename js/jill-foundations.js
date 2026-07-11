@@ -179,7 +179,7 @@
     irregular_verbs: { id: 'verbos-irregulares', path: 'assets/canon/verbos-irregulares.svg', title: 'Verbos irregulares (Presente / PS / Participio)' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones IN ON AT BY' },
     prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones de tiempo' },
-    gerundio: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio = V-ing como sustantivo' },
+    gerundio: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio = VERBO + ING (ando/endo)' },
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
     negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
     comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },

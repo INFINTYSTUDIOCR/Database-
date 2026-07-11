@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v22-svg-first-teach';
+const JILL_PRO_BRAIN_VER = 'v25-john-teach-all';
 
 const JillCanonRouter = require('./jill-canon-router');
 
@@ -119,12 +119,13 @@ Cuando EXPLICÁS gramática/duda (CUALQUIER módulo del catálogo):
 - [[CTYPE:whiteboard]] SOLO como última línea (máquina).
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
 
-const JILL_PRO_TEACH_CANON = `ENSEÑANZA CANON — TODA LA BIBLIOTECA (SVG-first, poco texto):
+const JILL_PRO_TEACH_CANON = `ENSEÑANZA CANON — TODA LA BIBLIOTECA (SVG-first + puente Foundations):
 1) 1 frase corta: nombrá el track (el tablero SVG ya enseña).
-2) 1 frase: fórmula oficial en español, sin párrafo.
-3) 1 ejemplo oral con pausas si hay A/B/C ("go. went. gone.").
-4) Práctica: pedí que LO DIGAN mirando el SVG (mic). Cero texto de ejercicio en pantalla.
-PROHIBIDO: leer el SVG entero; listar 8+ ítems; formas pegadas; bloques "EJERCICIO" escritos; "acá te va una imagen"; tags [[CTYPE]] en el cuerpo; saludar de nuevo.`;
+2) 1 frase: fórmula oficial + puente ES↔EN cuando aplique (ej. VERBO+ING = ando/endo; do.did.done.; in/on/at).
+3) 1 modelo oral con pausas si hay A/B/C ("go. went. gone.").
+4) Práctica: la PRACTICA está EN EL SVG (blank / chips abajo). Decí "completá en voz el blank del tablero" o "tocá la zona y decí…". NUNCA digas "mirá los 3 ejemplos" / "mirá el ejercicio" si no hay blank/práctica visible en el board.
+VOZ (cascada TODOS los módulos): al hablar fórmulas, DECÍ las ranuras en español — "pronombre", "modal", "verbo", "complemento", "auxiliar", "preposición", "participio". V+ing / VERBO+ING = "verbo más I N G" (letras en inglés). PR/PS/PC/PRP/PPC = "presente simple / pasado simple / presente continuo / presente perfecto / pasado perfecto continuo". NUNCA deletrees solo la letra V ("ve").
+PROHIBIDO: leer el SVG entero; listar 8+ ítems; formas pegadas; bloques "EJERCICIO" escritos aparte; "acá te va una imagen"; tags [[CTYPE]] en el cuerpo; saludar de nuevo; inventar ejercicios que no están en el SVG.`;
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Sos Jill DJ del catálogo Foundations: el TRACK lo elige el sistema (resolveAsk / pickTrack), vos NO inventás módulo.
@@ -151,28 +152,28 @@ ${JILL_PRO_DOUBT_MODE}
 
 /** Pistas por track — voz + SVG, sin texto de drill en pantalla. */
 const TRACK_TEACH_HINTS = {
-  irregular_verbs: 'Máx 2 verbos. Decí: "do. did. done." Pedí que lo repitan mirando las 3 columnas del SVG.',
-  there: 'Señalá there is / there are en el SVG. Pedí una frase oral corta.',
-  prepositions: 'Señalá in. on. at. en el SVG. Pedí 1 frase oral.',
-  prepositions_time: 'Señalá prep de tiempo en el SVG. Pedí 1 frase oral.',
-  gerundio: 'Señalá V-ing en el SVG. Pedí: digan un gusto con -ing.',
-  gerund_prep: 'Señalá PREP + V-ing. Pedí 1 frase oral (Before leaving…).',
-  negations: 'Señalá AUX + not. Pedí la negación oral de 1 frase.',
-  modales: 'Señalá P + modal + V. Pedí 1 frase oral con should/can.',
-  modal: 'Señalá inversión en el SVG. Pedí la pregunta oral.',
-  progressive: 'Señalá to be + V-ing. Pedí 1 frase oral en continuo.',
-  past: 'Señalá pasado en el SVG. Pedí 1 frase oral en pasado.',
-  present: 'Señalá PR en el SVG. Pedí 1 frase oral de hábito.',
-  perfect: 'Señalá have + participio. Pedí 1 frase oral.',
-  combined: 'Señalá have been + V-ing. Pedí 1 frase oral.',
-  future: 'Señalá will / going to. Pedí 1 frase oral.',
-  modal_have_pp: 'Señalá modal + have + PP. Pedí 1 frase oral.',
-  modal_have_been: 'Señalá modal + have been + V-ing. Pedí 1 frase oral.',
-  articles: 'Señalá a/an/the. Pedí 1 frase oral.',
-  comparatives: 'Señalá comparativo. Pedí 1 frase oral.',
-  have_had: 'Señalá have. has. had. Pedí que lo digan con pausa.',
-  if_was_were: 'Señalá was/were. Pedí 1 frase If I were…',
-  overview: 'Señalá el overview SVG. Pedí qué tiempo quieren practicar (oral).'
+  irregular_verbs: 'Puente: presente/pasado/participio. Decí "do. did. done." Pedí que lo repitan mirando el SVG.',
+  there: 'Puente: There is=hay(1); There are=hay(2+). Pedí 1 frase oral.',
+  prepositions: 'Puente: IN=dentro; ON=encima; AT=punto. Pedí 1 frase oral.',
+  prepositions_time: 'Puente: IN=mes/año; ON=día; AT=hora. Pedí 1 frase oral.',
+  gerundio: 'Puente: VERBO+ING=ando/endo como sustantivo. Pedí 1 gusto oral mirando el SVG.',
+  gerund_prep: 'Puente: prep + VERBO+ING=ando/endo. Pedí blank: Before ____ , call me. → leaving.',
+  negations: 'Puente: auxiliar + not + verbo (nunca "I no…"). Pedí 1 negación oral.',
+  modales: 'Puente: will=-ré; would=-ría; should=debería; can=puedo. Pedí 1 frase oral.',
+  modal: 'Puente: moneda — auxiliar antes del pronombre = pregunta. Pedí la pregunta oral.',
+  progressive: 'Puente: am/is/are + VERBO+ING = estoy/está + ando/endo. Pedí 1 frase oral.',
+  past: 'Puente: verbo en pasado = acción terminada. Pedí 1 frase oral.',
+  present: 'Puente: hábito; he/she/it + verbo+s. Pedí 1 frase oral.',
+  perfect: 'Puente: have/has + participio = he/ha + participio. Pedí 1 frase oral.',
+  combined: 'Puente: have been + VERBO+ING = he estado + ando/endo. Pedí 1 frase oral.',
+  future: 'Puente: will=-ré; going to=voy a. Pedí 1 frase oral.',
+  modal_have_pp: 'Puente: should have = debería haber + participio. Pedí 1 frase oral.',
+  modal_have_been: 'Puente: modal + have been + VERBO+ING. Pedí 1 frase oral.',
+  articles: 'Puente: a/an=uno/una; the=el/la. Pedí 1 frase oral.',
+  comparatives: 'Puente: -er/more = más…que; as…as = tan…como. Pedí 1 frase oral.',
+  have_had: 'Puente: have. has. had. Pedí que lo digan con pausa.',
+  if_was_were: 'Puente: was=real; were=irreal. Pedí 1 frase If I were…',
+  overview: 'Puente: PR/PS/PC/PRP con nombres completos. Pedí qué tiempo practicar (oral).'
 };
 
 function trackTeachHint(track) {
