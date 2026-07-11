@@ -225,6 +225,15 @@
   }
 
   function formatWhiteboardLines(text, bundle, userTopic) {
+    // El SVG fullscreen es la lección — no el cajón de pipes del bundle
+    if (typeof JillVisualStage !== 'undefined') {
+      var col = null;
+      if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
+        col = JillCanonRouter.resolveAskId(String(userTopic || ''), '');
+      }
+      if (!col) col = detectCanonColumn(String(userTopic || text || ''), bundle);
+      if (col) return '';
+    }
     var lines = String(text || '').split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
     if (lines.length < 2 && bundle && bundle.whiteboard && bundle.whiteboard.length) {
       lines = bundle.whiteboard.slice(0, 4);

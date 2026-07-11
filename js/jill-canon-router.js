@@ -505,7 +505,26 @@
           "modales",
           "pronombre + modal",
           "explicame modales",
-          "los modales"
+          "los modales",
+          "will",
+          "would",
+          "willy",
+          "wood",
+          "will y would",
+          "would y will",
+          "will would",
+          "can",
+          "could",
+          "should",
+          "must",
+          "may",
+          "might",
+          "modal will",
+          "modal would",
+          "como funciona will",
+          "como funciona would",
+          "explicame will",
+          "explicame would"
         ],
         "bridge": "Puente: will=-ré; would=-ría; should=debería; can=puedo; could=podría — modal + verbo base (sin to)."
       },
@@ -550,7 +569,9 @@
           "going to",
           "explicame el futuro",
           "futuro simple",
-          "el futuro"
+          "el futuro",
+          "will going to",
+          "be going to"
         ],
         "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención)."
       },

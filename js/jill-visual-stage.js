@@ -34,12 +34,23 @@
 
   function resolveColumn(replyText, bundle, userTopic) {
     var user = String(userTopic || '').trim();
-    if (!user) return null;
+    var reply = String(replyText || '').trim();
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
       var id = JillCanonRouter.resolveAskId(user, '');
       if (id) return id;
+      // Pedido fuzzy (Willy/Wood) → usar también la respuesta de Jill
+      if (reply) {
+        id = JillCanonRouter.resolveAskId(reply, user);
+        if (id) return id;
+        if (JillCanonRouter.pickTrackId) {
+          id = JillCanonRouter.pickTrackId(reply);
+          if (id) return id;
+        }
+      }
     }
-    return detectColumn(user, bundle);
+    if (user) return detectColumn(user, bundle);
+    if (reply) return detectColumn(reply, bundle);
+    return null;
   }
 
   function isExplainTurn(contentType, text, userTopic) {
@@ -47,7 +58,7 @@
     var user = String(userTopic || '');
     var reply = String(text || '');
     if (/qu[eé] gusto|de nuevo|podemos charlar|qu[eé] quer[eé]s (hoy|hacer|charlar)|bienvenid/i.test(reply)
-      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal|pasado|futuro|continuo|there|hay|imagen|pizarr|tablero)\b/i.test(user)) {
+      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal|pasado|futuro|continuo|there|hay|imagen|pizarr|tablero|will|would|can|should)\b/i.test(user)) {
       return false;
     }
     if (user && typeof JillCanonRouter !== 'undefined') {
@@ -55,11 +66,15 @@
       if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(user)) return true;
       if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(user)) return true;
     }
+    if (reply && typeof JillCanonRouter !== 'undefined') {
+      if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(reply)) return true;
+    }
     var blob = user + ' ' + reply;
-    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will have|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|presente|futuro)\b/i.test(blob);
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|presente|futuro)\b/i.test(blob);
   }
 
-  function shouldShow(contentType, text, bundle, userTopic) {
+  function shouldShow(contentType, text, bundle, userTopic, forcedColumn) {
+    if (forcedColumn) return true;
     if (!isExplainTurn(contentType, text, userTopic)) return false;
     return !!resolveColumn(text, bundle, userTopic);
   }
@@ -198,10 +213,10 @@
   function show(text, contentType, bundle, opts) {
     opts = opts || {};
     var userTopic = opts.userTopic || '';
-    if (!shouldShow(contentType, text, bundle, userTopic)) {
+    var col = opts.column || resolveColumn(text, bundle, userTopic);
+    if (!col || !shouldShow(contentType, text, bundle, userTopic, col)) {
       return false;
     }
-    var col = opts.column || resolveColumn(text, bundle, userTopic);
     var sh = shell();
     var stage = stageEl();
     var media = mediaEl();
