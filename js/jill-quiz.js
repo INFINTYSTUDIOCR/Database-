@@ -797,16 +797,44 @@
     var rdStats = ensureRapidDrillStats(student);
     var tier = opts.drillTier || 'foundations';
     var isAdvanced = tier === 'advanced';
+    var isMini = !!opts.mini;
+    var moduleId = opts.moduleId || null;
     var tierClass = rapidDrillTier(student);
-    if (rootEl.parentElement) {
+    if (rootEl.parentElement && !isMini) {
       rootEl.parentElement.className = 'jill-rapid-tier-' + tierClass + (isAdvanced ? ' jill-rapid-tier-challenge' : '');
     }
-    var nemesisKpis = collectNemesisKpis(student);
-    var qCount = opts.questionCount || (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND);
-    var modeLabel = isAdvanced ? 'Challenge drill' : MODE_LABEL;
-    var brandLine = BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — estructura, ida/vuelta, tiempos y transiciones');
+    var nemesisKpis = isMini ? [] : collectNemesisKpis(student);
+    var qCount = opts.questionCount
+      || (isMini ? 5 : (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND));
+    var modeLabel = isMini
+      ? ('Mini Kaboom' + (moduleId ? ' · ' + moduleId : ''))
+      : (isAdvanced ? 'Challenge drill' : MODE_LABEL);
+    var brandLine = isMini
+      ? 'Mini Kaboom — gate del módulo (llama → polvorín)'
+      : (BRAND + ' · ' + modeLabel + (isAdvanced ? ' — linkers, STAR, presión, expansión' : ' — estructura, ida/vuelta, tiempos y transiciones'));
     var mountOpts = opts;
-    if (isAdvanced) mountOpts.timerSec = CHALLENGE_TIMER_SEC;
+    if (isAdvanced && !isMini) mountOpts.timerSec = CHALLENGE_TIMER_SEC;
+    if (isMini && !mountOpts.timerSec) mountOpts.timerSec = 30;
+
+    // Module bank: skip brain fetch — local catalog is source of truth
+    if (isMini && moduleId && typeof JillFoundationsModules !== 'undefined') {
+      var ensure = JillFoundationsModules.load ? JillFoundationsModules.load() : Promise.resolve();
+      Promise.resolve(ensure).then(function () {
+        var mod = JillFoundationsModules.byId(moduleId);
+        if (mod && mod.mini) {
+          qCount = opts.questionCount || mod.mini.questions || qCount;
+          if (!opts.timerSec) mountOpts.timerSec = mod.mini.timerSec || 30;
+          mountOpts.passPct = mod.mini.passPct || 80;
+        }
+        var qs = JillFoundationsModules.buildKaboomQuestions(moduleId, qCount);
+        if (!qs.length) {
+          rootEl.innerHTML = '<div style="text-align:center;padding:16px;color:#fecaca;font-size:13px;">Sin banco Kaboom para ' + String(moduleId) + '.</div>';
+          return;
+        }
+        startDrillRound(rootEl, student, activeBundle, onDone, mountOpts, qs, nemesisKpis, brandLine, qCount, modeLabel);
+      });
+      return;
+    }
 
     rootEl.innerHTML = '<div style="text-align:center;padding:24px;color:#e9d5ff;font-size:13px;">'
       + '<div style="font-size:28px;margin-bottom:8px;">' + (isAdvanced ? '⚔️' : '🧠') + '</div>'
@@ -833,6 +861,10 @@
       return;
     }
 
+    opts = opts || {};
+    var isMini = !!opts.mini;
+    var moduleId = opts.moduleId || null;
+    var passPct = typeof opts.passPct === 'number' ? opts.passPct : WIN_SCORE_PCT;
     var rdStats = ensureRapidDrillStats(student);
     var roundTimer = opts.timerSec || TIMER_SEC;
     modeLabel = modeLabel || MODE_LABEL;
@@ -861,13 +893,17 @@
       var totalSec = state.timerSec || TIMER_SEC;
       var pct = Math.round((state.timeLeft / totalSec) * 100);
       var timerColor = state.timeLeft <= 5 ? '#fca5a5' : '#c4b5fd';
-      var tag = q.kpi ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">Kaboom · ' + esc(kpiLabel(q.kpi)) + '</span>' : '';
+      var tag = q.kpi
+        ? '<span style="font-size:9px;background:rgba(245,166,35,0.25);color:#fde68a;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;">'
+          + (isMini ? ('Mini · ' + esc(moduleId || 'gate')) : ('Kaboom · ' + esc(kpiLabel(q.kpi))))
+          + '</span>'
+        : '';
       return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;font-weight:800;color:#e9d5ff;">'
         + '<span>⚡ ' + modeLabel + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
         + '<span title="Racha de aciertos">🔥 ' + state.streak + '</span>'
         + '<span>✓ ' + state.correct + '</span>'
-        + '<span title="Racha de victorias">🏆 ' + (rdStats.winStreak || 0) + '</span>'
+        + (isMini ? '' : '<span title="Racha de victorias">🏆 ' + (rdStats.winStreak || 0) + '</span>')
         + '</div>'
         + renderPressureScene(state)
         + '<div id="jill-kaboom-timer" style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
@@ -888,7 +924,7 @@
         }).join('')
         + '</div>'
         + '<div style="margin-top:12px;text-align:center;">'
-        + '<button type="button" onclick="portalCloseRapidDrill()" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
+        + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
         + '</div></div>';
     }
 
@@ -902,7 +938,7 @@
         + '</div>'
         + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain || '') + '</div>'
         + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
-        + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver trofeos')
+        + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : (isMini ? 'Ver resultado' : 'Ver trofeos'))
         + '</button></div>';
     }
 
@@ -911,6 +947,33 @@
       var total = state.quiz.length;
       var score = Math.round((state.correct / total) * 100);
       var perfect = state.correct === total && total > 0;
+      var passed = score >= passPct;
+
+      if (isMini) {
+        var result = {
+          mini: true,
+          moduleId: moduleId,
+          correct: state.correct,
+          total: total,
+          score: score,
+          passed: passed,
+          passPct: passPct
+        };
+        if (typeof opts.onResult === 'function') {
+          try { opts.onResult(result); } catch (e) { /* ignore */ }
+        }
+        rootEl.innerHTML = '<div style="text-align:center;padding:18px;color:#e9d5ff;">'
+          + '<div style="font-size:42px;margin-bottom:8px;">' + (passed ? '✅' : '💥') + '</div>'
+          + '<div style="font-size:18px;font-weight:900;color:' + (passed ? '#86EFAC' : '#FCD34D') + ';margin-bottom:8px;">'
+          + (passed ? ('Módulo ' + esc(moduleId || '') + ' — ¡pasaste!') : ('Módulo ' + esc(moduleId || '') + ' — a reforzar'))
+          + '</div>'
+          + '<div style="font-size:14px;margin-bottom:14px;">' + state.correct + '/' + total + ' · ' + score + '% (meta ' + passPct + '%)</div>'
+          + '<button type="button" onclick="jillCloseMiniKaboom(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:14px;padding:12px 22px;border-radius:12px;cursor:pointer;">Volver a Jill</button>'
+          + '</div>';
+        if (typeof onDone === 'function') onDone(result);
+        return;
+      }
+
       var previewWin = score >= WIN_SCORE_PCT;
       var payload = {
         correct: state.correct,
@@ -1116,6 +1179,13 @@
     mount: mount,
     recordQuiz: recordQuiz,
     QUESTIONS_PER_ROUND: QUESTIONS_PER_ROUND,
-    FOUNDATIONS_DRILL: FOUNDATIONS_DRILL
+    FOUNDATIONS_DRILL: FOUNDATIONS_DRILL,
+    mountMiniModule: function (rootEl, student, moduleId, onResult) {
+      return mount(rootEl, student, null, null, {
+        mini: true,
+        moduleId: moduleId,
+        onResult: onResult || null
+      });
+    }
   };
 })(typeof window !== 'undefined' ? window : this);

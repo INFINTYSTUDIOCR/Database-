@@ -3,10 +3,11 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v36-get-it-straight-ing';
+const JILL_PRO_BRAIN_VER = 'v37-modules-mini-kaboom';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
+const JillFoundationsModules = require('./jill-foundations-modules');
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -359,6 +360,7 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const boardSync = track
     ? `\nTABLERO ACTIVO EN PANTALLA: "${track.title}" (id=${track.id}). Tu explicación ORAL debe ser ESE módulo. Si decís otro tiempo (ej. perfecto mientras el tablero es pasado simple), FALLASTE el turno.\n`
     : '';
+  const moduleBlock = track ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
 
   if (phase === 'english_practice') {
     return `${heard}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
@@ -368,10 +370,11 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
 
   if (phase === 'doubt_explain') {
     if (track) {
-      return `${heard}${boardSync}${lockBlock}MODO DUDA — JILL DJ TRACK LOCK (tablero = voz).
+      return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO DUDA — JILL DJ TRACK LOCK (tablero = voz).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación completa (fórmula + bridge + 1 analogía + 1 ejemplo). NUNCA cortes a mitad de frase. Luego pedí que lo digan al mic.
+Si el estudiante confirma que entendió en el SIGUIENTE turno, el portal espera [[CTYPE:mini_kaboom:Mxxx]] — en ESTE turno de explicación usá [[CTYPE:whiteboard]].
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
@@ -381,7 +384,7 @@ Terminá la explicación completa. NUNCA cortes a mitad de frase.
   }
 
   if (phase === 'live_correct') {
-    return `${heard}${boardSync}${lockBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
+    return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
 DETENÉ. EN ESPAÑOL, con calma (estilo John, ~4–5 frases, sin atropellar):
 1) Feedback 1 frase.
 2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía corta — señalá el tablero.
@@ -400,14 +403,24 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `${heard}${boardSync}${lockBlock}RE-EXPLICÁ con paciencia (estilo John): fórmula + otra analogía + 1 ejemplo oral${track ? ` (${track.title})` : ''}. Pedí que lo digan mirando el tablero.
+      return `${heard}${boardSync}${lockBlock}${moduleBlock}RE-EXPLICÁ con paciencia (estilo John): fórmula + otra analogía + 1 ejemplo oral${track ? ` (${track.title})` : ''}. Pedí que lo digan mirando el tablero.
 Última línea: [[CTYPE:whiteboard]]`;
+    }
+    // Clarity YES → launch Mini Kaboom gate for the module
+    if (isClarityReply(msg) && track) {
+      const mid = JillFoundationsModules.trackToModuleId(track.id);
+      if (mid) {
+        return `${heard}${boardSync}${lockBlock}${moduleBlock}CONFIRMACIÓN DE ENTENDIMIENTO — el estudiante dijo que entendió.
+1 frase breve de cierre ("Bien — ahora lo ponemos a prueba").
+NO re-expliques. NO abras Rapid drill completo.
+Última línea SOLA (máquina): [[CTYPE:mini_kaboom:${mid}]]`;
+      }
     }
     return `${heard}${lockBlock}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés (voz); evaluá; si mal → coach con calma. [[CTYPE:text]]`;
   }
 
   if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would)\b/i.test(msg)) {
-    return `${heard}${boardSync}${lockBlock}MODO DUDA (track detectado — biblioteca completa).
+    return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO DUDA (track detectado — biblioteca completa).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación completa. NUNCA cortes a mitad de frase. Luego pedí práctica oral.

@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "title": "Jill Foundations — módulos + Mini Kaboom",
+  "note": "Base única John. Sin TOEFL/TOEIC. Kaboom standalone intacto; mini = gate por módulo.",
+  "modules": [
+    {
+      "id": "M001",
+      "order": 1,
+      "title": "Pronombres (P)",
+      "canonTrackIds": ["present", "overview"],
+      "say": "Antes de empezar: ¿cuántas veces dijiste hoy yo, él, ella, nosotros? Miles. Sin pensar. Eso es lo que instalamos en inglés. No memorizás — detectás el patrón. Yo→I, Tú/Usted→You, Él→He, Ella→She, Eso→It, Nosotros→We, Ustedes→You (el contexto dice si es uno o varios), Ellos/Ellas→They. Primer patrón: tú y ustedes son You.",
+      "bridge": "Español primero → misma lógica, otra forma. You singular y plural: el contexto decide.",
+      "checklist": ["8 pronombres en <1s", "You singular vs plural por contexto", "It = cosa/animal"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Yo →", "options": ["I", "Me", "My", "He"], "answer": 0, "explain": "Yo = I." },
+        { "q": "Ella →", "options": ["She", "He", "Her", "They"], "answer": 0, "explain": "Ella = She." },
+        { "q": "Nosotros →", "options": ["We", "Us", "They", "You"], "answer": 0, "explain": "Nosotros = We." },
+        { "q": "Ustedes →", "options": ["You", "They", "We", "Them"], "answer": 0, "explain": "Ustedes = You (contexto)." },
+        { "q": "Eso / un animal →", "options": ["It", "He", "She", "They"], "answer": 0, "explain": "Cosa/animal = It." },
+        { "q": "Ellos →", "options": ["They", "Them", "We", "You"], "answer": 0, "explain": "Ellos = They." },
+        { "q": "Él →", "options": ["He", "Him", "She", "It"], "answer": 0, "explain": "Él = He." },
+        { "q": "Vos / usted (uno) →", "options": ["You", "Thou", "He", "We"], "answer": 0, "explain": "Tú/usted = You." }
+      ]
+    },
+    {
+      "id": "M002",
+      "order": 2,
+      "title": "Presente: He/She/It + S",
+      "canonTrackIds": ["present"],
+      "say": "Los pronombres son piezas de Lego: solos no sirven — necesitan verbo. Regla de oro del presente: cuando es He, She o It — el verbo cambia. Nadie más. I go / You go / He goes / She goes / It goes / We go / They go. En español conjugamos todo; en inglés solo He/She/It lleva S.",
+      "bridge": "He/She/It → verbo + S. Todos los demás → forma base.",
+      "checklist": ["Identifica He/She/It", "Agrega S solo a 3ª persona", "I/You/We/They sin S"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Ella / go →", "options": ["She goes", "She go", "She going", "She gone"], "answer": 0, "explain": "She = He/She/It → goes." },
+        { "q": "Yo / go →", "options": ["I go", "I goes", "I going", "I gone"], "answer": 0, "explain": "I → forma base." },
+        { "q": "Él / make →", "options": ["He makes", "He make", "He making", "He made"], "answer": 0, "explain": "He → makes." },
+        { "q": "Ellos / see →", "options": ["They see", "They sees", "They seeing", "They saw"], "answer": 0, "explain": "They → see." },
+        { "q": "Eso / seem →", "options": ["It seems", "It seem", "It seeming", "It seemed"], "answer": 0, "explain": "It → seems." },
+        { "q": "Nosotros / come →", "options": ["We come", "We comes", "We coming", "We came"], "answer": 0, "explain": "We → come." },
+        { "q": "¿He/She/It? She / do →", "options": ["She does", "She do", "She doing", "She did"], "answer": 0, "explain": "DO → DOES con She." }
+      ]
+    },
+    {
+      "id": "M003",
+      "order": 3,
+      "title": "BE — am / is / are",
+      "canonTrackIds": ["present"],
+      "say": "BE es el verbo más usado. Cambia tres veces: AM — ARE — IS. I am, You are, He/She/It is, We are, They are. Misma lógica que soy/sos/es/somos/son — otra forma.",
+      "bridge": "I→am · You/We/They→are · He/She/It→is.",
+      "checklist": ["am/is/are correctos", "No mezcla I is / He are"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Yo soy / estoy →", "options": ["I am", "I is", "I are", "I be"], "answer": 0, "explain": "I am." },
+        { "q": "Ella es →", "options": ["She is", "She are", "She am", "She be"], "answer": 0, "explain": "She is." },
+        { "q": "Nosotros estamos →", "options": ["We are", "We is", "We am", "We be"], "answer": 0, "explain": "We are." },
+        { "q": "Ellos son →", "options": ["They are", "They is", "They am", "They be"], "answer": 0, "explain": "They are." },
+        { "q": "Eso está →", "options": ["It is", "It are", "It am", "It be"], "answer": 0, "explain": "It is." },
+        { "q": "Vos sos →", "options": ["You are", "You is", "You am", "You be"], "answer": 0, "explain": "You are." }
+      ]
+    },
+    {
+      "id": "M004",
+      "order": 4,
+      "title": "HAVE / HAS",
+      "canonTrackIds": ["have_had"],
+      "say": "HAVE = tener. Patrón: He, She, It — have se convierte en HAS. Todos los demás — have. I have / He has / She has / They have.",
+      "bridge": "He/She/It → has. Resto → have.",
+      "checklist": ["has solo con 3ª", "have con I/you/we/they"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Él tiene →", "options": ["He has", "He have", "He having", "He had"], "answer": 0, "explain": "He → has." },
+        { "q": "Yo tengo →", "options": ["I have", "I has", "I having", "I had"], "answer": 0, "explain": "I → have." },
+        { "q": "Ella tiene →", "options": ["She has", "She have", "She having", "She had"], "answer": 0, "explain": "She → has." },
+        { "q": "Ellos tienen →", "options": ["They have", "They has", "They having", "They had"], "answer": 0, "explain": "They → have." },
+        { "q": "Eso tiene →", "options": ["It has", "It have", "It having", "It had"], "answer": 0, "explain": "It → has." },
+        { "q": "Nosotros tenemos →", "options": ["We have", "We has", "We having", "We had"], "answer": 0, "explain": "We → have." }
+      ]
+    },
+    {
+      "id": "M005",
+      "order": 5,
+      "title": "16 verbos esenciales (presente)",
+      "canonTrackIds": ["irregular_verbs", "present"],
+      "say": "No son 100. Son 16. Con estos hablás de casi todo en presente. Regla de oro: He/She/It — el verbo cambia. Grupos: BE/HAVE; movimiento (go come take get give make do); percepción (see say send); estado (keep put let seem cut). Make = crear; Do = actividad. He does — DO se convierte en DOES.",
+      "bridge": "16 verbos + He/She/It + S/DOES/HAS.",
+      "checklist": ["Reconoce los 16", "3ª persona correcta", "Make vs Do"],
+      "mini": { "questions": 5, "timerSec": 35, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Él / give →", "options": ["He gives", "He give", "He giving", "He gave"], "answer": 0, "explain": "He gives." },
+        { "q": "Ella / do →", "options": ["She does", "She do", "She doing", "She did"], "answer": 0, "explain": "DO → DOES." },
+        { "q": "Make vs Do: crear un pastel →", "options": ["make", "do", "does", "making"], "answer": 0, "explain": "Make = crear." },
+        { "q": "Yo / take →", "options": ["I take", "I takes", "I taking", "I took"], "answer": 0, "explain": "I take." },
+        { "q": "Ellos / send →", "options": ["They send", "They sends", "They sending", "They sent"], "answer": 0, "explain": "They send." },
+        { "q": "Ella / keep →", "options": ["She keeps", "She keep", "She keeping", "She kept"], "answer": 0, "explain": "She keeps." },
+        { "q": "Él / get →", "options": ["He gets", "He get", "He getting", "He got"], "answer": 0, "explain": "He gets." }
+      ]
+    },
+    {
+      "id": "M006",
+      "order": 6,
+      "title": "Artículos A / AN / THE",
+      "canonTrackIds": ["articles"],
+      "say": "A/AN = un/una (primera vez, indefinido). THE = el/la (ya conocido, definido). A + consonante; AN + sonido vocal (an hour — H muda). THE igual para singular y plural. En inglés A/AN cambia por sonido, no por género.",
+      "bridge": "a/an = indefinido por sonido; the = definido.",
+      "checklist": ["a vs an por sonido", "the cuando ya se conoce", "an hour"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "___ apple →", "options": ["An apple", "A apple", "The apple", "Apple"], "answer": 0, "explain": "Vocal → an." },
+        { "q": "___ car (primera vez) →", "options": ["A car", "An car", "The car", "Car"], "answer": 0, "explain": "Consonante → a." },
+        { "q": "___ hour →", "options": ["An hour", "A hour", "The hour", "Hour"], "answer": 0, "explain": "H muda → an." },
+        { "q": "El carro que ya vimos →", "options": ["The car", "A car", "An car", "Car"], "answer": 0, "explain": "Definido → the." },
+        { "q": "___ office →", "options": ["An office", "A office", "The office", "Office"], "answer": 0, "explain": "Office empieza con vocal." },
+        { "q": "___ meeting →", "options": ["A meeting", "An meeting", "The meeting", "Meeting"], "answer": 0, "explain": "Consonante → a." }
+      ]
+    },
+    {
+      "id": "M007",
+      "order": 7,
+      "title": "Preposiciones esenciales",
+      "canonTrackIds": ["prepositions", "prepositions_time"],
+      "say": "IN = dentro / períodos largos. ON = encima / días. AT = punto exacto / hora. TO = hacia. WITH = con. FOR = para/por. Frase ancla: I'm at home and the book is in the room on the table.",
+      "bridge": "IN caja · ON superficie · AT punto · TO dirección · WITH con · FOR para.",
+      "checklist": ["IN/ON/AT lugar y tiempo", "TO/WITH/FOR en frases"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "I go ___ work →", "options": ["to", "in", "on", "at"], "answer": 0, "explain": "to = dirección." },
+        { "q": "She is ___ the office →", "options": ["at", "in", "on", "to"], "answer": 0, "explain": "at = punto (trabajo/oficina)." },
+        { "q": "Meeting ___ Monday →", "options": ["on", "in", "at", "to"], "answer": 0, "explain": "on + día." },
+        { "q": "He works ___ the morning →", "options": ["in", "on", "at", "to"], "answer": 0, "explain": "in + parte del día." },
+        { "q": "This email is ___ you →", "options": ["for", "with", "to", "at"], "answer": 0, "explain": "for = para." },
+        { "q": "I came ___ my sister →", "options": ["with", "for", "to", "at"], "answer": 0, "explain": "with = con." },
+        { "q": "Arrived ___ 2025 →", "options": ["in", "on", "at", "to"], "answer": 0, "explain": "in + año." },
+        { "q": "She is ___ home →", "options": ["at", "in", "on", "to"], "answer": 0, "explain": "at home." }
+      ]
+    },
+    {
+      "id": "M008",
+      "order": 8,
+      "title": "Negaciones DO / DOES",
+      "canonTrackIds": ["negations"],
+      "say": "En español: yo no voy. En inglés: ayudante DO/DOES + not. He/She/It → does not / doesn't. Resto → do not / don't. Cuando hay DON'T/DOESN'T el verbo vuelve a la forma base: He goes → He doesn't go (no goes).",
+      "bridge": "don't/doesn't + verbo base. He/She/It → doesn't.",
+      "checklist": ["don't vs doesn't", "verbo base tras negación", "sin I no go"],
+      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "She goes to work → negación", "options": ["She doesn't go to work", "She don't goes to work", "She doesn't goes to work", "She not go to work"], "answer": 0, "explain": "doesn't + go." },
+        { "q": "I have a car → negación", "options": ["I don't have a car", "I doesn't have a car", "I don't has a car", "I no have a car"], "answer": 0, "explain": "don't + have." },
+        { "q": "He makes dinner → negación", "options": ["He doesn't make dinner", "He don't make dinner", "He doesn't makes dinner", "He not makes dinner"], "answer": 0, "explain": "doesn't + make." },
+        { "q": "They see the problem →", "options": ["They don't see the problem", "They doesn't see", "They don't sees", "They no see"], "answer": 0, "explain": "don't + see." },
+        { "q": "She does it alone →", "options": ["She doesn't do it alone", "She don't do it", "She doesn't does it", "She not do it"], "answer": 0, "explain": "doesn't + do." },
+        { "q": "¿He/She/It? → auxiliar de negación", "options": ["doesn't", "don't", "isn't", "aren't"], "answer": 0, "explain": "3ª → doesn't." }
+      ]
+    },
+    {
+      "id": "M009",
+      "order": 9,
+      "title": "Pasado simple (16 verbos)",
+      "canonTrackIds": ["past", "irregular_verbs"],
+      "say": "Pasado = columna 2. Regla de oro: en pasado He/She/It NO cambian el verbo — todos usan la misma forma. I went / He went / She went. Negación: didn't + verbo base. Presente: solo 3ª cambia. Pasado: nadie cambia.",
+      "bridge": "Pasado = misma forma para todos. didn't + base.",
+      "checklist": ["16 pasados <2s", "sin S en pasado", "didn't + base"],
+      "mini": { "questions": 5, "timerSec": 35, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "She / go (pasado) →", "options": ["She went", "She goes", "She goed", "She gone"], "answer": 0, "explain": "go → went." },
+        { "q": "I / see (pasado) →", "options": ["I saw", "I see", "I seen", "I seed"], "answer": 0, "explain": "see → saw." },
+        { "q": "He / make (pasado) →", "options": ["He made", "He maked", "He makes", "He make"], "answer": 0, "explain": "make → made." },
+        { "q": "They / give →", "options": ["They gave", "They given", "They gived", "They give"], "answer": 0, "explain": "give → gave." },
+        { "q": "He didn't ___ (come)", "options": ["come", "came", "comes", "coming"], "answer": 0, "explain": "didn't + base." },
+        { "q": "We / take →", "options": ["We took", "We taken", "We taked", "We take"], "answer": 0, "explain": "take → took." },
+        { "q": "He / send →", "options": ["He sent", "He sended", "He send", "He sends"], "answer": 0, "explain": "send → sent." }
+      ]
+    },
+    {
+      "id": "M010",
+      "order": 10,
+      "title": "HAVE + PARTICIPIO",
+      "canonTrackIds": ["perfect", "combined"],
+      "say": "Analogía de la casa: cimientos → paredes. HAVE + PARTICIPIO = algo pasó antes y todavía afecta el presente. He comido → I have eaten. He/She/It → HAS + PP. Negación: haven't / hasn't.",
+      "bridge": "have/has + columna 3 (participio). Afecta el presente.",
+      "checklist": ["has/have + PP", "no yesterday con have", "haven't/hasn't"],
+      "mini": { "questions": 5, "timerSec": 35, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Nunca he visto esa película →", "options": ["I have never seen that movie", "I never saw that movie yesterday", "I have never saw", "I never see"], "answer": 0, "explain": "have + seen." },
+        { "q": "Él ya mandó el correo (perfecto) →", "options": ["He has already sent the email", "He already send", "He have sent", "He sent already the email yesterday"], "answer": 0, "explain": "has + sent." },
+        { "q": "Ella no ha venido hoy →", "options": ["She hasn't come today", "She haven't come", "She didn't came", "She hasn't came"], "answer": 0, "explain": "hasn't + come." },
+        { "q": "Nosotros hemos ido tres veces →", "options": ["We have gone three times", "We have went", "We has gone", "We gone three times"], "answer": 0, "explain": "have + gone." },
+        { "q": "¿Has comido? →", "options": ["Have you eaten?", "Has you eaten?", "Did you eaten?", "Have you ate?"], "answer": 0, "explain": "Have you + PP." },
+        { "q": "Columna 3 de go →", "options": ["gone", "went", "go", "going"], "answer": 0, "explain": "participio = gone." }
+      ]
+    },
+    {
+      "id": "M011",
+      "order": 11,
+      "title": "HAVE + BEEN + ING",
+      "canonTrackIds": ["combined", "progressive"],
+      "say": "Pieza poderosa: empezó antes y TODAVÍA está pasando. He estado trabajando → I have been working. Fórmula: HAVE/HAS + BEEN + VERBO-ING. Pregunta ancla: ¿la acción sigue ahora? Si sigue → BEEN+ING. Si terminó → HAVE+PP.",
+      "bridge": "have/has + been + V-ing = duración hasta ahora (ando/endo).",
+      "checklist": ["distingue PP vs BEEN+ING", "has been + ING", "pregunta ancla"],
+      "mini": { "questions": 5, "timerSec": 35, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "Empecé hace 3 años y sigo trabajando aquí →", "options": ["I have been working here for 3 years", "I have worked here yesterday", "I am working here for 3 years", "I worked here for 3 years and stop"], "answer": 0, "explain": "sigue → have been + ING." },
+        { "q": "Ella sigue estudiando inglés →", "options": ["She has been studying English", "She has studied English yesterday", "She is been studying", "She have been study"], "answer": 0, "explain": "has been + studying." },
+        { "q": "Ellos esperan desde hace una hora →", "options": ["They have been waiting for an hour", "They have waited yesterday", "They are waiting for an hour ago", "They been waiting"], "answer": 0, "explain": "have been + waiting." },
+        { "q": "Él no ha estado durmiendo bien →", "options": ["He hasn't been sleeping well", "He hasn't sleeping", "He don't been sleeping", "He hasn't been sleep"], "answer": 0, "explain": "hasn't been + ING." },
+        { "q": "¿Sigue ahora? → estructura", "options": ["HAVE BEEN + ING", "HAVE + PP", "pasado simple", "will + V"], "answer": 0, "explain": "sigue = BEEN+ING." },
+        { "q": "Ya terminó / resultado →", "options": ["HAVE + PP", "HAVE BEEN + ING", "am + ING", "did + V"], "answer": 0, "explain": "terminó → PP." }
+      ]
+    },
+    {
+      "id": "M012",
+      "order": 12,
+      "title": "Integración — historia 2 minutos",
+      "canonTrackIds": ["overview"],
+      "say": "Gate de dominio: contá algo real (rutina o hecho). Mínimo 6 pronombres, 8 de los 16 verbos, A/AN + THE, 2 prep, 1 negación, 1 HAVE+PP, ancla temporal clara. Jill no interrumpe. Al final: ¿cambiaste el verbo con He/She? ¿A/AN? ¿dónde está el perfecto? ¿el BEEN+ING sigue ahora?",
+      "bridge": "Integrá todo el bloque. Mini Kaboom = mixed; historia = oral con Jill.",
+      "checklist": ["6+ pronombres", "8+ verbos", "artículos+prep+negación+PP", "ancla temporal", "sin mezclar tiempos"],
+      "mini": { "questions": 5, "timerSec": 40, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "He/She/It en presente → el verbo…", "options": ["lleva S / DOES / HAS", "no cambia nunca", "siempre past", "usa to be siempre"], "answer": 0, "explain": "3ª persona marca." },
+        { "q": "Pasado simple → He/She…", "options": ["misma forma que I", "llevan S", "usan does", "usan have"], "answer": 0, "explain": "pasado = todos iguales." },
+        { "q": "Negación: She goes →", "options": ["She doesn't go", "She don't goes", "She doesn't goes", "She no go"], "answer": 0, "explain": "doesn't + base." },
+        { "q": "___ hour (artículo)", "options": ["An", "A", "The only", "—"], "answer": 0, "explain": "an hour." },
+        { "q": "Sigue pasando ahora →", "options": ["have been + ING", "have + PP", "went", "will go"], "answer": 0, "explain": "BEEN+ING." },
+        { "q": "I go ___ work", "options": ["to", "in", "on", "at"], "answer": 0, "explain": "to work." },
+        { "q": "Ustedes en inglés →", "options": ["You", "They", "We", "Them"], "answer": 0, "explain": "You." }
+      ]
+    }
+  ]
+}

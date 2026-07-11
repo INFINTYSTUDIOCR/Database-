@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-get-it-straight-ing';
-const JILL_BRAIN_VER = 'v28-get-it-straight-ing';
+const APP1_BUILD = '20260711-modules-mini-kaboom';
+const JILL_BRAIN_VER = 'v29-modules-mini-kaboom';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -4228,7 +4228,15 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
         })()
       : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; metodología John completa (fórmula + puente + analogía + ejemplo + práctica). NUNCA cortes. Completá la explicación.')) + hardTrackLock);
+        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; metodología John completa (fórmula + puente + analogía + ejemplo + práctica). NUNCA cortes. Completá la explicación.')) + hardTrackLock
+      + (lockedTrack
+        ? ('\n' + (function () {
+            try {
+              const Mods = require('./jill-foundations-modules');
+              return Mods.moduleTeachBlock(lockedTrack.id) || '';
+            } catch (_) { return ''; }
+          })())
+        : ''));
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;

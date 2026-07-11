@@ -51,7 +51,8 @@
 <script src="js/jill-vocab.js?v=20260707b"></script>
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
-<script src="js/jill-quiz.js?v=20260710struct"></script>
+<script src="js/jill-foundations-modules.js?v=20260711modules"></script>
+<script src="js/jill-quiz.js?v=20260711modules"></script>
 <script src="js/tts-chunks.js?v=20260710john"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260711speak"></script>
@@ -115,6 +116,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .jill-chip:hover{background:rgba(61,220,151,0.22);}
   .jill-chip-kaboom{background:rgba(91,33,182,0.35);border-color:rgba(167,139,250,0.55);color:#e9d5ff;}
   .jill-kaboom-opt:active{transform:translateY(2px)!important;box-shadow:0 2px 0 rgba(0,0,0,0.22)!important;}
+  #jill-mini-kaboom{
+    display:none;margin:0 0 12px;padding:12px;border-radius:16px;
+    background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);
+    border:1px solid rgba(167,139,250,0.45);box-shadow:0 6px 20px rgba(91,33,182,0.35);
+  }
+  #jill-mini-kaboom.active{display:block;}
+  #jill-mini-kaboom-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  #jill-mini-kaboom-title{font-size:12px;font-weight:900;letter-spacing:.06em;color:#e9d5ff;}
   #jill-root[data-jill-pro="1"] .jill-pro-accent{color:#c4b5fd;}
   #jill-lesson-shell{position:relative;}
   #jill-lesson-shell:fullscreen{
@@ -5151,6 +5160,117 @@ function jillCloseKaboomQuiz(refresh){
   }
 }
 
+function jillParseMiniKaboomTag(raw){
+  var m = String(raw || '').match(/\[\[\s*CTYPE\s*:\s*mini_kaboom\s*:\s*(M\d{3})\s*\]\]/i);
+  return m ? m[1].toUpperCase() : null;
+}
+
+function jillResolveModuleIdFromContext(trackId, hint){
+  if(typeof JillFoundationsModules === 'undefined') return null;
+  if(hint && /^M\d{3}$/i.test(hint)) return String(hint).toUpperCase();
+  if(trackId && JillFoundationsModules.trackToModuleId){
+    return JillFoundationsModules.trackToModuleId(trackId);
+  }
+  return null;
+}
+
+function jillCloseMiniKaboom(sendResultToJill){
+  var panel = document.getElementById('jill-mini-kaboom');
+  var zone = document.getElementById('jill-mini-kaboom-zone');
+  if(panel) panel.classList.remove('active');
+  if(zone) zone.innerHTML = '';
+  var last = _jillState.miniKaboomLastResult || null;
+  _jillState.miniKaboomActive = false;
+  _jillState.miniKaboomModuleId = null;
+  if(sendResultToJill && last && _jillState.sessionActive){
+    var msg = last.passed
+      ? ('Pasé el Mini Kaboom de ' + last.moduleId + ': ' + last.correct + '/' + last.total + ' (' + last.score + '%). Seguimos.')
+      : ('Fallé el Mini Kaboom de ' + last.moduleId + ': ' + last.correct + '/' + last.total + ' (' + last.score + '%). Reforzame el patrón que fallé.');
+    try { sendJillMsg(msg, { fromMiniKaboom: true }); } catch(e) {}
+  }
+}
+
+function jillStartModuleMiniKaboom(moduleId){
+  var s = CURRENT_STUDENT;
+  if(!s || !_jillState.sessionActive){
+    showToast('Abrí sesión con Jill primero','err');
+    return;
+  }
+  if(typeof JillQuiz === 'undefined'){
+    showToast('Quiz no disponible','err');
+    return;
+  }
+  var mid = String(moduleId || '').toUpperCase();
+  if(!/^M\d{3}$/.test(mid)){
+    showToast('Módulo inválido','err');
+    return;
+  }
+  // Never hijack standalone Rapid drill
+  if(_jillState.quizActive){
+    showToast('Cerrá Rapid drill para el Mini Kaboom','err');
+    return;
+  }
+  var ensure = (typeof JillFoundationsModules !== 'undefined' && JillFoundationsModules.load)
+    ? JillFoundationsModules.load()
+    : Promise.resolve();
+  Promise.resolve(ensure).then(function(){
+    var mod = JillFoundationsModules && JillFoundationsModules.byId ? JillFoundationsModules.byId(mid) : null;
+    if(!mod){
+      showToast('Módulo ' + mid + ' no encontrado','err');
+      return;
+    }
+    _jillState.miniKaboomActive = true;
+    _jillState.miniKaboomModuleId = mid;
+    _jillState.miniKaboomLastResult = null;
+    var panel = document.getElementById('jill-mini-kaboom');
+    var zone = document.getElementById('jill-mini-kaboom-zone');
+    var title = document.getElementById('jill-mini-kaboom-title');
+    if(!panel || !zone){
+      // Session UI not mounted — rebuild then retry once
+      renderJill();
+      panel = document.getElementById('jill-mini-kaboom');
+      zone = document.getElementById('jill-mini-kaboom-zone');
+      title = document.getElementById('jill-mini-kaboom-title');
+    }
+    if(!panel || !zone){
+      showToast('Panel Mini Kaboom no disponible','err');
+      return;
+    }
+    if(title) title.textContent = 'MINI KABOOM · ' + mid + ' · ' + (mod.title || '');
+    panel.classList.add('active');
+    zone.innerHTML = '';
+    try { jillInterruptSpeaking(); } catch(e) {}
+    JillQuiz.mount(zone, s, null, null, {
+      mini: true,
+      moduleId: mid,
+      onResult: function(result){
+        _jillState.miniKaboomLastResult = result;
+        if(!s.jillModules) s.jillModules = {};
+        s.jillModules[mid] = {
+          lastScore: result.score,
+          passed: !!result.passed,
+          at: new Date().toISOString()
+        };
+        if(s.id && typeof dbSet === 'function') dbSet('infinity_students', s.id, s).catch(function(){});
+        var st = document.getElementById('jill-status');
+        if(st) st.textContent = result.passed
+          ? ('✅ ' + mid + ' aprobado (' + result.score + '%)')
+          : ('💥 ' + mid + ' a reforzar (' + result.score + '%)');
+      }
+    });
+    try { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(e2) {}
+  });
+}
+
+function jillMaybeLaunchMiniKaboomFromReply(raw){
+  var mid = jillParseMiniKaboomTag(raw);
+  if(!mid){
+    // Clarity yes after teach + active track → optional auto module
+    return;
+  }
+  setTimeout(function(){ jillStartModuleMiniKaboom(mid); }, 600);
+}
+
 function renderJill(){
   var root = document.getElementById('jill-root');
   if(!root) return;
@@ -5222,6 +5342,17 @@ function renderJill(){
       inp.addEventListener('keydown', function(e){
         if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendJillMsg(); }
       });
+    }
+    // Remount Mini Kaboom only if panel was wiped by UI rebuild
+    if(_jillState.miniKaboomActive && _jillState.miniKaboomModuleId){
+      var zoneKeep = document.getElementById('jill-mini-kaboom-zone');
+      var panelKeep = document.getElementById('jill-mini-kaboom');
+      var hasRound = zoneKeep && (zoneKeep.querySelector('#jill-kaboom-inner') || zoneKeep.querySelector('#jill-kaboom-stage') || zoneKeep.children.length > 0);
+      if(panelKeep) panelKeep.classList.add('active');
+      if(!hasRound){
+        var keepId = _jillState.miniKaboomModuleId;
+        setTimeout(function(){ jillStartModuleMiniKaboom(keepId); }, 40);
+      }
     }
   }
   jillSyncFullscreenBtn();
@@ -5341,6 +5472,13 @@ function renderJillSession(){
     + '<div id="jill-visual-stage" hidden>'
     + '<div id="jill-stage-media"></div>'
     + '<div id="jill-stage-caption" aria-live="polite"></div>'
+    + '</div>'
+    + '<div id="jill-mini-kaboom" aria-live="polite">'
+    + '<div id="jill-mini-kaboom-head">'
+    + '<div id="jill-mini-kaboom-title">MINI KABOOM</div>'
+    + '<button type="button" onclick="jillCloseMiniKaboom()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:4px 10px;border-radius:8px;cursor:pointer;">Cerrar</button>'
+    + '</div>'
+    + '<div id="jill-mini-kaboom-zone"></div>'
     + '</div>'
     + '<div id="jill-chips">' + renderJillChips() + '</div>'
     +'<div id="jill-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+jillFormatAllMessagesHtml()+'</div>'
@@ -5812,6 +5950,7 @@ async function sendJillMsg(micText, sendOpts){
     }
     if(parsed.reply && parsed.reply.trim().length > 2) jillSpeakTurn(parsed.reply, parsed.contentType || 'text');
     jillRenderHistoryMessages();
+    jillMaybeLaunchMiniKaboomFromReply(fullText);
     if(statusEl) statusEl.textContent = '';
 
   } catch(e){
