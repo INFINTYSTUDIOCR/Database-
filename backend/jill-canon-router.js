@@ -123,18 +123,48 @@ function resolveAskId(userAsk, stickyTopic) {
 function formatLock(track) {
   if (!track) return '';
   const never = (track.never || []).join('; ');
+  const antiMix = [];
+  if (track.id === 'past') {
+    antiMix.push(
+      'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
+      'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio, "I have worked", "had done", "he/ha/había + participio".',
+      'SOLO enseñá: pronombre + verbo en pasado (worked / went / saw) + complemento (yesterday / ago / last…).',
+      'El tablero del estudiante muestra PASADO SIMPLE — tu voz DEBE coincidir palabra por palabra con ese tablero. Cero contraste con perfecto en este turno.'
+    );
+  } else if (track.id === 'perfect') {
+    antiMix.push(
+      'ANTIMEZCLA OBLIGATORIA — PERFECTO (have/has/had + participio):',
+      'PROHIBIDO enseñar esto como pasado simple (worked yesterday / went).',
+      'Si es pasado perfecto: had + participio. Si es presente perfecto: have/has + participio. Nunca verbos en -ed sueltos como si fueran PS.'
+    );
+  } else if (track.id === 'present') {
+    antiMix.push('ANTIMEZCLA: presente simple — no mezcles con pasado simple ni perfecto ni continuo.');
+  } else if (track.id === 'progressive') {
+    antiMix.push('ANTIMEZCLA: presente continuo (am/is/are + ING) — no lo mezcles con gerundio suelto ni con perfecto continuo.');
+  }
   return [
-    'JILL DJ — TRACK LOCK (pedido del estudiante)',
+    'JILL DJ — TRACK LOCK DURO (el tablero del portal muestra ESTE módulo — tu explicación DEBE ser el mismo)',
+    `Track id: ${track.id}`,
     `Track: ${track.title}`,
     `Fórmula oficial: ${track.formula}`,
     track.bridge || '',
-    `Ejemplo: ${track.example}`,
+    `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO mezclar: ${never}` : '',
+    ...antiMix,
     'VOZ: decí ranuras en español (pronombre/modal/verbo/complemento). VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
-    'ESTILO JOHN: paciencia + flujo normal (ni express ni lento). Fórmula + bridge + 1 analogía clara. Sin improvisar otro método.',
-    'SVG sincronizado con este track: hablás lo que se ve; práctica en blank/mic. Cero "mirá el ejercicio" sin blank.',
-    'Este turno: enseñá ESTE track (el pedido actual). Si después piden OTRO tema, cambiá de track — siempre estilo John. [[CTYPE:whiteboard]]'
+    'ESTILO JOHN: paciencia + flujo normal. Fórmula + bridge + 1 analogía. Sin improvisar otro tiempo/módulo.',
+    'Hablás exactamente lo que se ve en el tablero. Cero "además te explico el perfecto" si el lock es otro.',
+    'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
+}
+
+function trackById(id) {
+  if (!id) return null;
+  const list = tracks();
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].id === id) return list[i];
+  }
+  return null;
 }
 
 function byColumn() {
@@ -156,6 +186,7 @@ module.exports = {
   normalize,
   pickTrack,
   pickTrackId,
+  trackById,
   wantsVisual,
   stripAskShell,
   resolveAsk,

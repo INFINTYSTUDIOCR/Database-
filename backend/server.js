@@ -8,6 +8,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { signToken, verifyToken, requireAuth, optionalAuth, JWT_EXPIRY_SEC, JWT_EXPIRY_STUDENT_SEC, JWT_SECRET } = require('./auth');
 const Companion = require('./alice-companion');
 const JillPro = require('./jill-companion');
+const JillCanonRouter = require('./jill-canon-router');
 const Billing = require('./stripe-billing');
 const JillBilling = require('./jill-billing');
 
@@ -4101,7 +4102,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
 // ── JILL STREAM ──────────────────────────────────────────────
 app.post('/jill/stream', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic } = req.body || {};
+    let { student, history, message, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic, canonTrackId } = req.body || {};
     const requestedSessionType = sessionType === 'companion' ? 'companion' : 'tutor';
     student = await assertStudentTutorAccess(req, res, 'jill', student, { sessionType: requestedSessionType });
     if (!student) return;
@@ -4113,9 +4114,18 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const topicHint = isJillCompanion
       ? JillPro.resolveSessionTopic(history, companionTopic, message)
       : '';
+    // Board/voz sync: portal track wins; else resolve from this message
+    const lockedTrackId = canonTrackId
+      || (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId
+        ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '')
+        : null);
+    const lockedTrack = lockedTrackId && JillCanonRouter.trackById
+      ? JillCanonRouter.trackById(lockedTrackId)
+      : null;
+    const hardTrackLock = lockedTrack ? ('\n\n' + JillCanonRouter.formatLock(lockedTrack)) : '';
     const companionBlock = isJillCompanion
-      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint)
-      : '';
+      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
+      : hardTrackLock;
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
     if (!limit.ok) {
       return res.status(429).json({ error: 'limit', message: `Jill practice limit reached. Wait ${limit.wait}.`, wait: limit.wait });
@@ -4180,12 +4190,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : '';
     const teachInstr = isJillCompanion
       ? (function () {
-          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history); }
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, lockedTrackId); }
           catch (e) { return 'TURNO COMPANION — respondé en español, ayudá con cualquier duda de inglés, luego charla. [[CTYPE:text]]'; }
         })()
       : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-        : 'Enseñá con el método Nexus del bundle activo: regla + ejemplo + práctica. 2-5 oraciones completas.')));
+        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; método Nexus del bundle. Regla + ejemplo + práctica. 2-5 oraciones.')) + hardTrackLock);
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;

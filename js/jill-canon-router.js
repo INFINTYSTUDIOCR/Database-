@@ -429,14 +429,17 @@
         "aliases": [
           "presente perfecto",
           "present perfect",
+          "pasado perfecto",
+          "past perfect",
           "prp",
           "have/has + participio",
           "have has participio",
+          "had + participio",
           "pronombre + have + participio",
           "perfecto",
           "el perfecto"
         ],
-        "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio."
+        "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). NO es pasado simple (worked/went)."
       },
       {
         "id": "past",
@@ -446,6 +449,9 @@
         "example": "She worked yesterday.",
         "never": [
           "presente perfecto",
+          "pasado perfecto",
+          "past perfect",
+          "have/has/had + participio",
           "presente simple",
           "moneda",
           "continuo"
@@ -461,7 +467,7 @@
           "pizarron del pasado",
           "imagen del pasado"
         ],
-        "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada."
+        "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada. NO es pasado perfecto (had + participio)."
       },
       {
         "id": "present",
@@ -724,17 +730,32 @@
   function formatLock(track) {
     if (!track) return '';
     var never = (track.never || []).join('; ');
+    var antiMix = [];
+    if (track.id === 'past') {
+      antiMix.push(
+        'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
+        'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio, "I have worked", "had done".',
+        'SOLO: pronombre + verbo en pasado (worked / went / saw) + yesterday/ago/last.',
+        'El tablero muestra PASADO SIMPLE — tu voz DEBE coincidir. Cero perfecto en este turno.'
+      );
+    } else if (track.id === 'perfect') {
+      antiMix.push(
+        'ANTIMEZCLA OBLIGATORIA — PERFECTO (have/has/had + participio):',
+        'PROHIBIDO enseñar como pasado simple (worked yesterday).'
+      );
+    }
     return [
-      'JILL DJ — TRACK LOCK (pedido del estudiante)',
+      'JILL DJ — TRACK LOCK DURO (tablero = voz)',
+      'Track id: ' + track.id,
       'Track: ' + track.title,
       'Fórmula oficial: ' + track.formula,
       track.bridge ? track.bridge : '',
-      'Ejemplo: ' + track.example,
+      'Ejemplo canónico: ' + track.example,
       never ? 'PROHIBIDO mezclar: ' + never : '',
-      'VOZ: decí ranuras en español (pronombre/modal/verbo/complemento). VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
-      'ESTILO JOHN: paciencia + flujo normal (ni express ni lento). Fórmula + bridge + 1 analogía clara. Sin improvisar otro método.',
-      'SVG sincronizado con este track: hablás lo que se ve; práctica en blank/mic. Cero "mirá el ejercicio" sin blank.',
-      'Este turno: enseñá ESTE track (el pedido actual). Si después piden OTRO tema, cambiá de track — siempre estilo John. [[CTYPE:whiteboard]]'
+      antiMix.join('\n'),
+      'VOZ: ranuras en español. VERBO+ING = "verbo más I N G".',
+      'Hablás exactamente lo que se ve en el tablero.',
+      'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
     ].filter(Boolean).join('\n');
   }
 

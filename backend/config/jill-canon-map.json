@@ -439,6 +439,9 @@
       "example": "She worked yesterday.",
       "never": [
         "presente perfecto",
+        "pasado perfecto",
+        "past perfect",
+        "have/has/had + participio",
         "presente simple",
         "moneda",
         "continuo"
@@ -454,7 +457,7 @@
         "pizarron del pasado",
         "imagen del pasado"
       ],
-      "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada."
+      "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada. NO es pasado perfecto (had + participio)."
     },
     {
       "id": "present",

@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v30-teach-any-cal-memory';
+const JILL_PRO_BRAIN_VER = 'v31-track-lock-hard';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -36,7 +36,7 @@ function isEnglishDoubtRequest(message) {
   const t = String(message || '');
   if (!t.trim()) return false;
   const ask = /\b(explain|teach me|ens[eé][aá]me|expl[ií]c[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayud[aá]me( a )?entender|ayud[aá]me|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|confused|no s[eé] c[oó]mo|me ayudas|me ayud[aá]s|charlar acerca|hablar de|quiero (saber|entender|aprender))\b/i.test(t);
-  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future (simple|continuous|perfect)|futuro(?:\s+perfecto)?|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|to have|exist(?:e|en)?|if i (was|were)|verbos?\s+irregulares?|irregular verbs?|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not|will have)\b/i.test(t);
+  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|pasado(?:\s+simple|\s+perfecto)?|presente(?:\s+simple|\s+perfecto|\s+continuo)?|present perfect|past perfect|future (simple|continuous|perfect)|futuro(?:\s+perfecto)?|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|to have|exist(?:e|en)?|if i (was|were)|verbos?\s+irregulares?|irregular verbs?|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not|will have)\b/i.test(t);
   return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend|duda|ayud|forma|charlar|hablar)\b/i.test(t));
 }
 
@@ -334,7 +334,7 @@ function buildJillProOpeningInstruction(display, returning, topic) {
   return `Primera sesión Jill Pro con ${display}: saludo cálido EN ESPAÑOL. Companion + coach en vivo. Preguntá de qué quieren hablar o qué duda traen. 2-3 oraciones.`;
 }
 
-function buildJillProStreamTeachInstruction(topic, message, history) {
+function buildJillProStreamTeachInstruction(topic, message, history, forcedTrackId) {
   const msg = String(message || '');
   const sticky = String(topic || '').replace(/^doubt:/i, '').trim();
   const phase = resolveCompanionPhase(msg, history, sticky);
@@ -343,19 +343,25 @@ function buildJillProStreamTeachInstruction(topic, message, history) {
     ? 'PROHIBIDO saludar o "Qué gusto verte" / "Claro, [nombre]" — ya hubo saludo. Directo al contenido.\n'
     : '';
   const heard = `${noGreet}MENSAJE DEL ESTUDIANTE (interpretá la intención aunque venga desordenado; NO pidas que lo repita si ya se entiende):\n"""${msg.slice(0, 500)}"""\n`;
-  // Misma pista que el portal (voz + explicación + imagen) — catálogo completo
-  const track = resolveAskTrack(msg, sticky);
+  // Portal board is source of truth when canonTrackId is sent
+  const forced = forcedTrackId && JillCanonRouter.trackById
+    ? JillCanonRouter.trackById(forcedTrackId)
+    : null;
+  const track = forced || resolveAskTrack(msg, sticky);
   const lockBlock = track ? `\n${JillCanonRouter.formatLock(track)}\n` : '';
+  const boardSync = track
+    ? `\nTABLERO ACTIVO EN PANTALLA: "${track.title}" (id=${track.id}). Tu explicación ORAL debe ser ESE módulo. Si decís otro tiempo (ej. perfecto mientras el tablero es pasado simple), FALLASTE el turno.\n`
+    : '';
 
   if (phase === 'english_practice') {
-    return `${heard}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
+    return `${heard}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
 Si la estructura está mal: DETENÉ → feedback en español → explicación corta → 1 ejemplo → "¿Te quedó?" → pedí que lo digan de nuevo.
 Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_explain') {
     if (track) {
-      return `${heard}MODO DUDA — JILL DJ TRACK LOCK (biblioteca completa).
+      return `${heard}${boardSync}MODO DUDA — JILL DJ TRACK LOCK DURO (tablero = voz).
 ${JillCanonRouter.formatLock(track)}
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
@@ -363,46 +369,46 @@ ${JILL_PRO_TEACH_CANON}
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
 ${JILL_PRO_TEACH_CANON}
-REGLA DE ORO: enseñá lo que pidieron en ESTE turno (estilo John). Si no hay track, usá Super Brain/canon. Cero inventar otro método.
+REGLA DE ORO: enseñá lo que pidieron en ESTE turno (estilo John). Si no hay track, usá Super Brain/canon. Cero inventar otro tiempo.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_correct') {
-    return `${heard}${lockBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
+    return `${heard}${boardSync}${lockBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
 DETENÉ. EN ESPAÑOL, con calma (estilo John, ~4–5 frases, sin atropellar):
 1) Feedback 1 frase.
-2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía corta — señalá el SVG.
+2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía corta — señalá el tablero.
 3) 1 ejemplo oral con pausas si hay paradigm.
 4) Pedí que lo digan mirando el tablero (mic). Cero texto-ejercicio.
 Última línea: [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_evaluate') {
-    return `${heard}MODO EVALUACIÓN EN VIVO — produjeron inglés.
+    return `${heard}${lockBlock}MODO EVALUACIÓN EN VIVO — produjeron inglés.
 Si está BIEN: "Bien" + 1 reacción corta + seguí.
-Si está MAL: feedback → patrón + analogía → ejemplo oral → que lo digan (SVG si aplica). Sin atropellar.
+Si está MAL: feedback → patrón + analogía → ejemplo oral → que lo digan (tablero si aplica). Sin atropellar.
 Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `${heard}${lockBlock}RE-EXPLICÁ con paciencia (estilo John): fórmula + otra analogía + 1 ejemplo oral${track ? ` (${track.title})` : ''}. Pedí que lo digan mirando el SVG.
+      return `${heard}${boardSync}${lockBlock}RE-EXPLICÁ con paciencia (estilo John): fórmula + otra analogía + 1 ejemplo oral${track ? ` (${track.title})` : ''}. Pedí que lo digan mirando el tablero.
 Última línea: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés (voz); evaluá; si mal → coach con calma. [[CTYPE:text]]`;
+    return `${heard}${lockBlock}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés (voz); evaluá; si mal → coach con calma. [[CTYPE:text]]`;
   }
 
-  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual)\b/i.test(msg)) {
-    return `${heard}MODO DUDA (track detectado — biblioteca completa).
+  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would)\b/i.test(msg)) {
+    return `${heard}${boardSync}MODO DUDA (track detectado — biblioteca completa).
 ${JillCanonRouter.formatLock(track)}
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Última línea: [[CTYPE:whiteboard]]`;
   }
 
-  return `${heard}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
-Si trae duda gramatical: ESTILO JOHN (paciencia, analogía, SVG sincronizado). Cero improvisar / express.
+  return `${heard}${lockBlock}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
+Si trae duda gramatical: ESTILO JOHN (paciencia, analogía, tablero sincronizado). Cero mezclar tiempos.
 Si es charla: reaccioná + UNA pregunta.
 Si inglés mal armado: DETENÉ → feedback → ejemplo oral → que lo digan.
 [[CTYPE:text]]`;

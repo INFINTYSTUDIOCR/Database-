@@ -34,7 +34,7 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711speak"></script>
-<script src="js/jill-canon-router.js?v=20260711johnpace"></script>
+<script src="js/jill-canon-router.js?v=20260711lock"></script>
 <script src="js/jill-canon-visual.js?v=20260711nexus"></script>
 <script src="js/jill-canon-drill.js?v=20260711nexus"></script>
 <script src="js/jill-lesson-clip.js?v=20260711nexus"></script>
@@ -4438,35 +4438,39 @@ function jillLastUserTopic(){
   return '';
 }
 
+function jillResolveCanonTrack(userText, replyText) {
+  if (typeof JillCanonRouter === 'undefined') return _jillState.canonTrackId || null;
+  var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
+  // Pedido del estudiante gana SIEMPRE (tablero no cambia porque Jill diga otro tiempo)
+  if (JillCanonRouter.resolveAskId) {
+    var fromUser = JillCanonRouter.resolveAskId(userText || '', sticky);
+    if (fromUser) return fromUser;
+  }
+  if (_jillState.canonTrackId) return _jillState.canonTrackId;
+  if (JillCanonRouter.resolveAskId) {
+    var fromSticky = sticky ? JillCanonRouter.resolveAskId(sticky, '') : null;
+    if (fromSticky) return fromSticky;
+  }
+  // Solo si no hay pedido claro: mirar respuesta (sin pisar un lock previo)
+  if (replyText && JillCanonRouter.pickTrackId) {
+    return JillCanonRouter.resolveAskId(replyText, userText || '') || JillCanonRouter.pickTrackId(replyText);
+  }
+  return null;
+}
+
 function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
   var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
   var ct = contentType || 'text';
   var userAsk = jillLastUserTopic();
   var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
-  var userTopic = userAsk;
-  if(typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId){
-    var locked = JillCanonRouter.resolveAskId(userAsk, sticky);
-    if(locked){
-      userTopic = (userAsk + ' ' + sticky).trim();
-    } else if(sticky){
-      userTopic = (userAsk + ' ' + sticky).trim();
-    }
-  } else if(sticky){
-    userTopic = (userAsk + ' ' + sticky).trim();
+  var col = jillResolveCanonTrack(userAsk, text);
+  if(col) {
+    _jillState.canonTrackId = col;
+    ct = 'whiteboard';
   }
-  var col = (typeof JillVisualStage.resolveColumn === 'function')
-    ? JillVisualStage.resolveColumn(text, bundle, userTopic)
-    : null;
-  if(!col && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId){
-    col = JillCanonRouter.resolveAskId(userAsk, sticky);
-  }
-  // Si el pedido fue fuzzy (Willy/Wood) pero Jill habló de will/would → track desde la respuesta
-  if(!col && text && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId){
-    col = JillCanonRouter.pickTrackId(text) || JillCanonRouter.resolveAskId(text, userAsk);
-  }
-  if(col) ct = 'whiteboard';
-  var shown = JillVisualStage.show(text, ct, bundle, { userTopic: userTopic || text, column: col });
+  var userTopic = (userAsk + ' ' + sticky).trim() || text;
+  var shown = JillVisualStage.show(text, ct, bundle, { userTopic: userTopic, column: col, tutor: 'jill' });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
 }
 
@@ -4831,6 +4835,7 @@ var _jillState = {
   sessionActive: false,
   sessionType: 'tutor',
   companionTopic: '',
+  canonTrackId: null,
   audio: null,
   recognition: null,
   micRunning: false,
@@ -5514,6 +5519,7 @@ async function endJillSession(){
 
 async function startJillSession(s){
   if(!s) return;
+  _jillState.canonTrackId = null;
   var isCompanion = _jillState.sessionType === 'companion';
   if(typeof AiProfile !== 'undefined') AiProfile.purgeBadPreferredName(s);
   if(!isCompanion && typeof JillCalibration !== 'undefined') JillCalibration.ensure(s);
@@ -5701,9 +5707,11 @@ async function sendJillMsg(micText, sendOpts){
   try {
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     if(studentPayload && s && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
+    var canonTrackId = jillResolveCanonTrack(text, '');
+    if(canonTrackId) _jillState.canonTrackId = canonTrackId;
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', canonTrackId: _jillState.canonTrackId || canonTrackId || null, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);
