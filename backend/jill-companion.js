@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v35-ops-interconnect';
+const JILL_PRO_BRAIN_VER = 'v36-get-it-straight-ing';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -175,12 +175,12 @@ const TRACK_TEACH_HINTS = {
   there: 'Analogía: there is/are = HAY (existencia); have/has = posesión. 1 modelo + 1 oral.',
   prepositions: 'Analogía: IN=caja; ON=superficie; AT=punto en el mapa. 1 frase oral.',
   prepositions_time: 'Analogía: IN=mes/año; ON=día; AT=hora (como citas). 1 frase oral.',
-  gerundio: 'OBLIGATORIO: Decí ando/endo. Gerundio = ING como sustantivo (sin to be). CONTRASTE: ESTAR + ando/endo → TO BE + ING (continuo). Si no lo decís, fallaste.',
+  gerundio: 'OBLIGATORIO Get It Straight ING (John Off the Clock): (1) to be+V+ING=progreso=ando/endo; (2) V+ING sin to be=GENERAL (I like watching); (3) to+V=INTENCIÓN. Corrección: I like watching TV after work + However…',
   gerund_prep: 'OBLIGATORIO: tras prep, VERBO+ING = ando/endo. Decí ando/endo.',
   negations: 'Analogía: el auxiliar carga el NOT (nunca "I no…"). 1 negación oral.',
   modales: 'Analogía: will=-ré; would=-ría; should=debería; can=puedo. 1–2 modelos + oral.',
   modal: 'Analogía moneda: auxiliar ANTES del pronombre = pregunta. Pedí la pregunta oral.',
-  progressive: 'OBLIGATORIO: en español ESTAR + ando/endo; en inglés TO BE (am/is/are) + VERBO+ING. Decí estar→to be y ando/endo. Sin to be no hay continuo.',
+  progressive: 'OBLIGATORIO Get It Straight: TO BE + verbo + ING = progreso = ando/endo. Sin to be no hay progresivo. Contraste: watching=general; to watch=intención.',
   past: 'Analogía: pasado = foto terminada de ayer. 1 frase oral.',
   present: 'Analogía: hábito/hecho; he/she/it + verbo+s. 1 frase oral.',
   perfect: 'Analogía: have/has + participio = he/ha + participio (puente al presente). 1 frase oral.',

@@ -1,21 +1,28 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "Guion oral John Ramírez — Foundations (estilo de clase, no ESL genérico)",
   "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar.",
   "globalVoice": "Empezá SIEMPRE desde el español. Detectá el patrón, no memorices reglas. Explicá el porqué antes del nombre gramatical. Pedí producción oral. Corregí con preguntas. Tono: directo, cálido, sin condescendencia. Voseo CR.",
+  "lessons": {
+    "getItStraightIng": {
+      "source": "Off the Clock — Get It Straight: ING (John Ramírez)",
+      "full": "Get It Straight: ING. Mucha gente se confunde con el ING y dice I like watch TV o abusa del infinitivo (I like to…). Número uno: TO BE + verbo + ING = presente progresivo = acción en progreso = terminación latina ando/endo. Regla: no se puede usar ING progresivo si delante no va el verbo TO BE. Forma: to be + verbo + ING. Número dos: verbo + ING sin to be = actividad en GENERAL (I like watching TV, I like dancing, I like eating). Número tres: TO + verbo = infinitivo = INTENCIÓN / decisión (I like to watch TV = tengo la intención de verlo a las tres o después del trabajo). Contraste: I like watching TV (en general) vs I like to watch TV (intención). Corrección firma: Yes, I like to watch the TV after my work → I like watching TV after work + linker: However, I think I'm not gonna be able to do it today. Quick recap: to be + verbo + ING = progreso; verbo + ING = general; to + verbo = intención.",
+      "say": "Get It Straight ING. Mucha gente se confunde con el I N G y dice I like watch TV o abusa del infinitivo I like to… Número uno: TO BE más verbo más I N G es presente progresivo — acción en progreso — la terminación latina ando / endo. Regla: no podés usar I N G progresivo si delante no va el verbo TO BE. Forma: to be + verbo + I N G. Número dos: verbo más I N G SIN to be = actividad en GENERAL: I like watching TV, I like dancing, I like eating. Número tres: TO más verbo = infinitivo = INTENCIÓN o decisión. I like to watch TV = tengo la intención de verlo. I like watching TV = lo hago en general. Corrección: I like to watch the TV after my work → I like watching TV after work. However, I'm not gonna be able to do it today. Recap: to be+V+ING progreso; V+ING general; to+V intención."
+    }
+  },
   "tracks": {
     "gerundio": {
-      "say": "Mirá: en español el ando y el endo es lo mismo que el I N G en inglés. Cuando decís 'me gusta correr', 'correr' es como un sustantivo — en inglés eso es VERBO más I N G: I like running. Ahí NO va to be. Pero OJO el contraste: si en español usás ESTAR más ando o endo — 'estoy trabajando' — en inglés es OBLIGATORIO el verbo TO BE: I am working. Estar se convierte en to be; ando/endo se convierte en I N G. Sin to be no hay continuo. Gerundio suelto = ando/endo como sustantivo, sin am/is/are.",
-      "mustSay": ["ando", "endo", "to be", "estar"],
-      "exampleAsk": "Decime: I like swimming — y después: I am swimming. ¿Cuál lleva to be?"
+      "say": "Get It Straight ING — lección John Off the Clock. Mucha gente dice I like watch TV o abusa del infinitivo. Tres formas: uno, TO BE más verbo más I N G = presente progresivo, acción en progreso, ando/endo — sin to be no hay ese I N G. Dos, verbo más I N G sin to be = actividad GENERAL: I like watching TV, I like dancing, I like eating. Tres, TO más verbo = infinitivo = INTENCIÓN o decisión: I like to watch TV. Contraste: watching = en general; to watch = intención puntual. Corrección firma: I like to watch the TV after my work → I like watching TV after work. However, I'm not gonna be able to do it today. Recap: to be+V+ING progreso; V+ING general; to+V intención.",
+      "mustSay": ["ando", "endo", "to be", "general", "intención", "watching"],
+      "exampleAsk": "Decime una general con watching y una con intención con to watch. Después montá un However."
     },
     "progressive": {
-      "say": "Presente continuo. En español el auxiliar es ESTAR: estoy, estás, está, más ando o endo. En inglés ese ESTAR es el verbo TO BE: am, is, are. Fórmula: pronombre + to be + VERBO más I N G + complemento. Ejemplo: estoy comiendo → I am eating. Sin to be NO hay continuo. Ando/endo = I N G. Decí en voz: estar pasa a to be; ando/endo pasa a I N G.",
-      "mustSay": ["estar", "to be", "ando", "endo"],
-      "exampleAsk": "Armá una: They are studying now."
+      "say": "Get It Straight ING — presente progresivo. TO BE más verbo más I N G = acción en progreso. Es nuestra terminación latina ando / endo. Regla de John: no podés usar I N G progresivo si el verbo de adelante no es TO BE. Forma: to be + verbo + I N G. Ejemplo: I am watching TV. Sin to be no hay progresivo. Ando/endo = I N G. No lo confundás con I like watching (general, sin to be) ni con I like to watch (intención).",
+      "mustSay": ["to be", "ando", "endo", "progreso"],
+      "exampleAsk": "Armá una progresiva: They are studying now."
     },
     "gerund_prep": {
-      "say": "Después de una preposición, el verbo va en I N G — eso es ando/endo. Before leaving = antes de salir. After eating = después de comer. No es presente continuo: acá NO va am/is/are delante. Solo prep + VERBO más I N G. Decí ando/endo.",
+      "say": "Después de una preposición, el verbo va en I N G — ando/endo — SIN to be delante. Before leaving. After eating. No es presente progresivo. Decí ando/endo. Para general vs intención usá Get It Straight: watching = general; to watch = intención.",
       "mustSay": ["ando", "endo"],
       "exampleAsk": "Completá: Before ______ (go), call me."
     },
@@ -116,7 +123,7 @@
     }
   },
   "alice": {
-    "say": "Alice enseña con la misma pedagogía John: español primero, patrón, analogía, producción. Alcance: Idea + Linker + Idea, chunking, STAR. Fluidez = estructuras encadenadas, no palabras sueltas. No Foundations drill sheets; sí paciencia y doctrina de clase.",
-    "linkers": "Fluidez = alternar conectores (linkers) con ideas completas. Chunking: agrupá palabras en bloques, no palabra por palabra. Idea + linker + idea. Rompé la zona de confort con cadenas mentales."
+    "say": "Alice enseña con la misma pedagogía John: español primero, patrón, analogía, producción. Alcance: Idea + Linker + Idea, chunking, STAR. Fluidez = estructuras encadenadas, no palabras sueltas. Get It Straight ING aplica: watching = general; to watch = intención; to be + ING = progreso — y montás un linker (However…). No Foundations drill sheets; sí paciencia y doctrina de clase.",
+    "linkers": "Fluidez = alternar conectores (linkers) con ideas completas. Ejemplo John: I like watching TV after work. However, I'm not gonna be able to do it today. Chunking: agrupá palabras en bloques. Idea + linker + idea."
   }
 }

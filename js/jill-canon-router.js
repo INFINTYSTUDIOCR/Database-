@@ -606,14 +606,14 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711voice';
+  var CACHE_VER = '20260711ing';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
-        say: "Mirá: en español el ando y el endo es lo mismo que el I N G en inglés. Cuando decís 'me gusta correr', eso es VERBO más I N G: I like running — NO va to be. Pero si usás ESTAR más ando/endo — 'estoy trabajando' — en inglés es OBLIGATORIO TO BE: I am working. Estar → to be; ando/endo → I N G."
+        say: "Get It Straight / Off the Clock: ING = to be + verbo-ING (progreso). Watching general: I am watching TV. To + intention: I want to watch — not watching. Linker correction when needed."
       },
       progressive: {
-        say: "Presente continuo: en español ESTAR + ando/endo; en inglés TO BE (am/is/are) + VERBO más I N G. Sin to be no hay continuo. Ando/endo = I N G."
+        say: "Get It Straight: progressive = watching general / to be + ING progreso. Intention uses to + base verb (to watch), not ING. Off the Clock oral source."
       },
       gerund_prep: {
         say: "Tras prep, VERBO más I N G = ando/endo. Before leaving. No lleva am/is/are."

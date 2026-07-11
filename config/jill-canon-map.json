@@ -212,9 +212,15 @@
         "el gerund",
         "que es gerundio",
         "ando endo",
-        "ando/endo"
+        "ando/endo",
+        "get it straight",
+        "get it straight ing",
+        "off the clock",
+        "i like watching",
+        "i like to watch",
+        "abuso del infinitivo"
       ],
-      "bridge": "Puente JOHN OBLIGATORIO: VERBO+ING = ando/endo. Gerundio = ando/endo como SUSTANTIVO (I like running) — NO lleva to be. CONTRASTE: si en español usás ESTAR + ando/endo (estoy trabajando), en inglés es OBLIGATORIO el verbo TO BE (am/is/are) + VERBO+ING — eso es presente continuo, no este gerundio suelto. Decí ando/endo SIEMPRE."
+      "bridge": "Puente JOHN — Get It Straight ING (Off the Clock): (1) TO BE + verbo + ING = presente progresivo = acción en progreso = ando/endo; sin to be no hay ese ING. (2) Verbo + ING sin to be = actividad GENERAL (I like watching TV / dancing / eating). (3) TO + verbo = infinitivo = INTENCIÓN (I like to watch TV). Corrección firma: I like to watch the TV after my work → I like watching TV after work + linker However… Recap: progreso / general / intención."
     },
     {
       "id": "gerund_prep",
@@ -412,7 +418,7 @@
         "estoy trabajando",
         "ando endo continuo"
       ],
-      "bridge": "Puente JOHN OBLIGATORIO: en español el auxiliar es ESTAR (estoy/está + ando/endo). En inglés es OBLIGATORIO el verbo TO BE (am/is/are) + VERBO+ING. ING = ando/endo. Sin to be NO hay continuo. Decí: estar → to be, ando/endo → I N G."
+      "bridge": "Puente JOHN — Get It Straight ING: TO BE + verbo + ING = presente progresivo = acción en progreso = ando/endo. Regla: sin TO BE no hay ING progresivo. No confundir con I like watching (general) ni I like to watch (intención)."
     },
     {
       "id": "perfect",

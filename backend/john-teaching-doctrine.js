@@ -93,6 +93,9 @@ function getCanonDigest(maxLen) {
   // Guiones orales primero (prioridad: no se cortan por maxLen)
   const critical = ['gerundio', 'progressive', 'gerund_prep', 'past', 'modales', 'there', 'negations', 'prepositions'];
   lines.push('GUIONES ORALES CLAVE (clase John — DEBES HABLAR ASÍ):');
+  if (pack.lessons && pack.lessons.getItStraightIng && (pack.lessons.getItStraightIng.say || pack.lessons.getItStraightIng.full)) {
+    lines.push('LECCION CANONICA ING (Off the Clock): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));
+  }
   critical.forEach((id) => {
     const v = pack.tracks && pack.tracks[id];
     if (v && v.say) lines.push(`- ${id}: ${String(v.say).slice(0, 320)}`);

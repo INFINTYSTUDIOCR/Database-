@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const METHOD_OS_VERSION = 'os-v17-negaciones';
+const METHOD_OS_VERSION = 'os-v18-get-it-straight-ing';
 
 /** Doctrina compartida (Jill + Alice). Compacta pero fiel al documento. */
 const METHOD_OS_CORE = `
@@ -82,11 +82,11 @@ PASADOS REGULARES � 3 reglas (detectar el final, no memorizar): (1) termina en
 16 IRREGULARES ESENCIALES (por grupo, nunca -ED): no cambian: put/let/cut. Cambia vocal media: come/came/come, get/got/gotten, give/gave/given, take/took/taken, see/saw/seen, keep/kept/kept, make/made/made. Cambian del todo: go/went/gone, do/did/done, say/said/said. Dobles (aux+principal): have/had/had, be/was-were/been, send/sent/sent, seem/seemed/seemed. REGLA: si hay HAVE antes -> 3ra columna (participio) siempre; pasado simple con ancla -> 2da columna.
 Correcciones nuevas: -ED a irregular -> "�Go es regular o irregular?"; pasado vs participio -> "�Hay un have antes? Si hay have, tercera columna"; have con infinitivo -> "Despu�s de have, �qu� viene siempre?".
 
-GET IT STRAIGHT -ING (M�dulo 005) � tres formas distintas, no confundir (mucha gente abusa del infinitivo: "I like watch TV", "I like to..." para todo):
-- TO BE + verbo + ING = presente progresivo (acci�n en progreso, ahora; = -ando/-iendo). REGLA: sin "to be" no hay -ING progresivo (I am watching TV).
-- verbo + ING (sin to be) = actividad general (I like watching TV, I like dancing, I like eating).
-- to + verbo = infinitivo = intenci�n/decisi�n (I like to watch TV = tengo la intenci�n de verlo).
-Contraste clave: "I like watching TV" (en general) vs "I like to watch TV" (intenci�n puntual). Correcci�n firma: "Yes, I like to watch the TV after my work" -> "I like watching TV after work" + montar un linker ("... however, I'm not gonna be able to do it today"). Error t�pico: abuso del infinitivo -> preguntar "�actividad general o intenci�n?" y cambiar la ranura. Recap: to be+V+ING = en progreso � V+ING = general � to+V = intenci�n.
+GET IT STRAIGHT -ING (Off the Clock / Modulo 005) — leccion John Ramirez, tres formas (mucha gente abusa del infinitivo: "I like watch TV", "I like to..." para todo):
+- TO BE + verbo + ING = presente progresivo (accion en progreso; = ando/endo). REGLA: sin "to be" no hay ING progresivo (I am watching TV).
+- verbo + ING (sin to be) = actividad GENERAL (I like watching TV, I like dancing, I like eating).
+- to + verbo = infinitivo = INTENCION/decision (I like to watch TV = tengo la intencion de verlo a las tres / despues del trabajo).
+Contraste clave: "I like watching TV" (en general) vs "I like to watch TV" (intencion puntual). Correccion firma: "Yes, I like to watch the TV after my work" -> "I like watching TV after work" + montar linker ("... however, I'm not gonna be able to do it today"). Error tipico: abuso del infinitivo -> preguntar "actividad general o intencion?" y cambiar la ranura. Recap: to be+V+ING = en progreso · V+ING = general · to+V = intencion.
 
 PREPOSICIONES #1 in/on/at (M�dulo 006) � el "en" espa�ol se divide en tres (por eso confunde): el espa�ol usa un solo "en" para lugar general, adentro y encima. El ingl�s lo separa:
 - in = "en" de ADENTRO / contenci�n (in the house = adentro; in the room, in the car, in the lunchbox).

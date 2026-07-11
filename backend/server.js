@@ -704,9 +704,9 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-ops-interconnect';
-const JILL_BRAIN_VER = 'v27-ops-interconnect';
-const ALICE_BRAIN_VER = 'v25-ops-interconnect';
+const APP1_BUILD = '20260711-get-it-straight-ing';
+const JILL_BRAIN_VER = 'v28-get-it-straight-ing';
+const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
