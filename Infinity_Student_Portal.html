@@ -53,7 +53,7 @@
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260711modules"></script>
 <script src="js/jill-quiz.js?v=20260711modules"></script>
-<script src="js/tts-chunks.js?v=20260711clean"></script>
+<script src="js/tts-chunks.js?v=20260711human"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260711speak"></script>
 <style>
@@ -6107,10 +6107,10 @@ function jillSpeak(text){
     JillVisualStage.updateCaption(text);
   }
   jillStopMic();
-  // Chunk ~450 so long lessons never depend on one poisoned/short clip
+  // Longer chunks = fewer micro-cuts; speech stays continuous like a real tutor
   var segments = typeof jillTtsSegments === 'function'
-    ? jillTtsSegments(text, 450)
-    : ttsSpeakLines(text, 450).map(function(line){
+    ? jillTtsSegments(text, 780)
+    : ttsSpeakLines(text, 780).map(function(line){
         return { text: line, lang: jillDetectTtsLang(line) === 'en-US' ? 'en' : 'es' };
       });
   if(!segments.length){

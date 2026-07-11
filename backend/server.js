@@ -2067,7 +2067,7 @@ app.post('/demo/tts', async (req, res) => {
 });
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
-const TUTOR_PACE_RULE = '\nPACING (spoken aloud): One flowing turn — prefer commas over heavy periods, no ellipses (...), no staccato fragments. Sound natural and brisk, not dramatic or theatrical.';
+const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
 const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto"):
 Completá SIEMPRE: fórmula + puente/guion John + analogía + 1 ejemplo + práctica oral + "¿Te quedó?".
@@ -2671,10 +2671,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=latam3 busts Spain-ceceo clips cached under multilingual_v2.
+  // v=human1: expressive LatAm reading (not flat Castilian cache).
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':latam3:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':human1:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2783,6 +2783,24 @@ function cleanTtsText(text) {
     .trim();
 }
 
+/** Soft spoken cadence — less textbook, more human breath groups for TTS. */
+function humanizeSpokenForTts(text) {
+  return String(text || '')
+    .replace(/\bPaso\s*\d+\s*[:.\-–—]*/gi, '')
+    .replace(/\b(?:Primero|Segundo|Tercero|Cuarto|Quinto)\s*[:.\-–—]/gi, '')
+    .replace(/\bEs importante destacar que\b/gi, 'Mirá, ')
+    .replace(/\bCabe mencionar que\b/gi, '')
+    .replace(/\bA continuaci[oó]n\b/gi, 'Entonces')
+    .replace(/\bEn conclusi[oó]n\b/gi, 'Entonces')
+    .replace(/\bProcedamos a\b/gi, 'Vamos a')
+    .replace(/\b(?:OK|Ok),?\s+/g, 'Bueno, ')
+    .replace(/\s*—\s*/g, ', ')
+    .replace(/\s*–\s*/g, ', ')
+    .replace(/\.{3,}/g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 /** Orthography hint so ElevenLabs uses LatAm seseo (C/Z → /s/), not Spain ceceo. */
 function applyLatAmSeseoForTts(text) {
   let t = String(text || '');
@@ -2888,6 +2906,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   // LatAm seseo (C/Z→S) so ElevenLabs cannot invent Spain theta/ceceo
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
+    clean = humanizeSpokenForTts(clean);
     clean = applyLatAmSeseoForTts(clean);
   }
   if (!clean) throw new Error('Empty text');
@@ -2898,7 +2917,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
 
   // Include speed+model so slower Jill audio / LatAm regen is not poisoned by Spain clips
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|latam3|${modelId}`;
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|human1|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
@@ -3712,9 +3731,12 @@ GUION vs PREGUNTAS FOUNDATIONS (OBLIGATORIO):
 - Si preguntan algo de Foundations (gerundio/-ING, tiempos, Mecánica Estructural Infinity®, pronombres, vocab funcional, método moneda, modales en matriz, etc.) aunque NO sea el tema del bundle actual: NO digas "esperá a que lleguemos ahí". Explicá en miniatura (regla MSI + ejemplo + 1 práctica), luego redirigí al bundle.
 - Si preguntan linkers avanzados, Idea+Linker+Idea, STAR, Nexora o customer service: redirigí a Alice en 1 frase — sin mini-clase de linkers.
 
-RITMO HABLADO:
+RITMO HABLADO — 100% HUMANO:
+- Escribí como HABLA una tutora real (CR): mirá, fíjate, o sea, entonces, te lo pongo así.
 - Una sola respuesta fluida; preferí comas antes que muchos puntos seguidos.
 - Sin elipsis (...) ni frases teatrales con pausas dramáticas.
+- PROHIBIDO tono de manual o IA: "Paso 1", "Primero:", "Segundo:", "Es importante destacar", "A continuación".
+- Explicá en clase viva: tema → fórmula en palabras simples → puente/analogía → ejemplos con calma → "¿Te quedó?".
 
 IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
@@ -4627,10 +4649,11 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
       voiceId: ALICE_VOICE_ID,
       label: 'Alice',
       languageCode,
-      speed: languageCode === 'en' ? 0.98 : 0.94,
-      stability: 0.58,
-      similarityBoost: 0.78,
-      style: 0.08
+      // Human reading: slight expressiveness, natural pace
+      speed: languageCode === 'en' ? 0.99 : 0.97,
+      stability: languageCode === 'en' ? 0.55 : 0.40,
+      similarityBoost: 0.76,
+      style: languageCode === 'en' ? 0.12 : 0.32
     });
   } catch (err) {
     console.error('Alice TTS error:', err.message);
@@ -4645,20 +4668,19 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const { text, lang } = req.body || {};
     const rawLang = String(lang || 'es').toLowerCase();
     // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
-    // Spanish → es-CR cache key + LatAm seseo (no Spain ceceo).
+    // Spanish → es-CR + LatAm seseo; voice tuned for human classroom reading
     const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
-    // Jill: calma con flujo normal; EN islands más estables (menos pitch raro en have/he)
-    const speed = (languageCode === 'en') ? 0.98 : 0.94;
     const isEn = languageCode === 'en';
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode,
-      speed,
-      stability: isEn ? 0.68 : 0.58,
-      similarityBoost: isEn ? 0.75 : 0.78,
-      style: isEn ? 0.04 : 0.08
+      // ES: expressive tutor; EN islands: steadier so grammar doesn't wobble
+      speed: isEn ? 0.99 : 0.97,
+      stability: isEn ? 0.58 : 0.38,
+      similarityBoost: isEn ? 0.74 : 0.76,
+      style: isEn ? 0.10 : 0.34
     });
   } catch (err) {
     console.error('Jill TTS error:', err.message);

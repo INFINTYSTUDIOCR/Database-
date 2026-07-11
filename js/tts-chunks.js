@@ -135,7 +135,7 @@ function normalizeTtsTeachingForms(text) {
 
 var _TTS_EN_GRAMMAR = /^(am|is|are|was|were|be|been|being|do|does|did|have|has|had|will|would|can|could|must|may|might|not|to|past|participle)$/i;
 
-/** One TTS line — keep pause marks so paradigms are not mashed. */
+/** One TTS line — keep pause marks so paradigms are not mashed; soft human cadence. */
 function prepareTtsLine(text) {
   return normalizeTtsTeachingForms(
     String(text || '')
@@ -149,6 +149,11 @@ function prepareTtsLine(text) {
       .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
       .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
       .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
+      .replace(/\bPaso\s*\d+\s*[:.\-–—]*/gi, '')
+      .replace(/\b(?:Primero|Segundo|Tercero)\s*[:.\-–—]/gi, '')
+      .replace(/\bEs importante destacar que\b/gi, 'Mirá, ')
+      .replace(/\bCabe mencionar que\b/gi, '')
+      .replace(/\bA continuaci[oó]n\b/gi, 'Entonces')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/\*([^*]+)\*/g, '$1')
       .replace(/__([^_]+)__/g, '$1')
@@ -158,7 +163,7 @@ function prepareTtsLine(text) {
       .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
   )
     .replace(/[¿¡]/g, '')
-    .replace(/[—–―…]/g, '. ')
+    .replace(/[—–―…]/g, ', ')
     .replace(/\.{2,}/g, '. ')
     // Keep . ! ? , as pauses for ElevenLabs (do. did. done. — never dodiddone)
     .replace(/[;:/]+/g, ' ')
