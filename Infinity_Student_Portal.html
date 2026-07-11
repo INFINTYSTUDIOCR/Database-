@@ -37,7 +37,7 @@
 <script src="js/jill-canon-visual.js?v=20260710dj2"></script>
 <script src="js/jill-visual-stage.js?v=20260710dj2"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710dj2"></script>
+<script src="js/jill-foundations.js?v=20260710cr"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -4263,6 +4263,8 @@ function jillActivateVisualStage(text, contentType){
 }
 
 function jillSpeakTurn(text, contentType){
+  text = jillScrubNonCr(text);
+  if(typeof JillVisualStage === 'undefined') { jillSpeak(text); return; }
   jillActivateVisualStage(text, contentType);
   jillSpeak(text);
 }
@@ -4318,7 +4320,9 @@ function jillTtsCacheKey(clean, lang){
 
 function jillFetchTtsBlob(clean, lang, attempt){
   attempt = attempt || 0;
-  return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: lang || 'es'})})
+  var sendLang = lang || 'es';
+  if(sendLang === 'es' || sendLang === 'es-cr' || sendLang === 'es-CR') sendLang = 'es-CR';
+  return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: sendLang})})
   .then(function(r){
     if(!r.ok){
       if(attempt < 4 && (r.status === 429 || r.status >= 500)){
@@ -4345,21 +4349,32 @@ function jillFetchTtsBlob(clean, lang, attempt){
   });
 }
 
+function jillScrubNonCr(text){
+  return String(text || '')
+    .replace(/(^|[\s,.\u2014\u2013\-\u00bf\u00a1])che\b[,!.\u2026]*/gi, '$1')
+    .replace(/\bbolud[oa]s?\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?])/g, '$1')
+    .trim();
+}
+
 function jillCleanTtsText(text){
-  return prepareTtsLine(text);
+  return prepareTtsLine(jillScrubNonCr(text));
 }
 
 function jillPrefetchTTS(text){
   var segments = typeof jillTtsSegments === 'function'
     ? jillTtsSegments(text, 900)
-    : [{ text: jillCleanTtsText(text), lang: 'es' }];
+    : [{ text: jillCleanTtsText(text), lang: 'es-CR' }];
   segments.forEach(function(seg){
     var clean = jillCleanTtsText(seg.text);
     if(clean.length < 3) return;
-    var key = jillTtsCacheKey(clean, seg.lang);
+    var lang = seg.lang || 'es-CR';
+    if(lang === 'es') lang = 'es-CR';
+    var key = jillTtsCacheKey(clean, lang);
     if(_jillTtsPrefetch[key]) return;
     _jillTtsPrefetch[key] = 'loading';
-    infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: seg.lang || 'es'})})
+    infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: lang})})
     .then(function(r){ return r.ok ? r.blob() : null; })
     .then(function(b){ if(b) _jillTtsPrefetch[key] = b; else delete _jillTtsPrefetch[key]; })
     .catch(function(){ delete _jillTtsPrefetch[key]; });
@@ -4368,7 +4383,11 @@ function jillPrefetchTTS(text){
 
 function jillQueueSpeak(text, lang){
   if(!text || text.trim().length < 2 || !_jillSpeakEnabled) return;
-  _jillTTSQueue.push({ text: text.trim(), lang: lang || 'es' });
+  var cleaned = jillScrubNonCr(text.trim());
+  if(!cleaned) return;
+  var sendLang = lang || (jillDetectTtsLang(cleaned) === 'en-US' ? 'en' : 'es-CR');
+  if(sendLang === 'es') sendLang = 'es-CR';
+  _jillTTSQueue.push({ text: cleaned, lang: sendLang });
   _jillTTSFlush();
 }
 
@@ -4379,7 +4398,8 @@ function _jillTTSFlush(){
   var gen = _jillSpeakGen;
   var item = _jillTTSQueue.shift();
   var text = typeof item === 'string' ? item : item.text;
-  var lang = typeof item === 'string' ? (jillDetectTtsLang(text) === 'en-US' ? 'en' : 'es') : (item.lang || 'es');
+  var lang = typeof item === 'string' ? (jillDetectTtsLang(text) === 'en-US' ? 'en' : 'es-CR') : (item.lang || 'es-CR');
+  if(lang === 'es') lang = 'es-CR';
   var clean = jillCleanTtsText(text);
   jillArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
@@ -5292,7 +5312,7 @@ async function startJillSession(s){
       ? JillFoundations.parseReply(data.reply || '')
       : { reply: jillExtractReply(data.reply || ''), contentType: data.contentType || 'text' };
     if(data.contentType && !parsed.contentType) parsed.contentType = data.contentType;
-    var reply = parsed.reply;
+    var reply = jillScrubNonCr(parsed.reply);
     if(!reply || reply.length < 8) reply = jillInstantOpening(s, returning, needsCal);
     _jillState.history = [{role:'assistant', content: reply, contentType: parsed.contentType || 'text'}];
     jillRenderHistoryMessages();
@@ -5459,7 +5479,7 @@ async function sendJillMsg(micText){
           if(evt.t){
             fullText += evt.t;
             if(statusEl) statusEl.textContent = '';
-            var display = jillStreamPlainText(fullText);
+            var display = jillScrubNonCr(jillStreamPlainText(fullText));
             _jillState.history[streamIdx] = {role:'assistant', content: display+'▋'};
             jillRenderHistoryMessages();
             scheduleTtsPrefetch(jillExtractReply(fullText), jillPrefetchTTS, jillPrefetchState);
@@ -5484,7 +5504,7 @@ async function sendJillMsg(micText){
       fullText = parsed.reply;
     }
 
-    _jillState.history[streamIdx] = {role:'assistant', content: parsed.reply, contentType: parsed.contentType || 'text'};
+    _jillState.history[streamIdx] = {role:'assistant', content: jillScrubNonCr(parsed.reply), contentType: parsed.contentType || 'text'};
     _jillState.lastStructureOk = jillDetectStructureOk(parsed.reply || fullText, parsed.contentType, drillEval);
     _jillState.drillTurnStartedAt = Date.now();
     if(_jillState.lastStructureOk && typeof JillMatrix !== 'undefined'){

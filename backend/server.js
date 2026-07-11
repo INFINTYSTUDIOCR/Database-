@@ -689,7 +689,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260710-dj-parens-board';
+const APP1_BUILD = '20260710-cr-seseo-noche';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2669,9 +2669,10 @@ function cleanTtsText(text) {
     .replace(/__([^_]+)__/g, '$1')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/^\s*[-•]\s+/gm, '')
+    .replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ')
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ');
-  // Don't read parentheses
-  t = t.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  // Keep parenthesis content; drop only the marks
+  t = t.replace(/\(([^)]*)\)/g, ' $1 ').replace(/\[([^\]]*)\]/g, ' $1 ');
   // MSI formulas → Spanish "más" (never English "plus" mixed in)
   t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
   t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
@@ -2697,10 +2698,30 @@ function cleanTtsText(text) {
     .replace(/[,;:/]+/g, ' ')
     .replace(/\s*[-]{1,3}\s*/g, ' ')
     .replace(/<br>/gi, ' ')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/[ ]{2,}/g, ' ')
-    .trim()
-    .slice(0, 2500);
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Orthography hint so ElevenLabs uses LatAm seseo (C/Z → /s/), not Spain ceceo. */
+function applyLatAmSeseoForTts(text) {
+  let t = String(text || '');
+  t = t.replace(/ch/gi, '\u0001');
+  t = t.replace(/qu([eéií])/gi, '\u0002$1');
+  t = t.replace(/gu([eéií])/gi, '\u0003$1');
+  t = t.replace(/z/gi, (ch) => (ch === 'Z' ? 'S' : 's'));
+  t = t.replace(/c([eéiíEÉIÍ])/g, (_, v) => ((/[EÉIÍ]/.test(v) && v === v.toUpperCase()) ? 'S' : 's') + v);
+  t = t.replace(/\u0001/g, 'ch').replace(/\u0002/g, 'qu').replace(/\u0003/g, 'gu');
+  return t;
+}
+
+/** Strip Rioplatense / Spain fillers that must never reach the student. */
+function scrubNonCrSpanish(text) {
+  return String(text || '')
+    .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
+    .replace(/\bbolud[oa]s?\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?])/g, '$1')
+    .trim();
 }
 
 /** Fixed demo script lines → voiceId (ElevenLabs only once per line, then cache forever). */
@@ -2743,9 +2764,13 @@ function demoBufferVoiceForText(text) {
 async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (!ELEVEN_KEY) throw new Error('ELEVENLABS_KEY not configured');
   if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
-  const clean = cleanTtsText(text);
+  let clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
   const languageCode = opts.languageCode || null;
+  const isSpanish = languageCode && String(languageCode).toLowerCase().startsWith('es');
+  // LatAm seseo for Spanish Jill/Alice — busts Spain-ceceo cache via languageCode es-CR
+  if (isSpanish) clean = applyLatAmSeseoForTts(clean);
+  if (!clean) throw new Error('Empty text');
 
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode);
   if (ttsCache.has(cacheKey)) {
@@ -2769,7 +2794,8 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
       speed: opts.speed ?? 1.08
     }
   };
-  if (languageCode) payload.language_code = languageCode;
+  // multilingual_v2 ignores language_code; still send es for models that accept it
+  if (languageCode) payload.language_code = String(languageCode).toLowerCase().startsWith('es') ? 'es' : languageCode;
 
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
@@ -3520,7 +3546,8 @@ RITMO HABLADO:
 
 IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
-Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
+Hablás SOLO en ESPAÑOL de Costa Rica / Centroamérica (voseo: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
+PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo) y rioplatense (che, boludo, dale che). NUNCA digas "che".
 Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 Nunca rechaces un mensaje por idioma, mezcla o transcripción imperfecta del micrófono.
@@ -3577,15 +3604,22 @@ function parseJillResponse(raw) {
   try {
     const clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
     const parsed = JSON.parse(clean);
-    if (parsed.reply) return parsed;
+    if (parsed.reply) {
+      parsed.reply = scrubNonCrSpanish(parsed.reply);
+      return parsed;
+    }
   } catch {}
   // Try to find JSON object anywhere in the string
   const match = raw.match(/\{[\s\S]*?"reply"\s*:\s*"([\s\S]*?)"[\s\S]*?\}/);
   if (match) {
-    try { return JSON.parse(match[0]); } catch {}
+    try {
+      const parsed = JSON.parse(match[0]);
+      if (parsed.reply) parsed.reply = scrubNonCrSpanish(parsed.reply);
+      return parsed;
+    } catch {}
   }
   // Fallback: use raw text as reply
-  return { reply: raw.replace(/```[\s\S]*?```/g, '').trim(), contentType: 'text' };
+  return { reply: scrubNonCrSpanish(raw.replace(/```[\s\S]*?```/g, '').trim()), contentType: 'text' };
 }
 
 app.post('/jill', requireProductAuth, async (req, res) => {
@@ -4375,9 +4409,10 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const { text, lang } = req.body || {};
     const rawLang = String(lang || 'es').toLowerCase();
     // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
-    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es';
+    // Spanish → es-CR cache key + LatAm seseo (no Spain ceceo).
+    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
     return await synthesizeSpeech(req, res, {
-      text,
+      text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode
