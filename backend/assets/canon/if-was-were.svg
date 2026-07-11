@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="If I was If I were If I were to">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="14" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="9" font-weight="bold">IF I WAS / IF I WERE / IF I WERE TO</text>
+  <text x="160" y="26" text-anchor="middle" fill="#6d28d9" font-size="7">Cual usar y cuando</text>
+
+  <rect x="6" y="32" width="100" height="108" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2"/>
+  <text x="56" y="46" text-anchor="middle" fill="#5B21B6" font-size="8" font-weight="bold">IF I WAS</text>
+  <text x="56" y="58" text-anchor="middle" fill="#312e81" font-size="6.5">Pasado real / posible</text>
+  <text x="56" y="72" text-anchor="middle" fill="#6d28d9" font-size="6.5" font-weight="bold">SIGNIFICA</text>
+  <text x="56" y="84" text-anchor="middle" fill="#312e81" font-size="6.5">Es posible que haya</text>
+  <text x="56" y="94" text-anchor="middle" fill="#312e81" font-size="6.5">pasado.</text>
+  <text x="56" y="110" text-anchor="middle" fill="#5B21B6" font-size="6">If I was rude yesterday,</text>
+  <text x="56" y="120" text-anchor="middle" fill="#5B21B6" font-size="6">I apologize.</text>
+  <text x="56" y="132" text-anchor="middle" fill="#312e81" font-size="5.5">If I was tired, I went</text>
+  <text x="56" y="141" text-anchor="middle" fill="#312e81" font-size="5.5">to bed early.</text>
+
+  <rect x="110" y="32" width="100" height="108" rx="6" fill="#ffedd5" stroke="#d97706" stroke-width="1.2"/>
+  <text x="160" y="46" text-anchor="middle" fill="#c2410c" font-size="8" font-weight="bold">IF I WERE</text>
+  <text x="160" y="58" text-anchor="middle" fill="#312e81" font-size="6.5">Hipotesis / irreal</text>
+  <text x="160" y="72" text-anchor="middle" fill="#c2410c" font-size="6.5" font-weight="bold">SIGNIFICA</text>
+  <text x="160" y="84" text-anchor="middle" fill="#312e81" font-size="6.5">No es real, solo un</text>
+  <text x="160" y="94" text-anchor="middle" fill="#312e81" font-size="6.5">supuesto.</text>
+  <text x="160" y="110" text-anchor="middle" fill="#c2410c" font-size="6">If I were rich, I would</text>
+  <text x="160" y="120" text-anchor="middle" fill="#c2410c" font-size="6">travel the world.</text>
+  <text x="160" y="132" text-anchor="middle" fill="#312e81" font-size="5.5">If I were you, I would</text>
+  <text x="160" y="141" text-anchor="middle" fill="#312e81" font-size="5.5">study more.</text>
+
+  <rect x="214" y="32" width="100" height="108" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.2"/>
+  <text x="264" y="46" text-anchor="middle" fill="#3730a3" font-size="8" font-weight="bold">IF I WERE TO</text>
+  <text x="264" y="58" text-anchor="middle" fill="#312e81" font-size="6.5">Futuro poco probable</text>
+  <text x="264" y="72" text-anchor="middle" fill="#3730a3" font-size="6.5" font-weight="bold">SIGNIFICA</text>
+  <text x="264" y="84" text-anchor="middle" fill="#312e81" font-size="6.5">Supongamos que yo</text>
+  <text x="264" y="94" text-anchor="middle" fill="#312e81" font-size="6.5">hiciera algo.</text>
+  <text x="264" y="110" text-anchor="middle" fill="#3730a3" font-size="6">If I were to quit my job,</text>
+  <text x="264" y="120" text-anchor="middle" fill="#3730a3" font-size="6">what would happen?</text>
+  <text x="264" y="132" text-anchor="middle" fill="#312e81" font-size="5.5">Formal / estrategico.</text>
+  <text x="264" y="141" text-anchor="middle" fill="#312e81" font-size="5.5">Poco probable.</text>
+
+  <text x="160" y="156" text-anchor="middle" fill="#92400e" font-size="6.5" font-weight="bold">OBS: If he was/were = correcto (ambos OK)</text>
+  <text x="160" y="168" text-anchor="middle" fill="#6d28d9" font-size="6.5">TIP: were suena mas natural en hipotesis</text>
+  <text x="160" y="178" text-anchor="middle" fill="#5B21B6" font-size="6">was = pasado real | were = irreal | were to = futuro hipotetico</text>
+</svg>

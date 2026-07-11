@@ -169,7 +169,9 @@
     modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Pronombre + Modal + Verbo' },
     modal_have_been: { id: 'modal-have-been-ing', path: 'assets/canon/modal-have-been-ing.svg', title: 'Pronombre + Modal + Have Been + Verbo ING' },
     modal_have_pp: { id: 'modal-have-pp', path: 'assets/canon/modal-have-pp.svg', title: 'Modal + Have + Participio' },
-    there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
+    there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are / To Have / Exist' },
+    if_was_were: { id: 'if-was-were', path: 'assets/canon/if-was-were.svg', title: 'If I was / If I were / If I were to' },
+    irregular_verbs: { id: 'verbos-irregulares', path: 'assets/canon/verbos-irregulares.svg', title: 'Verbos irregulares (Presente / PS / Participio)' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones IN ON AT BY' },
     prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones de tiempo' },
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
@@ -239,8 +241,26 @@
       return 'negations';
     }
 
-    // There is / are
-    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|there\s+be|\bhay\b)\b/.test(t)) {
+    // If I was / If I were / If I were to
+    if (/\b(if i was|if i were|if i were to|if he was|if she was|if he were|if she were|if .+ were to)\b/.test(t)
+      || /\b(was vs were|were vs was|if was|if were)\b/.test(t)
+      || /\b(condicional(?:es)?|hipot[eé]tic|irreal|segundo condicional|second conditional)\b/.test(t)
+        && /\b(was|were|if)\b/.test(t)) {
+      return 'if_was_were';
+    }
+
+    // Verbos irregulares — 3 columnas
+    if (/\b(verbos?\s+irregulares?|irregular\s+verbs?|lista\s+de\s+irregulares|tres\s+columnas|presente\s+pasado\s+participio|1a\s+2a\s+3a\s+columna)\b/.test(t)
+      || /\b(came|went|gone|took|taken|gave|given|gotten|said|seen|been)\b/.test(t)
+        && /\b(irregular|participio|pasado simple|memor|lista|columnas?)\b/.test(t)) {
+      return 'irregular_verbs';
+    }
+
+    // There is / are / To Have (posesion) / Exist
+    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|there\s+be|\bhay\b)\b/.test(t)
+      || /\b(there exists?|exist(?:e|en|ir)?\b|existencia)\b/.test(t)
+      || /\b(to have|posesi[oó]n|tener vs hay|hay vs have|there is vs have|there are vs have)\b/.test(t)
+      || /\b(i have a|she has a|he has a)\b/.test(t) && /\b(poses|hay|there|explic)\b/.test(t)) {
       return 'there';
     }
 

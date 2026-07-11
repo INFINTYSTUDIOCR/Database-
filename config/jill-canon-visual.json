@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
   "frame": { "width": 320, "height": 180, "radius": 12 },
@@ -108,7 +108,21 @@
       "columns": ["there"],
       "svg": "assets/canon/there-existencial.svg",
       "gif": null,
-      "title": "There is / There are"
+      "title": "There is / There are / To Have / Exist"
+    },
+    {
+      "id": "if-was-were",
+      "columns": ["if_was_were"],
+      "svg": "assets/canon/if-was-were.svg",
+      "gif": null,
+      "title": "If I was / If I were / If I were to"
+    },
+    {
+      "id": "verbos-irregulares",
+      "columns": ["irregular_verbs"],
+      "svg": "assets/canon/verbos-irregulares.svg",
+      "gif": null,
+      "title": "Verbos irregulares (Presente / PS / Participio)"
     },
     {
       "id": "negaciones",

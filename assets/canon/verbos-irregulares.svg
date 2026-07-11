@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Verbos irregulares Presente Pasado Participio">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="11" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="8" font-weight="bold">VERBOS IRREGULARES — PRESENTE | PASADO | PARTICIPIO</text>
+  <rect x="4" y="15" width="104" height="12" rx="2" fill="#1d4ed8"/>
+  <text x="56" y="24" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="bold">PRESENTE</text>
+  <rect x="108" y="15" width="104" height="12" rx="2" fill="#1d4ed8"/>
+  <text x="160" y="24" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="bold">PASADO SIMPLE</text>
+  <rect x="212" y="15" width="104" height="12" rx="2" fill="#1d4ed8"/>
+  <text x="264" y="24" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="bold">PARTICIPIO</text>
+
+  <text x="56" y="38" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">come</text>
+  <text x="160" y="38" text-anchor="middle" fill="#312e81" font-size="6">came</text>
+  <text x="264" y="38" text-anchor="middle" fill="#312e81" font-size="6">come</text>
+  <text x="56" y="47" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">let</text>
+  <text x="160" y="47" text-anchor="middle" fill="#312e81" font-size="6">let</text>
+  <text x="264" y="47" text-anchor="middle" fill="#312e81" font-size="6">let</text>
+  <text x="56" y="56" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">go</text>
+  <text x="160" y="56" text-anchor="middle" fill="#312e81" font-size="6">went</text>
+  <text x="264" y="56" text-anchor="middle" fill="#312e81" font-size="6">gone</text>
+  <text x="56" y="65" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">put</text>
+  <text x="160" y="65" text-anchor="middle" fill="#312e81" font-size="6">put</text>
+  <text x="264" y="65" text-anchor="middle" fill="#312e81" font-size="6">put</text>
+  <text x="56" y="74" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">take</text>
+  <text x="160" y="74" text-anchor="middle" fill="#312e81" font-size="6">took</text>
+  <text x="264" y="74" text-anchor="middle" fill="#312e81" font-size="6">taken</text>
+  <text x="56" y="83" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">give</text>
+  <text x="160" y="83" text-anchor="middle" fill="#312e81" font-size="6">gave</text>
+  <text x="264" y="83" text-anchor="middle" fill="#312e81" font-size="6">given</text>
+  <text x="56" y="92" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">get</text>
+  <text x="160" y="92" text-anchor="middle" fill="#312e81" font-size="6">got</text>
+  <text x="264" y="92" text-anchor="middle" fill="#312e81" font-size="6">gotten</text>
+  <text x="56" y="101" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">keep</text>
+  <text x="160" y="101" text-anchor="middle" fill="#312e81" font-size="6">kept</text>
+  <text x="264" y="101" text-anchor="middle" fill="#312e81" font-size="6">kept</text>
+  <text x="56" y="110" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">make</text>
+  <text x="160" y="110" text-anchor="middle" fill="#312e81" font-size="6">made</text>
+  <text x="264" y="110" text-anchor="middle" fill="#312e81" font-size="6">made</text>
+  <text x="56" y="119" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">do</text>
+  <text x="160" y="119" text-anchor="middle" fill="#312e81" font-size="6">did</text>
+  <text x="264" y="119" text-anchor="middle" fill="#312e81" font-size="6">done</text>
+  <text x="56" y="128" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">seem</text>
+  <text x="160" y="128" text-anchor="middle" fill="#312e81" font-size="6">seemed</text>
+  <text x="264" y="128" text-anchor="middle" fill="#312e81" font-size="6">seemed</text>
+  <text x="56" y="137" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">say</text>
+  <text x="160" y="137" text-anchor="middle" fill="#312e81" font-size="6">said</text>
+  <text x="264" y="137" text-anchor="middle" fill="#312e81" font-size="6">said</text>
+  <text x="56" y="146" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">see</text>
+  <text x="160" y="146" text-anchor="middle" fill="#312e81" font-size="6">saw</text>
+  <text x="264" y="146" text-anchor="middle" fill="#312e81" font-size="6">seen</text>
+  <text x="56" y="155" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">send</text>
+  <text x="160" y="155" text-anchor="middle" fill="#312e81" font-size="6">sent</text>
+  <text x="264" y="155" text-anchor="middle" fill="#312e81" font-size="6">sent</text>
+  <text x="56" y="164" text-anchor="middle" fill="#1e3a8a" font-size="6" font-weight="bold">be / have</text>
+  <text x="160" y="164" text-anchor="middle" fill="#312e81" font-size="6">was-were / had</text>
+  <text x="264" y="164" text-anchor="middle" fill="#312e81" font-size="6">been / had</text>
+  <text x="160" y="176" text-anchor="middle" fill="#6d28d9" font-size="5.5">Col 3 = participio (PRP / modal have). Pronunciacion figurada.</text>
+</svg>

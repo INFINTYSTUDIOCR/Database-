@@ -1,17 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="There is there are">
-  <rect width="320" height="200" rx="12" fill="none"/>
-  <text x="160" y="28" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="12" font-weight="bold">THERE + BE + C - el HAY espanol</text>
-  <rect x="20" y="42" width="72" height="36" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/><text x="56" y="65" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="bold">THERE</text>
-  <text x="100" y="65" text-anchor="middle" fill="#6d28d9" font-size="16">+</text>
-  <rect x="112" y="42" width="56" height="36" rx="8" fill="#fef3c7" stroke="#D97706" stroke-width="1"/><text x="140" y="65" text-anchor="middle" fill="#92400e" font-size="11" font-weight="bold">BE</text>
-  <text x="176" y="65" text-anchor="middle" fill="#6d28d9" font-size="16">+</text>
-  <rect x="188" y="42" width="112" height="36" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/><text x="244" y="65" text-anchor="middle" fill="#5B21B6" font-size="11" font-weight="bold">C</text>
-  <text x="160" y="96" text-anchor="middle" fill="#312e81" font-size="10">hay un gato = there is a cat | hay gatos = there are cats</text>
-  <rect x="16" y="108" width="88" height="32" rx="6" fill="#f5f3ff" stroke="#a78bfa"/><text x="60" y="128" text-anchor="middle" fill="#5B21B6" font-size="9">is / are</text>
-  <rect x="116" y="108" width="88" height="32" rx="6" fill="#f5f3ff" stroke="#a78bfa"/><text x="160" y="128" text-anchor="middle" fill="#5B21B6" font-size="9">was / were</text>
-  <rect x="216" y="108" width="88" height="32" rx="6" fill="#f5f3ff" stroke="#a78bfa"/><text x="260" y="128" text-anchor="middle" fill="#5B21B6" font-size="9">will be</text>
-  <rect x="66" y="148" width="88" height="32" rx="6" fill="#f5f3ff" stroke="#a78bfa"/><text x="110" y="168" text-anchor="middle" fill="#5B21B6" font-size="9">would be</text>
-  <rect x="166" y="148" width="88" height="32" rx="6" fill="#f5f3ff" stroke="#a78bfa"/><text x="210" y="168" text-anchor="middle" fill="#5B21B6" font-size="9">has/have been</text>
-  <text x="160" y="192" text-anchor="middle" fill="#6d28d9" font-size="9">Pregunta (moneda): Is there...? | Are there...? | Will there be...?</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="There is There are To Have Exist">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="14" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="9" font-weight="bold">THERE IS / THERE ARE / TO HAVE / EXIST</text>
+  <text x="160" y="25" text-anchor="middle" fill="#6d28d9" font-size="7">Existencia vs posesion</text>
+
+  <rect x="4" y="30" width="76" height="118" rx="5" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.1"/>
+  <text x="42" y="44" text-anchor="middle" fill="#5B21B6" font-size="7.5" font-weight="bold">THERE IS</text>
+  <text x="42" y="56" text-anchor="middle" fill="#312e81" font-size="5.5">1 cosa (singular)</text>
+  <text x="42" y="66" text-anchor="middle" fill="#312e81" font-size="5.5">que existe / esta</text>
+  <text x="42" y="80" text-anchor="middle" fill="#6d28d9" font-size="5.5" font-weight="bold">ESTRUCTURA</text>
+  <text x="42" y="92" text-anchor="middle" fill="#5B21B6" font-size="5.5">There is + 1</text>
+  <text x="42" y="102" text-anchor="middle" fill="#5B21B6" font-size="5.5">+ lugar</text>
+  <text x="42" y="118" text-anchor="middle" fill="#312e81" font-size="5">There is a book</text>
+  <text x="42" y="128" text-anchor="middle" fill="#312e81" font-size="5">on the table.</text>
+  <text x="42" y="140" text-anchor="middle" fill="#312e81" font-size="5">There is a window</text>
+  <text x="42" y="150" text-anchor="middle" fill="#312e81" font-size="5">in the room.</text>
+
+  <rect x="84" y="30" width="76" height="118" rx="5" fill="#d1fae5" stroke="#059669" stroke-width="1.1"/>
+  <text x="122" y="44" text-anchor="middle" fill="#047857" font-size="7.5" font-weight="bold">THERE ARE</text>
+  <text x="122" y="56" text-anchor="middle" fill="#312e81" font-size="5.5">2+ cosas (plural)</text>
+  <text x="122" y="66" text-anchor="middle" fill="#312e81" font-size="5.5">que existen / estan</text>
+  <text x="122" y="80" text-anchor="middle" fill="#047857" font-size="5.5" font-weight="bold">ESTRUCTURA</text>
+  <text x="122" y="92" text-anchor="middle" fill="#047857" font-size="5.5">There are + 2+</text>
+  <text x="122" y="102" text-anchor="middle" fill="#047857" font-size="5.5">+ lugar</text>
+  <text x="122" y="118" text-anchor="middle" fill="#312e81" font-size="5">There are two chairs</text>
+  <text x="122" y="128" text-anchor="middle" fill="#312e81" font-size="5">in the room.</text>
+  <text x="122" y="140" text-anchor="middle" fill="#312e81" font-size="5">There are many</text>
+  <text x="122" y="150" text-anchor="middle" fill="#312e81" font-size="5">students in class.</text>
+
+  <rect x="164" y="30" width="76" height="118" rx="5" fill="#dbeafe" stroke="#2563eb" stroke-width="1.1"/>
+  <text x="202" y="44" text-anchor="middle" fill="#1d4ed8" font-size="7.5" font-weight="bold">TO HAVE</text>
+  <text x="202" y="56" text-anchor="middle" fill="#312e81" font-size="5.5">Posesion: algo que</text>
+  <text x="202" y="66" text-anchor="middle" fill="#312e81" font-size="5.5">alguien TIENE</text>
+  <text x="202" y="80" text-anchor="middle" fill="#1d4ed8" font-size="5.5" font-weight="bold">ESTRUCTURA</text>
+  <text x="202" y="92" text-anchor="middle" fill="#1d4ed8" font-size="5.5">Sujeto + have/has</text>
+  <text x="202" y="102" text-anchor="middle" fill="#1d4ed8" font-size="5.5">+ objeto</text>
+  <text x="202" y="118" text-anchor="middle" fill="#312e81" font-size="5">I have a book.</text>
+  <text x="202" y="128" text-anchor="middle" fill="#312e81" font-size="5">She has two chairs.</text>
+  <text x="202" y="142" text-anchor="middle" fill="#1d4ed8" font-size="5" font-weight="bold">has = he/she/it</text>
+  <text x="202" y="152" text-anchor="middle" fill="#1d4ed8" font-size="5">+ singular</text>
+
+  <rect x="244" y="30" width="72" height="118" rx="5" fill="#ffedd5" stroke="#d97706" stroke-width="1.1"/>
+  <text x="280" y="44" text-anchor="middle" fill="#c2410c" font-size="7.5" font-weight="bold">EXIST</text>
+  <text x="280" y="56" text-anchor="middle" fill="#312e81" font-size="5.5">Algo EXISTE</text>
+  <text x="280" y="66" text-anchor="middle" fill="#312e81" font-size="5.5">(mas formal)</text>
+  <text x="280" y="80" text-anchor="middle" fill="#c2410c" font-size="5.5" font-weight="bold">ESTRUCTURA</text>
+  <text x="280" y="92" text-anchor="middle" fill="#c2410c" font-size="5.5">There + exist(s)</text>
+  <text x="280" y="102" text-anchor="middle" fill="#c2410c" font-size="5.5">+ objeto</text>
+  <text x="280" y="118" text-anchor="middle" fill="#312e81" font-size="5">There exists a</text>
+  <text x="280" y="128" text-anchor="middle" fill="#312e81" font-size="5">solution.</text>
+  <text x="280" y="142" text-anchor="middle" fill="#c2410c" font-size="5" font-weight="bold">exists = singular</text>
+  <text x="280" y="152" text-anchor="middle" fill="#c2410c" font-size="5">exist = plural</text>
+
+  <text x="160" y="164" text-anchor="middle" fill="#5B21B6" font-size="6.5" font-weight="bold">TIP: there is/are = lugares | to have = posesion | exist = formal</text>
+  <text x="160" y="175" text-anchor="middle" fill="#6d28d9" font-size="6">Hay un libro = There is a book. | Yo tengo un libro = I have a book.</text>
 </svg>

@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v17-offclock-estructuras';
+const JILL_PRO_BRAIN_VER = 'v18-offclock-if-there-irreg';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -30,7 +30,7 @@ function isEnglishDoubtRequest(message) {
   const t = String(message || '');
   if (!t.trim()) return false;
   const ask = /\b(explain|teach me|ens[eé][aá]me|expl[ií]c[aá]me|no entiendo|no me qued[oó]|don't understand|do not understand|how do i|how to use|c[oó]mo se (usa|dice|forma|hace)|qu[eé] es|ayud[aá]me( a )?entender|ayud[aá]me|pod[eé]s ayudarme|podes ayudarme|help me (understand|with)|can you (explain|help)|no me qued[oó] claro|me ense[nñ]aron|en clase|hoy (en clase |vimos |nos ense[nñ])|whiteboard|lecci[oó]n|duda|confund|confused|no s[eé] c[oó]mo|me ayudas|me ayud[aá]s|charlar acerca|hablar de|quiero (saber|entender|aprender))\b/i.test(t);
-  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future (simple|continuous|perfect)|futuro(?:\s+perfecto)?|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not|will have)\b/i.test(t);
+  const topic = /\b(gramm|gerund(?:io)?|tense|tiempo verbal|present (simple|continuous|perfect)|past (simple|continuous|perfect)|present perfect|past perfect|future (simple|continuous|perfect)|futuro(?:\s+perfecto)?|going to|modales?|preposici[oó]n(?:es)?|there (is|are)|to have|exist(?:e|en)?|if i (was|were)|verbos?\s+irregulares?|irregular verbs?|ing vs to|infinitiv|inversi[oó]n|to be \+ ?ing|negaci[oó]n|don'?t|doesn'?t|didn'?t|isn'?t|aux\s*\+?\s*not|will have)\b/i.test(t);
   return ask || (topic && /\b(no |don'?t |how |qu[eé] |c[oó]mo |explain|ense|entend|duda|ayud|forma|charlar|hablar)\b/i.test(t));
 }
 
@@ -118,11 +118,17 @@ Canon Off the Clock — explicá con ESTRUCTURA Pronombre + ...:
 - Pronombre + Modal + Verbo (base, sin to)
 - Pronombre + Modal + Have Been + Verbo ING
 - Modal + Have + Participio (will/would/should/could/must have) + sensacion
+- If I was (pasado real/posible) / If I were (hipotesis irreal) / If I were to (futuro poco probable, formal)
+- There is (1) / There are (2+) / To Have (posesion) / Exist (formal)
+- Verbos irregulares: Presente | Pasado simple | Participio (3 columnas)
 Si piden PASADO SIMPLE / PS: tablero PS (no PR, no moneda).
 Si piden IN ON AT BY / preposiciones: tablero preposiciones.
 Si piden MODALES: Pronombre + Modal + Verbo. NO abras Método Moneda.
 Si piden should have / must have (sin been): Modal + Have + Participio (estructura + sensacion).
 Si piden must have been + ing: Pronombre + Modal + Have Been + Verbo ING.
+Si piden IF I WAS / IF I WERE / IF I WERE TO / was vs were: tablero if-was-were.
+Si piden THERE IS / THERE ARE / TO HAVE (posesion) / EXIST / hay vs tener: tablero there-existencial.
+Si piden VERBOS IRREGULARES / 3 columnas / lista irregular: tablero verbos-irregulares.
 Si piden MONEDA / inversión: Are you…? = V+P. NO abras modales.
 Si piden HAVE + BEEN + V-ing / PPC: Pronombre + Have + Been + Verbo (ING).
 Si piden HAVE Y HAD: have/has vs had.
