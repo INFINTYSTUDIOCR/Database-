@@ -8,27 +8,31 @@
   /** zones: labels for aria only; challenges cycle by index */
   var TRACK_ZONES = {
     irregular_verbs: 3,
-    prepositions: 3,
+    prepositions: 4,
     prepositions_time: 3,
-    there: 2,
-    negations: 2,
+    there: 3,
+    negations: 3,
     articles: 3,
     modales: 3,
-    modal: 2,
+    modal: 3,
     progressive: 3,
-    past: 2,
-    present: 2,
+    past: 3,
+    present: 3,
     perfect: 3,
-    combined: 3,
-    future: 2,
+    combined: 4,
+    future: 3,
     modal_have_pp: 3,
-    modal_have_been: 3,
+    modal_have_been: 4,
     gerundio: 2,
     gerund_prep: 3,
-    comparatives: 2,
+    comparatives: 3,
     have_had: 3,
-    if_was_were: 2,
-    overview: 4
+    if_was_were: 3,
+    overview: 4,
+    nexus_idea_chain: 3,
+    nexus_linkers: 3,
+    nexus_star: 4,
+    nexus_recovery: 3
   };
 
   /** Oral cues that count as on-track production */

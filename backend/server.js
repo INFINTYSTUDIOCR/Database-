@@ -527,7 +527,19 @@ async function loadStudentRecordForAuth(req, bodyStudent) {
   if (req.auth.role === 'student' && req.auth.studentId) {
     try {
       const row = await sbGetOne('infinity_students', req.auth.studentId);
-      if (row?.data) return { ...row.data, id: req.auth.studentId };
+      if (row?.data) {
+        const merged = { ...row.data, id: req.auth.studentId };
+        // Client is source of truth for live calibration + study prefs until synced
+        if (bodyStudent?.jillCalibration) merged.jillCalibration = bodyStudent.jillCalibration;
+        if (bodyStudent?.aiProfile?.learningPrefs) {
+          merged.aiProfile = { ...(merged.aiProfile || {}), ...(bodyStudent.aiProfile || {}) };
+          merged.aiProfile.learningPrefs = {
+            ...(merged.aiProfile.learningPrefs || {}),
+            ...bodyStudent.aiProfile.learningPrefs
+          };
+        }
+        return merged;
+      }
     } catch (e) { /* fall through */ }
   }
   return bodyStudent || null;
@@ -3045,9 +3057,9 @@ function detectStudySignals(text) {
 }
 
 function mergeStudyPrefs(student, message) {
-  if (!student) return;
+  if (!student) return false;
   const signals = detectStudySignals(message);
-  if (!Object.keys(signals).length) return;
+  if (!Object.keys(signals).length) return false;
   student.aiProfile = student.aiProfile || {};
   const lp = { ...(student.aiProfile.learningPrefs || {}) };
   if (signals.confused) lp.confusionCount = (lp.confusionCount || 0) + 1;
@@ -3058,6 +3070,23 @@ function mergeStudyPrefs(student, message) {
   if (signals.prefersVisual) lp.prefersVisual = true;
   lp.lastSignalAt = new Date().toISOString();
   student.aiProfile.learningPrefs = lp;
+  return true;
+}
+
+async function persistStudentLearningState(student) {
+  if (!student?.id) return;
+  try {
+    const row = await sbGetOne('infinity_students', student.id);
+    const data = { ...(row?.data || {}), id: student.id };
+    if (student.aiProfile?.learningPrefs) {
+      data.aiProfile = { ...(data.aiProfile || {}), ...(student.aiProfile || {}) };
+      data.aiProfile.learningPrefs = student.aiProfile.learningPrefs;
+    }
+    if (student.jillCalibration) data.jillCalibration = student.jillCalibration;
+    await sbSet('infinity_students', student.id, data);
+  } catch (e) {
+    console.warn('persistStudentLearningState:', e.message);
+  }
 }
 
 function buildStudyAdaptationNote(student, message) {
@@ -3072,8 +3101,13 @@ function buildStudyAdaptationNote(student, message) {
   if (live.prefersSlow || lp.prefersSlow) parts.push('Slower pace — smaller steps, confirm each step.');
   if (live.prefersSpanish || lp.prefersSpanish) parts.push('Add a brief Spanish bridge if needed (Jill: in Spanish; Alice: ALICE tip line).');
   if (live.prefersVisual || lp.prefersVisual) parts.push('Use a visual/analogy description (whiteboard-style if available).');
+  const cal = student?.jillCalibration;
+  if (cal?.initialDone && cal.route?.summary) {
+    parts.push(`Calibration route saved: ${cal.route.summary}`);
+    if (cal.route.weakKpis?.length) parts.push(`Prioritize KPIs from calibration: ${cal.route.weakKpis.join(', ')}.`);
+  }
   if (!parts.length) return '';
-  return `\nADAPTATION (same brain, different delivery):\n${parts.map((p) => `- ${p}`).join('\n')}`;
+  return `\nADAPTATION (same brain, different delivery — prefs + calibration memory):\n${parts.map((p) => `- ${p}`).join('\n')}`;
 }
 
 function loadJsonFromConfig(name) {
@@ -3419,7 +3453,9 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
-    mergeStudyPrefs(student, message);
+    if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
+      persistStudentLearningState(student).catch(() => {});
+    }
     const adaptNote = buildStudyAdaptationNote(student, message);
     const teachInstr = companion
       ? (function () {
@@ -3517,6 +3553,7 @@ const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Ali
 - If you invent an example, it MUST fit John's style: clear analogy, patience, normal classroom flow (not rushed express, not dragging).
 - You are a warm coach, not a rigid script. Explain linkers, recovery, tone, STAR, grammar — always anchored to Nexus Method and Super Brain doctrine.
 - Pattern every time: (1) answer clearly → (2) ONE concrete example with linkers/chunks for THIS practice → (3) invite them to try it now.
+- When teaching Nexus (Idea+Linker+Idea, linkers, STAR, recovery): keep oral short; the portal shows an animated board — end with [[CTYPE:whiteboard]] on its own last line.
 - NEVER scold. Celebrate curiosity; steer back gently.
 - If they want full Nexora roleplay: point to Nexora Lab, keep coaching here.`;
 
@@ -3942,7 +3979,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     }
 
     const msgs = buildTutorChatMessages(history, message, 12);
-    mergeStudyPrefs(student, message);
+    if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
+      persistStudentLearningState(student).catch(() => {});
+    }
     const adaptNote = buildStudyAdaptationNote(student, message);
     const bundleCtxChat = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
@@ -3958,7 +3997,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint)}${await tutorKnowledgeSliceForJill(message, student)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${await tutorKnowledgeSliceForJill(message, student)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
 
     const resp = await claudeCall({
@@ -4121,7 +4160,9 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     const trainerNote = (isJillCompanion || calibrating) ? '' : (TrainerModel.formatTrainerDrillNote(student, 'jill', jillBundle, matrixContext)
       + TrainerModel.formatTrainerEvalNote(drillEval) + structureNote);
-    mergeStudyPrefs(student, message);
+    if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
+      persistStudentLearningState(student).catch(() => {});
+    }
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
     const adaptNote = buildStudyAdaptationNote(student, message);
@@ -4150,7 +4191,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student);
     const jillCompanionSystem = isJillCompanion
-      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint) + jillDoctrineSlice
+      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${TUTOR_LATENCY_RULE}`;
     await streamAnthropicSSE(res, {
       max_tokens: isJillCompanion ? 900 : 700,
@@ -4254,7 +4295,9 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
     const sceneNote = scenario ? `\nActive scenario: ${scenario.title || ''} — ${scenario.desc || ''}` : '';
-    mergeStudyPrefs(student, message);
+    if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
+      persistStudentLearningState(student).catch(() => {});
+    }
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'alice');
     const adaptNote = buildStudyAdaptationNote(student, message);

@@ -35,9 +35,10 @@
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711speak"></script>
 <script src="js/jill-canon-router.js?v=20260711johnpace"></script>
-<script src="js/jill-canon-visual.js?v=20260710ando"></script>
-<script src="js/jill-canon-drill.js?v=20260710ando"></script>
-<script src="js/jill-visual-stage.js?v=20260711intent"></script>
+<script src="js/jill-canon-visual.js?v=20260711nexus"></script>
+<script src="js/jill-canon-drill.js?v=20260711nexus"></script>
+<script src="js/jill-lesson-clip.js?v=20260711nexus"></script>
+<script src="js/jill-visual-stage.js?v=20260711nexus"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -162,13 +163,122 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .jill-drill-ring.is-hot .jill-drill-ring-fg{stroke:#34d399;}
   #jill-stage-media.jill-oral-ok{outline:3px solid rgba(52,211,153,0.7);outline-offset:-3px;}
   #jill-stage-media.jill-oral-miss{outline:3px solid rgba(248,113,113,0.65);outline-offset:-3px;}
+  /* Lesson clip HTML (Present Continuous piloto) */
+  .jill-lesson-clip-host{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:16px 16px 52px;box-sizing:border-box;z-index:2;
+  }
+  .jill-clip{
+    position:relative;width:100%;max-width:640px;padding:1.6rem 1.35rem 1.2rem;
+    border-radius:20px;overflow:hidden;
+    background:linear-gradient(165deg,rgba(49,46,129,0.92) 0%,rgba(76,29,149,0.88) 45%,rgba(91,33,182,0.85) 100%);
+    border:1px solid rgba(196,181,253,0.35);
+    box-shadow:0 18px 48px rgba(49,46,129,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+    display:flex;flex-direction:column;align-items:center;gap:1.1rem;
+  }
+  .jill-clip-aura{
+    position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.35),transparent 65%);
+    animation:jillClipAura 6s ease-in-out infinite alternate;
+  }
+  @keyframes jillClipAura{
+    from{opacity:.55;transform:translateY(0)}
+    to{opacity:1;transform:translateY(8px)}
+  }
+  .jill-clip-title{
+    position:relative;z-index:1;margin:0;font-size:clamp(15px,2.4vw,18px);
+    font-weight:800;letter-spacing:.02em;color:#F5F3FF;text-align:center;
+  }
+  .jill-clip-bridge{
+    position:relative;z-index:1;margin:-0.35rem 0 0;font-size:12px;line-height:1.35;
+    color:rgba(221,214,254,0.9);text-align:center;max-width:36rem;
+  }
+  .jill-clip-row{
+    position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;
+    gap:8px;flex-wrap:wrap;width:100%;
+  }
+  .jill-clip-slot{
+    flex:1 1 120px;min-width:110px;max-width:170px;border:0;cursor:pointer;
+    border-radius:14px;padding:12px 10px;text-align:center;
+    background:linear-gradient(180deg,#7C3AED,#5B21B6);
+    color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.22);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .jill-clip-slot[data-slot="2"]{
+    background:linear-gradient(180deg,#F59E0B,#D97706);
+  }
+  .jill-clip-slot[data-slot="4"]{
+    background:linear-gradient(180deg,#34D399,#059669);
+  }
+  .jill-clip-slot[data-slot="5"]{
+    background:linear-gradient(180deg,#F472B6,#DB2777);
+  }
+  .jill-clip-slot-label{display:block;font-size:13px;font-weight:800;letter-spacing:.01em;}
+  .jill-clip-slot-hint{display:block;margin-top:4px;font-size:10px;opacity:.85;font-weight:600;}
+  .jill-clip-slot.is-active{
+    transform:translateY(-3px) scale(1.04);
+    box-shadow:0 0 0 3px rgba(255,255,255,0.28), 0 12px 28px rgba(0,0,0,0.28);
+  }
+  .jill-clip-slot.is-pulse{animation:jillClipPulse .55s ease;}
+  @keyframes jillClipPulse{
+    0%{transform:scale(1)}
+    40%{transform:scale(1.12);box-shadow:0 0 0 8px rgba(167,139,250,0.22)}
+    100%{transform:scale(1)}
+  }
+  .jill-clip-plus{
+    align-self:center;font-size:18px;font-weight:800;color:rgba(196,181,253,0.75);
+    padding:0 2px;
+  }
+  .jill-clip-example{
+    position:relative;z-index:1;margin:0;min-height:2.2em;padding:0.35rem 0.5rem;
+    font-size:clamp(18px,3.2vw,26px);font-weight:800;line-height:1.35;
+    text-align:center;color:#F8FAFC;letter-spacing:.01em;
+  }
+  .jill-clip-word{
+    display:inline;opacity:0;transform:translateY(8px);
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  .jill-clip-word.is-in{opacity:1;transform:translateY(0)}
+  .jill-clip-example.is-done{animation:jillClipSettle .4s ease}
+  @keyframes jillClipSettle{
+    from{filter:brightness(1.15)}
+    to{filter:brightness(1)}
+  }
+  .jill-clip-footer{
+    position:relative;z-index:1;width:100%;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;margin-top:0.15rem;
+  }
+  .jill-clip-progress{font-size:11px;font-weight:700;color:rgba(221,214,254,0.85)}
+  .jill-clip-replay{
+    border:1px solid rgba(196,181,253,0.45);background:rgba(255,255,255,0.08);
+    color:#EDE9FE;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;
+    cursor:pointer;
+  }
+  .jill-clip-replay:hover{background:rgba(255,255,255,0.14)}
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
   #jill-lesson-shell.jill-stage-active #jill-messages{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-chips,
   #jill-lesson-shell.jill-stage-active #jill-habit-wrap,
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel{display:none!important;}
-  /* Always keep mic/input dock visible in stage + fullscreen */
+  /* Alice lesson stage (same clip engine as Jill) */
+  #alice-lesson-shell{position:relative;}
+  #alice-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
+  #alice-lesson-shell.jill-stage-active #alice-visual-stage{display:flex;flex:1 1 auto;min-height:220px;}
+  #alice-stage-media{flex:1;min-height:180px;position:relative;}
+  #alice-stage-caption{display:none!important;}
+  #alice-lesson-shell.jill-stage-active #alice-messages{display:none!important;}
+  #alice-lesson-shell.jill-stage-active #alice-control-dock{
+    background:rgba(15,10,40,0.92);border:1px solid rgba(167,139,250,0.4);
+    border-radius:16px;padding:12px;box-shadow:0 -8px 32px rgba(0,0,0,0.35);
+  }
+  #alice-lesson-shell:fullscreen{
+    width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+    border-radius:0!important;display:flex;flex-direction:column;
+    background:#0f0a28;padding:12px;
+  }
+  #alice-lesson-shell:fullscreen #alice-session-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;}
+  #alice-lesson-shell:fullscreen.jill-stage-active #alice-stage-media{min-height:0;max-height:calc(100vh - 200px);}
   #jill-control-dock{
     flex-shrink:0;position:relative;z-index:5;
     display:flex;flex-direction:column;gap:8px;
@@ -2142,7 +2252,8 @@ function renderAliceSession(){
       +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
       +'</div>'
     : '';
-  return '<div id="alice-session-main">'
+  return '<div id="alice-lesson-shell">'
+    +'<div id="alice-session-main">'
     + gameChips
     +(scn
       ?'<div style="background:rgba('+th.rgb+',0.08);border:1px solid rgba('+th.rgb+',0.18);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.55);display:flex;gap:16px;flex-wrap:wrap;">'
@@ -2152,7 +2263,12 @@ function renderAliceSession(){
         +'</div>'
       :'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">'+badgeText+'</div>'
     )
+    +'<div id="alice-visual-stage" hidden>'
+    +'<div id="alice-stage-media"></div>'
+    +'<div id="alice-stage-caption" hidden></div>'
+    +'</div>'
     +'<div id="alice-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+msgs+'</div>'
+    +'<div id="alice-control-dock">'
     +'<div id="alice-status" style="font-size:12px;color:'+th.accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
     +'<input id="alice-input" class="inp" placeholder="Respondé en inglés o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba('+th.rgb+',0.28);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendAliceMessage();">'
@@ -2164,7 +2280,8 @@ function renderAliceSession(){
     +'<button style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba('+th.rgb+',0.1);border:1px solid rgba('+th.rgb+',0.22);color:'+th.accent+';font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="saveAliceSession()"><i class="ti ti-device-floppy"></i>Guardar y continuar después</button>'
     +'<button style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="cancelAliceSession()"><i class="ti ti-x"></i>Cancelar</button>'
     +'</div>'
-    +'</div>';
+    +'</div>'
+    +'</div></div>';
 }
 
 function renderAliceEvaluation(){
@@ -2387,6 +2504,7 @@ function saveAliceSession(){
 
 function cancelAliceSession(){
   stopAlice();
+  if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide();
   _aliceState.sessionActive = false;
   _aliceState.history = [];
   _aliceState.scenario = null;
@@ -2407,6 +2525,7 @@ function aliceFormatMessageHtml(m){
   if(tipSplit && isAlice){ clientPart = tipSplit[1].trim(); aliceTip = tipSplit[2].trim(); }
   var tipColor = th.accent;
   var clean = clientPart
+    .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/GOOD: ([^\n]*)/g,'<em style="color:#86EFAC;font-size:11px;display:block;margin-top:6px;font-weight:700;font-style:normal;">✓ $1</em>')
     .replace(/TIP: ([^\n]*)/g,'<em style="color:'+tipColor+';font-size:11px;display:block;margin-top:6px;font-weight:600;font-style:normal;">💡 $1</em>');
   var roleLabel = (_aliceState.sessionType==='companion' && isAlice) ? 'COMPANION' : (isAlice ? 'ALICE' : 'VOS');
@@ -2657,6 +2776,7 @@ async function saveKB(){
 
 async function endAliceSession(){
   stopAlice();
+  if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide();
   if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Alice está evaluando tu sesión...';
   try{
     var r = await infinityFetch('/alice', {
@@ -3076,9 +3196,39 @@ function aliceTtsMainLine(text){
   return String(text || '')
     .replace(/^💬\s*/, '')
     .replace(/▋/g, '')
+    .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/\nALICE:\s*/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function aliceLastUserTopic(){
+  var hist = (_aliceState && _aliceState.history) || [];
+  for(var i = hist.length - 1; i >= 0; i--){
+    if(hist[i] && hist[i].role === 'user' && hist[i].content){
+      return String(hist[i].content).trim();
+    }
+  }
+  return (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
+}
+
+function aliceActivateVisualStage(text){
+  if(typeof JillVisualStage === 'undefined') return;
+  var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+  var userTopic = aliceLastUserTopic();
+  var sticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
+  var blob = (userTopic + ' ' + sticky + ' ' + plain).trim();
+  var col = JillVisualStage.resolveColumn(plain, null, blob, 'alice');
+  if(!col && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
+    col = JillLessonClip.resolveNexusId(blob);
+  }
+  if(!col) return;
+  var shown = JillVisualStage.show(plain, 'whiteboard', null, {
+    tutor: 'alice',
+    userTopic: blob,
+    column: col
+  });
+  if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
 }
 
 function aliceQueueFullReply(text){
@@ -3086,6 +3236,7 @@ function aliceQueueFullReply(text){
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var main = aliceTtsMainLine(text);
   if(!main || main.length < 3) return;
+  try { aliceActivateVisualStage(main); } catch(eVis) {}
   // Clear stale queue so a new full reply is never mixed with a half-played one
   _aliceTTSQueue = [];
   ttsSpeakLines(main, 1200).forEach(function(line){

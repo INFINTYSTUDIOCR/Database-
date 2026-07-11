@@ -131,9 +131,9 @@ function formatLock(track) {
     `Ejemplo: ${track.example}`,
     never ? `PROHIBIDO mezclar: ${never}` : '',
     'VOZ: decí ranuras en español (pronombre/modal/verbo/complemento). VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
-    'ESTILO JOHN: paciencia + flujo normal (ni express ni lento). Fórmula + bridge + 1 analogía clara. Sin improvisar fuera de este track.',
+    'ESTILO JOHN: paciencia + flujo normal (ni express ni lento). Fórmula + bridge + 1 analogía clara. Sin improvisar otro método.',
     'SVG sincronizado con este track: hablás lo que se ve; práctica en blank/mic. Cero "mirá el ejercicio" sin blank.',
-    'Explicá SOLO este track. No cambies de módulo. [[CTYPE:whiteboard]]'
+    'Este turno: enseñá ESTE track (el pedido actual). Si después piden OTRO tema, cambiá de track — siempre estilo John. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }
 

@@ -1,5 +1,5 @@
 /**
- * Escenario visual Jill — SVG interactivo + drill (tap + score oral).
+ * Escenario visual Infinity — clips animados (Jill Foundations + Alice Nexus).
  * Sin bloques de texto-ejercicio: glow / anillo / audio.
  */
 (function (global) {
@@ -8,20 +8,25 @@
   var active = false;
   var currentColumn = null;
   var pulseTimer = null;
+  var activeTutor = 'jill';
 
   function shell() {
+    if (activeTutor === 'alice') return document.getElementById('alice-lesson-shell');
     return document.getElementById('jill-lesson-shell');
   }
 
   function stageEl() {
+    if (activeTutor === 'alice') return document.getElementById('alice-visual-stage');
     return document.getElementById('jill-visual-stage');
   }
 
   function mediaEl() {
+    if (activeTutor === 'alice') return document.getElementById('alice-stage-media');
     return document.getElementById('jill-stage-media');
   }
 
   function captionEl() {
+    if (activeTutor === 'alice') return document.getElementById('alice-stage-caption');
     return document.getElementById('jill-stage-caption');
   }
 
@@ -32,13 +37,19 @@
     return null;
   }
 
-  function resolveColumn(replyText, bundle, userTopic) {
+  function resolveColumn(replyText, bundle, userTopic, tutor) {
     var user = String(userTopic || '').trim();
     var reply = String(replyText || '').trim();
+    var preferNexus = tutor === 'alice';
+
+    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      var nx = global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply);
+      if (nx) return nx;
+    }
+
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
       var id = JillCanonRouter.resolveAskId(user, '');
       if (id) return id;
-      // Pedido fuzzy (Willy/Wood) → usar también la respuesta de Jill
       if (reply) {
         id = JillCanonRouter.resolveAskId(reply, user);
         if (id) return id;
@@ -48,18 +59,27 @@
         }
       }
     }
+
+    if (!preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      var nx2 = global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply);
+      if (nx2) return nx2;
+    }
+
     if (user) return detectColumn(user, bundle);
     if (reply) return detectColumn(reply, bundle);
     return null;
   }
 
-  function isExplainTurn(contentType, text, userTopic) {
+  function isExplainTurn(contentType, text, userTopic, tutor) {
     if (contentType === 'whiteboard' || contentType === 'example') return true;
     var user = String(userTopic || '');
     var reply = String(text || '');
-    if (/qu[eé] gusto|de nuevo|podemos charlar|qu[eé] quer[eé]s (hoy|hacer|charlar)|bienvenid/i.test(reply)
-      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal|pasado|futuro|continuo|there|hay|imagen|pizarr|tablero|will|would|can|should)\b/i.test(user)) {
+    if (/qu[eé] gusto|de nuevo|podemos charlar|qu[eé] quer[eé]s (hoy|hacer|charlar)|bienvenid|welcome back|what (do you )?want to (talk|chat)/i.test(reply)
+      && !/\b(explic|ens[eé][nñ]|explain|teach|linker|star|nexus|negaci|gerundio|f[oó]rmula|will|would|should|however)\b/i.test(user)) {
       return false;
+    }
+    if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      if (global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply)) return true;
     }
     if (user && typeof JillCanonRouter !== 'undefined') {
       if (JillCanonRouter.resolveAskId && JillCanonRouter.resolveAskId(user, '')) return true;
@@ -70,13 +90,15 @@
       if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(reply)) return true;
     }
     var blob = user + ' ' + reply;
+    var nexusCue = /\b(explic|ens[eé][nñ]|explain|teach|no entiendo|don'?t understand|duda|linker|connector|star|nexus|idea\s*\+|however|on top of that|recovery|pattern|estructura|f[oó]rmula|whiteboard|pizarr|tablero)\b/i.test(blob);
+    if (tutor === 'alice') return nexusCue || /\b(how (do|to)|what (is|are)|c[oó]mo se|qu[eé] es)\b/i.test(blob);
     return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|presente|futuro)\b/i.test(blob);
   }
 
-  function shouldShow(contentType, text, bundle, userTopic, forcedColumn) {
+  function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
     if (forcedColumn) return true;
-    if (!isExplainTurn(contentType, text, userTopic)) return false;
-    return !!resolveColumn(text, bundle, userTopic);
+    if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
+    return !!resolveColumn(text, bundle, userTopic, tutor);
   }
 
   function requestFullscreen() {
@@ -106,11 +128,15 @@
   }
 
   function zoneCount(columnId) {
+    if (typeof JillLessonClip !== 'undefined' && JillLessonClip.getClip) {
+      var clip = JillLessonClip.getClip(columnId);
+      if (clip && clip.slots && clip.slots.length) return clip.slots.length;
+    }
     if (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.zoneCount) {
       return JillCanonDrill.zoneCount(columnId);
     }
-    if (columnId === 'negations' || columnId === 'there' || columnId === 'future' || columnId === 'past' || columnId === 'present') return 2;
-    if (columnId === 'overview') return 4;
+    if (columnId === 'negations' || columnId === 'there' || columnId === 'future' || columnId === 'past' || columnId === 'present') return 3;
+    if (columnId === 'overview' || columnId === 'combined' || columnId === 'prepositions' || columnId === 'modal_have_been') return 4;
     return 3;
   }
 
@@ -212,9 +238,11 @@
 
   function show(text, contentType, bundle, opts) {
     opts = opts || {};
+    var tutor = opts.tutor === 'alice' ? 'alice' : 'jill';
+    activeTutor = tutor;
     var userTopic = opts.userTopic || '';
-    var col = opts.column || resolveColumn(text, bundle, userTopic);
-    if (!col || !shouldShow(contentType, text, bundle, userTopic, col)) {
+    var col = opts.column || resolveColumn(text, bundle, userTopic, tutor);
+    if (!col || !shouldShow(contentType, text, bundle, userTopic, col, tutor)) {
       return false;
     }
     var sh = shell();
@@ -225,6 +253,9 @@
     clearCaption();
 
     function activate(html) {
+      if (typeof global.JillLessonClip !== 'undefined') {
+        try { global.JillLessonClip.unmount(); } catch (e0) { /* ignore */ }
+      }
       media.innerHTML = (html || '') + interactOverlayHtml(col);
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
@@ -232,9 +263,22 @@
       currentColumn = col || null;
       requestFullscreen();
       wireInteract(media, col);
+      var host = media.querySelector('.jill-lesson-clip-host');
+      if (host && typeof global.JillLessonClip !== 'undefined') {
+        var clipId = host.getAttribute('data-clip') || col;
+        global.JillLessonClip.mount(host, clipId);
+      }
     }
 
-    if (!col || typeof JillCanonVisual === 'undefined') {
+    if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col)) {
+      activate(
+        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
+        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>'
+      );
+      return true;
+    }
+
+    if (typeof JillCanonVisual === 'undefined') {
       activate(
         '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#f3ebff;"></div>'
       );
@@ -280,14 +324,22 @@
 
   function hide() {
     stopPulse();
-    var sh = shell();
-    var stage = stageEl();
-    if (sh) sh.classList.remove('jill-stage-active');
-    if (stage) stage.hidden = true;
-    if (mediaEl()) mediaEl().innerHTML = '';
+    if (typeof global.JillLessonClip !== 'undefined') {
+      try { global.JillLessonClip.unmount(); } catch (e1) { /* ignore */ }
+    }
+    var tutors = ['jill', 'alice'];
+    for (var i = 0; i < tutors.length; i++) {
+      activeTutor = tutors[i];
+      var sh = shell();
+      var stage = stageEl();
+      if (sh) sh.classList.remove('jill-stage-active');
+      if (stage) stage.hidden = true;
+      if (mediaEl()) mediaEl().innerHTML = '';
+    }
     clearCaption();
     active = false;
     currentColumn = null;
+    activeTutor = 'jill';
   }
 
   function resetSession() {
@@ -302,16 +354,24 @@
     return currentColumn;
   }
 
+  function getTutor() {
+    return activeTutor;
+  }
+
   global.JillVisualStage = {
     show: show,
     hide: hide,
     updateCaption: updateCaption,
     scoreOral: scoreOral,
-    shouldShow: function (ct, text, bundle) { return shouldShow(ct, text, bundle, ''); },
+    shouldShow: function (ct, text, bundle) { return shouldShow(ct, text, bundle, '', null, 'jill'); },
     isActive: isActive,
     getTrackId: getTrackId,
+    getTutor: getTutor,
     resetSession: resetSession,
     requestFullscreen: requestFullscreen,
-    resolveColumn: resolveColumn
+    resolveColumn: function (reply, bundle, userTopic, tutor) {
+      return resolveColumn(reply, bundle, userTopic, tutor || 'jill');
+    }
   };
+  global.InfinityLessonStage = global.JillVisualStage;
 })(typeof window !== 'undefined' ? window : globalThis);

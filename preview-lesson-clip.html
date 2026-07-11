@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vista previa — Jill Lesson Clips · Infinity</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:20px 16px 40px;
+    background:radial-gradient(ellipse at 30% 20%,#2e1065,#0f0a28 55%,#09061a);
+    font-family:Segoe UI,system-ui,sans-serif;color:#ede9fe;
+  }
+  .bar{width:100%;max-width:720px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .label{margin:0;font-size:12px;font-weight:700;opacity:.8;letter-spacing:.04em;text-transform:uppercase;flex:1}
+  select{
+    min-width:220px;padding:8px 12px;border-radius:10px;border:1px solid rgba(167,139,250,.45);
+    background:#1e1b4b;color:#ede9fe;font-weight:700;font-size:13px;
+  }
+  #host{
+    position:relative;width:100%;max-width:720px;min-height:420px;border-radius:20px;overflow:hidden;
+    border:2px solid rgba(167,139,250,.35);
+    background:linear-gradient(180deg,#f3ebff,#ede9fe);
+  }
+  .jill-lesson-clip-host{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:16px;box-sizing:border-box;z-index:2;
+  }
+  .jill-clip{
+    position:relative;width:100%;max-width:640px;padding:1.6rem 1.35rem 1.2rem;
+    border-radius:20px;overflow:hidden;
+    background:linear-gradient(165deg,rgba(49,46,129,.92) 0%,rgba(76,29,149,.88) 45%,rgba(91,33,182,.85) 100%);
+    border:1px solid rgba(196,181,253,.35);
+    box-shadow:0 18px 48px rgba(49,46,129,.35), inset 0 1px 0 rgba(255,255,255,.08);
+    display:flex;flex-direction:column;align-items:center;gap:1.1rem;
+  }
+  .jill-clip-aura{
+    position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,.35),transparent 65%);
+    animation:jillClipAura 6s ease-in-out infinite alternate;
+  }
+  @keyframes jillClipAura{from{opacity:.55;transform:translateY(0)}to{opacity:1;transform:translateY(8px)}}
+  .jill-clip-title{position:relative;z-index:1;margin:0;font-size:clamp(15px,2.4vw,18px);font-weight:800;letter-spacing:.02em;color:#F5F3FF;text-align:center}
+  .jill-clip-bridge{position:relative;z-index:1;margin:-.35rem 0 0;font-size:12px;line-height:1.35;color:rgba(221,214,254,.9);text-align:center;max-width:36rem}
+  .jill-clip-row{position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;gap:8px;flex-wrap:wrap;width:100%}
+  .jill-clip-slot{
+    flex:1 1 100px;min-width:96px;max-width:160px;border:0;cursor:pointer;border-radius:14px;padding:12px 10px;text-align:center;
+    background:linear-gradient(180deg,#7C3AED,#5B21B6);color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.22);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .jill-clip-slot[data-slot="2"]{background:linear-gradient(180deg,#F59E0B,#D97706)}
+  .jill-clip-slot[data-slot="4"]{background:linear-gradient(180deg,#34D399,#059669)}
+  .jill-clip-slot[data-slot="5"]{background:linear-gradient(180deg,#F472B6,#DB2777)}
+  .jill-clip-slot-label{display:block;font-size:12px;font-weight:800}
+  .jill-clip-slot-hint{display:block;margin-top:4px;font-size:10px;opacity:.85;font-weight:600}
+  .jill-clip-slot.is-active{transform:translateY(-3px) scale(1.04);box-shadow:0 0 0 3px rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.28)}
+  .jill-clip-slot.is-pulse{animation:jillClipPulse .55s ease}
+  @keyframes jillClipPulse{0%{transform:scale(1)}40%{transform:scale(1.12);box-shadow:0 0 0 8px rgba(167,139,250,.22)}100%{transform:scale(1)}}
+  .jill-clip-plus{align-self:center;font-size:18px;font-weight:800;color:rgba(196,181,253,.75);padding:0 2px}
+  .jill-clip-example{position:relative;z-index:1;margin:0;min-height:2.2em;padding:.35rem .5rem;font-size:clamp(18px,3.2vw,26px);font-weight:800;line-height:1.35;text-align:center;color:#F8FAFC}
+  .jill-clip-word{display:inline;opacity:0;transform:translateY(8px);transition:opacity .22s ease, transform .22s ease}
+  .jill-clip-word.is-in{opacity:1;transform:translateY(0)}
+  .jill-clip-footer{position:relative;z-index:1;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .jill-clip-progress{font-size:11px;font-weight:700;color:rgba(221,214,254,.85)}
+  .jill-clip-replay{border:1px solid rgba(196,181,253,.45);background:rgba(255,255,255,.08);color:#EDE9FE;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer}
+  .hint{margin-top:14px;font-size:13px;opacity:.75;text-align:center;max-width:720px}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <p class="label">Infinity · todos los módulos</p>
+    <select id="track" aria-label="Módulo"></select>
+  </div>
+  <div id="host"><div class="jill-lesson-clip-host" id="clip-host"></div></div>
+  <p class="hint">Cambiá el módulo arriba. Mismo estilo en todos. En el portal se abre según lo que pidan a Jill.</p>
+  <script src="js/jill-lesson-clip.js?v=20260711nexus"></script>
+  <script>
+    var sel = document.getElementById('track');
+    var host = document.getElementById('clip-host');
+    var ids = JillLessonClip.listIds().sort();
+    var q = new URLSearchParams(location.search).get('track');
+    ids.forEach(function (id) {
+      var c = JillLessonClip.getClip(id);
+      var opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = (c && c.title) ? (c.title + ' · ' + id) : id;
+      sel.appendChild(opt);
+    });
+    function load(id) {
+      if (!JillLessonClip.supports(id)) id = 'progressive';
+      sel.value = id;
+      history.replaceState(null, '', '?track=' + encodeURIComponent(id));
+      JillLessonClip.mount(host, id);
+    }
+    sel.addEventListener('change', function () { load(sel.value); });
+    load(q && JillLessonClip.supports(q) ? q : 'progressive');
+  </script>
+</body>
+</html>

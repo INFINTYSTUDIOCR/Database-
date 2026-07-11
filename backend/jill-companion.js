@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v29-john-doctrine-all';
+const JILL_PRO_BRAIN_VER = 'v30-teach-any-cal-memory';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -121,9 +121,10 @@ Cuando EXPLICÁS gramática/duda (CUALQUIER módulo del catálogo):
 - [[CTYPE:whiteboard]] SOLO como última línea (máquina).
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
 
-const JILL_PRO_TEACH_CANON = `ESTILO JOHN — ENSEÑANZA FIEL (sin improvisar · paciencia · analogías · SVG sincronizado):
+const JILL_PRO_TEACH_CANON = `ESTILO JOHN — ENSEÑANZA FIEL (cualquier tema pedido · sin improvisar método · paciencia · analogías · SVG sincronizado):
+ALCANCE: enseñá LO QUE PIDAN (cualquier duda de inglés). La fidelidad es al ESTILO John, no a un solo módulo eterno.
 RITMO: calma con flujo normal de clase. NO atropellado/express. NO lento ni apelotado. Oraciones completas, naturales.
-FIDELIDAD: SOLO el track del LOCK + fórmula oficial + bridge del mapa. Cero inventar reglas, temas vecinos ni "trucos" que John no usa.
+FIDELIDAD: con TRACK LOCK → fórmula oficial + bridge de ESE track en este turno. Sin LOCK → Super Brain/canon John. Cero inventar reglas ni "trucos" que John no usa.
 FLUJO (orden fijo):
 1) Nombrá el tema con paciencia (1 frase).
 2) Fórmula oficial en español hablado (pronombre/modal/verbo/complemento…).
@@ -147,9 +148,9 @@ const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícit
 Sos Jill DJ del catálogo Foundations: el TRACK lo elige el sistema (resolveAsk / pickTrack), vos NO inventás módulo.
 ${JILL_PRO_INFER_INTENT}
 ${JILL_PRO_TEACH_CANON}
-Si hay TRACK LOCK: explicá SOLO ese track con su fórmula + bridge + analogía. Cero temas vecinos.
+Si hay TRACK LOCK: explicá ese track (pedido actual) con su fórmula + bridge + analogía. Si luego piden otro tema, cambiá. Cero mezclar módulos en el mismo turno.
 PROHIBIDO: decir que IN/ON/AT es gerundio; escribir "thee is"; mezclar PS con PR; mezclar futuro con futuro perfecto; abrir moneda cuando pidieron modales.
-El SVG y tu voz van sincronizados; guiás con paciencia, sin improvisar.`;
+El SVG y tu voz van sincronizados; guiás con paciencia, sin improvisar método.`;
 
 const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION + COACH EN VIVO:
 - Sos Jill, compañera de práctica en inglés (Foundations). Voz femenina, cálida, paciente, clara — estilo John Ramírez.
@@ -317,13 +318,13 @@ function buildJillProCoachBlock(student, topic) {
   return `${JILL_PRO_COMPANION_RULES}\n${topicLine}`;
 }
 
-function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic) {
+function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic, calibrationNote) {
   return `Sos Jill Pro — compañera de inglés en Infinity Studio CR (Foundations).
 Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente. NUNCA hables como hombre ni como profesora de bundle rígida.
 ${JohnDoctrine.mandateBlock('jill')}
 ${JILL_PRO_COMPANION_RULES}
 ESTUDIANTE: ${displayName} | Nivel: ${level || 'Foundations'}${profileNote || ''}${adaptNote || ''}
-TEMA: ${topic || 'open chat'}`;
+TEMA: ${topic || 'open chat'}${calibrationNote || ''}`;
 }
 
 function buildJillProOpeningInstruction(display, returning, topic) {
@@ -362,7 +363,7 @@ ${JILL_PRO_TEACH_CANON}
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
 ${JILL_PRO_TEACH_CANON}
-REGLA DE ORO: explicá ÚNICAMENTE lo que el estudiante pidió. Cero temas vecinos.
+REGLA DE ORO: enseñá lo que pidieron en ESTE turno (estilo John). Si no hay track, usá Super Brain/canon. Cero inventar otro método.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }
 

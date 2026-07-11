@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 9,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
   "frame": {
@@ -24,6 +24,8 @@
       "columns": [
         "progressive"
       ],
+      "engine": "lessonClip",
+      "clipId": "progressive",
       "svg": "assets/canon/presente-continuo.svg",
       "gif": null,
       "title": "Pronombre + To Be + Verbo (ING)"
@@ -36,7 +38,9 @@
       ],
       "svg": "assets/canon/gerundio-prep.svg",
       "gif": null,
-      "title": "Gerundio despues de preposicion"
+      "title": "Gerundio despues de preposicion",
+      "engine": "lessonClip",
+      "clipId": "gerund_prep"
     },
     {
       "id": "tiempos-pr",
@@ -45,7 +49,9 @@
       ],
       "svg": "assets/canon/tiempos-pr.svg",
       "gif": null,
-      "title": "Presente simple PR"
+      "title": "Presente simple PR",
+      "engine": "lessonClip",
+      "clipId": "present"
     },
     {
       "id": "tiempos-ps",
@@ -54,7 +60,9 @@
       ],
       "svg": "assets/canon/tiempos-ps.svg",
       "gif": null,
-      "title": "Pasado simple PS"
+      "title": "Pasado simple PS",
+      "engine": "lessonClip",
+      "clipId": "past"
     },
     {
       "id": "tiempos-prp",
@@ -63,7 +71,9 @@
       ],
       "svg": "assets/canon/tiempos-prp.svg",
       "gif": null,
-      "title": "Pronombre + Have/Has + Participio"
+      "title": "Pronombre + Have/Has + Participio",
+      "engine": "lessonClip",
+      "clipId": "perfect"
     },
     {
       "id": "tiempos-fut",
@@ -72,7 +82,9 @@
       ],
       "svg": "assets/canon/tiempos-fut.svg",
       "gif": null,
-      "title": "Futuro will / going to"
+      "title": "Futuro will / going to",
+      "engine": "lessonClip",
+      "clipId": "future"
     },
     {
       "id": "tiempos",
@@ -81,7 +93,9 @@
       ],
       "svg": "assets/canon/tiempos.svg",
       "gif": null,
-      "title": "Tiempos verbales overview"
+      "title": "Tiempos verbales overview",
+      "engine": "lessonClip",
+      "clipId": "overview"
     },
     {
       "id": "have-been-ing",
@@ -90,7 +104,9 @@
       ],
       "svg": "assets/canon/have-been-ing.svg",
       "gif": null,
-      "title": "Pronombre + Have + Been + Verbo (ING)"
+      "title": "Pronombre + Have + Been + Verbo (ING)",
+      "engine": "lessonClip",
+      "clipId": "combined"
     },
     {
       "id": "modales",
@@ -99,7 +115,9 @@
       ],
       "svg": "assets/canon/modales.svg",
       "gif": null,
-      "title": "Pronombre + Modal + Verbo"
+      "title": "Pronombre + Modal + Verbo",
+      "engine": "lessonClip",
+      "clipId": "modales"
     },
     {
       "id": "modal-have-been-ing",
@@ -108,7 +126,9 @@
       ],
       "svg": "assets/canon/modal-have-been-ing.svg",
       "gif": null,
-      "title": "Pronombre + Modal + Have Been + Verbo ING"
+      "title": "Pronombre + Modal + Have Been + Verbo ING",
+      "engine": "lessonClip",
+      "clipId": "modal_have_been"
     },
     {
       "id": "modal-have-pp",
@@ -117,7 +137,9 @@
       ],
       "svg": "assets/canon/modal-have-pp.svg",
       "gif": null,
-      "title": "Modal + Have + Participio"
+      "title": "Modal + Have + Participio",
+      "engine": "lessonClip",
+      "clipId": "modal_have_pp"
     },
     {
       "id": "preposiciones",
@@ -126,7 +148,9 @@
       ],
       "svg": "assets/canon/preposiciones.svg",
       "gif": null,
-      "title": "Preposiciones IN ON AT BY"
+      "title": "Preposiciones IN ON AT BY",
+      "engine": "lessonClip",
+      "clipId": "prepositions"
     },
     {
       "id": "preposiciones-tiempo",
@@ -135,7 +159,9 @@
       ],
       "svg": "assets/canon/preposiciones-tiempo.svg",
       "gif": null,
-      "title": "Preposiciones de tiempo"
+      "title": "Preposiciones de tiempo",
+      "engine": "lessonClip",
+      "clipId": "prepositions_time"
     },
     {
       "id": "there-existencial",
@@ -144,7 +170,9 @@
       ],
       "svg": "assets/canon/there-existencial.svg",
       "gif": null,
-      "title": "There is / There are / To Have / Exist"
+      "title": "There is / There are / To Have / Exist",
+      "engine": "lessonClip",
+      "clipId": "there"
     },
     {
       "id": "if-was-were",
@@ -153,7 +181,9 @@
       ],
       "svg": "assets/canon/if-was-were.svg",
       "gif": null,
-      "title": "If I was / If I were / If I were to"
+      "title": "If I was / If I were / If I were to",
+      "engine": "lessonClip",
+      "clipId": "if_was_were"
     },
     {
       "id": "verbos-irregulares",
@@ -162,7 +192,9 @@
       ],
       "svg": "assets/canon/verbos-irregulares.svg",
       "gif": null,
-      "title": "Verbos irregulares (Presente / PS / Participio)"
+      "title": "Verbos irregulares (Presente / PS / Participio)",
+      "engine": "lessonClip",
+      "clipId": "irregular_verbs"
     },
     {
       "id": "negaciones",
@@ -171,7 +203,9 @@
       ],
       "svg": "assets/canon/negaciones.svg",
       "gif": null,
-      "title": "Negaciones - AUX + NOT"
+      "title": "Negaciones - AUX + NOT",
+      "engine": "lessonClip",
+      "clipId": "negations"
     },
     {
       "id": "comparativos",
@@ -180,7 +214,9 @@
       ],
       "svg": "assets/canon/comparativos.svg",
       "gif": null,
-      "title": "Comparativos"
+      "title": "Comparativos",
+      "engine": "lessonClip",
+      "clipId": "comparatives"
     },
     {
       "id": "articulos",
@@ -189,7 +225,9 @@
       ],
       "svg": "assets/canon/articulos.svg",
       "gif": null,
-      "title": "Articulos a/an/the"
+      "title": "Articulos a/an/the",
+      "engine": "lessonClip",
+      "clipId": "articles"
     },
     {
       "id": "moneda",
@@ -198,7 +236,9 @@
       ],
       "svg": "assets/canon/moneda.svg",
       "gif": null,
-      "title": "Metodo moneda"
+      "title": "Metodo moneda",
+      "engine": "lessonClip",
+      "clipId": "modal"
     },
     {
       "id": "have-had",
@@ -207,7 +247,9 @@
       ],
       "svg": "assets/canon/have-had.svg",
       "gif": null,
-      "title": "Have / Has / Had"
+      "title": "Have / Has / Had",
+      "engine": "lessonClip",
+      "clipId": "have_had"
     }
   ]
 }

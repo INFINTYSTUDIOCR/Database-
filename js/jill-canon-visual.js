@@ -1,5 +1,5 @@
 /**
- * Motor visual Jill ù canon SVG inline + GIF opcional + escenario fullscreen.
+ * Motor visual Jill ? canon SVG inline + GIF opcional + escenario fullscreen.
  */
 (function (global) {
   'use strict';
@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260710ando';
+  var CACHE_VER = '20260711all';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
@@ -111,6 +111,14 @@
     var alt = clip.title || (fallbackRef && fallbackRef.title) || 'Canon Jill';
     var fullBleed = mode === 'stage';
 
+    if (clip.engine === 'lessonClip' && fullBleed) {
+      var clipKey = clip.clipId || (clip.columns && clip.columns[0]) || clip.id || '';
+      return {
+        type: 'lessonClip',
+        html: '<div class="jill-lesson-clip-host" data-clip="' + esc(clipKey) + '"></div>'
+      };
+    }
+
     if (clip.gif) {
       var gifSrc = assetUrl(clip.gif) + '?v=' + CACHE_VER;
       var imgStyle = fullBleed
@@ -156,8 +164,18 @@
   function renderStage(columnId, fallbackRef) {
     var clip = clipForColumn(columnId, fallbackRef);
     if (!clip) return '';
+    if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(columnId)) {
+      clip = {
+        id: clip.id,
+        columns: clip.columns,
+        title: clip.title,
+        svg: clip.svg,
+        gif: null,
+        engine: 'lessonClip',
+        clipId: columnId
+      };
+    }
     var media = mediaForClip(clip, fallbackRef, 'stage');
-    // Full-bleed board only ù no title bar / no transcript overlay
     return '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
       + media.html
       + '</div>';

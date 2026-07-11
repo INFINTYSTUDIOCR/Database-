@@ -2,7 +2,7 @@
  * Alice Companion — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand doubt → explain → check → short practice (same arc as Jill Pro).
  */
-const COMPANION_BRAIN_VER = 'v8-john-doctrine';
+const COMPANION_BRAIN_VER = 'v9-lesson-clips-nexus';
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
@@ -255,8 +255,9 @@ function buildCompanionStreamTeachInstruction(topic, message, history) {
       : 'Explain in English (clear, simple).';
     return `DOUBT — PAUSE AND CLARIFY ("${topic || 'their doubt'}").
 1) Feedback: acknowledge the doubt in one line.
-2) ${lang} Pattern → 1-2 examples.
+2) ${lang} Pattern → 1-2 examples. Prefer a short visual formula (Idea+Linker+Idea / linker / STAR) the portal can animate.
 3) Confirm: "Does that make sense?"
+End the turn with a new line exactly: [[CTYPE:whiteboard]] when you taught Nexus (linkers, STAR, Idea+Linker+Idea, recovery) or a clear structure pattern.
 No drill sheet, no Nexora roleplay.`;
   }
 
