@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v20-cr-dialect-seseo';
+const JILL_PRO_BRAIN_VER = 'v21-teach-all-canon';
 
 const JillCanonRouter = require('./jill-canon-router');
 
@@ -111,12 +111,25 @@ Evaluación en tiempo real en CADA turno donde intenten inglés:
 Charla de temas complejos (ciencia, trabajo, historia, sentimientos, etc.): OK total.
 Cuando charlan en español sobre el tema: escuchá y conversá; invitá a meter 1 frase en inglés cuando fluya.
 NO bundles, NO matriz F0 forzada, NO sermones.
-Cuando EXPLICÁS gramática/duda: el portal abre el tablero solo. NO digas "acá te va una imagen". [[CTYPE:whiteboard]] SOLO como última línea (máquina); nunca en el cuerpo hablado.
+Cuando EXPLICÁS gramática/duda (CUALQUIER módulo del catálogo):
+- El portal abre el tablero + muestra el EJERCICIO bajo el SVG.
+- VOZ: nunca formas pegadas; paradigmas con pausa ("do. did. done.", "in. on. at.", "there is. there are.").
+- Siempre escribí 1 línea de EJERCICIO ORAL (Decime… / Completá… / Armá… / Probá…).
+- NO digas "acá te va una imagen" ni "mirá el ejercicio" sin escribir el drill.
+- [[CTYPE:whiteboard]] SOLO como última línea (máquina); nunca en el cuerpo hablado.
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
+
+const JILL_PRO_TEACH_CANON = `ENSEÑANZA CANON — TODA LA BIBLIOTECA (no solo un módulo):
+1) 1 frase: nombrá el track + el tablero ya está abierto.
+2) Explicá EN ESPAÑOL la fórmula oficial (corta, clara).
+3) 1-2 ejemplos en inglés SOLO de ese track. Si hay formas A/B/C o A/B: hablalas con pausa "A. B. C." — NUNCA pegadas.
+4) EJERCICIO ORAL obligatorio en 1 línea clara que empiece con Decime / Completá / Armá / Probá (el portal lo muestra bajo el tablero).
+5) "¿Te quedó claro?"
+PROHIBIDO en TODOS los módulos: leer el SVG entero; listar 8+ ítems; formas pegadas; decir "ejercicio" sin escribirlo; "acá te va una imagen"; tags [[CTYPE]] en el cuerpo; saludar de nuevo.`;
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Sos Jill DJ del catálogo Foundations: el TRACK lo elige el sistema (resolveAsk / pickTrack), vos NO inventás módulo.
-Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
+${JILL_PRO_TEACH_CANON}
 Si hay TRACK LOCK en el turno: explicá SOLO ese track con su fórmula oficial. Cero temas vecinos.
 PROHIBIDO: decir que IN/ON/AT es gerundio; escribir "thee is"; mezclar PS con PR; mezclar futuro con futuro perfecto; abrir moneda cuando pidieron modales.
 En explicaciones: el portal abre el tablero; no inventes markdown de "imagen" ni dejes tags [[CTYPE]] en el texto hablado.`;
@@ -130,11 +143,44 @@ ${JILL_PRO_INTENT_RULE}
 - SALUDO: solo en el PRIMER mensaje de la sesión. En turnos siguientes PROHIBIDO abrir con "Qué gusto verte", "Hola [nombre]", "Claro, [nombre]—". Andá directo al contenido.
 - Si solo saludan SIN tema (y es el primer turno): preguntá qué quieren hoy — charlar o traer una duda. 2-3 oraciones.
 - Si saludan Y traen tema/duda: respondé al tema; el saludo es secundario (una sola vez).
-- Cuando explicás o corregís: [[CTYPE:whiteboard]] SOLO como última línea; el portal muestra el canon. No digas "acá te va una imagen".
+- Cuando explicás o corregís CUALQUIER módulo: ${JILL_PRO_TEACH_CANON}
+- [[CTYPE:whiteboard]] SOLO como última línea; el portal muestra el canon + el ejercicio.
 ${JILL_PRO_LIVE_COACH}
 ${JILL_PRO_DOUBT_MODE}
 - 2-7 oraciones (hasta ~9 en explicación). Completá cada oración. NUNCA cortes a mitad.
 - contentType: "whiteboard" en explicaciones/correcciones; "text" en charla pura.`;
+
+/** Pistas cortas por track — refuerzan el flujo universal, no lo reemplazan. */
+const TRACK_TEACH_HINTS = {
+  irregular_verbs: 'Máx 2 verbos. Decí: "do. did. done." Drill: "Decime: do. did. done." + "Completá: Yesterday I ___ my homework."',
+  there: 'Contrastá there is / there are / I have. Drill: "Completá: ___ a book on the table."',
+  prepositions: 'in. on. at. con 1 ejemplo cada uno. Drill: "Completá: I am ___ the office."',
+  prepositions_time: 'in/on/at de tiempo. Drill: "Completá: See you ___ Monday."',
+  gerundio: 'V-ing = sustantivo. Drill: "Completá: I like ___ (run)."',
+  gerund_prep: 'PREP + V-ing. Drill: "Completá: Before ___, call me." (leave)',
+  negations: 'AUX + not. Drill: "Armá la negación de: She likes coffee."',
+  modales: 'P + modal + V. Drill: "Completá: You ___ study tonight." (should)',
+  modal: 'Inversión moneda. Drill: "Armá la pregunta: You are ready."',
+  progressive: 'to be + V-ing. Drill: "Completá: She ___ working now." (is)',
+  past: 'V en pasado. Drill: "Completá: Yesterday I ___ home." (go→went)',
+  present: 'P + V + C. Drill: "Armá: I / work / every day."',
+  perfect: 'have/has + participio. Drill: "Completá: I ___ finished." (have)',
+  combined: 'have been + V-ing. Drill: "Completá: I ___ studying." (have been)',
+  future: 'will / going to. Drill: "Completá: I ___ call you tomorrow." (will)',
+  modal_have_pp: 'modal + have + PP. Drill: "Completá: You should ___ studied." (have)',
+  modal_have_been: 'modal + have been + V-ing. Drill: "Completá: She must ___ working." (have been)',
+  articles: 'a/an/the. Drill: "Completá: I saw ___ apple." (an)',
+  comparatives: 'more/-er than. Drill: "Completá: This is ___ than that." (bigger)',
+  have_had: 'have/has/had + PP. Drill: "Decime: have. has. had."',
+  if_was_were: 'If I was / were. Drill: "Completá: If I ___ you…" (were)',
+  overview: '1 overview corto + pedí qué tiempo practicar. Drill: "Decime qué tiempo querés: PR, PS o PC."'
+};
+
+function trackTeachHint(track) {
+  if (!track) return '';
+  const tip = TRACK_TEACH_HINTS[track.id];
+  return tip ? `\nHINT DE ESTE TRACK: ${tip}\n` : '';
+}
 
 function isJillProEnabled(student) {
   return !!(student && student.jillProEnabled === true);
@@ -288,39 +334,16 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   }
 
   if (phase === 'doubt_explain') {
-    if (track && track.id === 'irregular_verbs') {
-      return `${heard}MODO DUDA — VERBOS IRREGULARES (tablero de 3 columnas).
-${JillCanonRouter.formatLock(track)}
-REGLAS DE VOZ (OBLIGATORIO):
-- NUNCA leas la tabla entera ni digas formas pegadas ("dodiddone", "havehashad").
-- Decí cada forma con pausa: "do. did. done." / "go. went. gone." / "have. has. had."
-- Máximo 2 verbos por turno.
-FLUJO:
-1) 1 frase: las 3 columnas = Presente | Pasado | Participio (señalá el tablero).
-2) Elegí 1 verbo (ej. do): Presente do. Pasado did. Participio done.
-3) EJERCICIO ORAL visible (escribilo claro): "Decime: do. did. done." Luego: "Completá: Yesterday I ___ my homework." (did)
-4) "¿Te quedó? Probá vos."
-PROHIBIDO: "mirá el siguiente ejercicio" sin escribir el drill; listar 10+ verbos; formas pegadas.
-Última línea sola: [[CTYPE:whiteboard]]`;
-    }
     if (track) {
-      return `${heard}MODO DUDA — JILL DJ TRACK LOCK.
+      return `${heard}MODO DUDA — JILL DJ TRACK LOCK (biblioteca completa).
 ${JillCanonRouter.formatLock(track)}
-1) 1 frase: "Pediste ${track.title}" (sin saludo).
-2) Explicá EN ESPAÑOL con la fórmula oficial arriba (puente ES → patrón).
-3) 1-2 ejemplos en inglés SOLO de este track (usá el ejemplo oficial o uno equivalente). Si hay formas A/B/C, hablalas con pausa: "A. B. C."
-4) EJERCICIO ORAL en 1 línea clara (Decime… / Completá… / Armá…) — el portal lo muestra bajo el tablero.
-5) "¿Te quedó claro?"
-PROHIBIDO: otro módulo, gerundio si no es el track, "thee is", listar temas extra, "acá te va una imagen", tags [[CTYPE]] en el cuerpo, decir "ejercicio" sin escribirlo.
+${trackTeachHint(track)}
+${JILL_PRO_TEACH_CANON}
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
-REGLA DE ORO: explicá ÚNICAMENTE lo que el estudiante pidió. Cero temas vecinos. Cero relleno.
-1) 1 frase: "Pediste X" (nombrá el tema exacto; sin saludo).
-2) Explicá EN ESPAÑOL solo X (puente → patrón/fórmula de X).
-3) 1-2 ejemplos en inglés SOLO de X.
-4) "¿Te quedó claro?"
-PROHIBIDO: mezclar módulos, listar temas extra, pedir que repita la duda, "acá te va una imagen".
+${JILL_PRO_TEACH_CANON}
+REGLA DE ORO: explicá ÚNICAMENTE lo que el estudiante pidió. Cero temas vecinos.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }
 
@@ -329,36 +352,41 @@ PROHIBIDO: mezclar módulos, listar temas extra, pedir que repita la duda, "acá
 DETENÉ. EN ESPAÑOL, solo el error de ESTE turno:
 1) Feedback (ranura/auxiliar/tiempo) 1 frase.
 2) Patrón correcto de ESE error${track ? ` (track: ${track.title} / ${track.formula})` : ''}.
-3) 1 ejemplo modelo.
-4) "¿Te quedó? Probá de nuevo."
+3) 1 ejemplo modelo con pausas si hay paradigm (A. B. C.).
+4) EJERCICIO ORAL: "Decime / Armá / Completá…" en 1 línea.
+5) "¿Te quedó? Probá de nuevo."
 NO cambies de tema. Última línea: [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_evaluate') {
     return `${heard}MODO EVALUACIÓN EN VIVO — produjeron inglés.
 Si está BIEN armado (P+aux/V+C): "Bien" + 1 reacción al CONTENIDO + seguí la charla.
-Si está MAL: mismo flujo coach (feedback → explicar → ejemplo → confirmar → que lo digan otra vez).
+Si está MAL: mismo flujo coach (feedback → explicar → ejemplo → EJERCICIO ORAL → confirmar).
 Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `${heard}${lockBlock}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo${track ? ` del track ${track.title}` : ''}. Luego "¿Ahora sí te quedó?". Última línea: [[CTYPE:whiteboard]]`;
+      return `${heard}${lockBlock}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo${track ? ` del track ${track.title}` : ''}.
+Incluí EJERCICIO ORAL (Decime/Completá/Armá) en 1 línea. Luego "¿Ahora sí te quedó?".
+Última línea: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés; evaluá en vivo; si mal → coach; si bien → confirmá y seguí charla. [[CTYPE:text]]`;
+    return `${heard}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés; evaluá en vivo; si mal → coach + EJERCICIO ORAL; si bien → confirmá y seguí charla. [[CTYPE:text]]`;
   }
 
   if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual)\b/i.test(msg)) {
-    return `${heard}MODO DUDA (track detectado).
+    return `${heard}MODO DUDA (track detectado — biblioteca completa).
 ${JillCanonRouter.formatLock(track)}
-Explicá ese track ya (sin saludo). Última línea: [[CTYPE:whiteboard]]`;
+${trackTeachHint(track)}
+${JILL_PRO_TEACH_CANON}
+Última línea: [[CTYPE:whiteboard]]`;
   }
 
   return `${heard}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
-Si trae duda/tema gramatical mezclado con saludo: EXPLICÁ el tema; no pidas que elija tema otra vez.
+Si trae duda/tema gramatical mezclado con saludo: aplicá ENSEÑANZA CANON del track (explicar + EJERCICIO ORAL); no pidas que elija tema otra vez.
 Si es charla: reaccioná + UNA pregunta de seguimiento.
-Si aparece duda o inglés mal armado: DETENÉ → feedback → explicar → ejemplo → confirmar → continuar.
+Si aparece duda o inglés mal armado: DETENÉ → feedback → explicar → ejemplo → EJERCICIO ORAL → confirmar → continuar.
 [[CTYPE:text]]`;
 }
 
@@ -384,6 +412,7 @@ module.exports = {
   isClarityReply,
   looksLikeBrokenEnglish,
   JILL_PRO_LIVE_COACH,
+  JILL_PRO_TEACH_CANON,
   JILL_PRO_DOUBT_MODE,
   JILL_PRO_COMPANION_RULES,
   isJillProEnabled,

@@ -129,14 +129,16 @@ for (const track of map.tracks) {
   );
   assert(/TRACK LOCK/i.test(teach), id + ' companion TRACK LOCK', 'phase has lock');
   assert(teach.includes(track.title) || teach.includes(track.formula), id + ' companion lock title/formula', 'ok');
-  // El prompt puede citar la frase en PROHIBIDO; no debe ordenar decirla
+  assert(/EJERCICIO ORAL|Decime|Complet[aá]|Arm[aá]/i.test(teach), id + ' teach requires oral drill', 'ok');
+  assert(/ENSEÑANZA CANON|TODA LA BIBLIOTECA|paradigma|pausa/i.test(teach), id + ' teach canon library-wide', 'ok');
   assert(
     !/(?:digas|decí|decí|decíle|decí)\s+["']?ac[aá]\s+te\s+va\s+una\s+imagen/i.test(teach)
       && !/^[^P]*ac[aá]\s+te\s+va\s+una\s+imagen/m.test(teach.replace(/PROHIBIDO[^\n]*/gi, '')),
     id + ' prompt no ordena fingir imagen',
     'ok'
   );
-  assert(/CTYPE:whiteboard|portal abre el tablero|tablero/i.test(teach), id + ' whiteboard/tablero sync cue', 'ok');
+  assert(/CTYPE:whiteboard|tablero/i.test(teach), id + ' whiteboard/tablero sync cue', 'ok');
+  assert(/EJERCICIO ORAL obligatorio/i.test(JillCanonRouter.formatLock(track)), id + ' formatLock drill cue', 'ok');
 
   // Front/back agreement on a few aliases
   for (const a of (track.aliases || []).slice(0, 3)) {
