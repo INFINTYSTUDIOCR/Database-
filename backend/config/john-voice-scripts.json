@@ -180,6 +180,17 @@
       ],
       "exampleAsk": "Repetí: jaf. jas. jad. Luego: I had finished."
     },
+    "pronouns": {
+      "say": "CANON MÓDULO 1 — el guion completo vive en config/canon/module-01-pronombres.txt (el sistema lo inyecta entero). Cinco tipos: sujeto, objeto, posesivo adjetivo, posesivo pronominal, reflexivo. Misma lógica español↔inglés.",
+      "mustSay": [
+        "sujeto",
+        "objeto",
+        "myself",
+        "mine",
+        "hers"
+      ],
+      "exampleAsk": "Rapid Fire: Ella — sujeto. Ella — objeto. Ella — posesivo adjetivo. Ella — pronominal. Ella — reflexivo."
+    },
     "if_was_were": {
       "say": "Was = pasado real. Were = hipótesis irreal: If I were… como soñar. Were to = poco probable.",
       "mustSay": [

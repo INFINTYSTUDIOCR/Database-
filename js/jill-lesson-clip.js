@@ -203,6 +203,33 @@
       transforms: [tip('a apple', 'an apple', 'an ante vocal'), tip('a cat', 'the cat', 'ya conocido → the')],
       takeaway: 'A/an introduce; the señala algo conocido.'
     },
+    pronouns: {
+      rules: [
+        row('Sujeto', 'hace la acción', 'I · You · He · She · It · We · They'),
+        row('Objeto', 'recibe la acción', 'Me · You · Him · Her · It · Us · Them'),
+        row('Pos.Adj', 'acompaña', 'My · Your · His · Her · Its · Our · Their'),
+        row('Pos.Pron', 'reemplaza', 'Mine · Yours · His · Hers · Ours · Theirs'),
+        row('Reflexivo', 'vuelve al sujeto', 'Myself · Yourself · Himself · Herself · Itself · Ourselves · Yourselves · Themselves')
+      ],
+      examples: [
+        row('She goes to work', 'Sujeto — She hace'),
+        row('I called her', 'Objeto — her recibe'),
+        row('Her phone is here', 'Pos.Adj — acompaña'),
+        row('That bag is hers', 'Pos.Pron — reemplaza'),
+        row('He hurt himself', 'Reflexivo — vuelve'),
+        row('She · Her · Her · Hers · Herself', '5 formas · 5 funciones'),
+        row('We · Us · Our · Ours · Ourselves', 'progresión nosotros')
+      ],
+      pattern: 'Misma lógica ES↔EN. You/It no cambian sujeto↔objeto. His igual adj/pronominal.',
+      transforms: [
+        tip('Ella — sujeto', 'She', 'hace'),
+        tip('Ella — objeto', 'Her', 'recibe'),
+        tip('Ella — pos.adj', 'Her', 'acompaña'),
+        tip('Ella — pos.pron', 'Hers', 'reemplaza'),
+        tip('Ella — reflexivo', 'Herself', 'vuelve')
+      ],
+      takeaway: 'Cinco tipos. Rapid Fire: español + tipo → inglés <2s.'
+    },
     comparatives: {
       rules: [row('adjetivo corto', '-er + than', 'taller than'), row('adjetivo largo', 'more + than', 'more interesting'), row('igualdad', 'as … as', 'as tall as')],
       examples: [row('She is taller than me', 'Ella es más alta que yo'), row('This is more interesting than that', 'Esto es más interesante'), row('He is as tall as his brother', 'Él es tan alto como su hermano')],
@@ -619,6 +646,26 @@
         T([['She is', 0], [' ', 0], ['an', 1], [' engineer.', 0]]),
         T([['I need', 0], [' ', 0], ['a', 1], [' lot of', 3], [' time.', 0]]),
         T([['The', 2], [' sun is bright.', 0]])
+      ]
+    }),
+
+    pronouns: clip({
+      id: 'pronouns',
+      title: 'Los 5 tipos de pronombres',
+      bridge: 'Sujeto · Objeto · Pos.Adj · Pos.Pron · Reflexivo — misma lógica ES↔EN',
+      slots: [
+        { id: 1, label: 'Sujeto', hint: 'hace' },
+        { id: 2, label: 'Objeto', hint: 'recibe' },
+        { id: 3, label: 'Pos.Adj', hint: 'acompaña' },
+        { id: 4, label: 'Pos.Pron', hint: 'reemplaza' },
+        { id: 5, label: 'Reflexivo', hint: 'vuelve' }
+      ],
+      examples: [
+        T([['She', 1], [' goes to work.', 0]]),
+        T([['I called', 0], [' ', 0], ['her', 2], ['.', 0]]),
+        T([['Her', 3], [' phone is here.', 0]]),
+        T([['That bag is', 0], [' ', 0], ['hers', 4], ['.', 0]]),
+        T([['He hurt', 0], [' ', 0], ['himself', 5], ['.', 0]])
       ]
     }),
 

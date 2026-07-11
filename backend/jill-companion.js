@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v51-jaf-jota';
+const JILL_PRO_BRAIN_VER = 'v52-module01-pronouns';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -307,6 +307,7 @@ const TRACK_TEACH_HINTS = {
   modal_have_pp: FULL_TEACH_ALL + ' Analogía: should have = debería haber + participio. NO es futuro perfecto (will have).',
   modal_have_been: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.modal_have_been,
   articles: FULL_TEACH_ALL + ' Analogía: a/an=uno cualquiera; the=el específico.',
+  pronouns: FULL_TEACH_ALL + ' CANON MÓDULO 1: 5 tipos (sujeto/objeto/pos.adj/pos.pron/reflexivo). SEGUÍ guion module-01-pronombres ÍNTEGRO. Rapid Fire + identificación.',
   comparatives: FULL_TEACH_ALL + ' Analogía: -er/more = más…que; as…as = tan…como.',
   have_had: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.have_had,
   if_was_were: FULL_TEACH_ALL + ' Analogía: was=real; were=irreal (como soñar).',

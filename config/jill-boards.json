@@ -1123,5 +1123,32 @@
       }
     ],
     "takeaway": "Elegí el tiempo según cuándo / cómo pasó la acción."
+  },
+  "pronouns": {
+    "rules": [
+      { "left": "Sujeto", "right": "hace la acción", "note": "I · You · He · She · It · We · They" },
+      { "left": "Objeto", "right": "recibe la acción", "note": "Me · You · Him · Her · It · Us · Them" },
+      { "left": "Pos.Adj", "right": "acompaña al sustantivo", "note": "My · Your · His · Her · Its · Our · Their" },
+      { "left": "Pos.Pron", "right": "reemplaza al sustantivo", "note": "Mine · Yours · His · Hers · Ours · Theirs" },
+      { "left": "Reflexivo", "right": "vuelve al sujeto", "note": "Myself · Yourself · Himself · Herself · Itself · Ourselves · Yourselves · Themselves" }
+    ],
+    "examples": [
+      { "left": "She goes to work", "right": "Sujeto — She hace" },
+      { "left": "I called her", "right": "Objeto — her recibe" },
+      { "left": "Her phone is here", "right": "Pos.Adj — Her acompaña" },
+      { "left": "That bag is hers", "right": "Pos.Pron — hers reemplaza" },
+      { "left": "He hurt himself", "right": "Reflexivo — vuelve al sujeto" },
+      { "left": "She / Her / Her / Hers / Herself", "right": "5 formas · 5 funciones" },
+      { "left": "We / Us / Our / Ours / Ourselves", "right": "progresión nosotros" }
+    ],
+    "pattern": "Misma lógica español↔inglés. You e It no cambian sujeto↔objeto. His igual en Pos.Adj y Pos.Pron.",
+    "transforms": [
+      { "left": "Ella — sujeto", "right": "She", "tip": "hace la acción" },
+      { "left": "Ella — objeto", "right": "Her", "tip": "recibe" },
+      { "left": "Ella — pos.adj", "right": "Her", "tip": "acompaña" },
+      { "left": "Ella — pos.pron", "right": "Hers", "tip": "reemplaza" },
+      { "left": "Ella — reflexivo", "right": "Herself", "tip": "vuelve" }
+    ],
+    "takeaway": "Cinco tipos. Cinco funciones. Rapid Fire: español + tipo → inglés en <2s."
   }
 }

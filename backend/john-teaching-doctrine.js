@@ -51,19 +51,38 @@ function getTrackVoice(trackId) {
   return pack.tracks[id];
 }
 
+function loadModuleCanonTranscript(trackId) {
+  const files = { pronouns: 'module-01-pronombres.txt' };
+  const name = files[String(trackId || '').trim()];
+  if (!name) return null;
+  const paths = [
+    path.join(__dirname, 'config', 'canon', name),
+    path.join(__dirname, '..', 'config', 'canon', name)
+  ];
+  for (let i = 0; i < paths.length; i++) {
+    try {
+      if (fs.existsSync(paths[i])) return fs.readFileSync(paths[i], 'utf8');
+    } catch (_) { /* next */ }
+  }
+  return null;
+}
+
 /**
  * Bloque inyectable: guion oral completo del track (estilo clase John).
+ * Si hay trascripción canónica de módulo (archivo), esa gana — SIN CORTAR.
  */
 function trackVoiceBlock(trackId) {
+  const fromFile = loadModuleCanonTranscript(trackId);
   const v = getTrackVoice(trackId);
-  if (!v || !v.say) return '';
-  const must = Array.isArray(v.mustSay) && v.mustSay.length
+  const body = fromFile || (v && (v.full || v.say));
+  if (!body) return '';
+  const must = Array.isArray(v && v.mustSay) && v.mustSay.length
     ? `\nPALABRAS OBLIGATORIAS EN VOZ ESTE TURNO: ${v.mustSay.join(', ')}.`
     : '';
-  const ask = v.exampleAsk ? `\nCIERRE ORAL: ${v.exampleAsk}` : '';
+  const ask = v && v.exampleAsk ? `\nCIERRE ORAL: ${v.exampleAsk}` : '';
   return [
-    'GUION ORAL DE CLASE (DEBES HABLAR ASÍ — este es el estilo de las trascriciones; no improvises ESL):',
-    v.say,
+    'GUION ORAL DE CLASE CANON (DEBES HABLAR ASÍ — NO cortés, NO reescribas, NO improvisés ESL):',
+    body,
     must,
     ask
   ].filter(Boolean).join('\n');

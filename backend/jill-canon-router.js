@@ -167,7 +167,33 @@ function resolveAskId(userAsk, stickyTopic) {
 }
 
 
+function loadModuleCanonTranscript(trackId) {
+  const files = {
+    pronouns: 'module-01-pronombres.txt'
+  };
+  const name = files[String(trackId || '').trim()];
+  if (!name) return null;
+  const paths = [
+    path.join(__dirname, 'config', 'canon', name),
+    path.join(__dirname, '..', 'config', 'canon', name)
+  ];
+  for (let i = 0; i < paths.length; i++) {
+    try {
+      if (fs.existsSync(paths[i])) return fs.readFileSync(paths[i], 'utf8');
+    } catch (_) { /* next */ }
+  }
+  return null;
+}
+
 function loadVoiceScript(trackId) {
+  const fromFile = loadModuleCanonTranscript(trackId);
+  if (fromFile) {
+    return {
+      say: fromFile,
+      mustSay: ['sujeto', 'objeto', 'my', 'mine', 'myself'],
+      exampleAsk: 'Rapid Fire: Ella — sujeto / objeto / posesivo adjetivo / pronominal / reflexivo.'
+    };
+  }
   try {
     const paths = [
       path.join(__dirname, 'config', 'john-voice-scripts.json'),
@@ -221,6 +247,12 @@ function formatLock(track) {
     irregular_verbs: ['ANTIMEZCLA: irregulares go. went. gone.'],
     have_had: ['ANTIMEZCLA: have. has. had.'],
     if_was_were: ['ANTIMEZCLA: if I was/were.'],
+    pronouns: [
+      'ANTIMEZCLA — MÓDULO 1 PRONOMBRES (5 TIPOS):',
+      'SOLO los cinco tipos: sujeto, objeto, posesivo adjetivo, posesivo pronominal, reflexivo.',
+      'PROHIBIDO mezclar con tiempos verbales / gerundio / perfecto en esta lección.',
+      'SEGUÍ EL GUION CANON module-01-pronombres SIN CORTAR NI REESCRIBIR.'
+    ],
     overview: ['ANTIMEZCLA: overview de tiempos.']
   };
   if (locks[track.id]) antiMix.push(...locks[track.id]);

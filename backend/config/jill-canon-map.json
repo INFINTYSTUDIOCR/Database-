@@ -643,6 +643,39 @@
       "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención). Si piden futuro PERFECTO → will have + participio (otro track)."
     },
     {
+      "id": "pronouns",
+      "svg": "assets/canon/pronombres.svg",
+      "title": "Los 5 tipos de pronombres",
+      "formula": "Sujeto | Objeto | Posesivo Adj | Posesivo Pron | Reflexivo",
+      "example": "She / Her / Her / Hers / Herself — We / Us / Our / Ours / Ourselves",
+      "never": [
+        "enseñar solo I/you/he sin los 5 tipos",
+        "mezclar con tiempos verbales en esta lección",
+        "cortar o reescribir el guion canon module-01"
+      ],
+      "aliases": [
+        "pronombres",
+        "los pronombres",
+        "5 tipos de pronombres",
+        "cinco tipos de pronombres",
+        "los 5 tipos",
+        "módulo 1",
+        "modulo 1",
+        "modulo 1 pronombres",
+        "pronouns",
+        "subject pronouns",
+        "object pronouns",
+        "posesivo adjetivo",
+        "posesivo pronominal",
+        "reflexivos",
+        "myself yourself himself",
+        "mine yours hers",
+        "explicame los pronombres",
+        "enseñame los pronombres"
+      ],
+      "bridge": "Puente: 5 tipos — sujeto hace la acción; objeto recibe; pos.adj acompaña; pos.pron reemplaza; reflexivo vuelve al sujeto. Misma lógica ES↔EN."
+    },
+    {
       "id": "overview",
       "svg": "assets/canon/tiempos.svg",
       "title": "Tiempos overview",

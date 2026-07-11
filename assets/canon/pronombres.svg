@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-label="Los 5 tipos de pronombres  tabla completa">
+  <rect width="720" height="420" rx="14" fill="#f8f5ff"/>
+  <text x="360" y="28" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="700">LOS 5 TIPOS DE PRONOMBRES</text>
+  <text x="360" y="48" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="11">Misma lógica ES ” EN  solo cambia la forma</text>
+  <!-- header -->
+  <rect x="16" y="62" width="688" height="32" rx="6" fill="#5B21B6"/>
+  <text x="70" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Español</text>
+  <text x="170" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Sujeto</text>
+  <text x="260" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Objeto</text>
+  <text x="360" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Pos.Adj</text>
+  <text x="470" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Pos.Pron</text>
+  <text x="600" y="83" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Reflexivo</text>
+  <!-- rows -->
+  <g font-family="Inter,Segoe UI,sans-serif" font-size="12">
+    <rect x="16" y="98" width="688" height="34" fill="#ede9fe"/>
+    <text x="70" y="120" text-anchor="middle" fill="#312e81">Yo</text>
+    <text x="170" y="120" text-anchor="middle" fill="#D97706" font-weight="700">I</text>
+    <text x="260" y="120" text-anchor="middle" fill="#0284c7" font-weight="700">Me</text>
+    <text x="360" y="120" text-anchor="middle" fill="#059669" font-weight="700">My</text>
+    <text x="470" y="120" text-anchor="middle" fill="#db2777" font-weight="700">Mine</text>
+    <text x="600" y="120" text-anchor="middle" fill="#7c3aed" font-weight="700">Myself</text>
+
+    <rect x="16" y="132" width="688" height="34" fill="#f8f5ff"/>
+    <text x="70" y="154" text-anchor="middle" fill="#312e81">Vos/Usted</text>
+    <text x="170" y="154" text-anchor="middle" fill="#D97706" font-weight="700">You</text>
+    <text x="260" y="154" text-anchor="middle" fill="#0284c7" font-weight="700">You</text>
+    <text x="360" y="154" text-anchor="middle" fill="#059669" font-weight="700">Your</text>
+    <text x="470" y="154" text-anchor="middle" fill="#db2777" font-weight="700">Yours</text>
+    <text x="600" y="154" text-anchor="middle" fill="#7c3aed" font-weight="700">Yourself</text>
+
+    <rect x="16" y="166" width="688" height="34" fill="#ede9fe"/>
+    <text x="70" y="188" text-anchor="middle" fill="#312e81">Él</text>
+    <text x="170" y="188" text-anchor="middle" fill="#D97706" font-weight="700">He</text>
+    <text x="260" y="188" text-anchor="middle" fill="#0284c7" font-weight="700">Him</text>
+    <text x="360" y="188" text-anchor="middle" fill="#059669" font-weight="700">His</text>
+    <text x="470" y="188" text-anchor="middle" fill="#db2777" font-weight="700">His</text>
+    <text x="600" y="188" text-anchor="middle" fill="#7c3aed" font-weight="700">Himself</text>
+
+    <rect x="16" y="200" width="688" height="34" fill="#f8f5ff"/>
+    <text x="70" y="222" text-anchor="middle" fill="#312e81">Ella</text>
+    <text x="170" y="222" text-anchor="middle" fill="#D97706" font-weight="700">She</text>
+    <text x="260" y="222" text-anchor="middle" fill="#0284c7" font-weight="700">Her</text>
+    <text x="360" y="222" text-anchor="middle" fill="#059669" font-weight="700">Her</text>
+    <text x="470" y="222" text-anchor="middle" fill="#db2777" font-weight="700">Hers</text>
+    <text x="600" y="222" text-anchor="middle" fill="#7c3aed" font-weight="700">Herself</text>
+
+    <rect x="16" y="234" width="688" height="34" fill="#ede9fe"/>
+    <text x="70" y="256" text-anchor="middle" fill="#312e81">Eso</text>
+    <text x="170" y="256" text-anchor="middle" fill="#D97706" font-weight="700">It</text>
+    <text x="260" y="256" text-anchor="middle" fill="#0284c7" font-weight="700">It</text>
+    <text x="360" y="256" text-anchor="middle" fill="#059669" font-weight="700">Its</text>
+    <text x="470" y="256" text-anchor="middle" fill="#db2777" font-weight="700">Its</text>
+    <text x="600" y="256" text-anchor="middle" fill="#7c3aed" font-weight="700">Itself</text>
+
+    <rect x="16" y="268" width="688" height="34" fill="#f8f5ff"/>
+    <text x="70" y="290" text-anchor="middle" fill="#312e81">Nosotros</text>
+    <text x="170" y="290" text-anchor="middle" fill="#D97706" font-weight="700">We</text>
+    <text x="260" y="290" text-anchor="middle" fill="#0284c7" font-weight="700">Us</text>
+    <text x="360" y="290" text-anchor="middle" fill="#059669" font-weight="700">Our</text>
+    <text x="470" y="290" text-anchor="middle" fill="#db2777" font-weight="700">Ours</text>
+    <text x="600" y="290" text-anchor="middle" fill="#7c3aed" font-weight="700">Ourselves</text>
+
+    <rect x="16" y="302" width="688" height="34" fill="#ede9fe"/>
+    <text x="70" y="324" text-anchor="middle" fill="#312e81">Ustedes</text>
+    <text x="170" y="324" text-anchor="middle" fill="#D97706" font-weight="700">You</text>
+    <text x="260" y="324" text-anchor="middle" fill="#0284c7" font-weight="700">You</text>
+    <text x="360" y="324" text-anchor="middle" fill="#059669" font-weight="700">Your</text>
+    <text x="470" y="324" text-anchor="middle" fill="#db2777" font-weight="700">Yours</text>
+    <text x="600" y="324" text-anchor="middle" fill="#7c3aed" font-weight="700">Yourselves</text>
+
+    <rect x="16" y="336" width="688" height="34" fill="#f8f5ff"/>
+    <text x="70" y="358" text-anchor="middle" fill="#312e81">Ellos</text>
+    <text x="170" y="358" text-anchor="middle" fill="#D97706" font-weight="700">They</text>
+    <text x="260" y="358" text-anchor="middle" fill="#0284c7" font-weight="700">Them</text>
+    <text x="360" y="358" text-anchor="middle" fill="#059669" font-weight="700">Their</text>
+    <text x="470" y="358" text-anchor="middle" fill="#db2777" font-weight="700">Theirs</text>
+    <text x="600" y="358" text-anchor="middle" fill="#7c3aed" font-weight="700">Themselves</text>
+  </g>
+  <text x="360" y="396" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="600">Sujeto hace · Objeto recibe · Pos.Adj acompaña · Pos.Pron reemplaza · Reflexivo vuelve al sujeto</text>
+  <text x="360" y="412" text-anchor="middle" fill="#6d28d9" font-size="10">You e It no cambian sujeto”objeto · His igual en Pos.Adj y Pos.Pron</text>
+</svg>
