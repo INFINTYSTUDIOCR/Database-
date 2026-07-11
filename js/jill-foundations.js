@@ -190,11 +190,11 @@
     if (/\bhave\b/.test(t) && /\bhad\b/.test(t)) return 'have_had';
     if (/\bhave\s*\/\s*has\s*\/\s*had\b/.test(t) || /\bhave\s+has\s+had\b/.test(t)) return 'have_had';
     if (/\b(have\s+vs\s+had|has\s+vs\s+had|diferencia\s+entre\s+have\s+y\s+had)\b/.test(t)) return 'have_had';
-    if (/\bhad\b/.test(t) && /\b(auxiliar|perfecto|perfect|participio|explic)\b/.test(t)
+    if (/\bhad\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect|participio)/.test(t)
       && !/\b(pasado simple|past simple|yesterday)\b/.test(t)) {
       return 'have_had';
     }
-    if (/\bhave\b/.test(t) && /\b(explic|ense[nñ]|auxiliar|perfecto|perfect)\b/.test(t)
+    if (/\bhave\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect)/.test(t)
       && !/\b(had|going to|will have)\b/.test(t)) {
       return 'perfect';
     }
