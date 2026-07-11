@@ -5,8 +5,10 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711align';
+  var VERSION = '20260711stage';
   var _host = null;
+  var _root = null;
+  var _def = null;
   var _timer = null;
   var _gen = 0;
   var _playing = false;
@@ -14,12 +16,13 @@
   var DEFAULT_COLORS = {
     1: '#A78BFA',
     2: '#F59E0B',
-    3: '#C4B5FD',
+    3: '#38BDF8',
     4: '#34D399',
     5: '#F472B6'
   };
 
-  var DEFAULT_PACE = { slotMs: 420, spaceMs: 110, betweenMs: 1500, endHoldMs: 2200, loop: false };
+  /* Pace tuned so each word is on screen long enough to read while Jill speaks */
+  var DEFAULT_PACE = { slotMs: 520, spaceMs: 90, betweenMs: 1600, endHoldMs: 2200, loop: false };
 
   function T(parts) { return { text: parts }; }
 
@@ -584,17 +587,27 @@
     }).join('');
 
     return ''
-      + '<div class="jill-clip" data-clip="' + def.id + '" data-ver="' + VERSION + '">'
-      + '  <div class="jill-clip-aura" aria-hidden="true"></div>'
-      + '  <p class="jill-clip-title">' + def.title + '</p>'
-      + '  <p class="jill-clip-bridge">' + def.bridge + '</p>'
-      + '  <div class="jill-clip-row">' + slotsHtml + '</div>'
-      + '  <p class="jill-clip-example" aria-live="polite"></p>'
+      + '<div class="jill-clip jill-clip-stage" data-clip="' + def.id + '" data-ver="' + VERSION + '">'
+      + '  <div class="jill-clip-formula" aria-label="Fórmula">'
+      + '    <div class="jill-clip-aura" aria-hidden="true"></div>'
+      + '    <p class="jill-clip-title">' + def.title + '</p>'
+      + '    <p class="jill-clip-bridge">' + def.bridge + '</p>'
+      + '    <div class="jill-clip-row">' + slotsHtml + '</div>'
+      + '  </div>'
+      + '  <div class="jill-clip-exercise" aria-label="Ejercicio">'
+      + '    <p class="jill-clip-example" aria-live="polite"></p>'
+      + '  </div>'
       + '  <div class="jill-clip-footer">'
       + '    <span class="jill-clip-progress"></span>'
       + '    <button type="button" class="jill-clip-replay">Replay</button>'
       + '  </div>'
       + '</div>';
+  }
+
+  function clearSpeak(el) {
+    if (!el) return;
+    var words = el.querySelectorAll('.jill-clip-word.is-speak');
+    for (var i = 0; i < words.length; i++) words[i].classList.remove('is-speak');
   }
 
   async function playSentence(root, def, idx, gen) {
@@ -605,22 +618,29 @@
     var parts = def.examples[idx].text;
     var pace = def.pace || DEFAULT_PACE;
     var colors = def.colors || DEFAULT_COLORS;
-    for (var p = 0; p < parts.length; p++) {
+    var nodes = [];
+    /* Paint full sentence dimmed first — student sees the exercise, not imagines it */
+    for (var i = 0; i < parts.length; i++) {
+      var word0 = parts[i][0];
+      var group0 = parts[i][1];
+      var span0 = document.createElement('span');
+      span0.className = 'jill-clip-word is-wait' + (group0 ? ' is-slot-' + group0 : '');
+      span0.textContent = word0;
+      if (group0 && colors[group0]) span0.style.color = colors[group0];
+      el.appendChild(span0);
+      nodes.push({ span: span0, group: group0 });
+    }
+    for (var p = 0; p < nodes.length; p++) {
       if (gen !== _gen) return false;
-      var word = parts[p][0];
-      var group = parts[p][1];
-      var span = document.createElement('span');
-      span.className = 'jill-clip-word' + (group ? ' is-slot-' + group : '');
-      span.textContent = word;
-      if (group && colors[group]) span.style.color = colors[group];
-      el.appendChild(span);
-      requestAnimationFrame(function (node) {
-        return function () { node.classList.add('is-in'); };
-      }(span));
-      if (group) pulseSlot(root, group);
-      var ok = await wait(group ? (pace.slotMs || 420) : (pace.spaceMs || 110), gen);
+      clearSpeak(el);
+      var node = nodes[p];
+      node.span.classList.remove('is-wait');
+      node.span.classList.add('is-in', 'is-speak');
+      if (node.group) pulseSlot(root, node.group);
+      var ok = await wait(node.group ? (pace.slotMs || 520) : (pace.spaceMs || 90), gen);
       if (!ok) return false;
     }
+    clearSpeak(el);
     el.classList.add('is-done');
     return true;
   }
@@ -679,9 +699,11 @@
     var def = CLIPS[columnId];
     if (!host || !def) return false;
     _host = host;
+    _def = def;
     host.innerHTML = buildMarkup(def);
     var root = host.querySelector('.jill-clip');
     if (!root) return false;
+    _root = root;
     wire(root, def);
     _gen += 1;
     var gen = _gen;
@@ -697,6 +719,8 @@
     _gen += 1;
     clearTimer();
     _playing = false;
+    _root = null;
+    _def = null;
     if (_host) {
       _host.innerHTML = '';
       _host = null;
@@ -705,6 +729,52 @@
 
   function isPlaying() {
     return _playing;
+  }
+
+  function normalizeWords(text) {
+    return String(text || '').toLowerCase().replace(/[^a-z0-9'\s]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+  }
+
+  function examplePlain(ex) {
+    return (ex.text || []).map(function (p) { return p[0]; }).join('');
+  }
+
+  /** Match spoken EN line to an example and pulse words while Jill speaks. */
+  function followSpeech(spoken, durationMs) {
+    if (!_root || !_def || !_def.examples) return false;
+    var spokenWords = normalizeWords(spoken);
+    if (spokenWords.length < 2) return false;
+    var bestIdx = -1;
+    var bestScore = 0;
+    for (var i = 0; i < _def.examples.length; i++) {
+      var plain = examplePlain(_def.examples[i]);
+      var ew = normalizeWords(plain);
+      var hit = 0;
+      for (var s = 0; s < spokenWords.length; s++) {
+        if (ew.indexOf(spokenWords[s]) >= 0) hit += 1;
+      }
+      var score = hit / Math.max(ew.length, spokenWords.length);
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    }
+    if (bestIdx < 0 || bestScore < 0.45) return false;
+
+    _gen += 1;
+    clearTimer();
+    var gen = _gen;
+    var dur = Math.max(900, Number(durationMs) || (spokenWords.length * 380));
+    var parts = _def.examples[bestIdx].text;
+    var wordParts = [];
+    for (var p = 0; p < parts.length; p++) {
+      if (String(parts[p][0] || '').trim()) wordParts.push(parts[p]);
+    }
+    var per = Math.max(180, Math.floor(dur / Math.max(1, wordParts.length)));
+    var pace = { slotMs: per, spaceMs: Math.min(80, Math.floor(per * 0.15)), betweenMs: 400, endHoldMs: 600, loop: false };
+    var driven = { examples: [_def.examples[bestIdx]], pace: pace, colors: _def.colors, slots: _def.slots };
+    _playing = true;
+    playSentence(_root, driven, 0, gen).then(function () {
+      if (gen === _gen) _playing = false;
+    });
+    return true;
   }
 
   global.JillLessonClip = {
@@ -716,6 +786,7 @@
     mount: mount,
     unmount: unmount,
     isPlaying: isPlaying,
+    followSpeech: followSpeech,
     CLIPS: CLIPS
   };
 })(typeof window !== 'undefined' ? window : globalThis);
