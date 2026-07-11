@@ -1,0 +1,1077 @@
+{
+  "negations": {
+    "rules": [
+      {
+        "left": "do not",
+        "right": "don't",
+        "note": "(no)"
+      },
+      {
+        "left": "does not",
+        "right": "doesn't",
+        "note": "(no — para He / She / It)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I don't go",
+        "right": "Yo no voy",
+        "note": ""
+      },
+      {
+        "left": "He doesn't work",
+        "right": "Él no trabaja",
+        "note": ""
+      },
+      {
+        "left": "She doesn't know",
+        "right": "Ella no sabe",
+        "note": ""
+      }
+    ],
+    "pattern": "¿Notás el patrón? Cuando usás DON'T o DOESN'T — el verbo vuelve a su forma original.",
+    "transforms": [
+      {
+        "left": "He goes",
+        "right": "He doesn't go",
+        "tip": "no \"goes\" — vuelve a \"go\""
+      },
+      {
+        "left": "She has",
+        "right": "She doesn't have",
+        "tip": "no \"has\" — vuelve a \"have\""
+      }
+    ],
+    "takeaway": "El verbo principal siempre vuelve al infinitivo cuando hay negación."
+  },
+  "present": {
+    "rules": [
+      {
+        "left": "I / you / we / they",
+        "right": "verbo base",
+        "note": "(hábito)"
+      },
+      {
+        "left": "he / she / it",
+        "right": "verbo + s",
+        "note": "(3ª persona)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I go home every day",
+        "right": "Yo voy a casa todos los días",
+        "note": ""
+      },
+      {
+        "left": "She works in San José",
+        "right": "Ella trabaja en San José",
+        "note": ""
+      },
+      {
+        "left": "They study English",
+        "right": "Ellos estudian inglés",
+        "note": ""
+      }
+    ],
+    "pattern": "¿Ves? He/She/It lleva la -s en el verbo. El resto usa la forma base.",
+    "transforms": [
+      {
+        "left": "I work",
+        "right": "She works",
+        "tip": "3ª persona → +s"
+      },
+      {
+        "left": "They go",
+        "right": "He goes",
+        "tip": "go → goes"
+      }
+    ],
+    "takeaway": "Presente simple = hábito o hecho. Solo he/she/it suma -s."
+  },
+  "past": {
+    "rules": [
+      {
+        "left": "verbo regular",
+        "right": "verbo + ed",
+        "note": "(worked)"
+      },
+      {
+        "left": "verbo irregular",
+        "right": "forma 2",
+        "note": "(went / saw / made)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "She worked yesterday",
+        "right": "Ella trabajó ayer",
+        "note": ""
+      },
+      {
+        "left": "I went home",
+        "right": "Yo me fui a casa",
+        "note": ""
+      },
+      {
+        "left": "They saw the movie",
+        "right": "Ellos vieron la película",
+        "note": ""
+      }
+    ],
+    "pattern": "Pasado = acción terminada. No hace falta auxiliar en afirmativa.",
+    "transforms": [
+      {
+        "left": "I work",
+        "right": "I worked",
+        "tip": "regular → -ed"
+      },
+      {
+        "left": "I go",
+        "right": "I went",
+        "tip": "irregular → forma 2"
+      }
+    ],
+    "takeaway": "En pasado afirmativo: solo cambiás el verbo. En negativa: did + not + base."
+  },
+  "progressive": {
+    "rules": [
+      {
+        "left": "español",
+        "right": "ESTAR + ando/endo",
+        "note": ""
+      },
+      {
+        "left": "inglés",
+        "right": "TO BE + VERBO+ING",
+        "note": "(am / is / are)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I am studying English now",
+        "right": "Estoy estudiando inglés ahora",
+        "note": ""
+      },
+      {
+        "left": "She is cooking dinner",
+        "right": "Ella está cocinando la cena",
+        "note": ""
+      },
+      {
+        "left": "They are playing soccer",
+        "right": "Ellos están jugando fútbol",
+        "note": ""
+      }
+    ],
+    "pattern": "Sin TO BE no hay progresivo. ING = ando/endo.",
+    "transforms": [
+      {
+        "left": "I study",
+        "right": "I am studying",
+        "tip": "añadís am/is/are + ING"
+      },
+      {
+        "left": "She cooks",
+        "right": "She is cooking",
+        "tip": "cook → cooking"
+      }
+    ],
+    "takeaway": "Progresivo = TO BE + verbo + í ene ge (ando/endo)."
+  },
+  "perfect": {
+    "rules": [
+      {
+        "left": "have · has · had",
+        "right": "jaf · jas · jad",
+        "note": "(decí con pausa)"
+      },
+      {
+        "left": "I / you / we / they",
+        "right": "have + participio",
+        "note": "(he…)"
+      },
+      {
+        "left": "he / she / it",
+        "right": "has + participio",
+        "note": "(ha…)"
+      },
+      {
+        "left": "todos",
+        "right": "had + participio",
+        "note": "(había… = pasado perfecto)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "have · has · had",
+        "right": "jaf · jas · jad",
+        "note": ""
+      },
+      {
+        "left": "I have finished",
+        "right": "Yo he terminado",
+        "note": ""
+      },
+      {
+        "left": "She has seen it",
+        "right": "Ella lo ha visto",
+        "note": ""
+      },
+      {
+        "left": "I had finished",
+        "right": "Yo había terminado",
+        "note": ""
+      },
+      {
+        "left": "They had gone",
+        "right": "Ellos habían ido",
+        "note": ""
+      }
+    ],
+    "pattern": "Primero el paradigm: jaf. jas. jad. Luego: have/has + participio = presente perfecto. Had + participio = pasado perfecto (había).",
+    "transforms": [
+      {
+        "left": "have / has",
+        "right": "he / ha + participio",
+        "tip": "presente perfecto"
+      },
+      {
+        "left": "had",
+        "right": "había + participio",
+        "tip": "pasado perfecto"
+      },
+      {
+        "left": "I finished yesterday",
+        "right": "I had finished before…",
+        "tip": "pasado simple ≠ pasado perfecto"
+      }
+    ],
+    "takeaway": "Siempre empezá por jaf. jas. jad. Presente perfecto = have/has + participio. Pasado perfecto = had + participio."
+  },
+  "have_had": {
+    "rules": [
+      {
+        "left": "have",
+        "right": "jaf",
+        "note": "I / you / we / they"
+      },
+      {
+        "left": "has",
+        "right": "jas",
+        "note": "he / she / it"
+      },
+      {
+        "left": "had",
+        "right": "jad",
+        "note": "pasado / pasado perfecto"
+      }
+    ],
+    "examples": [
+      {
+        "left": "have · has · had",
+        "right": "jaf · jas · jad",
+        "note": ""
+      },
+      {
+        "left": "I have finished",
+        "right": "Yo he terminado",
+        "note": ""
+      },
+      {
+        "left": "She has finished",
+        "right": "Ella ha terminado",
+        "note": ""
+      },
+      {
+        "left": "I had finished",
+        "right": "Yo había terminado",
+        "note": ""
+      }
+    ],
+    "pattern": "Decí con pausa en voz CR: jaf. jas. jad. — nunca \"ave\".",
+    "transforms": [
+      {
+        "left": "have",
+        "right": "has",
+        "tip": "3ª persona → jas"
+      },
+      {
+        "left": "have / has",
+        "right": "had",
+        "tip": "pasado / había → jad"
+      }
+    ],
+    "takeaway": "jaf. jas. jad. — tres formas. Had = pasado perfecto auxiliar."
+  },
+  "future": {
+    "rules": [
+      {
+        "left": "will + verbo",
+        "right": "-ré / -rá",
+        "note": "(decisión / futuro)"
+      },
+      {
+        "left": "going to + verbo",
+        "right": "voy a…",
+        "note": "(plan)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I will call you tomorrow",
+        "right": "Te llamaré mañana",
+        "note": ""
+      },
+      {
+        "left": "I am going to study",
+        "right": "Voy a estudiar",
+        "note": ""
+      },
+      {
+        "left": "They are going to travel",
+        "right": "Ellos van a viajar",
+        "note": ""
+      }
+    ],
+    "pattern": "Will = decisión o predicción. Going to = plan ya pensado.",
+    "transforms": [
+      {
+        "left": "I call",
+        "right": "I will call",
+        "tip": "will + base"
+      },
+      {
+        "left": "I study",
+        "right": "I am going to study",
+        "tip": "be + going to + base"
+      }
+    ],
+    "takeaway": "Futuro: will + base, o am/is/are + going to + base."
+  },
+  "modales": {
+    "rules": [
+      {
+        "left": "will",
+        "right": "-ré",
+        "note": ""
+      },
+      {
+        "left": "would",
+        "right": "-ría",
+        "note": ""
+      },
+      {
+        "left": "should",
+        "right": "debería",
+        "note": ""
+      },
+      {
+        "left": "can",
+        "right": "puedo",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "I can work",
+        "right": "Yo puedo trabajar",
+        "note": ""
+      },
+      {
+        "left": "She should study",
+        "right": "Ella debería estudiar",
+        "note": ""
+      },
+      {
+        "left": "They will call you",
+        "right": "Ellos te llamarán",
+        "note": ""
+      }
+    ],
+    "pattern": "Modal + verbo BASE (sin to). Nunca \"can to work\".",
+    "transforms": [
+      {
+        "left": "I work",
+        "right": "I can work",
+        "tip": "modal + base"
+      },
+      {
+        "left": "She studies",
+        "right": "She should study",
+        "tip": "should + base (sin -s)"
+      }
+    ],
+    "takeaway": "Después del modal el verbo vuelve a la forma base."
+  },
+  "combined": {
+    "rules": [
+      {
+        "left": "have / has / had",
+        "right": "been",
+        "note": ""
+      },
+      {
+        "left": "been + VERBO+ING",
+        "right": "he estado + ando/endo",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "I have been studying English",
+        "right": "He estado estudiando inglés",
+        "note": ""
+      },
+      {
+        "left": "She has been working",
+        "right": "Ella ha estado trabajando",
+        "note": ""
+      },
+      {
+        "left": "They have been waiting",
+        "right": "Ellos han estado esperando",
+        "note": ""
+      }
+    ],
+    "pattern": "Have + been + ING = duración hasta ahora (ando/endo).",
+    "transforms": [
+      {
+        "left": "I study",
+        "right": "I have been studying",
+        "tip": "have + been + ING"
+      },
+      {
+        "left": "She works",
+        "right": "She has been working",
+        "tip": "has + been + ING"
+      }
+    ],
+    "takeaway": "Have/has + been + verbo + í ene ge."
+  },
+  "there": {
+    "rules": [
+      {
+        "left": "There is",
+        "right": "hay (1)",
+        "note": ""
+      },
+      {
+        "left": "There are",
+        "right": "hay (2+)",
+        "note": ""
+      },
+      {
+        "left": "have / has",
+        "right": "posesión",
+        "note": "(tengo / tiene)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "There is a book on the table",
+        "right": "Hay un libro en la mesa",
+        "note": ""
+      },
+      {
+        "left": "There are two chairs",
+        "right": "Hay dos sillas",
+        "note": ""
+      },
+      {
+        "left": "I have a book",
+        "right": "Yo tengo un libro",
+        "note": ""
+      }
+    ],
+    "pattern": "There is/are = existencia (HAY). Have/has = posesión (TENGO).",
+    "transforms": [
+      {
+        "left": "I have a car",
+        "right": "There is a car",
+        "tip": "posesión vs existencia"
+      },
+      {
+        "left": "She has two dogs",
+        "right": "There are two dogs",
+        "tip": "has ≠ there are"
+      }
+    ],
+    "takeaway": "No mezcles HAY (there) con TENGO (have)."
+  },
+  "prepositions": {
+    "rules": [
+      {
+        "left": "IN",
+        "right": "dentro / caja",
+        "note": ""
+      },
+      {
+        "left": "ON",
+        "right": "encima / superficie",
+        "note": ""
+      },
+      {
+        "left": "AT",
+        "right": "punto en el mapa",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "The book is on the table",
+        "right": "El libro está sobre la mesa",
+        "note": ""
+      },
+      {
+        "left": "I am at home",
+        "right": "Estoy en casa",
+        "note": ""
+      },
+      {
+        "left": "She lives in San José",
+        "right": "Ella vive en San José",
+        "note": ""
+      }
+    ],
+    "pattern": "IN = caja, ON = superficie, AT = punto.",
+    "transforms": [
+      {
+        "left": "in the box",
+        "right": "on the table",
+        "tip": "dentro vs encima"
+      },
+      {
+        "left": "at the door",
+        "right": "in the room",
+        "tip": "punto vs interior"
+      }
+    ],
+    "takeaway": "Las prep de lugar van en el complemento, no en el verbo."
+  },
+  "prepositions_time": {
+    "rules": [
+      {
+        "left": "IN",
+        "right": "mes / año",
+        "note": ""
+      },
+      {
+        "left": "ON",
+        "right": "día / fecha",
+        "note": ""
+      },
+      {
+        "left": "AT",
+        "right": "hora",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "We meet on Monday",
+        "right": "Nos vemos el lunes",
+        "note": ""
+      },
+      {
+        "left": "In March it rains",
+        "right": "En marzo llueve",
+        "note": ""
+      },
+      {
+        "left": "At 5 pm we start",
+        "right": "A las 5 empezamos",
+        "note": ""
+      }
+    ],
+    "pattern": "Misma lógica: IN amplio, ON día, AT hora exacta.",
+    "transforms": [
+      {
+        "left": "in 2024",
+        "right": "on Friday",
+        "tip": "año vs día"
+      },
+      {
+        "left": "at 5",
+        "right": "in the morning",
+        "tip": "hora vs parte del día"
+      }
+    ],
+    "takeaway": "IN mes/año · ON día · AT hora."
+  },
+  "gerundio": {
+    "rules": [
+      {
+        "left": "VERBO + ING",
+        "right": "ando / endo como sustantivo",
+        "note": "(sin to be)"
+      },
+      {
+        "left": "TO BE + ING",
+        "right": "progresivo",
+        "note": "(estar + ando/endo)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I like running",
+        "right": "Me gusta correr",
+        "note": ""
+      },
+      {
+        "left": "Playing guitar is fun",
+        "right": "Tocar guitarra es divertido",
+        "note": ""
+      },
+      {
+        "left": "She enjoys cooking",
+        "right": "A ella le gusta cocinar",
+        "note": ""
+      }
+    ],
+    "pattern": "Sin TO BE, el ING actúa como sustantivo (gerundio).",
+    "transforms": [
+      {
+        "left": "I run",
+        "right": "I like running",
+        "tip": "verbo → ING sustantivo"
+      },
+      {
+        "left": "I am running",
+        "right": "I like running",
+        "tip": "progresivo ≠ gerundio"
+      }
+    ],
+    "takeaway": "Gerundio = VERBO+ING sin to be. Progresivo = to be + ING."
+  },
+  "gerund_prep": {
+    "rules": [
+      {
+        "left": "preposición",
+        "right": "VERBO + ING",
+        "note": "(ando/endo)"
+      },
+      {
+        "left": "before / after / without / by",
+        "right": "+ leaving / eating…",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "Before leaving, call me",
+        "right": "Antes de irte, llamame",
+        "note": ""
+      },
+      {
+        "left": "After eating, we left",
+        "right": "Después de comer, nos fuimos",
+        "note": ""
+      },
+      {
+        "left": "By practicing, you improve",
+        "right": "Practicando, mejorás",
+        "note": ""
+      }
+    ],
+    "pattern": "Después de prep, el verbo va en ING — no en base.",
+    "transforms": [
+      {
+        "left": "before leave",
+        "right": "before leaving",
+        "tip": "prep + ING"
+      },
+      {
+        "left": "without think",
+        "right": "without thinking",
+        "tip": "nunca prep + base"
+      }
+    ],
+    "takeaway": "Tras preposición → VERBO + í ene ge."
+  },
+  "modal": {
+    "rules": [
+      {
+        "left": "Aux ANTES del pronombre",
+        "right": "pregunta",
+        "note": ""
+      },
+      {
+        "left": "Aux DESPUÉS del pronombre",
+        "right": "respuesta",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "Are you coming?",
+        "right": "¿Venís?",
+        "note": ""
+      },
+      {
+        "left": "You are coming",
+        "right": "Vos venís",
+        "note": ""
+      },
+      {
+        "left": "Do you work?",
+        "right": "¿Trabajás?",
+        "note": ""
+      }
+    ],
+    "pattern": "Método moneda: el auxiliar se voltea para preguntar.",
+    "transforms": [
+      {
+        "left": "You are ready",
+        "right": "Are you ready?",
+        "tip": "aux al frente"
+      },
+      {
+        "left": "She works",
+        "right": "Does she work?",
+        "tip": "does + base"
+      }
+    ],
+    "takeaway": "Pregunta = auxiliar delante del pronombre."
+  },
+  "irregular_verbs": {
+    "rules": [
+      {
+        "left": "Columna 1",
+        "right": "presente",
+        "note": "go · do · see"
+      },
+      {
+        "left": "Columna 2",
+        "right": "pasado",
+        "note": "went · did · saw"
+      },
+      {
+        "left": "Columna 3",
+        "right": "participio",
+        "note": "gone · done · seen"
+      }
+    ],
+    "examples": [
+      {
+        "left": "go · went · gone",
+        "right": "ir · fui · ido",
+        "note": ""
+      },
+      {
+        "left": "do · did · done",
+        "right": "hacer · hice · hecho",
+        "note": ""
+      },
+      {
+        "left": "see · saw · seen",
+        "right": "ver · vi · visto",
+        "note": ""
+      }
+    ],
+    "pattern": "Decí las tres formas con pausa: go. went. gone.",
+    "transforms": [
+      {
+        "left": "I go",
+        "right": "I went",
+        "tip": "forma 2"
+      },
+      {
+        "left": "I went",
+        "right": "I have gone",
+        "tip": "forma 3 con have"
+      }
+    ],
+    "takeaway": "Tres fotos del verbo irregular — de memoria con ritmo."
+  },
+  "articles": {
+    "rules": [
+      {
+        "left": "a / an",
+        "right": "uno / una",
+        "note": "(indefinido)"
+      },
+      {
+        "left": "the",
+        "right": "el / la / los / las",
+        "note": "(definido)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I see a cat",
+        "right": "Veo un gato",
+        "note": ""
+      },
+      {
+        "left": "The cat is black",
+        "right": "El gato es negro",
+        "note": ""
+      },
+      {
+        "left": "She is an engineer",
+        "right": "Ella es ingeniera",
+        "note": ""
+      }
+    ],
+    "pattern": "A/an = primera mención. The = ya sabemos de cuál.",
+    "transforms": [
+      {
+        "left": "a apple",
+        "right": "an apple",
+        "tip": "an ante vocal"
+      },
+      {
+        "left": "a cat",
+        "right": "the cat",
+        "tip": "ya conocido → the"
+      }
+    ],
+    "takeaway": "A/an introduce; the señala algo conocido."
+  },
+  "comparatives": {
+    "rules": [
+      {
+        "left": "adjetivo corto",
+        "right": "-er + than",
+        "note": "taller than"
+      },
+      {
+        "left": "adjetivo largo",
+        "right": "more + than",
+        "note": "more interesting"
+      },
+      {
+        "left": "igualdad",
+        "right": "as … as",
+        "note": "as tall as"
+      }
+    ],
+    "examples": [
+      {
+        "left": "She is taller than me",
+        "right": "Ella es más alta que yo",
+        "note": ""
+      },
+      {
+        "left": "This is more interesting than that",
+        "right": "Esto es más interesante",
+        "note": ""
+      },
+      {
+        "left": "He is as tall as his brother",
+        "right": "Él es tan alto como su hermano",
+        "note": ""
+      }
+    ],
+    "pattern": "Corto → -er. Largo → more. Igual → as…as.",
+    "transforms": [
+      {
+        "left": "tall",
+        "right": "taller than",
+        "tip": "-er"
+      },
+      {
+        "left": "interesting",
+        "right": "more interesting than",
+        "tip": "more"
+      }
+    ],
+    "takeaway": "Comparás con -er/more + than, o as…as para igualdad."
+  },
+  "if_was_were": {
+    "rules": [
+      {
+        "left": "If I was",
+        "right": "pasado real",
+        "note": ""
+      },
+      {
+        "left": "If I were",
+        "right": "hipótesis",
+        "note": ""
+      },
+      {
+        "left": "If I were to",
+        "right": "poco probable",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "If I was tired, I rested",
+        "right": "Si estaba cansado, descansé",
+        "note": ""
+      },
+      {
+        "left": "If I were rich, I would travel",
+        "right": "Si fuera rico, viajaría",
+        "note": ""
+      },
+      {
+        "left": "If I were to win, I would celebrate",
+        "right": "Si llegara a ganar, celebraría",
+        "note": ""
+      }
+    ],
+    "pattern": "Was = real. Were = imaginario. Were to = todavía más hipotético.",
+    "transforms": [
+      {
+        "left": "If I was…",
+        "right": "pasado que pasó",
+        "tip": "real"
+      },
+      {
+        "left": "If I were…",
+        "right": "would + base",
+        "tip": "hipótesis"
+      }
+    ],
+    "takeaway": "Was / were / were to — tres grados de realidad."
+  },
+  "modal_have_pp": {
+    "rules": [
+      {
+        "left": "should have + participio",
+        "right": "debería haber…",
+        "note": ""
+      },
+      {
+        "left": "could have + participio",
+        "right": "podría haber…",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "You should have studied more",
+        "right": "Deberías haber estudiado más",
+        "note": ""
+      },
+      {
+        "left": "She could have called",
+        "right": "Ella podría haber llamado",
+        "note": ""
+      },
+      {
+        "left": "I would have helped",
+        "right": "Yo habría ayudado",
+        "note": ""
+      }
+    ],
+    "pattern": "Modal + have + participio = pasado hipotético / arrepentimiento.",
+    "transforms": [
+      {
+        "left": "You study",
+        "right": "You should have studied",
+        "tip": "should + have + V3"
+      },
+      {
+        "left": "She calls",
+        "right": "She could have called",
+        "tip": "could + have + V3"
+      }
+    ],
+    "takeaway": "Modal + have + participio — nunca \"should had\"."
+  },
+  "modal_have_been": {
+    "rules": [
+      {
+        "left": "modal + have been",
+        "right": "+ VERBO+ING",
+        "note": ""
+      },
+      {
+        "left": "must have been working",
+        "right": "debió haber estado…",
+        "note": ""
+      }
+    ],
+    "examples": [
+      {
+        "left": "She must have been working",
+        "right": "Ella debió haber estado trabajando",
+        "note": ""
+      },
+      {
+        "left": "They should have been studying",
+        "right": "Deberían haber estado estudiando",
+        "note": ""
+      },
+      {
+        "left": "He could have been sleeping",
+        "right": "Podría haber estado durmiendo",
+        "note": ""
+      }
+    ],
+    "pattern": "Modal + have + been + ING = conjetura sobre una acción en progreso.",
+    "transforms": [
+      {
+        "left": "She was working",
+        "right": "She must have been working",
+        "tip": "conjetura"
+      },
+      {
+        "left": "They study",
+        "right": "They should have been studying",
+        "tip": "deberían haber estado"
+      }
+    ],
+    "takeaway": "Modal + have been + verbo + í ene ge."
+  },
+  "overview": {
+    "rules": [
+      {
+        "left": "PR",
+        "right": "presente",
+        "note": "I work"
+      },
+      {
+        "left": "PS",
+        "right": "pasado",
+        "note": "I worked"
+      },
+      {
+        "left": "PC",
+        "right": "continuo",
+        "note": "I am working"
+      },
+      {
+        "left": "PRP",
+        "right": "perfecto",
+        "note": "I have worked"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I work",
+        "right": "Yo trabajo (hábito)",
+        "note": ""
+      },
+      {
+        "left": "I worked",
+        "right": "Yo trabajé",
+        "note": ""
+      },
+      {
+        "left": "I am working",
+        "right": "Estoy trabajando",
+        "note": ""
+      },
+      {
+        "left": "I have worked",
+        "right": "He trabajado",
+        "note": ""
+      }
+    ],
+    "pattern": "Misma idea — distinta ranura de tiempo.",
+    "transforms": [
+      {
+        "left": "work",
+        "right": "worked / working / have worked",
+        "tip": "cambiá la ranura"
+      }
+    ],
+    "takeaway": "Elegí el tiempo según cuándo / cómo pasó la acción."
+  }
+}

@@ -42,8 +42,9 @@
       "exampleAsk": "Completá: Before ______ (go), call me."
     },
     "combined": {
-      "say": "Have been más VERBO más í ene ge = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene ge. Decí ando/endo.",
+      "say": "Empezá con jaf. jas. jad. si hace falta. Have been más VERBO más í ene ge = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene ge. Decí ando/endo e í ene ge — nunca I N G.",
       "mustSay": [
+        "jaf",
         "ando",
         "endo",
         "been"
@@ -187,7 +188,7 @@
       "exampleAsk": "Decí: I could have gone."
     },
     "modal_have_been": {
-      "say": "Modal + have + been + VERBO más I N G. Must have been working = debió haber estado trabajando. Ando/endo = I N G.",
+      "say": "Modal + have + been + VERBO más í ene ge. Must have been working = debió haber estado trabajando. Ando/endo = í ene ge.",
       "mustSay": [
         "been",
         "ando",

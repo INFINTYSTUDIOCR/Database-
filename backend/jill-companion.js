@@ -3,16 +3,89 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v44-full-perfect-jaf';
+const fs = require('fs');
+const path = require('path');
 
-const PERFECT_FULL_TEACH = `PERFECTO / PASADO PERFECTO — LECCIÓN COMPLETA (PROHIBIDO CORTAR O DESFASE):
-1) Empezá SIEMPRE en voz: "jaf. jas. jad." (have. has. had.) — pronunciación CR. NUNCA "ave".
-2) Explicá: jaf/jas = he/ha (presente perfecto auxiliar); jad = había (pasado perfecto auxiliar).
-3) Presente perfecto: jaf o jas + participio — 1 ejemplo oral (I have finished).
-4) Pasado perfecto: jad + participio — 1 ejemplo oral (I had finished = yo había terminado).
-5) El tablero debe mostrar TODO (paradigm + ambos). Hablá lo que se ve. Sin saltar bloques.
-6) "¿Te quedó?" + pedí que digan jaf. jas. jad. y una oración.
-PROHIBIDO: tip corto; solo "has"; solo presente sin pasado perfecto; cortar a mitad; desfase tablero↔voz.`;
+const JILL_PRO_BRAIN_VER = 'v45-full-teach-all';
+
+/** Lección completa — TODOS los módulos Foundations (no solo perfecto). */
+const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORTAR O DESFASE):
+1) Nombrá el tema del TRACK LOCK.
+2) Decí EN VOZ CADA fila del TABLERO COMPLETO (rules → examples → pattern → transforms → takeaway). Sin saltar bloques.
+3) Puente ES↔EN + analogía John del track (GUION ORAL).
+4) 1–2 ejemplos orales con pausas en paradigmas (do. did. done. / jaf. jas. jad. / etc.).
+5) "¿Te quedó?" + pedí que lo digan al mic.
+PROHIBIDO: tip corto; "1 frase oral"; cortar a mitad; desfase tablero↔voz; explicar solo una pieza y callarte el resto.`;
+
+const TRACK_PHONETICS = {
+  perfect: 'OBLIGATORIO voz: "jaf. jas. jad." (have. has. had.) — NUNCA "ave". Presente: jaf/jas + participio. Pasado perfecto: jad + participio (había).',
+  have_had: 'OBLIGATORIO voz: "jaf. jas. jad." con pausa — NUNCA "ave". Luego 1 ejemplo presente y 1 pasado perfecto.',
+  combined: 'Empezá con jaf. jas. jad. si hace falta. Have/has + been + verbo + í ene ge = he estado + ando/endo.',
+  progressive: 'VERBO+ING = "í ene ge" (español CR). TO BE + verbo + í ene ge = ando/endo.',
+  gerundio: 'VERBO+ING = "í ene ge". Sin to be = gerundio; con to be = progresivo.',
+  gerund_prep: 'Tras prep → verbo + í ene ge (ando/endo).',
+  modal_have_been: 'Modal + have been + verbo + í ene ge. Decí "í ene ge", no "I N G".',
+  irregular_verbs: 'Paradigmas con pausa: go. went. gone. / do. did. done.'
+};
+
+let _boardsCache = null;
+function loadBoards() {
+  if (_boardsCache) return _boardsCache;
+  const candidates = [
+    path.join(__dirname, 'config', 'jill-boards.json'),
+    path.join(__dirname, '..', 'config', 'jill-boards.json')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        _boardsCache = JSON.parse(fs.readFileSync(p, 'utf8'));
+        return _boardsCache;
+      }
+    } catch (_) { /* next */ }
+  }
+  _boardsCache = {};
+  return _boardsCache;
+}
+
+function lineOf(item) {
+  if (!item) return '';
+  const left = item.left || '';
+  const right = item.right || '';
+  const extra = item.note || item.tip || '';
+  return `  · ${left}${right ? ' → ' + right : ''}${extra ? '  (' + extra + ')' : ''}`;
+}
+
+/** Tablero completo inyectado al prompt — TODOS los tracks, no solo perfecto. */
+function formatBoardSync(track) {
+  if (!track) return '';
+  const boards = loadBoards();
+  const b = boards[track.id];
+  const phon = TRACK_PHONETICS[track.id] ? `\nFONÉTICA/VOZ: ${TRACK_PHONETICS[track.id]}\n` : '';
+  let body = '';
+  if (b) {
+    const rules = (b.rules || []).map(lineOf).filter(Boolean).join('\n');
+    const examples = (b.examples || []).map(lineOf).filter(Boolean).join('\n');
+    const transforms = (b.transforms || []).map(lineOf).filter(Boolean).join('\n');
+    body =
+      (rules ? `REGLAS / FÓRMULA:\n${rules}\n` : '') +
+      (examples ? `EJEMPLOS (decílos):\n${examples}\n` : '') +
+      (b.pattern ? `PATRÓN: ${b.pattern}\n` : '') +
+      (transforms ? `TRANSFORMS:\n${transforms}\n` : '') +
+      (b.takeaway ? `TAKEAWAY: ${b.takeaway}\n` : '');
+  } else {
+    body =
+      `Fórmula: ${track.formula || '(ver tablero)'}\n` +
+      `Ejemplo: ${track.example || ''}\n` +
+      `Puente: ${track.bridge || ''}\n`;
+  }
+  return (
+    `\nTABLERO COMPLETO — DEBÉS DECIR Y CUBRIR TODAS LAS FILAS (PROHIBIDO omitir o cortar) — "${track.title}" (id=${track.id}).\n` +
+    `Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza; igual cubrí el tablero si ayuda.\n` +
+    phon +
+    body +
+    `Cierre: ¿Te quedó? + pedí que lo digan.\n`
+  );
+}
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -205,30 +278,30 @@ ${JILL_PRO_DOUBT_MODE}
 - Explicación: COMPLETA — lo que se ve en el tablero se dice entero (paradigm + fórmula + ejemplos). NUNCA cortes a mitad ni desfaces tablero↔voz. Sin tono de manual.
 - contentType: "whiteboard" en explicaciones/correcciones; "text" en charla pura.`;
 
-/** Pistas por track — voz + SVG, sin texto de drill en pantalla. */
+/** Pistas por track — TODAS con FULL_TEACH_ALL (cascada sistema). */
 const TRACK_TEACH_HINTS = {
-  irregular_verbs: 'Analogía: tres columnas = tres fotos del verbo. do. did. done. / get. got. gotten. Decí con pausa. Si preguntan qué es GET/GOT, explicá YA. Pedí repetición.',
-  there: 'Analogía: there is/are = HAY (existencia); have/has = posesión. 1 modelo + 1 oral.',
-  prepositions: 'Analogía: IN=caja; ON=superficie; AT=punto en el mapa. 1 frase oral.',
-  prepositions_time: 'Analogía: IN=mes/año; ON=día; AT=hora (como citas). 1 frase oral.',
-  gerundio: 'OBLIGATORIO enseñar las 3 formas ING (solo contenido del curso, sin nombres internos): (1) to be+V+ING=progreso=ando/endo; (2) V+ING sin to be=GENERAL (I like watching); (3) to+V=INTENCIÓN. En voz: "í ene ge". Corrección: I like watching TV after work + However…',
-  gerund_prep: 'OBLIGATORIO: tras prep, VERBO+ING = ando/endo. Decí ando/endo. Solo contenido del curso.',
-  negations: 'Analogía: el auxiliar carga el NOT (nunca "I no…"). 1 negación oral.',
-  modales: 'Analogía: will=-ré; would=-ría; should=debería; can=puedo. 1–2 modelos + oral.',
-  modal: 'Analogía moneda: auxiliar ANTES del pronombre = pregunta. Pedí la pregunta oral.',
-  progressive: 'OBLIGATORIO: TO BE + verbo + ING = progreso = ando/endo. Sin to be no hay progresivo. Contraste: watching=general; to watch=intención. Decí "í ene ge". Solo contenido del curso.',
-  past: 'Analogía: pasado = foto terminada de ayer. 1 frase oral.',
-  present: 'Analogía: hábito/hecho; he/she/it + verbo+s. 1 frase oral.',
-  perfect: PERFECT_FULL_TEACH,
-  combined: 'Analogía: have been + VERBO+ING = he estado + ando/endo (duración). Empezá con jaf. jas. jad. si hace falta. 1 frase oral.',
-  future: 'Analogía: will=-ré (decisión); going to=voy a (plan). 1 frase oral.',
-  modal_have_pp: 'Analogía: should have = debería haber + participio (remordimiento/crítica). 1 frase oral.',
-  modal_have_been: 'Analogía: modal + have been + VERBO+ING (debió haber estado…). 1 frase oral.',
-  articles: 'Analogía: a/an=uno cualquiera; the=el específico. 1 frase oral.',
-  comparatives: 'Analogía: -er/more = más…que; as…as = tan…como. 1 frase oral.',
-  have_had: PERFECT_FULL_TEACH + ' Enfoque: paradigm jaf. jas. jad. con pausa, luego 1 ejemplo de presente y 1 de pasado perfecto.',
-  if_was_were: 'Analogía: was=real; were=irreal (como soñar). If I were… oral.',
-  overview: 'Analogía: mapa de tiempos PR/PS/PC/PRP. Preguntá con calma cuál practicar.'
+  irregular_verbs: FULL_TEACH_ALL + ' Analogía: tres columnas = tres fotos. do. did. done. / get. got. gotten. con pausa.',
+  there: FULL_TEACH_ALL + ' Analogía: there is/are = HAY; have/has = posesión.',
+  prepositions: FULL_TEACH_ALL + ' Analogía: IN=caja; ON=superficie; AT=punto.',
+  prepositions_time: FULL_TEACH_ALL + ' Analogía: IN=mes/año; ON=día; AT=hora.',
+  gerundio: FULL_TEACH_ALL + ' 3 formas ING: to be+V+ING=progreso; V+ING sin to be=GENERAL; to+V=INTENCIÓN. Voz: í ene ge.',
+  gerund_prep: FULL_TEACH_ALL + ' Tras prep, VERBO+ING = ando/endo. Decí ando/endo.',
+  negations: FULL_TEACH_ALL + ' Analogía: el auxiliar carga el NOT (nunca "I no…").',
+  modales: FULL_TEACH_ALL + ' Analogía: will=-ré; would=-ría; should=debería; can=puedo.',
+  modal: FULL_TEACH_ALL + ' Analogía moneda: auxiliar ANTES del pronombre = pregunta.',
+  progressive: FULL_TEACH_ALL + ' TO BE + verbo + ING = ando/endo. Sin to be no hay progresivo. Decí í ene ge.',
+  past: FULL_TEACH_ALL + ' Analogía: pasado = foto terminada de ayer.',
+  present: FULL_TEACH_ALL + ' Analogía: hábito/hecho; he/she/it + verbo+s.',
+  perfect: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.perfect,
+  combined: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.combined,
+  future: FULL_TEACH_ALL + ' Analogía: will=-ré (decisión); going to=voy a (plan).',
+  modal_have_pp: FULL_TEACH_ALL + ' Analogía: should have = debería haber + participio.',
+  modal_have_been: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.modal_have_been,
+  articles: FULL_TEACH_ALL + ' Analogía: a/an=uno cualquiera; the=el específico.',
+  comparatives: FULL_TEACH_ALL + ' Analogía: -er/more = más…que; as…as = tan…como.',
+  have_had: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.have_had,
+  if_was_were: FULL_TEACH_ALL + ' Analogía: was=real; were=irreal (como soñar).',
+  overview: FULL_TEACH_ALL + ' Analogía: mapa PR/PS/PC/PRP. Preguntá cuál practicar.'
 };
 
 function trackTeachHint(track) {
@@ -426,18 +499,7 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   // Pregunta de palabra/pieza INGLÉS gana sobre un lock equivocado del tablero
   const track = piece || (wordAsk ? resolveAskTrack(msg, sticky) : null) || (!wordAsk ? forced : null) || resolveAskTrack(msg, sticky) || forced;
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
-  const boardSync = track
-    ? (`\nTABLERO DE APOYO: "${track.title}" (id=${track.id}). Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza aunque el tablero diga otra cosa.\n`
-      + ((track.id === 'perfect' || track.id === 'have_had')
-        ? `TABLERO COMPLETO — DEBÉS DECIR Y CUBRIR TODAS LAS FILAS (PROHIBIDO omitir o cortar):\n`
-          + `1) have · has · had → jaf · jas · jad (decí con pausa; NUNCA "ave")\n`
-          + `2) I/you/we/they → have + participio (he…)\n`
-          + `3) he/she/it → has + participio (ha…)\n`
-          + `4) todos → had + participio (había… = pasado perfecto)\n`
-          + `Ejemplos orales: I have finished · She has seen it · I had finished · They had gone\n`
-          + `Cierre: ¿Te quedó? + que digan jaf. jas. jad. y una oración.\n`
-        : ''))
-    : '';
+  const boardSync = track ? formatBoardSync(track) : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
   const pieceNote = wordAsk
     ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: el estudiante preguntó por "${pieceWord || 'esa palabra/pieza'}". EXPLICÁLA YA en español CR: qué es, para qué sirve, 1–2 ejemplos en inglés. Si encaja en have/has/had o get/got/gone, decí el paradigm con pausa. NUNCA digas que no sabés.\n`
@@ -455,22 +517,20 @@ PROHIBIDO quedarte muda o decir que no sabés. [[CTYPE:whiteboard]]`;
 
   if (phase === 'english_practice') {
     return `${heard}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
-Si la estructura está mal: DETENÉ → feedback en español → explicación corta → 1 ejemplo → "¿Te quedó?" → pedí que lo digan de nuevo.
+Si la estructura está mal: DETENÉ → feedback en español → explicación completa del patrón (tablero si aplica) → 1 ejemplo → "¿Te quedó?" → pedí que lo digan de nuevo.
 Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:text]]`;
   }
 
   if (phase === 'doubt_explain') {
-    const perfectish = track && (track.id === 'perfect' || track.id === 'have_had' || track.id === 'combined'
-      || /\b(pasado perfecto|past perfect|presente perfecto|present perfect|pasada perfecto)\b/i.test(msg + ' ' + sticky));
-    const perfectBlock = perfectish ? `\n${PERFECT_FULL_TEACH}\n` : '';
+    const fullBlock = `\n${FULL_TEACH_ALL}\n${track && TRACK_PHONETICS[track.id] ? TRACK_PHONETICS[track.id] + '\n' : ''}`;
     if (track) {
-      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${perfectBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz, SIN DESFASE).
+      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${fullBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz, SIN DESFASE) — CUALQUIER MÓDULO.
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación COMPLETA (todo lo del tablero: fórmula + paradigm + bridge + analogía + ejemplos). NUNCA cortes a mitad. Luego pedí que lo digan al mic.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}${pieceNote}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
+    return `${heard}${pieceNote}${fullBlock}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
 ${JILL_PRO_TEACH_CANON}
 ${JILL_NEVER_MUTE}
 Checklist este turno: (1) nombrá el tema (2) fórmula simple en español (3) puente ES↔EN + 1 analogía (4) 1–2 modelos en inglés (5) "¿Te quedó?" + pedí 1 oración oral.
@@ -480,11 +540,11 @@ Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta clara + 1 frase 
   }
 
   if (phase === 'live_correct') {
-    return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
-DETENÉ. EN ESPAÑOL, con calma (estilo John, ~4–5 frases, sin atropellar):
+    return `${heard}${boardSync}${lockBlock}${moduleBlock}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
+DETENÉ. EN ESPAÑOL, con calma (estilo John, lección completa del patrón, sin atropellar):
 1) Feedback 1 frase.
-2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía corta — señalá el tablero.
-3) 1 ejemplo oral con pausas si hay paradigm.
+2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía — señalá y HABLA el tablero entero.
+3) Ejemplos orales con pausas si hay paradigm.
 4) Pedí que lo digan mirando el tablero (mic). Cero texto-ejercicio.
 Última línea: [[CTYPE:whiteboard]]`;
   }
@@ -548,6 +608,8 @@ JSON unicamente:
 
 module.exports = {
   JILL_PRO_BRAIN_VER,
+  FULL_TEACH_ALL,
+  formatBoardSync,
   JILL_LANGUAGE_RULE,
   JILL_PRO_INTENT_RULE,
   studentWantsEnglishPractice,

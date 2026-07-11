@@ -2069,10 +2069,12 @@ app.post('/demo/tts', async (req, res) => {
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
-const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto"):
-Completá SIEMPRE la lección ENTERA visible en el tablero: fórmula + paradigm + puente John + analogía + ejemplos (presente Y pasado si aplica) + práctica oral + "¿Te quedó?".
-PROHIBIDO cortar a mitad. PROHIBIDO tip de 2 frases. PROHIBIDO explicar solo una pieza y callarte el resto.
-Si el tema es pasado/presente perfecto: EMPEZÁ con "jaf. jas. jad." (have/has/had) — nunca "ave" — luego have/has + participio Y had + participio (había). El estudiante debe VER y OÍR la explicación completa.`;
+const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto" — TODOS LOS MÓDULOS):
+Completá SIEMPRE la lección ENTERA visible en el tablero: rules + examples + pattern + transforms + takeaway + puente John + analogía + práctica oral + "¿Te quedó?".
+PROHIBIDO cortar a mitad. PROHIBIDO tip de 2 frases. PROHIBIDO explicar solo una pieza y callarte el resto. PROHIBIDO "1 frase oral".
+Hablá lo que se ve en el tablero — sin desfase. El estudiante debe VER y OÍR la explicación completa en CUALQUIER tema (negaciones, gerundio, futuro, perfecto, prep, etc.).
+Si el tema es pasado/presente perfecto o have/has/had: EMPEZÁ con "jaf. jas. jad." — nunca "ave" — luego have/has + participio Y had + participio (había).
+Si el tema usa ING: decí "í ene ge" (español CR).`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -4116,7 +4118,11 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackIdChat)
       : null;
-    const hardLockChat = lockedTrackChat ? ('\n\n' + JillCanonRouter.formatLock(lockedTrackChat)) : '';
+    const hardLockChat = lockedTrackChat
+      ? ('\n\n' + JillCanonRouter.formatLock(lockedTrackChat)
+        + '\n' + (JillPro.formatBoardSync ? JillPro.formatBoardSync(lockedTrackChat) : '')
+        + '\n' + (JillPro.FULL_TEACH_ALL || ''))
+      : '';
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
     const doctrineChat = await tutorKnowledgeSliceForJill(message, student, { canonTrackId: lockedTrackIdChat });
@@ -4124,12 +4130,12 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? TUTOR_TEACH_COMPLETE_RULE
       : '';
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — whiteboard en mini-lección. NEVER cut off. Completá fórmula + paradigm jaf.jas.jad + puente + ejemplos (presente Y pasado perfecto si aplica) + ¿Te quedó?.`
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — whiteboard en CUALQUIER mini-lección (todos los módulos). NEVER cut off. Completá fórmula + paradigm + puente + ejemplos del TABLERO ENTERO + ¿Te quedó?.`
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: isJillCompanion ? 2000 : 1400,
+      max_tokens: (isJillCompanion || lockedTrackChat) ? 2000 : 1400,
       system: systemWithContext,
       messages: msgs
     });
@@ -4248,7 +4254,11 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const lockedTrack = lockedTrackId && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackId)
       : null;
-    const hardTrackLock = lockedTrack ? ('\n\n' + JillCanonRouter.formatLock(lockedTrack)) : '';
+    const hardTrackLock = lockedTrack
+      ? ('\n\n' + JillCanonRouter.formatLock(lockedTrack)
+        + '\n' + (JillPro.formatBoardSync ? JillPro.formatBoardSync(lockedTrack) : '')
+        + '\n' + (JillPro.FULL_TEACH_ALL || ''))
+      : '';
     const companionBlock = isJillCompanion
       ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
       : hardTrackLock;
@@ -4326,7 +4336,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
         ? ('\n' + (function () {
             try {
               const Mods = require('./jill-foundations-modules');
-              return Mods.moduleTeachBlock(lockedTrack.id) || '';
+              const board = JillPro.formatBoardSync ? JillPro.formatBoardSync(lockedTrack) : '';
+              return (Mods.moduleTeachBlock(lockedTrack.id) || '') + '\n' + board + '\n' + JillPro.FULL_TEACH_ALL;
             } catch (_) { return ''; }
           })())
         : ''));
@@ -4334,17 +4345,17 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student, { canonTrackId: lockedTrackId });
-    const teachLatency = (lockedTrack || isJillCompanion)
+    const teachLatency = (lockedTrack || isJillCompanion || /doubt_explain|MODO DUDA|TRACK LOCK|MINI-LECCIÓN|LECCIÓN COMPLETA/i.test(teachInstr))
       ? TUTOR_TEACH_COMPLETE_RULE
       : TUTOR_LATENCY_RULE;
     const jillCompanionSystem = isJillCompanion
       ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + TUTOR_TEACH_COMPLETE_RULE
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 2000 : 1400,
+      max_tokens: (isJillCompanion || lockedTrack) ? 2000 : 1400,
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre sin explicación. NEVER cut off mid-sentence. Completá fórmula + paradigm + ejemplos (si perfecto: jaf. jas. jad. + presente Y pasado perfecto) antes de pedir práctica.`
-        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre sin explicación. NEVER cut off mid-sentence. Completá TODA la lección del tablero (cualquier módulo) antes de pedir práctica.`
+        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${lockedTrack ? '[[CTYPE:whiteboard]]' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]]'} según el turno. NEVER cut off mid-sentence. Si hay TRACK LOCK: lección COMPLETA del tablero.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
