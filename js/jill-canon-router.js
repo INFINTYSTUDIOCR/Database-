@@ -606,7 +606,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711canon';
+  var CACHE_VER = '20260711john';
 
   function normalize(text) {
     return String(text || '')
@@ -732,51 +732,48 @@
     var never = (track.never || []).join('; ');
     var antiMix = [];
     var locks = {
-      past: [
-        'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
-        'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio, "I have worked", "had done".',
-        'SOLO: pronombre + verbo en pasado (worked / went / saw) + yesterday/ago/last.',
-        'El tablero muestra PASADO SIMPLE — tu voz DEBE coincidir. Cero perfecto en este turno.'
+      past: ['ANTIMEZCLA: pasado simple — no perfecto.'],
+      perfect: ['ANTIMEZCLA: perfecto — no pasado simple.'],
+      present: ['ANTIMEZCLA: presente simple.'],
+      progressive: [
+        'ANTIMEZCLA: presente continuo.',
+        'OBLIGATORIO EN VOZ: español ESTAR + ando/endo → inglés TO BE (am/is/are) + VERBO+ING. Decí ando/endo. Sin to be no hay continuo.'
       ],
-      perfect: [
-        'ANTIMEZCLA OBLIGATORIA — PERFECTO (have/has/had + participio):',
-        'PROHIBIDO enseñar como pasado simple (worked yesterday).'
+      future: ['ANTIMEZCLA: futuro.'],
+      modales: ['ANTIMEZCLA: modales — will=-ré; would=-ría.'],
+      modal: ['ANTIMEZCLA: moneda.'],
+      negations: ['ANTIMEZCLA: AUX + NOT.'],
+      there: ['ANTIMEZCLA: there is/are = hay.'],
+      gerundio: [
+        'ANTIMEZCLA: gerundio sustantivo.',
+        'OBLIGATORIO EN VOZ: ING = ando/endo. Sin to be. CONTRASTE: ESTAR + ando/endo → TO BE + ING (continuo).'
       ],
-      present: ['ANTIMEZCLA: presente simple — no mezcles con pasado/perfecto/continuo.'],
-      progressive: ['ANTIMEZCLA: presente continuo — no lo mezcles con gerundio suelto.'],
-      future: ['ANTIMEZCLA: futuro will/going to — no mezcles con presente ni perfecto.'],
-      modales: ['ANTIMEZCLA: modales — no mezcles con will futuro ni have + participio.'],
-      modal: ['ANTIMEZCLA: moneda — no mezcles con negaciones ni tiempos compuestos.'],
-      negations: ['ANTIMEZCLA: negaciones AUX + NOT — solo esta mecánica.'],
-      there: ['ANTIMEZCLA: there is/are — no lo confundas con have ni it is.'],
-      gerundio: ['ANTIMEZCLA: gerundio — no lo mezcles con presente continuo.'],
-      gerund_prep: ['ANTIMEZCLA: gerundio + prep — no lo mezcles con to + infinitivo.'],
-      combined: ['ANTIMEZCLA: have been + ING — no lo reduzcas a continuo ni perfecto simple.'],
-      modal_have_pp: ['ANTIMEZCLA: modal + have + participio — no mezcles con PS ni have been + ING.'],
-      modal_have_been: ['ANTIMEZCLA: modal + have been + ING — no mezcles con modal + have + PP solo.'],
-      prepositions: ['ANTIMEZCLA: preposiciones — quédate en este módulo.'],
-      prepositions_time: ['ANTIMEZCLA: prep. de tiempo — quédate en este módulo.'],
-      articles: ['ANTIMEZCLA: artículos — quédate en este módulo.'],
-      comparatives: ['ANTIMEZCLA: comparativos — quédate en este módulo.'],
-      irregular_verbs: ['ANTIMEZCLA: irregulares — no desvíes a otro tiempo sin pedir.'],
-      have_had: ['ANTIMEZCLA: have/had — no lo mezcles con perfecto continuo.'],
-      if_was_were: ['ANTIMEZCLA: if I was/were — quédate en este módulo.'],
-      overview: ['ANTIMEZCLA: overview — contrastá solo para ubicar.']
+      gerund_prep: ['ANTIMEZCLA: prep + ING = ando/endo.'],
+      combined: ['ANTIMEZCLA: have been + ING.'],
+      modal_have_pp: ['ANTIMEZCLA: modal + have + PP.'],
+      modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
+      prepositions: ['ANTIMEZCLA: IN/ON/AT.'],
+      prepositions_time: ['ANTIMEZCLA: prep. tiempo.'],
+      articles: ['ANTIMEZCLA: artículos.'],
+      comparatives: ['ANTIMEZCLA: comparativos.'],
+      irregular_verbs: ['ANTIMEZCLA: irregulares.'],
+      have_had: ['ANTIMEZCLA: have/had.'],
+      if_was_were: ['ANTIMEZCLA: if I was/were.'],
+      overview: ['ANTIMEZCLA: overview.']
     };
     if (locks[track.id]) antiMix = antiMix.concat(locks[track.id]);
-    else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". No cambies de módulo.');
+    else antiMix.push('ANTIMEZCLA: SOLO el track "' + track.title + '".');
     return [
-      'CANON LOCK (pedido del estudiante):',
+      'CANON LOCK + METODOLOGÍA JOHN (rige TODO):',
       'Tablero: ' + track.title,
       'Track id: ' + track.id,
       'Fórmula: ' + track.formula,
-      track.bridge ? track.bridge : '',
+      'Puente John (DEBES DECIRLO EN VOZ): ' + (track.bridge || ''),
       'Ejemplo: ' + track.example,
       never ? 'PROHIBIDO: ' + never : '',
       antiMix.join('\n'),
-      'Explicá SOLO esto. No cambies de módulo.',
-      'VOZ: ranuras en español. VERBO+ING = "verbo más I N G".',
-      'Hablás exactamente lo que se ve en el tablero.',
+      'CHECKLIST: fórmula + puente/analogía John + ejemplo + práctica. Omitir puente = FALLAR.',
+      'La metodología de John rige TODOS los módulos.',
       'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
     ].filter(Boolean).join('\n');
   }

@@ -127,51 +127,59 @@ function formatLock(track) {
   const locks = {
     past: [
       'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
-      'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio, "I have worked", "had done", "he/ha/había + participio".',
-      'SOLO enseñá: pronombre + verbo en pasado (worked / went / saw) + complemento (yesterday / ago / last…).',
-      'El tablero del estudiante muestra PASADO SIMPLE — tu voz DEBE coincidir palabra por palabra con ese tablero. Cero contraste con perfecto en este turno.'
+      'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio.',
+      'SOLO: pronombre + verbo en pasado + yesterday/ago/last.'
     ],
     perfect: [
-      'ANTIMEZCLA OBLIGATORIA — PERFECTO (have/has/had + participio):',
-      'PROHIBIDO enseñar esto como pasado simple (worked yesterday / went).',
-      'Si es pasado perfecto: had + participio. Si es presente perfecto: have/has + participio. Nunca verbos en -ed sueltos como si fueran PS.'
+      'ANTIMEZCLA — PERFECTO (have/has/had + participio): NO lo enseñes como pasado simple.'
     ],
-    present: ['ANTIMEZCLA: presente simple — no mezcles con pasado simple ni perfecto ni continuo.'],
-    progressive: ['ANTIMEZCLA: presente continuo (am/is/are + ING) — no lo mezcles con gerundio suelto ni con perfecto continuo.'],
-    future: ['ANTIMEZCLA: futuro will/going to — no mezcles con presente ni perfecto.'],
-    modales: ['ANTIMEZCLA: modales (can/could/should/must…) — no mezcles con will futuro ni con have + participio.'],
-    modal: ['ANTIMEZCLA: moneda (AUX delante) — no mezcles con negaciones ni con tiempos compuestos.'],
-    negations: ['ANTIMEZCLA: negaciones AUX + NOT — no enseñes otro tiempo; solo la mecánica de la negación.'],
-    there: ['ANTIMEZCLA: there is/are — no lo confundas con have (posesión) ni con it is.'],
-    gerundio: ['ANTIMEZCLA: gerundio — no lo mezcles con presente continuo (to be + ING).'],
-    gerund_prep: ['ANTIMEZCLA: gerundio después de preposición — no lo mezcles con to + infinitivo genérico.'],
-    combined: ['ANTIMEZCLA: have/has been + ING — no lo reduzcas a presente continuo ni a perfecto simple.'],
-    modal_have_pp: ['ANTIMEZCLA: modal + have + participio — no lo mezcles con pasado simple ni con have been + ING.'],
-    modal_have_been: ['ANTIMEZCLA: modal + have been + ING — no lo mezcles con modal + have + participio solo.'],
-    prepositions: ['ANTIMEZCLA: preposiciones in/on/at — quédate en este módulo.'],
-    prepositions_time: ['ANTIMEZCLA: preposiciones de tiempo — quédate en este módulo.'],
-    articles: ['ANTIMEZCLA: artículos a/an/the — quédate en este módulo.'],
-    comparatives: ['ANTIMEZCLA: comparativos — quédate en este módulo.'],
-    irregular_verbs: ['ANTIMEZCLA: irregulares go/went/gone — no desvíes a otro tiempo sin pedir.'],
-    have_had: ['ANTIMEZCLA: have/had — no lo mezcles con perfecto continuo.'],
-    if_was_were: ['ANTIMEZCLA: if I was/were — quédate en este módulo.'],
-    overview: ['ANTIMEZCLA: overview de tiempos — contrastá solo para ubicar; no desvíes la práctica a un solo tiempo sin decir cuál.']
+    present: ['ANTIMEZCLA: presente simple — no mezcles con pasado/perfecto/continuo.'],
+    progressive: [
+      'ANTIMEZCLA: presente continuo.',
+      'OBLIGATORIO EN VOZ: en español el auxiliar es ESTAR; en inglés OBLIGATORIO TO BE (am/is/are) + VERBO+ING; ING = ando/endo. Si no decís estar→to be y ando/endo, FALLASTE.'
+    ],
+    future: ['ANTIMEZCLA: futuro will/going to.'],
+    modales: ['ANTIMEZCLA: modales — will=-ré; would=-ría; etc.'],
+    modal: ['ANTIMEZCLA: moneda — AUX delante = pregunta.'],
+    negations: ['ANTIMEZCLA: negaciones AUX + NOT.'],
+    there: ['ANTIMEZCLA: there is/are = hay; no have.'],
+    gerundio: [
+      'ANTIMEZCLA: gerundio como sustantivo.',
+      'OBLIGATORIO EN VOZ: VERBO+ING = ando/endo. Gerundio sustantivo NO lleva to be. CONTRASTE OBLIGATORIO: ESTAR + ando/endo en español → TO BE + ING (continuo). Si omitís ando/endo o el contraste estar/to be, FALLASTE.'
+    ],
+    gerund_prep: ['ANTIMEZCLA: prep + VERBO+ING = ando/endo. Decí ando/endo.'],
+    combined: ['ANTIMEZCLA: have been + ING = he estado + ando/endo.'],
+    modal_have_pp: ['ANTIMEZCLA: modal + have + participio.'],
+    modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
+    prepositions: ['ANTIMEZCLA: IN/ON/AT — analogía caja/superficie/punto.'],
+    prepositions_time: ['ANTIMEZCLA: prep. de tiempo.'],
+    articles: ['ANTIMEZCLA: a/an/the.'],
+    comparatives: ['ANTIMEZCLA: comparativos.'],
+    irregular_verbs: ['ANTIMEZCLA: irregulares go. went. gone.'],
+    have_had: ['ANTIMEZCLA: have. has. had.'],
+    if_was_were: ['ANTIMEZCLA: if I was/were.'],
+    overview: ['ANTIMEZCLA: overview de tiempos.']
   };
   if (locks[track.id]) antiMix.push(...locks[track.id]);
-  else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". No cambies de módulo.');
+  else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '".');
   return [
-    'CANON LOCK (pedido del estudiante):',
+    'CANON LOCK + METODOLOGÍA JOHN (rige TODO — no solo este módulo):',
     `Tablero: ${track.title}`,
     `Track id: ${track.id}`,
-    `Fórmula: ${track.formula}`,
-    track.bridge || '',
-    `Ejemplo: ${track.example}`,
+    `Fórmula oficial: ${track.formula}`,
+    `Puente John (DEBES DECIRLO EN VOZ — no lo saltees): ${track.bridge || '(usar analogía del track)'}`,
+    `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO: ${never}` : '',
     ...antiMix,
-    'Explicá SOLO esto. No cambies de módulo.',
-    'VOZ: ranuras en español. VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
-    'ESTILO JOHN: paciencia + flujo normal. Fórmula + bridge + 1 analogía. Sin improvisar otro tiempo/módulo.',
-    'Hablás exactamente lo que se ve en el tablero.',
+    'CHECKLIST OBLIGATORIO EN ESTE TURNO (si falta 1 ítem = FALLASTE):',
+    '1) Nombrar el tema.',
+    '2) Decir la FÓRMULA en español (ranuras).',
+    '3) Decir el PUENTE / analogía John de arriba (ando/endo, estar→to be, -ré/-ría, moneda, hay, etc. según el track).',
+    '4) 1 ejemplo en inglés.',
+    '5) Pedir práctica oral mirando el tablero.',
+    'PROHIBIDO: explicación genérica ESL; omitir el puente; inventar otro método; cambiar de módulo.',
+    'VOZ: VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
+    'La metodología de John rige TODOS los módulos, no solo gerundio.',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

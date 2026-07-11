@@ -34,7 +34,7 @@
     progressive: clip({
       id: 'progressive',
       title: 'Pronombre + To Be + Verbo + ING',
-      bridge: 'am / is / are + VERBO+ING = estoy / está + ando / endo',
+      bridge: 'español ESTAR + ando/endo → inglés TO BE (am/is/are) + VERBO+ING · ING = ando/endo',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
         { id: 2, label: 'To be', hint: 'am · is · are' },
@@ -270,7 +270,7 @@
     gerundio: clip({
       id: 'gerundio',
       title: 'Gerundio = VERBO + ING (sustantivo)',
-      bridge: 'VERBO+ING = ando/endo como sustantivo (I like running)',
+      bridge: 'ING = ando/endo como sustantivo (sin to be) · si usás ESTAR + ando/endo → TO BE + ING (continuo)',
       slots: [
         { id: 1, label: 'Verbo + ING', hint: 'ando / endo' },
         { id: 2, label: 'Como sustantivo', hint: 'gustar / sujeto' }

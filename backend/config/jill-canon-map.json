@@ -196,7 +196,7 @@
       "formula": "VERBO + ING (= ando/endo) funciona como SUSTANTIVO. Tras prep: preposición + VERBO + ING.",
       "example": "I like running. / Playing guitar is fun.",
       "never": [
-        "presente continuo (am/is/are + ing)",
+        "presente continuo sin contrastar",
         "IN ON AT lugar"
       ],
       "aliases": [
@@ -210,9 +210,11 @@
         "v-ing como sustantivo",
         "gerund",
         "el gerund",
-        "que es gerundio"
+        "que es gerundio",
+        "ando endo",
+        "ando/endo"
       ],
-      "bridge": "Puente: VERBO+ING = ando/endo como sustantivo (I like running = me gusta correr/corriendo)."
+      "bridge": "Puente JOHN OBLIGATORIO: VERBO+ING = ando/endo. Gerundio = ando/endo como SUSTANTIVO (I like running) — NO lleva to be. CONTRASTE: si en español usás ESTAR + ando/endo (estoy trabajando), en inglés es OBLIGATORIO el verbo TO BE (am/is/are) + VERBO+ING — eso es presente continuo, no este gerundio suelto. Decí ando/endo SIEMPRE."
     },
     {
       "id": "gerund_prep",
@@ -238,7 +240,7 @@
         "instead of",
         "despues de preposicion"
       ],
-      "bridge": "Puente: tras prep, VERBO+ING = ando/endo (Before leaving = antes de salir/saliendo)."
+      "bridge": "Puente JOHN OBLIGATORIO: tras prep, VERBO+ING = ando/endo (Before leaving = antes de salir/saliendo). Decí ando/endo. No lo confundas con to be + ING (estar)."
     },
     {
       "id": "prepositions_time",
@@ -390,7 +392,8 @@
         "gerundio-prep",
         "have been + ing",
         "pasado simple",
-        "IN ON AT"
+        "IN ON AT",
+        "gerundio sin to be"
       ],
       "aliases": [
         "presente continuo",
@@ -403,9 +406,13 @@
         "pronombre + to be",
         "continuo",
         "el continuo",
-        "ing continuo"
+        "ing continuo",
+        "estar + ando",
+        "estar + endo",
+        "estoy trabajando",
+        "ando endo continuo"
       ],
-      "bridge": "Puente: am/is/are + VERBO+ING = estoy/está + ando/endo (presente continuo, no gerundio suelto)."
+      "bridge": "Puente JOHN OBLIGATORIO: en español el auxiliar es ESTAR (estoy/está + ando/endo). En inglés es OBLIGATORIO el verbo TO BE (am/is/are) + VERBO+ING. ING = ando/endo. Sin to be NO hay continuo. Decí: estar → to be, ando/endo → I N G."
     },
     {
       "id": "perfect",
