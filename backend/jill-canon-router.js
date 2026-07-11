@@ -90,14 +90,61 @@ function stripAskShell(text) {
   return t.replace(/\s+/g, ' ').trim();
 }
 
+function trackById(id) {
+  if (!id) return null;
+  const list = tracks();
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].id === id) return list[i];
+  }
+  return null;
+}
+
+/** "qué es HAD / have / been…" — nunca devolver null: enrutá a la pieza correcta. */
+function resolvePieceTrack(userAsk, stickyTopic) {
+  const ask = String(userAsk || '').trim();
+  if (!ask) return null;
+  const n = normalize(ask);
+  const sticky = normalize(String(stickyTopic || '').replace(/^doubt:/i, ''));
+  const blob = `${n} ${sticky}`;
+  const asksPiece = /\b(que es|qué es|what is|significa|explicame|explic[aá]|para que sirve|para qué sirve|eso de|omision|omision de|omitir|omission)\b/i.test(ask)
+    || /^(el |la )?(have|has|had|been|will|would|should|could|can|do|does|did|am|is|are|was|were|ing)\??$/i.test(ask.trim());
+  if (!asksPiece) return null;
+
+  if (/\bhad\b/.test(n)) {
+    if (/\b(been|continuo|continuous)\b/.test(blob)) return trackById('combined') || trackById('perfect');
+    if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
+    return trackById('have_had') || trackById('perfect');
+  }
+  if (/\bbeen\b/.test(n)) {
+    return trackById('combined') || trackById('perfect');
+  }
+  if (/\b(have|has)\b/.test(n)) {
+    if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
+    return trackById('have_had') || trackById('perfect');
+  }
+  if (/\b(will|would|should|could|can|must)\b/.test(n)) return trackById('modales');
+  if (/\b(do|does|did)\b/.test(n)) return trackById('negations') || trackById('modal');
+  if (/\b(get|got|gotten)\b/.test(n)) return trackById('irregular_verbs');
+  if (/\b(go|went|gone|see|saw|seen|make|made|take|took|taken)\b/.test(n) && asksPiece) {
+    return trackById('irregular_verbs');
+  }
+  if (/\b(am|is|are|was|were)\b/.test(n) && /\b(to be|continuo|progressive|ing)\b/.test(blob)) return trackById('progressive');
+  return null;
+}
+
 function resolveAsk(userAsk, stickyTopic) {
   const ask = String(userAsk || '').trim();
   const sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
-  let hit = pickTrack(ask);
+  // Pieza de fórmula gana SIEMPRE (qué es HAD → have/has/had o perfecto)
+  let hit = resolvePieceTrack(ask, sticky);
+  if (hit) return hit;
+  hit = pickTrack(ask);
   if (hit) return hit;
   const stripped = stripAskShell(ask);
   if (stripped) {
     hit = pickTrack(stripped);
+    if (hit) return hit;
+    hit = resolvePieceTrack(stripped, sticky);
     if (hit) return hit;
   }
   if (sticky) {
@@ -219,15 +266,6 @@ function formatLock(track) {
   ].filter(Boolean).join('\n');
 }
 
-function trackById(id) {
-  if (!id) return null;
-  const list = tracks();
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].id === id) return list[i];
-  }
-  return null;
-}
-
 function byColumn() {
   const out = {};
   tracks().forEach((tr) => {
@@ -252,6 +290,7 @@ module.exports = {
   stripAskShell,
   resolveAsk,
   resolveAskId,
+  resolvePieceTrack,
   formatLock,
   byColumn,
   expandLearnerAsk: (t) => JillLearnerIntent.expand(t)

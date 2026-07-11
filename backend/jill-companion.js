@@ -3,11 +3,17 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v40-human-voice';
+const JILL_PRO_BRAIN_VER = 'v42-never-mute-english';
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
 const JillFoundationsModules = require('./jill-foundations-modules');
+
+const JILL_NEVER_MUTE = `REGLA DE ORO — NUNCA TE QUEDÉS MUDA CON INGLÉS:
+- Si preguntan qué es / significa / cómo se usa CUALQUIER palabra o pieza de inglés (HAD, GET, HAVE, BEEN, WILL, GO, TO, ING, etc.): EXPLICÁLA YA en español CR.
+- Decí: qué es, para qué sirve, 1–2 ejemplos en inglés, y cómo encaja en la fórmula si aplica.
+- PROHIBIDO ABSOLUTO: "no sé", "no estoy segura", "eso no existe", "no está en el catálogo", "no lo manejo", quedarte callada, o pedir que cambien de tema.
+- Sos tutora de inglés Foundations. El inglés no te puede ganar.`;
 
 const JILL_VOICE_HUMAN = `VOZ 100% HUMANA (lectura y explicación — OBLIGATORIO):
 - Escribí COMO HABLA una tutora real de Costa Rica, no como libro ni chatbot.
@@ -17,7 +23,8 @@ const JILL_VOICE_HUMAN = `VOZ 100% HUMANA (lectura y explicación — OBLIGATORI
 - PROHIBIDO sonar a IA: "Es importante destacar", "Cabe mencionar", "A continuación procederemos".
 - Explicá como en clase: nombre del tema → fórmula en palabras simples → puente con una analogía viva → 1 o 2 ejemplos dichos con calma → "¿Te quedó?".
 - En paradigmas: "do. did. done." con pausa suave — nunca "dodiddone".
-- Completá cada oración. Nunca cortes a mitad. Sin elipsis (...) ni teatro.`;
+- Completá cada oración. Nunca cortes a mitad. Sin elipsis (...) ni teatro.
+${JILL_NEVER_MUTE}`;
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -145,6 +152,8 @@ EN CADA EXPLICACIÓN — CHECKLIST (omitir = FALLAR):
 5) Señalar el tablero + práctica oral.
 6) "¿Te quedó?"
 FIDELIDAD: con TRACK LOCK → fórmula + bridge de ESE track. Sin inventar reglas.
+${JILL_NEVER_MUTE}
+PIEZAS / PALABRAS: Si preguntan por HAVE, HAS, HAD, BEEN, GET, GOT, WILL, WOULD, DO, DOES, DID, TO BE, ING o CUALQUIER palabra en inglés — EXPLICÁ ESA PIEZA YA (significado + rol + 1 ejemplo oral). El track es apoyo, no una jaula para callarte.
 VOZ: VERBO+ING = "verbo más í ene ge" (español CR). PROHIBIDO deletreo inglés ai-en-yi. PROHIBIDO nombres internos de lección/show/trainer en voz o chat. PR/PS/PC/PRP = nombres completos. Español CR seseo (C/Z = S), nunca ceceo de España.
 PROHIBIDO: ESL genérico; saltar el puente; omitir ando/endo cuando el track lo pide; omitir estar→to be en continuo; improvisar; saludar de nuevo; cortar a mitad de frase.`;
 
@@ -188,7 +197,7 @@ ${JILL_PRO_DOUBT_MODE}
 
 /** Pistas por track — voz + SVG, sin texto de drill en pantalla. */
 const TRACK_TEACH_HINTS = {
-  irregular_verbs: 'Analogía: tres columnas = tres fotos del verbo. Decí "do. did. done." con calma. Pedí repetición mirando el SVG.',
+  irregular_verbs: 'Analogía: tres columnas = tres fotos del verbo. do. did. done. / get. got. gotten. Decí con pausa. Si preguntan qué es GET/GOT, explicá YA. Pedí repetición.',
   there: 'Analogía: there is/are = HAY (existencia); have/has = posesión. 1 modelo + 1 oral.',
   prepositions: 'Analogía: IN=caja; ON=superficie; AT=punto en el mapa. 1 frase oral.',
   prepositions_time: 'Analogía: IN=mes/año; ON=día; AT=hora (como citas). 1 frase oral.',
@@ -200,14 +209,14 @@ const TRACK_TEACH_HINTS = {
   progressive: 'OBLIGATORIO: TO BE + verbo + ING = progreso = ando/endo. Sin to be no hay progresivo. Contraste: watching=general; to watch=intención. Decí "í ene ge". Solo contenido del curso.',
   past: 'Analogía: pasado = foto terminada de ayer. 1 frase oral.',
   present: 'Analogía: hábito/hecho; he/she/it + verbo+s. 1 frase oral.',
-  perfect: 'Analogía: have/has + participio = he/ha + participio (puente al presente). 1 frase oral.',
+  perfect: 'HAD = pasado de have como auxiliar. Presente perfecto: have/has + participio (he/ha). Pasado perfecto: HAD + participio = había. Si preguntan "qué es HAD", explicá ESO YA con ejemplo (I had finished = yo había terminado). NUNCA digas que no sabés.',
   combined: 'Analogía: have been + VERBO+ING = he estado + ando/endo (duración). 1 frase oral.',
   future: 'Analogía: will=-ré (decisión); going to=voy a (plan). 1 frase oral.',
   modal_have_pp: 'Analogía: should have = debería haber + participio (remordimiento/crítica). 1 frase oral.',
   modal_have_been: 'Analogía: modal + have been + VERBO+ING (debió haber estado…). 1 frase oral.',
   articles: 'Analogía: a/an=uno cualquiera; the=el específico. 1 frase oral.',
   comparatives: 'Analogía: -er/more = más…que; as…as = tan…como. 1 frase oral.',
-  have_had: 'Analogía: have. has. had. — tres formas con pausa. Que las digan.',
+  have_had: 'OBLIGATORIO: have. has. had. con pausa. HAD = forma pasada del auxiliar. En pasado perfecto: had + participio = había. Si preguntan qué es HAD/HAVE/HAS, explicá la pieza YA — nunca "no sé".',
   if_was_were: 'Analogía: was=real; were=irreal (como soñar). If I were… oral.',
   overview: 'Analogía: mapa de tiempos PR/PS/PC/PRP. Preguntá con calma cuál practicar.'
 };
@@ -303,8 +312,37 @@ function resolveAskTrack(message, stickyTopic) {
   return JillCanonRouter.pickTrack([message, stickyTopic].filter(Boolean).join(' '));
 }
 
+function isEnglishWordAsk(message) {
+  const t = String(message || '').trim();
+  if (!t) return false;
+  if (/^(ok|okay|sí|si|no|nop|hola|hi|hey|gracias|dale|listo|ya)\??$/i.test(t)) return false;
+  const asks = /\b(qu[eé]\s+es|what\s+is|what\s+does|significa|c[oó]mo\s+se\s+(usa|dice|forma)|para\s+qu[eé]\s+sirve|explic[aá](?:me)?|ens?[eé][nñ][aá](?:me)?)\b/i.test(t);
+  const stripped = t
+    .replace(/\b(qu[eé]|que|es|what|is|does|significa|c[oó]mo|como|se|usa|dice|forma|para|sirve|explicame|expl[ií]came|explica|ense[nñ]ame|el|la|un|una|eso|de|del|me|por|favor)\b/gi, ' ')
+    .replace(/[¿?¡!.,;:]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const enToken = /\b[a-zA-Z]{2,}\b/.test(stripped);
+  if (asks && enToken) return true;
+  if (/^[a-zA-Z]{2,14}\??$/.test(t) && !/^(ok|yes|no|hi|hey)$/i.test(t)) return true;
+  return false;
+}
+
+function extractEnglishPiece(message) {
+  const t = String(message || '');
+  const m = t.match(/\b(have|has|had|been|being|will|would|should|could|can|must|do|does|did|am|is|are|was|were|get|got|gotten|go|went|gone|ing|to)\b/i);
+  if (m) return m[1].toLowerCase();
+  const stripped = t
+    .replace(/\b(qu[eé]|que|es|what|is|does|significa|c[oó]mo|como|se|usa|dice|forma|para|sirve|explicame|expl[ií]came|explica|ense[nñ]ame|el|la|un|una|eso|de|del|me|por|favor)\b/gi, ' ')
+    .replace(/[¿?¡!.,;:]/g, ' ')
+    .trim();
+  const w = stripped.match(/\b([a-zA-Z]{2,14})\b/);
+  return w ? w[1].toLowerCase() : '';
+}
+
 function resolveCompanionPhase(message, history, stickyTopic) {
   if (studentWantsEnglishPractice(message)) return 'english_practice';
+  if (isEnglishWordAsk(message)) return 'doubt_explain';
   if (isClarityReply(message)) {
     const prev = [...(history || [])].reverse().find((m) => m.role === 'assistant');
     const prevText = String(prev?.content || '');
@@ -367,16 +405,34 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
     ? 'PROHIBIDO saludar o "Qué gusto verte" / "Claro, [nombre]" — ya hubo saludo. Directo al contenido.\n'
     : '';
   const heard = `${noGreet}MENSAJE DEL ESTUDIANTE (interpretá la intención aunque venga desordenado; NO pidas que lo repita si ya se entiende):\n"""${msg.slice(0, 500)}"""\n`;
-  // Portal board is source of truth when canonTrackId is sent
+  const wordAsk = isEnglishWordAsk(msg);
+  const pieceWord = extractEnglishPiece(msg);
   const forced = forcedTrackId && JillCanonRouter.trackById
     ? JillCanonRouter.trackById(forcedTrackId)
     : null;
-  const track = forced || resolveAskTrack(msg, sticky);
-  const lockBlock = track ? `\n${JillCanonRouter.formatLock(track)}\n` : '';
+  const piece = JillCanonRouter.resolvePieceTrack
+    ? JillCanonRouter.resolvePieceTrack(msg, sticky)
+    : null;
+  // Pregunta de palabra/pieza INGLÉS gana sobre un lock equivocado del tablero
+  const track = piece || (wordAsk ? resolveAskTrack(msg, sticky) : null) || (!wordAsk ? forced : null) || resolveAskTrack(msg, sticky) || forced;
+  const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track
-    ? `\nTABLERO ACTIVO EN PANTALLA: "${track.title}" (id=${track.id}). Tu explicación ORAL debe ser ESE módulo. Si decís otro tiempo (ej. perfecto mientras el tablero es pasado simple), FALLASTE el turno.\n`
+    ? `\nTABLERO DE APOYO: "${track.title}" (id=${track.id}). Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza aunque el tablero diga otra cosa.\n`
     : '';
-  const moduleBlock = track ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
+  const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
+  const pieceNote = wordAsk
+    ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: el estudiante preguntó por "${pieceWord || 'esa palabra/pieza'}". EXPLICÁLA YA en español CR: qué es, para qué sirve, 1–2 ejemplos en inglés. Si encaja en have/has/had o get/got/gone, decí el paradigm con pausa. NUNCA digas que no sabés.\n`
+    : '';
+
+  if (wordAsk) {
+    return `${heard}${pieceNote}${boardSync}${lockBlock}${track ? trackTeachHint(track) : ''}
+MODO PIEZA / PALABRA EN INGLÉS — respuesta directa, humana, completa.
+1) Nombrá la pieza ("HAD…").
+2) Explicá qué es en CR (ej. HAD = había / pasado de have como auxiliar).
+3) 1–2 ejemplos en inglés con pausa si hay paradigm.
+4) "¿Te quedó?" + pedí que lo digan.
+PROHIBIDO quedarte muda o decir que no sabés. [[CTYPE:whiteboard]]`;
+  }
 
   if (phase === 'english_practice') {
     return `${heard}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
@@ -386,15 +442,16 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
 
   if (phase === 'doubt_explain') {
     if (track) {
-      return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz).
+      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación completa (fórmula + bridge + 1 analogía + 1–2 ejemplos). NUNCA cortes a mitad de frase. Luego pedí que lo digan al mic.
 Si el estudiante confirma que entendió en el SIGUIENTE turno, el portal espera [[CTYPE:mini_kaboom:Mxxx]] — en ESTE turno de explicación usá [[CTYPE:whiteboard]].
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
+    return `${heard}${pieceNote}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
 ${JILL_PRO_TEACH_CANON}
+${JILL_NEVER_MUTE}
 Checklist este turno: (1) nombrá el tema (2) fórmula simple en español (3) puente ES↔EN + 1 analogía (4) 1–2 modelos en inglés (5) "¿Te quedó?" + pedí 1 oración oral.
 4–7 oraciones. Completá cada idea. NUNCA tip de 1 frase ni cortes a mitad.
 Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta clara + 1 frase → Alice.
@@ -424,7 +481,6 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
       return `${heard}${boardSync}${lockBlock}${moduleBlock}RE-EXPLICÁ con paciencia (estilo John): fórmula + otra analogía + 1 ejemplo oral${track ? ` (${track.title})` : ''}. Pedí que lo digan mirando el tablero.
 Última línea: [[CTYPE:whiteboard]]`;
     }
-    // Clarity YES → launch Mini Kaboom gate for the module
     if (isClarityReply(msg) && track) {
       const mid = JillFoundationsModules.trackToModuleId(track.id);
       if (mid) {
@@ -440,16 +496,17 @@ NO re-expliques. NO abras Rapid drill completo.
 No abras otra lección distinta. Quedate en este patrón hasta que aterrice 1 oración limpia. [[CTYPE:text]]`;
   }
 
-  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would)\b/i.test(msg)) {
-    return `${heard}${boardSync}${lockBlock}${moduleBlock}MODO DUDA (track detectado — biblioteca completa).
+  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would|had|have|get)\b/i.test(msg)) {
+    return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}MODO DUDA (track detectado — biblioteca completa).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación completa. NUNCA cortes a mitad de frase. Luego pedí práctica oral.
 Última línea: [[CTYPE:whiteboard]]`;
   }
 
-  return `${heard}${lockBlock}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
-Si trae duda gramatical: ESTILO JOHN (paciencia, analogía, tablero sincronizado). Cero mezclar tiempos.
+  return `${heard}${pieceNote}${lockBlock}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
+${JILL_NEVER_MUTE}
+Si trae duda gramatical o pregunta por una palabra en inglés: EXPLICÁLA YA (paciencia, analogía, ejemplo). Cero mezclar tiempos. Cero "no sé".
 Si es charla: reaccioná + UNA pregunta.
 Si inglés mal armado: DETENÉ → feedback → ejemplo oral → que lo digan.
 [[CTYPE:text]]`;

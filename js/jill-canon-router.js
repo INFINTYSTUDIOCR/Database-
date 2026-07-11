@@ -112,7 +112,16 @@
           "have/has/had",
           "have has had",
           "diferencia entre have y had",
-          "have had"
+          "have had",
+          "had",
+          "qué es had",
+          "que es had",
+          "what is had",
+          "el had",
+          "had auxiliar",
+          "forma had",
+          "have has y had",
+          "tres formas de have"
         ],
         "bridge": "Puente: have/has/had — decir con pausa: have. has. had."
       },
@@ -435,9 +444,18 @@
           "have/has + participio",
           "have has participio",
           "had + participio",
+          "had participio",
           "pronombre + have + participio",
           "perfecto",
-          "el perfecto"
+          "el perfecto",
+          "qué es had",
+          "que es had",
+          "what is had",
+          "omission of had",
+          "omisión de had",
+          "omitir had",
+          "had en pasado perfecto",
+          "had en el perfecto"
         ],
         "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). NO es pasado simple (worked/went)."
       },
@@ -677,6 +695,15 @@
     return (MAP && MAP.tracks) || [];
   }
 
+  function trackById(id) {
+    if (!id) return null;
+    var list = tracks();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
   /** Longest alias win; tie → earlier track in catalog (more specific). */
   function pickTrackExact(text) {
     var n = normalize(text);
@@ -731,14 +758,44 @@
     return t.replace(/\s+/g, ' ').trim();
   }
 
+  function resolvePieceTrack(userAsk, stickyTopic) {
+    var ask = String(userAsk || '').trim();
+    if (!ask) return null;
+    var n = normalize(ask);
+    var sticky = normalize(String(stickyTopic || '').replace(/^doubt:/i, ''));
+    var blob = n + ' ' + sticky;
+    var asksPiece = /\b(que es|qué es|what is|significa|explicame|explic[aá]|para que sirve|para qué sirve|eso de|omision|omitir|omission)\b/i.test(ask)
+      || /^(el |la )?(have|has|had|been|will|would|should|could|can|do|does|did|am|is|are|was|were|ing)\??$/i.test(ask.trim());
+    if (!asksPiece) return null;
+    if (/\bhad\b/.test(n)) {
+      if (/\b(been|continuo|continuous)\b/.test(blob)) return trackById('combined') || trackById('perfect');
+      if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
+      return trackById('have_had') || trackById('perfect');
+    }
+    if (/\bbeen\b/.test(n)) return trackById('combined') || trackById('perfect');
+    if (/\b(have|has)\b/.test(n)) {
+      if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
+      return trackById('have_had') || trackById('perfect');
+    }
+    if (/\b(will|would|should|could|can|must)\b/.test(n)) return trackById('modales');
+    if (/\b(do|does|did)\b/.test(n)) return trackById('negations') || trackById('modal');
+    if (/\b(get|got|gotten)\b/.test(n)) return trackById('irregular_verbs');
+    if (/\b(go|went|gone|see|saw|seen|make|made|take|took|taken)\b/.test(n)) return trackById('irregular_verbs');
+    return null;
+  }
+
   function resolveAsk(userAsk, stickyTopic) {
     var ask = String(userAsk || '').trim();
     var sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
-    var hit = pickTrack(ask);
+    var hit = resolvePieceTrack(ask, sticky);
+    if (hit) return hit;
+    hit = pickTrack(ask);
     if (hit) return hit;
     var stripped = stripAskShell(ask);
     if (stripped) {
       hit = pickTrack(stripped);
+      if (hit) return hit;
+      hit = resolvePieceTrack(stripped, sticky);
       if (hit) return hit;
     }
     if (sticky) {
@@ -850,6 +907,8 @@
     stripAskShell: stripAskShell,
     resolveAsk: resolveAsk,
     resolveAskId: resolveAskId,
+    resolvePieceTrack: resolvePieceTrack,
+    trackById: trackById,
     formatLock: formatLock,
     byColumn: byColumn,
     CACHE_VER: CACHE_VER
