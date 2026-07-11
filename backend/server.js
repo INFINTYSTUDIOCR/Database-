@@ -234,6 +234,7 @@ Brain.initNexusBrain({ sbGetOne, sbSet });
 const SuperBrain = require('./super-brain');
 const JillDrillBrain = require('./jill-drill-brain');
 const InfinityVictory = require('./infinity-victory');
+const JohnDoctrine = require('./john-teaching-doctrine');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
@@ -2998,13 +2999,15 @@ const INSTITUTIONAL_BRAIN_RULE = `INSTITUTIONAL BRAIN (always true):
 - ONE shared knowledge base (Super Brain) for Jill, Alice tutor, Alice Companion, Nexora, and all Infinity AIs.
 - Same data for everyone — ONLY student level and how you teach/explain differ, not separate KBs.
 - PROACTIVE: weave relevant canon doctrine (chunking, linkers, structure, 0/0/0) into each teaching turn when natural — do not wait for the student to ask.
-- If the student does not understand: adapt delivery (shorter, example, analogy, slower pace)—never break Nexus Method.`;
+- If the student does not understand: adapt delivery (shorter, example, analogy, slower pace)—never break Nexus Method.
+- ABSOLUTE: John Ramírez teaching style ONLY (class transcripts + canon). Forbidden to teach as a generic chatbot.`;
 
 const JILL_INSTITUTIONAL_BRAIN_RULE = `INSTITUTIONAL BRAIN (Jill / Foundations MSI®):
 - ONE shared Super Brain — same data as Alice/Nexora; YOUR delivery is Mecánica Estructural Infinity® (P|M|V|C), método moneda, chunks de UNA oración estructurada.
 - PROACTIVE: weave MSI® doctrine (ranuras, fórmulas PR/PS/PC/PRP/PPC/MOD, método moneda) — NEVER proactive linker chains or Idea+Linker+Idea.
 - Linkers avanzados (however, furthermore, on top of that, as a result…) = territorio Alice. Redirigí en una frase si preguntan.
-- If the student does not understand: adapt delivery — never break MSI® method.`;
+- If the student does not understand: adapt delivery — never break MSI® method.
+- ABSOLUTE: estilo John Ramírez ONLY. Prohibido improvisar otro método.`;
 
 function jillReplyHasAliceLinkers(text) {
   const raw = String(text || '');
@@ -3506,22 +3509,22 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v24-spanish-only-unless-practice';
-const ALICE_BRAIN_VER = 'v23-english-only-unless-explain';
+const JILL_BRAIN_VER = 'v25-john-doctrine-all';
+const ALICE_BRAIN_VER = 'v24-john-doctrine-all';
 
-const ALICE_COACHING_RULES = `COACHING — FLEXIBLE BUT ANCHORED (Alice is NOT Jill):
-- You are a warm coach, not a rigid script. Answer questions and explain concepts clearly: linkers, recovery phrases, tone, vocabulary, grammar, Nexus Method, connectors, STAR structure, etc.
-- Always anchor your explanation to what you are practicing RIGHT NOW — the active scenario and Training Book exercises in this prompt.
-- Pattern every time: (1) answer their question in plain English → (2) ONE concrete example using linkers/chunks that fit the CURRENT practice topic → (3) invite them to try it in this session ("Use however in your next answer about [topic]" / "Try that linker in our [scenario] practice now").
-- Example — "explain linkers": "Linkers connect ideas — like however or on top of that. In our practice today on [topic], you could say: 'I hear you, however, let me check your account.' Try one linker in your next reply."
-- NEVER scold, shame, pressure, or speak harshly because they asked off-topic, mixed languages, went on a tangent, or made mistakes. Celebrate curiosity; steer back gently when needed.
-- If they want full customer/interview/Nexora roleplay: say simulations live in Nexora Lab, then keep coaching in the current practice — do not refuse rudely.`;
+const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Alice is NOT Jill):
+- ABSOLUTE: John Ramírez teaching style ONLY (class doctrine + Nexus Intermediate+). Forbidden to teach as a generic ESL chatbot.
+- If you invent an example, it MUST fit John's style: clear analogy, patience, normal classroom flow (not rushed express, not dragging).
+- You are a warm coach, not a rigid script. Explain linkers, recovery, tone, STAR, grammar — always anchored to Nexus Method and Super Brain doctrine.
+- Pattern every time: (1) answer clearly → (2) ONE concrete example with linkers/chunks for THIS practice → (3) invite them to try it now.
+- NEVER scold. Celebrate curiosity; steer back gently.
+- If they want full Nexora roleplay: point to Nexora Lab, keep coaching here.`;
 
-const ALICE_COMPANION_RULES = `COMPANION + LIVE COACH — always-on English companion:
-- Talk, listen, guide, educate — ANY topic, even complex (science, work, feelings, stories).
+const ALICE_COMPANION_RULES = `COMPANION + LIVE COACH — always-on English companion (JOHN STYLE REQUIRED):
+- Talk, listen, guide, educate — ANY topic — but ALL teaching uses John/Nexus doctrine (Super Brain + canon). No improvising foreign methods.
 - Opening: free chat OR a class/English doubt.
-- LIVE COACH: if doubt OR weak structure → PAUSE → feedback → explain → example → confirm → continue.
-- Real-time evaluate every English turn: confirm if solid; coach arc if weak. Never ignore broken structure.
+- LIVE COACH: if doubt OR weak structure → PAUSE → feedback → explain (John pace) → example → confirm → continue.
+- Real-time evaluate every English turn. Never ignore broken structure.
 - Never force Nexus drill sheets or Nexora roleplay.
 - Complete every sentence. No turn quota.`;
 
@@ -3578,16 +3581,16 @@ ${JILL_INSTITUTIONAL_BRAIN_RULE}
 Compartís la misma base que Alice, Alice Companion y Nexora (Super Brain); tu rol es Foundations y cómo lo explicás, no un subconjunto de datos.
 
 IDENTIDAD:
-Tu nombre es Jill. Sos paciente, clara y natural — nunca generás presión. Enseñás el Método Nexus con soltura: podés improvisar ejemplos y reacciones dentro del método, sin sonar robótica ni dar charlas motivacionales vacías.
+Tu nombre es Jill. Sos paciente, clara y natural — nunca generás presión. Enseñás ÚNICAMENTE con el estilo John Ramírez (Método Nexus / MSI® + doctrina de sus clases). PROHIBIDO improvisar otro método; si inventás un ejemplo, debe ajustarse a su estilo (puente ES↔EN, analogía, fórmula, paciencia).
 Corregís con afecto y claridad, sin sermones ni relleno.
 CRÍTICO: Solo dirigite al estudiante cuyo nombre aparece en la línea ESTUDIANTE del contexto. Nunca uses el nombre de otra persona, trainer, o visitante.
 
-ESTILO — MÉTODO CON NATURALIDAD:
-- Directa al tema, sin bla bla ni azúcar excesivo — pero sí espontánea y conversacional cuando sirve la lección.
-- Mini-analogías, ejemplos vivos y reacciones naturales están bien; siempre ancladas al Método Nexus.
-- Cada respuesta mueve la lección: regla/chunk + ejemplo + práctica. Típicamente 4-6 oraciones; más si hace falta para claridad.
-- El bundle/ejercicio activo guía el tema principal; adaptate al momento del estudiante sin salirte del método.
-- Si hay INSTITUTIONAL KNOWLEDGE en el prompt: obedecelo; nunca contradigas el Método Nexus.
+ESTILO — FIDELIDAD JOHN (OBLIGATORIO):
+- Directa al tema, con calma y flujo normal — ni express atropellado ni lento apelotado.
+- Mini-analogías y ejemplos vivos SOLO anclados al Método Nexus / canon / Super Brain (transcripciones de clase).
+- Cada respuesta mueve la lección: fórmula + puente/analogía + ejemplo + práctica. Típicamente 4-7 oraciones.
+- El bundle/ejercicio activo guía el tema; el track canon/SVG sincroniza la explicación.
+- Si hay INSTITUTIONAL KNOWLEDGE / doctrina de clase: OBEDECELO. Nunca contradigas a John.
 
 GUION vs PREGUNTAS FOUNDATIONS (OBLIGATORIO):
 - El bundle activo es tu guion de hoy — siempre retomalo después de responder.
@@ -4170,27 +4173,30 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
 });
 
 async function tutorKnowledgeSlice(message) {
-  if (!SuperBrain.isSuperBrainEnabled()) return '';
+  if (!SuperBrain.isSuperBrainEnabled()) {
+    return JohnDoctrine.wrapKnowledgeSlice('', 'alice');
+  }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
-    if (!ctx.trim()) return '';
-    return `\n\nINSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by ALL Infinity AIs):
-PROACTIVE RULE: Use canon doctrine in every teaching turn when it fits — one concrete Nexus hook (chunk/linker/structure) even if the student did not ask. Never contradict Nexus Method.
-${ctx}`;
+    return JohnDoctrine.wrapKnowledgeSlice(
+      ctx.trim()
+        ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by ALL Infinity AIs):\nPROACTIVE RULE: Use John/Nexus canon doctrine every teaching turn when it fits.\n${ctx}`
+        : '',
+      'alice'
+    );
   } catch {
-    return '';
+    return JohnDoctrine.wrapKnowledgeSlice('', 'alice');
   }
 }
 
 async function tutorKnowledgeSliceFast(message) {
-  if (!SuperBrain.isSuperBrainEnabled()) return '';
   try {
     return await Promise.race([
       tutorKnowledgeSlice(message),
-      new Promise((resolve) => setTimeout(() => resolve(''), 350))
+      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('alice')), 350))
     ]);
   } catch {
-    return '';
+    return JohnDoctrine.mandateBlock('alice');
   }
 }
 
@@ -4199,7 +4205,10 @@ async function tutorKnowledgeSliceForJill(message, student) {
     const drillOnly = student ? JillDrillBrain.getStudentDrillNote(student) : '';
     const propagated = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
     const merged = [drillOnly, propagated].filter(Boolean).join('\n');
-    return merged ? `\n\nDRILL BRAIN (cascada tutores):\n${merged}` : '';
+    return JohnDoctrine.wrapKnowledgeSlice(
+      merged ? `DRILL BRAIN (cascada tutores):\n${merged}` : '',
+      'jill'
+    );
   }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
@@ -4207,12 +4216,13 @@ async function tutorKnowledgeSliceForJill(message, student) {
     const drillStudent = student ? JillDrillBrain.getStudentDrillNote(student) : '';
     const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
     const drillBlock = [drillStudent, drillGlobal].filter(Boolean).join('\n');
-    if (!filtered && !drillBlock) return '';
-    return `\n\nINSTITUTIONAL KNOWLEDGE (Super Brain — Jill MSI® filter):
-PROACTIVE RULE: MSI® only — P|M|V|C, método moneda, chunks estructurales. NO linker chains / Idea+Linker+Idea.
-${filtered || ''}${drillBlock ? `\n\n${drillBlock}` : ''}`;
+    const body = [
+      filtered ? `INSTITUTIONAL KNOWLEDGE (Super Brain — Jill MSI® filter):\nPROACTIVE RULE: MSI® only — P|M|V|C, método moneda, chunks estructurales. NO linker chains.\n${filtered}` : '',
+      drillBlock
+    ].filter(Boolean).join('\n\n');
+    return JohnDoctrine.wrapKnowledgeSlice(body, 'jill');
   } catch {
-    return '';
+    return JohnDoctrine.wrapKnowledgeSlice('', 'jill');
   }
 }
 

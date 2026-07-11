@@ -3,9 +3,10 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v28-john-pace';
+const JILL_PRO_BRAIN_VER = 'v29-john-doctrine-all';
 
 const JillCanonRouter = require('./jill-canon-router');
+const JohnDoctrine = require('./john-teaching-doctrine');
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -319,6 +320,7 @@ function buildJillProCoachBlock(student, topic) {
 function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic) {
   return `Sos Jill Pro — compañera de inglés en Infinity Studio CR (Foundations).
 Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente. NUNCA hables como hombre ni como profesora de bundle rígida.
+${JohnDoctrine.mandateBlock('jill')}
 ${JILL_PRO_COMPANION_RULES}
 ESTUDIANTE: ${displayName} | Nivel: ${level || 'Foundations'}${profileNote || ''}${adaptNote || ''}
 TEMA: ${topic || 'open chat'}`;

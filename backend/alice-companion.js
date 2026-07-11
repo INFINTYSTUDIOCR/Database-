@@ -2,7 +2,7 @@
  * Alice Companion — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand doubt → explain → check → short practice (same arc as Jill Pro).
  */
-const COMPANION_BRAIN_VER = 'v7-svg-short-teach';
+const COMPANION_BRAIN_VER = 'v8-john-doctrine';
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
@@ -12,6 +12,11 @@ const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
 - Spanish ONLY when the student explicitly asks you to EXPLAIN something (e.g. "explain in Spanish", "explicame", "no entiendo", "en español"). Explain clearly in Spanish (bilingual OK for that explanation), then return to English.
 - NEVER sprinkle Spanish tips unless they asked for an explanation in Spanish.
 - Understand English, Spanish, or Spanglish — never scold for mixing.`;
+
+const ALICE_JOHN_STYLE = `JOHN RAMÍREZ STYLE (MANDATORY FOR ALL ALICE TEACHING):
+- Use Infinity institutional doctrine (Super Brain class transcripts + Nexus Method). Forbidden to teach as a generic chatbot.
+- If you improvise an example, adjust it to John's style: clear analogy, patience, normal pace (not express, not dragging).
+- Prefer pattern + bridge + example + confirm. Never invent foreign methods.`;
 
 const ALICE_COMPANION_INTENT_RULE = `INTENT INTERPRETATION (REQUIRED — you are Claude, not a menu bot):
 - Read the FULL message even if messy, typo-filled, Spanglish, or voice-to-text garbage.
@@ -66,13 +71,14 @@ function looksLikeBrokenEnglish(message) {
 }
 
 const ALICE_COMPANION_LIVE_COACH = `LIVE COACH (REQUIRED — any topic, even complex):
+${ALICE_JOHN_STYLE}
 ${ALICE_COMPANION_INTENT_RULE}
 Talk with real sense: follow their thread, react, go deeper. Never ignore content.
 
 If they have a DOUBT OR produce poorly structured English:
 1) PAUSE the free-chat flow (warm, never scolding).
 2) FEEDBACK: one clear line on what broke (structure, linker, tense, clarity).
-3) EXPLAIN the pattern simply — SHORT (max ~3 sentences). Prefer a visual pattern / formula over a wall of text.
+3) EXPLAIN the pattern simply — John pace (calm, clear analogy). Prefer a visual pattern / formula over a wall of text.
 4) EXAMPLE: one strong model sentence they can copy (spoken clearly; pause between forms if A/B/C).
 5) CONFIRM: "Does that make sense?" / "Try it again?" — they SPEAK; do not dump written drill paragraphs.
 6) CONTINUE: if yes → they produce; if no → re-explain simpler + new example; then resume the topic.
@@ -85,9 +91,9 @@ Real-time evaluation every turn they speak English:
 Complex topics (science, work, politics, feelings, stories): fully welcome.
 No Nexus drill sheets, no Nexora roleplay. If they want full simulation → one warm line to Nexora Lab.`;
 
-const ALICE_COMPANION_DOUBT_MODE = `ON-DEMAND DOUBT: same live-coach arc — feedback → short explain → one example → confirm → they speak → back to chat.
+const ALICE_COMPANION_DOUBT_MODE = `ON-DEMAND DOUBT: same live-coach arc — feedback → short explain (John style) → one example → confirm → they speak → back to chat.
 Any English topic: linkers, STAR, tenses, phrasals, recovery, tone, etc.
-Keep explanations tight. Prefer pattern + example over long prose.`;
+Keep explanations tight. Prefer pattern + example over long prose. Never invent non-John methods.`;
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',
@@ -302,6 +308,7 @@ function buildCompanionCoachBlock(student, config, topic) {
   const focusBlock = buildFocusKpiCoachLines(cfg.focusKpis);
 
   return `COMPANION + LIVE COACH — always-on English practice companion
+${ALICE_JOHN_STYLE}
 ${topicLine}
 ${seeds}
 
@@ -425,6 +432,7 @@ function enrichCompanionEvaluation(qual, scored, metrics, config) {
 module.exports = {
   COMPANION_BRAIN_VER,
   ALICE_LANGUAGE_RULE,
+  ALICE_JOHN_STYLE,
   ALICE_COMPANION_INTENT_RULE,
   looksLikeBrokenEnglish,
   ALICE_COMPANION_LIVE_COACH,
