@@ -161,7 +161,8 @@ async function infinityFetch(path, options) {
   if (r.status === 403) {
     try {
       var d = await r.clone().json();
-      if (d && (d.code === 'ACCOUNT_SUSPENDED' || d.code === 'NEXORA_DISABLED' || d.error === 'Account suspended')) {
+      // Only logout on real account kill — Nexora/Alice off is NOT a session expiry
+      if (d && (d.code === 'ACCOUNT_SUSPENDED' || d.error === 'Account suspended')) {
         clearAuthToken();
         clearAuthCredentials();
       }

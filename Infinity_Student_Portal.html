@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="css/daily-inspiration.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/live-kpi-charts.js?v=20260627"></script>
-<script src="infinity-auth.js?v=20260711auth"></script>
+<script src="infinity-auth.js?v=20260711auth2"></script>
 <script src="nexora-profile.js?v=voice-sync-6"></script>
 <script src="js/nexora-voice-lock.js?v=6"></script>
 <script src="nexora-characters.js"></script>
@@ -3420,9 +3420,14 @@ function warmInfinityApi(){
   fetch(INFINITY_API+'/').catch(function(){});
   infinityFetch('/health',{headers:authHeaders()}).catch(function(){});
   verifyStudentSessionAccess();
-  aliceWarmApi();
-  jillWarmApi();
-  nexoraWarmApi();
+  // Only warm products the student actually has — 403s must never kill the JWT
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  var aliceOn = s && ((typeof studentAliceOn === 'function' && studentAliceOn(s)) || (typeof studentCompanionOn === 'function' && studentCompanionOn(s)));
+  var jillOn = s && (typeof studentJillTabOn === 'function' ? studentJillTabOn(s) : true);
+  var nexoraOn = s && (typeof studentNexoraOn === 'function' ? studentNexoraOn(s) : false);
+  if(aliceOn) aliceWarmApi();
+  if(jillOn) jillWarmApi();
+  if(nexoraOn) nexoraWarmApi();
 }
 
 function aliceWarmApi(){
