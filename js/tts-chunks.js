@@ -113,6 +113,13 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bI\s+N\s+G\b/g, ' í ene ge ');
   t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene ge ');
+  // Have = jáf with Spanish JOTA (never English J → "yaf")
+  t = t.replace(/\byaf\b/gi, 'jáf');
+  t = t.replace(/\byas\b/gi, 'jás');
+  t = t.replace(/\byad\b/gi, 'jád');
+  t = t.replace(/\bjaf\b/gi, 'jáf');
+  t = t.replace(/\bjas\b/gi, 'jás');
+  t = t.replace(/\bjad\b/gi, 'jád');
 
   t = t.replace(/\bP\b/g, ' pronombre ');
   t = t.replace(/\bM\b/g, ' modal ');

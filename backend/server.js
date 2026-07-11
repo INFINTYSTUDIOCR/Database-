@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-class-guion';
-const JILL_BRAIN_VER = 'v32-class-guion';
+const APP1_BUILD = '20260711-jaf-jota';
+const JILL_BRAIN_VER = 'v33-jaf-jota';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2074,7 +2074,7 @@ HABLA el GUION ORAL del track (john-voice-scripts / trascriciones de clase). Esa
 El TABLERO ya está en pantalla: NO lo leás fila por fila (prohibido rules→examples→transforms→takeaway como lista).
 Completá: guion oral + 1–2 ejemplos señalados + práctica oral + "¿Te quedó?".
 PROHIBIDO tip corto. PROHIBIDO chatbot ESL. PROHIBIDO imponer otro módulo si pidieron X → enseñá X YA.
-Si perfecto / have-has-had: "jaf. jas. jad." — nunca "ave".
+Si perfecto / have-has-had: en VOZ decí "jáf. jás. jád." con JOTA española (nunca "yaf" de J inglesa, nunca "ave").
 Si futuro perfecto: will + have + participio.
 Si ING: "í ene ge" (español CR).`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
@@ -2676,10 +2676,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=tico1: CR Tico lock — no PT seseo rewrite, no AR/gringo theatrical style
+  // v=jafjota1: jáf/jás/jád with Spanish jota (not English J / "yaf")
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':tico1:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':jafjota1:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2806,17 +2806,24 @@ function humanizeSpokenForTts(text) {
     .trim();
 }
 
-/** CR classroom phonetics: have/has/had → jaf/jas/jad (never Spanish "ave"). */
+/** CR classroom phonetics: have/has/had → jáf/jás/jád with Spanish JOTA (never English J→"yaf", never "ave"). */
 function applyCrHavePhonetics(text) {
   let t = String(text || '');
-  t = t.replace(/\bhave\s*\.\s*has\s*\.\s*had\b/gi, 'jaf. jas. jad.');
-  t = t.replace(/\bhave\s+has\s+had\b/gi, 'jaf. jas. jad.');
-  t = t.replace(/\bHAVE\b/g, ' jaf ');
-  t = t.replace(/\bHAS\b/g, ' jas ');
-  t = t.replace(/\bHAD\b/g, ' jad ');
-  t = t.replace(/\bhave\b/gi, 'jaf');
-  t = t.replace(/\bhas\b/gi, 'jas');
-  t = t.replace(/\bhad\b/gi, 'jad');
+  // Fix wrong spellings the model/TTS might invent
+  t = t.replace(/\byaf\b/gi, 'jáf');
+  t = t.replace(/\byas\b/gi, 'jás');
+  t = t.replace(/\byad\b/gi, 'jád');
+  t = t.replace(/\bjaf\b/gi, 'jáf');
+  t = t.replace(/\bjas\b/gi, 'jás');
+  t = t.replace(/\bjad\b/gi, 'jád');
+  t = t.replace(/\bhave\s*\.\s*has\s*\.\s*had\b/gi, 'jáf. jás. jád.');
+  t = t.replace(/\bhave\s+has\s+had\b/gi, 'jáf. jás. jád.');
+  t = t.replace(/\bHAVE\b/g, ' jáf ');
+  t = t.replace(/\bHAS\b/g, ' jás ');
+  t = t.replace(/\bHAD\b/g, ' jád ');
+  t = t.replace(/\bhave\b/gi, 'jáf');
+  t = t.replace(/\bhas\b/gi, 'jás');
+  t = t.replace(/\bhad\b/gi, 'jád');
   return t.replace(/\s{2,}/g, ' ').trim();
 }
 
@@ -2947,8 +2954,8 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
     : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
 
-  // tico1 busts old Brazilian/Argentine-sounding clips
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|tico1|${modelId}`;
+  // jafjota1 busts old clips that said English-J "yaf"
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|jafjota1|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };

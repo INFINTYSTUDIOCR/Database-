@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v50-class-guion';
+const JILL_PRO_BRAIN_VER = 'v51-jaf-jota';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -30,9 +30,9 @@ const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO
 - Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.`;
 
 const TRACK_PHONETICS = {
-  perfect: 'OBLIGATORIO voz: "jaf. jas. jad." (have. has. had.) — NUNCA "ave". Presente: jaf/jas + participio. Pasado perfecto: jad + participio (había).',
-  have_had: 'OBLIGATORIO voz: "jaf. jas. jad." con pausa — NUNCA "ave". Luego 1 ejemplo presente y 1 pasado perfecto.',
-  combined: 'Empezá con jaf. jas. jad. si hace falta. Have/has + been + verbo + í ene ge = he estado + ando/endo.',
+  perfect: 'OBLIGATORIO voz: "jáf. jás. jád." con JOTA española (have. has. had.) — NUNCA "yaf" ni "ave". Presente: jáf/jás + participio. Pasado perfecto: jád + participio (había).',
+  have_had: 'OBLIGATORIO voz: "jáf. jás. jád." con jota CR y pausa — NUNCA "yaf" ni "ave". Luego 1 ejemplo presente y 1 pasado perfecto.',
+  combined: 'Empezá con jáf. jás. jád. (jota, no yaf). Have/has + been + verbo + í ene ge = he estado + ando/endo.',
   future_perfect: 'OBLIGATORIO: will + have + participio = habré/habrá. Ejemplo: I will have finished. NUNCA digas "primero otro tiempo". NUNCA lo cambies a should have ni a will solo.',
   progressive: 'VERBO+ING = "í ene ge" (español CR). TO BE + verbo + í ene ge = ando/endo.',
   gerundio: 'VERBO+ING = "í ene ge". Sin to be = gerundio; con to be = progresivo.',
