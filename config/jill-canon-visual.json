@@ -124,6 +124,13 @@
       "svg": "assets/canon/modales.svg",
       "gif": null,
       "title": "Modales"
+    },
+    {
+      "id": "have-had",
+      "columns": ["have_had"],
+      "svg": "assets/canon/have-had.svg",
+      "gif": null,
+      "title": "Have / Has / Had"
     }
   ]
 }

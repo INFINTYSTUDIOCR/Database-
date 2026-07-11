@@ -173,7 +173,8 @@
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
     negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
     comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },
-    articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos a/an/the' }
+    articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos a/an/the' },
+    have_had: { id: 'have-had', path: 'assets/canon/have-had.svg', title: 'Have / Has / Had + PP' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -185,7 +186,18 @@
 
     // --- Mas especifico primero ---
 
-    // Gerundio despues de prep (before leaving) ≠ PC
+    // Have / has / had como auxiliares de perfecto
+    if (/\bhave\b/.test(t) && /\bhad\b/.test(t)) return 'have_had';
+    if (/\bhave\s*\/\s*has\s*\/\s*had\b/.test(t) || /\bhave\s+has\s+had\b/.test(t)) return 'have_had';
+    if (/\b(have\s+vs\s+had|has\s+vs\s+had|diferencia\s+entre\s+have\s+y\s+had)\b/.test(t)) return 'have_had';
+    if (/\bhad\b/.test(t) && /\b(auxiliar|perfecto|perfect|participio|explic)\b/.test(t)
+      && !/\b(pasado simple|past simple|yesterday)\b/.test(t)) {
+      return 'have_had';
+    }
+    if (/\bhave\b/.test(t) && /\b(explic|ense[nñ]|auxiliar|perfecto|perfect)\b/.test(t)
+      && !/\b(had|going to|will have)\b/.test(t)) {
+      return 'perfect';
+    }
     if (/\b(preposici[oó]n|before|after|without|instead of|good at|interested in|afraid of|antes de|despues de|después de|en vez de)\b/.test(t)
       && /\b(-ing|gerundio|leaving|going|working|coming|doing|saying)\b/.test(t)
       && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are)\b/.test(t)) {
