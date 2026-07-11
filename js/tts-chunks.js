@@ -46,9 +46,8 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\[([^\]]*)\]/g, ' $1 ');
   t = t.replace(/（([^）]*)）/g, ' $1 ');
   t = t.replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ');
-  // Slash pairs (ando/endo, go/went/gone): commas only — periods make Spanish TTS say "punto"
-  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1, $2, $3');
-  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1, $2');
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2. $3.');
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
   var triples = [
     ['do', 'did', 'done'], ['go', 'went', 'gone'], ['come', 'came', 'come'],
     ['take', 'took', 'taken'], ['give', 'gave', 'given'], ['get', 'got', 'gotten'],
@@ -58,12 +57,10 @@ function normalizeTtsTeachingForms(text) {
   ];
   triples.forEach(function (tr) {
     var re = new RegExp('\\b(' + tr[0] + ')\\s+(' + tr[1] + ')\\s+(' + tr[2] + ')\\b', 'gi');
-    t = t.replace(re, tr[0] + ', ' + tr[1] + ', ' + tr[2]);
+    t = t.replace(re, tr[0] + '. ' + tr[1] + '. ' + tr[2] + '.');
   });
-  t = t.replace(/\bI\s+do\s*[,.]?\s*did\s*[,.]?\s*done\b/gi, 'I do, did, done');
-  t = t.replace(/\bI\s+have\s*[,.]?\s*has\s*[,.]?\s*had\b/gi, 'I have, has, had');
-  // Legacy "word. word." paradigm leftovers → commas (no "punto")
-  t = t.replace(/\b(do|did|done|go|went|gone|have|has|had|be|was|were|been|am|is|are)\s*\.\s+(?=(do|did|done|go|went|gone|have|has|had|be|was|were|been|am|is|are)\b)/gi, '$1, ');
+  t = t.replace(/\bI\s+do\s*\.?\s*did\s*\.?\s*done\b/gi, 'I do. did. done.');
+  t = t.replace(/\bI\s+have\s*\.?\s*has\s*\.?\s*had\b/gi, 'I have. has. had.');
 
   // Siglas largas ANTES de ranuras de 1 letra
   t = t.replace(/\bGOING\s+TO\b/gi, ' going to ');
@@ -134,8 +131,7 @@ function normalizeTtsTeachingForms(text) {
   return t;
 }
 
-// Pronouns + auxiliaries stay EN islands — Spanish TTS turns "he"→"je", "been"→"ben"
-var _TTS_EN_GRAMMAR = /^(i|you|he|she|it|we|they|am|is|are|was|were|be|been|being|do|does|did|have|has|had|will|would|can|could|must|may|might|not|to|past|participle)$/i;
+var _TTS_EN_GRAMMAR = /^(am|is|are|was|were|be|been|being|do|does|did|have|has|had|will|would|can|could|must|may|might|not|to|past|participle)$/i;
 
 /** One TTS line — keep pause marks so paradigms are not mashed. */
 function prepareTtsLine(text) {
@@ -151,9 +147,9 @@ function prepareTtsLine(text) {
       .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
   )
     .replace(/[¿¡]/g, '')
-    .replace(/[—–―…]/g, ', ')
+    .replace(/[—–―…]/g, '. ')
     .replace(/\.{2,}/g, '. ')
-    // Keep . ! ? , as pauses (do, did, done — never dodiddone; never "punto" mid-paradigm)
+    // Keep . ! ? , as pauses for ElevenLabs (do. did. done. — never dodiddone)
     .replace(/[;:/]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -212,7 +208,7 @@ function splitBilingualTtsSegments(text) {
     } else if (cls) {
       lang = cls;
     }
-    buf += (buf && !/\s$/.test(buf) ? ' ' : '') + tok;
+    buf += (buf && /\w$/.test(buf) ? ' ' : '') + tok;
   });
   flush();
 
@@ -220,15 +216,8 @@ function splitBilingualTtsSegments(text) {
   return segments.filter(function (s) { return s.text && s.text.length > 0; });
 }
 
-/** True if text contains EN pronouns/auxiliaries that must not be spoken as Spanish (he≠je, been≠ben). */
-function hasProtectedEnToken(text) {
-  return (String(text || '').match(/[A-Za-z']+/g) || []).some(function (w) {
-    return _TTS_EN_GRAMMAR.test(w);
-  });
-}
-
 /** Merge tiny bilingual clips so speech does not pause between every language hop.
- *  Never swallow English grammar islands (he / have / been / am…) into a Spanish clip. */
+ *  Never swallow English grammar islands (am / be / is…) into a Spanish clip. */
 function mergeShortTtsSegments(segments, minKeep) {
   minKeep = minKeep || 64;
   if (!segments || !segments.length) return [];
@@ -238,9 +227,9 @@ function mergeShortTtsSegments(segments, minKeep) {
     if (!t) return;
     var lang = seg.lang || 'es';
     var last = out[out.length - 1];
-    var grammarIsland = hasProtectedEnToken(t);
-    var lastGrammar = last && hasProtectedEnToken(last.text);
-    if (last && last.lang !== lang && (grammarIsland || lastGrammar || lang === 'en' || (last && last.lang === 'en'))) {
+    var grammarIsland = _TTS_EN_GRAMMAR.test(t) || (t.split(/\s+/).length <= 3 && t.split(/\s+/).every(function (w) { return _TTS_EN_GRAMMAR.test(w); }));
+    var lastGrammar = last && (_TTS_EN_GRAMMAR.test(last.text) || (last.text.split(/\s+/).length <= 3 && last.text.split(/\s+/).every(function (w) { return _TTS_EN_GRAMMAR.test(w); })));
+    if (last && last.lang !== lang && (grammarIsland || lastGrammar)) {
       out.push({ text: t, lang: lang });
       return;
     }
@@ -278,7 +267,7 @@ function jillTtsSegments(text, maxLen) {
   if (!line) return [];
   var mixed = splitBilingualTtsSegments(line);
   var hasEnGrammar = mixed.some(function (s) {
-    return s.lang === 'en' && hasProtectedEnToken(s.text);
+    return s.lang === 'en' && _TTS_EN_GRAMMAR.test(String(s.text || '').trim());
   });
   // One clip only when there is no English verb/grammar island to protect
   if (!hasEnGrammar && line.length <= maxLen && mixed.length <= 1) {

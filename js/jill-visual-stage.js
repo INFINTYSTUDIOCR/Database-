@@ -110,11 +110,8 @@
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    var user = String(userTopic || '').trim();
-    // Never open the board on greeting / idle — student must ask first
-    if (user.length < 3) return false;
-    if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
     if (forcedColumn) return true;
+    if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
     return !!resolveColumn(text, bundle, userTopic, tutor);
   }
 
@@ -334,8 +331,7 @@
         if (!mounted) {
           var def = global.JillLessonClip.getClip ? global.JillLessonClip.getClip(clipId) : null;
           var labs = slotLabels(col);
-          host.innerHTML = '<div class="jill-clip jill-clip-stage jill-clip-static" data-clip="' + String(clipId || col) + '">'
-            + '<div class="jill-clip-formula">'
+          host.innerHTML = '<div class="jill-clip jill-clip-static" data-clip="' + String(clipId || col) + '">'
             + '<p class="jill-clip-title">' + escHtml((def && def.title) || String(clipId || col)) + '</p>'
             + (def && def.bridge ? '<p class="jill-clip-bridge">' + escHtml(def.bridge) + '</p>' : '')
             + '<div class="jill-clip-row">' + labs.map(function (s, idx) {
@@ -343,9 +339,7 @@
                 + '<span class="jill-clip-slot-label">' + escHtml(s.label) + '</span>'
                 + (s.hint ? '<span class="jill-clip-slot-hint">' + escHtml(s.hint) + '</span>' : '')
                 + '</button>' + (idx < labs.length - 1 ? '<span class="jill-clip-plus">+</span>' : '');
-            }).join('') + '</div></div>'
-            + '<div class="jill-clip-exercise"><p class="jill-clip-example" aria-live="polite"></p></div>'
-            + '</div>';
+            }).join('') + '</div></div>';
           mounted = true;
         }
         var overlay = media.querySelector('.jill-svg-interact');
