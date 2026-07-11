@@ -129,16 +129,16 @@ for (const track of map.tracks) {
   );
   assert(/TRACK LOCK/i.test(teach), id + ' companion TRACK LOCK', 'phase has lock');
   assert(teach.includes(track.title) || teach.includes(track.formula), id + ' companion lock title/formula', 'ok');
-  assert(/EJERCICIO ORAL|Decime|Complet[aá]|Arm[aá]/i.test(teach), id + ' teach requires oral drill', 'ok');
-  assert(/ENSEÑANZA CANON|TODA LA BIBLIOTECA|paradigma|pausa/i.test(teach), id + ' teach canon library-wide', 'ok');
+  assert(/SVG-first|SVG enseña|poco texto|voz corta/i.test(teach), id + ' teach SVG-first library-wide', 'ok');
+  assert(!/EJERCICIO ORAL obligatorio en 1 l[ií]nea|Decime \/ Complet/i.test(teach), id + ' no text-drill mandate', 'ok');
   assert(
     !/(?:digas|decí|decí|decíle|decí)\s+["']?ac[aá]\s+te\s+va\s+una\s+imagen/i.test(teach)
       && !/^[^P]*ac[aá]\s+te\s+va\s+una\s+imagen/m.test(teach.replace(/PROHIBIDO[^\n]*/gi, '')),
     id + ' prompt no ordena fingir imagen',
     'ok'
   );
-  assert(/CTYPE:whiteboard|tablero/i.test(teach), id + ' whiteboard/tablero sync cue', 'ok');
-  assert(/EJERCICIO ORAL obligatorio/i.test(JillCanonRouter.formatLock(track)), id + ' formatLock drill cue', 'ok');
+  assert(/CTYPE:whiteboard|tablero|SVG/i.test(teach), id + ' whiteboard/SVG sync cue', 'ok');
+  assert(/Cero bloques de texto-ejercicio|SVG enseña/i.test(JillCanonRouter.formatLock(track)), id + ' formatLock SVG-first', 'ok');
 
   // Front/back agreement on a few aliases
   for (const a of (track.aliases || []).slice(0, 3)) {

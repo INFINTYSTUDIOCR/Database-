@@ -557,7 +557,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260710all';
+  var CACHE_VER = '20260710svg';
 
   function normalize(text) {
     return String(text || '')
@@ -680,7 +680,7 @@
       'Ejemplo: ' + track.example,
       never ? ('PROHIBIDO mezclar: ' + never) : '',
       'VOZ: paradigmas con pausa (A. B. C.) — nunca pegados.',
-      'EJERCICIO ORAL obligatorio (Decime / Completa / Arma) — el portal lo muestra bajo el tablero.',
+      'El SVG ensena; vos guias en voz corta. Cero bloques de texto-ejercicio.',
       'Explica SOLO este track. No cambies de modulo. [[CTYPE:whiteboard]]'
     ].filter(Boolean).join('\n');
   }

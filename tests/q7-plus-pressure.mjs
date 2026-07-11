@@ -177,9 +177,9 @@ if (JF && typeof JF.detectCanonColumn === 'function') {
 // Visual stage: no caption / no transcript overlay
 const stageSrc = fs.readFileSync(path.join(root, 'js/jill-visual-stage.js'), 'utf8');
 const portalSrc = fs.readFileSync(path.join(root, 'Infinity_Student_Portal.html'), 'utf8');
-assert(/No transcript overlay|setDrillCaption|extractDrill|jill-stage-drill/i.test(stageSrc), 'stage drill caption', 'ok');
-assert(/#jill-stage-caption\{/.test(portalSrc.replace(/\s+/g, '')) || /#jill-stage-caption\{/.test(portalSrc), 'CSS caption panel', 'ok');
-assert(/jill-stage-drill-label/.test(portalSrc), 'CSS drill label', 'ok');
+assert(/jill-svg-interact|jill-svg-hotspot|Sin transcript ni drill/i.test(stageSrc), 'stage SVG interact no text drill', 'ok');
+assert(/#jill-stage-caption\{\s*display:none/i.test(portalSrc.replace(/\s+/g, '')), 'CSS caption hidden', 'ok');
+assert(/jill-svg-hotspot/.test(portalSrc), 'CSS SVG hotspots', 'ok');
 assert(/jillLastUserTopic|userTopic/.test(portalSrc), 'board uses student ask', 'ok');
 
 // ── 5) Live build tag (current) ──────────────────────────────

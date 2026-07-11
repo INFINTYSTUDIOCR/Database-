@@ -123,7 +123,7 @@ function formatLock(track) {
     `Ejemplo: ${track.example}`,
     never ? `PROHIBIDO mezclar: ${never}` : '',
     'VOZ: paradigmas con pausa (A. B. C.) — nunca pegados.',
-    'EJERCICIO ORAL obligatorio (Decime / Completá / Armá) — el portal lo muestra bajo el tablero.',
+    'El SVG enseña; vos guiás en voz corta. Cero bloques de texto-ejercicio.',
     'Explicá SOLO este track. No cambies de módulo. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

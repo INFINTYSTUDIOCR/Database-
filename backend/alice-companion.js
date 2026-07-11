@@ -2,10 +2,10 @@
  * Alice Companion — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand doubt → explain → check → short practice (same arc as Jill Pro).
  */
+const COMPANION_BRAIN_VER = 'v7-svg-short-teach';
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
-const COMPANION_BRAIN_VER = 'v6-intent-interpret';
 
 const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
 - Speak ONLY in English by default — greetings, chat, stories, coaching, corrections, everything.
@@ -72,11 +72,12 @@ Talk with real sense: follow their thread, react, go deeper. Never ignore conten
 If they have a DOUBT OR produce poorly structured English:
 1) PAUSE the free-chat flow (warm, never scolding).
 2) FEEDBACK: one clear line on what broke (structure, linker, tense, clarity).
-3) EXPLAIN the pattern simply (English by default; Spanish if they asked).
-4) EXAMPLE: one strong model sentence they can copy.
-5) CONFIRM: "Does that make sense?" / "Try it again?"
+3) EXPLAIN the pattern simply — SHORT (max ~3 sentences). Prefer a visual pattern / formula over a wall of text.
+4) EXAMPLE: one strong model sentence they can copy (spoken clearly; pause between forms if A/B/C).
+5) CONFIRM: "Does that make sense?" / "Try it again?" — they SPEAK; do not dump written drill paragraphs.
 6) CONTINUE: if yes → they produce; if no → re-explain simpler + new example; then resume the topic.
 
+VISUAL-FIRST TEACHING: less text, more interaction. No vulgar walls of explanation. No fake "exercise" text blocks.
 Real-time evaluation every turn they speak English:
 - If solid: brief confirm + continue the conversation meaningfully.
 - If weak: run steps 1-6 — do NOT steamroll past the error.
@@ -84,8 +85,9 @@ Real-time evaluation every turn they speak English:
 Complex topics (science, work, politics, feelings, stories): fully welcome.
 No Nexus drill sheets, no Nexora roleplay. If they want full simulation → one warm line to Nexora Lab.`;
 
-const ALICE_COMPANION_DOUBT_MODE = `ON-DEMAND DOUBT: same live-coach arc — feedback → explain → example → confirm → short practice → back to chat.
-Any English topic: linkers, STAR, tenses, phrasals, recovery, tone, etc.`;
+const ALICE_COMPANION_DOUBT_MODE = `ON-DEMAND DOUBT: same live-coach arc — feedback → short explain → one example → confirm → they speak → back to chat.
+Any English topic: linkers, STAR, tenses, phrasals, recovery, tone, etc.
+Keep explanations tight. Prefer pattern + example over long prose.`;
 
 const COMPANION_KPI_COACH = {
   k9: 'Idea expansion — ask for more distinct ideas and fuller answers on the topic',

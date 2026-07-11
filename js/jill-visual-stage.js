@@ -1,12 +1,14 @@
 /**
- * Escenario visual Jill — pantalla completa, solo el tablero del tema.
- * Sin transcripcion: el audio basta (todos hablan espanol).
+ * Escenario visual Jill — tablero SVG a pantalla completa + interacción.
+ * Sin bloques de texto-ejercicio: el SVG enseña; el audio guía.
  */
 (function (global) {
   'use strict';
 
   var active = false;
   var currentColumn = null;
+  var pulseTimer = null;
+  var pulseStep = 0;
 
   function shell() {
     return document.getElementById('jill-lesson-shell');
@@ -31,11 +33,9 @@
     return null;
   }
 
-  /** Prefer the student's ask for accuracy; never let Jill's reply steal the track. */
   function resolveColumn(replyText, bundle, userTopic) {
     var user = String(userTopic || '').trim();
     if (!user) return null;
-    // Fuente única del catálogo completo (pedido + sticky ya van en userTopic)
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
       var id = JillCanonRouter.resolveAskId(user, '');
       if (id) return id;
@@ -86,34 +86,55 @@
     }
   }
 
-  /** Extrae el drill oral de la respuesta de Jill para mostrarlo bajo el tablero. */
-  function extractDrill(text) {
-    var raw = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
-    if (!raw) return '';
-    var lines = raw.split(/\n+/).map(function (l) { return l.replace(/^[-•*\d.)\s]+/, '').trim(); }).filter(Boolean);
-    var hit = lines.find(function (l) {
-      return /\b(decime|complet[aá]|arm[aá]|prob[aá]|ejercicio|drill|say|fill|complete)\b/i.test(l);
-    });
-    if (hit) return hit.slice(0, 220);
-    // Fallback: primera línea con ejemplo en inglés corto
-    hit = lines.find(function (l) {
-      return /\b(i|you|he|she|we|they|do|did|done|go|went|yesterday|homework)\b/i.test(l)
-        && l.length < 160;
-    });
-    return hit ? hit.slice(0, 220) : '';
+  function stopPulse() {
+    if (pulseTimer) {
+      clearInterval(pulseTimer);
+      pulseTimer = null;
+    }
+    pulseStep = 0;
   }
 
-  function setDrillCaption(text) {
-    var cap = captionEl();
-    if (!cap) return;
-    var drill = extractDrill(text);
-    if (!drill) {
-      clearCaption();
-      return;
+  /** Zonas táctiles sobre el SVG — sin párrafos; solo glow interactivo. */
+  function interactOverlayHtml(columnId) {
+    var zones = 3;
+    if (columnId === 'prepositions' || columnId === 'prepositions_time') zones = 3;
+    if (columnId === 'negations' || columnId === 'articles') zones = 2;
+    if (columnId === 'overview') zones = 4;
+    var html = '<div class="jill-svg-interact" data-track="' + String(columnId || '') + '" aria-hidden="false">';
+    for (var i = 0; i < zones; i++) {
+      html += '<button type="button" class="jill-svg-hotspot" data-step="' + i + '" aria-label="Zona ' + (i + 1) + '"></button>';
     }
-    cap.hidden = false;
-    cap.innerHTML = '<div class="jill-stage-drill-label">EJERCICIO</div>'
-      + '<div class="jill-stage-drill-text">' + String(drill).replace(/</g, '&lt;') + '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  function wireInteract(root) {
+    if (!root) return;
+    var layer = root.querySelector('.jill-svg-interact');
+    if (!layer) return;
+    var spots = layer.querySelectorAll('.jill-svg-hotspot');
+    function light(idx) {
+      for (var i = 0; i < spots.length; i++) {
+        if (i === idx) spots[i].classList.add('is-lit');
+        else spots[i].classList.remove('is-lit');
+      }
+    }
+    for (var s = 0; s < spots.length; s++) {
+      (function (btn, idx) {
+        btn.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          light(idx);
+          pulseStep = idx;
+        });
+      })(spots[s], s);
+    }
+    stopPulse();
+    light(0);
+    pulseTimer = setInterval(function () {
+      if (!active || !spots.length) return;
+      pulseStep = (pulseStep + 1) % spots.length;
+      light(pulseStep);
+    }, 2200);
   }
 
   function show(text, contentType, bundle, opts) {
@@ -128,25 +149,21 @@
     var media = mediaEl();
     if (!sh || !stage || !media) return false;
 
+    clearCaption();
+
     function activate(html) {
-      media.innerHTML = html || '';
+      media.innerHTML = (html || '') + interactOverlayHtml(col);
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;
       currentColumn = col || null;
       requestFullscreen();
-      setDrillCaption(text);
+      wireInteract(media);
     }
 
     if (!col || typeof JillCanonVisual === 'undefined') {
-      var label = (userTopic || text || 'Tema').replace(/\s+/g, ' ').trim().slice(0, 80);
       activate(
-        '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:52vh;padding:32px;background:#f3ebff;border-radius:16px;">'
-        + '<div style="text-align:center;max-width:640px;">'
-        + '<div style="font-size:12px;font-weight:800;letter-spacing:0.14em;color:#7c3aed;margin-bottom:10px;">JILL · EXPLICACION</div>'
-        + '<div style="font-size:22px;font-weight:800;color:#312e81;line-height:1.35;">' + String(label).replace(/</g, '&lt;') + '</div>'
-        + '<div style="margin-top:14px;font-size:14px;color:#6d28d9;">Escucha la explicacion — el tablero sigue el tema que pediste</div>'
-        + '</div></div>'
+        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#f3ebff;"></div>'
       );
       return true;
     }
@@ -166,20 +183,19 @@
     return true;
   }
 
-  function updateCaption(text) {
-    if (!active) return;
-    setDrillCaption(text);
+  function updateCaption() {
+    // Sin transcript ni drill de texto — el SVG + audio bastan
+    clearCaption();
   }
 
   function hide() {
+    stopPulse();
     var sh = shell();
     var stage = stageEl();
     if (sh) sh.classList.remove('jill-stage-active');
     if (stage) stage.hidden = true;
     if (mediaEl()) mediaEl().innerHTML = '';
     clearCaption();
-    var cap = captionEl();
-    if (cap) cap.hidden = false;
     active = false;
     currentColumn = null;
   }
