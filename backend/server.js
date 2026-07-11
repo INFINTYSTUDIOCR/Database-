@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-tts-no-punto';
-const JILL_BRAIN_VER = 'v30-tts-no-punto';
+const APP1_BUILD = '20260711-tico-voice';
+const JILL_BRAIN_VER = 'v31-tico-voice';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2676,10 +2676,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=human2: CR jaf/jas/jad + full lesson boards
+  // v=tico1: CR Tico lock — no PT seseo rewrite, no AR/gringo theatrical style
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':human2:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':tico1:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2788,12 +2788,12 @@ function cleanTtsText(text) {
     .trim();
 }
 
-/** Soft spoken cadence — less textbook, more human breath groups for TTS. */
+/** Soft spoken cadence — Costa Rica Tico, never Rioplatense "Mirá". */
 function humanizeSpokenForTts(text) {
   return String(text || '')
     .replace(/\bPaso\s*\d+\s*[:.\-–—]*/gi, '')
     .replace(/\b(?:Primero|Segundo|Tercero|Cuarto|Quinto)\s*[:.\-–—]/gi, '')
-    .replace(/\bEs importante destacar que\b/gi, 'Mirá, ')
+    .replace(/\bEs importante destacar que\b/gi, 'Mira, ')
     .replace(/\bCabe mencionar que\b/gi, '')
     .replace(/\bA continuaci[oó]n\b/gi, 'Entonces')
     .replace(/\bEn conclusi[oó]n\b/gi, 'Entonces')
@@ -2820,26 +2820,15 @@ function applyCrHavePhonetics(text) {
   return t.replace(/\s{2,}/g, ' ').trim();
 }
 
-/** Orthography hint so ElevenLabs uses LatAm seseo (C/Z → /s/), not Spain ceceo. */
+/**
+ * DO NOT rewrite C/Z→S for TTS. That orthography looks Brazilian Portuguese
+ * and ElevenLabs drifts to PT accent. CR seseo is spoken, not spelled.
+ */
 function applyLatAmSeseoForTts(text) {
-  let t = String(text || '');
-  // Protect English islands in quotes so we don't mangle them
-  const enclaves = [];
-  t = t.replace(/(["'“”‘’])([^"'“”‘’]{1,80})\1/g, (m) => {
-    enclaves.push(m);
-    return `\u0004${enclaves.length - 1}\u0005`;
-  });
-  t = t.replace(/ch/gi, '\u0001');
-  t = t.replace(/qu([eéií])/gi, '\u0002$1');
-  t = t.replace(/gu([eéií])/gi, '\u0003$1');
-  t = t.replace(/z/gi, (ch) => (ch === 'Z' ? 'S' : 's'));
-  t = t.replace(/c([eéiíEÉIÍ])/g, (_, v) => ((/[EÉIÍ]/.test(v) && v === v.toUpperCase()) ? 'S' : 's') + v);
-  t = t.replace(/\u0001/g, 'ch').replace(/\u0002/g, 'qu').replace(/\u0003/g, 'gu');
-  t = t.replace(/\u0004(\d+)\u0005/g, (_, i) => enclaves[Number(i)] || '');
-  return t;
+  return String(text || '');
 }
 
-/** Strip Rioplatense / Spain lexicon / internal labels — never reach the student. */
+/** Strip Brazil / Rioplatense / Spain / internal labels — Tico CR only. */
 function scrubNonCrSpanish(text) {
   return String(text || '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
@@ -2851,7 +2840,7 @@ function scrubNonCrSpanish(text) {
     .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
     .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
     .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
-    // Spain → Costa Rica / LatAm
+    // Spain → Costa Rica
     .replace(/\bvosotros\b/gi, 'ustedes')
     .replace(/\bvosotras\b/gi, 'ustedes')
     .replace(/\bvuestra(?:s)?\b/gi, 'su')
@@ -2868,8 +2857,31 @@ function scrubNonCrSpanish(text) {
     .replace(/\bcurrar\b/gi, 'trabajar')
     .replace(/\bcurrando\b/gi, 'trabajando')
     .replace(/\bvale\b(?!\s+(la|el|una?|unos|unas)\b)/gi, 'claro')
+    // Argentina / Mar del Plata / Rioplatense — PROHIBIDO
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
-    .replace(/\bbolud[oa]s?\b/gi, '')
+    .replace(/bolud[oa]s?/gi, '')
+    .replace(/laburo/gi, 'trabajo')
+    .replace(/pib[ea]s?/gi, '')
+    .replace(/\bminas?\b(?=\s|$|[.,!?])/gi, '')
+    .replace(/en pedo/gi, '')
+    .replace(/\bre\s+(bueno|malo|lindo|copado|facil|fácil)\b/gi, 'muy $1')
+    .replace(/mirá/gi, 'mira')
+    .replace(/fíjate/gi, 'fijate')
+    // Brasil / portugués — PROHIBIDO
+    .replace(/voc[eê]s?/gi, 'vos')
+    .replace(/obrigad[oa]/gi, 'gracias')
+    .replace(/beleza/gi, 'tuanis')
+    .replace(/valeu/gi, 'gracias')
+    .replace(/então/gi, 'entonces')
+    .replace(/\bnao\b/gi, 'no')
+    .replace(/não/gi, 'no')
+    .replace(/\bpra\b/gi, 'para')
+    .replace(/\bt[aá]\b(?=\s|$|[.,!?])/gi, 'está')
+    .replace(/né/gi, '')
+    .replace(/\bpois\b/gi, '')
+    .replace(/\bagora\b/gi, 'ahora')
+    .replace(/\bmuito\b/gi, 'muy')
+    .replace(/\blegal\b/gi, 'tuanis')
     .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')
     .replace(/\bclaro\s*,\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s*[—–\.]\s*(?=ac[aá]\s+te\s+va)/gi, '')
     .replace(/\s{2,}/g, ' ')
@@ -2922,22 +2934,21 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   const languageCode = opts.languageCode || null;
   const speed = opts.speed ?? 1.08;
   const isSpanish = languageCode && String(languageCode).toLowerCase().startsWith('es');
-  // LatAm seseo (C/Z→S) so ElevenLabs cannot invent Spain theta/ceceo
+  // Tico CR: scrub AR/PT/ES-Spain. NEVER C/Z→S rewrite (that causes Brazilian drift).
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
     clean = applyCrHavePhonetics(clean);
-    clean = applyLatAmSeseoForTts(clean);
   }
   if (!clean) throw new Error('Empty text');
 
-  // turbo_v2_5 honors language_code; multilingual_v2 often drifts to Castilian
+  // turbo_v2_5 honors language_code; multilingual_v2 often drifts to Castilian/PT
   const modelId = isSpanish
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
     : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
 
-  // Include speed+model — human2 busts old "ave" HAVE clips
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|human2|${modelId}`;
+  // tico1 busts old Brazilian/Argentine-sounding clips
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|tico1|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
@@ -3762,7 +3773,7 @@ RITMO HABLADO — 100% HUMANO:
 IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
 Hablás SOLO en ESPAÑOL de Costa Rica / Centroamérica (voseo: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
-PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo) y rioplatense (che, boludo, dale che). NUNCA digas "che".
+PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não). SOLO español TICO de Costa Rica. NUNCA digas "che".
 Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 Nunca rechaces un mensaje por idioma, mezcla o transcripción imperfecta del micrófono.
@@ -4262,7 +4273,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const hardTrackLock = lockedTrack
       ? ('\n\n' + JillCanonRouter.formatLock(lockedTrack)
         + '\n' + (JillPro.formatBoardSync ? JillPro.formatBoardSync(lockedTrack) : '')
-        + '\n' + (JillPro.FULL_TEACH_ALL || ''))
+        + '\n' + (JillPro.FULL_TEACH_ALL || '')
+        + '\n' + (JillPro.STUDENT_ORDERS_RULE || ''))
       : '';
     const companionBlock = isJillCompanion
       ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
@@ -4682,11 +4694,11 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
       voiceId: ALICE_VOICE_ID,
       label: 'Alice',
       languageCode,
-      // Human reading: slight expressiveness, natural pace
-      speed: languageCode === 'en' ? 0.99 : 0.97,
-      stability: languageCode === 'en' ? 0.55 : 0.40,
-      similarityBoost: 0.76,
-      style: languageCode === 'en' ? 0.12 : 0.32
+      // Tico CR: stable, low style — no Brasil / Argentina / gringa drawl
+      speed: languageCode === 'en' ? 0.98 : 1.0,
+      stability: languageCode === 'en' ? 0.62 : 0.58,
+      similarityBoost: languageCode === 'en' ? 0.78 : 0.82,
+      style: languageCode === 'en' ? 0.06 : 0.08
     });
   } catch (err) {
     console.error('Alice TTS error:', err.message);
@@ -4700,8 +4712,7 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
     const rawLang = String(lang || 'es').toLowerCase();
-    // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
-    // Spanish → es-CR + LatAm seseo; voice tuned for human classroom reading
+    // Default Tico CR. Pure English practice turns only when client sends lang=en.
     const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
     const isEn = languageCode === 'en';
     return await synthesizeSpeech(req, res, {
@@ -4709,11 +4720,11 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode,
-      // ES: expressive tutor; EN islands: steadier so grammar doesn't wobble
-      speed: isEn ? 0.99 : 0.97,
-      stability: isEn ? 0.58 : 0.38,
-      similarityBoost: isEn ? 0.74 : 0.76,
-      style: isEn ? 0.10 : 0.34
+      // Tico classroom: stable, low style — no gringa drawl, no AR theatre, no PT drift
+      speed: isEn ? 0.98 : 1.0,
+      stability: isEn ? 0.62 : 0.58,
+      similarityBoost: isEn ? 0.78 : 0.82,
+      style: isEn ? 0.06 : 0.08
     });
   } catch (err) {
     console.error('Jill TTS error:', err.message);

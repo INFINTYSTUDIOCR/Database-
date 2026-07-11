@@ -151,7 +151,7 @@ function prepareTtsLine(text) {
       .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
       .replace(/\bPaso\s*\d+\s*[:.\-–—]*/gi, '')
       .replace(/\b(?:Primero|Segundo|Tercero)\s*[:.\-–—]/gi, '')
-      .replace(/\bEs importante destacar que\b/gi, 'Mirá, ')
+      .replace(/\bEs importante destacar que\b/gi, 'Mira, ')
       .replace(/\bCabe mencionar que\b/gi, '')
       .replace(/\bA continuaci[oó]n\b/gi, 'Entonces')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
@@ -161,6 +161,15 @@ function prepareTtsLine(text) {
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/^\s*[-•]\s+/gm, '')
       .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
+      // Tico lock — never AR / PT (no \\b on accents: JS \\b breaks on á/ê)
+      .replace(/mirá/gi, 'mira')
+      .replace(/fíjate/gi, 'fijate')
+      .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
+      .replace(/bolud[oa]s?/gi, '')
+      .replace(/voc[eê]s?/gi, 'vos')
+      .replace(/obrigad[oa]/gi, 'gracias')
+      .replace(/então/gi, 'entonces')
+      .replace(/não/gi, 'no')
   )
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, ', ')
@@ -276,31 +285,24 @@ function detectJillLineLang(line) {
   return en > es * 1.4 ? 'en' : 'es';
 }
 
-/** Jill / bilingual tutors: Spanish explanation + English grammar islands (am/be). */
+/** Jill: Spanish Tico by default. Only full-English practice lines use EN (no gringa on ES). */
 function jillTtsSegments(text, maxLen) {
   maxLen = maxLen || 900;
   var line = prepareTtsLine(text);
   if (!line) return [];
-  var mixed = splitBilingualTtsSegments(line);
-  var hasEnGrammar = mixed.some(function (s) {
-    return s.lang === 'en' && _TTS_EN_GRAMMAR.test(String(s.text || '').trim());
-  });
-  // One clip only when there is no English verb/grammar island to protect
-  if (!hasEnGrammar && line.length <= maxLen && mixed.length <= 1) {
-    return [{ text: line, lang: detectJillLineLang(line) }];
-  }
-  var segments = mergeShortTtsSegments(mixed, hasEnGrammar ? 48 : 72);
-  var out = [];
-  segments.forEach(function (seg) {
-    if (seg.text.length <= maxLen) {
-      out.push(seg);
-      return;
-    }
-    splitTtsChunks(seg.text, maxLen).forEach(function (chunk) {
-      out.push({ text: chunk, lang: seg.lang });
+  var lineLang = detectJillLineLang(line);
+  // Mostly Spanish explanation → ONE es clip (keeps L/R Tico; no American islands)
+  if (lineLang === 'es' || /[áéíóúñ]/i.test(line)) {
+    if (line.length <= maxLen) return [{ text: line, lang: 'es' }];
+    return splitTtsChunks(line, maxLen).map(function (chunk) {
+      return { text: chunk, lang: 'es' };
     });
+  }
+  // Pure English practice turn
+  if (line.length <= maxLen) return [{ text: line, lang: 'en' }];
+  return splitTtsChunks(line, maxLen).map(function (chunk) {
+    return { text: chunk, lang: 'en' };
   });
-  return mergeShortTtsSegments(out, hasEnGrammar ? 32 : 48);
 }
 
 /** Debounced TTS warm-up while LLM is still streaming — only complete sentences. */
