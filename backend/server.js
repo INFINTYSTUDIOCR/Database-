@@ -2674,6 +2674,14 @@ function cleanTtsText(text) {
     .replace(/[*_#\[\]{}<>|~`^]/g, ' ');
   // Keep parenthesis content; drop only the marks
   t = t.replace(/\(([^)]*)\)/g, ' $1 ').replace(/\[([^\]]*)\]/g, ' $1 ');
+  // Verb paradigms with pauses (never dodiddone / havehashad)
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2. $3.');
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
+  t = t.replace(/\b(do)\s+(did)\s+(done)\b/gi, 'do. did. done.');
+  t = t.replace(/\b(go)\s+(went)\s+(gone)\b/gi, 'go. went. gone.');
+  t = t.replace(/\b(have)\s+(has)\s+(had)\b/gi, 'have. has. had.');
+  t = t.replace(/\bI\s+do\s+did\s+done\b/gi, 'I do. did. done.');
+  t = t.replace(/\bI\s+have\s+has\s+had\b/gi, 'I have. has. had.');
   // MSI formulas → Spanish "más" (never English "plus" mixed in)
   t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
   t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
@@ -2692,11 +2700,10 @@ function cleanTtsText(text) {
   t = t.replace(/\bNOT\b/g, ' not ');
   return t
     .replace(/[¿¡]/g, '')
-    .replace(/[—–―…]/g, ' ')
-    .replace(/\.{2,}/g, ' ')
-    .replace(/([.!?])\s+/g, ' ')
-    .replace(/[.!?;:]+$/g, '')
-    .replace(/[,;:/]+/g, ' ')
+    .replace(/[—–―…]/g, '. ')
+    .replace(/\.{2,}/g, '. ')
+    // Keep . ! ? , as pauses — do not mash teaching tokens
+    .replace(/[;:/]+/g, ' ')
     .replace(/\s*[-]{1,3}\s*/g, ' ')
     .replace(/<br>/gi, ' ')
     .replace(/\s+/g, ' ')

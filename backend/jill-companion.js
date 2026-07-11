@@ -288,14 +288,30 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   }
 
   if (phase === 'doubt_explain') {
+    if (track && track.id === 'irregular_verbs') {
+      return `${heard}MODO DUDA — VERBOS IRREGULARES (tablero de 3 columnas).
+${JillCanonRouter.formatLock(track)}
+REGLAS DE VOZ (OBLIGATORIO):
+- NUNCA leas la tabla entera ni digas formas pegadas ("dodiddone", "havehashad").
+- Decí cada forma con pausa: "do. did. done." / "go. went. gone." / "have. has. had."
+- Máximo 2 verbos por turno.
+FLUJO:
+1) 1 frase: las 3 columnas = Presente | Pasado | Participio (señalá el tablero).
+2) Elegí 1 verbo (ej. do): Presente do. Pasado did. Participio done.
+3) EJERCICIO ORAL visible (escribilo claro): "Decime: do. did. done." Luego: "Completá: Yesterday I ___ my homework." (did)
+4) "¿Te quedó? Probá vos."
+PROHIBIDO: "mirá el siguiente ejercicio" sin escribir el drill; listar 10+ verbos; formas pegadas.
+Última línea sola: [[CTYPE:whiteboard]]`;
+    }
     if (track) {
       return `${heard}MODO DUDA — JILL DJ TRACK LOCK.
 ${JillCanonRouter.formatLock(track)}
 1) 1 frase: "Pediste ${track.title}" (sin saludo).
 2) Explicá EN ESPAÑOL con la fórmula oficial arriba (puente ES → patrón).
-3) 1-2 ejemplos en inglés SOLO de este track (usá el ejemplo oficial o uno equivalente).
-4) "¿Te quedó claro?"
-PROHIBIDO: otro módulo, gerundio si no es el track, "thee is", listar temas extra, "acá te va una imagen", tags [[CTYPE]] en el cuerpo.
+3) 1-2 ejemplos en inglés SOLO de este track (usá el ejemplo oficial o uno equivalente). Si hay formas A/B/C, hablalas con pausa: "A. B. C."
+4) EJERCICIO ORAL en 1 línea clara (Decime… / Completá… / Armá…) — el portal lo muestra bajo el tablero.
+5) "¿Te quedó claro?"
+PROHIBIDO: otro módulo, gerundio si no es el track, "thee is", listar temas extra, "acá te va una imagen", tags [[CTYPE]] en el cuerpo, decir "ejercicio" sin escribirlo.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").

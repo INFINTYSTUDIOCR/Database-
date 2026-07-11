@@ -33,11 +33,11 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-router.js?v=20260710lib"></script>
-<script src="js/jill-canon-visual.js?v=20260710lib"></script>
-<script src="js/jill-visual-stage.js?v=20260710lib"></script>
+<script src="js/jill-canon-router.js?v=20260710drill"></script>
+<script src="js/jill-canon-visual.js?v=20260710drill"></script>
+<script src="js/jill-visual-stage.js?v=20260710drill"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710lib"></script>
+<script src="js/jill-foundations.js?v=20260710drill"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -49,7 +49,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-quiz.js?v=20260710struct"></script>
-<script src="js/tts-chunks.js?v=20260710parens"></script>
+<script src="js/tts-chunks.js?v=20260710drill"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260628b"></script>
 <style>
@@ -124,7 +124,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
   #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:0;}
   #jill-stage-media{flex:1;min-height:160px;position:relative;}
-  #jill-stage-caption{display:none!important;}
+  #jill-stage-caption{
+    display:block;
+    flex:0 0 auto;
+    margin:0 12px 10px;
+    padding:12px 16px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.96);
+    border:1px solid rgba(124,58,237,0.28);
+    box-shadow:0 8px 24px rgba(49,46,129,0.12);
+    color:#312e81;
+    max-height:28vh;
+    overflow:auto;
+  }
+  #jill-stage-caption[hidden]{display:none!important;}
+  .jill-stage-drill-label{
+    font-size:11px;font-weight:800;letter-spacing:0.12em;color:#7c3aed;margin-bottom:6px;
+  }
+  .jill-stage-drill-text{
+    font-size:16px;font-weight:700;line-height:1.45;color:#1e1b4b;
+  }
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
   #jill-lesson-shell.jill-stage-active #jill-messages{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}

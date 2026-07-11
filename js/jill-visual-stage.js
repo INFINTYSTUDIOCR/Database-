@@ -81,8 +81,39 @@
     var cap = captionEl();
     if (cap) {
       cap.textContent = '';
+      cap.innerHTML = '';
       cap.hidden = true;
     }
+  }
+
+  /** Extrae el drill oral de la respuesta de Jill para mostrarlo bajo el tablero. */
+  function extractDrill(text) {
+    var raw = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+    if (!raw) return '';
+    var lines = raw.split(/\n+/).map(function (l) { return l.replace(/^[-•*\d.)\s]+/, '').trim(); }).filter(Boolean);
+    var hit = lines.find(function (l) {
+      return /\b(decime|complet[aá]|arm[aá]|prob[aá]|ejercicio|drill|say|fill|complete)\b/i.test(l);
+    });
+    if (hit) return hit.slice(0, 220);
+    // Fallback: primera línea con ejemplo en inglés corto
+    hit = lines.find(function (l) {
+      return /\b(i|you|he|she|we|they|do|did|done|go|went|yesterday|homework)\b/i.test(l)
+        && l.length < 160;
+    });
+    return hit ? hit.slice(0, 220) : '';
+  }
+
+  function setDrillCaption(text) {
+    var cap = captionEl();
+    if (!cap) return;
+    var drill = extractDrill(text);
+    if (!drill) {
+      clearCaption();
+      return;
+    }
+    cap.hidden = false;
+    cap.innerHTML = '<div class="jill-stage-drill-label">EJERCICIO</div>'
+      + '<div class="jill-stage-drill-text">' + String(drill).replace(/</g, '&lt;') + '</div>';
   }
 
   function show(text, contentType, bundle, opts) {
@@ -97,8 +128,6 @@
     var media = mediaEl();
     if (!sh || !stage || !media) return false;
 
-    clearCaption();
-
     function activate(html) {
       media.innerHTML = html || '';
       sh.classList.add('jill-stage-active');
@@ -106,6 +135,7 @@
       active = true;
       currentColumn = col || null;
       requestFullscreen();
+      setDrillCaption(text);
     }
 
     if (!col || typeof JillCanonVisual === 'undefined') {
@@ -131,15 +161,14 @@
 
     JillCanonVisual.loadConfig().then(function () {
       activate(JillCanonVisual.renderStage(col, fallback));
-      clearCaption();
     });
 
     return true;
   }
 
-  function updateCaption() {
-    // No transcript overlay — audio only
-    clearCaption();
+  function updateCaption(text) {
+    if (!active) return;
+    setDrillCaption(text);
   }
 
   function hide() {

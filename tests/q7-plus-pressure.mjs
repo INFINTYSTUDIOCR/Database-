@@ -70,6 +70,11 @@ const samples = [
     in: 'Before leaving, call me. (antes de irte)',
     mustInclude: ['Before leaving', 'antes de irte'],
     mustNot: ['(', ')', 'plus']
+  },
+  {
+    in: 'I do did done the homework. go/went/gone',
+    mustInclude: ['do. did. done.', 'go. went. gone.'],
+    mustNot: ['dodiddone', 'gowentgone']
   }
 ];
 
@@ -172,8 +177,9 @@ if (JF && typeof JF.detectCanonColumn === 'function') {
 // Visual stage: no caption / no transcript overlay
 const stageSrc = fs.readFileSync(path.join(root, 'js/jill-visual-stage.js'), 'utf8');
 const portalSrc = fs.readFileSync(path.join(root, 'Infinity_Student_Portal.html'), 'utf8');
-assert(/No transcript overlay|clearCaption|captionEl\(\)\.hidden = true/.test(stageSrc), 'stage no transcript', 'ok');
-assert(/#jill-stage-caption\{\s*display:none/i.test(portalSrc.replace(/\s+/g, '')), 'CSS caption hidden', 'ok');
+assert(/No transcript overlay|setDrillCaption|extractDrill|jill-stage-drill/i.test(stageSrc), 'stage drill caption', 'ok');
+assert(/#jill-stage-caption\{/.test(portalSrc.replace(/\s+/g, '')) || /#jill-stage-caption\{/.test(portalSrc), 'CSS caption panel', 'ok');
+assert(/jill-stage-drill-label/.test(portalSrc), 'CSS drill label', 'ok');
 assert(/jillLastUserTopic|userTopic/.test(portalSrc), 'board uses student ask', 'ok');
 
 // ── 5) Live build tag (current) ──────────────────────────────

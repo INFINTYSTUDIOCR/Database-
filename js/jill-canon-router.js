@@ -141,8 +141,8 @@
       "id": "irregular_verbs",
       "svg": "assets/canon/verbos-irregulares.svg",
       "title": "Verbos irregulares (Presente / PS / Participio)",
-      "formula": "Col1 PRESENTE | Col2 PASADO SIMPLE | Col3 PARTICIPIO",
-      "example": "go / went / gone",
+      "formula": "Col1 PRESENTE | Col2 PASADO | Col3 PARTICIPIO — decir con pausa: go. went. gone.",
+      "example": "go. went. gone. / do. did. done. — NUNCA pegado",
       "never": [
         "pasado simple como unica columna",
         "presente perfecto sin lista"
@@ -557,7 +557,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260710lib';
+  var CACHE_VER = '20260710drill';
 
   function normalize(text) {
     return String(text || '')

@@ -49,6 +49,26 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/（([^）]*)）/g, ' $1 ');
   // Drop CTYPE / markdown control tags if any leaked
   t = t.replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ');
+  // Verb paradigms: slashes → spoken pauses (never "dodiddone" / "havehashad")
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2. $3.');
+  t = t.replace(/\b([A-Za-z]{2,14})\s*\/\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
+  t = t.replace(/\b([A-Za-z]{2,14})\s*-\s*([A-Za-z]{2,14})\b/g, '$1. $2.');
+  // Common irregular triples written without separators
+  var triples = [
+    ['do', 'did', 'done'], ['go', 'went', 'gone'], ['come', 'came', 'come'],
+    ['take', 'took', 'taken'], ['give', 'gave', 'given'], ['get', 'got', 'gotten'],
+    ['make', 'made', 'made'], ['see', 'saw', 'seen'], ['say', 'said', 'said'],
+    ['send', 'sent', 'sent'], ['keep', 'kept', 'kept'], ['let', 'let', 'let'],
+    ['put', 'put', 'put'], ['have', 'has', 'had'], ['be', 'was', 'been'],
+    ['be', 'been', 'been'], ['be', 'been', 'been']
+  ];
+  triples.forEach(function (tr) {
+    var re = new RegExp('\\b(' + tr[0] + ')\\s+(' + tr[1] + ')\\s+(' + tr[2] + ')\\b', 'gi');
+    t = t.replace(re, tr[0] + '. ' + tr[1] + '. ' + tr[2] + '.');
+  });
+  // "I do did done" / "I have has had" mash
+  t = t.replace(/\bI\s+do\s*\.?\s*did\s*\.?\s*done\b/gi, 'I do. did. done.');
+  t = t.replace(/\bI\s+have\s*\.?\s*has\s*\.?\s*had\b/gi, 'I have. has. had.');
   // MSI / slot formulas → coherent Spanish connector
   t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
   t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');
@@ -78,7 +98,7 @@ function normalizeTtsTeachingForms(text) {
 
 var _TTS_EN_GRAMMAR = /^(am|is|are|was|were|be|been|being|do|does|did|have|has|had|will|would|can|could|must|may|might|not|to|past|participle)$/i;
 
-/** One flowing TTS line — strip markdown/pause junk; keep full spoken content. */
+/** One TTS line — keep pause marks so paradigms are not mashed. */
 function prepareTtsLine(text) {
   return normalizeTtsTeachingForms(
     String(text || '')
@@ -92,12 +112,10 @@ function prepareTtsLine(text) {
       .replace(/[*_#\[\]{}<>|~`^]/g, ' ')
   )
     .replace(/[¿¡]/g, '')
-    .replace(/[—–―…]/g, ' ')
-    .replace(/\.{2,}/g, ' ')
-    .replace(/([.!?])\s+/g, ' ')
-    .replace(/[.!?;:]+$/g, '')
-    .replace(/[,;:/]+/g, ' ')
-    .replace(/\s*[-]{1,3}\s*/g, ' ')
+    .replace(/[—–―…]/g, '. ')
+    .replace(/\.{2,}/g, '. ')
+    // Keep . ! ? , as pauses for ElevenLabs (do. did. done. — never dodiddone)
+    .replace(/[;:/]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
