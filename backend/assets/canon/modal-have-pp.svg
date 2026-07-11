@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Modal + Have + Participio">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="16" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="10" font-weight="bold">ESTRUCTURA + SENSACION</text>
+  <text x="160" y="30" text-anchor="middle" fill="#6d28d9" font-size="9" font-weight="bold">MODAL + HAVE + PARTICIPIO</text>
+  <rect x="8" y="38" width="100" height="36" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2"/>
+  <text x="58" y="54" text-anchor="middle" fill="#5B21B6" font-size="8" font-weight="bold">MODAL</text>
+  <text x="58" y="68" text-anchor="middle" fill="#312e81" font-size="7">will would should...</text>
+  <rect x="116" y="38" width="80" height="36" rx="6" fill="#d1fae5" stroke="#059669" stroke-width="1.2"/>
+  <text x="156" y="54" text-anchor="middle" fill="#047857" font-size="8" font-weight="bold">HAVE</text>
+  <text x="156" y="68" text-anchor="middle" fill="#312e81" font-size="7">siempre have</text>
+  <rect x="204" y="38" width="108" height="36" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="258" y="54" text-anchor="middle" fill="#1d4ed8" font-size="8" font-weight="bold">PARTICIPIO</text>
+  <text x="258" y="68" text-anchor="middle" fill="#312e81" font-size="7">3a col / -ed</text>
+  <text x="20" y="92" fill="#7c3aed" font-size="8" font-weight="bold">will have</text>
+  <text x="100" y="92" fill="#312e81" font-size="8">completado en el futuro</text>
+  <text x="20" y="108" fill="#059669" font-size="8" font-weight="bold">would have</text>
+  <text x="100" y="108" fill="#312e81" font-size="8">hipotesis en el pasado</text>
+  <text x="20" y="124" fill="#d97706" font-size="8" font-weight="bold">should have</text>
+  <text x="100" y="124" fill="#312e81" font-size="8">arrepentimiento / critica</text>
+  <text x="20" y="140" fill="#2563eb" font-size="8" font-weight="bold">could have</text>
+  <text x="100" y="140" fill="#312e81" font-size="8">posibilidad en el pasado</text>
+  <text x="20" y="156" fill="#0d9488" font-size="8" font-weight="bold">must have</text>
+  <text x="100" y="156" fill="#312e81" font-size="8">inferencia / certeza</text>
+  <text x="160" y="174" text-anchor="middle" fill="#6d28d9" font-size="7">You should have studied. | She must have forgotten.</text>
+</svg>

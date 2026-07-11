@@ -159,14 +159,16 @@
   }
 
   var CANON_BY_COLUMN = {
-    present: { id: 'tiempos-pr', path: 'assets/canon/tiempos-pr.svg', title: 'Presente simple PR' },
-    past: { id: 'tiempos-ps', path: 'assets/canon/tiempos-ps.svg', title: 'Pasado simple PS' },
-    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Presente continuo PC' },
-    perfect: { id: 'tiempos-prp', path: 'assets/canon/tiempos-prp.svg', title: 'Presente perfecto PRP' },
-    combined: { id: 'have-been-ing', path: 'assets/canon/have-been-ing.svg', title: 'Have + been + V-ing (PPC)' },
+    present: { id: 'tiempos-pr', path: 'assets/canon/tiempos-pr.svg', title: 'Pronombre + V + C (PR)' },
+    past: { id: 'tiempos-ps', path: 'assets/canon/tiempos-ps.svg', title: 'Pronombre + V(pasado) + C (PS)' },
+    progressive: { id: 'presente-continuo', path: 'assets/canon/presente-continuo.svg', title: 'Pronombre + To Be + Verbo (ING)' },
+    perfect: { id: 'tiempos-prp', path: 'assets/canon/tiempos-prp.svg', title: 'Pronombre + Have/Has + Participio' },
+    combined: { id: 'have-been-ing', path: 'assets/canon/have-been-ing.svg', title: 'Pronombre + Have + Been + Verbo (ING)' },
     future: { id: 'tiempos-fut', path: 'assets/canon/tiempos-fut.svg', title: 'Futuro will / going to' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda (inversion)' },
-    modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Modales - P + MODAL + V base' },
+    modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Pronombre + Modal + Verbo' },
+    modal_have_been: { id: 'modal-have-been-ing', path: 'assets/canon/modal-have-been-ing.svg', title: 'Pronombre + Modal + Have Been + Verbo ING' },
+    modal_have_pp: { id: 'modal-have-pp', path: 'assets/canon/modal-have-pp.svg', title: 'Modal + Have + Participio' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
     prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones IN ON AT BY' },
     prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones de tiempo' },
@@ -187,6 +189,23 @@
 
     // --- Mas especifico primero ---
 
+    // Pronombre + Modal + Have Been + Verbo ING
+    if (/\b(modal\s*\+?\s*have\s+been|must have been|should have been|could have been|may have been|might have been|would have been)\b/.test(t)
+      || /\b(can|could|may|might|must|should|would|will)\s+have\s+been\b/.test(t)
+      || /\b(modal.*have been.*ing|have been.*despues del modal)\b/.test(t)) {
+      return 'modal_have_been';
+    }
+
+    // Modal + Have + Participio (estructura + sensacion) — sin been
+    if (!/\bbeen\b/.test(t) && (
+      /\b(should have|could have|would have|must have|might have|may have)\b/.test(t)
+      || /\bwill have\b/.test(t) && /\b(participio|finished|completado|by \w+|futuro perfecto)\b/.test(t)
+      || /\b(modal\s*\+?\s*have\s*\+?\s*participio|estructura\s*\+?\s*sensaci)/.test(t)
+      || /\b(arrepentimiento|inferencia|hip[oó]tesis en el pasado|completado en el futuro)\b/.test(t)
+    )) {
+      return 'modal_have_pp';
+    }
+
     // Have / has / had como auxiliares de perfecto
     if (/\bhave\b/.test(t) && /\bhad\b/.test(t)) return 'have_had';
     if (/\bhave\s*\/\s*has\s*\/\s*had\b/.test(t) || /\bhave\s+has\s+had\b/.test(t)) return 'have_had';
@@ -196,16 +215,16 @@
       return 'have_had';
     }
 
-    // Have + been + V-ing (PPC) — antes que PRP / have solo
+    // Pronombre + Have + Been + Verbo (ING)
     if (/\b(have|has|had)\s*\+?\s*been\s*\+?\s*(v\s*\+?\s*ing|ving|ing|-ing)\b/.test(t)
       || /\b(have|has|had)\s+been\s+\w+ing\b/.test(t)
       || /\b(presente\s+perfecto\s+continuo|present\s+perfect\s+continuous|perfecto\s+continuo|\bppc\b)\b/.test(t)
       || /\bhave\s*\+?\s*been\s*\+?\s*v/i.test(t)
-      || /\bbeen\s*\+?\s*(v\s*)?\+?\s*ing\b/.test(t) && /\b(have|has|had|perfecto|perfect|explic)\b/.test(t)) {
+      || /\bbeen\s*\+?\s*(v\s*)?\+?\s*ing\b/.test(t) && /\b(have|has|had|perfecto|perfect|explic|pronombre)\b/.test(t)) {
       return 'combined';
     }
 
-    if (/\bhave\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect)/.test(t)
+    if (/\bhave\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect|participio|pronombre\s*\+?\s*have)/.test(t)
       && !/\b(had|going to|will have|been)\b/.test(t)) {
       return 'perfect';
     }
@@ -278,9 +297,9 @@
       return 'present';
     }
 
-    // Modales ≠ Moneda
-    if (/\b(modales?|can\b|could\b|should\b|must\b|may\b|might\b)\b/.test(t)
-      && !/\b(moneda|inversi[oó]n|m[eé]todo de la moneda)\b/.test(t)) {
+    // Modales: Pronombre + Modal + Verbo (base)
+    if (/\b(modales?|pronombre\s*\+?\s*modal|can\b|could\b|should\b|must\b|may\b|might\b|ought to|have to)\b/.test(t)
+      && !/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|have been|have\s+\w+ed|participio)\b/.test(t)) {
       return 'modales';
     }
 

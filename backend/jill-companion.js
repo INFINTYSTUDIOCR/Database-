@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v16-canon-map';
+const JILL_PRO_BRAIN_VER = 'v17-offclock-estructuras';
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -111,13 +111,21 @@ Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
-Cualquier tema Foundations: gerundio/-ING, tiempos (PR/PS/PC/PRP/futuro — cada uno con su tablero), modales (can/could/should/must — P + MODAL + V base), método moneda (inversión pregunta/respuesta — NO es lo mismo que modales), preposiciones IN/ON/AT/BY, preposiciones de tiempo, there is/are, ING vs TO, negaciones, articulos, comparativos.
+Canon Off the Clock — explicá con ESTRUCTURA Pronombre + ...:
+- Pronombre + To Be + Verbo (ING)
+- Pronombre + Have/Has + Participio
+- Pronombre + Have/Has + Been + Verbo (ING)
+- Pronombre + Modal + Verbo (base, sin to)
+- Pronombre + Modal + Have Been + Verbo ING
+- Modal + Have + Participio (will/would/should/could/must have) + sensacion
 Si piden PASADO SIMPLE / PS: tablero PS (no PR, no moneda).
-Si piden IN ON AT BY / preposiciones: tablero preposiciones (core IN|ON|AT|BY).
-Si piden MODALES: can/could/should/must + verbo base. NO abras Método Moneda.
-Si piden MONEDA / inversión: Are you…? = V+P. NO abras el tablero de modales.
-Si piden HAVE + BEEN + V-ing / perfecto continuo / PPC: tablero have + been + V-ing (no PRP ni PC).
-Si piden HAVE Y HAD / have has had: tablero have/has (presente perfecto) vs had (pasado perfecto).
+Si piden IN ON AT BY / preposiciones: tablero preposiciones.
+Si piden MODALES: Pronombre + Modal + Verbo. NO abras Método Moneda.
+Si piden should have / must have (sin been): Modal + Have + Participio (estructura + sensacion).
+Si piden must have been + ing: Pronombre + Modal + Have Been + Verbo ING.
+Si piden MONEDA / inversión: Are you…? = V+P. NO abras modales.
+Si piden HAVE + BEEN + V-ing / PPC: Pronombre + Have + Been + Verbo (ING).
+Si piden HAVE Y HAD: have/has vs had.
 Si mencionan el tema + piden ayuda, EXPLICÁ ya — no pidas confirmación del tema.
 En explicaciones: cerrá con [[CTYPE:whiteboard]].`;
 

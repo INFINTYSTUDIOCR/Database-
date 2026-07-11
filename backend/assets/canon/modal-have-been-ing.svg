@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Pronombre + Modal + Have Been + Verbo ING">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="16" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="10" font-weight="bold">ESTRUCTURA</text>
+  <text x="160" y="30" text-anchor="middle" fill="#6d28d9" font-size="8" font-weight="bold">PRONOMBRE + MODAL + HAVE BEEN + VERBO ING</text>
+  <rect x="4" y="38" width="74" height="38" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2"/>
+  <text x="41" y="55" text-anchor="middle" fill="#5B21B6" font-size="7" font-weight="bold">PRONOMBRE</text>
+  <text x="41" y="68" text-anchor="middle" fill="#312e81" font-size="7">sujeto</text>
+  <rect x="84" y="38" width="58" height="38" rx="6" fill="#d1fae5" stroke="#059669" stroke-width="1.2"/>
+  <text x="113" y="55" text-anchor="middle" fill="#047857" font-size="8" font-weight="bold">MODAL</text>
+  <text x="113" y="68" text-anchor="middle" fill="#312e81" font-size="7">must can...</text>
+  <rect x="148" y="38" width="78" height="38" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="187" y="55" text-anchor="middle" fill="#1d4ed8" font-size="7" font-weight="bold">HAVE BEEN</text>
+  <text x="187" y="68" text-anchor="middle" fill="#312e81" font-size="7">pasado-ahora</text>
+  <rect x="232" y="38" width="84" height="38" rx="6" fill="#fce7f3" stroke="#db2777" stroke-width="1.2"/>
+  <text x="274" y="55" text-anchor="middle" fill="#be185d" font-size="7" font-weight="bold">VERBO ING</text>
+  <text x="274" y="68" text-anchor="middle" fill="#312e81" font-size="7">en progreso</text>
+  <text x="160" y="94" text-anchor="middle" fill="#312e81" font-size="8">Accion que empezo antes y sigue / afecta el presente</text>
+  <text x="160" y="112" text-anchor="middle" fill="#D97706" font-size="9" font-weight="bold">They must have been working.</text>
+  <text x="160" y="128" text-anchor="middle" fill="#D97706" font-size="9">You should have been listening.</text>
+  <text x="160" y="144" text-anchor="middle" fill="#D97706" font-size="9">He may have been sleeping.</text>
+  <text x="160" y="166" text-anchor="middle" fill="#6d28d9" font-size="8">RECUERDA: modal + HAVE BEEN + verbo ING</text>
+</svg>

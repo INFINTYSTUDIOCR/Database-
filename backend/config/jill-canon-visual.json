@@ -1,16 +1,9 @@
 {
-  "version": 4,
+  "version": 5,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
-  "frame": {
-    "width": 320,
-    "height": 180,
-    "radius": 12
-  },
-  "stage": {
-    "aspectRatio": "16/9",
-    "minHeightVh": 52
-  },
+  "frame": { "width": 320, "height": 180, "radius": 12 },
+  "stage": { "aspectRatio": "16/9", "minHeightVh": 52 },
   "palette": {
     "title": "#5B21B6",
     "label": "#6d28d9",
@@ -20,12 +13,11 @@
   },
   "clips": [
     {
-      "id": "gerundio-pc",
+      "id": "presente-continuo",
       "columns": ["progressive"],
-      "svg": "assets/canon/anim/gerundio-pc.svg",
-      "animatedSvg": "assets/canon/anim/gerundio-pc.svg",
+      "svg": "assets/canon/presente-continuo.svg",
       "gif": null,
-      "title": "Presente continuo PC"
+      "title": "Pronombre + To Be + Verbo (ING)"
     },
     {
       "id": "gerundio-prep",
@@ -53,7 +45,7 @@
       "columns": ["perfect"],
       "svg": "assets/canon/tiempos-prp.svg",
       "gif": null,
-      "title": "Presente perfecto PRP"
+      "title": "Pronombre + Have/Has + Participio"
     },
     {
       "id": "tiempos-fut",
@@ -74,7 +66,28 @@
       "columns": ["combined"],
       "svg": "assets/canon/have-been-ing.svg",
       "gif": null,
-      "title": "Have + been + V-ing"
+      "title": "Pronombre + Have + Been + Verbo (ING)"
+    },
+    {
+      "id": "modales",
+      "columns": ["modales"],
+      "svg": "assets/canon/modales.svg",
+      "gif": null,
+      "title": "Pronombre + Modal + Verbo"
+    },
+    {
+      "id": "modal-have-been-ing",
+      "columns": ["modal_have_been"],
+      "svg": "assets/canon/modal-have-been-ing.svg",
+      "gif": null,
+      "title": "Pronombre + Modal + Have Been + Verbo ING"
+    },
+    {
+      "id": "modal-have-pp",
+      "columns": ["modal_have_pp"],
+      "svg": "assets/canon/modal-have-pp.svg",
+      "gif": null,
+      "title": "Modal + Have + Participio"
     },
     {
       "id": "preposiciones",
@@ -124,13 +137,6 @@
       "svg": "assets/canon/moneda.svg",
       "gif": null,
       "title": "Metodo moneda"
-    },
-    {
-      "id": "modales",
-      "columns": ["modales"],
-      "svg": "assets/canon/modales.svg",
-      "gif": null,
-      "title": "Modales"
     },
     {
       "id": "have-had",
