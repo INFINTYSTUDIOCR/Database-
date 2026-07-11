@@ -4466,8 +4466,8 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
     // Spanish → es-CR cache key + LatAm seseo (no Spain ceceo).
     const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
-    // Jill habla más despacio que el default 1.08 (se sentía rapidísimo)
-    const speed = (languageCode === 'en') ? 1.0 : 0.92;
+    // Jill: calma con flujo normal (ni atropellada ni lenta)
+    const speed = (languageCode === 'en') ? 0.98 : 0.94;
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
