@@ -1,129 +1,209 @@
 {
-  "version": 2,
+  "version": 3,
   "title": "Guion oral John Ramírez — Foundations (estilo de clase, no ESL genérico)",
-  "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar.",
+  "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar. VOZ: nunca digas Get It Straight ni Off the Clock. ING = í ene ge (CR). Español seseo.",
   "globalVoice": "Empezá SIEMPRE desde el español. Detectá el patrón, no memorices reglas. Explicá el porqué antes del nombre gramatical. Pedí producción oral. Corregí con preguntas. Tono: directo, cálido, sin condescendencia. Voseo CR.",
   "lessons": {
     "getItStraightIng": {
       "source": "Off the Clock — Get It Straight: ING (John Ramírez)",
-      "full": "Get It Straight: ING. Mucha gente se confunde con el ING y dice I like watch TV o abusa del infinitivo (I like to…). Número uno: TO BE + verbo + ING = presente progresivo = acción en progreso = terminación latina ando/endo. Regla: no se puede usar ING progresivo si delante no va el verbo TO BE. Forma: to be + verbo + ING. Número dos: verbo + ING sin to be = actividad en GENERAL (I like watching TV, I like dancing, I like eating). Número tres: TO + verbo = infinitivo = INTENCIÓN / decisión (I like to watch TV = tengo la intención de verlo a las tres o después del trabajo). Contraste: I like watching TV (en general) vs I like to watch TV (intención). Corrección firma: Yes, I like to watch the TV after my work → I like watching TV after work + linker: However, I think I'm not gonna be able to do it today. Quick recap: to be + verbo + ING = progreso; verbo + ING = general; to + verbo = intención.",
-      "say": "Get It Straight ING. Mucha gente se confunde con el I N G y dice I like watch TV o abusa del infinitivo I like to… Número uno: TO BE más verbo más I N G es presente progresivo — acción en progreso — la terminación latina ando / endo. Regla: no podés usar I N G progresivo si delante no va el verbo TO BE. Forma: to be + verbo + I N G. Número dos: verbo más I N G SIN to be = actividad en GENERAL: I like watching TV, I like dancing, I like eating. Número tres: TO más verbo = infinitivo = INTENCIÓN o decisión. I like to watch TV = tengo la intención de verlo. I like watching TV = lo hago en general. Corrección: I like to watch the TV after my work → I like watching TV after work. However, I'm not gonna be able to do it today. Recap: to be+V+ING progreso; V+ING general; to+V intención."
+      "full": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención.",
+      "say": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención."
     }
   },
   "tracks": {
     "gerundio": {
-      "say": "Get It Straight ING — lección John Off the Clock. Mucha gente dice I like watch TV o abusa del infinitivo. Tres formas: uno, TO BE más verbo más I N G = presente progresivo, acción en progreso, ando/endo — sin to be no hay ese I N G. Dos, verbo más I N G sin to be = actividad GENERAL: I like watching TV, I like dancing, I like eating. Tres, TO más verbo = infinitivo = INTENCIÓN o decisión: I like to watch TV. Contraste: watching = en general; to watch = intención puntual. Corrección firma: I like to watch the TV after my work → I like watching TV after work. However, I'm not gonna be able to do it today. Recap: to be+V+ING progreso; V+ING general; to+V intención.",
-      "mustSay": ["ando", "endo", "to be", "general", "intención", "watching"],
+      "say": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención.",
+      "mustSay": [
+        "ando",
+        "endo",
+        "to be",
+        "general",
+        "intención",
+        "watching"
+      ],
       "exampleAsk": "Decime una general con watching y una con intención con to watch. Después montá un However."
     },
     "progressive": {
-      "say": "Get It Straight ING — presente progresivo. TO BE más verbo más I N G = acción en progreso. Es nuestra terminación latina ando / endo. Regla de John: no podés usar I N G progresivo si el verbo de adelante no es TO BE. Forma: to be + verbo + I N G. Ejemplo: I am watching TV. Sin to be no hay progresivo. Ando/endo = I N G. No lo confundás con I like watching (general, sin to be) ni con I like to watch (intención).",
-      "mustSay": ["to be", "ando", "endo", "progreso"],
+      "say": "Presente progresivo: to be más verbo más í ene ge es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching (general) ni I like to watch (intención).",
+      "mustSay": [
+        "to be",
+        "ando",
+        "endo",
+        "progreso"
+      ],
       "exampleAsk": "Armá una progresiva: They are studying now."
     },
     "gerund_prep": {
-      "say": "Después de una preposición, el verbo va en I N G — ando/endo — SIN to be delante. Before leaving. After eating. No es presente progresivo. Decí ando/endo. Para general vs intención usá Get It Straight: watching = general; to watch = intención.",
-      "mustSay": ["ando", "endo"],
+      "say": "Después de una preposición, el verbo va en í ene ge — ando endo — sin to be delante. Before leaving. After eating. No es presente progresivo.",
+      "mustSay": [
+        "ando",
+        "endo"
+      ],
       "exampleAsk": "Completá: Before ______ (go), call me."
     },
     "combined": {
-      "say": "Have been más VERBO más I N G = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + I N G. Decí ando/endo.",
-      "mustSay": ["ando", "endo", "been"],
+      "say": "Have been más VERBO más í ene ge = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene ge. Decí ando/endo.",
+      "mustSay": [
+        "ando",
+        "endo",
+        "been"
+      ],
       "exampleAsk": "Decí: She has been working all day."
     },
     "past": {
       "say": "Pasado simple = una foto terminada de ayer. Pronombre + verbo en pasado + yesterday, ago o last. I worked yesterday. She went home. NO es have/has/had más participio — eso es otro módulo. Acá solo el verbo en pasado.",
-      "mustSay": ["pasado", "yesterday"],
+      "mustSay": [
+        "pasado",
+        "yesterday"
+      ],
       "exampleAsk": "Decí una con went y yesterday."
     },
     "perfect": {
       "say": "Presente perfecto: have o has más participio — he o ha más participio. Conecta el pasado con ahora. I have finished. NO es pasado simple: no digas worked yesterday con have. Had más participio = había — pasado perfecto.",
-      "mustSay": ["have", "participio"],
+      "mustSay": [
+        "have",
+        "participio"
+      ],
       "exampleAsk": "Decí: I have seen that movie."
     },
     "present": {
       "say": "Presente simple: hábito o hecho. Pronombre + verbo + complemento. He, she, it llevan ese en el verbo: she works. Empezá desde el español: yo trabajo → I work.",
-      "mustSay": ["hábito", "verbo"],
+      "mustSay": [
+        "hábito",
+        "verbo"
+      ],
       "exampleAsk": "Decí: She works every day."
     },
     "future": {
       "say": "Will = el ré del español: caminaré → I will walk. Going to = voy a, plan. Will más verbo base; going to más verbo base. No mezcles con continuo.",
-      "mustSay": ["will", "ré"],
+      "mustSay": [
+        "will",
+        "ré"
+      ],
       "exampleAsk": "Decí un plan con going to y una decisión con will."
     },
     "modales": {
       "say": "Modales: will es ré; would es ría; should es debería; can es puedo; could es podría. Fórmula: pronombre + modal + verbo base + complemento. Sin to después del modal. I will go. She should study.",
-      "mustSay": ["will", "ré", "would", "ría"],
+      "mustSay": [
+        "will",
+        "ré",
+        "would",
+        "ría"
+      ],
       "exampleAsk": "Decí: I would help you."
     },
     "modal": {
       "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",
-      "mustSay": ["moneda", "pregunta"],
+      "mustSay": [
+        "moneda",
+        "pregunta"
+      ],
       "exampleAsk": "Convertí a pregunta: They are here."
     },
     "there": {
       "say": "There is / there are = hay. Existencia. Have/has es posesión — tengo un carro, no hay un carro. There is a cat. There are books. Pregunta: Is there…? Are there…?",
-      "mustSay": ["hay", "there"],
+      "mustSay": [
+        "hay",
+        "there"
+      ],
       "exampleAsk": "Decí: There is a meeting at five."
     },
     "negations": {
       "say": "En español: yo no trabajo. En inglés NUNCA I no work ni I not work. Hace falta auxiliar más not: I do not work. She does not work. I did not go. El auxiliar carga el not.",
-      "mustSay": ["auxiliar", "not"],
+      "mustSay": [
+        "auxiliar",
+        "not"
+      ],
       "exampleAsk": "Negá: She works on Sundays."
     },
     "prepositions": {
       "say": "El en español se parte en tres. IN = adentro, caja. ON = encima, superficie. AT = punto neutro. I'm at home and the book is in the room on the table.",
-      "mustSay": ["in", "on", "at"],
+      "mustSay": [
+        "in",
+        "on",
+        "at"
+      ],
       "exampleAsk": "Decí la frase ancla con at, in y on."
     },
     "prepositions_time": {
       "say": "Mismo trío, ahora tiempo. IN = mes, año, parte del día. ON = día o fecha. AT = hora puntual. We meet on Monday in March at 5 pm.",
-      "mustSay": ["in", "on", "at"],
+      "mustSay": [
+        "in",
+        "on",
+        "at"
+      ],
       "exampleAsk": "Decí: on Friday at noon."
     },
     "articles": {
       "say": "A / an = uno cualquiera, indefinido. The = el o la específico, definido. A cat vs the cat. An hour por el sonido.",
-      "mustSay": ["a", "the"],
+      "mustSay": [
+        "a",
+        "the"
+      ],
       "exampleAsk": "Decí: I see a cat. The cat is black."
     },
     "comparatives": {
       "say": "Comparar dos: más… que → -er o more + than. El más… → -est o most. Tan… como → as… as. She is taller than me. He is the best.",
-      "mustSay": ["than", "as"],
+      "mustSay": [
+        "than",
+        "as"
+      ],
       "exampleAsk": "Decí: as tall as Pedro."
     },
     "irregular_verbs": {
       "say": "Irregulares: tres columnas, tres fotos. Presente, pasado, participio. Decí con pausa: go. went. gone. Do. did. done. Si hay have delante, tercera columna.",
-      "mustSay": ["go", "went", "gone"],
+      "mustSay": [
+        "go",
+        "went",
+        "gone"
+      ],
       "exampleAsk": "Decí: do. did. done."
     },
     "have_had": {
       "say": "Have. has. had. Tres formas con pausa. Have/has auxiliar de perfecto; had de pasado perfecto. Decílas en voz.",
-      "mustSay": ["have", "has", "had"],
+      "mustSay": [
+        "have",
+        "has",
+        "had"
+      ],
       "exampleAsk": "Repetí: have. has. had."
     },
     "if_was_were": {
       "say": "Was = pasado real. Were = hipótesis irreal: If I were… como soñar. Were to = poco probable.",
-      "mustSay": ["were", "was"],
+      "mustSay": [
+        "were",
+        "was"
+      ],
       "exampleAsk": "Decí: If I were you…"
     },
     "modal_have_pp": {
       "say": "Should have = debería haber más participio. Could have = podría haber. Modal + have + participio. You should have studied more.",
-      "mustSay": ["have", "participio"],
+      "mustSay": [
+        "have",
+        "participio"
+      ],
       "exampleAsk": "Decí: I could have gone."
     },
     "modal_have_been": {
       "say": "Modal + have + been + VERBO más I N G. Must have been working = debió haber estado trabajando. Ando/endo = I N G.",
-      "mustSay": ["been", "ando", "endo"],
+      "mustSay": [
+        "been",
+        "ando",
+        "endo"
+      ],
       "exampleAsk": "Decí: She must have been sleeping."
     },
     "overview": {
       "say": "Mapa: presente simple, pasado simple, presente continuo, presente perfecto, futuro. Cada uno con su fórmula. Preguntá cuál practicar y quedate en ese.",
-      "mustSay": ["presente", "pasado"],
+      "mustSay": [
+        "presente",
+        "pasado"
+      ],
       "exampleAsk": "¿Cuál tiempo querés practicar ahora?"
     }
   },
   "alice": {
-    "say": "Alice enseña con la misma pedagogía John: español primero, patrón, analogía, producción. Alcance: Idea + Linker + Idea, chunking, STAR. Fluidez = estructuras encadenadas, no palabras sueltas. Get It Straight ING aplica: watching = general; to watch = intención; to be + ING = progreso — y montás un linker (However…). No Foundations drill sheets; sí paciencia y doctrina de clase.",
+    "say": "Alice enseña con la misma pedagogía John: español primero, patrón, analogía, producción. Alcance: Idea + Linker + Idea, chunking, STAR. Fluidez = estructuras encadenadas, no palabras sueltas. aplica: watching = general; to watch = intención; to be + ING = progreso — y montás un linker (However…). No Foundations drill sheets; sí paciencia y doctrina de clase.",
     "linkers": "Fluidez = alternar conectores (linkers) con ideas completas. Ejemplo John: I like watching TV after work. However, I'm not gonna be able to do it today. Chunking: agrupá palabras en bloques. Idea + linker + idea."
   }
 }

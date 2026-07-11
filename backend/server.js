@@ -2686,6 +2686,8 @@ function cacheTTS(key, buffer){
 function cleanTtsText(text) {
   let t = (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
+    .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
+    .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
     .replace(/__([^_]+)__/g, '$1')
@@ -2722,10 +2724,11 @@ function cleanTtsText(text) {
   t = t.replace(/\bHAS\b/gi, ' has ');
   t = t.replace(/\bHAD\b/gi, ' had ');
   t = t.replace(/\bWILL\b/gi, ' will ');
-  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bVing\b/gi, ' verbo más I N G ');
+  // ING → Costa Rican Spanish letter names (í ene ge), never English ai-en-yi
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bVing\b/gi, ' verbo más í ene ge ');
   t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV3\b/gi, ' past participle ');
   t = t.replace(/\bP\s*[|+/]\s*AUX(?:ILIAR)?\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
@@ -2742,9 +2745,10 @@ function cleanTtsText(text) {
   });
   t = t.replace(/\+/g, ' más ');
   t = t.replace(/\s*\|\s*/g, ' más ');
-  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene ge ');
   t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene ge ');
   t = t.replace(/\bP\b/g, ' pronombre ');
   t = t.replace(/\bM\b/g, ' modal ');
   t = t.replace(/\bV\b/g, ' verbo ');
@@ -2759,7 +2763,7 @@ function cleanTtsText(text) {
   t = t.replace(/\bTHAN\b/gi, ' than ');
   t = t.replace(/\bTHE\b/g, ' the ');
   t = t.replace(/\bAS\b/g, ' as ');
-  t = t.replace(/\bING\b/g, ' I N G ');
+  t = t.replace(/\bING\b/g, ' í ene ge ');
   return t
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, '. ')
@@ -2787,6 +2791,10 @@ function applyLatAmSeseoForTts(text) {
 function scrubNonCrSpanish(text) {
   return String(text || '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
+    // Internal lesson titles — never speak to students
+    .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
+    .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
+    .replace(/\blecci[oó]n John(?:\s+Off the Clock)?\b[:\s—–\-]*/gi, '')
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
     .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')

@@ -63,18 +63,18 @@ const samples = [
   },
   {
     in: 'Usas V+ing despues de BE.',
-    mustInclude: ['verbo más I N G', 'be'],
-    mustNot: ['plus', 'V+ing', 'V I N G']
+    mustInclude: ['verbo más í ene ge', 'be'],
+    mustNot: ['plus', 'V+ing', 'V I N G', 'I N G']
   },
   {
     in: 'La formula es VERBO + ING como ando endo.',
-    mustInclude: ['verbo más I N G'],
-    mustNot: ['plus', 'V I N G']
+    mustInclude: ['verbo más í ene ge'],
+    mustNot: ['plus', 'V I N G', 'I N G']
   },
   {
     in: 'En PC: P + am/is/are + V-ing + C. En PRP: HAVE + PP.',
-    mustInclude: ['presente continuo', 'verbo más I N G', 'presente perfecto', 'participio'],
-    mustNot: ['plus', 'V-ing', 'PP']
+    mustInclude: ['presente continuo', 'verbo más í ene ge', 'presente perfecto', 'participio'],
+    mustNot: ['plus', 'V-ing', 'PP', 'I N G']
   },
   {
     in: 'Overview: PR PS PC PRP. Modales: P + M + V + C.',

@@ -84,11 +84,11 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bHAD\b/gi, ' had ');
   t = t.replace(/\bWILL\b/gi, ' will ');
 
-  // V+ing / VERBO+ING / V+s antes de expandir ranura V
-  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bVing\b/gi, ' verbo más I N G ');
+  // V+ing / VERBO+ING — spell in Costa Rican Spanish (í ene ge), NEVER English "ai en yi" (sounds Brazilian)
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bVing\b/gi, ' verbo más í ene ge ');
   t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV\s*-\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV3\b/gi, ' past participle ');
@@ -108,9 +108,11 @@ function normalizeTtsTeachingForms(text) {
 
   t = t.replace(/\+/g, ' más ');
   t = t.replace(/\s*\|\s*/g, ' más ');
-  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más I N G ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más I N G ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene ge ');
   t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
+  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene ge ');
+  t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene ge ');
 
   t = t.replace(/\bP\b/g, ' pronombre ');
   t = t.replace(/\bM\b/g, ' modal ');
@@ -127,7 +129,7 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bTHAN\b/gi, ' than ');
   t = t.replace(/\bTHE\b/g, ' the ');
   t = t.replace(/\bAS\b/g, ' as ');
-  t = t.replace(/\bING\b/g, ' I N G ');
+  t = t.replace(/\bING\b/g, ' í ene ge ');
   return t;
 }
 
@@ -138,6 +140,11 @@ function prepareTtsLine(text) {
   return normalizeTtsTeachingForms(
     String(text || '')
       .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
+      // Internal lesson titles — NEVER speak these to students
+      .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
+      .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
+      .replace(/\blecci[oó]n John\b[:\s—–\-]*/gi, '')
+      .replace(/\bModulo\s*00\d\b/gi, '')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/\*([^*]+)\*/g, '$1')
       .replace(/__([^_]+)__/g, '$1')
@@ -164,8 +171,8 @@ function classifyTtsWord(word) {
   if (!w) return null;
   // Single MSI letters stay with surrounding language (usually Spanish)
   if (/^[PMVC]$/i.test(w)) return null;
-  // Spelled ING suffix letters → English names (ai · en · yi)
-  if (/^[ING]$/i.test(w)) return 'en';
+  // í ene ge already Spanish — do not force English letter names (ai/en/yi sounds Brazilian)
+  if (/^(í|ene|ge)$/i.test(w)) return 'es';
   if (/[áéíóúñ¿¡]/i.test(w)) return 'es';
   var bare = w.toLowerCase().replace(/['']/g, "'");
   if (_TTS_EN_GRAMMAR.test(bare)) return 'en';

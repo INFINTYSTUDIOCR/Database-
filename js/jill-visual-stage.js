@@ -110,7 +110,9 @@
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
+    // Track already resolved → always show formula + exercise board
     if (forcedColumn) return true;
+    if (contentType === 'whiteboard' || contentType === 'exercise' || contentType === 'example') return true;
     if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
     return !!resolveColumn(text, bundle, userTopic, tutor);
   }
