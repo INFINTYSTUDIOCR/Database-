@@ -59,12 +59,14 @@
       "exampleAsk": "Decí una con went y yesterday."
     },
     "perfect": {
-      "say": "Presente perfecto: have o has más participio — he o ha más participio. Conecta el pasado con ahora. I have finished. NO es pasado simple: no digas worked yesterday con have. Had más participio = había — pasado perfecto.",
+      "say": "Empezá siempre: jaf. jas. jad. — eso es have. has. had. en voz CR, nunca ave. Presente perfecto: jaf o jas más participio — he o ha. I have finished. Pasado perfecto: jad más participio — había. I had finished. Completá paradigm + ambos + ejemplo + ¿Te quedó?",
       "mustSay": [
-        "have",
+        "jaf",
+        "jas",
+        "jad",
         "participio"
       ],
-      "exampleAsk": "Decí: I have seen that movie."
+      "exampleAsk": "Repetí: jaf. jas. jad. Luego: I had finished."
     },
     "present": {
       "say": "Presente simple: hábito o hecho. Pronombre + verbo + complemento. He, she, it llevan ese en el verbo: she works. Empezá desde el español: yo trabajo → I work.",
@@ -160,13 +162,13 @@
       "exampleAsk": "Decí: do. did. done."
     },
     "have_had": {
-      "say": "Have. has. had. Tres formas con pausa. Have/has auxiliar de perfecto; had de pasado perfecto. Decílas en voz.",
+      "say": "Empezá: jaf. jas. jad. — have. has. had. en voz CR, nunca ave. Tres formas con pausa. Jaf y jas = auxiliar de presente perfecto. Jad = pasado perfecto (había). Luego un ejemplo de cada uno.",
       "mustSay": [
-        "have",
-        "has",
-        "had"
+        "jaf",
+        "jas",
+        "jad"
       ],
-      "exampleAsk": "Repetí: have. has. had."
+      "exampleAsk": "Repetí: jaf. jas. jad. Luego: I had finished."
     },
     "if_was_were": {
       "say": "Was = pasado real. Were = hipótesis irreal: If I were… como soñar. Were to = poco probable.",

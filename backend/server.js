@@ -2070,8 +2070,9 @@ const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage di
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
 const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto"):
-Completá SIEMPRE: fórmula + puente/guion John + analogía + 1 ejemplo + práctica oral + "¿Te quedó?".
-PROHIBIDO cortar a mitad. PROHIBIDO quedarte en 2 frases si falta el puente. Nunca ESL genérico.`;
+Completá SIEMPRE la lección ENTERA visible en el tablero: fórmula + paradigm + puente John + analogía + ejemplos (presente Y pasado si aplica) + práctica oral + "¿Te quedó?".
+PROHIBIDO cortar a mitad. PROHIBIDO tip de 2 frases. PROHIBIDO explicar solo una pieza y callarte el resto.
+Si el tema es pasado/presente perfecto: EMPEZÁ con "jaf. jas. jad." (have/has/had) — nunca "ave" — luego have/has + participio Y had + participio (había). El estudiante debe VER y OÍR la explicación completa.`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -2671,10 +2672,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=human1: expressive LatAm reading (not flat Castilian cache).
+  // v=human2: CR jaf/jas/jad + full lesson boards
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':human1:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':human2:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2801,6 +2802,20 @@ function humanizeSpokenForTts(text) {
     .trim();
 }
 
+/** CR classroom phonetics: have/has/had → jaf/jas/jad (never Spanish "ave"). */
+function applyCrHavePhonetics(text) {
+  let t = String(text || '');
+  t = t.replace(/\bhave\s*\.\s*has\s*\.\s*had\b/gi, 'jaf. jas. jad.');
+  t = t.replace(/\bhave\s+has\s+had\b/gi, 'jaf. jas. jad.');
+  t = t.replace(/\bHAVE\b/g, ' jaf ');
+  t = t.replace(/\bHAS\b/g, ' jas ');
+  t = t.replace(/\bHAD\b/g, ' jad ');
+  t = t.replace(/\bhave\b/gi, 'jaf');
+  t = t.replace(/\bhas\b/gi, 'jas');
+  t = t.replace(/\bhad\b/gi, 'jad');
+  return t.replace(/\s{2,}/g, ' ').trim();
+}
+
 /** Orthography hint so ElevenLabs uses LatAm seseo (C/Z → /s/), not Spain ceceo. */
 function applyLatAmSeseoForTts(text) {
   let t = String(text || '');
@@ -2907,6 +2922,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
+    clean = applyCrHavePhonetics(clean);
     clean = applyLatAmSeseoForTts(clean);
   }
   if (!clean) throw new Error('Empty text');
@@ -2916,8 +2932,8 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
     : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
 
-  // Include speed+model so slower Jill audio / LatAm regen is not poisoned by Spain clips
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|human1|${modelId}`;
+  // Include speed+model — human2 busts old "ave" HAVE clips
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|human2|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
@@ -4108,12 +4124,12 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? TUTOR_TEACH_COMPLETE_RULE
       : '';
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON. NEVER cut off. Completá fórmula + puente + ejemplo.`
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — whiteboard en mini-lección. NEVER cut off. Completá fórmula + paradigm jaf.jas.jad + puente + ejemplos (presente Y pasado perfecto si aplica) + ¿Te quedó?.`
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: isJillCompanion ? 1400 : 1100,
+      max_tokens: isJillCompanion ? 2000 : 1400,
       system: systemWithContext,
       messages: msgs
     });
@@ -4325,9 +4341,9 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + TUTOR_TEACH_COMPLETE_RULE
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 1600 : 1200,
+      max_tokens: isJillCompanion ? 2000 : 1400,
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] salvo ejemplo escrito breve explícito: [[CTYPE:example]]. NEVER cut off mid-sentence. Completá fórmula + ejemplo antes de pedir práctica.`
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre sin explicación. NEVER cut off mid-sentence. Completá fórmula + paradigm + ejemplos (si perfecto: jaf. jas. jad. + presente Y pasado perfecto) antes de pedir práctica.`
         : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }

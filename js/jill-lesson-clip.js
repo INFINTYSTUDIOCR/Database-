@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711exr';
+  var VERSION = '20260711jaf';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -68,11 +68,45 @@
       takeaway: 'Progresivo = TO BE + verbo + í ene ge (ando/endo).'
     },
     perfect: {
-      rules: [row('I / you / we / they', 'have + participio', ''), row('he / she / it', 'has + participio', '')],
-      examples: [row('He has done it', 'Él lo ha hecho'), row('I have seen that', 'Yo he visto eso'), row('They have finished already', 'Ya han terminado')],
-      pattern: 'Have/has carga el tiempo; el verbo va en participio (forma 3).',
-      transforms: [tip('I do it', 'I have done it', 'do → done'), tip('She goes', 'She has gone', 'go → gone')],
-      takeaway: 'Presente perfecto = have/has + participio.'
+      rules: [
+        row('have · has · had', 'jaf · jas · jad', '(decí con pausa)'),
+        row('I / you / we / they', 'have + participio', '(he…)'),
+        row('he / she / it', 'has + participio', '(ha…)'),
+        row('todos', 'had + participio', '(había… = pasado perfecto)')
+      ],
+      examples: [
+        row('have · has · had', 'jaf · jas · jad'),
+        row('I have finished', 'Yo he terminado'),
+        row('She has seen it', 'Ella lo ha visto'),
+        row('I had finished', 'Yo había terminado'),
+        row('They had gone', 'Ellos habían ido')
+      ],
+      pattern: 'Primero el paradigm: jaf. jas. jad. Luego: have/has + participio = presente perfecto. Had + participio = pasado perfecto (había).',
+      transforms: [
+        tip('have / has', 'he / ha + participio', 'presente perfecto'),
+        tip('had', 'había + participio', 'pasado perfecto'),
+        tip('I finished yesterday', 'I had finished before…', 'pasado simple ≠ pasado perfecto')
+      ],
+      takeaway: 'Siempre empezá por jaf. jas. jad. Presente perfecto = have/has + participio. Pasado perfecto = had + participio.'
+    },
+    have_had: {
+      rules: [
+        row('have', 'jaf', 'I / you / we / they'),
+        row('has', 'jas', 'he / she / it'),
+        row('had', 'jad', 'pasado / pasado perfecto')
+      ],
+      examples: [
+        row('have · has · had', 'jaf · jas · jad'),
+        row('I have finished', 'Yo he terminado'),
+        row('She has finished', 'Ella ha terminado'),
+        row('I had finished', 'Yo había terminado')
+      ],
+      pattern: 'Decí con pausa en voz CR: jaf. jas. jad. — nunca "ave".',
+      transforms: [
+        tip('have', 'has', '3ª persona → jas'),
+        tip('have / has', 'had', 'pasado / había → jad')
+      ],
+      takeaway: 'jaf. jas. jad. — tres formas. Had = pasado perfecto auxiliar.'
     },
     future: {
       rules: [row('will + verbo', '-ré / -rá', '(decisión / futuro)'), row('going to + verbo', 'voy a…', '(plan)')],
@@ -143,13 +177,6 @@
       pattern: 'Decí las tres formas con pausa: go. went. gone.',
       transforms: [tip('I go', 'I went', 'forma 2'), tip('I went', 'I have gone', 'forma 3 con have')],
       takeaway: 'Tres fotos del verbo irregular — de memoria con ritmo.'
-    },
-    have_had: {
-      rules: [row('have', 'I / you / we / they', ''), row('has', 'he / she / it', ''), row('had', 'pasado (todos)', '')],
-      examples: [row('have · has · had', 'tres formas'), row('I have finished', 'Yo he terminado'), row('She has finished', 'Ella ha terminado')],
-      pattern: 'Decí con pausa: have. has. had.',
-      transforms: [tip('I have', 'She has', '3ª persona → has'), tip('I have', 'I had', 'pasado → had')],
-      takeaway: 'Have / has / had — tres formas, una sola familia.'
     },
     articles: {
       rules: [row('a / an', 'uno / una', '(indefinido)'), row('the', 'el / la / los / las', '(definido)')],
@@ -253,19 +280,19 @@
 
     perfect: clip({
       id: 'perfect',
-      title: 'Have / Has + Participio',
-      bridge: 'have/has + participio = he/ha · had + participio = había',
+      title: 'Have / Has / Had + Participio',
+      bridge: 'jaf. jas. jad. → have/has + participio (he/ha) · had + participio (había = pasado perfecto)',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · he · they' },
-        { id: 2, label: 'Have / Has', hint: 'have · has · had' },
+        { id: 2, label: 'Have / Has / Had', hint: 'jaf · jas · jad' },
         { id: 3, label: 'Participio', hint: 'done · gone · seen' }
       ],
       examples: [
+        T([['have', 2], ['. ', 0], ['has', 2], ['. ', 0], ['had', 2], ['.', 0]]),
         T([['He', 1], [' ', 0], ['has', 2], [' ', 0], ['done', 3], [' it.', 0]]),
         T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['seen', 3], [' that.', 0]]),
-        T([['They', 1], [' ', 0], ['have', 2], [' ', 0], ['finished', 3], [' already.', 0]]),
-        T([['She', 1], [' ', 0], ['has', 2], [' ', 0], ['gone', 3], [' home.', 0]]),
-        T([['We', 1], [' ', 0], ['had', 2], [' ', 0], ['eaten', 3], [' before.', 0]])
+        T([['I', 1], [' ', 0], ['had', 2], [' ', 0], ['finished', 3], ['.', 0]]),
+        T([['They', 1], [' ', 0], ['had', 2], [' ', 0], ['gone', 3], ['.', 0]])
       ]
     }),
 

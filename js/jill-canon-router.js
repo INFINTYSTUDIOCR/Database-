@@ -440,6 +440,7 @@
           "present perfect",
           "pasado perfecto",
           "past perfect",
+          "pasada perfecto",
           "prp",
           "have/has + participio",
           "have has participio",
@@ -455,9 +456,12 @@
           "omisión de had",
           "omitir had",
           "had en pasado perfecto",
-          "had en el perfecto"
+          "had en el perfecto",
+          "jaf jas jad",
+          "explicame el pasado perfecto",
+          "explicame pasado perfecto"
         ],
-        "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). NO es pasado simple (worked/went)."
+        "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). Empezá en voz: jaf. jas. jad. NO es pasado simple (worked/went)."
       },
       {
         "id": "past",

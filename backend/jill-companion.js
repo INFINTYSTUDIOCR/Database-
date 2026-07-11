@@ -3,7 +3,16 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v43-no-interview-chip';
+const JILL_PRO_BRAIN_VER = 'v44-full-perfect-jaf';
+
+const PERFECT_FULL_TEACH = `PERFECTO / PASADO PERFECTO — LECCIÓN COMPLETA (PROHIBIDO CORTAR O DESFASE):
+1) Empezá SIEMPRE en voz: "jaf. jas. jad." (have. has. had.) — pronunciación CR. NUNCA "ave".
+2) Explicá: jaf/jas = he/ha (presente perfecto auxiliar); jad = había (pasado perfecto auxiliar).
+3) Presente perfecto: jaf o jas + participio — 1 ejemplo oral (I have finished).
+4) Pasado perfecto: jad + participio — 1 ejemplo oral (I had finished = yo había terminado).
+5) El tablero debe mostrar TODO (paradigm + ambos). Hablá lo que se ve. Sin saltar bloques.
+6) "¿Te quedó?" + pedí que digan jaf. jas. jad. y una oración.
+PROHIBIDO: tip corto; solo "has"; solo presente sin pasado perfecto; cortar a mitad; desfase tablero↔voz.`;
 
 const JillCanonRouter = require('./jill-canon-router');
 const JohnDoctrine = require('./john-teaching-doctrine');
@@ -193,7 +202,7 @@ ${JILL_PRO_INTENT_RULE}
 - [[CTYPE:whiteboard]] SOLO como última línea; el portal muestra el SVG sincronizado (sin texto-ejercicio).
 ${JILL_PRO_LIVE_COACH}
 ${JILL_PRO_DOUBT_MODE}
-- Explicación: 4–7 oraciones de clase viva (mirá / fíjate / te lo pongo así). Completá cada oración. NUNCA cortes a mitad. Sin tono de manual.
+- Explicación: COMPLETA — lo que se ve en el tablero se dice entero (paradigm + fórmula + ejemplos). NUNCA cortes a mitad ni desfaces tablero↔voz. Sin tono de manual.
 - contentType: "whiteboard" en explicaciones/correcciones; "text" en charla pura.`;
 
 /** Pistas por track — voz + SVG, sin texto de drill en pantalla. */
@@ -210,14 +219,14 @@ const TRACK_TEACH_HINTS = {
   progressive: 'OBLIGATORIO: TO BE + verbo + ING = progreso = ando/endo. Sin to be no hay progresivo. Contraste: watching=general; to watch=intención. Decí "í ene ge". Solo contenido del curso.',
   past: 'Analogía: pasado = foto terminada de ayer. 1 frase oral.',
   present: 'Analogía: hábito/hecho; he/she/it + verbo+s. 1 frase oral.',
-  perfect: 'HAD = pasado de have como auxiliar. Presente perfecto: have/has + participio (he/ha). Pasado perfecto: HAD + participio = había. Si preguntan "qué es HAD", explicá ESO YA con ejemplo (I had finished = yo había terminado). NUNCA digas que no sabés.',
-  combined: 'Analogía: have been + VERBO+ING = he estado + ando/endo (duración). 1 frase oral.',
+  perfect: PERFECT_FULL_TEACH,
+  combined: 'Analogía: have been + VERBO+ING = he estado + ando/endo (duración). Empezá con jaf. jas. jad. si hace falta. 1 frase oral.',
   future: 'Analogía: will=-ré (decisión); going to=voy a (plan). 1 frase oral.',
   modal_have_pp: 'Analogía: should have = debería haber + participio (remordimiento/crítica). 1 frase oral.',
   modal_have_been: 'Analogía: modal + have been + VERBO+ING (debió haber estado…). 1 frase oral.',
   articles: 'Analogía: a/an=uno cualquiera; the=el específico. 1 frase oral.',
   comparatives: 'Analogía: -er/more = más…que; as…as = tan…como. 1 frase oral.',
-  have_had: 'OBLIGATORIO: have. has. had. con pausa. HAD = forma pasada del auxiliar. En pasado perfecto: had + participio = había. Si preguntan qué es HAD/HAVE/HAS, explicá la pieza YA — nunca "no sé".',
+  have_had: PERFECT_FULL_TEACH + ' Enfoque: paradigm jaf. jas. jad. con pausa, luego 1 ejemplo de presente y 1 de pasado perfecto.',
   if_was_were: 'Analogía: was=real; were=irreal (como soñar). If I were… oral.',
   overview: 'Analogía: mapa de tiempos PR/PS/PC/PRP. Preguntá con calma cuál practicar.'
 };
@@ -418,7 +427,16 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const track = piece || (wordAsk ? resolveAskTrack(msg, sticky) : null) || (!wordAsk ? forced : null) || resolveAskTrack(msg, sticky) || forced;
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track
-    ? `\nTABLERO DE APOYO: "${track.title}" (id=${track.id}). Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza aunque el tablero diga otra cosa.\n`
+    ? (`\nTABLERO DE APOYO: "${track.title}" (id=${track.id}). Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza aunque el tablero diga otra cosa.\n`
+      + ((track.id === 'perfect' || track.id === 'have_had')
+        ? `TABLERO COMPLETO — DEBÉS DECIR Y CUBRIR TODAS LAS FILAS (PROHIBIDO omitir o cortar):\n`
+          + `1) have · has · had → jaf · jas · jad (decí con pausa; NUNCA "ave")\n`
+          + `2) I/you/we/they → have + participio (he…)\n`
+          + `3) he/she/it → has + participio (ha…)\n`
+          + `4) todos → had + participio (había… = pasado perfecto)\n`
+          + `Ejemplos orales: I have finished · She has seen it · I had finished · They had gone\n`
+          + `Cierre: ¿Te quedó? + que digan jaf. jas. jad. y una oración.\n`
+        : ''))
     : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
   const pieceNote = wordAsk
@@ -442,19 +460,21 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   }
 
   if (phase === 'doubt_explain') {
+    const perfectish = track && (track.id === 'perfect' || track.id === 'have_had' || track.id === 'combined'
+      || /\b(pasado perfecto|past perfect|presente perfecto|present perfect|pasada perfecto)\b/i.test(msg + ' ' + sticky));
+    const perfectBlock = perfectish ? `\n${PERFECT_FULL_TEACH}\n` : '';
     if (track) {
-      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz).
+      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${perfectBlock}MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz, SIN DESFASE).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
-Terminá la explicación completa (fórmula + bridge + 1 analogía + 1–2 ejemplos). NUNCA cortes a mitad de frase. Luego pedí que lo digan al mic.
-Si el estudiante confirma que entendió en el SIGUIENTE turno, el portal espera [[CTYPE:mini_kaboom:Mxxx]] — en ESTE turno de explicación usá [[CTYPE:whiteboard]].
+Terminá la explicación COMPLETA (todo lo del tablero: fórmula + paradigm + bridge + analogía + ejemplos). NUNCA cortes a mitad. Luego pedí que lo digan al mic.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
     return `${heard}${pieceNote}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
 ${JILL_PRO_TEACH_CANON}
 ${JILL_NEVER_MUTE}
 Checklist este turno: (1) nombrá el tema (2) fórmula simple en español (3) puente ES↔EN + 1 analogía (4) 1–2 modelos en inglés (5) "¿Te quedó?" + pedí 1 oración oral.
-4–7 oraciones. Completá cada idea. NUNCA tip de 1 frase ni cortes a mitad.
+Explicación COMPLETA — todas las ideas del tema, sin cortar. NUNCA tip de 1 frase ni cortes a mitad.
 Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta clara + 1 frase → Alice.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }

@@ -138,7 +138,7 @@
     var blob = user + ' ' + reply;
     var nexusCue = /\b(explic|ens[eé][nñ]|explain|teach|no entiendo|don'?t understand|duda|linker|connector|star|nexus|idea\s*\+|however|on top of that|recovery|pattern|estructura|f[oó]rmula|whiteboard|pizarr|tablero)\b/i.test(blob);
     if (tutor === 'alice') return nexusCue || /\b(how (do|to)|what (is|are)|c[oó]mo se|qu[eé] es)\b/i.test(blob);
-    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|presente|futuro)\b/i.test(blob);
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|pasado perfecto|presente perfecto|pasada perfecto|perfecto|have|has|had|jaf|jas|jad|presente|futuro)\b/i.test(blob);
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
