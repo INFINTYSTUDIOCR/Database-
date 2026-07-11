@@ -3245,12 +3245,12 @@ function aliceQueueFullReply(text){
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var main = aliceTtsMainLine(text);
   if(!main || main.length < 3) return;
-  try { aliceActivateVisualStage(main); } catch(eVis) {}
   // Clear stale queue so a new full reply is never mixed with a half-played one
   _aliceTTSQueue = [];
   ttsSpeakLines(main, 1200).forEach(function(line){
     if(line && line.length >= 3) aliceQueueSpeak(line);
   });
+  try { aliceActivateVisualStage(main); } catch(eVis) {}
 }
 
 function jillStudentDisplayName(student){
