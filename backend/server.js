@@ -2666,13 +2666,15 @@ async function demoGenerateEvaluation(session) {
 const ttsCache = new Map();
 const TTS_CACHE_MAX = 200; // máximo de entradas
 
-function getTTSCacheKey(text, voiceId, languageCode, speed){
+function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const lang = languageCode ? String(languageCode).slice(0, 8) : 'auto';
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
+  // v=latam3 busts Spain-ceceo clips cached under multilingual_v2.
+  const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':latam3:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2784,16 +2786,23 @@ function cleanTtsText(text) {
 /** Orthography hint so ElevenLabs uses LatAm seseo (C/Z → /s/), not Spain ceceo. */
 function applyLatAmSeseoForTts(text) {
   let t = String(text || '');
+  // Protect English islands in quotes so we don't mangle them
+  const enclaves = [];
+  t = t.replace(/(["'“”‘’])([^"'“”‘’]{1,80})\1/g, (m) => {
+    enclaves.push(m);
+    return `\u0004${enclaves.length - 1}\u0005`;
+  });
   t = t.replace(/ch/gi, '\u0001');
   t = t.replace(/qu([eéií])/gi, '\u0002$1');
   t = t.replace(/gu([eéií])/gi, '\u0003$1');
   t = t.replace(/z/gi, (ch) => (ch === 'Z' ? 'S' : 's'));
   t = t.replace(/c([eéiíEÉIÍ])/g, (_, v) => ((/[EÉIÍ]/.test(v) && v === v.toUpperCase()) ? 'S' : 's') + v);
   t = t.replace(/\u0001/g, 'ch').replace(/\u0002/g, 'qu').replace(/\u0003/g, 'gu');
+  t = t.replace(/\u0004(\d+)\u0005/g, (_, i) => enclaves[Number(i)] || '');
   return t;
 }
 
-/** Strip Rioplatense / Spain / internal lesson labels — never reach the student. */
+/** Strip Rioplatense / Spain lexicon / internal labels — never reach the student. */
 function scrubNonCrSpanish(text) {
   return String(text || '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
@@ -2805,6 +2814,23 @@ function scrubNonCrSpanish(text) {
     .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
     .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
     .replace(/\bestilo\s+John(?:\s+Ram[ií]rez)?\b/gi, 'estilo Infinity')
+    // Spain → Costa Rica / LatAm
+    .replace(/\bvosotros\b/gi, 'ustedes')
+    .replace(/\bvosotras\b/gi, 'ustedes')
+    .replace(/\bvuestra(?:s)?\b/gi, 'su')
+    .replace(/\bvuestro(?:s)?\b/gi, 'su')
+    .replace(/\borderadores?\b/gi, 'computadora')
+    .replace(/\bcoches?\b/gi, 'carro')
+    .replace(/\bm[oó]viles?\b/gi, 'celular')
+    .replace(/\bzumos?\b/gi, 'jugo')
+    .replace(/\bpatatas?\b/gi, 'papa')
+    .replace(/\bchavales?\b/gi, '')
+    .replace(/\bt[ií]o\b(?!\s+[A-ZÁÉÍÓÚ])/gi, '')
+    .replace(/\bmola\b/gi, 'está bueno')
+    .replace(/\bguay\b/gi, 'tuanis')
+    .replace(/\bcurrar\b/gi, 'trabajar')
+    .replace(/\bcurrando\b/gi, 'trabajando')
+    .replace(/\bvale\b(?!\s+(la|el|una?|unos|unas)\b)/gi, 'claro')
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
     .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')
@@ -2859,13 +2885,21 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   const languageCode = opts.languageCode || null;
   const speed = opts.speed ?? 1.08;
   const isSpanish = languageCode && String(languageCode).toLowerCase().startsWith('es');
-  // LatAm seseo for Spanish Jill/Alice — busts Spain-ceceo cache via languageCode es-CR
-  if (isSpanish) clean = applyLatAmSeseoForTts(clean);
+  // LatAm seseo (C/Z→S) so ElevenLabs cannot invent Spain theta/ceceo
+  if (isSpanish) {
+    clean = scrubNonCrSpanish(clean);
+    clean = applyLatAmSeseoForTts(clean);
+  }
   if (!clean) throw new Error('Empty text');
 
-  // Include speed in cache keys so slower Jill audio is not poisoned by old 1.08 clips
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}`;
-  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed);
+  // turbo_v2_5 honors language_code; multilingual_v2 often drifts to Castilian
+  const modelId = isSpanish
+    ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
+    : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
+
+  // Include speed+model so slower Jill audio / LatAm regen is not poisoned by Spain clips
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|latam3|${modelId}`;
+  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
@@ -2878,7 +2912,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 
   const payload = {
     text: clean,
-    model_id: 'eleven_multilingual_v2',
+    model_id: modelId,
     voice_settings: {
       stability: opts.stability ?? 0.52,
       similarity_boost: opts.similarityBoost ?? 0.78,
@@ -2887,8 +2921,9 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
       speed
     }
   };
-  // multilingual_v2 ignores language_code; still send es for models that accept it
-  if (languageCode) payload.language_code = String(languageCode).toLowerCase().startsWith('es') ? 'es' : languageCode;
+  if (languageCode) {
+    payload.language_code = isSpanish ? 'es' : languageCode;
+  }
 
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
@@ -4584,8 +4619,19 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
   try {
     const ok = await assertStudentTutorAccess(req, res, 'alice', null, { allowCompanionProduct: true });
     if (req.auth.role === 'student' && !ok) return;
-    const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: ALICE_VOICE_ID, label: 'Alice' });
+    const { text, lang } = req.body || {};
+    const rawLang = String(lang || 'es').toLowerCase();
+    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
+    return await synthesizeSpeech(req, res, {
+      text: scrubNonCrSpanish(text),
+      voiceId: ALICE_VOICE_ID,
+      label: 'Alice',
+      languageCode,
+      speed: languageCode === 'en' ? 0.98 : 0.94,
+      stability: 0.58,
+      similarityBoost: 0.78,
+      style: 0.08
+    });
   } catch (err) {
     console.error('Alice TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
