@@ -183,164 +183,17 @@
   };
 
   function detectCanonColumn(text, bundle) {
-    var t = String(text || '').toLowerCase();
+    var t = String(text || '');
     if (!t.trim()) {
       if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
       return null;
     }
-
-    // --- Mas especifico primero ---
-
-    // Pronombre + Modal + Have Been + Verbo ING
-    if (/\b(modal\s*\+?\s*have\s+been|must have been|should have been|could have been|may have been|might have been|would have been)\b/.test(t)
-      || /\b(can|could|may|might|must|should|would|will)\s+have\s+been\b/.test(t)
-      || /\b(modal.*have been.*ing|have been.*despues del modal)\b/.test(t)) {
-      return 'modal_have_been';
+    // Jill DJ — catálogo único (config/jill-canon-map.json)
+    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
+      var id = JillCanonRouter.pickTrackId(t);
+      if (id && CANON_BY_COLUMN[id]) return id;
+      if (id) return id;
     }
-
-    // Modal + Have + Participio (estructura + sensacion) — sin been
-    if (!/\bbeen\b/.test(t) && (
-      /\b(should have|could have|would have|must have|might have|may have)\b/.test(t)
-      || /\bwill have\b/.test(t) && /\b(participio|finished|completado|by \w+|futuro perfecto)\b/.test(t)
-      || /\b(modal\s*\+?\s*have\s*\+?\s*participio|estructura\s*\+?\s*sensaci)/.test(t)
-      || /\b(arrepentimiento|inferencia|hip[oó]tesis en el pasado|completado en el futuro)\b/.test(t)
-    )) {
-      return 'modal_have_pp';
-    }
-
-    // Have / has / had como auxiliares de perfecto
-    if (/\bhave\b/.test(t) && /\bhad\b/.test(t)) return 'have_had';
-    if (/\bhave\s*\/\s*has\s*\/\s*had\b/.test(t) || /\bhave\s+has\s+had\b/.test(t)) return 'have_had';
-    if (/\b(have\s+vs\s+had|has\s+vs\s+had|diferencia\s+entre\s+have\s+y\s+had)\b/.test(t)) return 'have_had';
-    if (/\bhad\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect|participio)/.test(t)
-      && !/\b(pasado simple|past simple|yesterday|been\s+\w+ing|been\s*\+?\s*v)/.test(t)) {
-      return 'have_had';
-    }
-
-    // Pronombre + Have + Been + Verbo (ING)
-    if (/\b(have|has|had)\s*\+?\s*been\s*\+?\s*(v\s*\+?\s*ing|ving|ing|-ing)\b/.test(t)
-      || /\b(have|has|had)\s+been\s+\w+ing\b/.test(t)
-      || /\b(presente\s+perfecto\s+continuo|present\s+perfect\s+continuous|perfecto\s+continuo|\bppc\b)\b/.test(t)
-      || /\bhave\s*\+?\s*been\s*\+?\s*v/i.test(t)
-      || /\bbeen\s*\+?\s*(v\s*)?\+?\s*ing\b/.test(t) && /\b(have|has|had|perfecto|perfect|explic|pronombre)\b/.test(t)) {
-      return 'combined';
-    }
-
-    if (/\bhave\b/.test(t) && /(explic|ense[nñ]|auxiliar|perfecto|perfect|participio|pronombre\s*\+?\s*have)/.test(t)
-      && !/\b(had|going to|will have|been)\b/.test(t)) {
-      return 'perfect';
-    }
-    if (/\b(preposici[oó]n|before|after|without|instead of|good at|interested in|afraid of|antes de|despues de|después de|en vez de)\b/.test(t)
-      && /\b(-ing|gerundio|leaving|going|working|coming|doing|saying)\b/.test(t)
-      && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are)\b/.test(t)) {
-      return 'gerund_prep';
-    }
-
-    // Negaciones
-    if (/\b(negaci[oó]n(?:es)?|negations?|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|auxiliar\s*\+?\s*not)\b/.test(t)) {
-      return 'negations';
-    }
-
-    // If I was / If I were / If I were to
-    if (/\b(if i was|if i were|if i were to|if he was|if she was|if he were|if she were|if .+ were to)\b/.test(t)
-      || /\b(was vs were|were vs was|if was|if were)\b/.test(t)
-      || /\b(condicional(?:es)?|hipot[eé]tic|irreal|segundo condicional|second conditional)\b/.test(t)
-        && /\b(was|were|if)\b/.test(t)) {
-      return 'if_was_were';
-    }
-
-    // Verbos irregulares — 3 columnas
-    if (/\b(verbos?\s+irregulares?|irregular\s+verbs?|lista\s+de\s+irregulares|tres\s+columnas|presente\s+pasado\s+participio|1a\s+2a\s+3a\s+columna)\b/.test(t)
-      || /\b(came|went|gone|took|taken|gave|given|gotten|said|seen|been)\b/.test(t)
-        && /\b(irregular|participio|pasado simple|memor|lista|columnas?)\b/.test(t)) {
-      return 'irregular_verbs';
-    }
-
-    // There is / are / To Have (posesion) / Exist
-    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|there\s+be|\bhay\b)\b/.test(t)
-      || /\b(there exists?|exist(?:e|en|ir)?\b|existencia)\b/.test(t)
-      || /\b(to have|posesi[oó]n|tener vs hay|hay vs have|there is vs have|there are vs have)\b/.test(t)
-      || /\b(i have a|she has a|he has a)\b/.test(t) && /\b(poses|hay|there|explic)\b/.test(t)) {
-      return 'there';
-    }
-
-    // Comparativos
-    if (/\b(comparativ|superlativ|more than|less than|-er than|as .+ as|mejor que|peor que|m[aá]s .+ que|the most|the least)\b/.test(t)) {
-      return 'comparatives';
-    }
-
-    // Articulos (no confundir con "the" suelto en ingles)
-    if (/\b(art[ií]culo(?:s)?|articles?|a\/an|indefinido|definido|cuantificador(?:es)?|much\/many|a lot of)\b/.test(t)) {
-      return 'articles';
-    }
-
-    // Preposiciones de TIEMPO (antes que lugar)
-    if (/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in on at.*(?:time|hora|d[ií]a)|at \d|in the morning|in the afternoon|on monday|on friday|in march|in 20\d{2}|preposiciones tiempo)\b/.test(t)) {
-      return 'prepositions_time';
-    }
-
-    // Preposiciones lugar / IN ON AT BY (core image)
-    if (/\b(preposici[oó]n(?:es)?|prep(?:ositions?)?\b|in\s*\/?\s*on\s*\/?\s*at(?:\s*\/?\s*by)?|in on at by|at in on|on at in|by car|by bus|in the box|on the table|at the office|at home|lugar)\b/.test(t)
-      || /\b(in|on|at|by)\b/.test(t) && /\b(prep|ranura c|complemento|ciudad|mesa|oficina|carro|bus|transporte)\b/.test(t)) {
-      return 'prepositions';
-    }
-
-    // Presente continuo / PC / gerundio con to be
-    if (/\b(presente continuo|present continuous|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando|p\s*\+\s*to be\s*\+\s*v|ahora mismo.*ing)\b/.test(t)) {
-      return 'progressive';
-    }
-    if (/\b(gerundio|gerund|v\+ing|progressive)\b/.test(t) && /\b(to be|presente continuo|\bpc\b|progres|continuo|ahora)\b/.test(t)) {
-      return 'progressive';
-    }
-
-    // Futuro perfecto / past perfect (no confundir con have+been+ing ya capturado)
-    if (/\b(futuro perfecto|future perfect|will have|pasado perfecto|past perfect)\b/.test(t)
-      && !/\bbeen\b/.test(t)) {
-      return 'overview';
-    }
-
-    // Presente perfecto PRP (NO articulos)
-    if (/\b(presente perfecto|present perfect|\bprp\b|have\/has|have been|has been|already|yet|ever|never.*been|participio)\b/.test(t)
-      && !/\b(pasado simple|past simple|yesterday)\b/.test(t)) {
-      return 'perfect';
-    }
-
-    // Pasado simple PS
-    if (/\b(pasado simple|past simple|\bps\b|yesterday|last (week|night|year|monday)|el pasado|verbo en pasado|worked|went|did)\b/.test(t)
-      && !/\b(perfecto|perfect|continuo|continuous)\b/.test(t)) {
-      return 'past';
-    }
-
-    // Presente simple PR
-    if (/\b(presente simple|present simple|\bpr\b|h[aá]bitos?|habits?|todos los d[ií]as|every day|he\/she\/it\s*\+?\s*-?s)\b/.test(t)
-      && !/\b(perfecto|perfect|continuo|continuous|pasado|past)\b/.test(t)) {
-      return 'present';
-    }
-
-    // Modales: Pronombre + Modal + Verbo (base)
-    if (/\b(modales?|pronombre\s*\+?\s*modal|can\b|could\b|should\b|must\b|may\b|might\b|ought to|have to)\b/.test(t)
-      && !/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|have been|have\s+\w+ed|participio)\b/.test(t)) {
-      return 'modales';
-    }
-
-    // Metodo moneda / inversion
-    if (/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|are you\b|v\s*\+\s*p|pregunta\s*\/\s*respuesta)\b/.test(t)) {
-      return 'modal';
-    }
-
-    // Futuro will / going to
-    if (/\b(futuro|future|going to|will\b|would\b|ma[nñ]ana|tomorrow)\b/.test(t)
-      && !/\b(modales?|can\b|could|should|must)\b/.test(t)) {
-      return 'future';
-    }
-
-    // Overview tiempos
-    if (/\b(tiempo(?:s)? verbal(?:es)?|tiempos|siglas\s+pr|matriz de tiempos)\b/.test(t)) {
-      return 'overview';
-    }
-
-    if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';
-
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;
   }

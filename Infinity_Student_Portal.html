@@ -33,10 +33,11 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260710c3"></script>
-<script src="js/jill-visual-stage.js?v=20260710mic"></script>
+<script src="js/jill-canon-router.js?v=20260710dj"></script>
+<script src="js/jill-canon-visual.js?v=20260710dj"></script>
+<script src="js/jill-visual-stage.js?v=20260710dj"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710c3"></script>
+<script src="js/jill-foundations.js?v=20260710dj"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -3072,28 +3073,12 @@ function nexoraStudentPayload(student){
 }
 
 function jillDetectCompanionTopic(text){
-  var t = String(text || '').toLowerCase();
-  if(/\b(modal\s*\+?\s*have\s+been|must have been|should have been)\b/.test(t)) return 'Pronombre + Modal + Have Been + Verbo ING';
-  if(/\b(should have|could have|must have|would have|modal\s*\+?\s*have\s*\+?\s*participio)\b/.test(t) && !/\bbeen\b/.test(t)) return 'Modal + Have + Participio';
-  if(/\b(have\s*\+?\s*been|been\s*\+?\s*v?\s*\+?\s*ing|perfecto\s+continuo|\bppc\b)\b/.test(t)) return 'Pronombre + Have + Been + Verbo (ING)';
-  if(/\b(if i was|if i were|if i were to|was vs were|were vs was)\b/.test(t)) return 'If I was / If I were / If I were to';
-  if(/\b(verbos?\s+irregulares?|irregular\s+verbs?|presente\s+pasado\s+participio)\b/.test(t)) return 'Verbos irregulares (3 columnas)';
-  if(/\b(there is|there are|to have|exist(?:e|en)?|hay vs|posesi[oó]n)\b/.test(t)) return 'There is / There are / To Have / Exist';
-  if(/\b(pronombre\s*\+?\s*modal|modales?)\b/.test(t) && !/\b(moneda|have been|participio)\b/.test(t)) return 'Pronombre + Modal + Verbo';
-  if(/\b(have\b.*\bhad\b|\bhad\b.*\bhave\b|have\/has\/had)\b/.test(t)) return 'have / has / had (perfecto)';
-  if(/\b(futuro\s+perfecto|future\s+perfect|will\s+have)\b/.test(t)) return 'futuro perfecto / Modal + Have + Participio';
-  if(/\b(pasado simple|past simple|\bps\b)\b/.test(t)) return 'pasado simple PS';
-  if(/\b(presente simple|present simple|\bpr\b)\b/.test(t)) return 'presente simple PR';
-  if(/\b(presente continuo|present continuous|\bpc\b|to be\s*\+?\s*verbo)\b/.test(t)) return 'Pronombre + To Be + Verbo (ING)';
-  if(/\b(presente perfecto|present perfect|\bprp\b|have\/has\s*\+?\s*participio)\b/.test(t)) return 'Pronombre + Have/Has + Participio';
-  if(/\b(futuro|future|going to)\b/.test(t)) return 'futuro will / going to';
-  if(/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in the morning|on monday)\b/.test(t)) return 'preposiciones de tiempo';
-  if(/\b(preposici[oó]n|in on at|in\/on\/at|at in on by)\b/.test(t)) return 'preposiciones IN ON AT BY';
-  if(/\b(gerundio|gerund|-ing)\b/.test(t)) return 'gerundio / PC';
-  if(/\b(modales?|should|can|could|must|may|might)\b/.test(t) && !/\b(moneda|inversi|have)\b/.test(t)) return 'Pronombre + Modal + Verbo';
-  if(/\b(moneda|inversi[oó]n)\b/.test(t)) return 'metodo moneda (inversion)';
-  if(/\b(will|would)\b/.test(t)) return 'futuro / would';
-  if(/\b(explic|ayud|lecci|enseñ|help me|teach|no entiendo)/.test(t)) return String(text || '').slice(0, 120);
+  var t = String(text || '');
+  if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrack) {
+    var tr = JillCanonRouter.pickTrack(t);
+    if (tr) return tr.title;
+  }
+  if(/\b(explic|ayud|lecci|enseñ|help me|teach|no entiendo)/.test(t.toLowerCase())) return String(text || '').slice(0, 120);
   return '';
 }
 

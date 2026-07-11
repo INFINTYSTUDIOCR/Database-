@@ -3,7 +3,9 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v18-canon-if-there-irreg';
+const JILL_PRO_BRAIN_VER = 'v19-jill-dj-canon';
+
+const JillCanonRouter = require('./jill-canon-router');
 
 const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO):
 - Hablás SOLO en ESPAÑOL por defecto — saludo, charla, explicaciones, correcciones, confirmaciones, todo.
@@ -110,29 +112,10 @@ Cuando EXPLICÁS gramática/duda: usá [[CTYPE:whiteboard]] para que el portal m
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
+Sos Jill DJ del catálogo Foundations: el TRACK lo elige el sistema (pickTrack), vos NO inventás módulo.
 Mismo flujo coach: feedback → explicar → ejemplo → "¿Te quedó claro?" → práctica corta → volver a la charla.
-Canon Foundations — explicá con ESTRUCTURA Pronombre + ...:
-- Pronombre + To Be + Verbo (ING)
-- Pronombre + Have/Has + Participio
-- Pronombre + Have/Has + Been + Verbo (ING)
-- Pronombre + Modal + Verbo (base, sin to)
-- Pronombre + Modal + Have Been + Verbo ING
-- Modal + Have + Participio (will/would/should/could/must have) + sensacion
-- If I was (pasado real/posible) / If I were (hipotesis irreal) / If I were to (futuro poco probable, formal)
-- There is (1) / There are (2+) / To Have (posesion) / Exist (formal)
-- Verbos irregulares: Presente | Pasado simple | Participio (3 columnas)
-Si piden PASADO SIMPLE / PS: tablero PS (no PR, no moneda).
-Si piden IN ON AT BY / preposiciones: tablero preposiciones.
-Si piden MODALES: Pronombre + Modal + Verbo. NO abras Método Moneda.
-Si piden should have / must have (sin been): Modal + Have + Participio (estructura + sensacion).
-Si piden must have been + ing: Pronombre + Modal + Have Been + Verbo ING.
-Si piden IF I WAS / IF I WERE / IF I WERE TO / was vs were: tablero if-was-were.
-Si piden THERE IS / THERE ARE / TO HAVE (posesion) / EXIST / hay vs tener: tablero there-existencial.
-Si piden VERBOS IRREGULARES / 3 columnas / lista irregular: tablero verbos-irregulares.
-Si piden MONEDA / inversión: Are you…? = V+P. NO abras modales.
-Si piden HAVE + BEEN + V-ing / PPC: Pronombre + Have + Been + Verbo (ING).
-Si piden HAVE Y HAD: have/has vs had.
-Si mencionan el tema + piden ayuda, EXPLICÁ ya — no pidas confirmación del tema.
+Si hay TRACK LOCK en el turno: explicá SOLO ese track con su fórmula oficial. Cero temas vecinos.
+PROHIBIDO: decir que IN/ON/AT es gerundio; escribir "thee is"; mezclar PS con PR; mezclar futuro con futuro perfecto; abrir moneda cuando pidieron modales.
 En explicaciones: cerrá con [[CTYPE:whiteboard]].`;
 
 const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION + COACH EN VIVO:
@@ -173,11 +156,14 @@ function resolveJillProSession(student, sessionType) {
 function inferChatTopic(text) {
   const t = String(text || '').toLowerCase();
   if (!t || t.length < 4) return '';
-  if (isEnglishDoubtRequest(t)) {
-    const topicHit = t.match(/\b(futuro\s+perfecto|future\s+perfect|gerund(?:io)?|present\s+(?:simple|continuous|perfect)|past\s+(?:simple|continuous|perfect)|present\s+perfect|past\s+perfect|future\s+(?:simple|continuous|perfect)|modales?|preposici[oó]n(?:es)?|there\s+(?:is|are)|to\s+be|ing\s+vs\s+to|infinitiv[oa]?|inversi[oó]n|going\s+to|will\s+have|will)\b/i);
-    if (topicHit) return `doubt:${topicHit[1].toLowerCase()}`;
-    return 'doubt:english';
+  const track = JillCanonRouter.pickTrack(t);
+  if (track) {
+    if (isEnglishDoubtRequest(t) || /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain)\b/i.test(t)) {
+      return `doubt:${track.id}`;
+    }
+    return `doubt:${track.id}`;
   }
+  if (isEnglishDoubtRequest(t)) return 'doubt:english';
   const patterns = [
     { re: /\b(work|job|office|career|interview|trabajo)\b/, topic: 'work' },
     { re: /\b(travel|trip|vacation|flight|viaje|viajar)\b/, topic: 'travel' },
@@ -219,7 +205,6 @@ function resolveSessionTopic(history, companionTopic, lastUserMessage) {
 
 function resolveCompanionPhase(message, history) {
   if (studentWantsEnglishPractice(message)) return 'english_practice';
-  if (isEnglishDoubtRequest(message)) return 'doubt_explain';
   if (isClarityReply(message)) {
     const prev = [...(history || [])].reverse().find((m) => m.role === 'assistant');
     const prevText = String(prev?.content || '');
@@ -231,9 +216,15 @@ function resolveCompanionPhase(message, history) {
     return 'live_correct';
   }
   if (lastAssistantAskedForEnglish(history) && /\b[a-zA-Z]{2,}\b/.test(message) && !/[áéíóúñ¿¡]/.test(message)) {
-    // They answered in English after being asked — evaluate this turn
     return 'live_evaluate';
   }
+  // Jill DJ: nombre de track / pedido de tema (no produccion en ingles) → explicar
+  const track = JillCanonRouter.pickTrack(message);
+  if (track && !isClarityReply(message)) {
+    const enProd = /\b(i|you|he|she|we|they|it)\s+(am|is|are|was|were|have|has|had|will|would|can|could|should|must|do|does|did)\b/i.test(message);
+    if (!enProd || isEnglishDoubtRequest(message)) return 'doubt_explain';
+  }
+  if (isEnglishDoubtRequest(message)) return 'doubt_explain';
   const topic = resolveSessionTopic(history, '', message);
   if (String(topic).startsWith('doubt:')) return 'doubt_practice';
   return 'free_chat';
@@ -267,6 +258,8 @@ function buildJillProStreamTeachInstruction(topic, message, history) {
   const msg = String(message || '');
   const phase = resolveCompanionPhase(msg, history);
   const heard = `MENSAJE DEL ESTUDIANTE (interpretá la intención aunque venga desordenado; NO pidas que lo repita si ya se entiende):\n"""${msg.slice(0, 500)}"""\n`;
+  const track = JillCanonRouter.pickTrack(msg);
+  const lockBlock = track ? `\n${JillCanonRouter.formatLock(track)}\n` : '';
 
   if (phase === 'english_practice') {
     return `${heard}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
@@ -275,31 +268,31 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   }
 
   if (phase === 'doubt_explain') {
+    if (track) {
+      return `${heard}MODO DUDA — JILL DJ TRACK LOCK.
+${JillCanonRouter.formatLock(track)}
+1) 1 frase: "Pediste ${track.title}".
+2) Explicá EN ESPAÑOL con la fórmula oficial arriba (puente ES → patrón).
+3) 1-2 ejemplos en inglés SOLO de este track (usá el ejemplo oficial o uno equivalente).
+4) "¿Te quedó claro?"
+PROHIBIDO: otro módulo, gerundio si no es el track, "thee is", listar temas extra.
+Cerrá con [[CTYPE:whiteboard]].`;
+    }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
 REGLA DE ORO: explicá ÚNICAMENTE lo que el estudiante pidió. Cero temas vecinos. Cero relleno.
 1) 1 frase: "Pediste X" (nombrá el tema exacto).
 2) Explicá EN ESPAÑOL solo X (puente → patrón/fórmula de X).
-   Mapas (elegí UNO, el que pidió):
-   - ING tras prep (before/after/without) → PREP + V-ing — NO Presente Continuo
-   - Presente Continuo / PC → P + To Be + V+ing + C
-   - Negaciones → P + AUX + NOT + V + C
-   - There is/are → there + be
-   - Preposiciones lugar/tiempo → ranura C
-   - Tiempos (PR/PS/PRP/PPC) → la fórmula de ESE tiempo
-   - Modales / moneda / preguntas → inversión / will-would
-   - Artículos / comparativos → solo eso
-   - Cualquier otra duda Foundations → explicá ESA, no inventes otro módulo
 3) 1-2 ejemplos en inglés SOLO de X.
 4) "¿Te quedó claro?"
-PROHIBIDO: mezclar PC con gerundio-prep, listar temas extra, pedir que repita la duda.
+PROHIBIDO: mezclar módulos, listar temas extra, pedir que repita la duda.
 Cerrá con [[CTYPE:whiteboard]].`;
   }
 
   if (phase === 'live_correct') {
-    return `${heard}MODO COACH EN VIVO — ESTRUCTURA ROTA.
+    return `${heard}${lockBlock}MODO COACH EN VIVO — ESTRUCTURA ROTA.
 DETENÉ. EN ESPAÑOL, solo el error de ESTE turno:
 1) Feedback (ranura/auxiliar/tiempo) 1 frase.
-2) Patrón correcto de ESE error.
+2) Patrón correcto de ESE error${track ? ` (track: ${track.title} / ${track.formula})` : ''}.
 3) 1 ejemplo modelo.
 4) "¿Te quedó? Probá de nuevo."
 NO cambies de tema. [[CTYPE:whiteboard]]`;
@@ -315,9 +308,15 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   if (phase === 'doubt_practice') {
     const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
     if (negative && isClarityReply(msg)) {
-      return `${heard}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo. Luego "¿Ahora sí te quedó?". [[CTYPE:whiteboard]]`;
+      return `${heard}${lockBlock}RE-EXPLICÁ más simple EN ESPAÑOL + ejemplo nuevo${track ? ` del track ${track.title}` : ''}. Luego "¿Ahora sí te quedó?". [[CTYPE:whiteboard]]`;
     }
     return `${heard}PRÁCTICA TRAS DUDA ("${topic || 'duda'}"): pedí 1 oración en inglés; evaluá en vivo; si mal → coach; si bien → confirmá y seguí charla. [[CTYPE:text]]`;
+  }
+
+  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain)\b/i.test(msg)) {
+    return `${heard}MODO DUDA (track detectado).
+${JillCanonRouter.formatLock(track)}
+Explicá ese track ya. [[CTYPE:whiteboard]]`;
   }
 
   return `${heard}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").

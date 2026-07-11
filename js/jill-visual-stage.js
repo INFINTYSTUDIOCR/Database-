@@ -31,30 +31,34 @@
     return null;
   }
 
-  /** Prefer the student's ask for accuracy; fall back to Jill's reply. */
+  /** Prefer the student's ask for accuracy; never let Jill's reply steal the track. */
   function resolveColumn(replyText, bundle, userTopic) {
     var fromUser = userTopic ? detectColumn(userTopic, bundle) : null;
     if (fromUser) return fromUser;
-    return detectColumn(replyText, bundle);
+    // Sin match del estudiante: no abrir tablero por alucinación del modelo
+    return null;
   }
 
   function isExplainTurn(contentType, text, userTopic) {
     if (contentType === 'whiteboard' || contentType === 'example') return true;
     var user = String(userTopic || '');
     var reply = String(text || '');
-    // Never treat a greeting / open chat invite as an explanation board
     if (/qu[eé] gusto|de nuevo|podemos charlar|qu[eé] quer[eé]s (hoy|hacer|charlar)|bienvenid/i.test(reply)
-      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal)\b/i.test(user)) {
+      && !/\b(explic|ens[eé][nñ]|negaci|gerundio|f[oó]rmula|ranura|preposici|tiempo|modal|pasado|futuro|continuo|there|hay)\b/i.test(user)) {
       return false;
     }
+    // Si el DJ ya lockeó un track del pedido, es explicación
+    if (user && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(user)) {
+      return true;
+    }
     var blob = user + ' ' + reply;
-    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|to be|will have|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta)\b/i.test(blob);
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|to be|will have|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|presente|futuro)\b/i.test(blob);
   }
 
   function shouldShow(contentType, text, bundle, userTopic) {
     if (!isExplainTurn(contentType, text, userTopic)) return false;
-    // Show board for any Foundations explain turn — column may come from user ask
-    return true;
+    // Solo abrir escenario si el DJ lockeó un track del pedido del estudiante
+    return !!resolveColumn(text, bundle, userTopic);
   }
 
   function requestFullscreen() {
