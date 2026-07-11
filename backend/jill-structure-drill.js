@@ -51,7 +51,7 @@
     { kpi: 'k2', category: 'tense_var', q: 'Cual marca AHORA (presente continuo)?', options: ['They are discussing the plan now.', 'They discuss the plan every week.', 'They discussed the plan yesterday.', 'They have discussed the plan.'], explain: 'now + be + -ing.' },
     { kpi: 'k2', category: 'tense_var', q: 'Cual marca EXPERIENCIA (presente perfecto)?', options: ['I have visited that office before.', 'I visit that office before.', 'I am visiting that office before.', 'I visit that office yesterday.'], explain: 'before / experience -> have + participio.' },
     { kpi: 'k2', category: 'tense_var', q: 'Pasado vs perfecto: "Ayer termine el informe."', options: ['I finished the report yesterday.', 'I have finished the report yesterday.', 'I finish the report yesterday.', 'I was finish the report yesterday.'], explain: 'yesterday = pasado simple (no perfecto).' },
-    { kpi: 'k2', category: 'tense_var', q: 'Perfecto continuo: "He trabajado en esto toda la manana."', options: ['He has been working on this all morning.', 'He has working on this all morning.', 'He is been working on this all morning.', 'He worked been on this all morning.'], explain: 'have + been + -ing.' },
+    { kpi: 'k2', category: 'tense_var', q: 'Perfecto continuo: "He estado trabajando en esto toda la mañana."', options: ['I have been working on this all morning.', 'I have working on this all morning.', 'I am been working on this all morning.', 'I have worked on this all morning.'], explain: 'have + been + -ing. He estado trabajando = I have been working.' },
     { kpi: 'k2', category: 'tense_var', q: 'Going to (plan): "Voy a llamar al cliente."', options: ['I am going to call the client.', 'I going to call the client.', 'I will going to call the client.', 'I am go to call the client.'], explain: 'am/is/are + going to + base.' },
     { kpi: 'k2', category: 'tense_var', q: 'Condicional 2: "Si tuviera tiempo, te ayudaria."', options: ['If I had time, I would help you.', 'If I have time, I would help you.', 'If I had time, I will help you.', 'If I would have time, I help you.'], explain: 'If + pasado, would + base.' },
     { kpi: 'k2', category: 'tense_var', q: 'Elige la pareja coherente (tiempo + marcador):', options: ['She left — yesterday', 'She left — now', 'She left — every day', 'She left — usually'], explain: 'Pasado simple + yesterday.' },
@@ -82,8 +82,18 @@
 
   function withShuffledOptions(item) {
     var opts = (item.options || []).slice();
-    var correct = opts[item.answer != null ? item.answer : 0];
-    opts = shuffle(opts);
+    var correctIdx = item.answer != null ? item.answer : 0;
+    var correct = opts[correctIdx];
+    var uniq = [];
+    var seenOpt = {};
+    opts.forEach(function (o) {
+      var k = String(o || '');
+      if (seenOpt[k]) return;
+      seenOpt[k] = true;
+      uniq.push(o);
+    });
+    if (uniq.indexOf(correct) < 0 && correct) uniq.unshift(correct);
+    opts = shuffle(uniq);
     var answer = opts.indexOf(correct);
     if (answer < 0) answer = 0;
     return {
