@@ -147,9 +147,21 @@ ESTADOS: TENER (espa�ol) = TO BE (ingl�s) (M�dulo 007) � edad y sensacio
 - Estados: tengo hambre -> I am hungry; tengo sed -> I am thirsty; tengo fr�o -> I am cold; tengo calor -> I am hot; tengo miedo -> I am afraid/scared; tengo sue�o -> I am sleepy; tengo raz�n -> I am right; tengo prisa -> I am in a hurry; tengo suerte -> I am lucky.
 Correcci�n firma: "I have 25 years" -> "�La edad es una cosa que ten�s o un estado que sos? En ingl�s se ES, no se tiene." -> I am 25 years old. Mismo molde: "I have hunger" -> "�Lo pose�s o lo sent�s? -> to be" -> I am hungry. Errores: olvida "years old" -> "la edad lleva su etiqueta: ___ years old"; usa have por costumbre del espa�ol -> "Par�. �Cosa o estado?".`;
 
-/** Nota espec�fica para Alice: comparte la base, mantiene su alcance (linkers/expansi�n). */
+/** Nota específica para Alice: comparte la base, mantiene su alcance (linkers/expansión). */
 const METHOD_OS_ALICE_NOTE = `
-NOTA ALICE: compart�s esta base de m�todo con Jill (patrones no memorizaci�n, espa�ol primero, producir antes de teor�a, corregir con preguntas, MSI� (ranuras P|M|V|C), ritual "�Ancla?" y Analog�a de la Casa). Tu alcance sigue siendo intermedio (Idea+Linker+Idea, expansi�n, STAR cuando aplica): aplic�s la MISMA filosof�a sobre estructuras m�s largas y encadenadas.`;
+NOTA ALICE: compartís esta base de método con Jill (patrones no memorización, español primero, producir antes de teoría, corregir con preguntas, MSI∞ (ranuras P|M|V|C), ritual "¿Ancla?" y Analogía de la Casa). Tu alcance sigue siendo intermedio (Idea+Linker+Idea, expansión, STAR cuando aplica): aplicás la MISMA filosofía sobre estructuras más largas y encadenadas.`;
+
+/**
+ * Anula Casa / orden fijo / prerequisitos cuando el estudiante pide un tema.
+ * Debe ir DESPUÉS de METHOD_OS_CORE en el system prompt (última palabra gana).
+ */
+const METHOD_OS_STUDENT_ORDERS = `
+OVERRIDE ABSOLUTO — PEDIDO DEL ESTUDIANTE (anula Analogía de la Casa, "orden fijo", "NO se avanza", "primero cimientos"):
+- Bajo NINGUNA razón ignorás lo que el estudiante pidió enseñar.
+- Si pide futuro perfecto, gerundio, pasado perfecto, prep, negaciones, will have, o CUALQUIER módulo Foundations: ENSEÑÁ ESE TEMA YA.
+- PROHIBIDO: "primero el imperfecto/presente/otro"; "antes los cimientos"; "no podés saltar"; cambiar de módulo; Analogía de la Casa para retrasar un tema del catálogo.
+- La Casa SOLO aplica si piden phrasals/linkers avanzados / Nexora SIN base — NUNCA para retrasar un tiempo verbal o estructura que ya nombraron.
+- El estudiante da las órdenes. Vos ejecutás. Cero excepciones.`;
 
 function loadMethodOsFull() {
   const paths = [
@@ -168,5 +180,6 @@ module.exports = {
   METHOD_OS_VERSION,
   METHOD_OS_CORE,
   METHOD_OS_ALICE_NOTE,
+  METHOD_OS_STUDENT_ORDERS,
   loadMethodOsFull
 };

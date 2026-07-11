@@ -3812,7 +3812,7 @@ Cuando querés mostrar algo visual o estructurado, usás el campo contentType en
 RESPUESTA:
 Respondé siempre en JSON válido con este formato:
 {"reply":"tu respuesta aquí","contentType":"text|exercise|example|whiteboard"}
-No uses markdown. No uses texto fuera del JSON.` + JILL_STRUCTURE_NOTATION + JILL_COIN_METHOD_RULE + JillMethodOS.METHOD_OS_CORE;
+No uses markdown. No uses texto fuera del JSON.` + JILL_STRUCTURE_NOTATION + JILL_COIN_METHOD_RULE + JillMethodOS.METHOD_OS_CORE + (JillMethodOS.METHOD_OS_STUDENT_ORDERS || '') + (JillPro.STUDENT_ORDERS_RULE ? '\n' + JillPro.STUDENT_ORDERS_RULE : '');
 
 // Extracts {reply, contentType} from Claude response regardless of markdown wrapping
 function parseJillResponse(raw) {
@@ -4124,7 +4124,8 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const hardLockChat = lockedTrackChat
       ? ('\n\n' + JillCanonRouter.formatLock(lockedTrackChat)
         + '\n' + (JillPro.formatBoardSync ? JillPro.formatBoardSync(lockedTrackChat) : '')
-        + '\n' + (JillPro.FULL_TEACH_ALL || ''))
+        + '\n' + (JillPro.FULL_TEACH_ALL || '')
+        + '\n' + (JillPro.STUDENT_ORDERS_RULE || ''))
       : '';
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');

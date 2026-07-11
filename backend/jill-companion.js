@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v46-student-orders-fp';
+const JILL_PRO_BRAIN_VER = 'v47-orders-absolute';
 
 /** Lección completa — TODOS los módulos Foundations (no solo perfecto). */
 const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORTAR O DESFASE):
@@ -17,12 +17,13 @@ const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORT
 5) "¿Te quedó?" + pedí que lo digan al mic.
 PROHIBIDO: tip corto; "1 frase oral"; cortar a mitad; desfase tablero↔voz; explicar solo una pieza y callarte el resto.`;
 
-/** El estudiante manda el tema — Jill no impone orden de currículo. */
-const STUDENT_ORDERS_RULE = `PEDIDO DEL ESTUDIANTE = ORDEN (OBLIGATORIO — anula Casa / cimientos / "primero X"):
-- Si piden un tema concreto (futuro perfecto, gerundio, pasado perfecto, prep, etc.): ENSEÑÁ ESE TEMA YA.
-- PROHIBIDO: "primero veamos el imperfecto / presente / otro módulo"; Analogía de la Casa para retrasar; inventar prerequisitos; cambiar al tema que VOS preferís.
-- Vos NO das el orden. El estudiante da las órdenes. TRACK LOCK = lo que pidieron.
-- Futuro perfecto = will + have + participio (habré terminado). NO lo confundás con should have ni con futuro simple.`;
+/** El estudiante manda — cero excepciones. */
+const STUDENT_ORDERS_RULE = `PEDIDO DEL ESTUDIANTE = ORDEN ABSOLUTA (bajo NINGUNA razón la ignorás):
+- Si piden un tema concreto: ENSEÑÁ ESE TEMA YA. Completo. Sin rodeos.
+- PROHIBIDO ABSOLUTO: "primero veamos X"; "antes el imperfecto/presente/cimientos"; Analogía de la Casa para retrasar; inventar prerequisitos; cambiar al tema que VOS preferís; enseñar otro módulo "porque conviene".
+- Vos NO das el orden del currículo. El estudiante da las órdenes. TRACK LOCK = lo que pidieron.
+- Futuro perfecto = will + have + participio. Gerundio = lo que pidieron de gerundio. Etc.
+- Si hay conflicto entre Casa/método y el pedido: GANA EL PEDIDO. Siempre.`;
 
 const TRACK_PHONETICS = {
   perfect: 'OBLIGATORIO voz: "jaf. jas. jad." (have. has. had.) — NUNCA "ave". Presente: jaf/jas + participio. Pasado perfecto: jad + participio (había).',
@@ -473,10 +474,13 @@ function buildJillProCoachBlock(student, topic) {
 function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic, calibrationNote) {
   const MethodOS = (() => { try { return require('./jill-method-os'); } catch (_) { return null; } })();
   const osCore = MethodOS && MethodOS.METHOD_OS_CORE ? MethodOS.METHOD_OS_CORE : '';
+  const osOrders = MethodOS && MethodOS.METHOD_OS_STUDENT_ORDERS ? MethodOS.METHOD_OS_STUDENT_ORDERS : STUDENT_ORDERS_RULE;
   return `Sos Jill Pro — compañera de inglés en Infinity Studio CR (Foundations).
 Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente. NUNCA hables como hombre ni como profesora de bundle rígida.
 ${JohnDoctrine.mandateBlock('jill')}
 ${osCore}
+${osOrders}
+${STUDENT_ORDERS_RULE}
 ${JILL_PRO_COMPANION_RULES}
 ESTUDIANTE: ${displayName} | Nivel: ${level || 'Foundations'}${profileNote || ''}${adaptNote || ''}
 TEMA: ${topic || 'open chat'}${calibrationNote || ''}`;
@@ -506,21 +510,22 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const piece = JillCanonRouter.resolvePieceTrack
     ? JillCanonRouter.resolvePieceTrack(msg, sticky)
     : null;
-  // Pedido de ESTE mensaje gana sobre forced/sticky viejo (estudiante manda)
+  // Pedido de ESTE mensaje gana SIEMPRE — forced solo si el mensaje no nombra tema
   const fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
   const track = piece
     || fromThisMsg
     || resolveAskTrack(msg, sticky)
-    || forced;
+    || (!fromThisMsg && !piece ? forced : null);
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track ? formatBoardSync(track) : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
+  const ordersBlock = `\n${STUDENT_ORDERS_RULE}\n`;
   const pieceNote = wordAsk
     ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: el estudiante preguntó por "${pieceWord || 'esa palabra/pieza'}". EXPLICÁLA YA en español CR: qué es, para qué sirve, 1–2 ejemplos en inglés. Si encaja en have/has/had o get/got/gone, decí el paradigm con pausa. NUNCA digas que no sabés.\n`
     : '';
 
   if (wordAsk) {
-    return `${heard}${pieceNote}${boardSync}${lockBlock}${track ? trackTeachHint(track) : ''}
+    return `${heard}${ordersBlock}${pieceNote}${boardSync}${lockBlock}${track ? trackTeachHint(track) : ''}
 MODO PIEZA / PALABRA EN INGLÉS — respuesta directa, humana, completa.
 1) Nombrá la pieza ("HAD…").
 2) Explicá qué es en CR (ej. HAD = había / pasado de have como auxiliar).
@@ -530,7 +535,7 @@ PROHIBIDO quedarte muda o decir que no sabés. [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'english_practice') {
-    return `${heard}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
+    return `${heard}${ordersBlock}${lockBlock}MODO PRÁCTICA EN INGLÉS — pidieron hablar en inglés. Este turno en inglés.
 Si la estructura está mal: DETENÉ → feedback en español → explicación completa del patrón (tablero si aplica) → 1 ejemplo → "¿Te quedó?" → pedí que lo digan de nuevo.
 Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:text]]`;
   }
@@ -538,14 +543,14 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
   if (phase === 'doubt_explain') {
     const fullBlock = `\n${FULL_TEACH_ALL}\n${track && TRACK_PHONETICS[track.id] ? TRACK_PHONETICS[track.id] + '\n' : ''}`;
     if (track) {
-      return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${fullBlock}${STUDENT_ORDERS_RULE}
+      return `${heard}${ordersBlock}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${fullBlock}
 MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz, SIN DESFASE) — CUALQUIER MÓDULO.
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación COMPLETA (todo lo del tablero: fórmula + paradigm + bridge + analogía + ejemplos). NUNCA cortes a mitad. Luego pedí que lo digan al mic.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}${pieceNote}${fullBlock}${STUDENT_ORDERS_RULE}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
+    return `${heard}${ordersBlock}${pieceNote}${fullBlock}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
 ${JILL_PRO_TEACH_CANON}
 ${JILL_NEVER_MUTE}
 Checklist este turno: (1) nombrá el tema QUE PIDIERON (2) fórmula simple en español (3) puente ES↔EN + 1 analogía (4) 1–2 modelos en inglés (5) "¿Te quedó?" + pedí 1 oración oral.
@@ -555,7 +560,7 @@ Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta clara + 1 frase 
   }
 
   if (phase === 'live_correct') {
-    return `${heard}${boardSync}${lockBlock}${moduleBlock}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
+    return `${heard}${ordersBlock}${boardSync}${lockBlock}${moduleBlock}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
 DETENÉ. EN ESPAÑOL, con calma (estilo John, lección completa del patrón, sin atropellar):
 1) Feedback 1 frase.
 2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía — señalá y HABLA el tablero entero.

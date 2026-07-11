@@ -4557,18 +4557,26 @@ function jillLastUserTopic(){
 
 function jillResolveCanonTrack(userText, replyText) {
   if (typeof JillCanonRouter === 'undefined') return _jillState.canonTrackId || null;
-  var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
-  // Pedido del estudiante gana SIEMPRE (tablero no cambia porque Jill diga otro tiempo)
+  // ESTE mensaje primero — sin sticky viejo (estudiante manda)
   if (JillCanonRouter.resolveAskId) {
-    var fromUser = JillCanonRouter.resolveAskId(userText || '', sticky);
-    if (fromUser) return fromUser;
+    var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', '');
+    if (fromUserOnly) return fromUserOnly;
   }
-  if (_jillState.canonTrackId) return _jillState.canonTrackId;
+  if (JillCanonRouter.pickTrackId) {
+    var picked = JillCanonRouter.pickTrackId(userText || '');
+    if (picked) return picked;
+  }
+  var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
   if (JillCanonRouter.resolveAskId) {
-    var fromSticky = sticky ? JillCanonRouter.resolveAskId(sticky, '') : null;
+    var fromUserSticky = JillCanonRouter.resolveAskId(userText || '', sticky);
+    if (fromUserSticky) return fromUserSticky;
+  }
+  // Solo si el mensaje no nombra tema: sticky / lock previo
+  if (_jillState.canonTrackId) return _jillState.canonTrackId;
+  if (JillCanonRouter.resolveAskId && sticky) {
+    var fromSticky = JillCanonRouter.resolveAskId(sticky, '');
     if (fromSticky) return fromSticky;
   }
-  // Solo si no hay pedido claro: mirar respuesta (sin pisar un lock previo)
   if (replyText && JillCanonRouter.pickTrackId) {
     return JillCanonRouter.resolveAskId(replyText, userText || '') || JillCanonRouter.pickTrackId(replyText);
   }
@@ -6054,10 +6062,14 @@ async function sendJillMsg(micText, sendOpts){
     var studentPayload = (typeof AiProfile !== 'undefined') ? AiProfile.enrichStudentPayload(s) : s;
     if(studentPayload && s && s.jillCalibration) studentPayload.jillCalibration = s.jillCalibration;
     var canonTrackId = jillResolveCanonTrack(text, '');
-    if(canonTrackId) _jillState.canonTrackId = canonTrackId;
+    if(canonTrackId){
+      _jillState.canonTrackId = canonTrackId;
+      // Sticky sigue al pedido actual — no arrastra lección vieja
+      if(_jillState.sessionType === 'companion') _jillState.companionTopic = String(text || '').slice(0, 120);
+    }
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', canonTrackId: _jillState.canonTrackId || canonTrackId || null, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', canonTrackId: canonTrackId || null, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);
