@@ -365,6 +365,10 @@
         if (!mounted) {
           var def = global.JillLessonClip.getClip ? global.JillLessonClip.getClip(clipId) : null;
           var labs = slotLabels(col);
+          var firstEx = '';
+          if (def && def.examples && def.examples[0] && def.examples[0].text) {
+            firstEx = def.examples[0].text.map(function (p) { return p[0]; }).join('');
+          }
           host.innerHTML = '<div class="jill-clip jill-clip-static" data-clip="' + String(clipId || col) + '">'
             + '<p class="jill-clip-title">' + escHtml((def && def.title) || String(clipId || col)) + '</p>'
             + (def && def.bridge ? '<p class="jill-clip-bridge">' + escHtml(def.bridge) + '</p>' : '')
@@ -373,7 +377,9 @@
                 + '<span class="jill-clip-slot-label">' + escHtml(s.label) + '</span>'
                 + (s.hint ? '<span class="jill-clip-slot-hint">' + escHtml(s.hint) + '</span>' : '')
                 + '</button>' + (idx < labs.length - 1 ? '<span class="jill-clip-plus">+</span>' : '');
-            }).join('') + '</div></div>';
+            }).join('') + '</div>'
+            + '<p class="jill-clip-example" aria-live="polite"><span class="jill-clip-word is-in">' + escHtml(firstEx || 'Practicá la fórmula en voz') + '</span></p>'
+            + '</div>';
           mounted = true;
         }
         var overlay = media.querySelector('.jill-svg-interact');

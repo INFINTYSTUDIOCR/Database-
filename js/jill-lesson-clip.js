@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711align';
+  var VERSION = '20260711ex';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -14,12 +14,13 @@
   var DEFAULT_COLORS = {
     1: '#A78BFA',
     2: '#F59E0B',
-    3: '#C4B5FD',
+    3: '#38BDF8',
     4: '#34D399',
     5: '#F472B6'
   };
 
-  var DEFAULT_PACE = { slotMs: 420, spaceMs: 110, betweenMs: 1500, endHoldMs: 2200, loop: false };
+  /* Pace: sentences stay on screen long enough to read while Jill speaks */
+  var DEFAULT_PACE = { slotMs: 480, spaceMs: 90, betweenMs: 2200, endHoldMs: 2800, loop: false };
 
   function T(parts) { return { text: parts }; }
 
@@ -605,20 +606,30 @@
     var parts = def.examples[idx].text;
     var pace = def.pace || DEFAULT_PACE;
     var colors = def.colors || DEFAULT_COLORS;
-    for (var p = 0; p < parts.length; p++) {
+    /* Full sentence visible (dim) first — then light each word as Jill would say it */
+    var nodes = [];
+    for (var i = 0; i < parts.length; i++) {
+      var word0 = parts[i][0];
+      var group0 = parts[i][1];
+      var span0 = document.createElement('span');
+      span0.className = 'jill-clip-word is-wait' + (group0 ? ' is-slot-' + group0 : '');
+      span0.textContent = word0;
+      if (group0 && colors[group0]) span0.style.color = colors[group0];
+      span0.style.opacity = '0.28';
+      el.appendChild(span0);
+      nodes.push({ span: span0, group: group0 });
+    }
+    for (var p = 0; p < nodes.length; p++) {
       if (gen !== _gen) return false;
-      var word = parts[p][0];
-      var group = parts[p][1];
-      var span = document.createElement('span');
-      span.className = 'jill-clip-word' + (group ? ' is-slot-' + group : '');
-      span.textContent = word;
-      if (group && colors[group]) span.style.color = colors[group];
-      el.appendChild(span);
+      var span = nodes[p].span;
+      var group = nodes[p].group;
+      span.style.opacity = '';
+      span.classList.remove('is-wait');
       requestAnimationFrame(function (node) {
         return function () { node.classList.add('is-in'); };
       }(span));
       if (group) pulseSlot(root, group);
-      var ok = await wait(group ? (pace.slotMs || 420) : (pace.spaceMs || 110), gen);
+      var ok = await wait(group ? (pace.slotMs || 480) : (pace.spaceMs || 90), gen);
       if (!ok) return false;
     }
     el.classList.add('is-done');
@@ -685,11 +696,12 @@
     wire(root, def);
     _gen += 1;
     var gen = _gen;
+    /* Start sentence animation immediately — no empty board while Jill talks */
     _timer = setTimeout(function () {
       _timer = null;
       if (gen !== _gen) return;
       runSequence(root, def, gen);
-    }, 380);
+    }, 40);
     return true;
   }
 

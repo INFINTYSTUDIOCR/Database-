@@ -37,8 +37,8 @@
 <script src="js/jill-canon-router.js?v=20260711clean"></script>
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
-<script src="js/jill-lesson-clip.js?v=20260711ops"></script>
-<script src="js/jill-visual-stage.js?v=20260711ex"></script>
+<script src="js/jill-lesson-clip.js?v=20260711ex2"></script>
+<script src="js/jill-visual-stage.js?v=20260711ex2"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -134,8 +134,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;
   }
   #jill-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
-  #jill-lesson-shell.jill-stage-active #jill-visual-stage{display:flex;flex:1 1 auto;min-height:0;}
-  #jill-stage-media{flex:1;min-height:160px;position:relative;}
+  #jill-lesson-shell.jill-stage-active #jill-visual-stage{
+    display:flex;flex:1 1 auto;
+    min-height:min(58vh,520px);
+  }
+  #jill-stage-media{
+    flex:1 1 auto;
+    min-height:min(54vh,480px);
+    height:min(54vh,480px);
+    position:relative;
+    overflow:hidden;
+  }
   #jill-stage-caption{display:none!important;}
   .jill-svg-interact{
     position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;gap:8px;
@@ -180,16 +189,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-stage-media.jill-oral-miss{outline:3px solid rgba(248,113,113,0.65);outline-offset:-3px;}
   /* Lesson clip HTML (Present Continuous piloto) */
   .jill-lesson-clip-host{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    padding:16px 16px 52px;box-sizing:border-box;z-index:2;
+    position:absolute;inset:0;display:flex;align-items:stretch;justify-content:center;
+    padding:12px 12px 48px;box-sizing:border-box;z-index:2;
   }
   .jill-clip{
-    position:relative;width:100%;max-width:640px;padding:1.6rem 1.35rem 1.2rem;
+    position:relative;width:100%;max-width:720px;padding:1.25rem 1.2rem 1rem;
     border-radius:20px;overflow:hidden;
-    background:linear-gradient(165deg,rgba(49,46,129,0.92) 0%,rgba(76,29,149,0.88) 45%,rgba(91,33,182,0.85) 100%);
+    background:linear-gradient(165deg,rgba(49,46,129,0.95) 0%,rgba(76,29,149,0.92) 45%,rgba(91,33,182,0.9) 100%);
     border:1px solid rgba(196,181,253,0.35);
     box-shadow:0 18px 48px rgba(49,46,129,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
-    display:flex;flex-direction:column;align-items:center;gap:1.1rem;
+    display:flex;flex-direction:column;align-items:center;gap:0.85rem;
+    min-height:100%;box-sizing:border-box;
   }
   .jill-clip-aura{
     position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
@@ -201,20 +211,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     to{opacity:1;transform:translateY(8px)}
   }
   .jill-clip-title{
-    position:relative;z-index:1;margin:0;font-size:clamp(15px,2.4vw,18px);
-    font-weight:800;letter-spacing:.02em;color:#F5F3FF;text-align:center;
+    position:relative;z-index:1;margin:0;font-size:clamp(14px,2.2vw,17px);
+    font-weight:800;letter-spacing:.02em;color:#F5F3FF;text-align:center;flex:0 0 auto;
   }
   .jill-clip-bridge{
-    position:relative;z-index:1;margin:-0.35rem 0 0;font-size:12px;line-height:1.35;
-    color:rgba(221,214,254,0.9);text-align:center;max-width:36rem;
+    position:relative;z-index:1;margin:-0.2rem 0 0;font-size:12px;line-height:1.35;
+    color:rgba(221,214,254,0.9);text-align:center;max-width:36rem;flex:0 0 auto;
   }
   .jill-clip-row{
     position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;
-    gap:8px;flex-wrap:wrap;width:100%;
+    gap:8px;flex-wrap:wrap;width:100%;flex:0 0 auto;
   }
   .jill-clip-slot{
-    flex:1 1 120px;min-width:110px;max-width:170px;border:0;cursor:pointer;
-    border-radius:14px;padding:12px 10px;text-align:center;
+    flex:1 1 100px;min-width:96px;max-width:160px;border:0;cursor:pointer;
+    border-radius:14px;padding:10px 8px;text-align:center;
     background:linear-gradient(180deg,#7C3AED,#5B21B6);
     color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.22);
     transition:transform .2s ease, box-shadow .2s ease;
@@ -231,8 +241,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .jill-clip-slot[data-slot="5"]{
     background:linear-gradient(180deg,#F472B6,#DB2777);
   }
-  .jill-clip-slot-label{display:block;font-size:13px;font-weight:800;letter-spacing:.01em;}
-  .jill-clip-slot-hint{display:block;margin-top:4px;font-size:10px;opacity:.85;font-weight:600;}
+  .jill-clip-slot-label{display:block;font-size:12px;font-weight:800;letter-spacing:.01em;}
+  .jill-clip-slot-hint{display:block;margin-top:3px;font-size:9px;opacity:.85;font-weight:600;}
   .jill-clip-slot.is-active{
     transform:translateY(-3px) scale(1.04);
     box-shadow:0 0 0 3px rgba(255,255,255,0.28), 0 12px 28px rgba(0,0,0,0.28);
@@ -247,16 +257,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     align-self:center;font-size:18px;font-weight:800;color:rgba(196,181,253,0.75);
     padding:0 2px;
   }
+  /* THE exercise sentences Jill is teaching — must dominate the board */
   .jill-clip-example{
-    position:relative;z-index:1;margin:0;min-height:2.2em;padding:0.35rem 0.5rem;
-    font-size:clamp(18px,3.2vw,26px);font-weight:800;line-height:1.35;
+    position:relative;z-index:1;margin:0;flex:1 1 auto;
+    min-height:4.5em;width:100%;max-width:40rem;
+    display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    padding:0.85rem 0.75rem;border-radius:14px;
+    background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.12);
+    font-size:clamp(22px,4.2vw,34px);font-weight:800;line-height:1.35;
     text-align:center;color:#F8FAFC;letter-spacing:.01em;
   }
   .jill-clip-word{
     display:inline;opacity:0;transform:translateY(8px);
     transition:opacity .22s ease, transform .22s ease;
   }
-  .jill-clip-word.is-in{opacity:1;transform:translateY(0)}
+  .jill-clip-word.is-wait{opacity:0.28!important;transform:none}
+  .jill-clip-word.is-in{opacity:1!important;transform:translateY(0)}
   .jill-clip-example.is-done{animation:jillClipSettle .4s ease}
   @keyframes jillClipSettle{
     from{filter:brightness(1.15)}
@@ -264,7 +280,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
   .jill-clip-footer{
     position:relative;z-index:1;width:100%;display:flex;align-items:center;
-    justify-content:space-between;gap:12px;margin-top:0.15rem;
+    justify-content:space-between;gap:12px;margin-top:auto;flex:0 0 auto;
   }
   .jill-clip-progress{font-size:11px;font-weight:700;color:rgba(221,214,254,0.85)}
   .jill-clip-replay{
@@ -4513,7 +4529,15 @@ function jillActivateVisualStage(text, contentType){
   var ct = contentType || 'text';
   var userAsk = jillLastUserTopic();
   var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
+  var blob = (userAsk + ' ' + sticky + ' ' + String(text || '')).toLowerCase();
   var col = jillResolveCanonTrack(userAsk, text);
+  // Force track when Jill is teaching a clear formula (have+been+ING, etc.)
+  if(!col && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId){
+    col = JillCanonRouter.pickTrackId(text) || JillCanonRouter.pickTrackId(blob);
+  }
+  if(!col && /\bhave\s+been\b|\bhas\s+been\b|\bbeen\s+\w+ing\b/i.test(blob)) col = 'combined';
+  if(!col && /\b(am|is|are)\s+\w+ing\b|\bto be\b.*\bing\b|\bpresente continuo\b|\bprogresiv/i.test(blob)) col = 'progressive';
+  if(!col && /\bgerund|\bing\b.*ando|\blando\/endo\b/i.test(blob)) col = 'gerundio';
   if(col) {
     _jillState.canonTrackId = col;
     ct = 'whiteboard';
@@ -4525,11 +4549,12 @@ function jillActivateVisualStage(text, contentType){
 
 function jillSpeakTurn(text, contentType){
   text = jillScrubNonCr(text);
-  // Hablar primero: el stage no debe interrumpir ni pausar el audio.
-  jillSpeak(text);
+  // Board FIRST — student must SEE the exercise sentences while Jill speaks them
   if(typeof JillVisualStage !== 'undefined') {
-    try { jillActivateVisualStage(text, contentType); } catch(eVis) {}
+    try { jillActivateVisualStage(text, contentType || 'whiteboard'); } catch(eVis) {}
   }
+  // Small delay so the clip mounts and paints the first sentence before audio
+  setTimeout(function(){ jillSpeak(text); }, 120);
 }
 
 function jillSyncFullscreenBtn(){
