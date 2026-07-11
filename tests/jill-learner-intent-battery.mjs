@@ -31,7 +31,12 @@ const cases = [
   ['presente kontinuo', 'progressive'],
   ['inonat', 'prepositions'],
   ['shoulda', 'modal_have_pp'],
-  ['must haf bin', 'modal_have_been']
+  ['must haf bin', 'modal_have_been'],
+  // Habla / ASR español → inglés
+  ['explicame guil y guud', 'modales'],
+  ['güil y güud', 'modales'],
+  ['como funciona der is', 'there'],
+  ['explícame goin tu', 'future']
 ];
 
 for (const [ask, expect] of cases) {
@@ -39,6 +44,11 @@ for (const [ask, expect] of cases) {
   const id = Router.resolveAskId(ask, '') || Router.pickTrackId(ask);
   assert(id === expect, `${JSON.stringify(ask)} → ${id} (want ${expect})  expanded=${JSON.stringify(expanded).slice(0, 80)}`);
 }
+
+// Spoken normalize tags
+const spoken = Intent.normalizeUtterance('guil y guud', { fromMic: true });
+assert(/interpretado hablado/i.test(spoken.send), 'spoken tag in send: ' + spoken.send);
+assert(spoken.guess === 'will y would', 'spoken guess will y would: ' + spoken.guess);
 
 console.log('\n========== LEARNER INTENT ==========');
 console.log('PASS', pass, 'FAIL', fail);

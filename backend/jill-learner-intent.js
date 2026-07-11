@@ -13,6 +13,40 @@
 
   /** Reescrituras fonéticas / ASR / español aproximado → inglés/canon Foundations */
   var REWRITES = [
+    // ── Habla / ASR español escuchando inglés (mic es-CR) ──
+    [/\bg[uü]il+\b/gi, 'will'],
+    [/\bguil+\b/gi, 'will'],
+    [/\bjuil\b/gi, 'will'],
+    [/\bg[uü]ud\b/gi, 'would'],
+    [/\bguud\b/gi, 'would'],
+    [/\bgud\b/gi, 'would'],
+    [/\bbud\b/gi, 'would'],
+    [/\bchol\b/gi, 'should'],
+    [/\bshul\b/gi, 'should'],
+    [/\bkud\b/gi, 'could'],
+    [/\bcul\b/gi, 'could'],
+    [/\bde\s+ris\b/gi, 'there is'],
+    [/\bderis\b/gi, 'there is'],
+    [/\bde\s+rar\b/gi, 'there are'],
+    [/\bgoin\s*tu\b/gi, 'going to'],
+    [/\bgona\b/gi, 'gonna'],
+    [/\bvin\b/gi, 'been'],
+    [/\bjab\b/gi, 'have'],
+    [/\bjaf\b/gi, 'have'],
+    [/\bexpl[ií]came\b/gi, 'explicame'],
+    [/\bens?[eé][nñ]ame\b/gi, 'ensename'],
+    [/\bno\s+entiendo\b/gi, 'no entiendo'],
+    [/\bcomo\s+se\s+dice\b/gi, 'explicame'],
+    [/\bc[oó]mo\s+se\s+dice\b/gi, 'explicame'],
+    [/\bc[oó]mo\s+se\s+forma\b/gi, 'explicame'],
+    [/\bque\s+es\b/gi, 'qué es'],
+    // will+would hablado junto (ASR pega raro)
+    [/\bwilly\s*wood\b/gi, 'will would'],
+    [/\bg[uü]il\s*(y|and|e)\s*g[uü]ud\b/gi, 'will would'],
+    [/\bguil\s*(y|and|e)\s*guud\b/gi, 'will would'],
+    [/\bwill\s*wood\b/gi, 'will would'],
+    [/\bwood\s*will\b/gi, 'will would'],
+
     // will / would (muy frecuente)
     [/\bwilly\s*good\b/gi, 'will would'],
     [/\bwilly\s*(y|and|e)\s*(wood|would|wud|good)\b/gi, 'will would'],
@@ -159,7 +193,6 @@
     for (var p = 0; p < parts.length; p++) {
       out.push(fuzzyToken(parts[p]));
     }
-    // Mantener original + expansión para que aliases largos sigan matcheando
     var expanded = out.join(' ');
     if (expanded && expanded !== normalizeBase(text)) {
       return String(text || '') + ' ' + expanded;
@@ -168,24 +201,49 @@
   }
 
   function explainGuess(original, expanded) {
-    var o = normalizeBase(original);
     var e = normalizeBase(expanded);
-    if (!e || e === o) return '';
+    if (!e) return '';
     if (/\bwill\b/.test(e) && /\bwould\b/.test(e)) return 'will y would';
-    if (/\bwill\b/.test(e)) return 'will';
-    if (/\bwould\b/.test(e)) return 'would';
+    if (/\bwill\b/.test(e) && !/\bwould\b/.test(normalizeBase(original))) return 'will';
+    if (/\bwould\b/.test(e) && !/\bwill\b/.test(e)) return 'would';
+    if (/\bshould\s+have\b/.test(e)) return 'should have';
     if (/\bshould\b/.test(e)) return 'should';
     if (/\bcould\b/.test(e)) return 'could';
+    if (/\bmust\s+have\s+been\b/.test(e)) return 'must have been';
     if (/\bthere\s+is\b/.test(e)) return 'there is';
+    if (/\bthere\s+are\b/.test(e)) return 'there are';
     if (/\bgoing\s+to\b/.test(e)) return 'going to';
     if (/\bgerundio\b/.test(e)) return 'gerundio';
+    if (/\bpasado\s+simple\b/.test(e)) return 'pasado simple';
+    if (/\bpresente\s+continuo\b/.test(e)) return 'presente continuo';
+    if (/\bin\s+on\s+at\b/.test(e)) return 'preposiciones in on at';
     return '';
+  }
+
+  /**
+   * Voz + texto: expande ASR/pronunciación y arma el mensaje que debe recibir Jill.
+   * fromMic: añade pista [interpretado: …] para el LLM.
+   */
+  function normalizeUtterance(text, opts) {
+    opts = opts || {};
+    var raw = String(text || '').trim();
+    if (!raw) return { raw: '', send: '', guess: '', expanded: '' };
+    var expanded = expand(raw);
+    var guess = explainGuess(raw, expanded);
+    var send = expanded;
+    if (opts.fromMic && guess) {
+      send = raw + ' [interpretado hablado: ' + guess + ']';
+    } else if (guess && normalizeBase(expanded) !== normalizeBase(raw)) {
+      send = raw + ' [interpretado: ' + guess + ']';
+    }
+    return { raw: raw, send: send, guess: guess, expanded: expanded };
   }
 
   return {
     expand: expand,
     normalizeBase: normalizeBase,
     explainGuess: explainGuess,
-    editDistance: editDistance
+    editDistance: editDistance,
+    normalizeUtterance: normalizeUtterance
   };
 });

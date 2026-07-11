@@ -170,6 +170,12 @@ var PttMic = (function () {
       holding = false;
       active = false;
       ui(false);
+      if (text && typeof opts.normalizeTranscript === 'function') {
+        try {
+          var normed = opts.normalizeTranscript(text);
+          if (normed && String(normed).trim()) text = String(normed).trim();
+        } catch (eNorm) { /* keep raw */ }
+      }
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
       setTimeout(function () { sent = false; }, 120);
     }
@@ -259,7 +265,7 @@ var PttMic = (function () {
 
       var r = new SR();
       rec = r;
-      r.lang = opts.lang || 'en-US';
+      r.lang = (typeof opts.lang === 'function') ? (opts.lang() || 'en-US') : (opts.lang || 'en-US');
       r.interimResults = true;
       r.continuous = true;
       r.onresult = function (ev) {

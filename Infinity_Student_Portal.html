@@ -33,7 +33,7 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-learner-intent.js?v=20260711intent"></script>
+<script src="js/jill-learner-intent.js?v=20260711speak"></script>
 <script src="js/jill-canon-router.js?v=20260711intent"></script>
 <script src="js/jill-canon-visual.js?v=20260710ando"></script>
 <script src="js/jill-canon-drill.js?v=20260710ando"></script>
@@ -53,7 +53,7 @@
 <script src="js/jill-quiz.js?v=20260710struct"></script>
 <script src="js/tts-chunks.js?v=20260710john"></script>
 <script src="js/nexora-stream-voice.js"></script>
-<script src="js/ptt-mic.js?v=20260628b"></script>
+<script src="js/ptt-mic.js?v=20260711speak"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -4737,7 +4737,22 @@ function bindJillPttMic(){
   var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   PttMic.bind({
     btn: btn,
-    lang: 'es-CR',
+    // Duda en español → es-CR; práctica oral en el SVG → en-US (menos basura ASR)
+    lang: function(){
+      if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()){
+        return 'en-US';
+      }
+      return 'es-CR';
+    },
+    normalizeTranscript: function(raw){
+      if(typeof JillLearnerIntent === 'undefined' || !JillLearnerIntent.normalizeUtterance) return raw;
+      var n = JillLearnerIntent.normalizeUtterance(raw, { fromMic: true });
+      if(n.guess){
+        var st = document.getElementById('jill-status');
+        if(st) st.textContent = '🎤 Te escuché → ' + n.guess;
+      }
+      return n.send || raw;
+    },
     canStart: function(){
       if(_jillSending){
         var st = document.getElementById('jill-status');
@@ -4761,9 +4776,14 @@ function bindJillPttMic(){
         if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
         else { b.style.background='rgba(61,220,151,0.15)'; b.style.borderColor='rgba(61,220,151,0.4)'; b.style.color='#86EFAC'; }
       }
-      if(statusEl) statusEl.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
+      if(statusEl){
+        var oral = (typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive());
+        statusEl.textContent = listening
+          ? (oral ? '🎤 Práctica en inglés — soltá cuando termines' : '🎤 Escuchando… podés pronunciar mal, Jill interpreta — soltá al terminar')
+          : '';
+      }
     },
-    onSend: function(text){ if(text) sendJillMsg(text); },
+    onSend: function(text){ if(text) sendJillMsg(text, { fromMic: true }); },
     onError: function(code){
       btn.classList.remove('ptt-active','ptt-busy');
       var st = document.getElementById('jill-status');
@@ -5416,12 +5436,24 @@ function jillFormatReplyHtml(text){
   return jillExtractReply(text).replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
 }
 
-async function sendJillMsg(micText){
+async function sendJillMsg(micText, sendOpts){
   if(_jillSending || !_jillState.sessionActive) return;
   var isCompanion = jillCompanionUiActive();
   var inp = document.getElementById('jill-input');
-  var text = (micText || (inp ? inp.value : '') || '').trim();
-  if(!text) return;
+  var rawText = (micText || (inp ? inp.value : '') || '').trim();
+  if(!rawText) return;
+  sendOpts = sendOpts || {};
+  var fromMic = !!sendOpts.fromMic || !!micText;
+  // Voz o texto: interpretar mala pronunciación / ASR (si el mic aún no lo hizo)
+  if(!/\[interpretado/i.test(rawText) && typeof JillLearnerIntent !== 'undefined' && JillLearnerIntent.normalizeUtterance){
+    var norm = JillLearnerIntent.normalizeUtterance(rawText, { fromMic: fromMic });
+    if(norm && norm.send) rawText = norm.send;
+    if(norm && norm.guess){
+      var stGuess = document.getElementById('jill-status');
+      if(stGuess) stGuess.textContent = (fromMic ? '🎤 ' : '') + 'Interpreté: ' + norm.guess;
+    }
+  }
+  var text = rawText;
   _jillSending = true;
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   if(typeof JillVisualStage !== 'undefined' && JillVisualStage.requestFullscreen) JillVisualStage.requestFullscreen();

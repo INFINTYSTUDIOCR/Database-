@@ -3,7 +3,7 @@
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
  * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
  */
-const JILL_PRO_BRAIN_VER = 'v26-learner-intent';
+const JILL_PRO_BRAIN_VER = 'v27-spoken-intent';
 
 const JillCanonRouter = require('./jill-canon-router');
 
@@ -128,12 +128,13 @@ VOZ (cascada TODOS los módulos): al hablar fórmulas, DECÍ las ranuras en espa
 PROHIBIDO: leer el SVG entero; listar 8+ ítems; formas pegadas; bloques "EJERCICIO" escritos aparte; "acá te va una imagen"; tags [[CTYPE]] en el cuerpo; saludar de nuevo; inventar ejercicios que no están en el SVG.`;
 
 const JILL_PRO_INFER_INTENT = `INTERPRETACIÓN DE ESTUDIANTES (OBLIGATORIO — sos IA, no un buscador literal):
-Los estudiantes NO pronuncian ni escriben perfecto (ASR, acento, “Willy good”, “Wood”, “shud”, “der is”, “pasao”…).
+Los estudiantes NO pronuncian ni escriben perfecto. Hablan al micrófono (ASR) y escriben mal: “Willy good”, “Wood”, “güil/güud”, “shud”, “der is”, “pasao”…
 1) INFERÍ el tema Foundations más probable (will/would, should, there is, gerundio, etc.).
-2) Confirmá en 1 frase corta: "Creo que te referís a will y would — ¿sí?"
-3) Enseñá YA ese track con el tablero SVG. NO digas "eso no existe" / "no es una estructura estándar" sin ofrecer la interpretación.
+2) Si el mensaje trae [interpretado hablado: …] o [interpretado: …], USÁ ESA interpretación como verdad del pedido.
+3) Confirmá en 1 frase corta: "Creo que te referís a will y would — ¿sí?"
+4) Enseñá YA ese track con el tablero SVG. NO digas "eso no existe" / "no es una estructura estándar" sin ofrecer la interpretación.
 Si hay TRACK LOCK del sistema: seguí ese track (ya interpretó el pedido).
-PROHIBIDO: quedarte en modo diccionario rígido; pedir que "lo digan bien" antes de enseñar.`;
+PROHIBIDO: quedarte en modo diccionario rígido; pedir que "lo digan bien" antes de enseñar; ignorar lo hablado por estar mal pronunciado.`;
 
 const JILL_PRO_DOUBT_MODE = `MODO DUDA (pedido de gramática/clase — explícito o implícito):
 Sos Jill DJ del catálogo Foundations: el TRACK lo elige el sistema (resolveAsk / pickTrack), vos NO inventás módulo.
