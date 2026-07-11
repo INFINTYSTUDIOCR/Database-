@@ -228,12 +228,13 @@ function formatLock(track) {
   const voice = loadVoiceScript(track.id);
   const voiceBlock = voice
     ? [
-        'GUION ORAL DEL CURSO (estilo de clase — DEBES DECIRLO; no ESL genérico):',
+        '===== GUION ORAL DE CLASE (HABLA ESTO — no ESL genérico; no leas el tablero) =====',
         voice.say,
         Array.isArray(voice.mustSay) && voice.mustSay.length
           ? `PALABRAS OBLIGATORIAS EN VOZ: ${voice.mustSay.join(', ')}.`
           : '',
-        voice.exampleAsk ? `CIERRE ORAL: ${voice.exampleAsk}` : ''
+        voice.exampleAsk ? `CIERRE ORAL: ${voice.exampleAsk}` : '',
+        '===== FIN GUION — el tablero solo se SEÑALA, no se lee ====='
       ].filter(Boolean)
     : [];
   const bridgeClean = String(track.bridge || '')
@@ -243,25 +244,22 @@ function formatLock(track) {
     .replace(/\s{2,}/g, ' ')
     .trim();
   return [
-    'CANON LOCK + METODOLOGÍA INFINITY (rige TODO — no solo este módulo):',
-    `Tablero: ${track.title}`,
-    `Track id: ${track.id}`,
-    `Fórmula oficial: ${track.formula}`,
-    `Puente pedagógico (DEBES DECIRLO EN VOZ — el CONTENIDO, no nombres internos): ${bridgeClean || '(usar analogía del track)'}`,
+    'CANON LOCK + ESTILO DE CLASE (rige TODO):',
+    `Tablero en pantalla: ${track.title} (id=${track.id}) — el estudiante YA LO VE.`,
+    `Fórmula: ${track.formula}`,
+    `Puente (contenido, no nombres internos): ${bridgeClean || '(usar guion del track)'}`,
     `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO: ${never}` : '',
     'PROHIBIDO EN VOZ/CHAT: nombres internos de lección, shows o trainers.',
     ...antiMix,
     ...voiceBlock,
-    'CHECKLIST OBLIGATORIO EN ESTE TURNO (si falta 1 ítem = FALLASTE):',
-    '1) Nombrar el tema.',
-    '2) Decir la FÓRMULA en español (ranuras).',
-    '3) Decir el GUION / PUENTE John de arriba (ando/endo, estar→to be, -ré/-ría, moneda, hay, etc. según el track).',
-    '4) 1 ejemplo en inglés.',
-    '5) Pedir práctica oral mirando el tablero.',
-    'PROHIBIDO: explicación genérica ESL; omitir el puente; inventar otro método; cambiar de módulo.',
-    'VOZ: VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
-    'La metodología de John rige TODOS los módulos, no solo gerundio.',
+    'CHECKLIST ESTE TURNO (si falta 1 = FALLASTE):',
+    '1) Hablar el GUION ORAL de arriba (estilo de clase).',
+    '2) Incluir fórmula/puente del guion en español.',
+    '3) 1 ejemplo en inglés + práctica oral mirando el tablero.',
+    '4) ¿Te quedó?',
+    'PROHIBIDO: ESL genérico; leer tablero fila por fila; inventar otro método; cambiar de módulo.',
+    'VOZ: VERBO+ING = "verbo más í ene ge". Paradigmas con pausa (go. went. gone.).',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

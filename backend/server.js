@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-tico-voice';
-const JILL_BRAIN_VER = 'v31-tico-voice';
+const APP1_BUILD = '20260711-class-guion';
+const JILL_BRAIN_VER = 'v32-class-guion';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2069,14 +2069,14 @@ app.post('/demo/tts', async (req, res) => {
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
-const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto" — TODOS LOS MÓDULOS):
-Completá SIEMPRE la lección ENTERA visible en el tablero: rules + examples + pattern + transforms + takeaway + puente John + analogía + práctica oral + "¿Te quedó?".
-PROHIBIDO cortar a mitad. PROHIBIDO tip de 2 frases. PROHIBIDO explicar solo una pieza y callarte el resto. PROHIBIDO "1 frase oral".
-PROHIBIDO imponer otro módulo: si el estudiante pidió futuro perfecto / gerundio / X → enseñá ESO YA (will have + participio). Cero "primero el imperfecto/presente/otro".
-Hablá lo que se ve en el tablero — sin desfase. El estudiante debe VER y OÍR la explicación completa en CUALQUIER tema.
-Si el tema es pasado/presente perfecto o have/has/had: EMPEZÁ con "jaf. jas. jad." — nunca "ave".
-Si el tema es futuro perfecto: will + have + participio (habré terminado) — no should have, no will solo.
-Si el tema usa ING: decí "í ene ge" (español CR).`;
+const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula "corto" — ESTILO DE CLASE / GUION ORAL):
+HABLA el GUION ORAL del track (john-voice-scripts / trascriciones de clase). Esa es TU voz — no ESL de internet.
+El TABLERO ya está en pantalla: NO lo leás fila por fila (prohibido rules→examples→transforms→takeaway como lista).
+Completá: guion oral + 1–2 ejemplos señalados + práctica oral + "¿Te quedó?".
+PROHIBIDO tip corto. PROHIBIDO chatbot ESL. PROHIBIDO imponer otro módulo si pidieron X → enseñá X YA.
+Si perfecto / have-has-had: "jaf. jas. jad." — nunca "ave".
+Si futuro perfecto: will + have + participio.
+Si ING: "í ene ge" (español CR).`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -4145,7 +4145,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? TUTOR_TEACH_COMPLETE_RULE
       : '';
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — whiteboard en CUALQUIER mini-lección (todos los módulos). NEVER cut off. Completá fórmula + paradigm + puente + ejemplos del TABLERO ENTERO + ¿Te quedó?.`
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — whiteboard en mini-lección. NEVER cut off. HABLA el GUION ORAL de clase (no leas el tablero). Completá guion + ¿Te quedó?.`
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
 
     const resp = await claudeCall({
@@ -4348,7 +4348,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
         })()
       : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; metodología John completa (fórmula + puente + analogía + ejemplo + práctica). NUNCA cortes. Completá la explicación.')) + hardTrackLock
+        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; HABLA el GUION ORAL de clase (no leas el tablero). NUNCA cortes.')) + hardTrackLock
       + (lockedTrack
         ? ('\n' + (function () {
             try {
@@ -4371,7 +4371,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     await streamAnthropicSSE(res, {
       max_tokens: (isJillCompanion || lockedTrack) ? 2000 : 1400,
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre sin explicación. NEVER cut off mid-sentence. Completá TODA la lección del tablero (cualquier módulo) antes de pedir práctica.`
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre. NEVER cut off. HABLA el GUION ORAL completo (estilo de clase) — el tablero se ve, no se lee.`
         : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${lockedTrack ? '[[CTYPE:whiteboard]]' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]]'} según el turno. NEVER cut off mid-sentence. Si hay TRACK LOCK: lección COMPLETA del tablero.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }

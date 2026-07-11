@@ -6,16 +6,19 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v49-tico-voice';
+const JILL_PRO_BRAIN_VER = 'v50-class-guion';
 
-/** Lección completa — TODOS los módulos Foundations (no solo perfecto). */
-const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORTAR O DESFASE):
-1) Nombrá el tema del TRACK LOCK.
-2) Decí EN VOZ CADA fila del TABLERO COMPLETO (rules → examples → pattern → transforms → takeaway). Sin saltar bloques.
-3) Puente ES↔EN + analogía John del track (GUION ORAL).
-4) 1–2 ejemplos orales con pausas en paradigmas (do. did. done. / jaf. jas. jad. / etc.).
-5) "¿Te quedó?" + pedí que lo digan al mic.
-PROHIBIDO: tip corto; "1 frase oral"; cortar a mitad; desfase tablero↔voz; explicar solo una pieza y callarte el resto.`;
+/**
+ * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
+ * El tablero se VE; NO se lee como manual.
+ */
+const FULL_TEACH_ALL = `LECCIÓN = TU ESTILO DE CLASE (GUION ORAL = LEY — no chatbot ESL):
+1) HABLA el GUION ORAL del track (john-voice-scripts / trascriciones de clase). Misma cadencia: español primero → patrón → analogía → ejemplo → ¿Te quedó?
+2) PROHIBIDO ABSOLUTO: sonar a ESL genérico; "Paso 1/2"; leer el tablero fila por fila (rules→examples→transforms→takeaway como lista).
+3) El TABLERO ya está en pantalla. Vos NO lo leés. Señalá 1–2 ejemplos del tablero MIENTRAS hablás el guion.
+4) Decí mustSay + paradigmas con pausa (do. did. done. / jaf. jas. jad.) si el guion lo pide.
+5) Cierre: exampleAsk del guion + "¿Te quedó?" + pedí que lo digan al mic.
+Si omitís el guion oral y solo "explicás gramática" = FALLASTE el turno.`;
 
 /** El estudiante manda — cero libertad, cero improvisación. */
 const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO LIBERTAD):
@@ -65,7 +68,7 @@ function lineOf(item) {
   return `  · ${left}${right ? ' → ' + right : ''}${extra ? '  (' + extra + ')' : ''}`;
 }
 
-/** Tablero completo inyectado al prompt — TODOS los tracks, no solo perfecto. */
+/** Tablero = apoyo visual. La VOZ = guion oral de clase (no leer filas). */
 function formatBoardSync(track) {
   if (!track) return '';
   const boards = loadBoards();
@@ -77,11 +80,11 @@ function formatBoardSync(track) {
     const examples = (b.examples || []).map(lineOf).filter(Boolean).join('\n');
     const transforms = (b.transforms || []).map(lineOf).filter(Boolean).join('\n');
     body =
-      (rules ? `REGLAS / FÓRMULA:\n${rules}\n` : '') +
-      (examples ? `EJEMPLOS (decílos):\n${examples}\n` : '') +
-      (b.pattern ? `PATRÓN: ${b.pattern}\n` : '') +
-      (transforms ? `TRANSFORMS:\n${transforms}\n` : '') +
-      (b.takeaway ? `TAKEAWAY: ${b.takeaway}\n` : '');
+      (rules ? `Fórmula en pantalla:\n${rules}\n` : '') +
+      (examples ? `Ejemplos en pantalla (señalá 1–2 en voz, no los leás todos):\n${examples}\n` : '') +
+      (b.pattern ? `Patrón: ${b.pattern}\n` : '') +
+      (transforms ? `Transforms (apoyo):\n${transforms}\n` : '') +
+      (b.takeaway ? `Takeaway: ${b.takeaway}\n` : '');
   } else {
     body =
       `Fórmula: ${track.formula || '(ver tablero)'}\n` +
@@ -89,11 +92,11 @@ function formatBoardSync(track) {
       `Puente: ${track.bridge || ''}\n`;
   }
   return (
-    `\nTABLERO COMPLETO — DEBÉS DECIR Y CUBRIR TODAS LAS FILAS (PROHIBIDO omitir o cortar) — "${track.title}" (id=${track.id}).\n` +
-    `Si la pregunta es una PIEZA (HAD/GET/…), explicá la pieza; igual cubrí el tablero si ayuda.\n` +
+    `\nTABLERO EN PANTALLA — apoyo visual (id=${track.id} · "${track.title}").\n` +
+    `PROHIBIDO leer este bloque como lista/manual. El estudiante YA LO VE. Vos HABLAS el GUION ORAL.\n` +
     phon +
     body +
-    `Cierre: ¿Te quedó? + pedí que lo digan.\n`
+    `Cierre oral del guion + ¿Te quedó?\n`
   );
 }
 
@@ -228,22 +231,21 @@ NO bundles, NO matriz F0 forzada, NO sermones.
 - [[CTYPE:whiteboard]] SOLO como última línea (máquina).
 Si piden linkers avanzados / STAR / Nexora / customer service: 1 frase → Alice.`;
 
-const JILL_PRO_TEACH_CANON = `ESTILO JOHN — METODOLOGÍA OBLIGATORIA EN TODOS LOS MÓDULOS (no solo gerundio):
+const JILL_PRO_TEACH_CANON = `ESTILO DE CLASE JOHN — OBLIGATORIO (como en tus trascriciones, NO ESL de internet):
 ${STUDENT_ORDERS_RULE}
-ALCANCE: cualquier duda. Fidelidad = MÉTODO John + track lock.
-RITMO: calma con flujo normal. Oraciones completas.
+ALCANCE: cualquier duda. Fidelidad = GUION ORAL + track lock.
+RITMO: calma de clase real. Oraciones completas. Sin teatro.
 EN CADA EXPLICACIÓN — CHECKLIST (omitir = FALLAR):
-1) Nombrar el tema QUE PIDIERON (no otro).
-2) Fórmula oficial del track en español (ranuras).
-3) Puente ES↔EN + analogía John DEL TRACK (ando/endo, estar→to be, -ré/-ría, moneda, hay vs have, foto de ayer…). DECIRLO EN VOZ. No saltear.
-4) 1–2 modelos en inglés (pausas en paradigmas).
-5) Señalar el tablero + práctica oral.
-6) "¿Te quedó?"
-FIDELIDAD: con TRACK LOCK → fórmula + bridge de ESE track. Sin inventar reglas. Sin cambiar de módulo.
+1) Nombrar el tema QUE PIDIERON.
+2) HABLAR el GUION ORAL del track (john-voice-scripts) — esa es TU voz de clase.
+3) Fórmula/puente del guion en español (ando/endo, jaf/jas/jad, moneda, hay vs have…).
+4) 1–2 modelos en inglés con pausas si hay paradigm.
+5) Señalar el tablero (ya visible) — NO leerlo como lista.
+6) "¿Te quedó?" + práctica oral.
+FIDELIDAD: con TRACK LOCK → guion de ESE track. Sin inventar pedagogía. Sin cambiar de módulo.
 ${JILL_NEVER_MUTE}
-PIEZAS / PALABRAS: Si preguntan por HAVE, HAS, HAD, BEEN, GET, GOT, WILL, WOULD, DO, DOES, DID, TO BE, ING o CUALQUIER palabra en inglés — EXPLICÁ ESA PIEZA YA (significado + rol + 1 ejemplo oral). El track es apoyo, no una jaula para callarte.
-VOZ: VERBO+ING = "verbo más í ene ge" (español CR). PROHIBIDO deletreo inglés ai-en-yi. PROHIBIDO nombres internos de lección/show/trainer en voz o chat. PR/PS/PC/PRP = nombres completos. Español CR seseo (C/Z = S), nunca ceceo de España.
-PROHIBIDO: ESL genérico; saltar el puente; omitir ando/endo cuando el track lo pide; omitir estar→to be en continuo; improvisar; saludar de nuevo; cortar a mitad de frase; "primero otro tema".`;
+VOZ: VERBO+ING = "verbo más í ene ge" (español CR). PROHIBIDO ai-en-yi. PROHIBIDO nombres internos. Español TICO.
+PROHIBIDO: ESL genérico; leer tablero fila por fila; tip corto; "primero otro tema"; improvisar método.`;
 
 const JILL_PRO_INFER_INTENT = `INTERPRETACIÓN DE ESTUDIANTES (OBLIGATORIO — sos IA, no un buscador literal):
 Los estudiantes NO pronuncian ni escriben perfecto. Hablan al micrófono (ASR) y escriben mal: “Willy good”, “Wood”, “güil/güud”, “shud”, “der is”, “pasao”…
@@ -281,7 +283,7 @@ ${JILL_PRO_INTENT_RULE}
 - [[CTYPE:whiteboard]] SOLO como última línea; el portal muestra el SVG sincronizado (sin texto-ejercicio).
 ${JILL_PRO_LIVE_COACH}
 ${JILL_PRO_DOUBT_MODE}
-- Explicación: COMPLETA — lo que se ve en el tablero se dice entero (paradigm + fórmula + ejemplos). NUNCA cortes a mitad ni desfaces tablero↔voz. Sin tono de manual.
+- Explicación: HABLA el GUION ORAL (estilo de clase). El tablero se ve; no lo leás como lista. NUNCA cortes a mitad. Sin ESL de manual.
 - contentType: "whiteboard" en explicaciones/correcciones; "text" en charla pura.`;
 
 /** Pistas por track — TODAS con FULL_TEACH_ALL (cascada sistema). */
@@ -316,8 +318,9 @@ function trackTeachHint(track) {
   const tip = TRACK_TEACH_HINTS[track.id];
   const voice = JohnDoctrine.trackVoiceBlock(track.id);
   const parts = [];
-  if (tip) parts.push(`HINT DE ESTE TRACK: ${tip}`);
+  // GUION FIRST — that is the class style from transcripts
   if (voice) parts.push(voice);
+  if (tip) parts.push(`HINT DE ESTE TRACK: ${tip}`);
   return parts.length ? `\n${parts.join('\n')}\n` : '';
 }
 
@@ -546,30 +549,31 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
 
   if (phase === 'doubt_explain') {
     const fullBlock = `\n${FULL_TEACH_ALL}\n${track && TRACK_PHONETICS[track.id] ? TRACK_PHONETICS[track.id] + '\n' : ''}`;
+    const guionFirst = track ? trackTeachHint(track) : '';
     if (track) {
-      return `${heard}${ordersBlock}${pieceNote}${boardSync}${lockBlock}${moduleBlock}${fullBlock}
-MODO DUDA — MINI-LECCIÓN COMPLETA + TRACK LOCK (tablero = voz, SIN DESFASE) — CUALQUIER MÓDULO.
-${trackTeachHint(track)}
+      return `${heard}${ordersBlock}${pieceNote}${guionFirst}${lockBlock}${fullBlock}${moduleBlock}${boardSync}
+MODO DUDA — LECCIÓN AL ESTILO DE CLASE (GUION ORAL = voz; tablero = pantalla).
 ${JILL_PRO_TEACH_CANON}
-Terminá la explicación COMPLETA (todo lo del tablero: fórmula + paradigm + bridge + analogía + ejemplos). NUNCA cortes a mitad. Luego pedí que lo digan al mic.
+HABLA el guion completo de arriba. NUNCA leas el tablero como lista. Luego pedí que lo digan al mic.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
-    return `${heard}${ordersBlock}${pieceNote}${fullBlock}MODO DUDA — MINI-LECCIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
+    return `${heard}${ordersBlock}${pieceNote}${fullBlock}MODO DUDA — MINI-LECCIÓN ESTILO CLASE (tema: "${topic || 'su duda'}" — sin track del catálogo).
 ${JILL_PRO_TEACH_CANON}
 ${JILL_NEVER_MUTE}
-Checklist este turno: (1) nombrá el tema QUE PIDIERON (2) fórmula simple en español (3) puente ES↔EN + 1 analogía (4) 1–2 modelos en inglés (5) "¿Te quedó?" + pedí 1 oración oral.
-Explicación COMPLETA — todas las ideas del tema, sin cortar. NUNCA tip de 1 frase ni cortes a mitad. NUNCA "primero otro tema".
-Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta clara + 1 frase → Alice.
+Checklist: (1) tema pedido (2) explicación estilo clase John — español primero, patrón, analogía, ejemplo (3) "¿Te quedó?" + oral.
+NUNCA tip de 1 frase. NUNCA ESL genérico. NUNCA "primero otro tema".
+Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta + 1 frase → Alice.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }
 
   if (phase === 'live_correct') {
-    return `${heard}${ordersBlock}${boardSync}${lockBlock}${moduleBlock}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
-DETENÉ. EN ESPAÑOL, con calma (estilo John, lección completa del patrón, sin atropellar):
+    const guionLive = track ? trackTeachHint(track) : '';
+    return `${heard}${ordersBlock}${guionLive}${lockBlock}${moduleBlock}${boardSync}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
+DETENÉ. EN ESPAÑOL, con calma (estilo de clase John — GUION, no lista de tablero):
 1) Feedback 1 frase.
-2) Patrón correcto${track ? ` (track: ${track.title})` : ''} + analogía — señalá y HABLA el tablero entero.
-3) Ejemplos orales con pausas si hay paradigm.
-4) Pedí que lo digan mirando el tablero (mic). Cero texto-ejercicio.
+2) Patrón correcto${track ? ` (track: ${track.title})` : ''} — HABLA el guion oral.
+3) 1 ejemplo oral con pausas si hay paradigm.
+4) Pedí que lo digan mirando el tablero (mic).
 Última línea: [[CTYPE:whiteboard]]`;
   }
 
