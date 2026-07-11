@@ -48,70 +48,29 @@
       if (nx) return nx;
     }
 
-    // STUDENT WINS — if user ask locks a track, use it
+    // ESCLAVO A LA ORDEN: solo el pedido del estudiante. Nunca improvisar desde el reply.
     if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
       var userId = JillCanonRouter.resolveAskId(user, '');
       if (userId) return userId;
     }
+    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
+      var userPick = JillCanonRouter.pickTrackId(user);
+      if (userPick) return userPick;
+    }
+    if (user && typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
+      var fromUserCol = detectColumn(user, bundle);
+      if (fromUserCol) return fromUserCol;
+    }
 
-    // Sticky / reply fallback when teaching (so exercises always appear on explain turns)
+    // Alice Nexus: reply solo si el user no nombró tema (Nexus linkers)
     if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+      var nxUser = global.JillLessonClip.resolveNexusId(user);
+      if (nxUser) return nxUser;
       var nxReply = global.JillLessonClip.resolveNexusId(reply);
       if (nxReply) return nxReply;
     }
-    if (reply && typeof JillCanonRouter !== 'undefined') {
-      if (JillCanonRouter.resolveAskId) {
-        var replyAsk = JillCanonRouter.resolveAskId(reply, user || '');
-        if (replyAsk) return replyAsk;
-      }
-      if (JillCanonRouter.pickTrackId) {
-        var replyTrack = JillCanonRouter.pickTrackId(reply);
-        if (replyTrack) return replyTrack;
-      }
-    }
 
-    // Pedido con contenido que NO matcheó: no abrir tablero ajeno por lo que diga Jill
-    if (user && user.length >= 4 && !preferNexus) {
-      var stripped = (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.stripAskShell)
-        ? JillCanonRouter.stripAskShell(user)
-        : user;
-      var visualOnly = typeof JillCanonRouter !== 'undefined' && JillCanonRouter.wantsVisual
-        && JillCanonRouter.wantsVisual(user) && (!stripped || stripped.length < 2);
-      if (!visualOnly) {
-        if (typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
-          var fromUser = detectColumn(user, bundle);
-          if (fromUser) return fromUser;
-        }
-        // Still try reply so whiteboard exercises show when Jill taught a module
-        if (reply && reply.length >= 8) {
-          var fromReply = detectColumn(reply, bundle);
-          if (fromReply) return fromReply;
-          if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
-            var rt = JillCanonRouter.pickTrackId(reply);
-            if (rt) return rt;
-          }
-        }
-        return null;
-      }
-    }
-
-    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nxReply2 = global.JillLessonClip.resolveNexusId(reply);
-      if (nxReply2) return nxReply2;
-    }
-
-    if (!user || user.length < 2) {
-      if (reply && reply.length >= 8) {
-        if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
-          var onlyReply = JillCanonRouter.pickTrackId(reply);
-          if (onlyReply) return onlyReply;
-        }
-        return detectColumn(reply, bundle);
-      }
-      return null;
-    }
-
-    if (user) return detectColumn(user, bundle);
+    // Jill: sin pedido explícito → null (no abrir tablero ajeno)
     return null;
   }
 
@@ -142,14 +101,10 @@
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    // Any resolved track → show formula + exercise sentences
+    // Solo con orden explícita (columna forzada o pedida por el estudiante)
     if (forcedColumn) return true;
-    if (contentType === 'whiteboard' || contentType === 'exercise' || contentType === 'example') return true;
-    // Teach language in reply or ask → open board for that module
-    if (isExplainTurn(contentType, text, userTopic, tutor)) {
-      if (forcedColumn || resolveColumn(text, bundle, userTopic, tutor)) return true;
-    }
-    return !!resolveColumn(text, bundle, userTopic, tutor);
+    if (resolveColumn(text, bundle, userTopic, tutor)) return true;
+    return false;
   }
 
   function requestFullscreen() {

@@ -156,12 +156,12 @@ NOTA ALICE: compartís esta base de método con Jill (patrones no memorización,
  * Debe ir DESPUÉS de METHOD_OS_CORE en el system prompt (última palabra gana).
  */
 const METHOD_OS_STUDENT_ORDERS = `
-OVERRIDE ABSOLUTO — PEDIDO DEL ESTUDIANTE (anula Analogía de la Casa, "orden fijo", "NO se avanza", "primero cimientos"):
-- Bajo NINGUNA razón ignorás lo que el estudiante pidió enseñar.
-- Si pide futuro perfecto, gerundio, pasado perfecto, prep, negaciones, will have, o CUALQUIER módulo Foundations: ENSEÑÁ ESE TEMA YA.
-- PROHIBIDO: "primero el imperfecto/presente/otro"; "antes los cimientos"; "no podés saltar"; cambiar de módulo; Analogía de la Casa para retrasar un tema del catálogo.
-- La Casa SOLO aplica si piden phrasals/linkers avanzados / Nexora SIN base — NUNCA para retrasar un tiempo verbal o estructura que ya nombraron.
-- El estudiante da las órdenes. Vos ejecutás. Cero excepciones.`;
+OVERRIDE ABSOLUTO — ORDEN EXPLÍCITA DEL ESTUDIANTE (ESCLAVIZADA; anula Casa / orden fijo / cimientos):
+- CERO libertad. CERO improvisación. Solo sale lo que el estudiante pidió en explícito.
+- Si pide futuro perfecto, gerundio, pasado perfecto, prep, negaciones, will have, o CUALQUIER módulo: ENSEÑÁ ESE TEMA YA — y NADA más.
+- PROHIBIDO: otro módulo; "primero el imperfecto/presente"; "antes los cimientos"; tablero/ejemplo de tema no pedido; Analogía de la Casa para retrasar.
+- La Casa SOLO si piden phrasals/linkers avanzados / Nexora SIN base — NUNCA para retrasar un tiempo/estructura que ya nombraron.
+- El estudiante ordena. Vos ejecutás. Sin espacio para inventar.`;
 
 function loadMethodOsFull() {
   const paths = [

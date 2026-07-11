@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v47-orders-absolute';
+const JILL_PRO_BRAIN_VER = 'v48-orders-slave';
 
 /** Lección completa — TODOS los módulos Foundations (no solo perfecto). */
 const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORTAR O DESFASE):
@@ -17,13 +17,14 @@ const FULL_TEACH_ALL = `LECCIÓN COMPLETA — TODOS LOS MÓDULOS (PROHIBIDO CORT
 5) "¿Te quedó?" + pedí que lo digan al mic.
 PROHIBIDO: tip corto; "1 frase oral"; cortar a mitad; desfase tablero↔voz; explicar solo una pieza y callarte el resto.`;
 
-/** El estudiante manda — cero excepciones. */
-const STUDENT_ORDERS_RULE = `PEDIDO DEL ESTUDIANTE = ORDEN ABSOLUTA (bajo NINGUNA razón la ignorás):
-- Si piden un tema concreto: ENSEÑÁ ESE TEMA YA. Completo. Sin rodeos.
-- PROHIBIDO ABSOLUTO: "primero veamos X"; "antes el imperfecto/presente/cimientos"; Analogía de la Casa para retrasar; inventar prerequisitos; cambiar al tema que VOS preferís; enseñar otro módulo "porque conviene".
-- Vos NO das el orden del currículo. El estudiante da las órdenes. TRACK LOCK = lo que pidieron.
-- Futuro perfecto = will + have + participio. Gerundio = lo que pidieron de gerundio. Etc.
-- Si hay conflicto entre Casa/método y el pedido: GANA EL PEDIDO. Siempre.`;
+/** El estudiante manda — cero libertad, cero improvisación. */
+const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO LIBERTAD):
+- Solo podés enseñar / mostrar / hablar del tema que el estudiante PIDIÓ EN EXPLÍCITO en este turno (o el TRACK LOCK de ese pedido).
+- PROHIBIDO ABSOLUTO improvisar: otro módulo, "mientras tanto veamos X", There is si pidieron futuro perfecto, tip ajeno, tablero ajeno, ejemplo de otro tiempo, "te conviene antes…".
+- PROHIBIDO: "primero veamos X"; cimientos/Casa para retrasar; cambiar al tema que VOS preferís; inventar prerequisitos; libertad creativa de currículo.
+- Si no hay pedido de gramática claro: charlá libre — NO abras lección ni tablero de ningún módulo.
+- TRACK LOCK / tablero / voz = la MISMA orden. Nada distinto a lo solicitado puede salir.
+- Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.`;
 
 const TRACK_PHONETICS = {
   perfect: 'OBLIGATORIO voz: "jaf. jas. jad." (have. has. had.) — NUNCA "ave". Presente: jaf/jas + participio. Pasado perfecto: jad + participio (había).',
@@ -510,12 +511,20 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const piece = JillCanonRouter.resolvePieceTrack
     ? JillCanonRouter.resolvePieceTrack(msg, sticky)
     : null;
-  // Pedido de ESTE mensaje gana SIEMPRE — forced solo si el mensaje no nombra tema
+  // SOLO orden explícita de ESTE mensaje (o continuación de práctica del mismo lock). Cero sticky improvisado.
   const fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
+  const continuing =
+    !fromThisMsg && !piece && (
+      isClarityReply(msg)
+      || phase === 'doubt_practice'
+      || phase === 'live_correct'
+      || phase === 'live_evaluate'
+      || phase === 'english_practice'
+    );
   const track = piece
     || fromThisMsg
-    || resolveAskTrack(msg, sticky)
-    || (!fromThisMsg && !piece ? forced : null);
+    || (continuing ? (forced || (sticky ? resolveAskTrack(sticky, '') : null)) : null)
+    || (!fromThisMsg && !piece && !sticky ? forced : null);
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track ? formatBoardSync(track) : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
