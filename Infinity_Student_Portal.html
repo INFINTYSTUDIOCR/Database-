@@ -33,11 +33,12 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-router.js?v=20260710svg"></script>
-<script src="js/jill-canon-visual.js?v=20260710svg"></script>
-<script src="js/jill-visual-stage.js?v=20260710svg"></script>
+<script src="js/jill-canon-router.js?v=20260710drill2"></script>
+<script src="js/jill-canon-visual.js?v=20260710drill2"></script>
+<script src="js/jill-canon-drill.js?v=20260710drill2"></script>
+<script src="js/jill-visual-stage.js?v=20260710drill2"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710svg"></script>
+<script src="js/jill-foundations.js?v=20260710drill2"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -136,6 +137,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     background:rgba(124,58,237,0.14);
     box-shadow:inset 0 0 0 3px rgba(167,139,250,0.85), 0 0 28px rgba(124,58,237,0.35);
   }
+  .jill-svg-hotspot.is-ok{
+    background:rgba(52,211,153,0.22)!important;
+    box-shadow:inset 0 0 0 3px #34d399, 0 0 32px rgba(52,211,153,0.45)!important;
+  }
+  .jill-svg-hotspot.is-miss{
+    background:rgba(248,113,113,0.2)!important;
+    box-shadow:inset 0 0 0 3px #f87171, 0 0 28px rgba(248,113,113,0.4)!important;
+  }
+  .jill-drill-ring{
+    position:absolute;right:14px;top:14px;z-index:6;width:44px;height:44px;
+    pointer-events:none;filter:drop-shadow(0 4px 12px rgba(49,46,129,0.35));
+  }
+  .jill-drill-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .jill-drill-ring-bg{fill:none;stroke:rgba(255,255,255,0.35);stroke-width:3;}
+  .jill-drill-ring-fg{fill:none;stroke:#a78bfa;stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .35s ease;}
+  .jill-drill-ring.is-warm .jill-drill-ring-fg{stroke:#fbbf24;}
+  .jill-drill-ring.is-hot .jill-drill-ring-fg{stroke:#34d399;}
+  #jill-stage-media.jill-oral-ok{outline:3px solid rgba(52,211,153,0.7);outline-offset:-3px;}
+  #jill-stage-media.jill-oral-miss{outline:3px solid rgba(248,113,113,0.65);outline-offset:-3px;}
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
   #jill-lesson-shell.jill-stage-active #jill-messages{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}
@@ -5414,6 +5434,11 @@ async function sendJillMsg(micText){
   if(isCompanion){
     var newTopic = jillDetectCompanionTopic(text);
     if(newTopic) _jillState.companionTopic = newTopic.slice(0, 120);
+  }
+  // Canon drill: score oral production against the open SVG track (visual ring only)
+  if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()
+    && typeof JillVisualStage.scoreOral === 'function'){
+    try{ JillVisualStage.scoreOral(text); }catch(eOral){}
   }
   _jillState.history.push({role:'user', content:text});
   var historyForApi = _jillState.history.slice(-10);

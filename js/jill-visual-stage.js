@@ -1,6 +1,6 @@
 /**
- * Escenario visual Jill — tablero SVG a pantalla completa + interacción.
- * Sin bloques de texto-ejercicio: el SVG enseña; el audio guía.
+ * Escenario visual Jill — SVG interactivo + drill (tap + score oral).
+ * Sin bloques de texto-ejercicio: glow / anillo / audio.
  */
 (function (global) {
   'use strict';
@@ -8,7 +8,6 @@
   var active = false;
   var currentColumn = null;
   var pulseTimer = null;
-  var pulseStep = 0;
 
   function shell() {
     return document.getElementById('jill-lesson-shell');
@@ -40,9 +39,7 @@
       var id = JillCanonRouter.resolveAskId(user, '');
       if (id) return id;
     }
-    var fromUser = detectColumn(user, bundle);
-    if (fromUser) return fromUser;
-    return null;
+    return detectColumn(user, bundle);
   }
 
   function isExplainTurn(contentType, text, userTopic) {
@@ -91,50 +88,111 @@
       clearInterval(pulseTimer);
       pulseTimer = null;
     }
-    pulseStep = 0;
   }
 
-  /** Zonas táctiles sobre el SVG — sin párrafos; solo glow interactivo. */
+  function zoneCount(columnId) {
+    if (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.zoneCount) {
+      return JillCanonDrill.zoneCount(columnId);
+    }
+    if (columnId === 'negations' || columnId === 'there' || columnId === 'future' || columnId === 'past' || columnId === 'present') return 2;
+    if (columnId === 'overview') return 4;
+    return 3;
+  }
+
   function interactOverlayHtml(columnId) {
-    var zones = 3;
-    if (columnId === 'prepositions' || columnId === 'prepositions_time') zones = 3;
-    if (columnId === 'negations' || columnId === 'articles') zones = 2;
-    if (columnId === 'overview') zones = 4;
-    var html = '<div class="jill-svg-interact" data-track="' + String(columnId || '') + '" aria-hidden="false">';
+    var zones = zoneCount(columnId);
+    var html = '<div class="jill-svg-interact" data-track="' + String(columnId || '') + '">';
     for (var i = 0; i < zones; i++) {
       html += '<button type="button" class="jill-svg-hotspot" data-step="' + i + '" aria-label="Zona ' + (i + 1) + '"></button>';
     }
     html += '</div>';
+    html += '<div class="jill-drill-ring" aria-hidden="true"><svg viewBox="0 0 36 36">'
+      + '<path class="jill-drill-ring-bg" d="M18 2.5a15.5 15.5 0 1 1 0 31 15.5 15.5 0 1 1 0-31"/>'
+      + '<path class="jill-drill-ring-fg" stroke-dasharray="0,100" d="M18 2.5a15.5 15.5 0 1 1 0 31 15.5 15.5 0 1 1 0-31"/>'
+      + '</svg></div>';
     return html;
   }
 
-  function wireInteract(root) {
+  function paintTarget(spots, target) {
+    for (var i = 0; i < spots.length; i++) {
+      spots[i].classList.remove('is-lit', 'is-ok', 'is-miss');
+      if (i === target) spots[i].classList.add('is-lit');
+    }
+  }
+
+  function setRing(pct) {
+    var media = mediaEl();
+    if (!media) return;
+    var fg = media.querySelector('.jill-drill-ring-fg');
+    if (!fg) return;
+    var v = Math.max(0, Math.min(100, pct || 0));
+    fg.setAttribute('stroke-dasharray', v + ',100');
+    var ring = media.querySelector('.jill-drill-ring');
+    if (ring) {
+      ring.classList.toggle('is-hot', v >= 70);
+      ring.classList.toggle('is-warm', v >= 40 && v < 70);
+    }
+  }
+
+  function flashSpot(spot, ok) {
+    if (!spot) return;
+    spot.classList.remove('is-ok', 'is-miss');
+    spot.classList.add(ok ? 'is-ok' : 'is-miss');
+    setTimeout(function () {
+      spot.classList.remove('is-ok', 'is-miss');
+    }, 520);
+  }
+
+  function wireInteract(root, columnId) {
     if (!root) return;
     var layer = root.querySelector('.jill-svg-interact');
     if (!layer) return;
     var spots = layer.querySelectorAll('.jill-svg-hotspot');
-    function light(idx) {
-      for (var i = 0; i < spots.length; i++) {
-        if (i === idx) spots[i].classList.add('is-lit');
-        else spots[i].classList.remove('is-lit');
-      }
+    var challenge = { target: 0 };
+    if (typeof JillCanonDrill !== 'undefined') {
+      challenge = JillCanonDrill.start(columnId) || challenge;
     }
+    paintTarget(spots, challenge.target || 0);
+    setRing(0);
+
     for (var s = 0; s < spots.length; s++) {
       (function (btn, idx) {
         btn.addEventListener('click', function (ev) {
           ev.preventDefault();
-          light(idx);
-          pulseStep = idx;
+          var result = { ok: false, challenge: { target: 0 }, scorePct: 0 };
+          if (typeof JillCanonDrill !== 'undefined') {
+            result = JillCanonDrill.registerTap(idx);
+          } else {
+            result.ok = idx === challenge.target;
+            if (result.ok) challenge.target = (challenge.target + 1) % spots.length;
+            result.challenge = challenge;
+          }
+          flashSpot(btn, !!result.ok);
+          var next = (result.challenge && result.challenge.target != null) ? result.challenge.target : 0;
+          setTimeout(function () {
+            paintTarget(spots, next);
+          }, 280);
+          var snap = (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.snapshot)
+            ? JillCanonDrill.snapshot()
+            : { combined: result.scorePct || 0 };
+          setRing(snap.combined || result.scorePct || 0);
+          if (typeof global.jillOnCanonTap === 'function') {
+            try { global.jillOnCanonTap(result); } catch (e) { /* ignore */ }
+          }
         });
       })(spots[s], s);
     }
+
     stopPulse();
-    light(0);
+    // Soft reminder pulse on the target only
     pulseTimer = setInterval(function () {
       if (!active || !spots.length) return;
-      pulseStep = (pulseStep + 1) % spots.length;
-      light(pulseStep);
-    }, 2200);
+      var t = 0;
+      if (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.getChallenge) {
+        t = JillCanonDrill.getChallenge().target || 0;
+      }
+      paintTarget(spots, t);
+    }, 2400);
   }
 
   function show(text, contentType, bundle, opts) {
@@ -158,7 +216,7 @@
       active = true;
       currentColumn = col || null;
       requestFullscreen();
-      wireInteract(media);
+      wireInteract(media, col);
     }
 
     if (!col || typeof JillCanonVisual === 'undefined') {
@@ -184,8 +242,25 @@
   }
 
   function updateCaption() {
-    // Sin transcript ni drill de texto — el SVG + audio bastan
     clearCaption();
+  }
+
+  /** Score spoken line against active track; update ring. */
+  function scoreOral(text) {
+    if (!active || typeof JillCanonDrill === 'undefined') return null;
+    var trackId = currentColumn;
+    var result = JillCanonDrill.scoreUtterance(text, trackId);
+    var snap = JillCanonDrill.snapshot();
+    setRing(snap.combined || result.score || 0);
+    var media = mediaEl();
+    if (media) {
+      media.classList.remove('jill-oral-ok', 'jill-oral-miss');
+      media.classList.add(result.ok ? 'jill-oral-ok' : 'jill-oral-miss');
+      setTimeout(function () {
+        media.classList.remove('jill-oral-ok', 'jill-oral-miss');
+      }, 700);
+    }
+    return result;
   }
 
   function hide() {
@@ -208,12 +283,18 @@
     return active;
   }
 
+  function getTrackId() {
+    return currentColumn;
+  }
+
   global.JillVisualStage = {
     show: show,
     hide: hide,
     updateCaption: updateCaption,
+    scoreOral: scoreOral,
     shouldShow: function (ct, text, bundle) { return shouldShow(ct, text, bundle, ''); },
     isActive: isActive,
+    getTrackId: getTrackId,
     resetSession: resetSession,
     requestFullscreen: requestFullscreen,
     resolveColumn: resolveColumn

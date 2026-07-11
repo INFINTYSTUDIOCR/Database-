@@ -32,8 +32,8 @@ function hasWeird(s) {
 }
 
 // ── 1) Sub-batteries ─────────────────────────────────────────
-console.log('=== Q7+ A: PTT + TTS gen + Jill 24 + canon sync ===');
-for (const script of ['ptt-mic-pressure.mjs', 'tts-gen-pressure.mjs', 'jill-pro-pressure-24.mjs', 'jill-canon-sync-battery.mjs']) {
+console.log('=== Q7+ A: PTT + TTS gen + Jill 24 + canon sync + drill ===');
+for (const script of ['ptt-mic-pressure.mjs', 'tts-gen-pressure.mjs', 'jill-pro-pressure-24.mjs', 'jill-canon-sync-battery.mjs', 'jill-canon-drill-battery.mjs']) {
   const r = spawnSync(process.execPath, [path.join(__dirname, script)], {
     encoding: 'utf8',
     cwd: root,
@@ -177,9 +177,10 @@ if (JF && typeof JF.detectCanonColumn === 'function') {
 // Visual stage: no caption / no transcript overlay
 const stageSrc = fs.readFileSync(path.join(root, 'js/jill-visual-stage.js'), 'utf8');
 const portalSrc = fs.readFileSync(path.join(root, 'Infinity_Student_Portal.html'), 'utf8');
-assert(/jill-svg-interact|jill-svg-hotspot|Sin transcript ni drill/i.test(stageSrc), 'stage SVG interact no text drill', 'ok');
+assert(/jill-svg-interact|jill-svg-hotspot|jill-drill-ring|scoreOral/i.test(stageSrc), 'stage SVG drill interact', 'ok');
 assert(/#jill-stage-caption\{\s*display:none/i.test(portalSrc.replace(/\s+/g, '')), 'CSS caption hidden', 'ok');
-assert(/jill-svg-hotspot/.test(portalSrc), 'CSS SVG hotspots', 'ok');
+assert(/jill-svg-hotspot|jill-drill-ring/.test(portalSrc), 'CSS SVG hotspots+ring', 'ok');
+assert(/jill-canon-drill\.js/.test(portalSrc), 'portal loads canon drill', 'ok');
 assert(/jillLastUserTopic|userTopic/.test(portalSrc), 'board uses student ask', 'ok');
 
 // ── 5) Live build tag (current) ──────────────────────────────
