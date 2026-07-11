@@ -1,5 +1,5 @@
 /* Infinity Studio CR — PWA service worker (network-first HTML, cache static assets) */
-var CACHE = 'infinity-pwa-v23';
+var CACHE = 'infinity-pwa-v24';
 var PRECACHE = [
   '/icon-192.png',
   '/icon-512.png',
