@@ -50,9 +50,6 @@
           "gerundio"
         ],
         "aliases": [
-          "futuro perfecto",
-          "future perfect",
-          "will have",
           "should have",
           "could have",
           "would have",
@@ -64,10 +61,40 @@
           "estructura + sensacion",
           "should have studied",
           "must have forgotten",
-          "will have finished",
-          "modal + have"
+          "modal + have",
+          "deberia haber",
+          "podria haber"
         ],
-        "bridge": "Puente: should have = debería haber + participio; could have = podría haber."
+        "bridge": "Puente: should have = debería haber + participio; could have = podría haber. NO es futuro perfecto (will have)."
+      },
+      {
+        "id": "future_perfect",
+        "svg": "assets/canon/tiempos-prp.svg",
+        "title": "Futuro perfecto · will have + participio",
+        "formula": "pronombre + will + have + PARTICIPIO + complemento",
+        "example": "I will have finished by Friday.",
+        "never": [
+          "futuro simple will + base sin have",
+          "should have / could have (eso es modal + have)",
+          "presente perfecto sin will",
+          "pasado perfecto had"
+        ],
+        "aliases": [
+          "futuro perfecto",
+          "future perfect",
+          "will have",
+          "will have + participio",
+          "will have finished",
+          "will have done",
+          "explicame el futuro perfecto",
+          "explicame futuro perfecto",
+          "el futuro perfecto",
+          "enseña el futuro perfecto",
+          "ensename el futuro perfecto",
+          "quiero el futuro perfecto",
+          "will have + participle"
+        ],
+        "bridge": "Puente: will have + participio = habrá / habré + participio (acción terminada antes de un punto futuro). I will have finished = yo habré terminado. NO es should have."
       },
       {
         "id": "combined",
@@ -587,21 +614,24 @@
         "formula": "pronombre + will + verbo + complemento | pronombre + be + going to + verbo + complemento",
         "example": "I will call you tomorrow. / I am going to study.",
         "never": [
-          "futuro perfecto / will have",
+          "futuro perfecto (will have + participio — otro módulo)",
           "modales should",
           "pasado simple"
         ],
         "aliases": [
+          "futuro simple",
+          "future simple",
           "futuro",
           "future",
-          "going to",
-          "explicame el futuro",
-          "futuro simple",
           "el futuro",
+          "going to",
           "will going to",
-          "be going to"
+          "be going to",
+          "explicame el futuro simple",
+          "futuro will",
+          "will y going to"
         ],
-        "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención)."
+        "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención). Si piden futuro PERFECTO → will have + participio (otro track)."
       },
       {
         "id": "overview",

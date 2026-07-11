@@ -78,12 +78,21 @@
       "exampleAsk": "Decí: She works every day."
     },
     "future": {
-      "say": "Will = el ré del español: caminaré → I will walk. Going to = voy a, plan. Will más verbo base; going to más verbo base. No mezcles con continuo.",
+      "say": "Futuro simple: will más verbo base = el ré. Going to = voy a, plan. I will call. I am going to study. Si pidieron futuro PERFECTO, eso es otro módulo: will have más participio.",
       "mustSay": [
         "will",
         "ré"
       ],
       "exampleAsk": "Decí un plan con going to y una decisión con will."
+    },
+    "future_perfect": {
+      "say": "Futuro perfecto: will más have más participio — habré o habrá terminado antes de un punto futuro. I will have finished by Friday. Empezá YA con eso. PROHIBIDO decir primero otro tiempo. NO es should have ni will solo.",
+      "mustSay": [
+        "will have",
+        "participio",
+        "habré"
+      ],
+      "exampleAsk": "Decí: I will have finished by Friday."
     },
     "modales": {
       "say": "Modales: will es ré; would es ría; should es debería; can es puedo; could es podría. Fórmula: pronombre + modal + verbo base + complemento. Sin to después del modal. I will go. She should study.",

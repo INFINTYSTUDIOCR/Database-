@@ -349,6 +349,56 @@
     ],
     "takeaway": "Futuro: will + base, o am/is/are + going to + base."
   },
+  "future_perfect": {
+    "rules": [
+      {
+        "left": "will + have + participio",
+        "right": "habré / habrá…",
+        "note": "(futuro perfecto)"
+      },
+      {
+        "left": "by Friday / by then",
+        "right": "antes de ese punto",
+        "note": "(marca de tiempo)"
+      }
+    ],
+    "examples": [
+      {
+        "left": "I will have finished",
+        "right": "Yo habré terminado",
+        "note": ""
+      },
+      {
+        "left": "She will have left by 5",
+        "right": "Ella habrá salido para las 5",
+        "note": ""
+      },
+      {
+        "left": "They will have done it",
+        "right": "Ellos lo habrán hecho",
+        "note": ""
+      },
+      {
+        "left": "We will have arrived",
+        "right": "Habremos llegado",
+        "note": ""
+      }
+    ],
+    "pattern": "Will + have + participio = acción terminada ANTES de un momento futuro. No es should have.",
+    "transforms": [
+      {
+        "left": "I finish",
+        "right": "I will have finished",
+        "tip": "will + have + V3"
+      },
+      {
+        "left": "I will finish",
+        "right": "I will have finished",
+        "tip": "futuro simple ≠ futuro perfecto"
+      }
+    ],
+    "takeaway": "Futuro perfecto = will + have + participio (habré terminado). Pediste esto → esto se enseña YA."
+  },
   "modales": {
     "rules": [
       {

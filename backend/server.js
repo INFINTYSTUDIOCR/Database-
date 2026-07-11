@@ -2072,8 +2072,10 @@ const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones 
 const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto" — TODOS LOS MÓDULOS):
 Completá SIEMPRE la lección ENTERA visible en el tablero: rules + examples + pattern + transforms + takeaway + puente John + analogía + práctica oral + "¿Te quedó?".
 PROHIBIDO cortar a mitad. PROHIBIDO tip de 2 frases. PROHIBIDO explicar solo una pieza y callarte el resto. PROHIBIDO "1 frase oral".
-Hablá lo que se ve en el tablero — sin desfase. El estudiante debe VER y OÍR la explicación completa en CUALQUIER tema (negaciones, gerundio, futuro, perfecto, prep, etc.).
-Si el tema es pasado/presente perfecto o have/has/had: EMPEZÁ con "jaf. jas. jad." — nunca "ave" — luego have/has + participio Y had + participio (había).
+PROHIBIDO imponer otro módulo: si el estudiante pidió futuro perfecto / gerundio / X → enseñá ESO YA (will have + participio). Cero "primero el imperfecto/presente/otro".
+Hablá lo que se ve en el tablero — sin desfase. El estudiante debe VER y OÍR la explicación completa en CUALQUIER tema.
+Si el tema es pasado/presente perfecto o have/has/had: EMPEZÁ con "jaf. jas. jad." — nunca "ave".
+Si el tema es futuro perfecto: will + have + participio (habré terminado) — no should have, no will solo.
 Si el tema usa ING: decí "í ene ge" (español CR).`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
@@ -4113,8 +4115,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : (JillPro.studentWantsEnglishPractice(message)
         ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
         : '');
-    const lockedTrackIdChat = canonTrackId
-      || (JillCanonRouter.resolveAskId ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '') : null);
+    const lockedTrackIdChat = (JillCanonRouter.resolveAskId ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '') : null)
+      || canonTrackId
+      || null;
     const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackIdChat)
       : null;
@@ -4247,10 +4250,11 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? JillPro.resolveSessionTopic(history, companionTopic, message)
       : '';
     // Board/voz sync: portal track wins; else resolve from this message
-    const lockedTrackId = canonTrackId
-      || (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId
+    const lockedTrackId = (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId
         ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '')
-        : null);
+        : null)
+      || canonTrackId
+      || null;
     const lockedTrack = lockedTrackId && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackId)
       : null;

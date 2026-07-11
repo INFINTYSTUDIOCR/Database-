@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711jaf';
+  var VERSION = '20260711fp';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -114,6 +114,24 @@
       pattern: 'Will = decisión o predicción. Going to = plan ya pensado.',
       transforms: [tip('I call', 'I will call', 'will + base'), tip('I study', 'I am going to study', 'be + going to + base')],
       takeaway: 'Futuro: will + base, o am/is/are + going to + base.'
+    },
+    future_perfect: {
+      rules: [
+        row('will + have + participio', 'habré / habrá…', '(futuro perfecto)'),
+        row('by Friday / by then', 'antes de ese punto', '(marca de tiempo)')
+      ],
+      examples: [
+        row('I will have finished', 'Yo habré terminado'),
+        row('She will have left by 5', 'Ella habrá salido para las 5'),
+        row('They will have done it', 'Ellos lo habrán hecho'),
+        row('We will have arrived', 'Habremos llegado')
+      ],
+      pattern: 'Will + have + participio = acción terminada ANTES de un momento futuro. No es should have.',
+      transforms: [
+        tip('I finish', 'I will have finished', 'will + have + V3'),
+        tip('I will finish', 'I will have finished', 'futuro simple ≠ futuro perfecto')
+      ],
+      takeaway: 'Futuro perfecto = will + have + participio (habré terminado). Pediste esto → esto se enseña YA.'
     },
     modales: {
       rules: [row('will', '-ré', ''), row('would', '-ría', ''), row('should', 'debería', ''), row('can', 'puedo', '')],
@@ -311,6 +329,24 @@
         T([['I', 1], [' ', 0], ['am going to', 2], [' ', 0], ['study', 3], ['.', 0]]),
         T([['They', 1], [' ', 0], ['are going to', 2], [' ', 0], ['travel', 3], ['.', 0]]),
         T([['We', 1], [' ', 0], ['will', 2], [' ', 0], ['meet', 3], [' at 5.', 0]])
+      ]
+    }),
+
+    future_perfect: clip({
+      id: 'future_perfect',
+      title: 'Futuro perfecto · will have + participio',
+      bridge: 'will + have + participio = habré / habrá terminado (antes de un punto futuro)',
+      slots: [
+        { id: 1, label: 'Pronombre', hint: 'I · she · they' },
+        { id: 2, label: 'Will have', hint: 'habré / habrá' },
+        { id: 3, label: 'Participio', hint: 'finished · done · left' }
+      ],
+      examples: [
+        T([['I', 1], [' ', 0], ['will have', 2], [' ', 0], ['finished', 3], ['.', 0]]),
+        T([['She', 1], [' ', 0], ['will have', 2], [' ', 0], ['left', 3], [' by 5.', 0]]),
+        T([['They', 1], [' ', 0], ['will have', 2], [' ', 0], ['done', 3], [' it.', 0]]),
+        T([['We', 1], [' ', 0], ['will have', 2], [' ', 0], ['arrived', 3], ['.', 0]]),
+        T([['You', 1], [' ', 0], ['will have', 2], [' ', 0], ['seen', 3], [' it.', 0]])
       ]
     }),
 
