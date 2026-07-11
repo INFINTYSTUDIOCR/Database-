@@ -280,7 +280,6 @@
       ],
       "aliases": [
         "negaciones",
-        "negacion",
         "negations",
         "don't",
         "doesn't",
@@ -507,7 +506,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260710dj';
+  var CACHE_VER = '20260710dj2';
 
   function normalize(text) {
     return String(text || '')

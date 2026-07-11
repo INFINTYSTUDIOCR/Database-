@@ -37,16 +37,18 @@ function isCompleteSpokenLine(text, minWords) {
 
 /**
  * Teaching forms for TTS — one language at a time:
- * - drop parentheses (don't read them)
+ * - KEEP parentheses content (read the aside; drop only the marks)
  * - MSI slots with Spanish "más" (never English "plus" inside Spanish)
  * - AM / BE / IS… as English verb words (spoken in EN clips)
  */
 function normalizeTtsTeachingForms(text) {
   var t = String(text || '');
-  // Don't read parentheses / brackets — drop the marks and the aside inside
-  t = t.replace(/\([^)]*\)/g, ' ');
-  t = t.replace(/\[[^\]]*\]/g, ' ');
-  t = t.replace(/（[^）]*）/g, ' ');
+  // Read what is inside parentheses/brackets — strip marks only
+  t = t.replace(/\(([^)]*)\)/g, ' $1 ');
+  t = t.replace(/\[([^\]]*)\]/g, ' $1 ');
+  t = t.replace(/（([^）]*)）/g, ' $1 ');
+  // Drop CTYPE / markdown control tags if any leaked
+  t = t.replace(/\[\[CTYPE:[^\]]*\]\]/gi, ' ');
   // MSI / slot formulas → coherent Spanish connector
   t = t.replace(/\bP\s*[|+/]\s*AUX\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más auxiliar más not más V más C ');
   t = t.replace(/\bP\s*[|+/]\s*M\s*[|+/]\s*V\s*[|+/]\s*C\b/gi, ' P más M más V más C ');

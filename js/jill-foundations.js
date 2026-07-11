@@ -198,15 +198,18 @@
     return null;
   }
 
-  function renderCanonForMessage(text, bundle) {
+  function renderCanonForMessage(text, bundle, userTopic) {
     if (typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive()) return '';
     if (typeof JillCanonVisual === 'undefined') return '';
-    var col = detectCanonColumn(text, bundle);
+    // SOLO el pedido del estudiante — nunca el reply de Jill
+    var source = userTopic || '';
+    if (!String(source).trim()) return '';
+    var col = detectCanonColumn(source, bundle);
     if (!col) return '';
     return JillCanonVisual.render(col, CANON_BY_COLUMN[col]);
   }
 
-  function formatWhiteboardLines(text, bundle) {
+  function formatWhiteboardLines(text, bundle, userTopic) {
     var lines = String(text || '').split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
     if (lines.length < 2 && bundle && bundle.whiteboard && bundle.whiteboard.length) {
       lines = bundle.whiteboard.slice(0, 4);
@@ -214,21 +217,22 @@
     var body = lines.map(function (line) {
       return '<div style="font-family:ui-monospace,monospace;font-size:13px;padding:6px 0;border-bottom:1px solid #e2e8f0;">' + esc(line) + '</div>';
     }).join('');
-    var canon = renderCanonForMessage(text, bundle);
+    var canon = renderCanonForMessage(text, bundle, userTopic);
     return body + canon;
   }
 
-  function formatBody(text, contentType, bundle) {
+  function formatBody(text, contentType, bundle, userTopic) {
     var body = esc(text).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     if (contentType === 'whiteboard') {
-      body = formatWhiteboardLines(text, bundle) || body;
+      body = formatWhiteboardLines(text, bundle, userTopic) || body;
     }
     return body;
   }
 
-  function formatMessageHtml(m, bundle) {
+  function formatMessageHtml(m, bundle, opts) {
     if (!m || !m.content) return '';
     var isJill = m.role === 'assistant';
+    var userTopic = (opts && opts.userTopic) || '';
     if (!isJill) {
       return '<div style="display:flex;flex-direction:column;align-items:flex-end;">'
         + '<div style="max-width:88%;background:rgba(61,220,151,0.18);border:1px solid rgba(61,220,151,0.35);color:#ecfdf5;border-radius:12px 4px 12px 12px;padding:10px 14px;font-size:14px;line-height:1.7;">'
@@ -239,7 +243,7 @@
     if (ct === 'whiteboard') bubbleStyle = 'background:#f8fafc;border:1px solid #cbd5e1;color:#0f172a;';
     return '<div style="display:flex;flex-direction:column;align-items:flex-start;">'
       + '<div style="max-width:92%;' + bubbleStyle + 'border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.7;">'
-      + formatBody(m.content, ct, bundle)
+      + formatBody(m.content, ct, bundle, userTopic)
       + '</div></div>';
   }
 
