@@ -32,8 +32,8 @@ function hasWeird(s) {
 }
 
 // ── 1) Sub-batteries ─────────────────────────────────────────
-console.log('=== Q7+ A: PTT + TTS gen + Jill 24 ===');
-for (const script of ['ptt-mic-pressure.mjs', 'tts-gen-pressure.mjs', 'jill-pro-pressure-24.mjs']) {
+console.log('=== Q7+ A: PTT + TTS gen + Jill 24 + canon sync ===');
+for (const script of ['ptt-mic-pressure.mjs', 'tts-gen-pressure.mjs', 'jill-pro-pressure-24.mjs', 'jill-canon-sync-battery.mjs']) {
   const r = spawnSync(process.execPath, [path.join(__dirname, script)], {
     encoding: 'utf8',
     cwd: root,
