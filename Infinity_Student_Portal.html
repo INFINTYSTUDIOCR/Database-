@@ -33,10 +33,10 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-canon-visual.js?v=20260710modales"></script>
+<script src="js/jill-canon-visual.js?v=20260710map"></script>
 <script src="js/jill-visual-stage.js?v=20260710mic"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
-<script src="js/jill-foundations.js?v=20260710modales"></script>
+<script src="js/jill-foundations.js?v=20260710map"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
 <script src="js/jill-f0-gate.js?v=20260709utf8"></script>
 <script src="js/jill-structure-drill.js?v=20260710struct"></script>
@@ -3074,11 +3074,14 @@ function nexoraStudentPayload(student){
 function jillDetectCompanionTopic(text){
   var t = String(text || '').toLowerCase();
   if(/\b(futuro\s+perfecto|future\s+perfect|will\s+have)\b/.test(t)) return 'futuro perfecto (will have + V3)';
-  if(/\b(futuro|future)\b/.test(t)) return 'futuro MOD (P + will + V + C)';
-  if(/\b(gerundio|gerund|-ing|progressive|continuo|\bpc\b)/.test(t)) return 'gerundio / PC';
-  if(/\b(presente simple|present simple|\bpr\b)/.test(t)) return 'presente simple PR';
-  if(/\b(pasado simple|past simple|\bps\b)/.test(t)) return 'pasado simple PS';
-  if(/\b(present perfect|presente perfecto|\bprp\b)/.test(t)) return 'presente perfecto PRP';
+  if(/\b(pasado simple|past simple|\bps\b)\b/.test(t)) return 'pasado simple PS';
+  if(/\b(presente simple|present simple|\bpr\b)\b/.test(t)) return 'presente simple PR';
+  if(/\b(presente continuo|present continuous|\bpc\b)\b/.test(t)) return 'presente continuo PC';
+  if(/\b(presente perfecto|present perfect|\bprp\b)\b/.test(t)) return 'presente perfecto PRP';
+  if(/\b(futuro|future|going to)\b/.test(t)) return 'futuro will / going to';
+  if(/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in the morning|on monday)\b/.test(t)) return 'preposiciones de tiempo';
+  if(/\b(preposici[oó]n|in on at|in\/on\/at|at in on by)\b/.test(t)) return 'preposiciones IN ON AT BY';
+  if(/\b(gerundio|gerund|-ing)\b/.test(t)) return 'gerundio / PC';
   if(/\b(modales?|should|can|could|must|may|might)\b/.test(t) && !/\b(moneda|inversi)/.test(t)) return 'modales (P + MODAL + V base)';
   if(/\b(moneda|inversi[oó]n)\b/.test(t)) return 'metodo moneda (inversion)';
   if(/\b(will|would)\b/.test(t)) return 'futuro / would';

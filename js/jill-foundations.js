@@ -159,20 +159,21 @@
   }
 
   var CANON_BY_COLUMN = {
-    present: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PR' },
-    past: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos PS' },
-    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Gerundio - PC (P + To Be + V+ing + C)' },
-    perfect: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'PRP + articulos' },
-    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'PPC combinado' },
+    present: { id: 'tiempos-pr', path: 'assets/canon/tiempos-pr.svg', title: 'Presente simple PR' },
+    past: { id: 'tiempos-ps', path: 'assets/canon/tiempos-ps.svg', title: 'Pasado simple PS' },
+    progressive: { id: 'gerundio-pc', path: 'assets/canon/anim/gerundio-pc.svg', title: 'Presente continuo PC' },
+    perfect: { id: 'tiempos-prp', path: 'assets/canon/tiempos-prp.svg', title: 'Presente perfecto PRP' },
+    combined: { id: 'tiempos', path: 'assets/canon/tiempos.svg', title: 'Tiempos / PPC' },
+    future: { id: 'tiempos-fut', path: 'assets/canon/tiempos-fut.svg', title: 'Futuro will / going to' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda (inversion)' },
     modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Modales - P + MODAL + V base' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are' },
-    prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones lugar' },
-    prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones tiempo' },
+    prepositions: { id: 'preposiciones', path: 'assets/canon/preposiciones.svg', title: 'Preposiciones IN ON AT BY' },
+    prepositions_time: { id: 'preposiciones-tiempo', path: 'assets/canon/preposiciones-tiempo.svg', title: 'Preposiciones de tiempo' },
     gerund_prep: { id: 'gerundio-prep', path: 'assets/canon/gerundio-prep.svg', title: 'Gerundio despues de preposicion' },
     negations: { id: 'negaciones', path: 'assets/canon/negaciones.svg', title: 'Negaciones - AUX + NOT' },
     comparatives: { id: 'comparativos', path: 'assets/canon/comparativos.svg', title: 'Comparativos' },
-    articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos' }
+    articles: { id: 'articulos', path: 'assets/canon/articulos.svg', title: 'Articulos a/an/the' }
   };
 
   function detectCanonColumn(text, bundle) {
@@ -182,34 +183,101 @@
       return null;
     }
 
-    // Priority: most specific topic first (accuracy over generic -ing / gerundio)
+    // --- Mas especifico primero ---
+
+    // Gerundio despues de prep (before leaving) ≠ PC
     if (/\b(preposici[oó]n|before|after|without|instead of|good at|interested in|afraid of|antes de|despues de|después de|en vez de)\b/.test(t)
       && /\b(-ing|gerundio|leaving|going|working|coming|doing|saying)\b/.test(t)
       && !/\b(presente continuo|\bpc\b|to be\b|am\/is\/are)\b/.test(t)) {
       return 'gerund_prep';
     }
-    if (/\b(negaci[oó]n(?:es)?|negations?|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|no work|i no )\b/.test(t)) return 'negations';
-    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|\bhay\b)\b/.test(t)) return 'there';
-    if (/\b(comparativ|more than|less than|-er than|as .+ as|mejor que|peor que|m[aá]s .+ que)\b/.test(t)) return 'comparatives';
-    if (/\b(art[ií]culo|articles?|a\/an|\bthe\b|cuantificador)\b/.test(t) && !/\b(presente perfecto|perfect)\b/.test(t)) return 'articles';
-    if (/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in on at.*time|at \d|in the morning|on monday|preposiciones tiempo)\b/.test(t)) return 'prepositions_time';
-    if (/\b(presente continuo|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando|p\s*\+\s*to be\s*\+\s*v)\b/.test(t)) return 'progressive';
-    if (/\b(gerundio|gerund|v\+ing|progressive)\b/.test(t) && /\b(to be|presente continuo|\bpc\b|progres|continuo)\b/.test(t)) return 'progressive';
-    if (/\b(pasado perfecto|past perfect|\bppc\b|had\s+\w+ed|combinado)\b/.test(t)) return 'combined';
-    if (/\b(presente perfecto|present perfect|\bprp\b|have\/has|have been)\b/.test(t)) return 'perfect';
-    if (/\b(pasado simple|past simple|\bps\b|yesterday|last week)\b/.test(t)) return 'past';
-    if (/\b(presente simple|present simple|\bpr\b|habits?|todos los d[ií]as)\b/.test(t)) return 'present';
-    // Modales ≠ Método Moneda (inversión to be)
+
+    // Negaciones
+    if (/\b(negaci[oó]n(?:es)?|negations?|don'?t|doesn'?t|didn'?t|isn'?t|aren'?t|won'?t|haven'?t|aux\s*\+?\s*not|auxiliar\s*\+?\s*not)\b/.test(t)) {
+      return 'negations';
+    }
+
+    // There is / are
+    if (/\b(there is|there are|there was|there were|there will|is there|are there|existencial|there\s+be|\bhay\b)\b/.test(t)) {
+      return 'there';
+    }
+
+    // Comparativos
+    if (/\b(comparativ|superlativ|more than|less than|-er than|as .+ as|mejor que|peor que|m[aá]s .+ que|the most|the least)\b/.test(t)) {
+      return 'comparatives';
+    }
+
+    // Articulos (no confundir con "the" suelto en ingles)
+    if (/\b(art[ií]culo(?:s)?|articles?|a\/an|indefinido|definido|cuantificador(?:es)?|much\/many|a lot of)\b/.test(t)) {
+      return 'articles';
+    }
+
+    // Preposiciones de TIEMPO (antes que lugar)
+    if (/\b(preposici[oó]n(?:es)?\s+(?:de\s+)?tiempo|in on at.*(?:time|hora|d[ií]a)|at \d|in the morning|in the afternoon|on monday|on friday|in march|in 20\d{2}|preposiciones tiempo)\b/.test(t)) {
+      return 'prepositions_time';
+    }
+
+    // Preposiciones lugar / IN ON AT BY (core image)
+    if (/\b(preposici[oó]n(?:es)?|prep(?:ositions?)?\b|in\s*\/?\s*on\s*\/?\s*at(?:\s*\/?\s*by)?|in on at by|at in on|on at in|by car|by bus|in the box|on the table|at the office|at home|lugar)\b/.test(t)
+      || /\b(in|on|at|by)\b/.test(t) && /\b(prep|ranura c|complemento|ciudad|mesa|oficina|carro|bus|transporte)\b/.test(t)) {
+      return 'prepositions';
+    }
+
+    // Presente continuo / PC / gerundio con to be
+    if (/\b(presente continuo|present continuous|\bpc\b|to be\s*\+?\s*v?\+?ing|am\/is\/are.*ing|est[aá]s?\s+\w+ando|p\s*\+\s*to be\s*\+\s*v|ahora mismo.*ing)\b/.test(t)) {
+      return 'progressive';
+    }
+    if (/\b(gerundio|gerund|v\+ing|progressive)\b/.test(t) && /\b(to be|presente continuo|\bpc\b|progres|continuo|ahora)\b/.test(t)) {
+      return 'progressive';
+    }
+
+    // Futuro perfecto / PPC
+    if (/\b(futuro perfecto|future perfect|will have|pasado perfecto|past perfect|\bppc\b|perfecto continuo|have been \w+ing)\b/.test(t)) {
+      return 'combined';
+    }
+
+    // Presente perfecto PRP (NO articulos)
+    if (/\b(presente perfecto|present perfect|\bprp\b|have\/has|have been|has been|already|yet|ever|never.*been|participio)\b/.test(t)
+      && !/\b(pasado simple|past simple|yesterday)\b/.test(t)) {
+      return 'perfect';
+    }
+
+    // Pasado simple PS
+    if (/\b(pasado simple|past simple|\bps\b|yesterday|last (week|night|year|monday)|el pasado|verbo en pasado|worked|went|did)\b/.test(t)
+      && !/\b(perfecto|perfect|continuo|continuous)\b/.test(t)) {
+      return 'past';
+    }
+
+    // Presente simple PR
+    if (/\b(presente simple|present simple|\bpr\b|h[aá]bitos?|habits?|todos los d[ií]as|every day|he\/she\/it\s*\+?\s*-?s)\b/.test(t)
+      && !/\b(perfecto|perfect|continuo|continuous|pasado|past)\b/.test(t)) {
+      return 'present';
+    }
+
+    // Modales ≠ Moneda
     if (/\b(modales?|can\b|could\b|should\b|must\b|may\b|might\b)\b/.test(t)
       && !/\b(moneda|inversi[oó]n|m[eé]todo de la moneda)\b/.test(t)) {
       return 'modales';
     }
-    if (/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|are you\b|v\s*\+\s*p|p\s*\+\s*v)\b/.test(t)) return 'modal';
-    if (/\b(futuro perfecto|future perfect|will have)\b/.test(t)) return 'combined';
-    if (/\b(futuro|going to|will\b|would\b)\b/.test(t)) return 'present';
-    if (/\b(preposici|prep\b|\bin on at\b|lugar)\b/.test(t)) return 'prepositions';
-    if (/\b(tiempo(?:s)? verbal|tiempos)\b/.test(t)) return 'present';
+
+    // Metodo moneda / inversion
+    if (/\b(moneda|inversi[oó]n|m[eé]todo de la moneda|are you\b|v\s*\+\s*p|pregunta\s*\/\s*respuesta)\b/.test(t)) {
+      return 'modal';
+    }
+
+    // Futuro will / going to
+    if (/\b(futuro|future|going to|will\b|would\b|ma[nñ]ana|tomorrow)\b/.test(t)
+      && !/\b(modales?|can\b|could|should|must)\b/.test(t)) {
+      return 'future';
+    }
+
+    // Overview tiempos
+    if (/\b(tiempo(?:s)? verbal(?:es)?|tiempos|siglas\s+pr|matriz de tiempos)\b/.test(t)) {
+      return 'combined';
+    }
+
     if (/\b(p\s*\+\s*to be\s*\+\s*v\+?ing|p\s*\|\s*to be\s*\|\s*v)\b/.test(t)) return 'progressive';
+
     if (bundle && bundle.canonColumn && CANON_BY_COLUMN[bundle.canonColumn]) return bundle.canonColumn;
     return null;
   }
