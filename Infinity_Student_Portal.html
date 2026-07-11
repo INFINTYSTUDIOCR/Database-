@@ -37,8 +37,8 @@
 <script src="js/jill-canon-router.js?v=20260711clean"></script>
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
-<script src="js/jill-lesson-clip.js?v=20260711all"></script>
-<script src="js/jill-visual-stage.js?v=20260711all"></script>
+<script src="js/jill-lesson-clip.js?v=20260711exr"></script>
+<script src="js/jill-visual-stage.js?v=20260711exr"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -187,39 +187,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .jill-drill-ring.is-hot .jill-drill-ring-fg{stroke:#34d399;}
   #jill-stage-media.jill-oral-ok{outline:3px solid rgba(52,211,153,0.7);outline-offset:-3px;}
   #jill-stage-media.jill-oral-miss{outline:3px solid rgba(248,113,113,0.65);outline-offset:-3px;}
-  /* Lesson clip HTML (Present Continuous piloto) */
+  /* Real exercises (boxes + arrows); tablero = buttons only — no Duolingo glow */
   .jill-lesson-clip-host{
     position:absolute;inset:0;display:flex;align-items:stretch;justify-content:center;
-    padding:12px 12px 48px;box-sizing:border-box;z-index:2;
+    padding:10px 12px 40px;box-sizing:border-box;z-index:2;overflow:auto;
   }
   .jill-clip{
-    position:relative;width:100%;max-width:720px;padding:1.25rem 1.2rem 1rem;
-    border-radius:20px;overflow:hidden;
-    background:linear-gradient(165deg,rgba(49,46,129,0.95) 0%,rgba(76,29,149,0.92) 45%,rgba(91,33,182,0.9) 100%);
+    position:relative;width:100%;max-width:720px;padding:1rem 1rem 0.85rem;
+    border-radius:18px;overflow:hidden;
+    background:linear-gradient(165deg,rgba(49,46,129,0.96) 0%,rgba(76,29,149,0.93) 50%,rgba(91,33,182,0.92) 100%);
     border:1px solid rgba(196,181,253,0.35);
-    box-shadow:0 18px 48px rgba(49,46,129,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
-    display:flex;flex-direction:column;align-items:center;gap:0.85rem;
+    box-shadow:0 14px 40px rgba(49,46,129,0.32);
+    display:flex;flex-direction:column;align-items:stretch;gap:0.75rem;
     min-height:100%;box-sizing:border-box;
   }
-  .jill-clip-aura{
-    position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
-    background:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.35),transparent 65%);
-    animation:jillClipAura 6s ease-in-out infinite alternate;
+  .jill-clip-aura{display:none!important;}
+  .jill-ex-sheet{display:flex;flex-direction:column;gap:10px;flex:1 1 auto;min-height:0;overflow:auto;padding:2px;}
+  .jill-ex-box{
+    background:#F4F4F5;border:1px solid #E4E4E7;border-radius:12px;
+    padding:12px 14px;color:#18181B;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:clamp(13px,1.9vw,15px);line-height:1.55;
   }
-  @keyframes jillClipAura{
-    from{opacity:.55;transform:translateY(0)}
-    to{opacity:1;transform:translateY(8px)}
+  .jill-ex-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px;padding:2px 0;}
+  .jill-ex-en{color:#111827;font-weight:600;}
+  .jill-ex-arrow{color:#71717A;font-weight:700;}
+  .jill-ex-es{color:#3F3F46;font-weight:500;}
+  .jill-ex-note{color:#52525B;font-weight:500;}
+  .jill-ex-tip{color:#6B7280;font-size:0.92em;margin-left:4px;}
+  .jill-ex-pattern{
+    margin:2px 2px 0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+    font-size:clamp(13px,1.8vw,15px);line-height:1.45;color:#EDE9FE;font-weight:600;
   }
+  .jill-ex-takeaway{
+    margin:0 2px 2px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+    font-size:clamp(13px,1.8vw,15px);line-height:1.45;color:#F5F3FF;font-weight:700;
+  }
+  .jill-drill-ring{display:none!important;}
+  #jill-stage-media .jill-svg-interact.is-clip-bound,
+  #alice-stage-media .jill-svg-interact.is-clip-bound{display:none!important;}
   .jill-clip-title{
-    position:relative;z-index:1;margin:0;font-size:clamp(14px,2.2vw,17px);
-    font-weight:800;letter-spacing:.02em;color:#F5F3FF;text-align:center;flex:0 0 auto;
+    margin:0;font-size:clamp(15px,2.2vw,18px);
+    font-weight:800;letter-spacing:.01em;color:#F5F3FF;text-align:center;flex:0 0 auto;
   }
-  .jill-clip-bridge{
-    position:relative;z-index:1;margin:-0.2rem 0 0;font-size:12px;line-height:1.35;
-    color:rgba(221,214,254,0.9);text-align:center;max-width:36rem;flex:0 0 auto;
-  }
+  .jill-clip-bridge{display:none!important;}
   .jill-clip-row{
-    position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;
+    display:flex;align-items:stretch;justify-content:center;
     gap:8px;flex-wrap:wrap;width:100%;flex:0 0 auto;
   }
   .jill-clip-slot{
@@ -244,51 +257,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .jill-clip-slot-label{display:block;font-size:12px;font-weight:800;letter-spacing:.01em;}
   .jill-clip-slot-hint{display:block;margin-top:3px;font-size:9px;opacity:.85;font-weight:600;}
   .jill-clip-slot.is-active{
-    transform:translateY(-3px) scale(1.04);
-    box-shadow:0 0 0 3px rgba(255,255,255,0.28), 0 12px 28px rgba(0,0,0,0.28);
+    transform:translateY(-2px);
+    box-shadow:0 0 0 2px rgba(255,255,255,0.35), 0 8px 18px rgba(0,0,0,0.25);
   }
-  .jill-clip-slot.is-pulse{animation:jillClipPulse .55s ease;}
-  @keyframes jillClipPulse{
-    0%{transform:scale(1)}
-    40%{transform:scale(1.12);box-shadow:0 0 0 8px rgba(167,139,250,0.22)}
-    100%{transform:scale(1)}
-  }
+  .jill-clip-slot.is-pulse{animation:none;}
   .jill-clip-plus{
     align-self:center;font-size:18px;font-weight:800;color:rgba(196,181,253,0.75);
     padding:0 2px;
   }
-  /* THE exercise sentences Jill is teaching — must dominate the board */
-  .jill-clip-example{
-    position:relative;z-index:1;margin:0;flex:1 1 auto;
-    min-height:4.5em;width:100%;max-width:40rem;
-    display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
-    padding:0.85rem 0.75rem;border-radius:14px;
-    background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.12);
-    font-size:clamp(22px,4.2vw,34px);font-weight:800;line-height:1.35;
-    text-align:center;color:#F8FAFC;letter-spacing:.01em;
-  }
-  .jill-clip-word{
-    display:inline;opacity:0;transform:translateY(8px);
-    transition:opacity .22s ease, transform .22s ease;
-  }
-  .jill-clip-word.is-wait{opacity:0.28!important;transform:none}
-  .jill-clip-word.is-in{opacity:1!important;transform:translateY(0)}
-  .jill-clip-example.is-done{animation:jillClipSettle .4s ease}
-  @keyframes jillClipSettle{
-    from{filter:brightness(1.15)}
-    to{filter:brightness(1)}
-  }
+  .jill-clip-example,.jill-clip-word,.jill-clip-replay{display:none!important;}
   .jill-clip-footer{
-    position:relative;z-index:1;width:100%;display:flex;align-items:center;
+    width:100%;display:flex;align-items:center;
     justify-content:space-between;gap:12px;margin-top:auto;flex:0 0 auto;
   }
   .jill-clip-progress{font-size:11px;font-weight:700;color:rgba(221,214,254,0.85)}
-  .jill-clip-replay{
-    border:1px solid rgba(196,181,253,0.45);background:rgba(255,255,255,0.08);
-    color:#EDE9FE;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;
-    cursor:pointer;
-  }
-  .jill-clip-replay:hover{background:rgba(255,255,255,0.14)}
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel .jill-canon-frame{display:none;}
   #jill-lesson-shell.jill-stage-active #jill-messages{display:none!important;}
   #jill-lesson-shell.jill-stage-active #jill-eval-summary{display:none!important;}

@@ -1,11 +1,11 @@
 /**
- * Jill Lesson Clip — tablero HTML animado por ranuras (estilo John / Infinity).
- * Todos los tracks del canon Foundations. Reproducción lineal (no bucle infinito).
+ * Jill Lesson Clip — ejercicios reales (cajas EN→ES con flechas) + botones de fórmula.
+ * Sin glow/flash palabra-por-palabra (nada estilo Duolingo).
  */
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711ex';
+  var VERSION = '20260711exr';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -29,6 +29,171 @@
     def.pace = def.pace || DEFAULT_PACE;
     return def;
   }
+
+  function row(left, right, note) {
+    return { left: left, right: right, note: note || '' };
+  }
+  function tip(left, right, tipText) {
+    return { left: left, right: right, tip: tipText || '' };
+  }
+
+  /** Ejercicios reales — cajas con flechas (estilo lección Claude). */
+  var BOARDS = {
+    negations: {
+      rules: [row('do not', "don't", '(no)'), row('does not', "doesn't", '(no — para He / She / It)')],
+      examples: [row("I don't go", 'Yo no voy'), row("He doesn't work", 'Él no trabaja'), row("She doesn't know", 'Ella no sabe')],
+      pattern: '¿Notás el patrón? Cuando usás DON\'T o DOESN\'T — el verbo vuelve a su forma original.',
+      transforms: [tip('He goes', "He doesn't go", 'no "goes" — vuelve a "go"'), tip('She has', "She doesn't have", 'no "has" — vuelve a "have"')],
+      takeaway: 'El verbo principal siempre vuelve al infinitivo cuando hay negación.'
+    },
+    present: {
+      rules: [row('I / you / we / they', 'verbo base', '(hábito)'), row('he / she / it', 'verbo + s', '(3ª persona)')],
+      examples: [row('I go home every day', 'Yo voy a casa todos los días'), row('She works in San José', 'Ella trabaja en San José'), row('They study English', 'Ellos estudian inglés')],
+      pattern: '¿Ves? He/She/It lleva la -s en el verbo. El resto usa la forma base.',
+      transforms: [tip('I work', 'She works', '3ª persona → +s'), tip('They go', 'He goes', 'go → goes')],
+      takeaway: 'Presente simple = hábito o hecho. Solo he/she/it suma -s.'
+    },
+    past: {
+      rules: [row('verbo regular', 'verbo + ed', '(worked)'), row('verbo irregular', 'forma 2', '(went / saw / made)')],
+      examples: [row('She worked yesterday', 'Ella trabajó ayer'), row('I went home', 'Yo me fui a casa'), row('They saw the movie', 'Ellos vieron la película')],
+      pattern: 'Pasado = acción terminada. No hace falta auxiliar en afirmativa.',
+      transforms: [tip('I work', 'I worked', 'regular → -ed'), tip('I go', 'I went', 'irregular → forma 2')],
+      takeaway: 'En pasado afirmativo: solo cambiás el verbo. En negativa: did + not + base.'
+    },
+    progressive: {
+      rules: [row('español', 'ESTAR + ando/endo', ''), row('inglés', 'TO BE + VERBO+ING', '(am / is / are)')],
+      examples: [row('I am studying English now', 'Estoy estudiando inglés ahora'), row('She is cooking dinner', 'Ella está cocinando la cena'), row('They are playing soccer', 'Ellos están jugando fútbol')],
+      pattern: 'Sin TO BE no hay progresivo. ING = ando/endo.',
+      transforms: [tip('I study', 'I am studying', 'añadís am/is/are + ING'), tip('She cooks', 'She is cooking', 'cook → cooking')],
+      takeaway: 'Progresivo = TO BE + verbo + í ene ge (ando/endo).'
+    },
+    perfect: {
+      rules: [row('I / you / we / they', 'have + participio', ''), row('he / she / it', 'has + participio', '')],
+      examples: [row('He has done it', 'Él lo ha hecho'), row('I have seen that', 'Yo he visto eso'), row('They have finished already', 'Ya han terminado')],
+      pattern: 'Have/has carga el tiempo; el verbo va en participio (forma 3).',
+      transforms: [tip('I do it', 'I have done it', 'do → done'), tip('She goes', 'She has gone', 'go → gone')],
+      takeaway: 'Presente perfecto = have/has + participio.'
+    },
+    future: {
+      rules: [row('will + verbo', '-ré / -rá', '(decisión / futuro)'), row('going to + verbo', 'voy a…', '(plan)')],
+      examples: [row('I will call you tomorrow', 'Te llamaré mañana'), row('I am going to study', 'Voy a estudiar'), row('They are going to travel', 'Ellos van a viajar')],
+      pattern: 'Will = decisión o predicción. Going to = plan ya pensado.',
+      transforms: [tip('I call', 'I will call', 'will + base'), tip('I study', 'I am going to study', 'be + going to + base')],
+      takeaway: 'Futuro: will + base, o am/is/are + going to + base.'
+    },
+    modales: {
+      rules: [row('will', '-ré', ''), row('would', '-ría', ''), row('should', 'debería', ''), row('can', 'puedo', '')],
+      examples: [row('I can work', 'Yo puedo trabajar'), row('She should study', 'Ella debería estudiar'), row('They will call you', 'Ellos te llamarán')],
+      pattern: 'Modal + verbo BASE (sin to). Nunca "can to work".',
+      transforms: [tip('I work', 'I can work', 'modal + base'), tip('She studies', 'She should study', 'should + base (sin -s)')],
+      takeaway: 'Después del modal el verbo vuelve a la forma base.'
+    },
+    combined: {
+      rules: [row('have / has / had', 'been', ''), row('been + VERBO+ING', 'he estado + ando/endo', '')],
+      examples: [row('I have been studying English', 'He estado estudiando inglés'), row('She has been working', 'Ella ha estado trabajando'), row('They have been waiting', 'Ellos han estado esperando')],
+      pattern: 'Have + been + ING = duración hasta ahora (ando/endo).',
+      transforms: [tip('I study', 'I have been studying', 'have + been + ING'), tip('She works', 'She has been working', 'has + been + ING')],
+      takeaway: 'Have/has + been + verbo + í ene ge.'
+    },
+    there: {
+      rules: [row('There is', 'hay (1)', ''), row('There are', 'hay (2+)', ''), row('have / has', 'posesión', '(tengo / tiene)')],
+      examples: [row('There is a book on the table', 'Hay un libro en la mesa'), row('There are two chairs', 'Hay dos sillas'), row('I have a book', 'Yo tengo un libro')],
+      pattern: 'There is/are = existencia (HAY). Have/has = posesión (TENGO).',
+      transforms: [tip('I have a car', 'There is a car', 'posesión vs existencia'), tip('She has two dogs', 'There are two dogs', 'has ≠ there are')],
+      takeaway: 'No mezcles HAY (there) con TENGO (have).'
+    },
+    prepositions: {
+      rules: [row('IN', 'dentro / caja', ''), row('ON', 'encima / superficie', ''), row('AT', 'punto en el mapa', '')],
+      examples: [row('The book is on the table', 'El libro está sobre la mesa'), row('I am at home', 'Estoy en casa'), row('She lives in San José', 'Ella vive en San José')],
+      pattern: 'IN = caja, ON = superficie, AT = punto.',
+      transforms: [tip('in the box', 'on the table', 'dentro vs encima'), tip('at the door', 'in the room', 'punto vs interior')],
+      takeaway: 'Las prep de lugar van en el complemento, no en el verbo.'
+    },
+    prepositions_time: {
+      rules: [row('IN', 'mes / año', ''), row('ON', 'día / fecha', ''), row('AT', 'hora', '')],
+      examples: [row('We meet on Monday', 'Nos vemos el lunes'), row('In March it rains', 'En marzo llueve'), row('At 5 pm we start', 'A las 5 empezamos')],
+      pattern: 'Misma lógica: IN amplio, ON día, AT hora exacta.',
+      transforms: [tip('in 2024', 'on Friday', 'año vs día'), tip('at 5', 'in the morning', 'hora vs parte del día')],
+      takeaway: 'IN mes/año · ON día · AT hora.'
+    },
+    gerundio: {
+      rules: [row('VERBO + ING', 'ando / endo como sustantivo', '(sin to be)'), row('TO BE + ING', 'progresivo', '(estar + ando/endo)')],
+      examples: [row('I like running', 'Me gusta correr'), row('Playing guitar is fun', 'Tocar guitarra es divertido'), row('She enjoys cooking', 'A ella le gusta cocinar')],
+      pattern: 'Sin TO BE, el ING actúa como sustantivo (gerundio).',
+      transforms: [tip('I run', 'I like running', 'verbo → ING sustantivo'), tip('I am running', 'I like running', 'progresivo ≠ gerundio')],
+      takeaway: 'Gerundio = VERBO+ING sin to be. Progresivo = to be + ING.'
+    },
+    gerund_prep: {
+      rules: [row('preposición', 'VERBO + ING', '(ando/endo)'), row('before / after / without / by', '+ leaving / eating…', '')],
+      examples: [row('Before leaving, call me', 'Antes de irte, llamame'), row('After eating, we left', 'Después de comer, nos fuimos'), row('By practicing, you improve', 'Practicando, mejorás')],
+      pattern: 'Después de prep, el verbo va en ING — no en base.',
+      transforms: [tip('before leave', 'before leaving', 'prep + ING'), tip('without think', 'without thinking', 'nunca prep + base')],
+      takeaway: 'Tras preposición → VERBO + í ene ge.'
+    },
+    modal: {
+      rules: [row('Aux ANTES del pronombre', 'pregunta', ''), row('Aux DESPUÉS del pronombre', 'respuesta', '')],
+      examples: [row('Are you coming?', '¿Venís?'), row('You are coming', 'Vos venís'), row('Do you work?', '¿Trabajás?')],
+      pattern: 'Método moneda: el auxiliar se voltea para preguntar.',
+      transforms: [tip('You are ready', 'Are you ready?', 'aux al frente'), tip('She works', 'Does she work?', 'does + base')],
+      takeaway: 'Pregunta = auxiliar delante del pronombre.'
+    },
+    irregular_verbs: {
+      rules: [row('Columna 1', 'presente', 'go · do · see'), row('Columna 2', 'pasado', 'went · did · saw'), row('Columna 3', 'participio', 'gone · done · seen')],
+      examples: [row('go · went · gone', 'ir · fui · ido'), row('do · did · done', 'hacer · hice · hecho'), row('see · saw · seen', 'ver · vi · visto')],
+      pattern: 'Decí las tres formas con pausa: go. went. gone.',
+      transforms: [tip('I go', 'I went', 'forma 2'), tip('I went', 'I have gone', 'forma 3 con have')],
+      takeaway: 'Tres fotos del verbo irregular — de memoria con ritmo.'
+    },
+    have_had: {
+      rules: [row('have', 'I / you / we / they', ''), row('has', 'he / she / it', ''), row('had', 'pasado (todos)', '')],
+      examples: [row('have · has · had', 'tres formas'), row('I have finished', 'Yo he terminado'), row('She has finished', 'Ella ha terminado')],
+      pattern: 'Decí con pausa: have. has. had.',
+      transforms: [tip('I have', 'She has', '3ª persona → has'), tip('I have', 'I had', 'pasado → had')],
+      takeaway: 'Have / has / had — tres formas, una sola familia.'
+    },
+    articles: {
+      rules: [row('a / an', 'uno / una', '(indefinido)'), row('the', 'el / la / los / las', '(definido)')],
+      examples: [row('I see a cat', 'Veo un gato'), row('The cat is black', 'El gato es negro'), row('She is an engineer', 'Ella es ingeniera')],
+      pattern: 'A/an = primera mención. The = ya sabemos de cuál.',
+      transforms: [tip('a apple', 'an apple', 'an ante vocal'), tip('a cat', 'the cat', 'ya conocido → the')],
+      takeaway: 'A/an introduce; the señala algo conocido.'
+    },
+    comparatives: {
+      rules: [row('adjetivo corto', '-er + than', 'taller than'), row('adjetivo largo', 'more + than', 'more interesting'), row('igualdad', 'as … as', 'as tall as')],
+      examples: [row('She is taller than me', 'Ella es más alta que yo'), row('This is more interesting than that', 'Esto es más interesante'), row('He is as tall as his brother', 'Él es tan alto como su hermano')],
+      pattern: 'Corto → -er. Largo → more. Igual → as…as.',
+      transforms: [tip('tall', 'taller than', '-er'), tip('interesting', 'more interesting than', 'more')],
+      takeaway: 'Comparás con -er/more + than, o as…as para igualdad.'
+    },
+    if_was_were: {
+      rules: [row('If I was', 'pasado real', ''), row('If I were', 'hipótesis', ''), row('If I were to', 'poco probable', '')],
+      examples: [row('If I was tired, I rested', 'Si estaba cansado, descansé'), row('If I were rich, I would travel', 'Si fuera rico, viajaría'), row('If I were to win, I would celebrate', 'Si llegara a ganar, celebraría')],
+      pattern: 'Was = real. Were = imaginario. Were to = todavía más hipotético.',
+      transforms: [tip('If I was…', 'pasado que pasó', 'real'), tip('If I were…', 'would + base', 'hipótesis')],
+      takeaway: 'Was / were / were to — tres grados de realidad.'
+    },
+    modal_have_pp: {
+      rules: [row('should have + participio', 'debería haber…', ''), row('could have + participio', 'podría haber…', '')],
+      examples: [row('You should have studied more', 'Deberías haber estudiado más'), row('She could have called', 'Ella podría haber llamado'), row('I would have helped', 'Yo habría ayudado')],
+      pattern: 'Modal + have + participio = pasado hipotético / arrepentimiento.',
+      transforms: [tip('You study', 'You should have studied', 'should + have + V3'), tip('She calls', 'She could have called', 'could + have + V3')],
+      takeaway: 'Modal + have + participio — nunca "should had".'
+    },
+    modal_have_been: {
+      rules: [row('modal + have been', '+ VERBO+ING', ''), row('must have been working', 'debió haber estado…', '')],
+      examples: [row('She must have been working', 'Ella debió haber estado trabajando'), row('They should have been studying', 'Deberían haber estado estudiando'), row('He could have been sleeping', 'Podría haber estado durmiendo')],
+      pattern: 'Modal + have + been + ING = conjetura sobre una acción en progreso.',
+      transforms: [tip('She was working', 'She must have been working', 'conjetura'), tip('They study', 'They should have been studying', 'deberían haber estado')],
+      takeaway: 'Modal + have been + verbo + í ene ge.'
+    },
+    overview: {
+      rules: [row('PR', 'presente', 'I work'), row('PS', 'pasado', 'I worked'), row('PC', 'continuo', 'I am working'), row('PRP', 'perfecto', 'I have worked')],
+      examples: [row('I work', 'Yo trabajo (hábito)'), row('I worked', 'Yo trabajé'), row('I am working', 'Estoy trabajando'), row('I have worked', 'He trabajado')],
+      pattern: 'Misma idea — distinta ranura de tiempo.',
+      transforms: [tip('work', 'worked / working / have worked', 'cambiá la ranura')],
+      takeaway: 'Elegí el tiempo según cuándo / cómo pasó la acción.'
+    }
+  };
 
   /** Catálogo completo — mismo estilo visual; datos por track del canon. */
   var CLIPS = {
@@ -527,187 +692,139 @@
   }
 
   function getClip(columnId) {
-    return CLIPS[columnId] || null;
+    var c = CLIPS[columnId] || null;
+    if (!c) return null;
+    if (!c.board && BOARDS[columnId]) c.board = BOARDS[columnId];
+    return c;
   }
 
-  function clearTimer() {
-    if (_timer) {
-      clearTimeout(_timer);
-      _timer = null;
-    }
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  function wait(ms, gen) {
-    return new Promise(function (resolve) {
-      _timer = setTimeout(function () {
-        _timer = null;
-        if (gen !== _gen) return resolve(false);
-        resolve(true);
-      }, ms);
+  function joinExample(ex) {
+    if (!ex || !ex.text) return '';
+    return ex.text.map(function (p) { return p[0]; }).join('');
+  }
+
+  function normalizeBoard(def) {
+    if (def.board) return def.board;
+    if (BOARDS[def.id]) return BOARDS[def.id];
+    var examples = (def.examples || []).slice(0, 4).map(function (ex) {
+      return row(joinExample(ex), '');
     });
+    return {
+      rules: def.bridge ? [row(def.title, def.bridge, '')] : [],
+      examples: examples,
+      pattern: '',
+      transforms: [],
+      takeaway: ''
+    };
   }
 
-  function pulseSlot(root, n) {
-    if (!n || !root) return;
-    var box = root.querySelector('.jill-clip-slot[data-slot="' + n + '"]');
-    if (!box) return;
-    box.classList.remove('is-pulse');
-    void box.offsetWidth;
-    box.classList.add('is-pulse', 'is-active');
+  function renderLine(item, mode) {
+    var left = esc(item.left || '');
+    var right = esc(item.right || '');
+    var note = esc(item.note || '');
+    var tipHtml = item.tip ? '<span class="jill-ex-tip">&lt;- ' + esc(item.tip) + '</span>' : '';
+    var noteHtml = note ? '<span class="jill-ex-note">' + note + '</span>' : '';
+    if (mode === 'rule') {
+      return '<div class="jill-ex-line">'
+        + '<span class="jill-ex-en">' + left + '</span>'
+        + '<span class="jill-ex-arrow" aria-hidden="true">-&gt;</span>'
+        + '<span class="jill-ex-es">' + right + '</span>'
+        + (noteHtml ? ' ' + noteHtml : '')
+        + '</div>';
+    }
+    if (mode === 'transform') {
+      return '<div class="jill-ex-line jill-ex-line-transform">'
+        + '<span class="jill-ex-en">' + left + '</span>'
+        + '<span class="jill-ex-arrow" aria-hidden="true">-&gt;</span>'
+        + '<span class="jill-ex-es">' + right + '</span>'
+        + tipHtml
+        + '</div>';
+    }
+    return '<div class="jill-ex-line">'
+      + '<span class="jill-ex-en">' + left + '</span>'
+      + (right ? '<span class="jill-ex-arrow" aria-hidden="true">-&gt;</span><span class="jill-ex-es">' + right + '</span>' : '')
+      + '</div>';
+  }
+
+  function renderBox(lines, mode) {
+    if (!lines || !lines.length) return '';
+    return '<div class="jill-ex-box">' + lines.map(function (L) { return renderLine(L, mode); }).join('') + '</div>';
+  }
+
+  function markActiveSlot(root, n) {
+    if (!root) return;
     var siblings = root.querySelectorAll('.jill-clip-slot');
     for (var i = 0; i < siblings.length; i++) {
-      if (siblings[i] !== box) siblings[i].classList.remove('is-active');
-    }
-    var media = root.closest('#jill-stage-media, #alice-stage-media');
-    if (media) {
-      var spots = media.querySelectorAll('.jill-svg-hotspot, .jill-clip-slot');
-      for (var s = 0; s < spots.length; s++) {
-        var slotAttr = spots[s].getAttribute('data-slot');
-        var stepAttr = spots[s].getAttribute('data-step');
-        var match = slotAttr != null
-          ? (String(slotAttr) === String(n))
-          : (String(Number(stepAttr) + 1) === String(n));
-        spots[s].classList.toggle('is-lit', match);
-        spots[s].classList.toggle('is-active', match && spots[s].classList.contains('jill-clip-slot'));
-      }
+      var on = String(siblings[i].getAttribute('data-slot')) === String(n);
+      siblings[i].classList.toggle('is-active', on);
+      siblings[i].classList.remove('is-pulse');
     }
   }
 
   function buildMarkup(def) {
+    var board = normalizeBoard(def);
     var slotsHtml = def.slots.map(function (s, idx) {
       var plus = idx < def.slots.length - 1
         ? '<span class="jill-clip-plus" aria-hidden="true">+</span>'
         : '';
-      return '<button type="button" class="jill-clip-slot" data-slot="' + s.id + '" aria-label="' + s.label + '">'
-        + '<span class="jill-clip-slot-label">' + s.label + '</span>'
-        + '<span class="jill-clip-slot-hint">' + s.hint + '</span>'
+      return '<button type="button" class="jill-clip-slot" data-slot="' + s.id + '" aria-label="' + esc(s.label) + '">'
+        + '<span class="jill-clip-slot-label">' + esc(s.label) + '</span>'
+        + '<span class="jill-clip-slot-hint">' + esc(s.hint) + '</span>'
         + '</button>' + plus;
     }).join('');
 
     return ''
-      + '<div class="jill-clip" data-clip="' + def.id + '" data-ver="' + VERSION + '">'
-      + '  <div class="jill-clip-aura" aria-hidden="true"></div>'
-      + '  <p class="jill-clip-title">' + def.title + '</p>'
-      + '  <p class="jill-clip-bridge">' + def.bridge + '</p>'
-      + '  <div class="jill-clip-row">' + slotsHtml + '</div>'
-      + '  <p class="jill-clip-example" aria-live="polite"></p>'
+      + '<div class="jill-clip jill-clip-exercises" data-clip="' + esc(def.id) + '" data-ver="' + VERSION + '">'
+      + '  <p class="jill-clip-title">' + esc(def.title) + '</p>'
+      + '  <div class="jill-ex-sheet">'
+      +      renderBox(board.rules, 'rule')
+      +      renderBox(board.examples, 'example')
+      +      (board.pattern ? '<p class="jill-ex-pattern">' + esc(board.pattern) + '</p>' : '')
+      +      renderBox(board.transforms, 'transform')
+      +      (board.takeaway ? '<p class="jill-ex-takeaway">' + esc(board.takeaway) + '</p>' : '')
+      + '  </div>'
+      + '  <div class="jill-clip-row" role="group" aria-label="Fórmula">' + slotsHtml + '</div>'
       + '  <div class="jill-clip-footer">'
-      + '    <span class="jill-clip-progress"></span>'
-      + '    <button type="button" class="jill-clip-replay">Replay</button>'
+      + '    <span class="jill-clip-progress">Ejercicios · practicá con el mic</span>'
       + '  </div>'
       + '</div>';
   }
 
-  async function playSentence(root, def, idx, gen) {
-    var el = root.querySelector('.jill-clip-example');
-    if (!el) return false;
-    el.innerHTML = '';
-    el.classList.remove('is-done');
-    var parts = def.examples[idx].text;
-    var pace = def.pace || DEFAULT_PACE;
-    var colors = def.colors || DEFAULT_COLORS;
-    /* Full sentence visible (dim) first — then light each word as Jill would say it */
-    var nodes = [];
-    for (var i = 0; i < parts.length; i++) {
-      var word0 = parts[i][0];
-      var group0 = parts[i][1];
-      var span0 = document.createElement('span');
-      span0.className = 'jill-clip-word is-wait' + (group0 ? ' is-slot-' + group0 : '');
-      span0.textContent = word0;
-      if (group0 && colors[group0]) span0.style.color = colors[group0];
-      span0.style.opacity = '0.28';
-      el.appendChild(span0);
-      nodes.push({ span: span0, group: group0 });
-    }
-    for (var p = 0; p < nodes.length; p++) {
-      if (gen !== _gen) return false;
-      var span = nodes[p].span;
-      var group = nodes[p].group;
-      span.style.opacity = '';
-      span.classList.remove('is-wait');
-      requestAnimationFrame(function (node) {
-        return function () { node.classList.add('is-in'); };
-      }(span));
-      if (group) pulseSlot(root, group);
-      var ok = await wait(group ? (pace.slotMs || 480) : (pace.spaceMs || 90), gen);
-      if (!ok) return false;
-    }
-    el.classList.add('is-done');
-    return true;
-  }
-
-  async function runSequence(root, def, gen) {
-    _playing = true;
-    var progress = root.querySelector('.jill-clip-progress');
-    var total = def.examples.length;
-    var i = 0;
-    do {
-      if (progress) progress.textContent = (i + 1) + ' / ' + total;
-      var ok = await playSentence(root, def, i, gen);
-      if (!ok) { _playing = false; return; }
-      ok = await wait(def.pace.betweenMs || 1500, gen);
-      if (!ok) { _playing = false; return; }
-      i += 1;
-      if (i >= total) {
-        if (def.pace.loop) i = 0;
-        else break;
-      }
-    } while (gen === _gen);
-
-    if (gen === _gen) {
-      await wait(def.pace.endHoldMs || 2000, gen);
-      if (progress) progress.textContent = 'Listo · practicá con el mic';
-      var slots = root.querySelectorAll('.jill-clip-slot');
-      for (var s = 0; s < slots.length; s++) slots[s].classList.remove('is-active', 'is-pulse');
-    }
-    _playing = false;
-  }
-
-  function wire(root, def) {
+  function wire(root) {
     var slots = root.querySelectorAll('.jill-clip-slot');
     for (var i = 0; i < slots.length; i++) {
       slots[i].addEventListener('click', function (ev) {
         var n = parseInt(ev.currentTarget.getAttribute('data-slot'), 10) || 0;
-        pulseSlot(root, n);
+        markActiveSlot(root, n);
       });
     }
-    var replay = root.querySelector('.jill-clip-replay');
-    if (replay) {
-      replay.addEventListener('click', function () {
-        startPlay(root, def);
-      });
-    }
-  }
-
-  function startPlay(root, def) {
-    _gen += 1;
-    clearTimer();
-    runSequence(root, def, _gen);
   }
 
   function mount(host, columnId) {
     unmount();
-    var def = CLIPS[columnId];
+    var def = getClip(columnId);
     if (!host || !def) return false;
     _host = host;
     host.innerHTML = buildMarkup(def);
     var root = host.querySelector('.jill-clip');
     if (!root) return false;
-    wire(root, def);
+    wire(root);
     _gen += 1;
-    var gen = _gen;
-    /* Start sentence animation immediately — no empty board while Jill talks */
-    _timer = setTimeout(function () {
-      _timer = null;
-      if (gen !== _gen) return;
-      runSequence(root, def, gen);
-    }, 40);
+    _playing = false;
     return true;
   }
 
   function unmount() {
     _gen += 1;
-    clearTimer();
+    if (_timer) { clearTimeout(_timer); _timer = null; }
     _playing = false;
     if (_host) {
       _host.innerHTML = '';
@@ -728,6 +845,7 @@
     mount: mount,
     unmount: unmount,
     isPlaying: isPlaying,
-    CLIPS: CLIPS
+    CLIPS: CLIPS,
+    BOARDS: BOARDS
   };
 })(typeof window !== 'undefined' ? window : globalThis);

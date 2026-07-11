@@ -1,6 +1,6 @@
 /**
- * Escenario visual Infinity — clips animados (Jill Foundations + Alice Nexus).
- * Sin bloques de texto-ejercicio: glow / anillo / audio.
+ * Escenario visual Infinity — ejercicios reales + botones de fórmula.
+ * Sin glow/flash de palabras.
  */
 (function (global) {
   'use strict';
@@ -322,16 +322,7 @@
     }
 
     stopPulse();
-    pulseTimer = setInterval(function () {
-      if (!active) return;
-      var live = drillSpots(root);
-      if (!live.length) return;
-      var t = 0;
-      if (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.getChallenge) {
-        t = JillCanonDrill.getChallenge().target || 0;
-      }
-      paintTarget(live, t);
-    }, 2400);
+    // No flashing highlight loop — buttons stay static until tap
   }
 
   function show(text, contentType, bundle, opts) {
@@ -368,20 +359,18 @@
         if (!mounted) {
           var def = global.JillLessonClip.getClip ? global.JillLessonClip.getClip(clipId) : null;
           var labs = slotLabels(col);
-          var firstEx = '';
-          if (def && def.examples && def.examples[0] && def.examples[0].text) {
-            firstEx = def.examples[0].text.map(function (p) { return p[0]; }).join('');
-          }
           host.innerHTML = '<div class="jill-clip jill-clip-static" data-clip="' + String(clipId || col) + '">'
             + '<p class="jill-clip-title">' + escHtml((def && def.title) || String(clipId || col)) + '</p>'
-            + (def && def.bridge ? '<p class="jill-clip-bridge">' + escHtml(def.bridge) + '</p>' : '')
+            + '<div class="jill-ex-sheet"><div class="jill-ex-box"><div class="jill-ex-line"><span class="jill-ex-en">'
+            + escHtml((def && def.bridge) || 'Practicá la fórmula')
+            + '</span></div></div></div>'
             + '<div class="jill-clip-row">' + labs.map(function (s, idx) {
               return '<button type="button" class="jill-clip-slot" data-slot="' + (s.id || (idx + 1)) + '">'
                 + '<span class="jill-clip-slot-label">' + escHtml(s.label) + '</span>'
                 + (s.hint ? '<span class="jill-clip-slot-hint">' + escHtml(s.hint) + '</span>' : '')
                 + '</button>' + (idx < labs.length - 1 ? '<span class="jill-clip-plus">+</span>' : '');
             }).join('') + '</div>'
-            + '<p class="jill-clip-example" aria-live="polite"><span class="jill-clip-word is-in">' + escHtml(firstEx || 'Practicá la fórmula en voz') + '</span></p>'
+            + '<div class="jill-clip-footer"><span class="jill-clip-progress">Ejercicios · practicá con el mic</span></div>'
             + '</div>';
           mounted = true;
         }
