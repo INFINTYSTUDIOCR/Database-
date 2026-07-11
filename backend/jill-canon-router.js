@@ -3,6 +3,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const JillLearnerIntent = require('./jill-learner-intent');
 
 let MAP = null;
 
@@ -40,6 +41,12 @@ function tracks() {
 }
 
 function pickTrack(text) {
+  const raw = String(text || '');
+  const expanded = JillLearnerIntent.expand(raw);
+  return pickTrackExact(expanded) || pickTrackExact(raw);
+}
+
+function pickTrackExact(text) {
   const n = normalize(text);
   if (!n || n.length < 2) return null;
   let best = null;
@@ -154,5 +161,6 @@ module.exports = {
   resolveAsk,
   resolveAskId,
   formatLock,
-  byColumn
+  byColumn,
+  expandLearnerAsk: (t) => JillLearnerIntent.expand(t)
 };

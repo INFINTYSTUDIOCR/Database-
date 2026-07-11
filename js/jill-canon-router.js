@@ -638,7 +638,7 @@
   }
 
   /** Longest alias win; tie → earlier track in catalog (more specific). */
-  function pickTrack(text) {
+  function pickTrackExact(text) {
     var n = normalize(text);
     if (!n || n.length < 2) return null;
     var best = null;
@@ -663,6 +663,14 @@
       }
     }
     return best;
+  }
+
+  function pickTrack(text) {
+    var raw = String(text || '');
+    var expanded = (typeof JillLearnerIntent !== 'undefined' && JillLearnerIntent.expand)
+      ? JillLearnerIntent.expand(raw)
+      : raw;
+    return pickTrackExact(expanded) || pickTrackExact(raw);
   }
 
   function pickTrackId(text) {
