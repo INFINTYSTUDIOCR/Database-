@@ -228,7 +228,10 @@
           "there is vs have",
           "there exists",
           "there is y there are",
-          "hay"
+          "hay vs there",
+          "explicame hay",
+          "qué es hay",
+          "que es hay"
         ],
         "bridge": "Puente: There is = hay (1); There are = hay (2+); have/has = posesión (no “hay”)."
       },
