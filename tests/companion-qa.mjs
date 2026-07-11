@@ -67,8 +67,25 @@ else fail('enrichCompanionEvaluation', JSON.stringify(enriched));
 
 // ── Module: buildCompanionCoachBlock ──────────────────────────
 const block = Companion.buildCompanionCoachBlock(student, student.companionConfig, 'history');
-if (block.includes('COMPANION MODE') && /k10/i.test(block) && block.includes('history')) pass('buildCompanionCoachBlock', 'ok');
-else fail('buildCompanionCoachBlock', block.slice(0, 80));
+if (block.includes('COMPANION + LIVE COACH') && /k10/i.test(block) && block.includes('history')) pass('buildCompanionCoachBlock', 'ok');
+else fail('buildCompanionCoachBlock', block.slice(0, 120));
+
+// ── Module: doubt mini-lesson ─────────────────────────────────
+if (Companion.isEnglishDoubtRequest('explicame how however works')) pass('isEnglishDoubtRequest linker', 'ok');
+else fail('isEnglishDoubtRequest linker', 'miss');
+
+if (Companion.resolveCompanionPhase('teach me STAR structure', []) === 'doubt_explain') pass('phase doubt_explain', 'ok');
+else fail('phase doubt_explain', Companion.resolveCompanionPhase('teach me STAR structure', []));
+
+const teach = Companion.buildCompanionStreamTeachInstruction('doubt:star', 'teach me STAR', []);
+if (teach.includes('MINI-LESSON') && teach.includes('pattern')) pass('teachInstr mini-lesson', 'ok');
+else fail('teachInstr mini-lesson', teach.slice(0, 100));
+
+if (String(Companion.ALICE_COMPANION_TEACH_CANON || '').includes('MINI-LESSON')) pass('ALICE_COMPANION_TEACH_CANON', 'exported');
+else fail('ALICE_COMPANION_TEACH_CANON', 'missing');
+
+if (Companion.inferTopicFromText('can you explain present perfect') === 'doubt:present perfect' || Companion.inferTopicFromText('can you explain present perfect').startsWith('doubt:')) pass('inferTopic doubt', Companion.inferTopicFromText('can you explain present perfect'));
+else fail('inferTopic doubt', Companion.inferTopicFromText('can you explain present perfect'));
 
 // ── Static: backend server.js ─────────────────────────────────
 const serverJs = read('backend/server.js');

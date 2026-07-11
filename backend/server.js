@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-modules-mini-kaboom';
-const JILL_BRAIN_VER = 'v29-modules-mini-kaboom';
+const APP1_BUILD = '20260711-tts-no-punto';
+const JILL_BRAIN_VER = 'v30-tts-no-punto';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -3501,7 +3501,7 @@ ${JohnDoctrine.mandateBlock('alice')}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 
 ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic: daily life, fashion, food, travel, work, feelings, stories, news, hobbies — no limits.
-Free chat OR on-demand English doubt (explain → check → short practice). If they want a story, tell one fully. If they want opinions, share them.
+Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat). If they want a story, tell one fully. If they want opinions, share them.
 
 PERSONALITY: Warm, curious, human, never robotic. You sound like a friend in their ear 24/7.
 
@@ -3584,7 +3584,8 @@ const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Ali
 const ALICE_COMPANION_RULES = `COMPANION + LIVE COACH — always-on English companion (JOHN STYLE REQUIRED):
 - Talk, listen, guide, educate — ANY topic — but ALL teaching uses John/Nexus doctrine (Super Brain + canon). No improvising foreign methods.
 - Opening: free chat OR a class/English doubt.
-- LIVE COACH: if doubt OR weak structure → PAUSE → feedback → explain (John pace) → example → confirm → continue.
+- ON-DEMAND MINI-LESSON: if they ask to explain/teach anything in English → FULL arc (name topic → pattern → bridge → 1–2 examples → confirm → short oral practice → back to chat). Not a one-liner tip. Not a forced curriculum.
+- LIVE COACH: if doubt OR weak structure → PAUSE → feedback → mini-lesson → example → confirm → continue.
 - Real-time evaluate every English turn. Never ignore broken structure.
 - Never force Nexus drill sheets or Nexora roleplay.
 - Complete every sentence. No turn quota.`;
@@ -4391,7 +4392,7 @@ ${INSTITUTIONAL_BRAIN_RULE}
 ${JohnDoctrine.mandateBlock('alice')}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
-Free chat OR on-demand English doubt (explain → check → short practice). If they want a story — tell it fully. If they want opinions — share them.
+Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat). If they want a story — tell it fully. If they want opinions — share them.
 ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
@@ -4582,14 +4583,18 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     // English islands (can / should / I go…) must use EN — otherwise ElevenLabs reads them as Spanish.
     // Spanish → es-CR cache key + LatAm seseo (no Spain ceceo).
     const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
-    // Jill: calma con flujo normal (ni atropellada ni lenta)
+    // Jill: calma con flujo normal; EN islands más estables (menos pitch raro en have/he)
     const speed = (languageCode === 'en') ? 0.98 : 0.94;
+    const isEn = languageCode === 'en';
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode,
-      speed
+      speed,
+      stability: isEn ? 0.68 : 0.58,
+      similarityBoost: isEn ? 0.75 : 0.78,
+      style: isEn ? 0.04 : 0.08
     });
   } catch (err) {
     console.error('Jill TTS error:', err.message);
