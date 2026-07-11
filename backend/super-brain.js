@@ -765,6 +765,42 @@ async function ingestFromDrillFailure({ studentName, category, categoryLabel, kp
   });
 }
 
+/** Promote recent DEMO-KB-* session insights into Super Brain pending/published lessons. */
+async function promoteDemoKb({ days = 14, autoPublish = false } = {}) {
+  if (!isSuperBrainEnabled() || !_sbGetOne) return { ok: false, error: 'disabled' };
+  const n = Math.max(1, Math.min(60, Number(days) || 14));
+  const state = await loadState();
+  let promoted = 0;
+  const items = [];
+  for (let i = 0; i < n; i++) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - i);
+    const day = d.toISOString().slice(0, 10);
+    const kbId = 'DEMO-KB-' + day;
+    try {
+      const row = await _sbGetOne('infinity_sessions', kbId);
+      const entries = row?.data?.entries || [];
+      for (const e of entries.slice(0, 20)) {
+        const text = String(e.text || e.summary || e.note || '').trim();
+        if (text.length < 40) continue;
+        const title = `Demo insight · ${day} · ${String(e.author || e.studentName || 'visitor').slice(0, 40)}`;
+        const r = await ingest(state, {
+          title,
+          content: text.slice(0, 4000),
+          author: 'Demo KB promote',
+          category: 'demo-insight',
+          autoPublish: !!autoPublish,
+          source: 'demo-kb-promote',
+          meta: { day, kbId }
+        });
+        promoted += 1;
+        items.push({ title, published: !!r.published });
+      }
+    } catch (_) { /* next */ }
+  }
+  return { ok: true, promoted, items: items.slice(0, 30), pendingCount: (state.pendingLessons || []).length };
+}
+
 module.exports = {
   initSuperBrain,
   isSuperBrainEnabled,
@@ -783,6 +819,7 @@ module.exports = {
   publicSummary,
   appendNexusKB,
   ingestFromDrillFailure,
+  promoteDemoKb,
   deletePublishedLesson,
   purgeNoiseLessons,
   lessonQualityScore,

@@ -236,6 +236,7 @@ const SuperBrain = require('./super-brain');
 const JillDrillBrain = require('./jill-drill-brain');
 const InfinityVictory = require('./infinity-victory');
 const JohnDoctrine = require('./john-teaching-doctrine');
+const SharedLearner = require('./shared-learner');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
@@ -703,7 +704,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-canon-router';
+const APP1_BUILD = '20260711-superbrain-full';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2350,8 +2351,9 @@ async function prepareNexoraRequest(body, req) {
   }
   const hist = (history || []).slice(-14);
   const msgs = buildTutorChatMessages(hist, message, 14);
-  const brainSlice = await tutorKnowledgeSliceFast(msgStr);
-  const finalPrompt = brainSlice ? `${prompt}${brainSlice}` : prompt;
+  const brainSlice = await tutorKnowledgeSliceFast(msgStr, student);
+  const learnerNote = SharedLearner.buildSharedLearnerNote(student);
+  const finalPrompt = [prompt, brainSlice, learnerNote].filter(Boolean).join('');
   return { systemPrompt: finalPrompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
 }
 
@@ -3084,6 +3086,8 @@ async function persistStudentLearningState(student) {
       data.aiProfile.learningPrefs = student.aiProfile.learningPrefs;
     }
     if (student.jillCalibration) data.jillCalibration = student.jillCalibration;
+    if (student.sharedLearner) data.sharedLearner = student.sharedLearner;
+    if (student.quizWeakKpis) data.quizWeakKpis = student.quizWeakKpis;
     await sbSet('infinity_students', student.id, data);
   } catch (e) {
     console.warn('persistStudentLearningState:', e.message);
@@ -3107,8 +3111,10 @@ function buildStudyAdaptationNote(student, message) {
     parts.push(`Calibration route saved: ${cal.route.summary}`);
     if (cal.route.weakKpis?.length) parts.push(`Prioritize KPIs from calibration: ${cal.route.weakKpis.join(', ')}.`);
   }
+  const shared = SharedLearner.buildSharedLearnerNote(student);
+  if (shared) parts.push(shared.trim());
   if (!parts.length) return '';
-  return `\nADAPTATION (same brain, different delivery — prefs + calibration memory):\n${parts.map((p) => `- ${p}`).join('\n')}`;
+  return `\nADAPTATION (same brain, different delivery — prefs + calibration + shared learner):\n${parts.map((p) => `- ${p}`).join('\n')}`;
 }
 
 function loadJsonFromConfig(name) {
@@ -3253,6 +3259,16 @@ async function finalizeJillEvaluation(student, evaluation, hist) {
     } catch (e) {
       console.warn('jill trainer insight:', e.message);
     }
+  }
+  if (student && evaluation) {
+    SharedLearner.recordEvent(student, {
+      source: 'jill',
+      kind: 'session_eval',
+      score: evaluation.overall_score != null ? evaluation.overall_score : null,
+      topics: evaluation.weak_areas || evaluation.improvements || [],
+      summary: String(evaluation.main_improvement || evaluation.jill_message || '').slice(0, 200)
+    });
+    persistStudentLearningState(student).catch(() => {});
   }
   const payload = { evaluation };
   if (trainerInsight) {
@@ -3494,7 +3510,7 @@ RESPONSE STYLE:
 - Unlimited flowing conversation — no turn caps
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
-${await tutorKnowledgeSlice(message)}`
+${await tutorKnowledgeSlice(message, student, 'alice')}`
       : `You are Alice, a warm, patient, and encouraging English tutor. You love helping people and you never rush.
 ${INSTITUTIONAL_BRAIN_RULE}
 
@@ -3519,7 +3535,7 @@ RESPONSE STYLE:
 - One flowing spoken turn — prefer commas over heavy periods; no ellipses or dramatic pauses
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
-EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message)}`;
+EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'alice')}`;
 
     const msgs = buildTutorChatMessages(history, message, 20);
 
@@ -4223,68 +4239,55 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
   }
 });
 
-async function tutorKnowledgeSlice(message) {
+async function tutorKnowledgeSlice(message, student, tutor) {
+  const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+  const learner = SharedLearner.buildSharedLearnerNote(student);
+  const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(600).catch(() => '');
+  const drillStudent = student && who === 'jill' ? JillDrillBrain.getStudentDrillNote(student) : '';
   if (!SuperBrain.isSuperBrainEnabled()) {
-    return JohnDoctrine.wrapKnowledgeSlice('', 'alice');
+    const merged = [drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    return JohnDoctrine.wrapKnowledgeSlice(
+      merged ? `LEARNER + DRILL BRAIN:\n${merged}` : '',
+      who === 'jill' ? 'jill' : 'alice'
+    );
   }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
-    return JohnDoctrine.wrapKnowledgeSlice(
-      ctx.trim()
-        ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by ALL Infinity AIs):\nPROACTIVE RULE: Use John/Nexus canon doctrine every teaching turn when it fits.\n${ctx}`
-        : '',
-      'alice'
-    );
+    let body = ctx.trim()
+      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Use John/Nexus canon doctrine every teaching turn when it fits.\n${ctx}`
+      : '';
+    if (who === 'jill' && body) body = filterJillSuperBrainContext(body);
+    const extras = [drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    if (extras) body = [body, extras].filter(Boolean).join('\n\n');
+    return JohnDoctrine.wrapKnowledgeSlice(body, who === 'jill' ? 'jill' : 'alice');
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice('', 'alice');
+    return JohnDoctrine.wrapKnowledgeSlice(learner || '', who === 'jill' ? 'jill' : 'alice');
   }
 }
 
-async function tutorKnowledgeSliceFast(message) {
+async function tutorKnowledgeSliceFast(message, student, tutor) {
   try {
     return await Promise.race([
-      tutorKnowledgeSlice(message),
-      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('alice')), 350))
+      tutorKnowledgeSlice(message, student, tutor),
+      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice') + (SharedLearner.buildSharedLearnerNote(student) || '')), 800))
     ]);
   } catch {
-    return JohnDoctrine.mandateBlock('alice');
+    return JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice');
   }
 }
 
 async function tutorKnowledgeSliceForJill(message, student) {
-  if (!SuperBrain.isSuperBrainEnabled()) {
-    const drillOnly = student ? JillDrillBrain.getStudentDrillNote(student) : '';
-    const propagated = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
-    const merged = [drillOnly, propagated].filter(Boolean).join('\n');
-    return JohnDoctrine.wrapKnowledgeSlice(
-      merged ? `DRILL BRAIN (cascada tutores):\n${merged}` : '',
-      'jill'
-    );
-  }
-  try {
-    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 300), 2200);
-    const filtered = filterJillSuperBrainContext(ctx);
-    const drillStudent = student ? JillDrillBrain.getStudentDrillNote(student) : '';
-    const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(700).catch(() => '');
-    const drillBlock = [drillStudent, drillGlobal].filter(Boolean).join('\n');
-    const body = [
-      filtered ? `INSTITUTIONAL KNOWLEDGE (Super Brain — Jill MSI® filter):\nPROACTIVE RULE: MSI® only — P|M|V|C, método moneda, chunks estructurales. NO linker chains.\n${filtered}` : '',
-      drillBlock
-    ].filter(Boolean).join('\n\n');
-    return JohnDoctrine.wrapKnowledgeSlice(body, 'jill');
-  } catch {
-    return JohnDoctrine.wrapKnowledgeSlice('', 'jill');
-  }
+  return tutorKnowledgeSlice(message, student, 'jill');
 }
 
 async function tutorKnowledgeSliceForJillFast(message, student) {
   try {
     return await Promise.race([
       tutorKnowledgeSliceForJill(message, student),
-      new Promise((resolve) => setTimeout(() => resolve(''), 350))
+      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('jill') + (SharedLearner.buildSharedLearnerNote(student) || '')), 800))
     ]);
   } catch {
-    return '';
+    return JohnDoctrine.mandateBlock('jill');
   }
 }
 
@@ -4346,7 +4349,7 @@ ${aliceLangTurn}
 ${methodBlock}
 2-8 sentences as needed. Complete every sentence and story. NEVER cut off. Unlimited flowing conversation.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
-${sceneNote}${await tutorKnowledgeSliceFast(message)}`
+${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}`
       : `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
 ${INSTITUTIONAL_BRAIN_RULE}
 ROLE: Tutor for Intermediate and Advanced students (ORT track) at Infinity Studio CR — not Alice Companion.
@@ -4359,7 +4362,7 @@ ${methodBlock}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message)}${TUTOR_LATENCY_RULE}`;
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}${TUTOR_LATENCY_RULE}`;
     const msgs = buildTutorChatMessages(history, message, 20);
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
@@ -4719,6 +4722,137 @@ app.post('/jill/ingest-teaching', requireTeacherAccess, async (req, res) => {
   } catch (err) {
     console.error('jill/ingest-teaching:', err.message);
     return res.status(500).json({ error: 'Ingesta de doctrina falló', detail: err.message });
+  }
+});
+
+/** Master-secret wrappers so A.D.A.M. Engine can feed class audio/images without JWT. */
+async function imageToTeachingDoctrine(imageB64, mime, meta = {}) {
+  const fallback = {
+    title: `Doctrina visual · ${(meta.source || 'imagen').slice(0, 60)}`,
+    category: 'metodologia',
+    content: 'Imagen de enseñanza recibida — no se pudo analizar sin Anthropic.'
+  };
+  if (!process.env.ANTHROPIC_API_KEY || !imageB64) return fallback;
+  try {
+    const mediaType = String(mime || 'image/png').split(';')[0];
+    const resp = await claudeCall({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1200,
+      system: `Sos el editor pedagógico de Infinity Studio CR (John Ramírez · Nexus · MSI®).
+Analizás una imagen de clase/pizarra/material y la convertís en doctrina institucional para Jill/Alice/Nexora.
+Respondé SOLO JSON válido.`,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: String(imageB64).replace(/^data:[^;]+;base64,/, '') }
+          },
+          {
+            type: 'text',
+            text: `Extraé la enseñanza de esta imagen (fórmulas, ranuras, ejemplos, errores).
+Devolvé JSON: {"title":"...","category":"metodologia|jill-foundations|conectores|ejercicios|errores","content":"DOCTRINA + REGLA/ESTRUCTURA + EJEMPLO EN + EJERCICIO + CORRECCIÓN TÍPICA"}`
+          }
+        ]
+      }]
+    });
+    const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    return {
+      title: String(parsed.title || fallback.title).slice(0, 120),
+      category: parsed.category || 'metodologia',
+      content: String(parsed.content || '').slice(0, 11000) || fallback.content
+    };
+  } catch (e) {
+    console.warn('imageToTeachingDoctrine:', e.message);
+    return fallback;
+  }
+}
+
+app.post('/super-brain/class-transcript', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const transcript = String(req.body?.transcript || '').trim();
+    if (!transcript) return res.status(400).json({ error: 'Falta transcript' });
+    const meta = req.body?.meta || {};
+    const out = await JillClassAnalyzer.analyzeClassTranscript(transcript, { meta });
+    return res.json({ ok: true, ...out, source: 'class-brain' });
+  } catch (err) {
+    console.error('super-brain/class-transcript:', err.message);
+    return res.status(500).json({ error: 'Class analysis failed', detail: err.message });
+  }
+});
+
+app.post('/super-brain/ingest-teaching', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const transcript = String(req.body?.transcript || '').trim();
+    if (transcript.length < 20) return res.status(400).json({ error: 'Pegá la transcripción (mínimo 20 caracteres).' });
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const meta = { source: String(req.body?.source || 'engine-transcript').slice(0, 120) };
+    const doctrine = await transcriptToTeachingDoctrine(transcript, meta);
+    const state = await SuperBrain.loadState();
+    const out = await SuperBrain.ingest(state, {
+      title: doctrine.title,
+      content: doctrine.content,
+      author: String(req.body?.author || 'John Ramírez').slice(0, 80),
+      category: doctrine.category,
+      autoPublish: !req.body?.review,
+      source: 'engine-teaching-transcript',
+      meta
+    });
+    return res.json({
+      ok: true,
+      published: out.published,
+      title: doctrine.title,
+      preview: doctrine.content.slice(0, 400),
+      lessonId: out.lesson?.id || out.pending?.id || null
+    });
+  } catch (err) {
+    console.error('super-brain/ingest-teaching:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/super-brain/ingest-image', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const imageB64 = String(req.body?.imageB64 || '').trim();
+    if (imageB64.length < 80) return res.status(400).json({ error: 'Falta imageB64' });
+    const doctrine = await imageToTeachingDoctrine(imageB64, req.body?.mime || 'image/png', {
+      source: req.body?.source || 'engine-image'
+    });
+    const state = await SuperBrain.loadState();
+    const out = await SuperBrain.ingest(state, {
+      title: doctrine.title,
+      content: doctrine.content,
+      author: String(req.body?.author || 'John Ramírez').slice(0, 80),
+      category: doctrine.category,
+      autoPublish: !req.body?.review,
+      source: 'engine-teaching-image'
+    });
+    return res.json({
+      ok: true,
+      published: out.published,
+      title: doctrine.title,
+      preview: doctrine.content.slice(0, 400),
+      lessonId: out.lesson?.id || out.pending?.id || null
+    });
+  } catch (err) {
+    console.error('super-brain/ingest-image:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/super-brain/promote-demo', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const out = await SuperBrain.promoteDemoKb({
+      days: req.body?.days || 14,
+      autoPublish: !!req.body?.autoPublish
+    });
+    return res.json(out);
+  } catch (err) {
+    console.error('super-brain/promote-demo:', err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -5228,6 +5362,11 @@ YOUR ROLE:
 
     const msgs = buildTutorChatMessages(history, message, 14);
 
+    const brainSlice = await tutorKnowledgeSliceFast(msgStr, scopedStudent, 'nexora');
+    const learnerNote = SharedLearner.buildSharedLearnerNote(scopedStudent);
+    if (brainSlice) systemPrompt += brainSlice;
+    if (learnerNote) systemPrompt += learnerNote;
+
     const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}${isOpening ? ':opening-v2' : ''}`);
     const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);
     if (brain.hit) {
@@ -5358,8 +5497,16 @@ Respond ONLY with valid JSON, no markdown:
         transferred: !!transferred,
         scenarioTitle: scenario?.title || ''
       });
+      SharedLearner.recordEvent(student, {
+        source: 'nexora',
+        kind: 'sim_eval',
+        score: ev.overall_score != null ? ev.overall_score : null,
+        topics: [].concat(ev.improvements || [], ev.connectors_missed || []).slice(0, 8),
+        summary: String(ev.verdict || '').slice(0, 200)
+      });
       await sbSet('infinity_students', student.id, student);
       ev.aliceVictory = student.aliceVictory;
+      ev.sharedLearner = student.sharedLearner;
     }
 
     return res.json(ev);

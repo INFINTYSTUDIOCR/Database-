@@ -5492,7 +5492,7 @@ function renderSuperBrain(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
   m.innerHTML = '<div class="fade">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:0.5rem;"><i class="ti ti-brain"></i> A.D.A.M. · Nexus KB</h2>'
-    +'<div class="ib ib-navy">Un solo lugar: conversá con A.D.A.M., subí texto o archivos (bulk), importá TikTok, revisá pendientes y publicá a Jill/Alice.</div>'
+    +'<div class="ib ib-navy">Un solo lugar: conversá con A.D.A.M., subí texto o archivos (bulk), importá TikTok/clases, revisá pendientes y publicá a Jill/Alice/Nexora.</div>'
     +'<div id="sb-db-status" class="ib ib-amber" style="margin-top:8px;">Conectando a base de datos...</div>'
     +'<div style="display:grid;grid-template-columns:1fr minmax(300px,380px);gap:14px;margin-top:12px;align-items:start;">'
     +'<div style="background:linear-gradient(160deg,#1e1035 0%,#2d1b4e 100%);border-radius:16px;padding:16px;border:1px solid rgba(192,132,252,0.25);">'
@@ -5538,6 +5538,20 @@ function renderSuperBrain(m){
     +'<textarea class="inp" id="sb-tiktok-urls" placeholder="URLs de videos (una por línea) — sin OAuth" style="min-height:48px;font-size:11px;"></textarea>'
     +'<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="sb-tiktok-force" style="accent-color:var(--purple);"> Forzar reimportación</label>'
     +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="tiktokJillImportUrls()"><i class="ti ti-download"></i>Importar URLs</button>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-school"></i>Clase de John → Super Brain</div>'
+    +'<div class="ib ib-amber" style="font-size:11px;margin-bottom:8px;">Pegá transcripción de clase, o subí foto de pizarra/material. Se convierte en doctrina y alimenta Jill + Alice + Nexora.</div>'
+    +'<textarea class="inp" id="sb-class-transcript" placeholder="Pegá transcripción de clase / TikTok / explicación tuya…" style="min-height:90px;font-size:12px;"></textarea>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
+    +'<button class="btn btn-outline btn-sm" onclick="superBrainAnalyzeClass()"><i class="ti ti-search"></i>Analizar fallos</button>'
+    +'<button class="btn btn-navy btn-sm" onclick="superBrainIngestTeaching(false)"><i class="ti ti-broadcast"></i>Publicar doctrina</button>'
+    +'<button class="btn btn-outline btn-sm" onclick="superBrainIngestTeaching(true)"><i class="ti ti-inbox"></i>Guardar pendiente</button>'
+    +'</div>'
+    +'<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;"><i class="ti ti-photo"></i> Imagen pizarra<input type="file" id="sb-class-image" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="superBrainIngestClassImage(this)"></label>'
+    +'<button class="btn btn-outline btn-sm" onclick="superBrainPromoteDemo()"><i class="ti ti-database-import"></i>Promover DEMO-KB</button>'
+    +'</div>'
+    +'<div id="sb-class-status" style="font-size:11px;color:var(--t2);margin-top:8px;"></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-hourglass"></i>Pendiente de publicar</div>'
     +'<div id="sb-pending-list" style="font-size:12px;color:var(--t2);">—</div></div>'
@@ -5883,6 +5897,89 @@ async function superBrainIngest(publishNow){
     await logAction(publishNow?'A.D.A.M. publicó':'A.D.A.M. ingest', (title||content).slice(0,80));
     superBrainRefresh();
   }catch(e){ showToast(e.message,'err'); }
+}
+
+async function superBrainAnalyzeClass(){
+  var st = document.getElementById('sb-class-status');
+  var transcript = (document.getElementById('sb-class-transcript')||{}).value || '';
+  if(String(transcript).trim().length < 20){ showToast('Pegá más texto de la clase','err'); return; }
+  if(st) st.textContent = 'Analizando fallos estructurales…';
+  try{
+    var data = await superBrainFetch('/super-brain/class-transcript', {
+      method:'POST',
+      body: JSON.stringify({ transcript: transcript, secret: SUPER_BRAIN_SECRET, meta: { source: 'engine-ui' } })
+    });
+    if(st) st.textContent = 'Análisis OK · hallazgos: ' + ((data.findings && data.findings.length) || data.findingCount || 0) + ' · cascada Super Brain activa';
+    showToast('Clase analizada — refuerzos al cerebro');
+    superBrainRefresh();
+  }catch(e){ if(st) st.textContent = e.message; showToast(e.message,'err'); }
+}
+
+async function superBrainIngestTeaching(review){
+  var st = document.getElementById('sb-class-status');
+  var transcript = (document.getElementById('sb-class-transcript')||{}).value || '';
+  if(String(transcript).trim().length < 20){ showToast('Pegá la transcripción (mín. 20 chars)','err'); return; }
+  if(st) st.textContent = review ? 'Guardando pendiente…' : 'Publicando doctrina…';
+  try{
+    var data = await superBrainFetch('/super-brain/ingest-teaching', {
+      method:'POST',
+      body: JSON.stringify({
+        transcript: transcript,
+        secret: SUPER_BRAIN_SECRET,
+        author: (SESSION && SESSION.name) || 'John Ramírez',
+        review: !!review,
+        source: 'engine-class'
+      })
+    });
+    if(st) st.textContent = (data.published ? 'Publicado: ' : 'Pendiente: ') + (data.title || '');
+    showToast(data.published ? 'Doctrina publicada a Jill/Alice/Nexora' : 'Doctrina en pendiente');
+    superBrainRefresh();
+  }catch(e){ if(st) st.textContent = e.message; showToast(e.message,'err'); }
+}
+
+function superBrainIngestClassImage(input){
+  var file = input && input.files && input.files[0];
+  if(!file) return;
+  var st = document.getElementById('sb-class-status');
+  if(st) st.textContent = 'Leyendo imagen…';
+  var reader = new FileReader();
+  reader.onload = async function(){
+    try{
+      var dataUrl = String(reader.result || '');
+      var b64 = dataUrl.split(',')[1] || '';
+      if(st) st.textContent = 'Extrayendo doctrina de la imagen…';
+      var data = await superBrainFetch('/super-brain/ingest-image', {
+        method:'POST',
+        body: JSON.stringify({
+          imageB64: b64,
+          mime: file.type || 'image/png',
+          secret: SUPER_BRAIN_SECRET,
+          author: (SESSION && SESSION.name) || 'John Ramírez',
+          review: false,
+          source: file.name || 'pizarra'
+        })
+      });
+      if(st) st.textContent = (data.published ? 'Publicado: ' : 'Pendiente: ') + (data.title || '');
+      showToast('Imagen → doctrina lista');
+      superBrainRefresh();
+    }catch(e){ if(st) st.textContent = e.message; showToast(e.message,'err'); }
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function superBrainPromoteDemo(){
+  var st = document.getElementById('sb-class-status');
+  if(st) st.textContent = 'Promoviendo DEMO-KB (14 días)…';
+  try{
+    var data = await superBrainFetch('/super-brain/promote-demo', {
+      method:'POST',
+      body: JSON.stringify({ days: 14, autoPublish: false, secret: SUPER_BRAIN_SECRET })
+    });
+    if(st) st.textContent = 'Promovidos: ' + (data.promoted || 0) + ' · pendientes: ' + (data.pendingCount || '—');
+    showToast((data.promoted || 0) + ' insights de demo → Super Brain');
+    superBrainRefresh();
+  }catch(e){ if(st) st.textContent = e.message; showToast(e.message,'err'); }
 }
 
 async function superBrainPublishPending(id){
