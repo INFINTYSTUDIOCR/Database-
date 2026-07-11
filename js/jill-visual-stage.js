@@ -127,6 +127,21 @@
     }
   }
 
+  function slotLabels(columnId) {
+    if (typeof JillLessonClip !== 'undefined' && JillLessonClip.getClip) {
+      var clip = JillLessonClip.getClip(columnId);
+      if (clip && clip.slots && clip.slots.length) {
+        return clip.slots.map(function (s) {
+          return { label: s.label || ('Ranura ' + s.id), hint: s.hint || '', id: s.id };
+        });
+      }
+    }
+    var n = zoneCount(columnId);
+    var out = [];
+    for (var i = 0; i < n; i++) out.push({ label: 'Ranura ' + (i + 1), hint: '', id: i + 1 });
+    return out;
+  }
+
   function zoneCount(columnId) {
     if (typeof JillLessonClip !== 'undefined' && JillLessonClip.getClip) {
       var clip = JillLessonClip.getClip(columnId);
@@ -140,11 +155,26 @@
     return 3;
   }
 
-  function interactOverlayHtml(columnId) {
-    var zones = zoneCount(columnId);
-    var html = '<div class="jill-svg-interact" data-track="' + String(columnId || '') + '">';
-    for (var i = 0; i < zones; i++) {
-      html += '<button type="button" class="jill-svg-hotspot" data-step="' + i + '" aria-label="Zona ' + (i + 1) + '"></button>';
+  function escHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** Botones de ranura con etiqueta — nunca vacíos. */
+  function interactOverlayHtml(columnId, opts) {
+    opts = opts || {};
+    var labels = slotLabels(columnId);
+    var clipBound = !!opts.clipBound;
+    var html = '<div class="jill-svg-interact' + (clipBound ? ' is-clip-bound' : '') + '" data-track="' + escHtml(columnId || '') + '">';
+    for (var i = 0; i < labels.length; i++) {
+      var lab = labels[i];
+      html += '<button type="button" class="jill-svg-hotspot" data-step="' + i + '" data-slot="' + (lab.id || (i + 1)) + '"'
+        + ' aria-label="' + escHtml(lab.label) + '">'
+        + '<span class="jill-hotspot-label">' + escHtml(lab.label) + '</span>'
+        + (lab.hint ? '<span class="jill-hotspot-hint">' + escHtml(lab.hint) + '</span>' : '')
+        + '</button>';
     }
     html += '</div>';
     html += '<div class="jill-drill-ring" aria-hidden="true"><svg viewBox="0 0 36 36">'
@@ -156,8 +186,11 @@
 
   function paintTarget(spots, target) {
     for (var i = 0; i < spots.length; i++) {
-      spots[i].classList.remove('is-lit', 'is-ok', 'is-miss');
-      if (i === target) spots[i].classList.add('is-lit');
+      spots[i].classList.remove('is-lit', 'is-ok', 'is-miss', 'is-active');
+      if (i === target) {
+        spots[i].classList.add('is-lit');
+        if (spots[i].classList.contains('jill-clip-slot')) spots[i].classList.add('is-active');
+      }
     }
   }
 
@@ -184,11 +217,24 @@
     }, 520);
   }
 
+  function drillSpots(root) {
+    if (!root) return [];
+    var clipSlots = root.querySelectorAll('.jill-clip-slot');
+    if (clipSlots && clipSlots.length) return clipSlots;
+    var layer = root.querySelector('.jill-svg-interact');
+    if (!layer || layer.classList.contains('is-clip-bound')) {
+      return root.querySelectorAll('.jill-svg-hotspot');
+    }
+    return layer.querySelectorAll('.jill-svg-hotspot');
+  }
+
   function wireInteract(root, columnId) {
     if (!root) return;
-    var layer = root.querySelector('.jill-svg-interact');
-    if (!layer) return;
-    var spots = layer.querySelectorAll('.jill-svg-hotspot');
+    var spots = drillSpots(root);
+    if (!spots.length) {
+      var layer = root.querySelector('.jill-svg-interact');
+      if (layer) spots = layer.querySelectorAll('.jill-svg-hotspot');
+    }
     var challenge = { target: 0 };
     if (typeof JillCanonDrill !== 'undefined') {
       challenge = JillCanonDrill.start(columnId) || challenge;
@@ -211,7 +257,7 @@
           flashSpot(btn, !!result.ok);
           var next = (result.challenge && result.challenge.target != null) ? result.challenge.target : 0;
           setTimeout(function () {
-            paintTarget(spots, next);
+            paintTarget(drillSpots(root), next);
           }, 280);
           var snap = (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.snapshot)
             ? JillCanonDrill.snapshot()
@@ -225,14 +271,15 @@
     }
 
     stopPulse();
-    // Soft reminder pulse on the target only
     pulseTimer = setInterval(function () {
-      if (!active || !spots.length) return;
+      if (!active) return;
+      var live = drillSpots(root);
+      if (!live.length) return;
       var t = 0;
       if (typeof JillCanonDrill !== 'undefined' && JillCanonDrill.getChallenge) {
         t = JillCanonDrill.getChallenge().target || 0;
       }
-      paintTarget(spots, t);
+      paintTarget(live, t);
     }, 2400);
   }
 
@@ -252,35 +299,55 @@
 
     clearCaption();
 
-    function activate(html) {
+    function activate(html, clipBound) {
       if (typeof global.JillLessonClip !== 'undefined') {
         try { global.JillLessonClip.unmount(); } catch (e0) { /* ignore */ }
       }
-      media.innerHTML = (html || '') + interactOverlayHtml(col);
+      media.innerHTML = (html || '') + interactOverlayHtml(col, { clipBound: !!clipBound });
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;
       currentColumn = col || null;
       requestFullscreen();
-      wireInteract(media, col);
       var host = media.querySelector('.jill-lesson-clip-host');
+      var mounted = false;
       if (host && typeof global.JillLessonClip !== 'undefined') {
         var clipId = host.getAttribute('data-clip') || col;
-        global.JillLessonClip.mount(host, clipId);
+        mounted = !!global.JillLessonClip.mount(host, clipId);
+        if (!mounted) {
+          var def = global.JillLessonClip.getClip ? global.JillLessonClip.getClip(clipId) : null;
+          var labs = slotLabels(col);
+          host.innerHTML = '<div class="jill-clip jill-clip-static" data-clip="' + String(clipId || col) + '">'
+            + '<p class="jill-clip-title">' + escHtml((def && def.title) || String(clipId || col)) + '</p>'
+            + (def && def.bridge ? '<p class="jill-clip-bridge">' + escHtml(def.bridge) + '</p>' : '')
+            + '<div class="jill-clip-row">' + labs.map(function (s, idx) {
+              return '<button type="button" class="jill-clip-slot" data-slot="' + (s.id || (idx + 1)) + '">'
+                + '<span class="jill-clip-slot-label">' + escHtml(s.label) + '</span>'
+                + (s.hint ? '<span class="jill-clip-slot-hint">' + escHtml(s.hint) + '</span>' : '')
+                + '</button>' + (idx < labs.length - 1 ? '<span class="jill-clip-plus">+</span>' : '');
+            }).join('') + '</div></div>';
+          mounted = true;
+        }
+        var overlay = media.querySelector('.jill-svg-interact');
+        if (overlay && mounted) overlay.classList.add('is-clip-bound');
       }
+      wireInteract(media, col);
     }
 
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col)) {
       activate(
         '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
-        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>'
+        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>',
+        true
       );
       return true;
     }
 
     if (typeof JillCanonVisual === 'undefined') {
       activate(
-        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#f3ebff;"></div>'
+        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#f3ebff;">'
+        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>',
+        false
       );
       return true;
     }
@@ -294,7 +361,8 @@
     }
 
     JillCanonVisual.loadConfig().then(function () {
-      activate(JillCanonVisual.renderStage(col, fallback));
+      var useClip = typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col);
+      activate(JillCanonVisual.renderStage(col, fallback), useClip);
     });
 
     return true;

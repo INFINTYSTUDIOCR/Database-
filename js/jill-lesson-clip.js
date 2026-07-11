@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711nexus';
+  var VERSION = '20260711align';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -557,11 +557,17 @@
     for (var i = 0; i < siblings.length; i++) {
       if (siblings[i] !== box) siblings[i].classList.remove('is-active');
     }
-    var media = root.closest('#jill-stage-media');
+    var media = root.closest('#jill-stage-media, #alice-stage-media');
     if (media) {
-      var spots = media.querySelectorAll('.jill-svg-hotspot');
+      var spots = media.querySelectorAll('.jill-svg-hotspot, .jill-clip-slot');
       for (var s = 0; s < spots.length; s++) {
-        spots[s].classList.toggle('is-lit', s === (n - 1));
+        var slotAttr = spots[s].getAttribute('data-slot');
+        var stepAttr = spots[s].getAttribute('data-step');
+        var match = slotAttr != null
+          ? (String(slotAttr) === String(n))
+          : (String(Number(stepAttr) + 1) === String(n));
+        spots[s].classList.toggle('is-lit', match);
+        spots[s].classList.toggle('is-active', match && spots[s].classList.contains('jill-clip-slot'));
       }
     }
   }

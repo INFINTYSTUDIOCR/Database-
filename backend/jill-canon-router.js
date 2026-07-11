@@ -124,24 +124,41 @@ function formatLock(track) {
   if (!track) return '';
   const never = (track.never || []).join('; ');
   const antiMix = [];
-  if (track.id === 'past') {
-    antiMix.push(
+  const locks = {
+    past: [
       'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
       'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio, "I have worked", "had done", "he/ha/había + participio".',
       'SOLO enseñá: pronombre + verbo en pasado (worked / went / saw) + complemento (yesterday / ago / last…).',
       'El tablero del estudiante muestra PASADO SIMPLE — tu voz DEBE coincidir palabra por palabra con ese tablero. Cero contraste con perfecto en este turno.'
-    );
-  } else if (track.id === 'perfect') {
-    antiMix.push(
+    ],
+    perfect: [
       'ANTIMEZCLA OBLIGATORIA — PERFECTO (have/has/had + participio):',
       'PROHIBIDO enseñar esto como pasado simple (worked yesterday / went).',
       'Si es pasado perfecto: had + participio. Si es presente perfecto: have/has + participio. Nunca verbos en -ed sueltos como si fueran PS.'
-    );
-  } else if (track.id === 'present') {
-    antiMix.push('ANTIMEZCLA: presente simple — no mezcles con pasado simple ni perfecto ni continuo.');
-  } else if (track.id === 'progressive') {
-    antiMix.push('ANTIMEZCLA: presente continuo (am/is/are + ING) — no lo mezcles con gerundio suelto ni con perfecto continuo.');
-  }
+    ],
+    present: ['ANTIMEZCLA: presente simple — no mezcles con pasado simple ni perfecto ni continuo.'],
+    progressive: ['ANTIMEZCLA: presente continuo (am/is/are + ING) — no lo mezcles con gerundio suelto ni con perfecto continuo.'],
+    future: ['ANTIMEZCLA: futuro will/going to — no mezcles con presente ni perfecto.'],
+    modales: ['ANTIMEZCLA: modales (can/could/should/must…) — no mezcles con will futuro ni con have + participio.'],
+    modal: ['ANTIMEZCLA: moneda (AUX delante) — no mezcles con negaciones ni con tiempos compuestos.'],
+    negations: ['ANTIMEZCLA: negaciones AUX + NOT — no enseñes otro tiempo; solo la mecánica de la negación.'],
+    there: ['ANTIMEZCLA: there is/are — no lo confundas con have (posesión) ni con it is.'],
+    gerundio: ['ANTIMEZCLA: gerundio — no lo mezcles con presente continuo (to be + ING).'],
+    gerund_prep: ['ANTIMEZCLA: gerundio después de preposición — no lo mezcles con to + infinitivo genérico.'],
+    combined: ['ANTIMEZCLA: have/has been + ING — no lo reduzcas a presente continuo ni a perfecto simple.'],
+    modal_have_pp: ['ANTIMEZCLA: modal + have + participio — no lo mezcles con pasado simple ni con have been + ING.'],
+    modal_have_been: ['ANTIMEZCLA: modal + have been + ING — no lo mezcles con modal + have + participio solo.'],
+    prepositions: ['ANTIMEZCLA: preposiciones in/on/at — quédate en este módulo.'],
+    prepositions_time: ['ANTIMEZCLA: preposiciones de tiempo — quédate en este módulo.'],
+    articles: ['ANTIMEZCLA: artículos a/an/the — quédate en este módulo.'],
+    comparatives: ['ANTIMEZCLA: comparativos — quédate en este módulo.'],
+    irregular_verbs: ['ANTIMEZCLA: irregulares go/went/gone — no desvíes a otro tiempo sin pedir.'],
+    have_had: ['ANTIMEZCLA: have/had — no lo mezcles con perfecto continuo.'],
+    if_was_were: ['ANTIMEZCLA: if I was/were — quédate en este módulo.'],
+    overview: ['ANTIMEZCLA: overview de tiempos — contrastá solo para ubicar; no desvíes la práctica a un solo tiempo sin decir cuál.']
+  };
+  if (locks[track.id]) antiMix.push(...locks[track.id]);
+  else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". No cambies de módulo.');
   return [
     'JILL DJ — TRACK LOCK DURO (el tablero del portal muestra ESTE módulo — tu explicación DEBE ser el mismo)',
     `Track id: ${track.id}`,
@@ -153,7 +170,7 @@ function formatLock(track) {
     ...antiMix,
     'VOZ: decí ranuras en español (pronombre/modal/verbo/complemento). VERBO+ING = "verbo más I N G". Paradigmas con pausa (go. went. gone.).',
     'ESTILO JOHN: paciencia + flujo normal. Fórmula + bridge + 1 analogía. Sin improvisar otro tiempo/módulo.',
-    'Hablás exactamente lo que se ve en el tablero. Cero "además te explico el perfecto" si el lock es otro.',
+    'Hablás exactamente lo que se ve en el tablero. Cero "además te explico otro módulo" si el lock es este.',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

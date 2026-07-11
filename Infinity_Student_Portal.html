@@ -34,11 +34,11 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711speak"></script>
-<script src="js/jill-canon-router.js?v=20260711lock"></script>
+<script src="js/jill-canon-router.js?v=20260711align"></script>
 <script src="js/jill-canon-visual.js?v=20260711nexus"></script>
 <script src="js/jill-canon-drill.js?v=20260711nexus"></script>
-<script src="js/jill-lesson-clip.js?v=20260711nexus"></script>
-<script src="js/jill-visual-stage.js?v=20260711nexus"></script>
+<script src="js/jill-lesson-clip.js?v=20260711align"></script>
+<script src="js/jill-visual-stage.js?v=20260711align"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -134,22 +134,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     background:linear-gradient(to top,rgba(49,46,129,0.18),transparent 70%);
   }
   .jill-svg-hotspot{
-    flex:1;height:36px;margin:0;padding:0;border:0;border-radius:10px;
-    background:rgba(255,255,255,0.55);cursor:pointer;pointer-events:auto;
+    flex:1;min-height:44px;height:auto;margin:0;padding:8px 6px;border:0;border-radius:10px;
+    background:rgba(255,255,255,0.88);cursor:pointer;pointer-events:auto;
     box-shadow:inset 0 0 0 1px rgba(124,58,237,0.25);
     transition:box-shadow .25s ease, background .25s ease, transform .15s ease;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    color:#312e81;font-family:inherit;
   }
+  .jill-hotspot-label{display:block;font-size:11px;font-weight:800;line-height:1.15;text-align:center;}
+  .jill-hotspot-hint{display:block;font-size:9px;font-weight:600;opacity:.75;text-align:center;line-height:1.1;}
+  .jill-svg-interact.is-clip-bound{display:none!important;}
   .jill-svg-hotspot.is-lit{
-    background:rgba(167,139,250,0.55);
+    background:rgba(167,139,250,0.75);
     box-shadow:inset 0 0 0 2px #7c3aed, 0 0 14px rgba(124,58,237,0.45);
     transform:translateY(-2px);
+    color:#1e1b4b;
   }
   .jill-svg-hotspot.is-ok{
-    background:rgba(52,211,153,0.55)!important;
+    background:rgba(52,211,153,0.65)!important;
     box-shadow:inset 0 0 0 2px #34d399, 0 0 14px rgba(52,211,153,0.45)!important;
   }
   .jill-svg-hotspot.is-miss{
-    background:rgba(248,113,113,0.45)!important;
+    background:rgba(248,113,113,0.55)!important;
     box-shadow:inset 0 0 0 2px #f87171, 0 0 14px rgba(248,113,113,0.4)!important;
   }
   .jill-drill-ring{
@@ -206,6 +212,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
   .jill-clip-slot[data-slot="2"]{
     background:linear-gradient(180deg,#F59E0B,#D97706);
+  }
+  .jill-clip-slot[data-slot="3"]{
+    background:linear-gradient(180deg,#38BDF8,#0284C7);
   }
   .jill-clip-slot[data-slot="4"]{
     background:linear-gradient(180deg,#34D399,#059669);
