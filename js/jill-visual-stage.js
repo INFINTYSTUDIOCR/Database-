@@ -142,10 +142,13 @@
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    // Track already resolved → always show formula + exercise board
+    // Any resolved track → show formula + exercise sentences
     if (forcedColumn) return true;
     if (contentType === 'whiteboard' || contentType === 'exercise' || contentType === 'example') return true;
-    if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
+    // Teach language in reply or ask → open board for that module
+    if (isExplainTurn(contentType, text, userTopic, tutor)) {
+      if (forcedColumn || resolveColumn(text, bundle, userTopic, tutor)) return true;
+    }
     return !!resolveColumn(text, bundle, userTopic, tutor);
   }
 

@@ -37,8 +37,8 @@
 <script src="js/jill-canon-router.js?v=20260711clean"></script>
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
-<script src="js/jill-lesson-clip.js?v=20260711ex2"></script>
-<script src="js/jill-visual-stage.js?v=20260711ex2"></script>
+<script src="js/jill-lesson-clip.js?v=20260711all"></script>
+<script src="js/jill-visual-stage.js?v=20260711all"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -4523,21 +4523,61 @@ function jillResolveCanonTrack(userText, replyText) {
   return null;
 }
 
+/** Infer Foundations/Alice teach track from what Jill is saying — ALL modules, not only ING. */
+function jillInferTeachTrack(text) {
+  var t = String(text || '');
+  if (!t.trim()) return null;
+  if (typeof JillCanonRouter !== 'undefined') {
+    if (JillCanonRouter.resolveAskId) {
+      var ask = JillCanonRouter.resolveAskId(t, (_jillState && _jillState.canonTrackId) || '');
+      if (ask) return ask;
+    }
+    if (JillCanonRouter.pickTrackId) {
+      var picked = JillCanonRouter.pickTrackId(t);
+      if (picked) return picked;
+    }
+  }
+  var low = t.toLowerCase();
+  // Order: more specific formulas first
+  if (/\bmust have been\b|\bshould have been\b|\bcould have been\b|\bmodal\b.*\bbeen\b.*\bing\b|\bhave been\s+\w+ing\b/i.test(low) && /\b(must|should|could|would|might)\b/i.test(low)) return 'modal_have_been';
+  if (/\bshould have\b|\bcould have\b|\bmust have\b|\bwould have\b|\bparticipio\b.*\bmodal|\bmodal\b.*\bparticipio/i.test(low)) return 'modal_have_pp';
+  if (/\bhave been\b|\bhas been\b|\bhad been\b|\bbeen\s+\w+ing\b|\bhe estado\b|\bhave\s*\+\s*been\s*\+\s*(ing|verbo)/i.test(low)) return 'combined';
+  if (/\bif i (was|were)\b|\bwas\/were\b|\bsegundo condicional|\bif\s+.*\bwere\b/i.test(low)) return 'if_was_were';
+  if (/\bhave\s*\.\s*has\s*\.\s*had\b|\bhave has had\b|\btres formas.*have|\bto have\b.*\bposes/i.test(low)) return 'have_had';
+  if (/\bgo\s*\.\s*went\s*\.\s*gone\b|\birregular|\bdo\s*\.\s*did\s*\.\s*done\b/i.test(low)) return 'irregular_verbs';
+  if (/\bthere (is|are|was|were)\b|\bhay\b.*\bthere\b|\bthere\s*\+\s*be\b/i.test(low)) return 'there';
+  if (/\bbefore \w+ing\b|\bafter \w+ing\b|\bwithout \w+ing\b|\bprep\b.*\bing\b|\bpreposici[oó]n\b.*\bing\b|\bgerundio.*prep/i.test(low)) return 'gerund_prep';
+  if (/\b(am|is|are|was|were)\s+\w+ing\b|\bpresente continuo\b|\bprogresiv|\bto be\b.*\b(verbo\s*)?\+?\s*ing\b|\bestar\b.*\bando/i.test(low)) return 'progressive';
+  if (/\bgerund|\bing\b.*\b(ando|endo|sustantivo)\b|\blando\s*\/\s*endo\b|\bverbo\s*\+\s*ing\b.*\bsin to be/i.test(low)) return 'gerundio';
+  if (/\bin\/on\/at\b|\bpreposici[oó]n(?:es)?\b.*\b(lugar|caja|superficie)|\bin the (box|room)|on the table|at (home|work)/i.test(low)) return 'prepositions';
+  if (/\bprep(?:osicion(?:es)?)?\b.*\btiempo|\bin march\b|\bon monday\b|\bat 5\b|\bin\/on\/at.*hora/i.test(low)) return 'prepositions_time';
+  if (/\bdon'?t\b|\bdoesn'?t\b|\bdidn'?t\b|\bnegaci|\baux(?:iliar)?\s*\+\s*not\b|\bi no work/i.test(low)) return 'negations';
+  if (/\bcomparativ|\bmore than\b|\b-er than\b|\bas \w+ as\b|\bsuperlativ/i.test(low)) return 'comparatives';
+  if (/\ba\/an\/the\b|\bart[ií]culo|\ba an the\b|\bindefinid|\bdefinid/i.test(low)) return 'articles';
+  if (/\bmoneda\b|\binversi[oó]n\b|\baux(?:iliar)?\b.*\bpregunta|\bdo you\b|\bis she\b/i.test(low)) return 'modal';
+  if (/\bwill\b|\bwould\b|\bshould\b|\bcan\b|\bcould\b|\bmodal|\b-r[eé]\b|\b-r[ií]a\b/i.test(low) && /\b(verbo base|auxiliar|modal|-r[eé]|-r[ií]a|puedo|deber)/i.test(low)) return 'modales';
+  if (/\bpresente perfecto\b|\bhave\/has\b|\bhave\s*\+\s*participio|\bhas\s+\w+ed\b|\bhave\s+(done|seen|gone|finished)/i.test(low)) return 'perfect';
+  if (/\bpasado simple\b|\byesterday\b|\blast (night|week|year)\b|\bago\b|\bworked\b|\bwent\b/i.test(low) && !/\bhave\b.*\bparticipio|\bperfecto/i.test(low)) return 'past';
+  if (/\bpresente simple\b|\bh[aá]bito\b|\bevery day\b|\bverbo\s*\+\s*s\b/i.test(low)) return 'present';
+  if (/\bfuturo\b|\bgoing to\b|\bwill\b.*\bma[nñ]ana|\btomorrow\b/i.test(low)) return 'future';
+  if (/\boverview\b|\bmapa de tiempos\b|\bpr\/ps\/pc\/prp\b/i.test(low)) return 'overview';
+  if (_jillState && _jillState.canonTrackId) return _jillState.canonTrackId;
+  return null;
+}
+
 function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
   var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
   var ct = contentType || 'text';
   var userAsk = jillLastUserTopic();
   var sticky = (_jillState && _jillState.companionTopic) ? String(_jillState.companionTopic) : '';
-  var blob = (userAsk + ' ' + sticky + ' ' + String(text || '')).toLowerCase();
-  var col = jillResolveCanonTrack(userAsk, text);
-  // Force track when Jill is teaching a clear formula (have+been+ING, etc.)
-  if(!col && typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId){
-    col = JillCanonRouter.pickTrackId(text) || JillCanonRouter.pickTrackId(blob);
+  // Student ask wins; else what Jill is teaching THIS turn (any module); else sticky
+  var fromUser = null;
+  if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
+    fromUser = JillCanonRouter.resolveAskId(userAsk || '', sticky) || JillCanonRouter.resolveAskId(sticky, '');
   }
-  if(!col && /\bhave\s+been\b|\bhas\s+been\b|\bbeen\s+\w+ing\b/i.test(blob)) col = 'combined';
-  if(!col && /\b(am|is|are)\s+\w+ing\b|\bto be\b.*\bing\b|\bpresente continuo\b|\bprogresiv/i.test(blob)) col = 'progressive';
-  if(!col && /\bgerund|\bing\b.*ando|\blando\/endo\b/i.test(blob)) col = 'gerundio';
+  var fromReply = jillInferTeachTrack(text);
+  var col = fromUser || fromReply || jillInferTeachTrack(userAsk + ' ' + sticky) || (_jillState && _jillState.canonTrackId) || null;
   if(col) {
     _jillState.canonTrackId = col;
     ct = 'whiteboard';
