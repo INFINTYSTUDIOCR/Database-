@@ -704,7 +704,9 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-john-voice-scripts';
+const APP1_BUILD = '20260711-ops-interconnect';
+const JILL_BRAIN_VER = 'v27-ops-interconnect';
+const ALICE_BRAIN_VER = 'v25-ops-interconnect';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2066,7 +2068,10 @@ app.post('/demo/tts', async (req, res) => {
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): One flowing turn — prefer commas over heavy periods, no ellipses (...), no staccato fragments. Sound natural and brisk, not dramatic or theatrical.';
-const TUTOR_LATENCY_RULE = '\nLIVE TURN: 2-3 short sentences max. No preamble or filler. Answer immediately — the student is waiting on voice.';
+const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
+const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula cualquier regla de "corto"):
+Completá SIEMPRE: fórmula + puente/guion John + analogía + 1 ejemplo + práctica oral + "¿Te quedó?".
+PROHIBIDO cortar a mitad. PROHIBIDO quedarte en 2 frases si falta el puente. Nunca ESL genérico.`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -2351,7 +2356,7 @@ async function prepareNexoraRequest(body, req) {
   }
   const hist = (history || []).slice(-14);
   const msgs = buildTutorChatMessages(hist, message, 14);
-  const brainSlice = await tutorKnowledgeSliceFast(msgStr, student);
+  const brainSlice = await tutorKnowledgeSliceFast(msgStr, student, 'nexora');
   const learnerNote = SharedLearner.buildSharedLearnerNote(student);
   const finalPrompt = [prompt, brainSlice, learnerNote].filter(Boolean).join('');
   return { systemPrompt: finalPrompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
@@ -3492,6 +3497,8 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const systemPrompt = companion
       ? `You are Alice Companion — an always-on English voice companion (personal practice assistant). Your name is ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
+${JohnDoctrine.mandateBlock('alice')}
+${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 
 ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic: daily life, fashion, food, travel, work, feelings, stories, news, hobbies — no limits.
 Free chat OR on-demand English doubt (explain → check → short practice). If they want a story, tell one fully. If they want opinions, share them.
@@ -3502,10 +3509,11 @@ ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 
 ${methodBlock}
+${TUTOR_TEACH_COMPLETE_RULE}
 
 RESPONSE STYLE:
-- Match length to the moment (2 sentences or a full story / clear explanation)
-- Complete every sentence and every story — NEVER cut off mid-thought
+- Match length to the moment; on DOUBT/TEACH turns complete formula + bridge + example — NEVER cut off
+- Complete every sentence and every story
 - Show real interest; react before you teach
 - Unlimited flowing conversation — no turn caps
 
@@ -3525,9 +3533,10 @@ ${aliceLangTurn}
 
 ${methodBlock}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
+${TUTOR_TEACH_COMPLETE_RULE}
 
 RESPONSE STYLE: 
-- 3-4 natural sentences max
+- On teach turns: finish formula + bridge + example + practice (not 2-sentence ESL)
 - Complete every sentence — never get cut off
 - React naturally to what the student said
 - Give ONE specific example when explaining something
@@ -3547,7 +3556,7 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'al
     }
 
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 1000 : 700,
+      model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 1200 : 1000,
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -3562,8 +3571,6 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'al
 });
 
 // ── JILL — Tutora Foundations ────────────────────────────────
-const JILL_BRAIN_VER = 'v26-john-voice-scripts';
-const ALICE_BRAIN_VER = 'v24-john-doctrine-all';
 
 const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Alice is NOT Jill):
 - ABSOLUTE: John Ramírez teaching style ONLY (class doctrine + Nexus Intermediate+). Forbidden to teach as a generic ESL chatbot.
@@ -3735,7 +3742,7 @@ function parseJillResponse(raw) {
 
 app.post('/jill', requireProductAuth, async (req, res) => {
   try {
-    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic } = req.body || {};
+    let { student, history, message, mode, weakKpis, jillBundle, nemesisState, track, reinforcement, matrixContext, vocabContext, calibrationContext, sessionType, companionTopic, canonTrackId } = req.body || {};
     const requestedSessionType = sessionType === 'companion' ? 'companion' : 'tutor';
     student = await assertStudentTutorAccess(req, res, 'jill', student, { sessionType: requestedSessionType });
     if (!student) return;
@@ -3819,7 +3826,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       const resp = await claudeCall({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: isJillCompanion ? 400 : 350,
-        system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock,
+        system: JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + JohnDoctrine.mandateBlock('jill'),
         messages: [{
           role: 'user',
           content: `El estudiante ${display} (nivel: ${level}) abre su sesión${isJillCompanion ? ' Jill Pro Companion' : ''}. ${greetInstruction}${profileNote}${bundleCtx}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}${variation}\nEjercicios asignados:\n${exercises || '(ninguno aún)'}\n\nRESPONDE ÚNICAMENTE con este JSON exacto, sin nada más antes ni después:\n{"reply":"tu saludo aquí","contentType":"text"}`
@@ -4005,21 +4012,31 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
     const teachInstrChat = isJillCompanion
       ? (function () {
-          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history); }
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, canonTrackId || null); }
           catch (e) { return 'TURNO COMPANION — ayudá con cualquier duda de inglés o charlá. [[CTYPE:text]]'; }
         })()
       : (JillPro.studentWantsEnglishPractice(message)
         ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
         : '');
+    const lockedTrackIdChat = canonTrackId
+      || (JillCanonRouter.resolveAskId ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '') : null);
+    const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
+      ? JillCanonRouter.trackById(lockedTrackIdChat)
+      : null;
+    const hardLockChat = lockedTrackChat ? ('\n\n' + JillCanonRouter.formatLock(lockedTrackChat)) : '';
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
+    const doctrineChat = await tutorKnowledgeSliceForJill(message, student, { canonTrackId: lockedTrackIdChat });
+    const teachCompleteChat = (lockedTrackChat || isJillCompanion || /doubt_explain|MODO DUDA|TRACK LOCK/i.test(teachInstrChat))
+      ? TUTOR_TEACH_COMPLETE_RULE
+      : '';
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${await tutorKnowledgeSliceForJill(message, student)}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON.`
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${await tutorKnowledgeSliceForJill(message, student)}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON.`;
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — sin texto fuera del JSON. NEVER cut off. Completá fórmula + puente + ejemplo.`
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: isJillCompanion ? 1100 : 600,
+      max_tokens: isJillCompanion ? 1400 : 1100,
       system: systemWithContext,
       messages: msgs
     });
@@ -4211,16 +4228,19 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
         })()
       : (jillLangTurn + (calTeach || (convPhase
         ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración.'
-        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; método Nexus del bundle. Regla + ejemplo + práctica. 2-5 oraciones.')) + hardTrackLock);
+        : 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; metodología John completa (fórmula + puente + analogía + ejemplo + práctica). NUNCA cortes. Completá la explicación.')) + hardTrackLock);
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
-    const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student);
+    const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student, { canonTrackId: lockedTrackId });
+    const teachLatency = (lockedTrack || isJillCompanion)
+      ? TUTOR_TEACH_COMPLETE_RULE
+      : TUTOR_LATENCY_RULE;
     const jillCompanionSystem = isJillCompanion
-      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${TUTOR_LATENCY_RULE}`;
+      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + TUTOR_TEACH_COMPLETE_RULE
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 1400 : 900,
+      max_tokens: isJillCompanion ? 1600 : 1200,
       system: isJillCompanion
         ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] salvo ejemplo escrito breve explícito: [[CTYPE:example]]. NEVER cut off mid-sentence. Completá fórmula + ejemplo antes de pedir práctica.`
         : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
@@ -4239,63 +4259,74 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
   }
 });
 
-async function tutorKnowledgeSlice(message, student, tutor) {
+async function tutorKnowledgeSlice(message, student, tutor, opts) {
   const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+  const options = opts && typeof opts === 'object' ? opts : {};
   const learner = SharedLearner.buildSharedLearnerNote(student);
   const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(600).catch(() => '');
   const drillStudent = student && who === 'jill' ? JillDrillBrain.getStudentDrillNote(student) : '';
   let trackVoice = '';
+  let lockedId = options.canonTrackId || null;
   if (who === 'jill') {
     try {
-      const hit = JillCanonRouter.pickTrack(String(message || ''));
-      if (hit) trackVoice = JohnDoctrine.trackVoiceBlock(hit.id) || '';
+      if (!lockedId) {
+        const hit = JillCanonRouter.pickTrack(String(message || ''));
+        if (hit) lockedId = hit.id;
+      }
+      if (lockedId) trackVoice = JohnDoctrine.trackVoiceBlock(lockedId) || '';
     } catch (_) { /* ignore */ }
   }
   if (!SuperBrain.isSuperBrainEnabled()) {
     const merged = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     return JohnDoctrine.wrapKnowledgeSlice(
       merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
-      who === 'jill' ? 'jill' : 'alice'
+      who
     );
   }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 400), 4500);
     let body = ctx.trim()
-      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer the language of published class doctrine over generic ESL. Local john-voice-scripts still win on Foundations tracks.\n${ctx}`
+      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks.\n${ctx}`
       : '';
     if (who === 'jill' && body) body = filterJillSuperBrainContext(body);
     const extras = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
-    return JohnDoctrine.wrapKnowledgeSlice(body, who === 'jill' ? 'jill' : 'alice');
+    return JohnDoctrine.wrapKnowledgeSlice(body, who);
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who === 'jill' ? 'jill' : 'alice');
+    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who);
   }
 }
 
-async function tutorKnowledgeSliceFast(message, student, tutor) {
+async function tutorKnowledgeSliceFast(message, student, tutor, opts) {
+  const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+  const options = opts && typeof opts === 'object' ? opts : {};
+  let lockedId = options.canonTrackId || null;
+  if (who === 'jill' && !lockedId) {
+    try {
+      const hit = JillCanonRouter.pickTrack(String(message || ''));
+      if (hit) lockedId = hit.id;
+    } catch (_) { /* ignore */ }
+  }
+  const learner = SharedLearner.buildSharedLearnerNote(student) || '';
   try {
     return await Promise.race([
-      tutorKnowledgeSlice(message, student, tutor),
-      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice') + (SharedLearner.buildSharedLearnerNote(student) || '')), 2500))
+      tutorKnowledgeSlice(message, student, who, { ...options, canonTrackId: lockedId }),
+      new Promise((resolve) => setTimeout(
+        () => resolve(JohnDoctrine.fastFallbackBlock(who, lockedId, learner)),
+        2500
+      ))
     ]);
   } catch {
-    return JohnDoctrine.mandateBlock(tutor === 'jill' ? 'jill' : 'alice');
+    return JohnDoctrine.fastFallbackBlock(who, lockedId, learner);
   }
 }
 
-async function tutorKnowledgeSliceForJill(message, student) {
-  return tutorKnowledgeSlice(message, student, 'jill');
+async function tutorKnowledgeSliceForJill(message, student, opts) {
+  return tutorKnowledgeSlice(message, student, 'jill', opts);
 }
 
-async function tutorKnowledgeSliceForJillFast(message, student) {
-  try {
-    return await Promise.race([
-      tutorKnowledgeSliceForJill(message, student),
-      new Promise((resolve) => setTimeout(() => resolve(JohnDoctrine.mandateBlock('jill') + (SharedLearner.buildSharedLearnerNote(student) || '')), 2500))
-    ]);
-  } catch {
-    return JohnDoctrine.mandateBlock('jill');
-  }
+async function tutorKnowledgeSliceForJillFast(message, student, opts) {
+  return tutorKnowledgeSliceFast(message, student, 'jill', opts);
 }
 
 // ── ALICE STREAM ─────────────────────────────────────────────
@@ -4349,12 +4380,15 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const system = companion
       ? `You are Alice Companion — always-on English voice companion (personal practice assistant). Name: ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
+${JohnDoctrine.mandateBlock('alice')}
+${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
 Free chat OR on-demand English doubt (explain → check → short practice). If they want a story — tell it fully. If they want opinions — share them.
 ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
-2-8 sentences as needed. Complete every sentence and story. NEVER cut off. Unlimited flowing conversation.
+${TUTOR_TEACH_COMPLETE_RULE}
+Complete every sentence and story. NEVER cut off. On teach turns finish formula + bridge + example.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
 ${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}`
       : `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
@@ -4367,15 +4401,16 @@ ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
 ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
-RESPONSE STYLE: 3-6 natural sentences. Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. Ask ONE follow-up question. Always finish the full reply.
+${TUTOR_TEACH_COMPLETE_RULE}
+RESPONSE STYLE: Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. On teach turns: formula + bridge + example + practice. Ask ONE follow-up question. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}${TUTOR_LATENCY_RULE}`;
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}`;
     const msgs = buildTutorChatMessages(history, message, 20);
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: companion ? 1000 : 800,
+      max_tokens: companion ? 1200 : 1000,
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
@@ -5438,7 +5473,7 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
     }
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 220,
+      max_tokens: 320,
       system: ctx.systemPrompt + TUTOR_LATENCY_RULE + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
       messages: ctx.msgs,
       brainMeta: { hash: brain.hash, tutor: 'nexora', intent: 'stream', message: req.body?.message, extra: nexoraExtra }

@@ -118,15 +118,23 @@ function getCanonDigest(maxLen) {
 }
 
 function mandateBlock(tutor) {
+  if (tutor === 'nexora') {
+    return `\n\n${NEXORA_OPS_NOTE}\n${aliceVoiceBlock()}\n`;
+  }
   const role =
     tutor === 'jill'
       ? 'ROL: Jill = Foundations MSI® (P|M|V|C, moneda, chunks de una oración). NO linkers avanzados (eso es Alice).'
       : tutor === 'alice'
         ? 'ROL: Alice = Intermediate+ Nexus (Idea+Linker+Idea, STAR, recovery) — SIEMPRE con pedagogía John (paciencia, analogía, doctrina de clase). NO Foundations MSI drill sheets.'
         : 'ROL: IA Infinity — pedagogía John obligatoria.';
-  const aliceExtra = tutor === 'alice' || tutor === 'nexora' ? `\n${aliceVoiceBlock()}\n` : '';
+  const aliceExtra = tutor === 'alice' ? `\n${aliceVoiceBlock()}\n` : '';
   return `\n\n${JOHN_STYLE_MANDATE}\n${role}${aliceExtra}\n\n${getCanonDigest(3200)}\n`;
 }
+
+const NEXORA_OPS_NOTE = `NEXORA — OPERACIÓN JOHN (sin romper personaje):
+- En rolplay (cliente/entrevista): QUEDATE EN PERSONAJE. No des clase de gramática a mitad de la llamada.
+- Inglés modelado = Nexus (chunks + linkers naturales). Nunca ESL genérico.
+- Si el producto pide feedback/coaching post-turno: pedagogía John (patrón → puente → ejemplo → confirmá).`;
 
 function wrapKnowledgeSlice(slice, tutor) {
   const base = mandateBlock(tutor);
@@ -137,13 +145,27 @@ function wrapKnowledgeSlice(slice, tutor) {
   return `${base}\n${extra}`;
 }
 
+/** Fallback rápido: mandato + guion del track (nunca perder la voz John por timeout de Super Brain). */
+function fastFallbackBlock(tutor, trackId, learnerNote) {
+  const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+  const parts = [mandateBlock(who)];
+  if (who === 'jill' && trackId) {
+    const vb = trackVoiceBlock(trackId);
+    if (vb) parts.push(vb);
+  }
+  if (learnerNote) parts.push(learnerNote);
+  return parts.filter(Boolean).join('\n');
+}
+
 module.exports = {
   JOHN_STYLE_MANDATE,
+  NEXORA_OPS_NOTE,
   getCanonDigest,
   mandateBlock,
   wrapKnowledgeSlice,
   getTrackVoice,
   trackVoiceBlock,
   aliceVoiceBlock,
-  loadVoicePack
+  loadVoicePack,
+  fastFallbackBlock
 };

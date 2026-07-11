@@ -33,12 +33,12 @@
 <script src="js/alice-reminders.js"></script>
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
-<script src="js/jill-learner-intent.js?v=20260711speak"></script>
-<script src="js/jill-canon-router.js?v=20260711voice"></script>
-<script src="js/jill-canon-visual.js?v=20260711nexus"></script>
-<script src="js/jill-canon-drill.js?v=20260711nexus"></script>
-<script src="js/jill-lesson-clip.js?v=20260711john"></script>
-<script src="js/jill-visual-stage.js?v=20260711canon"></script>
+<script src="js/jill-learner-intent.js?v=20260711ops"></script>
+<script src="js/jill-canon-router.js?v=20260711ops"></script>
+<script src="js/jill-canon-visual.js?v=20260711ops"></script>
+<script src="js/jill-canon-drill.js?v=20260711ops"></script>
+<script src="js/jill-lesson-clip.js?v=20260711ops"></script>
+<script src="js/jill-visual-stage.js?v=20260711ops"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -4761,13 +4761,27 @@ function alicePrunePrefetchCache(){
 function aliceArmTtsWatchdog(textLen){
   clearTimeout(_aliceTtsWatchdog);
   var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
-  _aliceTtsWatchdog = setTimeout(function(){
+  // Si el audio queda pausado (fullscreen/DOM), reanudar — no cortar explicaciones John.
+  var stallChecks = 0;
+  _aliceTtsWatchdog = setTimeout(function tick(){
     if(!_aliceTTSBusy) return;
-    // Only advance if audio truly stalled — never cut a healthy long playback early
+    var a = window._aliceAudio;
+    if(a && !a.ended && a.paused && a.currentTime > 0.05 && stallChecks < 8){
+      stallChecks += 1;
+      var p = a.play();
+      if(p && typeof p.catch === 'function') p.catch(function(){});
+      _aliceTtsWatchdog = setTimeout(tick, 900);
+      return;
+    }
+    if(a && !a.ended && !a.paused){
+      var left = Math.max(4000, ms - Math.floor((a.currentTime || 0) * 1000));
+      _aliceTtsWatchdog = setTimeout(tick, Math.min(left, 20000));
+      return;
+    }
     _aliceTTSBusy = false;
     if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} window._aliceAudio = null; }
     _aliceTTSFlush();
-  }, ms);
+  }, Math.min(ms, 12000));
 }
 
 function aliceCleanTtsText(text){
@@ -4946,7 +4960,7 @@ function bindJillPttMic(){
     },
     onBeforeStart: function(){
       if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
-      if(typeof JillVisualStage !== 'undefined' && JillVisualStage.requestFullscreen) JillVisualStage.requestFullscreen();
+      // NO auto-fullscreen aquí: pausa/corta el TTS a mitad de explicación.
       jillInterruptSpeaking();
       jillStopMic();
       btn.classList.remove('ptt-busy');

@@ -2,7 +2,7 @@
  * Alice Companion — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand doubt → explain → check → short practice (same arc as Jill Pro).
  */
-const COMPANION_BRAIN_VER = 'v9-lesson-clips-nexus';
+const COMPANION_BRAIN_VER = 'v10-ops-interconnect';
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
