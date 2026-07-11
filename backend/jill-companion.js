@@ -361,15 +361,15 @@ Si está bien: confirmá breve y seguí la conversación con sentido. [[CTYPE:te
 
   if (phase === 'doubt_explain') {
     if (track) {
-      return `${heard}${boardSync}MODO DUDA — JILL DJ TRACK LOCK DURO (tablero = voz).
-${JillCanonRouter.formatLock(track)}
+      return `${heard}${boardSync}${lockBlock}MODO DUDA — JILL DJ TRACK LOCK (tablero = voz).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
+Terminá la explicación completa (fórmula + bridge + 1 analogía + 1 ejemplo). NUNCA cortes a mitad de frase. Luego pedí que lo digan al mic.
 Última línea sola: [[CTYPE:whiteboard]]`;
     }
     return `${heard}MODO DUDA — ACCURACY TOTAL (tema: "${topic || 'su duda'}").
 ${JILL_PRO_TEACH_CANON}
-REGLA DE ORO: enseñá lo que pidieron en ESTE turno (estilo John). Si no hay track, usá Super Brain/canon. Cero inventar otro tiempo.
+Terminá la explicación completa. NUNCA cortes a mitad de frase.
 Última línea sola: [[CTYPE:whiteboard]]`;
   }
 
@@ -400,10 +400,10 @@ Tema: "${topic || 'la conversación'}". [[CTYPE:text]]`;
   }
 
   if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would)\b/i.test(msg)) {
-    return `${heard}${boardSync}MODO DUDA (track detectado — biblioteca completa).
-${JillCanonRouter.formatLock(track)}
+    return `${heard}${boardSync}${lockBlock}MODO DUDA (track detectado — biblioteca completa).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
+Terminá la explicación completa. NUNCA cortes a mitad de frase. Luego pedí práctica oral.
 Última línea: [[CTYPE:whiteboard]]`;
   }
 

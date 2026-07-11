@@ -4204,9 +4204,9 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${TUTOR_LATENCY_RULE}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 900 : 700,
+      max_tokens: isJillCompanion ? 1400 : 900,
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] salvo ejemplo escrito breve explícito: [[CTYPE:example]]. NEVER cut off mid-sentence.`
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] salvo ejemplo escrito breve explícito: [[CTYPE:example]]. NEVER cut off mid-sentence. Completá fórmula + ejemplo antes de pedir práctica.`
         : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva, agregá exactamente: [[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]] según el tipo de turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }

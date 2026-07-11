@@ -308,7 +308,7 @@
       stage.hidden = false;
       active = true;
       currentColumn = col || null;
-      requestFullscreen();
+      // NO auto-fullscreen aquí: requestFullscreen pausa/mata el TTS mid-line.
       var host = media.querySelector('.jill-lesson-clip-host');
       var mounted = false;
       if (host && typeof global.JillLessonClip !== 'undefined') {

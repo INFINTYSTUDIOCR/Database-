@@ -37,8 +37,8 @@
 <script src="js/jill-canon-router.js?v=20260711align"></script>
 <script src="js/jill-canon-visual.js?v=20260711nexus"></script>
 <script src="js/jill-canon-drill.js?v=20260711nexus"></script>
-<script src="js/jill-lesson-clip.js?v=20260711align"></script>
-<script src="js/jill-visual-stage.js?v=20260711align"></script>
+<script src="js/jill-lesson-clip.js?v=20260711voice"></script>
+<script src="js/jill-visual-stage.js?v=20260711voice"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260710svgfix"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -4428,13 +4428,29 @@ var _jillTtsWatchdog = null;
 function jillArmTtsWatchdog(textLen){
   clearTimeout(_jillTtsWatchdog);
   var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
-  _jillTtsWatchdog = setTimeout(function(){
+  // Si el audio queda pausado (fullscreen/DOM), no esperar 2 min: reanudar o seguir.
+  var stallChecks = 0;
+  _jillTtsWatchdog = setTimeout(function tick(){
     if(!_jillTTSBusy) return;
+    var a = _jillState.audio;
+    if(a && !a.ended && a.paused && a.currentTime > 0.05 && stallChecks < 8){
+      stallChecks += 1;
+      var p = a.play();
+      if(p && typeof p.catch === 'function') p.catch(function(){});
+      _jillTtsWatchdog = setTimeout(tick, 900);
+      return;
+    }
+    if(a && !a.ended && !a.paused){
+      // aún hablando — rearmar timeout restante
+      var left = Math.max(4000, ms - Math.floor((a.currentTime || 0) * 1000));
+      _jillTtsWatchdog = setTimeout(tick, Math.min(left, 20000));
+      return;
+    }
     _jillTTSBusy = false;
     if(_jillState.audio){ try{ _jillState.audio.pause(); }catch(e){} _jillState.audio = null; }
     _jillState.speaking = _jillTTSQueue.length > 0;
     _jillTTSFlush();
-  }, ms);
+  }, Math.min(ms, 12000));
 }
 
 function jillLastUserTopic(){
@@ -4485,9 +4501,11 @@ function jillActivateVisualStage(text, contentType){
 
 function jillSpeakTurn(text, contentType){
   text = jillScrubNonCr(text);
-  if(typeof JillVisualStage === 'undefined') { jillSpeak(text); return; }
-  jillActivateVisualStage(text, contentType);
+  // Hablar primero: el stage no debe interrumpir ni pausar el audio.
   jillSpeak(text);
+  if(typeof JillVisualStage !== 'undefined') {
+    try { jillActivateVisualStage(text, contentType); } catch(eVis) {}
+  }
 }
 
 function jillSyncFullscreenBtn(){
@@ -5622,7 +5640,7 @@ async function sendJillMsg(micText, sendOpts){
   var text = rawText;
   _jillSending = true;
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
-  if(typeof JillVisualStage !== 'undefined' && JillVisualStage.requestFullscreen) JillVisualStage.requestFullscreen();
+  // No forzar fullscreen al enviar: corta la voz. Solo botón FS o mic lo pide.
   var micBtn = document.getElementById('jill-mic-btn');
   if(micBtn) micBtn.classList.add('ptt-busy');
   var statusEl = document.getElementById('jill-status');
