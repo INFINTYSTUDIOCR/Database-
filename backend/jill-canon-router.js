@@ -322,7 +322,8 @@ function formatLock(track) {
     present: [
       'ANTIMEZCLA — MÓDULO 2 VERBOS PRESENTE (16 VERBOS + CONJUGACIÓN):',
       'SOLO presente simple + TO infinitivo + He/She/It +S/ES/Has + Be am/is/are.',
-      'PROHIBIDO presente continuo / perfecto / pasado en esta lección.',
+      'PROHIBIDO ABSOLUTO: panorama de todos los tiempos, F0, overview, pasado, perfecto, continuo, futuro, will/would, "sistema completo", once estructuras.',
+      'PROHIBIDO presente continuo / perfecto / pasado / futuro en esta lección — aunque Super Brain o MSI listen otras siglas.',
       'SEGUÍ EL GUION CANON module-02-verbos-presente SIN CORTAR NI REESCRIBIR.',
       'ANTES de conjugar He/She/It: preguntá "¿Es He, She o It? — entonces qué le pasa al verbo?"'
     ],

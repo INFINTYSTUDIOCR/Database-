@@ -716,7 +716,7 @@ const DEMO_LIMITS = {
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
 const APP1_BUILD = '20260711-relevance';
-const JILL_BRAIN_VER = 'v38-relevance';
+const JILL_BRAIN_VER = 'v39-scope-es';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -3230,12 +3230,25 @@ function jillReplyHasAliceLinkers(text) {
   return false;
 }
 
-function filterJillSuperBrainContext(ctx) {
+function filterJillSuperBrainContext(ctx, lockedTrackId) {
+  const locked = String(lockedTrackId || '').trim();
   return String(ctx || '').split('\n').filter((line) => {
     const l = line.toLowerCase();
     if (/idea\s*\+\s*linker/i.test(line)) return false;
     if (/\blinkers?\b/.test(l) && /nexus|conector|however|furthermore|on top of that/i.test(l)) return false;
     if (/mínimo.*linker|3 linkers|tres conectores/i.test(l)) return false;
+    // F0 / STRUCTURE CANON mete TODOS los tiempos en cada turno → Jill enseña panorama en vez del pedido.
+    if (/structure canon\b/i.test(l)) return false;
+    if (/f0 progression/i.test(l)) return false;
+    if (/pr\s*→\s*ps\s*→\s*pc/i.test(l)) return false;
+    if (/siglas:\s*pr=/i.test(l)) return false;
+    if (/formulas:\s*pr:/i.test(l)) return false;
+    if (locked) {
+      if (/sistema completo|once estructuras|11 tiempos|overview de tiempos/i.test(l)) return false;
+      if (locked === 'present' || locked === 'pronouns') {
+        if (/\b(pasado simple|presente perfecto|pasado perfecto|futuro perfecto|will have|would=-r[ií]a)\b/i.test(l)) return false;
+      }
+    }
     return true;
   }).join('\n').trim();
 }
@@ -3857,15 +3870,20 @@ RITMO HABLADO — 100% HUMANO:
 
 IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
-Hablás SOLO en ESPAÑOL de Costa Rica / Centroamérica (voseo: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
+Hablás SOLO en ESPAÑOL CORRECTO de Costa Rica / Centroamérica (voseo tico: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
+ESPAÑOL CORRECTO (IRROMPIBLE): ortografía bien; conjugación bien; concordancia sujeto-verbo y género/número. Frases claras. PROHIBIDO español deformado, inventado, truncado a lo gringo, o mezcla rara.
 PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não). REGLA IRROMPIBLE: español = acento latino/tico; inglés = acento americano. NADA MÁS. NUNCA digas "che".
 Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 Nunca rechaces un mensaje por idioma, mezcla o transcripción imperfecta del micrófono.
 
+SCOPE DE TURNO (IRROMPIBLE):
+Si pidieron presente simple → SOLO presente simple. Si pidieron pasado → SOLO pasado. PROHIBIDO dar "clase de todos los tiempos", F0, panorama MSI de PR/PS/PC/PRP, o "sistema completo" cuando no lo pidieron.
+PROHIBIDO abrir otro tiempo "para contexto" o "después vemos". Una lección por pedido.
+
 FILOSOFÍA CENTRAL — Mecánica Estructural Infinity® (MSI):
 No enseñás inglés genérico ni oraciones memorizadas — enseñás a armar el idioma por RANURAS: Pronombre | Modal/aux | Verbo | Complemento.
-El estudiante ejecuta la fórmula del bundle (PR, PS, PC, PRP, PPC, MOD) y la llena con una idea concreta en C.
+El estudiante ejecuta la fórmula del bundle activo (solo la pedida este turno) y la llena con una idea concreta en C.
 Corregís por ranura equivocada, no por traducción palabra a palabra.
 
 MÉTODO — CHUNKS ESTRUCTURALES (no linkers Nexus):
@@ -4494,20 +4512,21 @@ async function tutorKnowledgeSlice(message, student, tutor, opts) {
     const merged = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     return JohnDoctrine.wrapKnowledgeSlice(
       merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
-      who
+      who,
+      lockedId
     );
   }
   try {
     const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 400), 4500);
     let body = ctx.trim()
-      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks.\n${ctx}`
+      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks. Si hay TRACK LOCK: SOLO ese tema — no panorama F0.\n${ctx}`
       : '';
-    if (who === 'jill' && body) body = filterJillSuperBrainContext(body);
+    if (who === 'jill' && body) body = filterJillSuperBrainContext(body, lockedId);
     const extras = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
-    return JohnDoctrine.wrapKnowledgeSlice(body, who);
+    return JohnDoctrine.wrapKnowledgeSlice(body, who, lockedId);
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who);
+    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who, lockedId);
   }
 }
 

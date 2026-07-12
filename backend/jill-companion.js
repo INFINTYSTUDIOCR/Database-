@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v61-no-divert';
+const JILL_PRO_BRAIN_VER = 'v62-scope-es';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -28,7 +28,9 @@ const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO
 - PROHIBIDO: "primero veamos X"; cimientos/Casa para retrasar; cambiar al tema que VOS preferís; inventar prerequisitos; libertad creativa de currículo.
 - Si no hay pedido de gramática claro: charlá libre — NO abras lección ni tablero de ningún módulo.
 - TRACK LOCK / tablero / voz = la MISMA orden. Nada distinto a lo solicitado puede salir.
-- Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.`;
+- PROHIBIDO ABSOLUTO: si pidieron presente simple (o un solo tiempo), NO des clase de TODOS los tiempos / F0 / panorama MSI / "sistema completo".
+- Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.
+- ESPAÑOL: correcto, tico, ortografía y conjugación bien — sin deformar.`;
 
 const TRACK_PHONETICS = {
   perfect: 'OBLIGATORIO voz: "jáf. jás. jád." con JOTA española (have. has. had.) — NUNCA "yaf" ni "ave". Presente: jáf/jás + participio. Pasado perfecto: jád + participio (había).',
@@ -121,9 +123,10 @@ const JILL_VOICE_HUMAN = `VOZ 100% HUMANA TICA (lectura y explicación — OBLIG
 ${JILL_NEVER_MUTE}`;
 
 const JILL_LANGUAGE_RULE = `IDIOMA / ACENTO — REGLA IRROMPIBLE (SOLO DOS, NADA MÁS):
-1) ESPAÑOL = acento LATINOAMERICANO / TICO (Costa Rica). Siempre. Sin excepción.
+1) ESPAÑOL = CORRECTO + acento LATINOAMERICANO / TICO (Costa Rica). Siempre. Sin excepción.
 2) INGLÉS = acento AMERICANO (US). Siempre. Sin excepción.
 PROHIBIDO: acento gringo en español; acento británico/indio/otro en inglés; brasileño/portugués; España/ceceo; Argentina/rioplatense; mezclar acentos en la misma frase.
+- ESPAÑOL CORRECTO: ortografía bien, conjugación bien, concordancia bien. Nada de frases rotas, inventadas o "traducidas mal del inglés".
 - Hablás en español TICO para explicar. Ejemplos de inglés = americano limpio.
 - USÁ costarriquenismos: ¿entendiste?, ¿qué te parece?, ¿qué opinas?, pura vida, pan comido, es un queque, le diste al clavo, "más fácil que pegarle un chonetazo a una lora", no te hagas bolas, manda huevo, de fijo, esa es la que es, tuanis. Al cerrar: "¿entendiste?" / "¿qué te parece?". Si es fácil: "pan comido" / "es un queque" / "más fácil que pegarle un chonetazo a una lora". Si acertó: "le diste al clavo" / "esa es la que es". Si se complica: "no te hagas bolas". Para afirmar: "de fijo" / "manda huevo".
 - PROHIBIDO ABSOLUTO Brasil / portugués: você, pra, tá, né, então, não, obrigado, beleza, muito, legal (pt), acento brasileño.
@@ -540,7 +543,9 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
     ? `\nRELEVANCIA IRROMPIBLE — lección activa: ${track.title} (${track.id}).
 PROHIBIDO inventar nuevas queries, subtemas o tableros.
 PROHIBIDO abrir otro módulo (preposiciones, artículos, otro tiempo, gerundio…) por palabras del ejemplo.
-Corregí SOLO lo del track locked. Todo lo demás = FALLO.\n`
+PROHIBIDO panorama de todos los tiempos / F0 / "sistema completo" si no lo pidieron.
+Corregí SOLO lo del track locked. Todo lo demás = FALLO.
+ESPAÑOL: correcto y tico — sin deformar.\n`
     : '';
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n${relevanceLock}` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track ? formatBoardSync(track) : '';

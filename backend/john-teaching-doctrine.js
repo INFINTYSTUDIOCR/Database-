@@ -9,16 +9,18 @@ const path = require('path');
 const JOHN_STYLE_MANDATE = `DOCTRINA OBLIGATORIA — ESTILO DE CLASE JOHN (Infinity Studio CR) — SIN EXCEPCIONES:
 ENSEÑÁ LO QUE PIDAN. La restricción NO es el tema — es HABLAR COMO EN TUS TRASCRICIONES DE CLASE.
 PROHIBIDO TOTALMENTE: estilo chatbot/ESL de internet; leer el tablero como lista/manual; inventar otra pedagogía.
+SCOPE DE TURNO (IRROMPIBLE): si pidieron UN módulo/tiempo (ej. presente simple) → SOLO eso. PROHIBIDO panorama F0 / "sistema completo" / todos los tiempos / saltar a pasado-perfecto-futuro "de paso".
+ESPAÑOL CORRECTO (IRROMPIBLE): ortografía y conjugación correctas en español de Costa Rica. PROHIBIDO español deformado, inventado, portuñol, argentino o de España.
 EN CADA EXPLICACIÓN — OBLIGATORIO EN VOZ:
-1) GUION ORAL LOCAL (john-voice-scripts) — esa es la voz de clase. DECÍLO.
+1) GUION ORAL LOCAL del track pedido — esa es la voz de clase. DECÍLO.
 2) Fórmula / puente del guion (ando/endo, jaf/jas/jad, moneda, hay vs have, foto de ayer…).
 3) 1 ejemplo en inglés + práctica oral + ¿Te quedó?
 El TABLERO se VE en pantalla — NO lo leés fila por fila.
 FUENTES DE VERDAD (orden):
-1) GUION ORAL LOCAL (john-voice-scripts) — siempre-on; estilo de clase.
-2) Super Brain (trascriciones publicadas) — amplía, NO reemplaza el guion.
-3) Canon Foundations (fórmulas / bridges / MSI®).
-Si hay conflicto: gana el GUION ORAL de clase. Nunca contradigas el Método Nexus.
+1) GUION ORAL LOCAL del track locked — siempre-on; estilo de clase.
+2) Super Brain (trascriciones publicadas) — amplía ESE tema, NO reemplaza el guion ni abre otros tiempos.
+3) Canon Foundations (fórmulas / bridges / MSI®) del track activo.
+Si hay conflicto: gana el GUION ORAL de la lección pedida. Nunca contradigas el Método Nexus.
 FIDELIDAD: toda explicación = estilo de clase John. Punto.`;
 
 let _canonDigest = null;
@@ -111,8 +113,24 @@ function aliceVoiceBlock() {
   ].filter(Boolean).join('\n');
 }
 
-function getCanonDigest(maxLen) {
-  if (_canonDigest) return _canonDigest.slice(0, maxLen || 2800);
+function getCanonDigest(maxLen, lockedTrackId) {
+  const lim = maxLen || 2800;
+  const lockId = String(lockedTrackId || '').trim();
+  // Con lección locked: SOLO ese guion — no volcar past/modales/gerundio/overview (causa "clase de todos los tiempos").
+  if (lockId) {
+    const lines = [
+      `CANON LOCAL — TRACK LOCKED (${lockId}): SOLO este tema. PROHIBIDO panorama de otros tiempos/módulos.`
+    ];
+    const pack = loadVoicePack();
+    if (pack.globalVoice) lines.push('VOZ GLOBAL: ' + String(pack.globalVoice).slice(0, 400));
+    const vb = trackVoiceBlock(lockId);
+    if (vb) lines.push(vb);
+    else if (pack.tracks && pack.tracks[lockId] && pack.tracks[lockId].say) {
+      lines.push(`GUION ORAL (${lockId}): ${String(pack.tracks[lockId].say).slice(0, 1800)}`);
+    }
+    return lines.join('\n').slice(0, lim);
+  }
+  if (_canonDigest) return _canonDigest.slice(0, lim);
   const struct = loadJsonSafe('config', 'jill-structure-canon.json') || loadJsonSafe('..', 'config', 'jill-structure-canon.json');
   const map = loadJsonSafe('config', 'jill-canon-map.json') || loadJsonSafe('..', 'config', 'jill-canon-map.json');
   const pack = loadVoicePack();
@@ -120,9 +138,9 @@ function getCanonDigest(maxLen) {
   if (pack.globalVoice) lines.push('VOZ GLOBAL: ' + pack.globalVoice);
   // Guiones orales primero (prioridad: no se cortan por maxLen)
   const critical = ['gerundio', 'progressive', 'gerund_prep', 'past', 'modales', 'there', 'negations', 'prepositions'];
-  lines.push('GUIONES ORALES CLAVE (clase John — DEBES HABLAR ASÍ):');
+  lines.push('GUIONES ORALES CLAVE (clase John — DEBES HABLAR ASÍ — SOLO el tema pedido del turno):');
   if (pack.lessons && pack.lessons.getItStraightIng && (pack.lessons.getItStraightIng.say || pack.lessons.getItStraightIng.full)) {
-    lines.push('LECCION CANONICA ING (solo contenido del curso — sin nombres internos): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));
+    lines.push('LECCION CANONICA ING (solo si pidieron gerundio/ING — sin nombres internos): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));
   }
   critical.forEach((id) => {
     const v = pack.tracks && pack.tracks[id];
@@ -145,21 +163,22 @@ function getCanonDigest(maxLen) {
     });
   }
   _canonDigest = lines.join('\n');
-  return _canonDigest.slice(0, maxLen || 2800);
+  return _canonDigest.slice(0, lim);
 }
 
-function mandateBlock(tutor) {
+function mandateBlock(tutor, lockedTrackId) {
   if (tutor === 'nexora') {
     return `\n\n${NEXORA_OPS_NOTE}\n${aliceVoiceBlock()}\n`;
   }
   const role =
     tutor === 'jill'
-      ? 'ROL: Jill = Foundations MSI® (P|M|V|C, moneda, chunks de una oración). NO linkers avanzados (eso es Alice).'
+      ? 'ROL: Jill = Foundations MSI® (P|M|V|C, moneda, chunks de una oración). NO linkers avanzados (eso es Alice). SCOPE: solo el tema pedido este turno.'
       : tutor === 'alice'
         ? 'ROL: Alice = Intermediate+ Nexus (Idea+Linker+Idea, STAR, recovery) — SIEMPRE con pedagogía John (paciencia, analogía, doctrina de clase). NO Foundations MSI drill sheets.'
         : 'ROL: IA Infinity — pedagogía John obligatoria.';
   const aliceExtra = tutor === 'alice' ? `\n${aliceVoiceBlock()}\n` : '';
-  return `\n\n${JOHN_STYLE_MANDATE}\n${role}${aliceExtra}\n\n${getCanonDigest(3200)}\n`;
+  const digestLen = lockedTrackId ? 2200 : 3200;
+  return `\n\n${JOHN_STYLE_MANDATE}\n${role}${aliceExtra}\n\n${getCanonDigest(digestLen, lockedTrackId)}\n`;
 }
 
 const NEXORA_OPS_NOTE = `NEXORA — OPERACIÓN JOHN (sin romper personaje):
@@ -167,11 +186,11 @@ const NEXORA_OPS_NOTE = `NEXORA — OPERACIÓN JOHN (sin romper personaje):
 - Inglés modelado = Nexus (chunks + linkers naturales). Nunca ESL genérico.
 - Si el producto pide feedback/coaching post-turno: pedagogía John (patrón → puente → ejemplo → confirmá).`;
 
-function wrapKnowledgeSlice(slice, tutor) {
-  const base = mandateBlock(tutor);
+function wrapKnowledgeSlice(slice, tutor, lockedTrackId) {
+  const base = mandateBlock(tutor, lockedTrackId);
   const extra = String(slice || '').trim();
   if (!extra) {
-    return `${base}\n(Si Super Brain no trajo doctrina este turno: usá el GUION ORAL LOCAL + CANON arriba + el estilo John. NUNCA improvises otro método.)`;
+    return `${base}\n(Si Super Brain no trajo doctrina este turno: usá el GUION ORAL LOCAL del track pedido + el estilo John. NUNCA improvises otro método ni otros tiempos.)`;
   }
   return `${base}\n${extra}`;
 }
@@ -179,7 +198,7 @@ function wrapKnowledgeSlice(slice, tutor) {
 /** Fallback rápido: mandato + guion del track (nunca perder la voz John por timeout de Super Brain). */
 function fastFallbackBlock(tutor, trackId, learnerNote) {
   const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
-  const parts = [mandateBlock(who)];
+  const parts = [mandateBlock(who, trackId)];
   if (who === 'jill' && trackId) {
     const vb = trackVoiceBlock(trackId);
     if (vb) parts.push(vb);
