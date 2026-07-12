@@ -54,7 +54,8 @@ function getTrackVoice(trackId) {
 function loadModuleCanonTranscript(trackId) {
   const files = {
     pronouns: 'module-01-pronombres.txt',
-    present: 'module-02-verbos-presente.txt'
+    present: 'module-02-verbos-presente.txt',
+    past: 'module-03-pasado-simple.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;

@@ -305,7 +305,7 @@ const TRACK_TEACH_HINTS = {
   modales: FULL_TEACH_ALL + ' Analogía: will=-ré; would=-ría; should=debería; can=puedo.',
   modal: FULL_TEACH_ALL + ' Analogía moneda: auxiliar ANTES del pronombre = pregunta.',
   progressive: FULL_TEACH_ALL + ' TO BE + verbo + ING = ando/endo. Sin to be no hay progresivo. Decí í ene je.',
-  past: FULL_TEACH_ALL + ' Analogía: pasado = foto terminada de ayer.',
+  past: FULL_TEACH_ALL + ' CANON MÓDULO 3: en pasado nadie cambia; BE was/were; put/cut/let + ancla; 16 verbos. SEGUÍ guion module-03-pasado-simple ÍNTEGRO. Antes: ¿pasado o presente? Integra M1+M2.',
   present: FULL_TEACH_ALL + ' CANON MÓDULO 2: TO=infinitivo; He/She/It +S; Go/Do→ES; Have→Has; Be am/is/are; 16 verbos. SEGUÍ guion module-02-verbos-presente ÍNTEGRO. Antes de conjugar: ¿Es He/She/It? Conectá con pronombres M1.',
   perfect: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.perfect,
   combined: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.combined,

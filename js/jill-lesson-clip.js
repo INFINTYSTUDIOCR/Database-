@@ -75,11 +75,30 @@
       takeaway: '16 verbos + He/She/It. Antes de conjugar: ¿Es He, She o It?'
     },
     past: {
-      rules: [row('verbo regular', 'verbo + ed', '(worked)'), row('verbo irregular', 'forma 2', '(went / saw / made)')],
-      examples: [row('She worked yesterday', 'Ella trabajó ayer'), row('I went home', 'Yo me fui a casa'), row('They saw the movie', 'Ellos vieron la película')],
-      pattern: 'Pasado = acción terminada. No hace falta auxiliar en afirmativa.',
-      transforms: [tip('I work', 'I worked', 'regular → -ed'), tip('I go', 'I went', 'irregular → forma 2')],
-      takeaway: 'En pasado afirmativo: solo cambiás el verbo. En negativa: did + not + base.'
+      rules: [
+        row('En pasado', 'nadie cambia el verbo', 'alivio vs presente'),
+        row('I / He / She / It', 'WAS', 'BE excepción'),
+        row('You / We / They', 'WERE', 'BE excepción'),
+        row('put / cut / let', 'iguales PR=PS', 'ancla dice el tiempo'),
+        row('Ancla', 'yesterday / last / ago', 'ubica la historia')
+      ],
+      examples: [
+        row('She goes → She went', 'En pasado She no agrega S'),
+        row('He has → He had', 'had para todos'),
+        row('They was → They were', 'They → WERE'),
+        row('I put … yesterday', 'put igual + ancla'),
+        row('She sent me her report yesterday', 'M1+M2+M3'),
+        row('Goed / sended / maked', 'NO existen')
+      ],
+      pattern: 'En presente He/She/It cambia. En pasado nadie cambia. Excepción BE: was/were. put/cut/let + ancla.',
+      transforms: [
+        tip('Go', 'Went', 'Rapid Fire'),
+        tip('She goes', 'She went', 'presente→pasado'),
+        tip('They + be', 'They were', 'WERE'),
+        tip('I + be', 'I was', 'WAS'),
+        tip('She / put / yesterday', 'She put … yesterday', 'ancla')
+      ],
+      takeaway: 'Pasado = todos iguales. WAS/WERE. Ancla con put/cut/let. Integra M1+M2.'
     },
     progressive: {
       rules: [row('español', 'ESTAR + ando/endo', ''), row('inglés', 'TO BE + VERBO+ING', '(am / is / are)')],
@@ -329,19 +348,20 @@
 
     past: clip({
       id: 'past',
-      title: 'Pasado simple · PS',
-      bridge: 'Acción terminada · worked / went = ayer',
+      title: 'Módulo 3 · Pasado simple',
+      bridge: 'Nadie cambia · was/were · ancla yesterday/last/ago · put/cut/let iguales',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
-        { id: 2, label: 'Verbo pasado', hint: '-ed / irregular' },
-        { id: 3, label: 'Complemento', hint: 'yesterday / ago' }
+        { id: 2, label: 'Verbo pasado', hint: 'went / was / were' },
+        { id: 3, label: 'Ancla', hint: 'yesterday / last / ago' }
       ],
       examples: [
-        T([['She', 1], [' ', 0], ['worked', 2], [' ', 0], ['yesterday.', 3]]),
-        T([['I', 1], [' ', 0], ['went', 2], [' ', 0], ['home.', 3]]),
-        T([['They', 1], [' ', 0], ['saw', 2], [' ', 0], ['the movie.', 3]]),
-        T([['We', 1], [' ', 0], ['studied', 2], [' ', 0], ['last night.', 3]]),
-        T([['He', 1], [' ', 0], ['made', 2], [' ', 0], ['coffee.', 3]])
+        T([['She', 1], [' ', 0], ['went', 2], [' ', 0], ['yesterday.', 3]]),
+        T([['They', 1], [' ', 0], ['were', 2], [' ', 0], ['in the meeting.', 3]]),
+        T([['I', 1], [' ', 0], ['was', 2], [' ', 0], ['at home.', 3]]),
+        T([['He', 1], [' ', 0], ['had', 2], [' ', 0], ['a meeting.', 3]]),
+        T([['She', 1], [' ', 0], ['put', 2], [' ', 0], ['her keys on the table yesterday.', 3]]),
+        T([['We', 1], [' ', 0], ['saw', 2], [' ', 0], ['them last night.', 3]])
       ]
     }),
 

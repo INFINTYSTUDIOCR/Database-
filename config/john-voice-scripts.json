@@ -52,12 +52,15 @@
       "exampleAsk": "Decí: She has been working all day."
     },
     "past": {
-      "say": "Pasado simple = una foto terminada de ayer. Pronombre + verbo en pasado + yesterday, ago o last. I worked yesterday. She went home. NO es have/has/had más participio — eso es otro módulo. Acá solo el verbo en pasado.",
+      "say": "CANON MÓDULO 3 — guion íntegro en config/canon/module-03-pasado-simple.txt. Alivio: en pasado nadie cambia. Excepción BE: I/He/She/It → WAS; You/We/They → WERE. put/cut/let iguales — ancla yesterday/last/ago. Integra M1+M2. Sin goed/sended/maked.",
       "mustSay": [
-        "pasado",
-        "yesterday"
+        "went",
+        "was",
+        "were",
+        "yesterday",
+        "nadie cambia"
       ],
-      "exampleAsk": "Decí una con went y yesterday."
+      "exampleAsk": "Antes de construir: ¿pasado o presente? Rapid Fire: Go → Went. They → Were."
     },
     "perfect": {
       "say": "Empezá siempre: jaf. jas. jad. — eso es have. has. had. en voz CR, nunca ave. Presente perfecto: jaf o jas más participio — he o ha. I have finished. Pasado perfecto: jad más participio — había. I had finished. Completá paradigm + ambos + ejemplo + ¿Te quedó?",

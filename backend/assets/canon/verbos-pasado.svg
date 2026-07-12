@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540" role="img" aria-label="Modulo 3  16 verbos presente vs pasado">
+  <rect width="720" height="540" rx="14" fill="#f8f5ff"/>
+  <text x="360" y="24" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="700">MODULO 3  PASADO SIMPLE · 16 VERBOS</text>
+  <text x="360" y="42" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="11">En pasado nadie cambia · excepción BE: was / were · ancla = yesterday / last / ago</text>
+
+  <rect x="16" y="54" width="688" height="26" rx="6" fill="#5B21B6"/>
+  <text x="70" y="72" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">VERBO</text>
+  <text x="200" y="72" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">SIGNIFICADO</text>
+  <text x="380" y="72" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">PRESENTE (He/She/It)</text>
+  <text x="560" y="72" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">PASADO (todos)</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif" font-size="11">
+    <rect x="16" y="84" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="99" text-anchor="middle" fill="#D97706" font-weight="700">be</text>
+    <text x="200" y="99" text-anchor="middle" fill="#312e81">ser / estar</text>
+    <text x="380" y="99" text-anchor="middle" fill="#0284c7" font-weight="700">is</text>
+    <text x="560" y="99" text-anchor="middle" fill="#db2777" font-weight="700">was / were</text>
+
+    <rect x="16" y="106" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="121" text-anchor="middle" fill="#D97706" font-weight="700">have</text>
+    <text x="200" y="121" text-anchor="middle" fill="#312e81">tener / haber</text>
+    <text x="380" y="121" text-anchor="middle" fill="#0284c7" font-weight="700">has</text>
+    <text x="560" y="121" text-anchor="middle" fill="#059669" font-weight="700">had</text>
+
+    <rect x="16" y="128" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="143" text-anchor="middle" fill="#D97706" font-weight="700">go</text>
+    <text x="200" y="143" text-anchor="middle" fill="#312e81">ir</text>
+    <text x="380" y="143" text-anchor="middle" fill="#0284c7" font-weight="700">goes</text>
+    <text x="560" y="143" text-anchor="middle" fill="#059669" font-weight="700">went</text>
+
+    <rect x="16" y="150" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="165" text-anchor="middle" fill="#D97706" font-weight="700">come</text>
+    <text x="200" y="165" text-anchor="middle" fill="#312e81">venir</text>
+    <text x="380" y="165" text-anchor="middle" fill="#0284c7" font-weight="700">comes</text>
+    <text x="560" y="165" text-anchor="middle" fill="#059669" font-weight="700">came</text>
+
+    <rect x="16" y="172" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="187" text-anchor="middle" fill="#D97706" font-weight="700">get</text>
+    <text x="200" y="187" text-anchor="middle" fill="#312e81">conseguir</text>
+    <text x="380" y="187" text-anchor="middle" fill="#0284c7" font-weight="700">gets</text>
+    <text x="560" y="187" text-anchor="middle" fill="#059669" font-weight="700">got</text>
+
+    <rect x="16" y="194" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="209" text-anchor="middle" fill="#D97706" font-weight="700">make</text>
+    <text x="200" y="209" text-anchor="middle" fill="#312e81">hacer / crear</text>
+    <text x="380" y="209" text-anchor="middle" fill="#0284c7" font-weight="700">makes</text>
+    <text x="560" y="209" text-anchor="middle" fill="#059669" font-weight="700">made</text>
+
+    <rect x="16" y="216" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="231" text-anchor="middle" fill="#D97706" font-weight="700">do</text>
+    <text x="200" y="231" text-anchor="middle" fill="#312e81">hacer / actividad</text>
+    <text x="380" y="231" text-anchor="middle" fill="#0284c7" font-weight="700">does</text>
+    <text x="560" y="231" text-anchor="middle" fill="#059669" font-weight="700">did</text>
+
+    <rect x="16" y="238" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="253" text-anchor="middle" fill="#D97706" font-weight="700">take</text>
+    <text x="200" y="253" text-anchor="middle" fill="#312e81">tomar / llevar</text>
+    <text x="380" y="253" text-anchor="middle" fill="#0284c7" font-weight="700">takes</text>
+    <text x="560" y="253" text-anchor="middle" fill="#059669" font-weight="700">took</text>
+
+    <rect x="16" y="260" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="275" text-anchor="middle" fill="#D97706" font-weight="700">give</text>
+    <text x="200" y="275" text-anchor="middle" fill="#312e81">dar</text>
+    <text x="380" y="275" text-anchor="middle" fill="#0284c7" font-weight="700">gives</text>
+    <text x="560" y="275" text-anchor="middle" fill="#059669" font-weight="700">gave</text>
+
+    <rect x="16" y="282" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="297" text-anchor="middle" fill="#D97706" font-weight="700">put*</text>
+    <text x="200" y="297" text-anchor="middle" fill="#312e81">poner</text>
+    <text x="380" y="297" text-anchor="middle" fill="#0284c7" font-weight="700">puts</text>
+    <text x="560" y="297" text-anchor="middle" fill="#7c3aed" font-weight="700">put*</text>
+
+    <rect x="16" y="304" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="319" text-anchor="middle" fill="#D97706" font-weight="700">cut*</text>
+    <text x="200" y="319" text-anchor="middle" fill="#312e81">cortar</text>
+    <text x="380" y="319" text-anchor="middle" fill="#0284c7" font-weight="700">cuts</text>
+    <text x="560" y="319" text-anchor="middle" fill="#7c3aed" font-weight="700">cut*</text>
+
+    <rect x="16" y="326" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="341" text-anchor="middle" fill="#D97706" font-weight="700">let*</text>
+    <text x="200" y="341" text-anchor="middle" fill="#312e81">dejar / permitir</text>
+    <text x="380" y="341" text-anchor="middle" fill="#0284c7" font-weight="700">lets</text>
+    <text x="560" y="341" text-anchor="middle" fill="#7c3aed" font-weight="700">let*</text>
+
+    <rect x="16" y="348" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="363" text-anchor="middle" fill="#D97706" font-weight="700">keep</text>
+    <text x="200" y="363" text-anchor="middle" fill="#312e81">mantener</text>
+    <text x="380" y="363" text-anchor="middle" fill="#0284c7" font-weight="700">keeps</text>
+    <text x="560" y="363" text-anchor="middle" fill="#059669" font-weight="700">kept</text>
+
+    <rect x="16" y="370" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="385" text-anchor="middle" fill="#D97706" font-weight="700">see</text>
+    <text x="200" y="385" text-anchor="middle" fill="#312e81">ver</text>
+    <text x="380" y="385" text-anchor="middle" fill="#0284c7" font-weight="700">sees</text>
+    <text x="560" y="385" text-anchor="middle" fill="#059669" font-weight="700">saw</text>
+
+    <rect x="16" y="392" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="407" text-anchor="middle" fill="#D97706" font-weight="700">say</text>
+    <text x="200" y="407" text-anchor="middle" fill="#312e81">decir</text>
+    <text x="380" y="407" text-anchor="middle" fill="#0284c7" font-weight="700">says</text>
+    <text x="560" y="407" text-anchor="middle" fill="#059669" font-weight="700">said</text>
+
+    <rect x="16" y="414" width="688" height="22" fill="#f8f5ff"/>
+    <text x="70" y="429" text-anchor="middle" fill="#D97706" font-weight="700">send</text>
+    <text x="200" y="429" text-anchor="middle" fill="#312e81">mandar</text>
+    <text x="380" y="429" text-anchor="middle" fill="#0284c7" font-weight="700">sends</text>
+    <text x="560" y="429" text-anchor="middle" fill="#059669" font-weight="700">sent</text>
+
+    <rect x="16" y="436" width="688" height="22" fill="#ede9fe"/>
+    <text x="70" y="451" text-anchor="middle" fill="#D97706" font-weight="700">seem</text>
+    <text x="200" y="451" text-anchor="middle" fill="#312e81">parecer</text>
+    <text x="380" y="451" text-anchor="middle" fill="#0284c7" font-weight="700">seems</text>
+    <text x="560" y="451" text-anchor="middle" fill="#059669" font-weight="700">seemed</text>
+  </g>
+
+  <text x="360" y="488" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="600">Alivio: en pasado nadie cambia · I/He/She/It ’ WAS · You/We/They ’ WERE</text>
+  <text x="360" y="508" text-anchor="middle" fill="#7c3aed" font-size="11">*put / cut / let  iguales · el ancla (yesterday / last / ago) dice el tiempo</text>
+  <text x="360" y="526" text-anchor="middle" fill="#6d28d9" font-size="10">Conecta M1 pronombres + M2 presente ’ conversación básica real</text>
+</svg>

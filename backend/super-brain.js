@@ -818,6 +818,12 @@ async function seedCanonTeachingModules() {
       title: 'Jill Foundations M002 — Verbos presente + conjugación',
       file: 'module-02-verbos-presente.txt',
       category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-03-pasado-simple',
+      title: 'Jill Foundations M003 — Pasado simple + was/were',
+      file: 'module-03-pasado-simple.txt',
+      category: 'jill-foundations'
     }
   ];
   const state = await loadState();

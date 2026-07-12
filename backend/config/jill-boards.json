@@ -74,48 +74,29 @@
   },
   "past": {
     "rules": [
-      {
-        "left": "verbo regular",
-        "right": "verbo + ed",
-        "note": "(worked)"
-      },
-      {
-        "left": "verbo irregular",
-        "right": "forma 2",
-        "note": "(went / saw / made)"
-      }
+      { "left": "En pasado", "right": "nadie cambia el verbo", "note": "alivio vs presente" },
+      { "left": "I / He / She / It", "right": "WAS", "note": "BE excepción" },
+      { "left": "You / We / They", "right": "WERE", "note": "BE excepción" },
+      { "left": "put / cut / let", "right": "iguales PR=PS", "note": "ancla dice el tiempo" },
+      { "left": "Ancla", "right": "yesterday / last / ago", "note": "ubica la historia" }
     ],
     "examples": [
-      {
-        "left": "She worked yesterday",
-        "right": "Ella trabajó ayer",
-        "note": ""
-      },
-      {
-        "left": "I went home",
-        "right": "Yo me fui a casa",
-        "note": ""
-      },
-      {
-        "left": "They saw the movie",
-        "right": "Ellos vieron la película",
-        "note": ""
-      }
+      { "left": "She goes → She went", "right": "En pasado She no agrega S" },
+      { "left": "He has → He had", "right": "has desaparece; had para todos" },
+      { "left": "They was → They were", "right": "They → WERE" },
+      { "left": "I put … yesterday", "right": "put igual + ancla = pasado" },
+      { "left": "She sent me her report yesterday", "right": "M1+M2+M3 juntos" },
+      { "left": "Goed / sended / maked", "right": "NO existen — irregulares" }
     ],
-    "pattern": "Pasado = acción terminada. No hace falta auxiliar en afirmativa.",
+    "pattern": "En presente He/She/It cambia. En pasado nadie cambia. Excepción BE: was/were. put/cut/let + ancla.",
     "transforms": [
-      {
-        "left": "I work",
-        "right": "I worked",
-        "tip": "regular → -ed"
-      },
-      {
-        "left": "I go",
-        "right": "I went",
-        "tip": "irregular → forma 2"
-      }
+      { "left": "Go", "right": "Went", "tip": "Rapid Fire" },
+      { "left": "She goes", "right": "She went", "tip": "presente→pasado" },
+      { "left": "They + be", "right": "They were", "tip": "WERE" },
+      { "left": "I + be", "right": "I was", "tip": "WAS" },
+      { "left": "She / put / yesterday", "right": "She put … yesterday", "tip": "ancla" }
     ],
-    "takeaway": "En pasado afirmativo: solo cambiás el verbo. En negativa: did + not + base."
+    "takeaway": "Pasado = todos iguales. WAS/WERE. Ancla con put/cut/let. Integra M1+M2."
   },
   "progressive": {
     "rules": [

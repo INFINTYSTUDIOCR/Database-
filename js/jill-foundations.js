@@ -165,7 +165,7 @@
 
   var CANON_BY_COLUMN = {
     present: { id: 'verbos-presente', path: 'assets/canon/verbos-presente.svg', title: 'Módulo 2 — 16 verbos presente' },
-    past: { id: 'tiempos-ps', path: 'assets/canon/tiempos-ps.svg', title: 'Pronombre + V(pasado) + C (PS)' },
+    past: { id: 'verbos-pasado', path: 'assets/canon/verbos-pasado.svg', title: 'Módulo 3 — Pasado simple 16 verbos' },
     progressive: { id: 'presente-continuo', path: 'assets/canon/presente-continuo.svg', title: 'Pronombre + To Be + Verbo (ING)' },
     perfect: { id: 'tiempos-prp', path: 'assets/canon/tiempos-prp.svg', title: 'Pronombre + Have/Has + Participio' },
     combined: { id: 'have-been-ing', path: 'assets/canon/have-been-ing.svg', title: 'Pronombre + Have + Been + Verbo (ING)' },

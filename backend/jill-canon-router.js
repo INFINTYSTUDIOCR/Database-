@@ -210,7 +210,8 @@ function resolveAskId(userAsk, stickyTopic) {
 function loadModuleCanonTranscript(trackId) {
   const files = {
     pronouns: 'module-01-pronombres.txt',
-    present: 'module-02-verbos-presente.txt'
+    present: 'module-02-verbos-presente.txt',
+    past: 'module-03-pasado-simple.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -229,7 +230,15 @@ function loadModuleCanonTranscript(trackId) {
 function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
-    if (String(trackId || '').trim() === 'present') {
+    const id = String(trackId || '').trim();
+    if (id === 'past') {
+      return {
+        say: fromFile,
+        mustSay: ['went', 'was', 'were', 'yesterday', 'nadie cambia'],
+        exampleAsk: 'Antes de construir: ¿pasado o presente? Rapid Fire: Go → Went. They → Were.'
+      };
+    }
+    if (id === 'present') {
       return {
         say: fromFile,
         mustSay: ['to', 'goes', 'does', 'has', 'he she it'],
@@ -263,9 +272,11 @@ function formatLock(track) {
   const antiMix = [];
   const locks = {
     past: [
-      'ANTIMEZCLA OBLIGATORIA — PASADO SIMPLE (PS) SOLAMENTE:',
-      'PROHIBIDO decir: pasado perfecto, present perfect, have/has/had + participio.',
-      'SOLO: pronombre + verbo en pasado + yesterday/ago/last.'
+      'ANTIMEZCLA — MÓDULO 3 PASADO SIMPLE (16 VERBOS + WAS/WERE):',
+      'PROHIBIDO: pasado perfecto, present perfect, have/has/had + participio, ED en irregulares (goed/sended).',
+      'SOLO: en pasado nadie cambia; BE → was/were; ancla yesterday/last/ago; put/cut/let + ancla.',
+      'SEGUÍ EL GUION CANON module-03-pasado-simple SIN CORTAR NI REESCRIBIR.',
+      'ANTES de construir: preguntá "¿pasado o presente?"'
     ],
     perfect: [
       'ANTIMEZCLA — PERFECTO (have/has/had + participio): NO lo enseñes como pasado simple.'

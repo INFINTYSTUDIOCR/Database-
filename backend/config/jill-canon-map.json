@@ -489,18 +489,19 @@
     },
     {
       "id": "past",
-      "svg": "assets/canon/tiempos-ps.svg",
-      "title": "Pasado simple PS",
-      "formula": "pronombre + verbo(pasado) + complemento",
-      "example": "She worked yesterday.",
+      "svg": "assets/canon/verbos-pasado.svg",
+      "title": "Modulo 3 — Pasado simple (16 verbos)",
+      "formula": "En pasado nadie cambia · BE → was/were · ancla yesterday/last/ago · put/cut/let iguales",
+      "example": "She went yesterday. They were here. I put my keys on the table last night.",
       "never": [
         "presente perfecto",
         "pasado perfecto",
         "past perfect",
         "have/has/had + participio",
-        "presente simple",
         "moneda",
-        "continuo"
+        "continuo",
+        "cortar o reescribir el guion canon module-03",
+        "agregar ED a irregulares (goed/sended/maked)"
       ],
       "aliases": [
         "pasado simple",
@@ -511,9 +512,22 @@
         "pasado",
         "el pasado",
         "pizarron del pasado",
-        "imagen del pasado"
+        "imagen del pasado",
+        "modulo 3",
+        "módulo 3",
+        "modulo 3 pasado",
+        "clase 007",
+        "clase 7",
+        "16 verbos en pasado",
+        "verbos en pasado",
+        "was were en pasado",
+        "was y were en pasado",
+        "ancla temporal",
+        "yesterday last week",
+        "explicame el pasado",
+        "enseñame el pasado"
       ],
-      "bridge": "Puente: verbo en pasado (worked / went) = ayer/acción terminada. NO es pasado perfecto (had + participio)."
+      "bridge": "Puente Modulo 3: en pasado nadie cambia el verbo (alivio vs presente). Excepción BE: I/He/She/It → WAS; You/We/They → WERE. put/cut/let iguales — ancla dice el tiempo. Integra M1+M2."
     },
     {
       "id": "present",
