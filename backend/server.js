@@ -716,7 +716,7 @@ const DEMO_LIMITS = {
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
 const APP1_BUILD = '20260711-relevance';
-const JILL_BRAIN_VER = 'v41-no-mais';
+const JILL_BRAIN_VER = 'v42-es-tts-fix';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -807,11 +807,11 @@ function getDemoVoiceProfiles() {
   const csId = csFromEnv || csFromFile;
   return {
     jill: {
-      voiceId: ALICE_VOICE_ID,
+      voiceId: JILL_VOICE_ID,
       label: cfg.jill?.label || 'Jill',
       gender: 'female',
       lang: 'es-CR',
-      source: 'elevenlabs-account'
+      source: process.env.JILL_VOICE_ID ? 'env-JILL_VOICE_ID' : 'elevenlabs-account'
     },
     alice: {
       voiceId: ALICE_VOICE_ID,
@@ -2827,7 +2827,7 @@ const CR_LETTER_NAME = {
   x: 'equis', y: 'ye', z: 'zeta'
 };
 
-/** CR letter names + kill English gee on ING. */
+/** CR letter names + kill English gee on ING. Do NOT deform Spanish words (trabajo, etc.). */
 function applyCrIngPhonetics(text) {
   let t = String(text || '');
   t = t.replace(/\b(la|el|letra)\s+L\b/gi, '$1 ele');
@@ -2845,30 +2845,38 @@ function applyCrIngPhonetics(text) {
   });
   t = t.replace(/\bí\s+ene\s+ge\b/gi, 'í ene je');
   t = t.replace(/\bene\s+ge\b/gi, 'ene je');
-  // Soft accent so ElevenLabs stays Spanish (not Brazilian "shrabajou")
-  t = t.replace(/\btrabajo\b/gi, 'trabájo');
-  t = t.replace(/\btrabajando\b/gi, 'trabajándo');
-  t = t.replace(/\btrabajar\b/gi, 'trabajár');
   return t.replace(/\s{2,}/g, ' ').trim();
 }
 
-/** CR classroom phonetics: have/has/had → jáf/jás/jád with Spanish JOTA (never English J→"yaf", never "ave"). */
+/**
+ * CR classroom phonetics: English HAVE/HAS/HAD → jáf/jás/jád.
+ * CRITICAL: NEVER rewrite Spanish "has" (¿Has entendido? / has visto) — that destroys spoken Spanish.
+ */
 function applyCrHavePhonetics(text) {
   let t = String(text || '');
-  // Fix wrong spellings the model/TTS might invent
   t = t.replace(/\byaf\b/gi, 'jáf');
   t = t.replace(/\byas\b/gi, 'jás');
   t = t.replace(/\byad\b/gi, 'jád');
   t = t.replace(/\bjaf\b/gi, 'jáf');
   t = t.replace(/\bjas\b/gi, 'jás');
   t = t.replace(/\bjad\b/gi, 'jád');
+  // Explicit paradigms
   t = t.replace(/\bhave\s*\.\s*has\s*\.\s*had\b/gi, 'jáf. jás. jád.');
   t = t.replace(/\bhave\s+has\s+had\b/gi, 'jáf. jás. jád.');
+  // Uppercase teaching tokens only
   t = t.replace(/\bHAVE\b/g, ' jáf ');
   t = t.replace(/\bHAS\b/g, ' jás ');
   t = t.replace(/\bHAD\b/g, ' jád ');
+  // English subjects + auxiliary
+  t = t.replace(/\b(I|you|we|they)\s+have\b/gi, '$1 jáf');
+  t = t.replace(/\b(he|she|it)\s+has\b/gi, '$1 jás');
+  t = t.replace(/\b(I|you|he|she|it|we|they)\s+had\b/gi, '$1 jád');
+  // English perfect: have/has/had + English participle (not Spanish)
+  t = t.replace(/\bhave\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jáf $1');
+  t = t.replace(/\bhas\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jás $1');
+  t = t.replace(/\bhad\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jád $1');
+  // Bare English "have" / "had" only — NEVER bare lowercase "has" (Spanish: ¿Has…?)
   t = t.replace(/\bhave\b/gi, 'jáf');
-  t = t.replace(/\bhas\b/gi, 'jás');
   t = t.replace(/\bhad\b/gi, 'jád');
   return t.replace(/\s{2,}/g, ' ').trim();
 }
@@ -3047,14 +3055,18 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   let clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
   const languageCode = resolveTutorTtsLang(opts.languageCode || 'es-CR');
-  const speed = opts.speed ?? 1.08;
+  // Español un poco más natural; inglés puede ir un toque más rápido
+  const speed = opts.speed ?? (tutorTtsIsEnglish(languageCode) ? 1.08 : 1.0);
   const isSpanish = !tutorTtsIsEnglish(languageCode);
   // Tico CR: scrub AR/PT/ES-Spain. NEVER C/Z→S rewrite (that causes Brazilian drift).
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
-    clean = applyCrHavePhonetics(clean);
-    clean = applyCrIngPhonetics(clean);
+    // Fonética MSI solo donde hay inglés de clase — NO romper español ("¿Has entendido?" ≠ jás)
+    if (/\b(have|has|had|HAVE|HAS|HAD|jáf|jás|jád|ing|ING)\b/.test(clean)) {
+      clean = applyCrHavePhonetics(clean);
+      clean = applyCrIngPhonetics(clean);
+    }
   }
   if (!clean) throw new Error('Empty text');
 
