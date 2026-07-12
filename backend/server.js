@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-tico-cr';
-const JILL_BRAIN_VER = 'v37-tico-cr';
+const APP1_BUILD = '20260711-relevance';
+const JILL_BRAIN_VER = 'v38-relevance';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {

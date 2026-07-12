@@ -81,6 +81,24 @@ function wantsVisual(text) {
   return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
 }
 
+/** Pedido explícito de tema (español) vs frase de práctica en inglés. */
+function isExplicitTopicAsk(text) {
+  const t = String(text || '');
+  return /\b(explicame|expl[ií]came|explic[aá]|ense[nñ]ame|ense[nñ][aá]|mostr[aá]me|dame|quiero (saber|aprender|entender)|qu[eé] es|c[oó]mo se (usa|forma|dice)|ayudame|ayud[aá]me|duda|hablame de|habl[aá]me de|tema de|lecci[oó]n|m[oó]dulo)\b/i.test(t)
+    || /\b(preposiciones|gerundio|futuro|pasado|presente|pronombres|art[ií]culos|modales|negaciones)\b/i.test(t);
+}
+
+/** Producción oral / ejemplo en inglés (no es pedido de nuevo módulo). */
+function isEnglishPracticeUtterance(text) {
+  const t = String(text || '').trim();
+  if (!t || t.length > 220) return false;
+  if (isExplicitTopicAsk(t)) return false;
+  if (/[áéíóúñ¿¡]/i.test(t)) return false;
+  // Mostly ASCII English words — student attempt / example
+  return /\b(i|you|he|she|it|we|they|will|would|can|like|watch|watching|go|going|am|is|are|have|has|had|the|a|an|in|on|at|to|for|morning|today|tomorrow)\b/i.test(t)
+    && /[a-zA-Z]{2,}/.test(t);
+}
+
 function stripAskShell(text) {
   let t = String(text || '');
   t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
@@ -135,18 +153,41 @@ function resolvePieceTrack(userAsk, stickyTopic) {
 function resolveAsk(userAsk, stickyTopic) {
   const ask = String(userAsk || '').trim();
   const sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
+  const stickyTrack = sticky ? (pickTrack(sticky) || pickTrack(stripAskShell(sticky)) || trackById(sticky)) : null;
+
+  // Si hay lección activa y el mensaje es práctica/ejemplo en inglés → NO cambiar de módulo
+  // (evita "in the morning" → preposiciones durante una clase de futuro)
+  if (stickyTrack && isEnglishPracticeUtterance(ask) && !isExplicitTopicAsk(ask)) {
+    return stickyTrack;
+  }
+
   // Pieza de fórmula gana SIEMPRE (qué es HAD → have/has/had o perfecto)
   let hit = resolvePieceTrack(ask, sticky);
-  if (hit) return hit;
+  if (hit) {
+    // Pieza incidental dentro de práctica del lock → quedate en el lock
+    if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) {
+      return stickyTrack;
+    }
+    return hit;
+  }
   hit = pickTrack(ask);
-  if (hit) return hit;
+  if (hit) {
+    if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) {
+      return stickyTrack;
+    }
+    return hit;
+  }
   const stripped = stripAskShell(ask);
   if (stripped) {
     hit = pickTrack(stripped);
-    if (hit) return hit;
+    if (hit) {
+      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id) return stickyTrack;
+      return hit;
+    }
     hit = resolvePieceTrack(stripped, sticky);
     if (hit) return hit;
   }
+  if (stickyTrack) return stickyTrack;
   if (sticky) {
     hit = pickTrack(sticky);
     if (hit) return hit;
@@ -227,21 +268,34 @@ function formatLock(track) {
       'ANTIMEZCLA: presente continuo.',
       'OBLIGATORIO EN VOZ: en español el auxiliar es ESTAR; en inglés OBLIGATORIO TO BE (am/is/are) + VERBO+ING; ING = ando/endo. Si no decís estar→to be y ando/endo, FALLASTE.'
     ],
-    future: ['ANTIMEZCLA: futuro will/going to.'],
-    modales: ['ANTIMEZCLA: modales — will=-ré; would=-ría; etc.'],
+    future: [
+      'ANTIMEZCLA: futuro will/going to.',
+      'RELEVANCIA OBLIGATORIA: SOLO futuro. PROHIBIDO tablero/explicación de preposiciones in/on/at aunque el ejemplo diga "in the morning". Eso es complemento del ejemplo — NO es la lección.'
+    ],
+    modales: [
+      'ANTIMEZCLA: modales — will=-ré; would=-ría; etc.',
+      'RELEVANCIA: SOLO el modal pedido. PROHIBIDO saltar a preposiciones u otro módulo por una palabra incidental en el ejemplo.'
+    ],
     modal: ['ANTIMEZCLA: moneda — AUX delante = pregunta.'],
     negations: ['ANTIMEZCLA: negaciones AUX + NOT.'],
     there: ['ANTIMEZCLA: there is/are = hay; no have.'],
     gerundio: [
       'ANTIMEZCLA: gerundio como sustantivo.',
-      'OBLIGATORIO EN VOZ: VERBO+ING = ando/endo. Gerundio sustantivo NO lleva to be. CONTRASTE OBLIGATORIO: ESTAR + ando/endo en español → TO BE + ING (continuo). Si omitís ando/endo o el contraste estar/to be, FALLASTE.'
+      'OBLIGATORIO EN VOZ: VERBO+ING = ando/endo. Gerundio sustantivo NO lleva to be. CONTRASTE OBLIGATORIO: ESTAR + ando/endo en español → TO BE + ING (continuo). Si omitís ando/endo o el contraste estar/to be, FALLASTE.',
+      'RELEVANCIA: SOLO gerundio/ING. PROHIBIDO preposiciones in/on/at como lección aparte.'
     ],
     gerund_prep: ['ANTIMEZCLA: prep + VERBO+ING = ando/endo. Decí ando/endo.'],
     combined: ['ANTIMEZCLA: have been + ING = he estado + ando/endo.'],
     modal_have_pp: ['ANTIMEZCLA: modal + have + participio.'],
     modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
-    prepositions: ['ANTIMEZCLA: IN/ON/AT — analogía caja/superficie/punto.'],
-    prepositions_time: ['ANTIMEZCLA: prep. de tiempo.'],
+    prepositions: [
+      'ANTIMEZCLA: IN/ON/AT — analogía caja/superficie/punto.',
+      'SOLO si el estudiante PIDIÓ preposiciones. Nunca hijackear otra lección.'
+    ],
+    prepositions_time: [
+      'ANTIMEZCLA: prep. de tiempo.',
+      'SOLO si el estudiante PIDIÓ preposiciones de tiempo. "in the morning" dentro de un ejemplo de futuro NO abre este módulo.'
+    ],
     articles: ['ANTIMEZCLA: a/an/the.'],
     comparatives: ['ANTIMEZCLA: comparativos.'],
     irregular_verbs: ['ANTIMEZCLA: irregulares go. went. gone.'],
@@ -291,6 +345,7 @@ function formatLock(track) {
     '3) 1 ejemplo en inglés + práctica oral mirando el tablero.',
     '4) ¿Te quedó?',
     'PROHIBIDO: ESL genérico; leer tablero fila por fila; inventar otro método; cambiar de módulo.',
+    'RELEVANCIA IRROMPIBLE: SOLO este track. PROHIBIDO abrir otro tablero/tema (preposiciones, artículos, etc.) por palabras incidentales del ejemplo del estudiante.',
     'VOZ: VERBO+ING = "verbo más í ene je". Paradigmas con pausa (go. went. gone.).',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
@@ -318,6 +373,8 @@ module.exports = {
   trackById,
   wantsVisual,
   stripAskShell,
+  isExplicitTopicAsk,
+  isEnglishPracticeUtterance,
   resolveAsk,
   resolveAskId,
   resolvePieceTrack,

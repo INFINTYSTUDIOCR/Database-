@@ -661,7 +661,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711m01';
+  var CACHE_VER = '20260711rel';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
@@ -786,6 +786,21 @@
     return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
   }
 
+  function isExplicitTopicAsk(text) {
+    var t = String(text || '');
+    return /\b(explicame|expl[ií]came|explic[aá]|ense[nñ]ame|ense[nñ][aá]|mostr[aá]me|dame|quiero (saber|aprender|entender)|qu[eé] es|c[oó]mo se (usa|forma|dice)|ayudame|ayud[aá]me|duda|hablame de|habl[aá]me de|tema de|lecci[oó]n|m[oó]dulo)\b/i.test(t)
+      || /\b(preposiciones|gerundio|futuro|pasado|presente|pronombres|art[ií]culos|modales|negaciones)\b/i.test(t);
+  }
+
+  function isEnglishPracticeUtterance(text) {
+    var t = String(text || '').trim();
+    if (!t || t.length > 220) return false;
+    if (isExplicitTopicAsk(t)) return false;
+    if (/[áéíóúñ¿¡]/i.test(t)) return false;
+    return /\b(i|you|he|she|it|we|they|will|would|can|like|watch|watching|go|going|am|is|are|have|has|had|the|a|an|in|on|at|to|for|morning|today|tomorrow)\b/i.test(t)
+      && /[a-zA-Z]{2,}/.test(t);
+  }
+
   function stripAskShell(text) {
     var t = String(text || '');
     t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
@@ -824,17 +839,31 @@
   function resolveAsk(userAsk, stickyTopic) {
     var ask = String(userAsk || '').trim();
     var sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
+    var stickyTrack = sticky ? (pickTrack(sticky) || pickTrack(stripAskShell(sticky)) || trackById(sticky)) : null;
+    if (stickyTrack && isEnglishPracticeUtterance(ask) && !isExplicitTopicAsk(ask)) {
+      return stickyTrack;
+    }
     var hit = resolvePieceTrack(ask, sticky);
-    if (hit) return hit;
+    if (hit) {
+      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) return stickyTrack;
+      return hit;
+    }
     hit = pickTrack(ask);
-    if (hit) return hit;
+    if (hit) {
+      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) return stickyTrack;
+      return hit;
+    }
     var stripped = stripAskShell(ask);
     if (stripped) {
       hit = pickTrack(stripped);
-      if (hit) return hit;
+      if (hit) {
+        if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id) return stickyTrack;
+        return hit;
+      }
       hit = resolvePieceTrack(stripped, sticky);
       if (hit) return hit;
     }
+    if (stickyTrack) return stickyTrack;
     if (sticky) {
       hit = pickTrack(sticky);
       if (hit) return hit;
@@ -942,6 +971,8 @@
     pickTrackId: pickTrackId,
     wantsVisual: wantsVisual,
     stripAskShell: stripAskShell,
+    isExplicitTopicAsk: isExplicitTopicAsk,
+    isEnglishPracticeUtterance: isEnglishPracticeUtterance,
     resolveAsk: resolveAsk,
     resolveAskId: resolveAskId,
     resolvePieceTrack: resolvePieceTrack,

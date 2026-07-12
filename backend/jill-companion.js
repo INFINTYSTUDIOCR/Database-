@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v59-undo-falla';
+const JILL_PRO_BRAIN_VER = 'v60-relevance-lock';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -513,24 +513,47 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const forced = forcedTrackId && JillCanonRouter.trackById
     ? JillCanonRouter.trackById(forcedTrackId)
     : null;
+  const stickyResolved = sticky
+    ? (resolveAskTrack(sticky, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(sticky) : null) || (JillCanonRouter.trackById ? JillCanonRouter.trackById(sticky) : null))
+    : null;
   const piece = JillCanonRouter.resolvePieceTrack
     ? JillCanonRouter.resolvePieceTrack(msg, sticky)
     : null;
+  const practiceUtter = JillCanonRouter.isEnglishPracticeUtterance
+    ? JillCanonRouter.isEnglishPracticeUtterance(msg)
+    : false;
+  const explicitNew = JillCanonRouter.isExplicitTopicAsk
+    ? JillCanonRouter.isExplicitTopicAsk(msg)
+    : false;
   // SOLO orden explícita de ESTE mensaje (o continuación de práctica del mismo lock). Cero sticky improvisado.
-  const fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
+  let fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
+  // Práctica en inglés bajo lock activo → NUNCA cambiar de lección por "in the morning" u otra palabra incidental
+  const activeLock = forced || stickyResolved;
+  if (activeLock && practiceUtter && !explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
+    fromThisMsg = null;
+  }
   const continuing =
     !fromThisMsg && !piece && (
       isClarityReply(msg)
+      || practiceUtter
       || phase === 'doubt_practice'
       || phase === 'live_correct'
       || phase === 'live_evaluate'
       || phase === 'english_practice'
     );
-  const track = piece
-    || fromThisMsg
-    || (continuing ? (forced || (sticky ? resolveAskTrack(sticky, '') : null)) : null)
-    || (!fromThisMsg && !piece && !sticky ? forced : null);
-  const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
+  const track = (activeLock && practiceUtter && !explicitNew)
+    ? activeLock
+    : (piece
+      || fromThisMsg
+      || (continuing ? (forced || stickyResolved) : null)
+      || (!fromThisMsg && !piece && !sticky ? forced : null));
+  const relevanceLock = track
+    ? `\nRELEVANCIA IRROMPIBLE — lección activa: ${track.title} (${track.id}).
+PROHIBIDO: abrir otro tablero/módulo (preposiciones, artículos, otro tiempo) por palabras incidentales del ejemplo del estudiante.
+Si el ejemplo dice "in the morning" durante FUTURO → corregí el futuro; NO enseñés in/on/at.
+SOLO el track locked. Todo lo demás = FALLO.\n`
+    : '';
+  const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n${relevanceLock}` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track ? formatBoardSync(track) : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
   const ordersBlock = `\n${STUDENT_ORDERS_RULE}\n`;

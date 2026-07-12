@@ -34,7 +34,7 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711ops"></script>
-<script src="js/jill-canon-router.js?v=20260711m01"></script>
+<script src="js/jill-canon-router.js?v=20260711rel"></script>
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260711m01"></script>
@@ -4567,17 +4567,35 @@ function jillIsPracticeContinue(text) {
 
 function jillResolveCanonTrack(userText, replyText) {
   if (typeof JillCanonRouter === 'undefined') return null;
+  var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
+  // Práctica / ejemplo en inglés bajo lock → NO cambiar de lección
+  if (locked && jillIsPracticeContinue(userText)) return locked;
+  if (locked && typeof JillCanonRouter.isEnglishPracticeUtterance === 'function'
+      && JillCanonRouter.isEnglishPracticeUtterance(userText)
+      && !(typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userText))) {
+    return locked;
+  }
   // SOLO orden explícita del estudiante — NUNCA inferir desde la respuesta de Jill
   if (JillCanonRouter.resolveAskId) {
-    var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', '');
-    if (fromUserOnly) return fromUserOnly;
+    var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', locked || '');
+    if (fromUserOnly) {
+      // Si resolveAsk devolvió otro track por alias incidental y hay lock + práctica → lock
+      if (locked && fromUserOnly !== locked && jillIsPracticeContinue(userText)) return locked;
+      return fromUserOnly;
+    }
   }
   if (JillCanonRouter.pickTrackId) {
     var picked = JillCanonRouter.pickTrackId(userText || '');
-    if (picked) return picked;
+    if (picked) {
+      if (locked && picked !== locked && (jillIsPracticeContinue(userText)
+          || (typeof JillCanonRouter.isEnglishPracticeUtterance === 'function' && JillCanonRouter.isEnglishPracticeUtterance(userText)))) {
+        return locked;
+      }
+      return picked;
+    }
   }
   // Continuación de la MISMA orden (práctica / ok) — no charla libre nueva
-  if (_jillState.canonTrackId && jillIsPracticeContinue(userText)) return _jillState.canonTrackId;
+  if (locked && jillIsPracticeContinue(userText)) return locked;
   return null;
 }
 
@@ -6094,9 +6112,14 @@ async function sendJillMsg(micText, sendOpts){
     var canonTrackId = jillResolveCanonTrack(text, '');
     if(canonTrackId){
       _jillState.canonTrackId = canonTrackId;
-      if(_jillState.sessionType === 'companion') _jillState.companionTopic = String(text || '').slice(0, 120);
+      // Solo actualizar companionTopic con pedidos explícitos de tema — no con ejemplos en inglés
+      if(_jillState.sessionType === 'companion'
+          && !(typeof JillCanonRouter !== 'undefined' && JillCanonRouter.isEnglishPracticeUtterance && JillCanonRouter.isEnglishPracticeUtterance(text))) {
+        _jillState.companionTopic = String(text || '').slice(0, 120);
+      }
     } else {
       // Sin orden explícita ni práctica → nada de tablero/lock improvisado
+      // PERO: si hay lock previo y es práctica, jillResolveCanonTrack ya lo devolvió
       _jillState.canonTrackId = null;
       try { if (typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch (eClr) {}
     }
