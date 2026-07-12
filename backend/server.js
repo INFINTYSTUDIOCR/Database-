@@ -2851,6 +2851,7 @@ function applyCrIngPhonetics(text) {
 /**
  * CR classroom phonetics: English HAVE/HAS/HAD → jáf/jás/jád.
  * CRITICAL: NEVER rewrite Spanish "has" (¿Has entendido? / has visto) — that destroys spoken Spanish.
+ * CRITICAL: jáf must sound like Spanish JOTA (/x/), never English J ("yaf").
  */
 function applyCrHavePhonetics(text) {
   let t = String(text || '');
@@ -2878,7 +2879,26 @@ function applyCrHavePhonetics(text) {
   // Bare English "have" / "had" only — NEVER bare lowercase "has" (Spanish: ¿Has…?)
   t = t.replace(/\bhave\b/gi, 'jáf');
   t = t.replace(/\bhad\b/gi, 'jád');
-  return t.replace(/\s{2,}/g, ' ').trim();
+  return forceSpanishJotaHave(t);
+}
+
+/**
+ * ElevenLabs multilingual often reads "jáf" with English J (= "yaf").
+ * Double-j seeds Spanish jota /x/ in LatAm models; never leave bare yaf.
+ */
+function forceSpanishJotaHave(text) {
+  return String(text || '')
+    .replace(/\byaf\b/gi, 'jjáf')
+    .replace(/\byas\b/gi, 'jjás')
+    .replace(/\byad\b/gi, 'jjád')
+    .replace(/\bjáf\b/gi, 'jjáf')
+    .replace(/\bjás\b/gi, 'jjás')
+    .replace(/\bjád\b/gi, 'jjád')
+    .replace(/\bjaf\b/gi, 'jjáf')
+    .replace(/\bjas\b/gi, 'jjás')
+    .replace(/\bjad\b/gi, 'jjád')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 /**
@@ -3064,22 +3084,35 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
     // Fonética MSI solo donde hay inglés de clase — NO romper español ("¿Has entendido?" ≠ jás)
-    if (/\b(have|has|had|HAVE|HAS|HAD|jáf|jás|jád|ing|ING)\b/.test(clean)) {
+    // NO aplicar en Alice English chat: have debe sonar "have", no "yaf/jáf"
+    if (/\b(have|has|had|HAVE|HAS|HAD|jáf|jás|jád|jjáf|jjás|jjád|yaf|ing|ING)\b/.test(clean)) {
       clean = applyCrHavePhonetics(clean);
       clean = applyCrIngPhonetics(clean);
+    }
+  } else {
+    // English path: if model already wrote jáf/yaf, still force jota (never English J)
+    if (/\b(jáf|jás|jád|jaf|jas|jad|jjáf|yaf|yas|yad)\b/i.test(clean)) {
+      clean = forceSpanishJotaHave(clean);
     }
   }
   if (!clean) throw new Error('Empty text');
 
+  // Clips with classroom HAVE phonetics → force Spanish so jota is /x/ not English "yaf"
+  let effectiveLang = languageCode;
+  if (/\b(jjáf|jjás|jjád|jáf|jás|jád)\b/i.test(clean)) {
+    effectiveLang = 'es-CR';
+  }
+  const effectiveIsSpanish = !tutorTtsIsEnglish(effectiveLang);
+
   // turbo_v2_5 + language_code: Spanish LatAm / English American — no Castilian/PT/British drift
-  const modelId = isSpanish
+  const modelId = effectiveIsSpanish
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
     : (process.env.ELEVEN_TTS_MODEL_EN || process.env.ELEVEN_TTS_MODEL || 'eleven_turbo_v2_5');
 
-  const elevenLang = tutorElevenLanguageCode(languageCode);
-  // dualaccent1: LatAm ES + American EN only
-  const brainLang = `${languageCode}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|${modelId}`;
-  const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
+  const elevenLang = tutorElevenLanguageCode(effectiveLang);
+  // dualaccent1 + jota3: LatAm ES + American EN; HAVE = Spanish jota not English J
+  const brainLang = `${effectiveLang}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|jota3|${modelId}`;
+  const cacheKey = getTTSCacheKey(clean, voiceId, effectiveLang + '|jota3', speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
@@ -4890,9 +4923,10 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
     });
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
-    const languageCode = resolveTutorTtsLang(lang);
+    // Alice speaks English by default — never default to es-CR (that turned every "have" into yaf/jáf)
+    const languageCode = resolveTutorTtsLang(lang || 'en-US');
     const isEn = tutorTtsIsEnglish(languageCode);
-    const spoken = scrubNonCrSpanish(text);
+    const spoken = isEn ? String(text || '') : scrubNonCrSpanish(text);
     if (!String(spoken || '').trim()) {
       return res.status(400).json({ error: 'Empty TTS text' });
     }

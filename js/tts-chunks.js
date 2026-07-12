@@ -114,12 +114,16 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bI\s+N\s+G\b/g, ' í ene je ');
   t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene je ');
   // Have = jáf with Spanish JOTA (never English J → "yaf")
+  // Double-j seeds LatAm jota /x/ in ElevenLabs; bare "jáf" often becomes "yaf"
   t = t.replace(/\byaf\b/gi, 'jáf');
   t = t.replace(/\byas\b/gi, 'jás');
   t = t.replace(/\byad\b/gi, 'jád');
   t = t.replace(/\bjaf\b/gi, 'jáf');
   t = t.replace(/\bjas\b/gi, 'jás');
   t = t.replace(/\bjad\b/gi, 'jád');
+  t = t.replace(/\bjáf\b/gi, 'jjáf');
+  t = t.replace(/\bjás\b/gi, 'jjás');
+  t = t.replace(/\bjád\b/gi, 'jjád');
 
   t = t.replace(/\bP\b/g, ' pronombre ');
   t = t.replace(/\bM\b/g, ' modal ');
@@ -212,7 +216,7 @@ function classifyTtsWord(word) {
   // Single MSI letters stay with surrounding language (usually Spanish)
   if (/^[PMVC]$/i.test(w)) return null;
   // Letter names CR — always Spanish TTS (ele / je / erre), never English el/gee/ar
-  if (/^(í|i|ene|eme|ele|erre|ese|je|ge|jota|hache|uve|equis|eñe|efe|doble)$/i.test(w)) return 'es';
+  if (/^(í|i|ene|eme|ele|erre|ese|je|ge|jota|hache|uve|equis|eñe|efe|doble|jáf|jás|jád|jjáf|jjás|jjád|jaf|jas|jad)$/i.test(w)) return 'es';
   if (/[áéíóúñ¿¡]/i.test(w)) return 'es';
   var bare = w.toLowerCase().replace(/['']/g, "'");
   // Spanish morphology BEFORE English — stops "Trabajo" → English TTS ("shrabajou")
