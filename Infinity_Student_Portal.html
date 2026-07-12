@@ -53,7 +53,7 @@
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260711modules"></script>
 <script src="js/jill-quiz.js?v=20260711jillonly"></script>
-<script src="js/tts-chunks.js?v=20260711ele"></script>
+<script src="js/tts-chunks.js?v=20260711dual"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260711speak"></script>
 <style>
@@ -4698,6 +4698,12 @@ function jillShowTtsError(status){
   else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
 }
 
+function jillNormalizeTtsLang(lang){
+  var s = String(lang || '').toLowerCase().trim();
+  if(s === 'en' || s === 'en-us' || s.indexOf('en') === 0) return 'en-US';
+  return 'es-CR';
+}
+
 function jillDetectTtsLang(text){
   var t = String(text || '');
   if(/[áéíóúñ¿¡]/i.test(t)) return 'es-CR';
@@ -4708,13 +4714,12 @@ function jillDetectTtsLang(text){
 }
 
 function jillTtsCacheKey(clean, lang){
-  return (lang || 'es') + '::' + clean;
+  return jillNormalizeTtsLang(lang) + '::' + clean;
 }
 
 function jillFetchTtsBlob(clean, lang, attempt){
   attempt = attempt || 0;
-  var sendLang = lang || 'es';
-  if(sendLang === 'es' || sendLang === 'es-cr' || sendLang === 'es-CR') sendLang = 'es-CR';
+  var sendLang = jillNormalizeTtsLang(lang);
   return infinityFetch('/jill-tts', {method:'POST', headers:authHeaders(), body:JSON.stringify({text:clean, lang: sendLang})})
   .then(function(r){
     if(!r.ok){
@@ -4804,8 +4809,7 @@ function jillPrefetchTTS(text){
   segments.forEach(function(seg){
     var clean = jillCleanTtsText(seg.text);
     if(clean.length < 3) return;
-    var lang = seg.lang || 'es-CR';
-    if(lang === 'es') lang = 'es-CR';
+    var lang = jillNormalizeTtsLang(seg.lang || 'es-CR');
     var key = jillTtsCacheKey(clean, lang);
     if(_jillTtsPrefetch[key]) return;
     _jillTtsPrefetch[key] = 'loading';
@@ -4820,8 +4824,7 @@ function jillQueueSpeak(text, lang){
   if(!text || text.trim().length < 2 || !_jillSpeakEnabled) return;
   var cleaned = jillScrubNonCr(text.trim());
   if(!cleaned) return;
-  var sendLang = lang || (jillDetectTtsLang(cleaned) === 'en-US' ? 'en' : 'es-CR');
-  if(sendLang === 'es') sendLang = 'es-CR';
+  var sendLang = jillNormalizeTtsLang(lang || jillDetectTtsLang(cleaned));
   _jillTTSQueue.push({ text: cleaned, lang: sendLang });
   _jillTTSFlush();
 }
@@ -4833,14 +4836,13 @@ function _jillTTSFlush(){
   var gen = _jillSpeakGen;
   var item = _jillTTSQueue.shift();
   var text = typeof item === 'string' ? item : item.text;
-  var lang = typeof item === 'string' ? (jillDetectTtsLang(text) === 'en-US' ? 'en' : 'es-CR') : (item.lang || 'es-CR');
-  if(lang === 'es') lang = 'es-CR';
+  var lang = jillNormalizeTtsLang(typeof item === 'string' ? jillDetectTtsLang(text) : (item.lang || 'es-CR'));
   var clean = jillCleanTtsText(text);
   jillArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
 
   var nextItem = _jillTTSQueue[0];
-  var nextLang = nextItem ? (typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
+  var nextLang = nextItem ? jillNormalizeTtsLang(typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
   var langPause = (nextLang && nextLang !== lang) ? 40 : 0;
 
   function finishJillLine(){
@@ -6196,15 +6198,15 @@ function jillSpeak(text){
   var segments = typeof jillTtsSegments === 'function'
     ? jillTtsSegments(text, 780)
     : ttsSpeakLines(text, 780).map(function(line){
-        return { text: line, lang: jillDetectTtsLang(line) === 'en-US' ? 'en' : 'es' };
+        return { text: line, lang: jillNormalizeTtsLang(jillDetectTtsLang(line)) };
       });
   if(!segments.length){
     var fallback = jillCleanTtsText(text);
-    if(fallback.length >= 2) jillQueueSpeak(fallback, jillDetectTtsLang(fallback) === 'en-US' ? 'en' : 'es');
+    if(fallback.length >= 2) jillQueueSpeak(fallback, jillNormalizeTtsLang(jillDetectTtsLang(fallback)));
     return;
   }
   segments.forEach(function(seg){
-    if(seg.text && seg.text.length >= 2) jillQueueSpeak(seg.text, seg.lang);
+    if(seg.text && seg.text.length >= 2) jillQueueSpeak(seg.text, jillNormalizeTtsLang(seg.lang));
   });
 }
 

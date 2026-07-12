@@ -333,23 +333,23 @@ function detectJillLineLang(line) {
   return en > es * 1.4 ? 'en' : 'es';
 }
 
-/** Jill: Spanish Tico by default. Only full-English practice lines use EN (no gringa on ES). */
+/** Jill: ONLY two accents — LatAm Spanish (es-CR) or American English (en-US). */
 function jillTtsSegments(text, maxLen) {
   maxLen = maxLen || 900;
   var line = prepareTtsLine(text);
   if (!line) return [];
   var lineLang = detectJillLineLang(line);
-  // Mostly Spanish explanation → ONE es clip (keeps L/R Tico; no American islands)
+  // Mostly Spanish explanation → ONE LatAm clip (never American islands on Spanish)
   if (lineLang === 'es' || /[áéíóúñ]/i.test(line)) {
-    if (line.length <= maxLen) return [{ text: line, lang: 'es' }];
+    if (line.length <= maxLen) return [{ text: line, lang: 'es-CR' }];
     return splitTtsChunks(line, maxLen).map(function (chunk) {
-      return { text: chunk, lang: 'es' };
+      return { text: chunk, lang: 'es-CR' };
     });
   }
-  // Pure English practice turn
-  if (line.length <= maxLen) return [{ text: line, lang: 'en' }];
+  // Pure English → American only
+  if (line.length <= maxLen) return [{ text: line, lang: 'en-US' }];
   return splitTtsChunks(line, maxLen).map(function (chunk) {
-    return { text: chunk, lang: 'en' };
+    return { text: chunk, lang: 'en-US' };
   });
 }
 

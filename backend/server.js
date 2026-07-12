@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-tico-ele';
-const JILL_BRAIN_VER = 'v35-tico-ele';
+const APP1_BUILD = '20260711-dual-accent';
+const JILL_BRAIN_VER = 'v36-dual-accent';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2676,10 +2676,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=ticoele1: L=ele G=je R=erre; no English TTS on Spanish words
+  // v=dualaccent1: LatAm Spanish + American English ONLY
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':ticoele1:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':dualaccent1:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2968,14 +2968,35 @@ function demoBufferVoiceForText(text) {
  * Get TTS audio from RAM/brain cache, or call ElevenLabs once and store.
  * Returns { buffer, cache: 'RAM'|'HIT'|'MISS' }
  */
+/**
+ * IRREMPIBLE — solo DOS acentos / idiomas en tutores (Jill / Alice classroom TTS):
+ *   1) Español = latinoamericano (es-CR / LatAm)
+ *   2) Inglés  = americano (en-US)
+ * Cualquier otro código (en-GB, pt, es-ES, auto, mix) se fuerza a uno de esos dos.
+ */
+function resolveTutorTtsLang(raw) {
+  const s = String(raw || '').toLowerCase().trim();
+  if (s === 'en' || s === 'en-us' || s.startsWith('en')) return 'en-US';
+  return 'es-CR';
+}
+
+function tutorTtsIsEnglish(lang) {
+  return resolveTutorTtsLang(lang) === 'en-US';
+}
+
+function tutorElevenLanguageCode(lang) {
+  // ElevenLabs: 'es' = Spanish (LatAm with our settings); 'en' = American English
+  return tutorTtsIsEnglish(lang) ? 'en' : 'es';
+}
+
 async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (!ELEVEN_KEY) throw new Error('ELEVENLABS_KEY not configured');
   if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
   let clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
-  const languageCode = opts.languageCode || null;
+  const languageCode = resolveTutorTtsLang(opts.languageCode || 'es-CR');
   const speed = opts.speed ?? 1.08;
-  const isSpanish = languageCode && String(languageCode).toLowerCase().startsWith('es');
+  const isSpanish = !tutorTtsIsEnglish(languageCode);
   // Tico CR: scrub AR/PT/ES-Spain. NEVER C/Z→S rewrite (that causes Brazilian drift).
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
@@ -2985,13 +3006,14 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   }
   if (!clean) throw new Error('Empty text');
 
-  // turbo_v2_5 honors language_code; multilingual_v2 often drifts to Castilian/PT
+  // turbo_v2_5 + language_code: Spanish LatAm / English American — no Castilian/PT/British drift
   const modelId = isSpanish
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
-    : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
+    : (process.env.ELEVEN_TTS_MODEL_EN || process.env.ELEVEN_TTS_MODEL || 'eleven_turbo_v2_5');
 
-  // ticoele1: ele/je/erre + no English-TTS-on-Spanish ("shrabajou")
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|ticoele1|${modelId}`;
+  const elevenLang = tutorElevenLanguageCode(languageCode);
+  // dualaccent1: LatAm ES + American EN only
+  const brainLang = `${languageCode}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
@@ -3006,6 +3028,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   const payload = {
     text: clean,
     model_id: modelId,
+    language_code: elevenLang,
     voice_settings: {
       stability: opts.stability ?? 0.52,
       similarity_boost: opts.similarityBoost ?? 0.78,
@@ -3014,9 +3037,6 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
       speed
     }
   };
-  if (languageCode) {
-    payload.language_code = isSpanish ? 'es' : languageCode;
-  }
 
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
@@ -3816,7 +3836,7 @@ RITMO HABLADO — 100% HUMANO:
 IDIOMA (ESTRICTO):
 El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés los tres sin reproche — sacá la intención aunque venga desordenado.
 Hablás SOLO en ESPAÑOL de Costa Rica / Centroamérica (voseo: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
-PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não). SOLO español TICO de Costa Rica. NUNCA digas "che".
+PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não). REGLA IRROMPIBLE: español = acento latino/tico; inglés = acento americano. NADA MÁS. NUNCA digas "che".
 Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.
 Nunca rechaces un mensaje por idioma, mezcla o transcripción imperfecta del micrófono.
@@ -4730,18 +4750,18 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
     const ok = await assertStudentTutorAccess(req, res, 'alice', null, { allowCompanionProduct: true });
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
-    const rawLang = String(lang || 'es').toLowerCase();
-    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
+    const languageCode = resolveTutorTtsLang(lang);
+    const isEn = tutorTtsIsEnglish(languageCode);
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Alice',
       languageCode,
-      // Tico CR: stable, low style — no Brasil / Argentina / gringa drawl
-      speed: languageCode === 'en' ? 0.98 : 1.0,
-      stability: languageCode === 'en' ? 0.62 : 0.62,
-      similarityBoost: languageCode === 'en' ? 0.78 : 0.85,
-      style: languageCode === 'en' ? 0.06 : 0.04
+      // LatAm ES / American EN — no other accent
+      speed: isEn ? 0.98 : 1.0,
+      stability: 0.62,
+      similarityBoost: isEn ? 0.78 : 0.85,
+      style: isEn ? 0.06 : 0.04
     });
   } catch (err) {
     console.error('Alice TTS error:', err.message);
@@ -4754,18 +4774,16 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null, { allowJillProProduct: true });
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
-    const rawLang = String(lang || 'es').toLowerCase();
-    // Default Tico CR. Pure English practice turns only when client sends lang=en.
-    const languageCode = (rawLang === 'en' || rawLang === 'en-us' || rawLang.startsWith('en')) ? 'en' : 'es-CR';
-    const isEn = languageCode === 'en';
+    const languageCode = resolveTutorTtsLang(lang);
+    const isEn = tutorTtsIsEnglish(languageCode);
     return await synthesizeSpeech(req, res, {
       text: scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode,
-      // Tico classroom: stable, low style — no gringa drawl, no AR theatre, no PT drift
+      // LatAm ES / American EN — no other accent
       speed: isEn ? 0.98 : 1.0,
-      stability: isEn ? 0.62 : 0.62,
+      stability: 0.62,
       similarityBoost: isEn ? 0.78 : 0.85,
       style: isEn ? 0.06 : 0.04
     });
