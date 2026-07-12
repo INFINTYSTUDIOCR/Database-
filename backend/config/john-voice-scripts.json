@@ -12,34 +12,37 @@
   },
   "tracks": {
     "gerundio": {
-      "say": "Mucha gente se confunde con el í ene je y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene je es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene je sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene je progreso; verbo más í ene je general; to más verbo intención.",
+      "say": "CANON MÓDULO 5 / Clase 009 — guion íntegro en config/canon/module-05-gerundio.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
       "mustSay": [
+        "to be",
+        "ing",
         "ando",
         "endo",
-        "to be",
-        "general",
-        "intención",
-        "watching"
+        "to"
       ],
-      "exampleAsk": "Decime una general con watching y una con intención con to watch. Después montá un However."
+      "exampleAsk": "Antes del ING continuo: ¿cuál es la llave? Decí TO BE y construí una frase."
     },
     "progressive": {
-      "say": "Presente progresivo: to be más verbo más í ene je es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching (general) ni I like to watch (intención).",
+      "say": "CANON MÓDULO 5 / Clase 009 — guion íntegro en config/canon/module-05-gerundio.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
       "mustSay": [
         "to be",
+        "ing",
         "ando",
         "endo",
-        "progreso"
+        "to"
       ],
-      "exampleAsk": "Armá una progresiva: They are studying now."
+      "exampleAsk": "Antes del ING continuo: ¿cuál es la llave? Decí TO BE y construí una frase."
     },
     "gerund_prep": {
-      "say": "Después de una preposición, el verbo va en í ene je — ando endo — sin to be delante. Before leaving. After eating. No es presente progresivo.",
+      "say": "CANON MÓDULO 5 / Clase 009 — guion íntegro en config/canon/module-05-gerundio.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
       "mustSay": [
+        "to be",
+        "ing",
         "ando",
-        "endo"
+        "endo",
+        "to"
       ],
-      "exampleAsk": "Completá: Before ______ (go), call me."
+      "exampleAsk": "Antes del ING continuo: ¿cuál es la llave? Decí TO BE y construí una frase."
     },
     "combined": {
       "say": "CANON MÓDULO 4 — BEEN+ING vive en config/canon/module-04-perfecto.txt (íntegro). BEEN activa ING: have/has/had + been + verbo-ING = he/había estado + ando/endo. ¿Sigue? → BEEN+ING.",

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-label="Clase 009  Gerundio TO BE + ING · TO vs ING">
+  <rect width="720" height="480" rx="14" fill="#f8f5ff"/>
+  <text x="360" y="24" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700">CLASE 009  GERUNDIO · TO BE = LLAVE · ING = PUERTA</text>
+  <text x="360" y="42" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="10">Español ESTAR+ando/endo · TO apunta · ING generaliza · prep siempre ING</text>
+
+  <rect x="16" y="54" width="340" height="100" rx="8" fill="#ede9fe" stroke="#5B21B6"/>
+  <text x="186" y="76" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="700">CONTINUO = TO BE + ING</text>
+  <text x="186" y="96" text-anchor="middle" fill="#312e81" font-size="11">I am working · She is going</text>
+  <text x="186" y="114" text-anchor="middle" fill="#312e81" font-size="11">I was working · They were eating</text>
+  <text x="186" y="132" text-anchor="middle" fill="#059669" font-size="10">HAVE/HAS/HAD + BEEN + ING</text>
+  <text x="186" y="146" text-anchor="middle" fill="#6b7280" font-size="9">Sin TO BE ’ no hay ING continuo</text>
+
+  <rect x="364" y="54" width="168" height="100" rx="8" fill="#dbeafe" stroke="#0284c7"/>
+  <text x="448" y="78" text-anchor="middle" fill="#0284c7" font-size="12" font-weight="700">TO + VERBO</text>
+  <text x="448" y="100" text-anchor="middle" fill="#312e81" font-size="11">flecha ’ delante</text>
+  <text x="448" y="118" text-anchor="middle" fill="#312e81" font-size="10">want / need / plan</text>
+  <text x="448" y="136" text-anchor="middle" fill="#312e81" font-size="10">decide / have to</text>
+
+  <rect x="540" y="54" width="164" height="100" rx="8" fill="#fce7f3" stroke="#db2777"/>
+  <text x="622" y="78" text-anchor="middle" fill="#db2777" font-size="12" font-weight="700">ING concepto</text>
+  <text x="622" y="100" text-anchor="middle" fill="#312e81" font-size="11">círculo = actividad</text>
+  <text x="622" y="118" text-anchor="middle" fill="#312e81" font-size="10">enjoy / love / keep</text>
+  <text x="622" y="136" text-anchor="middle" fill="#312e81" font-size="10">prep + ING siempre</text>
+
+  <rect x="16" y="168" width="688" height="26" rx="6" fill="#5B21B6"/>
+  <text x="120" y="186" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">DISPARADOR</text>
+  <text x="320" y="186" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">USA</text>
+  <text x="520" y="186" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">EJEMPLO</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif" font-size="11">
+    <rect x="16" y="198" width="688" height="22" fill="#ede9fe"/><text x="120" y="213" text-anchor="middle" fill="#312e81">Intención / necesidad</text><text x="320" y="213" text-anchor="middle" fill="#0284c7" font-weight="700">TO</text><text x="520" y="213" text-anchor="middle" fill="#059669">I want to go</text>
+    <rect x="16" y="220" width="688" height="22" fill="#f8f5ff"/><text x="120" y="235" text-anchor="middle" fill="#312e81">Plan / decisión</text><text x="320" y="235" text-anchor="middle" fill="#0284c7" font-weight="700">TO</text><text x="520" y="235" text-anchor="middle" fill="#059669">I decided to leave</text>
+    <rect x="16" y="242" width="688" height="22" fill="#ede9fe"/><text x="120" y="257" text-anchor="middle" fill="#312e81">Disfrute / amor / odio</text><text x="320" y="257" text-anchor="middle" fill="#db2777" font-weight="700">ING</text><text x="520" y="257" text-anchor="middle" fill="#059669">I enjoy working</text>
+    <rect x="16" y="264" width="688" height="22" fill="#f8f5ff"/><text x="120" y="279" text-anchor="middle" fill="#312e81">Sujeto de la frase</text><text x="320" y="279" text-anchor="middle" fill="#db2777" font-weight="700">ING</text><text x="520" y="279" text-anchor="middle" fill="#059669">Walking is good</text>
+    <rect x="16" y="286" width="688" height="22" fill="#ede9fe"/><text x="120" y="301" text-anchor="middle" fill="#312e81">Después de prep</text><text x="320" y="301" text-anchor="middle" fill="#db2777" font-weight="700">ING</text><text x="520" y="301" text-anchor="middle" fill="#059669">good at working</text>
+    <rect x="16" y="308" width="688" height="22" fill="#f8f5ff"/><text x="120" y="323" text-anchor="middle" fill="#312e81">Stop / Remember</text><text x="320" y="323" text-anchor="middle" fill="#7c3aed" font-weight="700">TO o ING</text><text x="520" y="323" text-anchor="middle" fill="#059669">stopped to eat / stopped eating</text>
+  </g>
+
+  <rect x="16" y="344" width="688" height="72" rx="8" fill="#fef3c7" stroke="#D97706"/>
+  <text x="360" y="366" text-anchor="middle" fill="#92400e" font-size="12" font-weight="700">FORMACIÓN ING</text>
+  <text x="360" y="386" text-anchor="middle" fill="#312e81" font-size="11">Normal: walk ’ walking · E muda: live ’ living · CVC corto: run ’ running · IE’Y: die ’ dying</text>
+  <text x="360" y="406" text-anchor="middle" fill="#6b7280" font-size="10">TO BE abre el ING en cualquier tiempo · am/is/are · was/were · been</text>
+
+  <text x="360" y="448" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="600">ESTAR ’ TO BE · ANDO/IENDO ’ ING · TO = flecha · ING = concepto</text>
+  <text x="360" y="468" text-anchor="middle" fill="#6d28d9" font-size="10">Conecta M1M4 · conversación real compleja</text>
+</svg>

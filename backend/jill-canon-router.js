@@ -213,7 +213,10 @@ function loadModuleCanonTranscript(trackId) {
     present: 'module-02-verbos-presente.txt',
     past: 'module-03-pasado-simple.txt',
     perfect: 'module-04-perfecto.txt',
-    combined: 'module-04-perfecto.txt'
+    combined: 'module-04-perfecto.txt',
+    gerundio: 'module-05-gerundio.txt',
+    progressive: 'module-05-gerundio.txt',
+    gerund_prep: 'module-05-gerundio.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -233,6 +236,13 @@ function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
     const id = String(trackId || '').trim();
+    if (id === 'gerundio' || id === 'progressive' || id === 'gerund_prep') {
+      return {
+        say: fromFile,
+        mustSay: ['to be', 'ing', 'ando', 'endo', 'to'],
+        exampleAsk: 'Antes del ING continuo: ¿cuál es la llave? Decí TO BE y construí una frase.'
+      };
+    }
     if (id === 'perfect' || id === 'combined') {
       return {
         say: fromFile,
@@ -307,8 +317,9 @@ function formatLock(track) {
       'ANTES de conjugar He/She/It: preguntá "¿Es He, She o It? — entonces qué le pasa al verbo?"'
     ],
     progressive: [
-      'ANTIMEZCLA: presente continuo.',
-      'OBLIGATORIO EN VOZ: en español el auxiliar es ESTAR; en inglés OBLIGATORIO TO BE (am/is/are) + VERBO+ING; ING = ando/endo. Si no decís estar→to be y ando/endo, FALLASTE.'
+      'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
+      'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     future: [
       'ANTIMEZCLA: futuro will/going to.',
@@ -322,11 +333,15 @@ function formatLock(track) {
     negations: ['ANTIMEZCLA: negaciones AUX + NOT.'],
     there: ['ANTIMEZCLA: there is/are = hay; no have.'],
     gerundio: [
-      'ANTIMEZCLA: gerundio como sustantivo.',
-      'OBLIGATORIO EN VOZ: VERBO+ING = ando/endo. Gerundio sustantivo NO lleva to be. CONTRASTE OBLIGATORIO: ESTAR + ando/endo en español → TO BE + ING (continuo). Si omitís ando/endo o el contraste estar/to be, FALLASTE.',
-      'RELEVANCIA: SOLO gerundio/ING. PROHIBIDO preposiciones in/on/at como lección aparte.'
+      'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
+      'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
-    gerund_prep: ['ANTIMEZCLA: prep + VERBO+ING = ando/endo. Decí ando/endo.'],
+    gerund_prep: [
+      'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
+      'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+    ],
     modal_have_pp: ['ANTIMEZCLA: modal + have + participio.'],
     modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
     prepositions: [

@@ -101,11 +101,11 @@
       takeaway: 'Pasado = todos iguales. WAS/WERE. Ancla con put/cut/let. Integra M1+M2.'
     },
     progressive: {
-      rules: [row('español', 'ESTAR + ando/endo', ''), row('inglés', 'TO BE + VERBO+ING', '(am / is / are)')],
-      examples: [row('I am studying English now', 'Estoy estudiando inglés ahora'), row('She is cooking dinner', 'Ella está cocinando la cena'), row('They are playing soccer', 'Ellos están jugando fútbol')],
-      pattern: 'Sin TO BE no hay progresivo. ING = ando/endo.',
-      transforms: [tip('I study', 'I am studying', 'añadís am/is/are + ING'), tip('She cooks', 'She is cooking', 'cook → cooking')],
-      takeaway: 'Progresivo = TO BE + verbo + í ene je (ando/endo).'
+      rules: [row('TO BE', 'llave del ING continuo', 'am/is/are/was/were/been'), row('ING', 'puerta: ando/endo', ''), row('TO + verbo', 'flecha: intención', ''), row('preposición', 'siempre + ING', '')],
+      examples: [row('I am working', 'TO BE + ING'), row('They were eating', 'pasado continuo'), row('She has been studying', 'BEEN + ING'), row('live → living / run → running', 'E muda / consonante doble')],
+      pattern: 'Clase 009: TO BE es la llave; ING es la puerta.',
+      transforms: [tip('I walking', 'I am walking', 'falta TO BE'), tip('She working', 'She is working', 'TO BE obligatorio')],
+      takeaway: 'TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING.'
     },
     perfect: {
       rules: [
@@ -225,18 +225,18 @@
       takeaway: 'IN mes/año · ON día · AT hora.'
     },
     gerundio: {
-      rules: [row('VERBO + ING', 'ando / endo como sustantivo', '(sin to be)'), row('TO BE + ING', 'progresivo', '(estar + ando/endo)')],
-      examples: [row('I like running', 'Me gusta correr'), row('Playing guitar is fun', 'Tocar guitarra es divertido'), row('She enjoys cooking', 'A ella le gusta cocinar')],
-      pattern: 'Sin TO BE, el ING actúa como sustantivo (gerundio).',
-      transforms: [tip('I run', 'I like running', 'verbo → ING sustantivo'), tip('I am running', 'I like running', 'progresivo ≠ gerundio')],
-      takeaway: 'Gerundio = VERBO+ING sin to be. Progresivo = to be + ING.'
+      rules: [row('TO BE + ING', 'llave + puerta', 'continuo'), row('TO + verbo', 'flecha: intención', ''), row('VERBO + ING', 'actividad como concepto', ''), row('preposición', 'siempre + ING', '')],
+      examples: [row('I want to work', 'TO = intención'), row('I enjoy working', 'ING = concepto'), row('I stopped to eat', 'me detuve para comer'), row('I stopped eating', 'dejé de comer'), row('Remember to call / remember calling', 'futuro / recuerdo')],
+      pattern: 'Clase 009: TO apunta; ING generaliza. STOP y REMEMBER cambian de significado.',
+      transforms: [tip('I enjoy to work', 'I enjoy working', 'enjoy + ING'), tip('I want working', 'I want to work', 'want + TO')],
+      takeaway: 'TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING.'
     },
     gerund_prep: {
-      rules: [row('preposición', 'VERBO + ING', '(ando/endo)'), row('before / after / without / by', '+ leaving / eating…', '')],
-      examples: [row('Before leaving, call me', 'Antes de irte, llamame'), row('After eating, we left', 'Después de comer, nos fuimos'), row('By practicing, you improve', 'Practicando, mejorás')],
-      pattern: 'Después de prep, el verbo va en ING — no en base.',
-      transforms: [tip('before leave', 'before leaving', 'prep + ING'), tip('without think', 'without thinking', 'nunca prep + base')],
-      takeaway: 'Tras preposición → VERBO + í ene je.'
+      rules: [row('preposición', 'siempre + VERBO-ING', 'in/at/of/about/for'), row('ING', 'actividad como concepto', 'nunca prep + TO')],
+      examples: [row('interested in learning', 'in + ING'), row('good at speaking', 'at + ING'), row('afraid of losing', 'of + ING'), row('talked about going', 'about + ING'), row('responsible for managing', 'for + ING')],
+      pattern: 'Clase 009: después de preposición, siempre ING.',
+      transforms: [tip('good at to speak', 'good at speaking', 'prep + ING'), tip('interested in to learn', 'interested in learning', 'prep + ING')],
+      takeaway: 'TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING.'
     },
     modal: {
       rules: [row('Aux ANTES del pronombre', 'pregunta', ''), row('Aux DESPUÉS del pronombre', 'respuesta', '')],
@@ -327,19 +327,18 @@
   var CLIPS = {
     progressive: clip({
       id: 'progressive',
-      title: 'Pronombre + To Be + Verbo + ING',
-      bridge: 'español ESTAR + ando/endo → inglés TO BE (am/is/are) + VERBO+ING · ING = ando/endo',
+      title: 'Clase 009 · TO BE + ING',
+      bridge: 'TO BE=llave · ING=puerta · continuo en todos los tiempos',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
-        { id: 2, label: 'To be', hint: 'am · is · are' },
+        { id: 2, label: 'TO BE', hint: 'am/is/are/was/were/been' },
         { id: 3, label: 'Verbo + ING', hint: 'ando / endo' }
       ],
       examples: [
-        T([['I', 1], [' ', 0], ['am', 2], [' ', 0], ['studying', 3], [' English now.', 0]]),
-        T([['She', 1], [' ', 0], ['is', 2], [' ', 0], ['cooking', 3], [' dinner.', 0]]),
-        T([['They', 1], [' ', 0], ['are', 2], [' ', 0], ['playing', 3], [' soccer.', 0]]),
-        T([['We', 1], [' ', 0], ['are', 2], [' ', 0], ['meeting', 3], [' tomorrow.', 0]]),
-        T([['You', 1], [' ', 0], ['are', 2], [' ', 0], ['using', 3], [' your phone.', 0]])
+        T([['I', 1], [' ', 0], ['am', 2], [' ', 0], ['working', 3], ['.', 0]]),
+        T([['They', 1], [' ', 0], ['were', 2], [' ', 0], ['eating', 3], ['.', 0]]),
+        T([['She has', 1], [' ', 0], ['been', 2], [' ', 0], ['studying', 3], ['.', 0]]),
+        T([['He', 1], [' ', 0], ['was', 2], [' ', 0], ['living', 3], [' here.', 0]])
       ]
     }),
 
@@ -583,36 +582,37 @@
 
     gerundio: clip({
       id: 'gerundio',
-      title: 'Gerundio = VERBO + ING (sustantivo)',
-      bridge: 'ING = ando/endo como sustantivo (sin to be) · si usás ESTAR + ando/endo → TO BE + ING (continuo)',
+      title: 'Clase 009 · TO vs ING',
+      bridge: 'TO=flecha hacia intención · ING=actividad como concepto',
       slots: [
-        { id: 1, label: 'Verbo + ING', hint: 'ando / endo' },
-        { id: 2, label: 'Como sustantivo', hint: 'gustar / sujeto' }
+        { id: 1, label: 'Disparador', hint: 'want · enjoy · stop · remember' },
+        { id: 2, label: 'TO + verbo', hint: 'flecha / intención' },
+        { id: 3, label: 'Verbo + ING', hint: 'concepto / actividad' }
       ],
       examples: [
-        T([['I like', 2], [' ', 0], ['running', 1], ['.', 0]]),
-        T([['Playing', 1], [' guitar', 0], [' is fun.', 2]]),
-        T([['She enjoys', 2], [' ', 0], ['cooking', 1], ['.', 0]]),
-        T([['Swimming', 1], [' is healthy.', 2]]),
-        T([['They hate', 2], [' ', 0], ['waiting', 1], ['.', 0]])
+        T([['I want', 1], [' ', 0], ['to work', 2], ['.', 0]]),
+        T([['I enjoy', 1], [' ', 0], ['working', 3], ['.', 0]]),
+        T([['I stopped', 1], [' ', 0], ['to eat', 2], ['.', 0]]),
+        T([['I stopped', 1], [' ', 0], ['eating', 3], ['.', 0]]),
+        T([['I remember', 1], [' ', 0], ['calling', 3], [' her.', 0]])
       ]
     }),
 
     gerund_prep: clip({
       id: 'gerund_prep',
-      title: 'Preposición + VERBO + ING',
-      bridge: 'Tras prep → VERBO+ING = ando/endo (Before leaving)',
+      title: 'Clase 009 · Preposición + ING',
+      bridge: 'Después de preposición, siempre ING',
       slots: [
-        { id: 1, label: 'Preposición', hint: 'before · after · by' },
-        { id: 2, label: 'Verbo + ING', hint: 'ando / endo' },
+        { id: 1, label: 'Preposición', hint: 'in · at · of · about · for' },
+        { id: 2, label: 'Verbo + ING', hint: 'siempre' },
         { id: 3, label: 'Complemento', hint: 'qué sigue' }
       ],
       examples: [
-        T([['Before', 1], [' ', 0], ['leaving', 2], [',', 0], [' call me.', 3]]),
-        T([['After', 1], [' ', 0], ['eating', 2], [',', 0], [' we left.', 3]]),
-        T([['Without', 1], [' ', 0], ['thinking', 2], [',', 0], [' she spoke.', 3]]),
-        T([['By', 1], [' ', 0], ['practicing', 2], [',', 0], [' you improve.', 3]]),
-        T([['Good at', 1], [' ', 0], ['speaking', 2], [' English.', 3]])
+        T([['Interested in', 1], [' ', 0], ['learning', 2], ['.', 3]]),
+        T([['Good at', 1], [' ', 0], ['speaking', 2], [' English.', 3]]),
+        T([['Afraid of', 1], [' ', 0], ['losing', 2], ['.', 3]]),
+        T([['Talked about', 1], [' ', 0], ['going', 2], ['.', 3]]),
+        T([['Responsible for', 1], [' ', 0], ['managing', 2], ['.', 3]])
       ]
     }),
 

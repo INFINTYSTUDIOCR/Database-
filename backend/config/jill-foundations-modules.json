@@ -296,6 +296,46 @@
         { "q": "I go ___ work", "options": ["to", "in", "on", "at"], "answer": 0, "explain": "to work." },
         { "q": "Ustedes en inglés →", "options": ["You", "They", "We", "Them"], "answer": 0, "explain": "You." }
       ]
+    },
+    {
+      "id": "M013",
+      "order": 13,
+      "title": "Clase 009 — Gerundio (Módulo 5)",
+      "canonTrackIds": ["gerundio", "progressive", "gerund_prep"],
+      "say": "CANON: config/canon/module-05-gerundio.txt (íntegro). TO BE es la llave; ING es la puerta. TO apunta como flecha hacia intención o propósito; ING convierte la actividad en concepto. Después de preposición, siempre ING.",
+      "bridge": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING.",
+      "checklist": [
+        "Forma ING correctamente: directo, E muda, duplicación e IE",
+        "Usa TO BE como llave obligatoria del continuo",
+        "Construye continuo en presente, pasado y perfecto",
+        "Distingue TO + VERBO de ING como concepto",
+        "Usa ING siempre después de preposición",
+        "Distingue STOP + TO de STOP + ING",
+        "Distingue REMEMBER + TO de REMEMBER + ING",
+        "Integra los cinco tipos de pronombres",
+        "Integra tiempos de módulos anteriores",
+        "Detecta y corrige errores sin ayuda",
+        "Sostiene historia de 3 minutos con TO, ING y pronombres"
+      ],
+      "mini": { "questions": 8, "timerSec": 28, "passPct": 80 },
+      "kaboomBank": [
+        { "q": "She ___ working now.", "options": ["is", "—", "to", "has"], "answer": 0, "explain": "El continuo necesita la llave TO BE." },
+        { "q": "I ___ walking — ¿qué falta?", "options": ["am", "to", "enjoy", "at"], "answer": 0, "explain": "I am walking: TO BE activa el ING." },
+        { "q": "I enjoy ___ with my team.", "options": ["working", "to work", "work", "worked"], "answer": 0, "explain": "Enjoy pide ING." },
+        { "q": "I want ___ in that company.", "options": ["to work", "working", "work at", "worked"], "answer": 0, "explain": "Want apunta a intención: TO." },
+        { "q": "She is good at ___ English.", "options": ["speaking", "to speak", "speak", "spoke"], "answer": 0, "explain": "Después de preposición, siempre ING." },
+        { "q": "I am interested in ___.", "options": ["learning", "to learn", "learn", "learned"], "answer": 0, "explain": "In es preposición: ING." },
+        { "q": "Me detuve para comer.", "options": ["I stopped to eat", "I stopped eating", "I stop eat", "I stopped to eating"], "answer": 0, "explain": "STOP + TO inicia otra acción." },
+        { "q": "Dejé de comer.", "options": ["I stopped eating", "I stopped to eat", "I stopped eat", "I stop to eating"], "answer": 0, "explain": "STOP + ING termina la actividad." },
+        { "q": "Acordate de llamarla.", "options": ["Remember to call her", "Remember calling her", "Remember call her", "Remember to calling her"], "answer": 0, "explain": "REMEMBER + TO apunta al futuro." },
+        { "q": "Recuerdo haberla llamado.", "options": ["I remember calling her", "I remember to call her", "I remember call her", "I remembered to calling"], "answer": 0, "explain": "REMEMBER + ING recuerda el pasado." },
+        { "q": "Live + ING →", "options": ["living", "liveing", "livving", "lived"], "answer": 0, "explain": "Se elimina la E muda." },
+        { "q": "Run + ING →", "options": ["running", "runing", "runingg", "runned"], "answer": 0, "explain": "Duplica N + ING." },
+        { "q": "Die + ING →", "options": ["dying", "dieing", "diing", "died"], "answer": 0, "explain": "IE cambia a Y + ING." },
+        { "q": "They / pasado / eat →", "options": ["They were eating", "They was eating", "They eating", "They were eat"], "answer": 0, "explain": "Pasado continuo: were + eating." },
+        { "q": "She / presente perfecto continuo / study →", "options": ["She has been studying", "She has studying", "She is been studying", "She had study"], "answer": 0, "explain": "BEEN también activa ING." },
+        { "q": "We talked about ___.", "options": ["going", "to go", "go", "went"], "answer": 0, "explain": "About es preposición: ING." }
+      ]
     }
   ]
 }

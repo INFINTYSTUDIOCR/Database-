@@ -830,6 +830,12 @@ async function seedCanonTeachingModules() {
       title: 'Jill Foundations M004 — Perfecto HAVE/HAS/HAD + BEEN+ING',
       file: 'module-04-perfecto.txt',
       category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-05-gerundio',
+      title: 'Jill Foundations M013 — Clase 009 Gerundio',
+      file: 'module-05-gerundio.txt',
+      category: 'jill-foundations'
     }
   ];
   const state = await loadState();

@@ -1,0 +1,332 @@
+﻿Modulo 5 — El Gerundio (Clase 009)
+
+OPINIÓN ANTES DE EMPEZAR
+Esta es una de las clases que más claridad genera cuando se enseña bien — y más confusión cuando se enseña mal.
+La mayoría de los profesores enseñan el gerundio como una lista de verbos que "piden ING" y otra lista de verbos que "piden TO." El estudiante memoriza las dos listas y las confunde eternamente.
+Lo que vos hacés es diferente y es correcto — partís del español. El estudiante ya sabe que para decir "estoy caminando" necesita el auxiliar ESTAR. Sin ESTAR — no hay gerundio en español. En inglés pasa exactamente lo mismo — sin TO BE — no hay ING continuo.
+La distinción entre TO + VERBO e ING como generalizador es fundamental y está perfectamente capturada en la imagen del canon de tu método. No son dos formas del mismo gerundio — son dos funciones completamente diferentes. TO apunta hacia adelante — dirección, intención, necesidad. ING generaliza — actividad como concepto, hábito, preferencia.
+La integración con los módulos anteriores aquí es natural — el estudiante ya conoce TO BE en todos sus tiempos. Ahora lo activa de una forma nueva.
+Vamos.
+________________________________________
+APERTURA
+________________________________________
+"Hola. ¿Cómo está?
+Muy bien.
+Hoy vamos a ver algo que usted ya hace perfectamente en español.
+Todos los días.
+Sin pensar.
+'Estoy caminando.'
+'Estamos comiendo.'
+'Está lloviendo.'
+¿Notó algo en esas frases?
+Todas tienen dos partes.
+Estoy — estamos — está.
+Y después — caminando, comiendo, lloviendo.
+Eso es el gerundio.
+Y en inglés — exactamente lo mismo.
+¿Listo? Vamos."
+________________________________________
+PARTE 1 — EL ESPAÑOL NOS ENSEÑA TODO
+________________________________________
+"Primero — vamos al español.
+Porque el inglés no inventó nada nuevo aquí.
+En español — para decir que algo está pasando ahora mismo — necesita dos cosas.
+Número uno — el verbo ESTAR como auxiliar.
+Estoy. Estás. Está. Estamos. Están.
+Número dos — el verbo principal terminado en ANDO o IENDO.
+Caminando. Teniendo. Comiendo. Hablando. Viviendo.
+Sin el ESTAR — no hay gerundio.
+No puede decir 'yo caminando.'
+Suena mal. Falta el ESTAR.
+Tiene que decir 'yo estoy caminando.'
+Estoy — activa el ANDO.
+Eso es la llave. El ESTAR es la llave que abre el ANDO y el IENDO.
+En inglés — exactamente lo mismo.
+Solo que en lugar de ESTAR — usamos TO BE.
+Y en lugar de ANDO o IENDO — usamos ING.
+Vea:"
+
+ESPAÑOL                    INGLÉS
+Estoy caminando    →       I am walking
+Estás comiendo     →       You are eating
+Él está trabajando →       He is working
+Ella está viviendo →       She is living
+Estamos hablando   →       We are talking
+Están corriendo    →       They are running
+
+"¿Notó el patrón?
+Estoy — I am.
+Estás — You are.
+Está — He is / She is / It is.
+Estamos — We are.
+Están — They are.
+TO BE — am, are, is — activa el ING.
+Sin el TO BE — no hay ING continuo.
+No puede decir 'I walking.'
+Suena mal. Falta el TO BE.
+Tiene que decir 'I am walking.'
+Am — activa el ING.
+Eso es todo.
+La llave en español es ESTAR.
+La llave en inglés es TO BE.
+Misma lógica. Diferente forma."
+________________________________________
+PARTE 2 — CÓMO SE FORMA EL ING
+________________________________________
+"Ahora — ¿cómo se agrega el ING al verbo?
+En la mayoría de los casos — simplemente se agrega ING al final.
+Walk — walking. Caminar — caminando.
+Talk — talking. Hablar — hablando.
+Work — working. Trabajar — trabajando.
+Run — running. Correr — corriendo.
+Eat — eating. Comer — comiendo.
+Sleep — sleeping. Dormir — durmiendo.
+Pero hay tres casos especiales.
+Caso 1 — El verbo termina en E muda:
+Se elimina la E y se agrega ING.
+Live — living. Vivir — viviendo.
+Make — making. Hacer — haciendo.
+Come — coming. Venir — viniendo.
+Take — taking. Tomar — tomando.
+Give — giving. Dar — dando.
+Have — having. Tener — teniendo.
+Seem — seeming. Parecer — pareciendo.
+Caso 2 — El verbo es corto y termina en consonante-vocal-consonante:
+Se duplica la consonante final y se agrega ING.
+Run — running. Sit — sitting. Cut — cutting. Get — getting. Put — putting. Let — letting.
+Caso 3 — El verbo termina en IE:
+Se cambia IE por Y y se agrega ING.
+Die — dying. Lie — lying. Tie — tying.
+Todo lo demás — solo ING directo."
+________________________________________
+PARTE 3 — EL GERUNDIO EN TODOS LOS TIEMPOS
+________________________________________
+"Ahora — algo muy importante.
+El gerundio no vive solo en el presente.
+En el Módulo 008 vimos que BEEN activa el ING.
+¿Por qué?
+Porque BEEN es el participio de TO BE.
+Y TO BE — en cualquier forma — activa el ING.
+Presente: I am working — yo estoy trabajando.
+Pasado: I was working — yo estaba trabajando.
+Presente perfecto continuo: I have been working — yo he estado trabajando.
+Pasado perfecto continuo: I had been working — yo había estado trabajando.
+TO BE cambia — am, is, are, was, were, been.
+El ING nunca cambia.
+TO BE abre el ING — en cualquier tiempo."
+
+TIEMPO                    ESTRUCTURA              EJEMPLO
+Presente continuo         BE + ING                I am working
+Pasado continuo           WAS/WERE + ING          I was working
+Presente perf. continuo   HAVE/HAS + BEEN + ING   I have been working
+Pasado perf. continuo     HAD + BEEN + ING        I had been working
+________________________________________
+PARTE 4 — LA DIFERENCIA ENTRE TO + VERBO E ING
+________________________________________
+"Ahora — la parte más importante de esta clase.
+¿Cuándo uso TO + VERBO?
+¿Cuándo uso ING?
+Son dos cosas completamente diferentes.
+No son opciones del mismo gerundio.
+Son dos funciones distintas."
+
+TO + VERBO — DIRECCIÓN, INTENCIÓN, PROPÓSITO
+
+"TO + VERBO apunta hacia adelante.
+I want to go — quiero ir.
+I need to work — necesito trabajar.
+I plan to study — planeo estudiar.
+I decided to leave — decidí salir.
+I have to work — tengo que trabajar.
+I came to help — vine para ayudar.
+La imagen mental del TO + VERBO es una flecha.
+Apunta hacia adelante. Hacia el objetivo."
+
+ING COMO GENERALIZADOR — ACTIVIDAD COMO CONCEPTO
+
+"El ING como generalizador es diferente.
+Convierte el verbo en una actividad — en una cosa — en un concepto.
+Walking is good for your health.
+I enjoy working — disfruto trabajar.
+She loves reading — ella ama leer.
+I keep working — sigo trabajando.
+I avoid going — evito ir.
+Después de preposiciones — siempre:
+I am interested in learning.
+She is good at working.
+He is afraid of losing.
+We talked about going.
+Después de preposición — siempre ING. Sin excepción."
+
+LA TABLA CANON — TO + VERBO vs ING
+
+DISPARADOR              USA      ESTRUCTURA           EJEMPLO
+Intención               TO       want + to + verb     I want to work
+Necesidad               TO       need + to + verb     I need to go
+Plan                    TO       plan + to + verb     I plan to study
+Decisión                TO       decide + to + verb   I decided to leave
+Obligación              TO       have + to + verb     I have to work
+Propósito               TO       came + to + verb     I came to help
+Disfrute                ING      enjoy + verb-ing     I enjoy working
+Amor/Odio               ING      love/hate + verb-ing I love reading
+Continuar               ING      keep + verb-ing      I keep working
+Evitar                  ING      avoid + verb-ing     I avoid going
+Sujeto de la frase      ING      verb-ing + is/was    Walking is good
+Después de preposición  ING      prep + verb-ing      Good at working
+
+"TO apunta hacia el futuro — hacia la intención.
+ING generaliza — convierte la acción en concepto.
+STOP + TO: I stopped to eat — me detuve para comer.
+STOP + ING: I stopped eating — dejé de comer.
+REMEMBER + TO: Remember to call her — acordate de llamarla.
+REMEMBER + ING: I remember calling her — recuerdo haberla llamado."
+________________________________________
+BATERÍA DE EJERCICIOS
+________________________________________
+EJERCICIO 1 — Rapid Fire — Español a ING
+"Caminar." Espera. "Walking. Correcto.
+Comer." Espera. "Eating. Perfecto.
+Trabajar." Espera. "Working. Muy bien.
+Vivir." Espera. "Living. Correcto. Live — elimina la E.
+Correr." Espera. "Running. Perfecto. Run — duplica la N.
+Hablar." Espera. "Talking. Muy bien.
+Dormir." Espera. "Sleeping. Correcto.
+Ir." Espera. "Going. Perfecto.
+Hacer." Espera. "Making. Muy bien. Make — elimina la E.
+Venir." Espera. "Coming. Correcto.
+Dar." Espera. "Giving. Perfecto.
+Tomar." Espera. "Taking. Muy bien.
+Conseguir." Espera. "Getting. Correcto. Get — duplica la T.
+Poner." Espera. "Putting. Perfecto.
+Cortar." Espera. "Cutting. Muy bien.
+Ver." Espera. "Seeing. Correcto.
+Decir." Espera. "Saying. Perfecto.
+Mandar." Espera. "Sending. Muy bien.
+Mantener." Espera. "Keeping. Correcto.
+Parecer." Espera. "Seeming. Perfecto."
+
+EJERCICIO 2 — TO BE + ING en todos los tiempos
+"I / presente / work." Espera. "I am working — yo estoy trabajando. Correcto.
+She / presente / go." Espera. "She is going — ella está yendo. Perfecto.
+They / pasado / eat." Espera. "They were eating — ellos estaban comiendo. Muy bien.
+He / pasado / work." Espera. "He was working — él estaba trabajando. Correcto.
+I / presente perfecto continuo / work." Espera. "I have been working — yo he estado trabajando. Perfecto.
+She / presente perfecto continuo / study." Espera. "She has been studying — ella ha estado estudiando. Muy bien.
+They / pasado perfecto continuo / wait." Espera. "They had been waiting — ellos habían estado esperando. Correcto.
+We / presente / talk." Espera. "We are talking — nosotros estamos hablando. Perfecto.
+He / pasado / live." Espera. "He was living — él estaba viviendo. Muy bien.
+I / pasado perfecto continuo / run." Espera. "I had been running — yo había estado corriendo. Correcto."
+
+EJERCICIO 3 — TO + VERBO vs ING — Identificación
+"Quiero ir al trabajo." Espera. "TO — I want to go to work. Correcto.
+Disfruto trabajar." Espera. "ING — I enjoy working. Perfecto.
+Necesito estudiar." Espera. "TO — I need to study. Muy bien.
+Sigo trabajando." Espera. "ING — I keep working. Correcto.
+Estoy interesado en aprender." Espera. "ING — I am interested in learning. Perfecto.
+Decidí salir." Espera. "TO — I decided to leave. Muy bien.
+Caminar es bueno para la salud." Espera. "ING — Walking is good for your health. Correcto.
+Tengo miedo de perder." Espera. "ING — I am afraid of losing. Perfecto.
+Planeo estudiar inglés." Espera. "TO — I plan to study English. Muy bien.
+Evito ir al tráfico." Espera. "ING — I avoid going in traffic. Correcto."
+
+EJERCICIO 4 — Stop y Remember
+"Me detuve para comer." Espera. "I stopped to eat. TO — paré para hacer algo nuevo. Correcto.
+Dejé de comer." Espera. "I stopped eating. ING — dejé la actividad. Perfecto.
+Acordate de llamarla." Espera. "Remember to call her. TO — futuro. Muy bien.
+Recuerdo haberla llamado." Espera. "I remember calling her. ING — pasado. Correcto.
+Dejé de trabajar." Espera. "I stopped working. ING. Perfecto.
+Me detuve a ver la vista." Espera. "I stopped to see the view. TO. Muy bien."
+
+EJERCICIO 5 — Después de preposición — Siempre ING
+"I am interested in ___." Espera. "Learning / working / going. Correcto.
+She is good at ___." Espera. "Working / talking / listening. Perfecto.
+He is afraid of ___." Espera. "Losing / failing / going. Muy bien.
+We talked about ___." Espera. "Going / working / leaving. Correcto.
+I am thinking about ___." Espera. "Studying / changing / leaving. Perfecto.
+She is tired of ___." Espera. "Waiting / working / studying. Muy bien.
+He is responsible for ___." Espera. "Managing / leading / sending. Correcto.
+In, at, of, about, for — todas piden ING. Siempre."
+
+EJERCICIO 6 — Integración con pronombres
+"Ella me está llamando." Espera. "She is calling me. Correcto.
+Él nos estaba mandando su reporte cuando llamamos." Espera. "He was sending us his report when we called. Perfecto.
+Nosotros nos hemos estado organizando solos." Espera. "We have been organizing ourselves. Muy bien.
+Ella le estaba dando su opinión a él." Espera. "She was giving him her opinion. Correcto.
+Ellos se han estado preparando para su presentación ellos mismos." Espera. "They have been preparing for their presentation themselves. Perfecto."
+
+EJERCICIO 7 — Detección y corrección de errores
+"I am work every day." Espera. "Mal. I am working every day. Correcto.
+She working in the office." Espera. "Mal. She is working in the office. Perfecto.
+I enjoy to work with my team." Espera. "Mal. I enjoy working with my team. Muy bien.
+I want working in that company." Espera. "Mal. I want to work in that company. Correcto.
+She is good at to speak English." Espera. "Mal. She is good at speaking English. Perfecto.
+I stopped to smoking last year." Espera. "Mal. I stopped smoking last year. Muy bien.
+He is interested in to learn more." Espera. "Mal. He is interested in learning more. Correcto.
+They are avoid going to that place." Espera. "Mal. They avoid going to that place. Perfecto."
+
+EJERCICIO 8 — Historia de tres minutos
+"Cuénteme algo real. Requisitos:
+Al menos 2 frases con TO BE + ING.
+Al menos 2 frases con TO + VERBO.
+Al menos 2 frases con ING como generalizador.
+Al menos 1 frase con ING después de preposición.
+Los cinco tipos de pronombres.
+Al menos 3 tiempos diferentes.
+Mínimo 12 oraciones.
+Preguntas al final: ¿Dónde está el TO BE activando el ING? ¿Dónde está el TO + VERBO? ¿Dónde está el ING como concepto? ¿Dónde está el ING después de preposición? ¿Usó los cinco tipos de pronombres?
+Ancla temporal primero. Empiece."
+Estudiante habla. Jill no interrumpe.
+Si faltó algún elemento — continúa agregando. No reinicia.
+________________________________________
+CRITERIOS DE DOMINIO — CLASE 009
+________________________________________
+"Usted domina esta clase cuando puede hacer todo esto sin dudar:
+☐ Forma el ING de cualquier verbo correctamente — incluyendo E muda, duplicación e IE
+☐ Entiende que TO BE es la llave obligatoria del gerundio continuo
+☐ Construye gerundio en presente, pasado y perfecto continuo
+☐ Distingue TO + VERBO de ING como generalizador por contexto
+☐ Usa ING después de preposición — siempre y sin excepción
+☐ Distingue STOP + TO de STOP + ING por significado
+☐ Distingue REMEMBER + TO de REMEMBER + ING por significado
+☐ Integra los cinco tipos de pronombres en frases con gerundio
+☐ Integra gerundio con los tiempos de los módulos anteriores
+☐ Detecta y corrige errores de gerundio sin ayuda
+☐ Sostiene una historia de 3 minutos con gerundio, TO y todos los pronombres integrados
+Si no cumple alguno — volvemos a ese ejercicio específico.
+No avanzamos hasta que todos estén marcados."
+________________________________________
+NOTAS PARA JILL
+________________________________________
+ANTES de cualquier construcción con ING continuo →
+  "¿Cuál es la llave? ¿Qué necesita antes del ING?"
+  El estudiante debe decir TO BE antes de construir.
+
+SI el estudiante omite el TO BE →
+  "¿Puede decir 'yo caminando' en español?"
+  "¿Qué falta?"
+  Guiar al ESTAR — después al TO BE.
+
+SI el estudiante usa ING donde va TO →
+  "¿Esta acción apunta hacia adelante o es un concepto?"
+  Si apunta → TO. Si es concepto → ING.
+
+SI el estudiante usa TO donde va ING →
+  Misma pregunta — ¿apunta o generaliza?
+
+SI el estudiante olvida ING después de preposición →
+  "¿Qué hay antes del verbo? ¿Es una preposición?"
+  Regla: preposición siempre pide ING.
+
+SI el estudiante confunde STOP + TO con STOP + ING →
+  "¿La acción terminó o empezó?"
+  Terminó → STOP + ING. Empezó nueva → STOP + TO.
+
+SI el estudiante olvida integrar pronombres de módulos anteriores →
+  Detener. Pedir que agregue el tipo faltante.
+  No reiniciar. Continuar desde donde paró.
+
+SIEMPRE →
+  Español como puente — estoy, estás, está, estamos, están.
+  TO BE es la llave. ING es la puerta.
+  La preposición siempre pide ING.
+  Los módulos se conectan siempre.

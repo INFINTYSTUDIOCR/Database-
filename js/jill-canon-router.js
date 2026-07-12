@@ -239,13 +239,14 @@
       },
       {
         "id": "gerundio",
-        "svg": "assets/canon/gerundio-prep.svg",
-        "title": "Gerundio = VERBO + ING como sustantivo",
-        "formula": "VERBO + ING (= ando/endo) funciona como SUSTANTIVO. Tras prep: preposición + VERBO + ING.",
-        "example": "I like running. / Playing guitar is fun.",
+        "svg": "assets/canon/gerundio.svg",
+        "title": "Clase 009 · Gerundio — TO BE + ING / TO vs ING",
+        "formula": "TO BE + VERBO-ING = continuo | TO + VERBO = dirección/intención | VERBO-ING = concepto | preposición + VERBO-ING",
+        "example": "I am working. / I want to work. / I enjoy working. / I am interested in learning.",
         "never": [
           "presente continuo (am/is/are + ing)",
-          "IN ON AT lugar"
+          "IN ON AT lugar",
+          "cortar o reescribir el guion canon module-05"
         ],
         "aliases": [
           "gerundio",
@@ -258,20 +259,27 @@
           "v-ing como sustantivo",
           "gerund",
           "el gerund",
-          "que es gerundio"
+          "que es gerundio",
+          "modulo 5",
+          "módulo 5",
+          "clase 009",
+          "clase 9",
+          "to be + ing",
+          "to vs ing"
         ],
-        "bridge": "Puente: VERBO+ING = ando/endo como sustantivo (I like running = me gusta correr/corriendo)."
+        "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
       },
       {
         "id": "gerund_prep",
-        "svg": "assets/canon/gerundio-prep.svg",
-        "title": "Gerundio despues de preposicion",
-        "formula": "preposición (before/after/without/by/good at) + VERBO + ING (= ando/endo) + complemento",
-        "example": "Before leaving, call me. (saliendo → leaving)",
+        "svg": "assets/canon/gerundio.svg",
+        "title": "Clase 009 · Preposición + ING — siempre",
+        "formula": "preposición + VERBO-ING — in/at/of/about/for + ING, siempre",
+        "example": "I am interested in learning. / She is good at speaking English.",
         "never": [
           "presente continuo",
           "IN ON AT como tema",
-          "preposiciones lugar"
+          "preposiciones lugar",
+          "cortar o reescribir el guion canon module-05"
         ],
         "aliases": [
           "gerundio despues de preposicion",
@@ -284,9 +292,16 @@
           "interested in going",
           "afraid of",
           "instead of",
-          "despues de preposicion"
+          "despues de preposicion",
+          "modulo 5",
+          "módulo 5",
+          "clase 009",
+          "clase 9",
+          "el gerundio",
+          "to be + ing",
+          "to vs ing"
         ],
-        "bridge": "Puente: tras prep, VERBO+ING = ando/endo (Before leaving = antes de salir/saliendo)."
+        "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
       },
       {
         "id": "prepositions_time",
@@ -430,15 +445,16 @@
       },
       {
         "id": "progressive",
-        "svg": "assets/canon/presente-continuo.svg",
-        "title": "Pronombre + To Be + Verbo (ING)",
-        "formula": "pronombre + am/is/are + VERBO + ING (= ando/endo) + complemento",
-        "example": "I am studying English now.",
+        "svg": "assets/canon/gerundio.svg",
+        "title": "Clase 009 · TO BE + ING — la llave y la puerta",
+        "formula": "TO BE (am/is/are/was/were/been) + VERBO-ING — TO BE es la llave; ING es la puerta",
+        "example": "I am working. / They were eating. / She has been studying.",
         "never": [
           "gerundio-prep",
           "have been + ing",
           "pasado simple",
-          "IN ON AT"
+          "IN ON AT",
+          "cortar o reescribir el guion canon module-05"
         ],
         "aliases": [
           "presente continuo",
@@ -451,9 +467,15 @@
           "pronombre + to be",
           "continuo",
           "el continuo",
-          "ing continuo"
+          "ing continuo",
+          "modulo 5",
+          "módulo 5",
+          "clase 009",
+          "clase 9",
+          "el gerundio",
+          "to vs ing"
         ],
-        "bridge": "Puente: am/is/are + VERBO+ING = estoy/está + ando/endo (presente continuo, no gerundio suelto)."
+        "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
       },
       {
         "id": "perfect",
@@ -693,7 +715,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711m04';
+  var CACHE_VER = '20260711m05';
   var VOICE_PACK = {
     tracks: {
       gerundio: {

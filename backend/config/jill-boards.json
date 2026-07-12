@@ -100,48 +100,23 @@
   },
   "progressive": {
     "rules": [
-      {
-        "left": "español",
-        "right": "ESTAR + ando/endo",
-        "note": ""
-      },
-      {
-        "left": "inglés",
-        "right": "TO BE + VERBO+ING",
-        "note": "(am / is / are)"
-      }
+      { "left": "TO BE", "right": "llave del ING continuo", "note": "am/is/are/was/were/been" },
+      { "left": "ING", "right": "puerta: ando / endo", "note": "acción continua" },
+      { "left": "TO + verbo", "right": "flecha: intención", "note": "want/need/plan + TO" },
+      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "in/at/of/about/for" }
     ],
     "examples": [
-      {
-        "left": "I am studying English now",
-        "right": "Estoy estudiando inglés ahora",
-        "note": ""
-      },
-      {
-        "left": "She is cooking dinner",
-        "right": "Ella está cocinando la cena",
-        "note": ""
-      },
-      {
-        "left": "They are playing soccer",
-        "right": "Ellos están jugando fútbol",
-        "note": ""
-      }
+      { "left": "I am working", "right": "TO BE + ING — continuo" },
+      { "left": "They were eating", "right": "TO BE en pasado + ING" },
+      { "left": "She has been studying", "right": "BEEN también abre ING" },
+      { "left": "live → living / run → running", "right": "E muda / duplica consonante" }
     ],
-    "pattern": "Sin TO BE no hay progresivo. ING = ando/endo.",
+    "pattern": "Clase 009: TO BE es la llave; ING es la puerta.",
     "transforms": [
-      {
-        "left": "I study",
-        "right": "I am studying",
-        "tip": "añadís am/is/are + ING"
-      },
-      {
-        "left": "She cooks",
-        "right": "She is cooking",
-        "tip": "cook → cooking"
-      }
+      { "left": "I walking", "right": "I am walking", "tip": "falta TO BE" },
+      { "left": "She working", "right": "She is working", "tip": "TO BE obligatorio" }
     ],
-    "takeaway": "Progresivo = TO BE + verbo + í ene je (ando/endo)."
+    "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
   "perfect": {
     "rules": [
@@ -546,93 +521,43 @@
   },
   "gerundio": {
     "rules": [
-      {
-        "left": "VERBO + ING",
-        "right": "ando / endo como sustantivo",
-        "note": "(sin to be)"
-      },
-      {
-        "left": "TO BE + ING",
-        "right": "progresivo",
-        "note": "(estar + ando/endo)"
-      }
+      { "left": "TO BE + ING", "right": "llave + puerta", "note": "acción continua" },
+      { "left": "TO + verbo", "right": "flecha: intención / propósito", "note": "want/need/plan" },
+      { "left": "VERBO + ING", "right": "actividad como concepto", "note": "enjoy/keep/avoid" },
+      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "sin excepción" }
     ],
     "examples": [
-      {
-        "left": "I like running",
-        "right": "Me gusta correr",
-        "note": ""
-      },
-      {
-        "left": "Playing guitar is fun",
-        "right": "Tocar guitarra es divertido",
-        "note": ""
-      },
-      {
-        "left": "She enjoys cooking",
-        "right": "A ella le gusta cocinar",
-        "note": ""
-      }
+      { "left": "I want to work", "right": "TO = intención" },
+      { "left": "I enjoy working", "right": "ING = concepto" },
+      { "left": "I stopped to eat", "right": "me detuve para comer" },
+      { "left": "I stopped eating", "right": "dejé de comer" },
+      { "left": "Remember to call / remember calling", "right": "futuro / recuerdo pasado" }
     ],
-    "pattern": "Sin TO BE, el ING actúa como sustantivo (gerundio).",
+    "pattern": "Clase 009: TO apunta; ING generaliza. STOP y REMEMBER cambian de significado.",
     "transforms": [
-      {
-        "left": "I run",
-        "right": "I like running",
-        "tip": "verbo → ING sustantivo"
-      },
-      {
-        "left": "I am running",
-        "right": "I like running",
-        "tip": "progresivo ≠ gerundio"
-      }
+      { "left": "I enjoy to work", "right": "I enjoy working", "tip": "enjoy + ING" },
+      { "left": "I want working", "right": "I want to work", "tip": "want + TO" }
     ],
-    "takeaway": "Gerundio = VERBO+ING sin to be. Progresivo = to be + ING."
+    "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
   "gerund_prep": {
     "rules": [
-      {
-        "left": "preposición",
-        "right": "VERBO + ING",
-        "note": "(ando/endo)"
-      },
-      {
-        "left": "before / after / without / by",
-        "right": "+ leaving / eating…",
-        "note": ""
-      }
+      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "in/at/of/about/for" },
+      { "left": "ING", "right": "actividad como concepto", "note": "nunca prep + TO" }
     ],
     "examples": [
-      {
-        "left": "Before leaving, call me",
-        "right": "Antes de irte, llamame",
-        "note": ""
-      },
-      {
-        "left": "After eating, we left",
-        "right": "Después de comer, nos fuimos",
-        "note": ""
-      },
-      {
-        "left": "By practicing, you improve",
-        "right": "Practicando, mejorás",
-        "note": ""
-      }
+      { "left": "interested in learning", "right": "in + ING" },
+      { "left": "good at speaking", "right": "at + ING" },
+      { "left": "afraid of losing", "right": "of + ING" },
+      { "left": "talked about going", "right": "about + ING" },
+      { "left": "responsible for managing", "right": "for + ING" }
     ],
-    "pattern": "Después de prep, el verbo va en ING — no en base.",
+    "pattern": "Clase 009: después de preposición, siempre ING.",
     "transforms": [
-      {
-        "left": "before leave",
-        "right": "before leaving",
-        "tip": "prep + ING"
-      },
-      {
-        "left": "without think",
-        "right": "without thinking",
-        "tip": "nunca prep + base"
-      }
+      { "left": "good at to speak", "right": "good at speaking", "tip": "prep + ING" },
+      { "left": "interested in to learn", "right": "interested in learning", "tip": "prep + ING" }
     ],
-    "takeaway": "Tras preposición → VERBO + í ene je."
+    "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
   "modal": {
     "rules": [
