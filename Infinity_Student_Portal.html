@@ -34,7 +34,7 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711ops"></script>
-<script src="js/jill-canon-router.js?v=20260711rel"></script>
+<script src="js/jill-canon-router.js?v=20260711nodiv"></script>
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260711m01"></script>
@@ -4568,75 +4568,24 @@ function jillIsPracticeContinue(text) {
 function jillResolveCanonTrack(userText, replyText) {
   if (typeof JillCanonRouter === 'undefined') return null;
   var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
-  // Práctica / ejemplo en inglés bajo lock → NO cambiar de lección
-  if (locked && jillIsPracticeContinue(userText)) return locked;
-  if (locked && typeof JillCanonRouter.isEnglishPracticeUtterance === 'function'
-      && JillCanonRouter.isEnglishPracticeUtterance(userText)
-      && !(typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userText))) {
-    return locked;
-  }
-  // SOLO orden explícita del estudiante — NUNCA inferir desde la respuesta de Jill
+  var explicit = typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userText);
+  // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar. Cero queries nuevas.
+  if (locked && !explicit) return locked;
   if (JillCanonRouter.resolveAskId) {
     var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', locked || '');
-    if (fromUserOnly) {
-      // Si resolveAsk devolvió otro track por alias incidental y hay lock + práctica → lock
-      if (locked && fromUserOnly !== locked && jillIsPracticeContinue(userText)) return locked;
-      return fromUserOnly;
-    }
+    if (fromUserOnly) return fromUserOnly;
   }
-  if (JillCanonRouter.pickTrackId) {
+  if (JillCanonRouter.pickTrackId && explicit) {
     var picked = JillCanonRouter.pickTrackId(userText || '');
-    if (picked) {
-      if (locked && picked !== locked && (jillIsPracticeContinue(userText)
-          || (typeof JillCanonRouter.isEnglishPracticeUtterance === 'function' && JillCanonRouter.isEnglishPracticeUtterance(userText)))) {
-        return locked;
-      }
-      return picked;
-    }
+    if (picked) return picked;
   }
-  // Continuación de la MISMA orden (práctica / ok) — no charla libre nueva
-  if (locked && jillIsPracticeContinue(userText)) return locked;
+  if (locked) return locked;
   return null;
 }
 
 /** Infer Foundations/Alice teach track from what Jill is saying — ALL modules, not only ING. */
 function jillInferTeachTrack(text) {
-  var t = String(text || '');
-  if (!t.trim()) return null;
-  if (typeof JillCanonRouter !== 'undefined') {
-    if (JillCanonRouter.resolveAskId) {
-      var ask = JillCanonRouter.resolveAskId(t, (_jillState && _jillState.canonTrackId) || '');
-      if (ask) return ask;
-    }
-    if (JillCanonRouter.pickTrackId) {
-      var picked = JillCanonRouter.pickTrackId(t);
-      if (picked) return picked;
-    }
-  }
-  var low = t.toLowerCase();
-  // Order: more specific formulas first
-  if (/\bmust have been\b|\bshould have been\b|\bcould have been\b|\bmodal\b.*\bbeen\b.*\bing\b|\bhave been\s+\w+ing\b/i.test(low) && /\b(must|should|could|would|might)\b/i.test(low)) return 'modal_have_been';
-  if (/\bshould have\b|\bcould have\b|\bmust have\b|\bwould have\b|\bparticipio\b.*\bmodal|\bmodal\b.*\bparticipio/i.test(low)) return 'modal_have_pp';
-  if (/\bhave been\b|\bhas been\b|\bhad been\b|\bbeen\s+\w+ing\b|\bhe estado\b|\bhave\s*\+\s*been\s*\+\s*(ing|verbo)/i.test(low)) return 'combined';
-  if (/\bif i (was|were)\b|\bwas\/were\b|\bsegundo condicional|\bif\s+.*\bwere\b/i.test(low)) return 'if_was_were';
-  if (/\bhave\s*\.\s*has\s*\.\s*had\b|\bhave has had\b|\btres formas.*have|\bto have\b.*\bposes/i.test(low)) return 'have_had';
-  if (/\bgo\s*\.\s*went\s*\.\s*gone\b|\birregular|\bdo\s*\.\s*did\s*\.\s*done\b/i.test(low)) return 'irregular_verbs';
-  if (/\bthere (is|are|was|were)\b|\bhay\b.*\bthere\b|\bthere\s*\+\s*be\b/i.test(low)) return 'there';
-  if (/\bbefore \w+ing\b|\bafter \w+ing\b|\bwithout \w+ing\b|\bprep\b.*\bing\b|\bpreposici[oó]n\b.*\bing\b|\bgerundio.*prep/i.test(low)) return 'gerund_prep';
-  if (/\b(am|is|are|was|were)\s+\w+ing\b|\bpresente continuo\b|\bprogresiv|\bto be\b.*\b(verbo\s*)?\+?\s*ing\b|\bestar\b.*\bando/i.test(low)) return 'progressive';
-  if (/\bgerund|\bing\b.*\b(ando|endo|sustantivo)\b|\blando\s*\/\s*endo\b|\bverbo\s*\+\s*ing\b.*\bsin to be/i.test(low)) return 'gerundio';
-  if (/\bin\/on\/at\b|\bpreposici[oó]n(?:es)?\b.*\b(lugar|caja|superficie)|\bin the (box|room)|on the table|at (home|work)/i.test(low)) return 'prepositions';
-  if (/\bprep(?:osicion(?:es)?)?\b.*\btiempo|\bin march\b|\bon monday\b|\bat 5\b|\bin\/on\/at.*hora/i.test(low)) return 'prepositions_time';
-  if (/\bdon'?t\b|\bdoesn'?t\b|\bdidn'?t\b|\bnegaci|\baux(?:iliar)?\s*\+\s*not\b|\bi no work/i.test(low)) return 'negations';
-  if (/\bcomparativ|\bmore than\b|\b-er than\b|\bas \w+ as\b|\bsuperlativ/i.test(low)) return 'comparatives';
-  if (/\ba\/an\/the\b|\bart[ií]culo|\ba an the\b|\bindefinid|\bdefinid/i.test(low)) return 'articles';
-  if (/\bmoneda\b|\binversi[oó]n\b|\baux(?:iliar)?\b.*\bpregunta|\bdo you\b|\bis she\b/i.test(low)) return 'modal';
-  if (/\bwill\b|\bwould\b|\bshould\b|\bcan\b|\bcould\b|\bmodal|\b-r[eé]\b|\b-r[ií]a\b/i.test(low) && /\b(verbo base|auxiliar|modal|-r[eé]|-r[ií]a|puedo|deber)/i.test(low)) return 'modales';
-  if (/\bpresente perfecto\b|\bhave\/has\b|\bhave\s*\+\s*participio|\bhas\s+\w+ed\b|\bhave\s+(done|seen|gone|finished)/i.test(low)) return 'perfect';
-  if (/\bpasado simple\b|\byesterday\b|\blast (night|week|year)\b|\bago\b|\bworked\b|\bwent\b/i.test(low) && !/\bhave\b.*\bparticipio|\bperfecto/i.test(low)) return 'past';
-  if (/\bpresente simple\b|\bh[aá]bito\b|\bevery day\b|\bverbo\s*\+\s*s\b/i.test(low)) return 'present';
-  if (/\bfuturo\b|\bgoing to\b|\bwill\b.*\bma[nñ]ana|\btomorrow\b/i.test(low)) return 'future';
-  if (/\boverview\b|\bmapa de tiempos\b|\bpr\/ps\/pc\/prp\b/i.test(low)) return 'overview';
+  // NUNCA inferir tablero desde la boca de Jill / ejemplo — solo lock activo o null
   if (_jillState && _jillState.canonTrackId) return _jillState.canonTrackId;
   return null;
 }
@@ -4646,18 +4595,19 @@ function jillActivateVisualStage(text, contentType){
   var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
   var ct = contentType || 'text';
   var userAsk = jillLastUserTopic();
-  // ESCLAVO A LA ORDEN: tablero = solo lo que el estudiante pidió. Nunca desde la boca de Jill.
+  var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
+  // ESCLAVO AL LOCK: tablero = lección activa. Nunca nuevo módulo por palabras incidentales.
   var fromUser = null;
-  if (typeof JillCanonRouter !== 'undefined') {
-    if (JillCanonRouter.resolveAskId) fromUser = JillCanonRouter.resolveAskId(userAsk || '', '');
-    if (!fromUser && JillCanonRouter.pickTrackId) fromUser = JillCanonRouter.pickTrackId(userAsk || '');
+  if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
+    fromUser = JillCanonRouter.resolveAskId(userAsk || '', locked || '');
   }
-  var col = fromUser || null;
-  if (!col && _jillState && _jillState.canonTrackId && jillIsPracticeContinue(userAsk)) {
-    col = _jillState.canonTrackId;
-  }
-  if (fromUser) {
+  var col = fromUser || locked || null;
+  if (fromUser && (!locked || fromUser === locked || (typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userAsk)))) {
     _jillState.canonTrackId = fromUser;
+    col = fromUser;
+    ct = 'whiteboard';
+  } else if (locked) {
+    col = locked;
     ct = 'whiteboard';
   } else if (!col) {
     _jillState.canonTrackId = null;

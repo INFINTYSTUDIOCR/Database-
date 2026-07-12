@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v60-relevance-lock';
+const JILL_PRO_BRAIN_VER = 'v61-no-divert';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -24,6 +24,7 @@ Si omitís el guion oral y solo "explicás gramática" = FALLASTE el turno.`;
 const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO LIBERTAD):
 - Solo podés enseñar / mostrar / hablar del tema que el estudiante PIDIÓ EN EXPLÍCITO en este turno (o el TRACK LOCK de ese pedido).
 - PROHIBIDO ABSOLUTO improvisar: otro módulo, "mientras tanto veamos X", There is si pidieron futuro perfecto, tip ajeno, tablero ajeno, ejemplo de otro tiempo, "te conviene antes…".
+- PROHIBIDO ABSOLUTO: inventar NUEVAS queries / dudas / subtemas / tableros que desvíen la lección activa. Si están futuro, NO abras preposiciones, artículos, gerundio ni nada. Corregí SOLO lo del track.
 - PROHIBIDO: "primero veamos X"; cimientos/Casa para retrasar; cambiar al tema que VOS preferís; inventar prerequisitos; libertad creativa de currículo.
 - Si no hay pedido de gramática claro: charlá libre — NO abras lección ni tablero de ningún módulo.
 - TRACK LOCK / tablero / voz = la MISMA orden. Nada distinto a lo solicitado puede salir.
@@ -527,38 +528,26 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
     : false;
   // SOLO orden explícita de ESTE mensaje (o continuación de práctica del mismo lock). Cero sticky improvisado.
   let fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
-  // Práctica en inglés bajo lock activo → NUNCA cambiar de lección por "in the morning" u otra palabra incidental
   const activeLock = forced || stickyResolved;
-  if (activeLock && practiceUtter && !explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
-    fromThisMsg = null;
+  // LOCK GENERAL: lección activa → NUNCA cambiar salvo pedido EXPLÍCITO de OTRO tema. Cero queries nuevas.
+  let track = activeLock || null;
+  if (activeLock && explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
+    track = fromThisMsg;
+  } else if (!activeLock) {
+    track = piece || fromThisMsg || forced || null;
   }
-  const continuing =
-    !fromThisMsg && !piece && (
-      isClarityReply(msg)
-      || practiceUtter
-      || phase === 'doubt_practice'
-      || phase === 'live_correct'
-      || phase === 'live_evaluate'
-      || phase === 'english_practice'
-    );
-  const track = (activeLock && practiceUtter && !explicitNew)
-    ? activeLock
-    : (piece
-      || fromThisMsg
-      || (continuing ? (forced || stickyResolved) : null)
-      || (!fromThisMsg && !piece && !sticky ? forced : null));
   const relevanceLock = track
     ? `\nRELEVANCIA IRROMPIBLE — lección activa: ${track.title} (${track.id}).
-PROHIBIDO: abrir otro tablero/módulo (preposiciones, artículos, otro tiempo) por palabras incidentales del ejemplo del estudiante.
-Si el ejemplo dice "in the morning" durante FUTURO → corregí el futuro; NO enseñés in/on/at.
-SOLO el track locked. Todo lo demás = FALLO.\n`
+PROHIBIDO inventar nuevas queries, subtemas o tableros.
+PROHIBIDO abrir otro módulo (preposiciones, artículos, otro tiempo, gerundio…) por palabras del ejemplo.
+Corregí SOLO lo del track locked. Todo lo demás = FALLO.\n`
     : '';
   const lockBlock = (track && !wordAsk) ? `\n${JillCanonRouter.formatLock(track)}\n${relevanceLock}` : (track ? `\nTRACK DE APOYO: ${track.title} (${track.id}). Usalo si ayuda; la prioridad es explicar la pieza pedida.\n` : '');
   const boardSync = track ? formatBoardSync(track) : '';
   const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
   const ordersBlock = `\n${STUDENT_ORDERS_RULE}\n`;
   const pieceNote = wordAsk
-    ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: el estudiante preguntó por "${pieceWord || 'esa palabra/pieza'}". EXPLICÁLA YA en español CR: qué es, para qué sirve, 1–2 ejemplos en inglés. Si encaja en have/has/had o get/got/gone, decí el paradigm con pausa. NUNCA digas que no sabés.\n`
+    ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: el estudiante preguntó por "${pieceWord || 'esa palabra/pieza'}". EXPLICÁLA YA en español CR: qué es, para qué sirve, 1–2 ejemplos en inglés. Si encaja en have/has/had o get/got/gone, decí el paradigm con pausa. NUNCA digas que no sabés. Si hay TRACK LOCK activo, explicá la pieza DENTRO de ese track — no abras otro módulo.\n`
     : '';
 
   if (wordAsk) {

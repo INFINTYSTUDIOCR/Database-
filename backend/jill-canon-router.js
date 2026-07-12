@@ -153,49 +153,31 @@ function resolvePieceTrack(userAsk, stickyTopic) {
 function resolveAsk(userAsk, stickyTopic) {
   const ask = String(userAsk || '').trim();
   const sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
-  const stickyTrack = sticky ? (pickTrack(sticky) || pickTrack(stripAskShell(sticky)) || trackById(sticky)) : null;
+  const stickyTrack = sticky
+    ? (trackById(sticky) || pickTrack(sticky) || pickTrack(stripAskShell(sticky)))
+    : null;
 
-  // Si hay lección activa y el mensaje es práctica/ejemplo en inglés → NO cambiar de módulo
-  // (evita "in the morning" → preposiciones durante una clase de futuro)
-  if (stickyTrack && isEnglishPracticeUtterance(ask) && !isExplicitTopicAsk(ask)) {
+  // LOCK GENERAL: con lección activa NO se abre otro módulo por aliases incidentales,
+  // ejemplos en inglés, "dame un ejemplo", correcciones, etc.
+  // SOLO un pedido EXPLÍCITO de OTRO tema puede cambiar.
+  if (stickyTrack) {
+    if (isExplicitTopicAsk(ask)) {
+      const named = pickTrack(ask) || pickTrack(stripAskShell(ask)) || resolvePieceTrack(ask, '');
+      if (named && named.id !== stickyTrack.id) return named;
+    }
     return stickyTrack;
   }
 
-  // Pieza de fórmula gana SIEMPRE (qué es HAD → have/has/had o perfecto)
   let hit = resolvePieceTrack(ask, sticky);
-  if (hit) {
-    // Pieza incidental dentro de práctica del lock → quedate en el lock
-    if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) {
-      return stickyTrack;
-    }
-    return hit;
-  }
+  if (hit) return hit;
   hit = pickTrack(ask);
-  if (hit) {
-    if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) {
-      return stickyTrack;
-    }
-    return hit;
-  }
+  if (hit) return hit;
   const stripped = stripAskShell(ask);
   if (stripped) {
     hit = pickTrack(stripped);
-    if (hit) {
-      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id) return stickyTrack;
-      return hit;
-    }
+    if (hit) return hit;
     hit = resolvePieceTrack(stripped, sticky);
     if (hit) return hit;
-  }
-  if (stickyTrack) return stickyTrack;
-  if (sticky) {
-    hit = pickTrack(sticky);
-    if (hit) return hit;
-    const ss = stripAskShell(sticky);
-    if (ss) {
-      hit = pickTrack(ss);
-      if (hit) return hit;
-    }
   }
   hit = pickTrack([ask, sticky].filter(Boolean).join(' '));
   if (hit) return hit;

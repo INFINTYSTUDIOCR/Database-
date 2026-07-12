@@ -661,7 +661,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711rel';
+  var CACHE_VER = '20260711nodiv';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
@@ -839,39 +839,25 @@
   function resolveAsk(userAsk, stickyTopic) {
     var ask = String(userAsk || '').trim();
     var sticky = String(stickyTopic || '').replace(/^doubt:/i, '').trim();
-    var stickyTrack = sticky ? (pickTrack(sticky) || pickTrack(stripAskShell(sticky)) || trackById(sticky)) : null;
-    if (stickyTrack && isEnglishPracticeUtterance(ask) && !isExplicitTopicAsk(ask)) {
+    var stickyTrack = sticky ? (trackById(sticky) || pickTrack(sticky) || pickTrack(stripAskShell(sticky))) : null;
+    // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar
+    if (stickyTrack) {
+      if (isExplicitTopicAsk(ask)) {
+        var named = pickTrack(ask) || pickTrack(stripAskShell(ask)) || resolvePieceTrack(ask, '');
+        if (named && named.id !== stickyTrack.id) return named;
+      }
       return stickyTrack;
     }
     var hit = resolvePieceTrack(ask, sticky);
-    if (hit) {
-      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) return stickyTrack;
-      return hit;
-    }
+    if (hit) return hit;
     hit = pickTrack(ask);
-    if (hit) {
-      if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id && !isExplicitTopicAsk(ask)) return stickyTrack;
-      return hit;
-    }
+    if (hit) return hit;
     var stripped = stripAskShell(ask);
     if (stripped) {
       hit = pickTrack(stripped);
-      if (hit) {
-        if (stickyTrack && isEnglishPracticeUtterance(ask) && hit.id !== stickyTrack.id) return stickyTrack;
-        return hit;
-      }
+      if (hit) return hit;
       hit = resolvePieceTrack(stripped, sticky);
       if (hit) return hit;
-    }
-    if (stickyTrack) return stickyTrack;
-    if (sticky) {
-      hit = pickTrack(sticky);
-      if (hit) return hit;
-      var ss = stripAskShell(sticky);
-      if (ss) {
-        hit = pickTrack(ss);
-        if (hit) return hit;
-      }
     }
     hit = pickTrack([ask, sticky].filter(Boolean).join(' '));
     if (hit) return hit;
