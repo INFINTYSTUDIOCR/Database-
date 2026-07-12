@@ -523,14 +523,15 @@
       },
       {
         "id": "present",
-        "svg": "assets/canon/tiempos-pr.svg",
-        "title": "Presente simple PR",
-        "formula": "pronombre + verbo + complemento (he/she/it + verbo+s)",
-        "example": "I go home every day.",
+        "svg": "assets/canon/verbos-presente.svg",
+        "title": "Modulo 2 — Verbos presente + conjugacion",
+        "formula": "TO = infinitivo · He/She/It + S · Go/Do → ES · Have → Has · Be → am/is/are",
+        "example": "She goes. He does. It has. I go. We see them.",
         "never": [
           "presente continuo",
           "presente perfecto",
-          "pasado simple"
+          "pasado simple",
+          "cortar o reescribir el guion canon module-02"
         ],
         "aliases": [
           "presente simple",
@@ -543,9 +544,21 @@
           "he/she/it + s",
           "explicame el presente simple",
           "presente",
-          "el presente"
+          "el presente",
+          "modulo 2",
+          "módulo 2",
+          "modulo 2 verbos",
+          "16 verbos",
+          "dieciseis verbos",
+          "verbos en presente",
+          "conjugacion presente",
+          "conjugaciones de pronombre",
+          "to infinitivo",
+          "goes does has",
+          "explicame los 16 verbos",
+          "enseñame el presente"
         ],
-        "bridge": "Puente: hábito/hecho; he/she/it lleva verbo+s (she works)."
+        "bridge": "Puente Modulo 2: pronombre solo no sirve — necesita verbo. TO = señal de infinitivo (desaparece al conjugar). He/She/It → +S; Go/Do → ES; Have → Has; Be → am/is/are. 16 verbos. Conecta con los 5 tipos de pronombres."
       },
       {
         "id": "modales",
@@ -661,7 +674,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711nodiv';
+  var CACHE_VER = '20260711m02';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
@@ -893,7 +906,12 @@
     var locks = {
       past: ['ANTIMEZCLA: pasado simple — no perfecto.'],
       perfect: ['ANTIMEZCLA: perfecto — no pasado simple.'],
-      present: ['ANTIMEZCLA: presente simple.'],
+      present: [
+        'ANTIMEZCLA — MÓDULO 2 VERBOS PRESENTE (16 VERBOS + CONJUGACIÓN):',
+        'SOLO presente simple + TO infinitivo + He/She/It +S/ES/Has + Be am/is/are.',
+        'PROHIBIDO presente continuo / perfecto / pasado en esta lección.',
+        'SEGUÍ EL GUION CANON module-02-verbos-presente SIN CORTAR NI REESCRIBIR.'
+      ],
       progressive: [
         'ANTIMEZCLA: presente continuo.',
         'OBLIGATORIO EN VOZ: español ESTAR + ando/endo → inglés TO BE (am/is/are) + VERBO+ING. Decí ando/endo. Sin to be no hay continuo.'

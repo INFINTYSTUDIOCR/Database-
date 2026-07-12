@@ -209,7 +209,8 @@ function resolveAskId(userAsk, stickyTopic) {
 
 function loadModuleCanonTranscript(trackId) {
   const files = {
-    pronouns: 'module-01-pronombres.txt'
+    pronouns: 'module-01-pronombres.txt',
+    present: 'module-02-verbos-presente.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -228,6 +229,13 @@ function loadModuleCanonTranscript(trackId) {
 function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
+    if (String(trackId || '').trim() === 'present') {
+      return {
+        say: fromFile,
+        mustSay: ['to', 'goes', 'does', 'has', 'he she it'],
+        exampleAsk: 'Antes de conjugar: ¿Es He, She o It? Rapid Fire: To go / She go → She goes.'
+      };
+    }
     return {
       say: fromFile,
       mustSay: ['sujeto', 'objeto', 'my', 'mine', 'myself'],
@@ -262,7 +270,13 @@ function formatLock(track) {
     perfect: [
       'ANTIMEZCLA — PERFECTO (have/has/had + participio): NO lo enseñes como pasado simple.'
     ],
-    present: ['ANTIMEZCLA: presente simple — no mezcles con pasado/perfecto/continuo.'],
+    present: [
+      'ANTIMEZCLA — MÓDULO 2 VERBOS PRESENTE (16 VERBOS + CONJUGACIÓN):',
+      'SOLO presente simple + TO infinitivo + He/She/It +S/ES/Has + Be am/is/are.',
+      'PROHIBIDO presente continuo / perfecto / pasado en esta lección.',
+      'SEGUÍ EL GUION CANON module-02-verbos-presente SIN CORTAR NI REESCRIBIR.',
+      'ANTES de conjugar He/She/It: preguntá "¿Es He, She o It? — entonces qué le pasa al verbo?"'
+    ],
     progressive: [
       'ANTIMEZCLA: presente continuo.',
       'OBLIGATORIO EN VOZ: en español el auxiliar es ESTAR; en inglés OBLIGATORIO TO BE (am/is/are) + VERBO+ING; ING = ando/endo. Si no decís estar→to be y ando/endo, FALLASTE.'

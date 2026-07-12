@@ -517,14 +517,15 @@
     },
     {
       "id": "present",
-      "svg": "assets/canon/tiempos-pr.svg",
-      "title": "Presente simple PR",
-      "formula": "pronombre + verbo + complemento (he/she/it + verbo+s)",
-      "example": "I go home every day.",
+      "svg": "assets/canon/verbos-presente.svg",
+      "title": "Modulo 2 — Verbos presente + conjugacion",
+      "formula": "TO = infinitivo · He/She/It + S · Go/Do → ES · Have → Has · Be → am/is/are",
+      "example": "She goes. He does. It has. I go. We see them.",
       "never": [
         "presente continuo",
         "presente perfecto",
-        "pasado simple"
+        "pasado simple",
+        "cortar o reescribir el guion canon module-02"
       ],
       "aliases": [
         "presente simple",
@@ -537,9 +538,21 @@
         "he/she/it + s",
         "explicame el presente simple",
         "presente",
-        "el presente"
+        "el presente",
+        "modulo 2",
+        "módulo 2",
+        "modulo 2 verbos",
+        "16 verbos",
+        "dieciseis verbos",
+        "verbos en presente",
+        "conjugacion presente",
+        "conjugaciones de pronombre",
+        "to infinitivo",
+        "goes does has",
+        "explicame los 16 verbos",
+        "enseñame el presente"
       ],
-      "bridge": "Puente: hábito/hecho; he/she/it lleva verbo+s (she works)."
+      "bridge": "Puente Modulo 2: pronombre solo no sirve — necesita verbo. TO = señal de infinitivo (desaparece al conjugar). He/She/It → +S; Go/Do → ES; Have → Has; Be → am/is/are. 16 verbos. Conecta con los 5 tipos de pronombres."
     },
     {
       "id": "modales",

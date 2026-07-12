@@ -240,6 +240,17 @@ const SharedLearner = require('./shared-learner');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
+// Seed M001/M002 canon → Super Cerebro (idempotente; no rompe si SB off)
+setTimeout(() => {
+  SuperBrain.seedCanonTeachingModules()
+    .then((r) => {
+      if (r && r.published && r.published.length) {
+        console.log('Super Brain canon seed:', r.published.map((x) => x.canonKey).join(', '));
+      }
+    })
+    .catch((e) => console.warn('Super Brain canon seed:', e.message));
+}, 2500);
+
 const JillClassAnalyzer = require('./jill-class-analyzer');
 JillClassAnalyzer.initClassAnalyzer({ superBrain: SuperBrain, sbSet, sbGetOne });
 

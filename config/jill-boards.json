@@ -46,48 +46,31 @@
   },
   "present": {
     "rules": [
-      {
-        "left": "I / you / we / they",
-        "right": "verbo base",
-        "note": "(hábito)"
-      },
-      {
-        "left": "he / she / it",
-        "right": "verbo + s",
-        "note": "(3ª persona)"
-      }
+      { "left": "TO + verbo", "right": "señal de infinitivo", "note": "desaparece al conjugar" },
+      { "left": "I / you / we / they", "right": "verbo base", "note": "sin cambio" },
+      { "left": "he / she / it", "right": "verbo + S", "note": "regla de oro" },
+      { "left": "go / do", "right": "goes / does", "note": "termina en O → ES" },
+      { "left": "have", "right": "has", "note": "cambia completo" },
+      { "left": "be", "right": "am / is / are", "note": "único con 3 formas" }
     ],
     "examples": [
-      {
-        "left": "I go home every day",
-        "right": "Yo voy a casa todos los días",
-        "note": ""
-      },
-      {
-        "left": "She works in San José",
-        "right": "Ella trabaja en San José",
-        "note": ""
-      },
-      {
-        "left": "They study English",
-        "right": "Ellos estudian inglés",
-        "note": ""
-      }
+      { "left": "To go → I go", "right": "TO se fue al conjugar" },
+      { "left": "She goes", "right": "She + O → ES" },
+      { "left": "He does", "right": "He + O → ES" },
+      { "left": "It has", "right": "Have → Has" },
+      { "left": "She sees me", "right": "verbo + objeto (M1)" },
+      { "left": "He keeps his car", "right": "verbo + pos.adj (M1)" },
+      { "left": "She sees herself", "right": "verbo + reflexivo (M1)" }
     ],
-    "pattern": "¿Ves? He/She/It lleva la -s en el verbo. El resto usa la forma base.",
+    "pattern": "He, She, It — agrega S. Go y Do — agrega ES. Have — cambia a Has. Be — am/is/are. Los módulos se conectan.",
     "transforms": [
-      {
-        "left": "I work",
-        "right": "She works",
-        "tip": "3ª persona → +s"
-      },
-      {
-        "left": "They go",
-        "right": "He goes",
-        "tip": "go → goes"
-      }
+      { "left": "She / go", "right": "She goes", "tip": "O → ES" },
+      { "left": "He / do", "right": "He does", "tip": "O → ES" },
+      { "left": "It / have", "right": "It has", "tip": "Have → Has" },
+      { "left": "They / go", "right": "They go", "tip": "They no cambia" },
+      { "left": "She / make", "right": "She makes", "tip": "+ S" }
     ],
-    "takeaway": "Presente simple = hábito o hecho. Solo he/she/it suma -s."
+    "takeaway": "16 verbos + He/She/It. Antes de conjugar: ¿Es He, She o It?"
   },
   "past": {
     "rules": [

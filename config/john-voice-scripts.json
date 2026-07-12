@@ -70,12 +70,15 @@
       "exampleAsk": "Repetí: jaf. jas. jad. Luego: I had finished."
     },
     "present": {
-      "say": "Presente simple: hábito o hecho. Pronombre + verbo + complemento. He, she, it llevan ese en el verbo: she works. Empezá desde el español: yo trabajo → I work.",
+      "say": "CANON MÓDULO 2 — el guion completo vive en config/canon/module-02-verbos-presente.txt (el sistema lo inyecta entero). TO = señal de infinitivo. He/She/It + S. Go/Do → ES. Have → Has. Be → am/is/are. 16 verbos. Conectá con los 5 tipos de pronombres del módulo 1.",
       "mustSay": [
-        "hábito",
-        "verbo"
+        "to",
+        "goes",
+        "does",
+        "has",
+        "he she it"
       ],
-      "exampleAsk": "Decí: She works every day."
+      "exampleAsk": "Antes de conjugar: ¿Es He, She o It? Luego Rapid Fire: She / go → She goes."
     },
     "future": {
       "say": "Futuro simple: will más verbo base = el ré. Going to = voy a, plan. I will call. I am going to study. Si pidieron futuro PERFECTO, eso es otro módulo: will have más participio.",

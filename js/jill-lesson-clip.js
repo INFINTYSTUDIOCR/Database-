@@ -47,11 +47,32 @@
       takeaway: 'El verbo principal siempre vuelve al infinitivo cuando hay negación.'
     },
     present: {
-      rules: [row('I / you / we / they', 'verbo base', '(hábito)'), row('he / she / it', 'verbo + s', '(3ª persona)')],
-      examples: [row('I go home every day', 'Yo voy a casa todos los días'), row('She works in San José', 'Ella trabaja en San José'), row('They study English', 'Ellos estudian inglés')],
-      pattern: '¿Ves? He/She/It lleva la -s en el verbo. El resto usa la forma base.',
-      transforms: [tip('I work', 'She works', '3ª persona → +s'), tip('They go', 'He goes', 'go → goes')],
-      takeaway: 'Presente simple = hábito o hecho. Solo he/she/it suma -s.'
+      rules: [
+        row('TO + verbo', 'señal de infinitivo', 'desaparece al conjugar'),
+        row('I / you / we / they', 'verbo base', 'sin cambio'),
+        row('he / she / it', 'verbo + S', 'regla de oro'),
+        row('go / do', 'goes / does', 'termina en O → ES'),
+        row('have', 'has', 'cambia completo'),
+        row('be', 'am / is / are', 'único con 3 formas')
+      ],
+      examples: [
+        row('To go → I go', 'TO se fue al conjugar'),
+        row('She goes', 'She + O → ES'),
+        row('He does', 'He + O → ES'),
+        row('It has', 'Have → Has'),
+        row('She sees me', 'verbo + objeto (M1)'),
+        row('He keeps his car', 'verbo + pos.adj (M1)'),
+        row('She sees herself', 'verbo + reflexivo (M1)')
+      ],
+      pattern: 'He, She, It — agrega S. Go y Do — agrega ES. Have — cambia a Has. Be — am/is/are. Los módulos se conectan.',
+      transforms: [
+        tip('She / go', 'She goes', 'O → ES'),
+        tip('He / do', 'He does', 'O → ES'),
+        tip('It / have', 'It has', 'Have → Has'),
+        tip('They / go', 'They go', 'They no cambia'),
+        tip('She / make', 'She makes', '+ S')
+      ],
+      takeaway: '16 verbos + He/She/It. Antes de conjugar: ¿Es He, She o It?'
     },
     past: {
       rules: [row('verbo regular', 'verbo + ed', '(worked)'), row('verbo irregular', 'forma 2', '(went / saw / made)')],
@@ -289,19 +310,20 @@
 
     present: clip({
       id: 'present',
-      title: 'Presente simple · PR',
-      bridge: 'Hábito / hecho · he/she/it → verbo + s',
+      title: 'Módulo 2 · 16 verbos presente',
+      bridge: 'TO=infinitivo · He/She/It +S · Go/Do→ES · Have→Has · Be am/is/are',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
-        { id: 2, label: 'Verbo', hint: 'base / +s' },
-        { id: 3, label: 'Complemento', hint: 'qué / cuándo' }
+        { id: 2, label: 'Verbo', hint: 'base / +s / ES / has' },
+        { id: 3, label: 'Complemento', hint: 'objeto / pos / reflexivo' }
       ],
       examples: [
         T([['I', 1], [' ', 0], ['go', 2], [' ', 0], ['home every day.', 3]]),
-        T([['She', 1], [' ', 0], ['works', 2], [' ', 0], ['in San José.', 3]]),
-        T([['They', 1], [' ', 0], ['study', 2], [' ', 0], ['English.', 3]]),
-        T([['He', 1], [' ', 0], ['likes', 2], [' ', 0], ['coffee.', 3]]),
-        T([['We', 1], [' ', 0], ['live', 2], [' ', 0], ['here.', 3]])
+        T([['She', 1], [' ', 0], ['goes', 2], [' ', 0], ['to work.', 3]]),
+        T([['He', 1], [' ', 0], ['does', 2], [' ', 0], ['his homework.', 3]]),
+        T([['It', 1], [' ', 0], ['has', 2], [' ', 0], ['a meeting.', 3]]),
+        T([['She', 1], [' ', 0], ['sees', 2], [' ', 0], ['me.', 3]]),
+        T([['He', 1], [' ', 0], ['keeps', 2], [' ', 0], ['himself focused.', 3]])
       ]
     }),
 

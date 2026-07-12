@@ -800,6 +800,75 @@ async function promoteDemoKb({ days = 14, autoPublish = false } = {}) {
   return { ok: true, promoted, items: items.slice(0, 30), pendingCount: (state.pendingLessons || []).length };
 }
 
+/**
+ * Publica guiones canon Foundations (M001, M002, …) al Super Cerebro si aún no existen.
+ * Idempotente por meta.canonKey — no duplica en cada restart.
+ */
+async function seedCanonTeachingModules() {
+  if (!isSuperBrainEnabled()) return { ok: false, reason: 'disabled' };
+  const modules = [
+    {
+      canonKey: 'module-01-pronombres',
+      title: 'Jill Foundations M001 — 5 tipos de pronombres',
+      file: 'module-01-pronombres.txt',
+      category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-02-verbos-presente',
+      title: 'Jill Foundations M002 — Verbos presente + conjugación',
+      file: 'module-02-verbos-presente.txt',
+      category: 'jill-foundations'
+    }
+  ];
+  const state = await loadState();
+  const published = [];
+  const skipped = [];
+  for (let i = 0; i < modules.length; i++) {
+    const m = modules[i];
+    const already = (state.lessons || []).find(
+      (l) => l.published && (l.meta?.canonKey === m.canonKey || String(l.title || '').includes(m.canonKey))
+    );
+    if (already) {
+      skipped.push(m.canonKey);
+      continue;
+    }
+    const paths = [
+      path.join(__dirname, 'config', 'canon', m.file),
+      path.join(__dirname, '..', 'config', 'canon', m.file)
+    ];
+    let raw = '';
+    for (let p = 0; p < paths.length; p++) {
+      try {
+        if (fs.existsSync(paths[p])) {
+          raw = fs.readFileSync(paths[p], 'utf8');
+          break;
+        }
+      } catch (_) { /* next */ }
+    }
+    if (!raw || raw.length < 40) {
+      skipped.push(m.canonKey + ':missing');
+      continue;
+    }
+    const content = [
+      'DOCTRINA: Guion canónico de clase John Ramírez (Infinity Foundations). Jill debe seguirlo íntegro — sin cortar ni reescribir ESL genérico.',
+      'PUENTE ESPAÑOL↔INGLÉS: misma lógica, diferente forma. Español primero; el estudiante produce antes de más teoría.',
+      'FUENTE: config/canon/' + m.file,
+      '',
+      raw.slice(0, MAX_LESSON_CHARS - 400)
+    ].join('\n');
+    const lesson = await publishKnowledge(state, {
+      title: m.title,
+      content,
+      author: 'John Ramírez',
+      category: m.category,
+      source: 'canon-seed',
+      meta: { canonKey: m.canonKey, moduleFile: m.file }
+    });
+    published.push({ canonKey: m.canonKey, id: lesson.id });
+  }
+  return { ok: true, published, skipped };
+}
+
 module.exports = {
   initSuperBrain,
   isSuperBrainEnabled,
@@ -823,5 +892,6 @@ module.exports = {
   purgeNoiseLessons,
   lessonQualityScore,
   isNoiseLesson,
+  seedCanonTeachingModules,
   SUPER_BRAIN_ID
 };

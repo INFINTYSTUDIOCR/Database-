@@ -306,7 +306,7 @@ const TRACK_TEACH_HINTS = {
   modal: FULL_TEACH_ALL + ' Analogía moneda: auxiliar ANTES del pronombre = pregunta.',
   progressive: FULL_TEACH_ALL + ' TO BE + verbo + ING = ando/endo. Sin to be no hay progresivo. Decí í ene je.',
   past: FULL_TEACH_ALL + ' Analogía: pasado = foto terminada de ayer.',
-  present: FULL_TEACH_ALL + ' Analogía: hábito/hecho; he/she/it + verbo+s.',
+  present: FULL_TEACH_ALL + ' CANON MÓDULO 2: TO=infinitivo; He/She/It +S; Go/Do→ES; Have→Has; Be am/is/are; 16 verbos. SEGUÍ guion module-02-verbos-presente ÍNTEGRO. Antes de conjugar: ¿Es He/She/It? Conectá con pronombres M1.',
   perfect: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.perfect,
   combined: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.combined,
   future: FULL_TEACH_ALL + ' Analogía: will=-ré (decisión); going to=voy a (plan). Si pidieron futuro PERFECTO, NO enseñés este — ese es will have.',
