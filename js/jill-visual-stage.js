@@ -42,10 +42,15 @@
     var reply = String(replyText || '').trim();
     var preferNexus = tutor === 'alice';
 
-    // Alice Nexus: user primero, luego reply
-    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nx = global.JillLessonClip.resolveNexusId(user);
-      if (nx) return nx;
+    // Alice (tutor o companion): SOLO tableros Nexus. NUNCA Foundations Jill (modales/Clase 010/WILL…).
+    if (preferNexus) {
+      if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
+        var nxUser = global.JillLessonClip.resolveNexusId(user);
+        if (nxUser) return nxUser;
+        var nxReply = global.JillLessonClip.resolveNexusId(reply);
+        if (nxReply) return nxReply;
+      }
+      return null;
     }
 
     // ESCLAVO A LA ORDEN: solo el pedido del estudiante. Nunca improvisar desde el reply.
@@ -60,14 +65,6 @@
     if (user && typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
       var fromUserCol = detectColumn(user, bundle);
       if (fromUserCol) return fromUserCol;
-    }
-
-    // Alice Nexus: reply solo si el user no nombró tema (Nexus linkers)
-    if (preferNexus && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      var nxUser = global.JillLessonClip.resolveNexusId(user);
-      if (nxUser) return nxUser;
-      var nxReply = global.JillLessonClip.resolveNexusId(reply);
-      if (nxReply) return nxReply;
     }
 
     // Jill: sin pedido explícito → null (no abrir tablero ajeno)

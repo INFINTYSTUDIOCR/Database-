@@ -3309,16 +3309,30 @@ function aliceLastUserTopic(){
 }
 
 function aliceActivateVisualStage(text){
+  // Alice Companion = charla libre: NUNCA tableros Foundations (Clase 010 WILL/WOULD, MSI, etc.)
+  if(_aliceState && _aliceState.sessionType === 'companion'){
+    try { if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch(eHide) {}
+    return;
+  }
   if(typeof JillVisualStage === 'undefined') return;
   var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
   var userTopic = aliceLastUserTopic();
   var sticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
   var blob = (userTopic + ' ' + sticky + ' ' + plain).trim();
   var col = JillVisualStage.resolveColumn(plain, null, blob, 'alice');
+  // Alice tutor solo Nexus — nunca columnas Foundations de Jill
+  if(col && !/^nexus_/i.test(String(col))) {
+    col = (typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId)
+      ? (JillLessonClip.resolveNexusId(blob) || null)
+      : null;
+  }
   if(!col && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
     col = JillLessonClip.resolveNexusId(blob);
   }
-  if(!col) return;
+  if(!col) {
+    try { JillVisualStage.hide(); } catch(e2) {}
+    return;
+  }
   var shown = JillVisualStage.show(plain, 'whiteboard', null, {
     tutor: 'alice',
     userTopic: blob,
