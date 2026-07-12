@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-dual-accent';
-const JILL_BRAIN_VER = 'v36-dual-accent';
+const APP1_BUILD = '20260711-tico-cr';
+const JILL_BRAIN_VER = 'v37-tico-cr';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2899,14 +2899,25 @@ function scrubNonCrSpanish(text) {
     .replace(/\bcurrar\b/gi, 'trabajar')
     .replace(/\bcurrando\b/gi, 'trabajando')
     .replace(/\bvale\b(?!\s+(la|el|una?|unos|unas)\b)/gi, 'claro')
-    // Argentina / Mar del Plata / Rioplatense — PROHIBIDO
+    // Argentina / Mar del Plata / Rioplatense — PROHIBIDO (no es tico)
     .replace(/(^|[\s,.—–\-¿¡])che\b[,!.…]*/gi, '$1')
     .replace(/bolud[oa]s?/gi, '')
+    .replace(/\blaburando\b/gi, 'trabajando')
+    .replace(/\blaburar\b/gi, 'trabajar')
+    .replace(/\blabur[aá]s\b/gi, 'trabajás')
+    .replace(/\blabura\b/gi, 'trabaja')
+    .replace(/\blaburo\b/gi, 'trabajo')
     .replace(/laburo/gi, 'trabajo')
+    .replace(/\bte\s+late\b/gi, 'qué te parece')
+    .replace(/\bme\s+late\b/gi, 'tuanis')
     .replace(/pib[ea]s?/gi, '')
     .replace(/\bminas?\b(?=\s|$|[.,!?])/gi, '')
     .replace(/en pedo/gi, '')
     .replace(/\bre\s+(bueno|malo|lindo|copado|facil|fácil)\b/gi, 'muy $1')
+    .replace(/\bcopado\b/gi, 'tuanis')
+    .replace(/\bposta\b/gi, 'de verdad')
+    .replace(/\bquilombo\b/gi, 'lío')
+    .replace(/\bfiaca\b/gi, 'flojera')
     .replace(/mirá/gi, 'mira')
     .replace(/fíjate/gi, 'fijate')
     // Brasil / portugués — PROHIBIDO

@@ -53,7 +53,7 @@
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260711modules"></script>
 <script src="js/jill-quiz.js?v=20260711jillonly"></script>
-<script src="js/tts-chunks.js?v=20260711dual"></script>
+<script src="js/tts-chunks.js?v=20260711tico"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260711speak"></script>
 <style>
@@ -4776,8 +4776,18 @@ function jillScrubNonCr(text){
     .replace(/\bvale\b(?!\s+(la|el|una?|unos|unas)\b)/gi, 'claro')
     .replace(/(^|[\s,.\u2014\u2013\-\u00bf\u00a1])che\b[,!.\u2026]*/gi, '$1')
     .replace(/\bbolud[oa]s?\b/gi, '')
+    .replace(/\blaburando\b/gi, 'trabajando')
+    .replace(/\blaburar\b/gi, 'trabajar')
+    .replace(/\blabur[aá]s\b/gi, 'trabajás')
+    .replace(/\blabura\b/gi, 'trabaja')
     .replace(/\blaburo\b/gi, 'trabajo')
+    .replace(/laburo/gi, 'trabajo')
+    .replace(/\bte\s+late\b/gi, 'qué te parece')
+    .replace(/\bme\s+late\b/gi, 'tuanis')
     .replace(/\bpib[ea]s?\b/gi, '')
+    .replace(/\bcopado\b/gi, 'tuanis')
+    .replace(/\bposta\b/gi, 'de verdad')
+    .replace(/\bquilombo\b/gi, 'lío')
     .replace(/mirá/gi, 'mira')
     .replace(/fíjate/gi, 'fijate')
     .replace(/voc[eê]s?/gi, 'vos')
@@ -4786,7 +4796,6 @@ function jillScrubNonCr(text){
     .replace(/então/gi, 'entonces')
     .replace(/não/gi, 'no')
     .replace(/\bpra\b/gi, 'para')
-    .replace(/laburo/gi, 'trabajo')
     .replace(/pib[ea]s?/gi, '')
     .replace(/(^|[\s,.\u2014\u2013\-\u00bf\u00a1])che\b[,!.\u2026]*/gi, '$1')
     .replace(/bolud[oa]s?/gi, '')
