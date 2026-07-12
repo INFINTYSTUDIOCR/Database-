@@ -38,7 +38,7 @@
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260711m06"></script>
-<script src="js/jill-visual-stage.js?v=20260711slave"></script>
+<script src="js/jill-visual-stage.js?v=20260711alice1"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260711m06"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -326,6 +326,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-lesson-shell.jill-stage-active #jill-chips,
   #jill-lesson-shell.jill-stage-active #jill-habit-wrap,
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel{display:none!important;}
+  /* Alice Companion — ambient by topic (story mode) */
+  #alice-companion-card{
+    transition: background 0.9s ease, box-shadow 0.9s ease, border-color 0.9s ease;
+    position:relative;overflow:hidden;
+  }
+  #alice-companion-card[data-ambient]::before{
+    content:'';pointer-events:none;position:absolute;inset:0;border-radius:inherit;z-index:0;
+    opacity:0;transition:opacity 0.9s ease;
+  }
+  #alice-companion-card[data-ambient="horror"]::before{
+    opacity:1;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(120,30,40,0.35), transparent 45%),
+      radial-gradient(ellipse at 80% 70%, rgba(40,20,60,0.4), transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(196,92,26,0.12), transparent 40%);
+    animation: aliceAmbientDrift 14s ease-in-out infinite alternate;
+  }
+  #alice-companion-card[data-ambient="mystery"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 40% 30%, rgba(50,70,110,0.4), transparent 55%),
+      radial-gradient(ellipse at 70% 80%, rgba(20,30,50,0.5), transparent 45%);
+  }
+  #alice-companion-card[data-ambient="stories"]::before,
+  #alice-companion-card[data-ambient="adventure"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 50% 0%, rgba(180,100,40,0.22), transparent 50%),
+      radial-gradient(ellipse at 10% 90%, rgba(60,30,10,0.35), transparent 45%);
+  }
+  #alice-companion-card[data-ambient="travel"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 50% 0%, rgba(40,100,160,0.35), transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(20,50,90,0.4), transparent 45%);
+  }
+  #alice-companion-card[data-ambient="science"]::before,
+  #alice-companion-card[data-ambient="tech"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 30% 20%, rgba(60,100,180,0.3), transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(80,40,140,0.25), transparent 45%);
+  }
+  #alice-companion-card[data-ambient="food"]::before,
+  #alice-companion-card[data-ambient="family"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 40% 10%, rgba(200,120,50,0.2), transparent 50%);
+  }
+  #alice-companion-card[data-ambient="romance"]::before,
+  #alice-companion-card[data-ambient="life"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 50% 30%, rgba(140,60,100,0.28), transparent 55%);
+  }
+  #alice-companion-card[data-ambient="entertainment"]::before{
+    opacity:1;
+    background: radial-gradient(ellipse at 50% 0%, rgba(180,40,60,0.25), transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(20,10,30,0.5), transparent 40%);
+  }
+  #alice-companion-card > *{position:relative;z-index:1;}
+  @keyframes aliceAmbientDrift{
+    from{transform:scale(1) translate(0,0);filter:hue-rotate(0deg);}
+    to{transform:scale(1.04) translate(-1%,1%);filter:hue-rotate(-8deg);}
+  }
   /* Alice lesson stage (same clip engine as Jill) */
   #alice-lesson-shell{position:relative;}
   #alice-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
@@ -2013,6 +2072,7 @@ var _aliceState = {
   sessionActive: false,
   sessionType: 'practice',
   companionTopic: '',
+  ambientMood: 'default',
   evaluation: null,
   quizActive: false,
   speaking: false,
@@ -2178,12 +2238,170 @@ function aliceCompanionUiActive(){
   return aliceCompanionEnabled() && (_aliceState.sessionType === 'companion');
 }
 
+/** Topic → ambient mood for Companion story/chat (not teach/coach). */
+var ALICE_COMPANION_AMBIENTS = {
+  default: {
+    cardBg: 'linear-gradient(160deg,#120e00,#3a2d00,#7a5c00)',
+    cardShadow: '0 8px 40px rgba(255,193,7,0.5), 0 0 48px rgba(255,215,0,0.18)',
+    cardBorder: 'rgba(255,215,0,0.55)'
+  },
+  coach: {
+    cardBg: 'linear-gradient(160deg,#120e00,#3a2d00,#7a5c00)',
+    cardShadow: '0 8px 40px rgba(255,193,7,0.5), 0 0 48px rgba(255,215,0,0.18)',
+    cardBorder: 'rgba(255,215,0,0.55)'
+  },
+  horror: {
+    cardBg: 'linear-gradient(165deg,#07060a 0%,#14101c 42%,#1a0e18 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.7), 0 0 40px rgba(120,40,60,0.22)',
+    cardBorder: 'rgba(196,92,26,0.4)'
+  },
+  mystery: {
+    cardBg: 'linear-gradient(165deg,#060810 0%,#101828 50%,#0c1424 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.65), 0 0 36px rgba(50,80,140,0.25)',
+    cardBorder: 'rgba(100,140,200,0.35)'
+  },
+  stories: {
+    cardBg: 'linear-gradient(165deg,#100a06 0%,#2a180c 45%,#3d2410 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 36px rgba(180,100,40,0.2)',
+    cardBorder: 'rgba(200,130,60,0.4)'
+  },
+  adventure: {
+    cardBg: 'linear-gradient(165deg,#0a1208 0%,#1a2814 45%,#243018 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 32px rgba(80,140,60,0.2)',
+    cardBorder: 'rgba(120,160,80,0.35)'
+  },
+  travel: {
+    cardBg: 'linear-gradient(165deg,#061018 0%,#0c2840 50%,#143050 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 36px rgba(40,120,180,0.25)',
+    cardBorder: 'rgba(80,160,220,0.35)'
+  },
+  science: {
+    cardBg: 'linear-gradient(165deg,#050812 0%,#0e1830 50%,#1a1040 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 36px rgba(80,100,200,0.22)',
+    cardBorder: 'rgba(120,140,220,0.35)'
+  },
+  tech: {
+    cardBg: 'linear-gradient(165deg,#050a10 0%,#0a2030 50%,#0c2838 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 32px rgba(40,180,200,0.2)',
+    cardBorder: 'rgba(60,200,210,0.35)'
+  },
+  food: {
+    cardBg: 'linear-gradient(165deg,#140c06 0%,#2e1a0c 50%,#3a2410 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 28px rgba(200,120,40,0.2)',
+    cardBorder: 'rgba(220,140,60,0.4)'
+  },
+  family: {
+    cardBg: 'linear-gradient(165deg,#120e0a 0%,#2a2018 50%,#3a2e22 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.5), 0 0 28px rgba(180,140,80,0.18)',
+    cardBorder: 'rgba(200,160,100,0.35)'
+  },
+  romance: {
+    cardBg: 'linear-gradient(165deg,#12080e 0%,#2a1020 50%,#3a1830 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 32px rgba(160,60,100,0.22)',
+    cardBorder: 'rgba(200,100,140,0.35)'
+  },
+  life: {
+    cardBg: 'linear-gradient(165deg,#100c12 0%,#241828 50%,#2e2030 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.5), 0 0 28px rgba(140,80,120,0.18)',
+    cardBorder: 'rgba(180,120,160,0.3)'
+  },
+  entertainment: {
+    cardBg: 'linear-gradient(165deg,#0a0608 0%,#1a0c12 45%,#280812 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.65), 0 0 36px rgba(180,40,60,0.2)',
+    cardBorder: 'rgba(200,60,80,0.35)'
+  },
+  work: {
+    cardBg: 'linear-gradient(165deg,#0a0c10 0%,#161c24 50%,#1e2630 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.55), 0 0 28px rgba(100,120,140,0.18)',
+    cardBorder: 'rgba(140,160,180,0.3)'
+  },
+  sports: {
+    cardBg: 'linear-gradient(165deg,#061008 0%,#102018 50%,#183020 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.55), 0 0 28px rgba(60,160,80,0.2)',
+    cardBorder: 'rgba(80,180,100,0.35)'
+  },
+  fashion: {
+    cardBg: 'linear-gradient(165deg,#100810 0%,#241028 50%,#301838 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.55), 0 0 28px rgba(160,60,180,0.2)',
+    cardBorder: 'rgba(180,100,200,0.35)'
+  },
+  world: {
+    cardBg: 'linear-gradient(165deg,#080a0e 0%,#141820 50%,#1c222c 100%)',
+    cardShadow: '0 8px 36px rgba(0,0,0,0.55), 0 0 24px rgba(80,100,120,0.18)',
+    cardBorder: 'rgba(120,140,160,0.3)'
+  },
+  general: {
+    cardBg: 'linear-gradient(160deg,#120e00,#3a2d00,#7a5c00)',
+    cardShadow: '0 8px 40px rgba(255,193,7,0.5), 0 0 48px rgba(255,215,0,0.18)',
+    cardBorder: 'rgba(255,215,0,0.55)'
+  }
+};
+
+function aliceInferCompanionTopic(text){
+  var t = String(text || '').toLowerCase();
+  if(!t || t.length < 3) return '';
+  if(/\b(explain|explícame|explicame|cómo se dice|como se dice|what does .+ mean|qué significa|que significa|teach me|enséñame|ensename|doubt|duda)\b/i.test(t)) return 'coach';
+  var patterns = [
+    [/horror|scary|scare[ds]?|ghost|haunted|creepy|thriller|nightmare|monster|zombie|vampire|terror|miedo|espanto|fantasma|bruj[ao]|leyenda\s+urbana|cuento\s+de\s+miedo|historia\s+de\s+terror/i, 'horror'],
+    [/mystery|detective|crime|asesinato|misterio|suspense/i, 'mystery'],
+    [/adventure|quest|jungle|pirate|aventura|explor/i, 'adventure'],
+    [/romance|love\s+story|dating|crush|enamor/i, 'romance'],
+    [/story|stories|tale|legend|cuento|historias?|narrat|fábula|fabula|history|historical/i, 'stories'],
+    [/science|space|nasa|planet|physics|chemistry|biology|ciencia|espacio/i, 'science'],
+    [/work|job|career|office|interview|trabajo|oficina/i, 'work'],
+    [/family|kids|children|parents|familia|hijos|amigos/i, 'family'],
+    [/travel|trip|vacation|viaje|viajar|vacaciones/i, 'travel'],
+    [/sport|football|soccer|gym|deporte|fútbol|futbol/i, 'sports'],
+    [/movie|film|music|book|series|netflix|pel[ií]cula|música|musica|libro/i, 'entertainment'],
+    [/fashion|style|clothes|outfit|moda|ropa/i, 'fashion'],
+    [/food|recipe|cook|restaurant|comida|cocina|receta/i, 'food'],
+    [/feelings|mood|stress|life|sentimientos|estr[eé]s|vida/i, 'life'],
+    [/news|politics|world|noticias|pol[ií]tica/i, 'world'],
+    [/tech|phone|app|\bai\b|internet|game|gaming|tecnolog|juego/i, 'tech']
+  ];
+  for(var i=0;i<patterns.length;i++){
+    if(patterns[i][0].test(t)) return patterns[i][1];
+  }
+  return '';
+}
+
+function aliceResolveAmbientMood(){
+  if(!aliceCompanionUiActive() || !_aliceState.sessionActive) return 'default';
+  var users = (_aliceState.history || []).filter(function(m){ return m && m.role === 'user' && String(m.content||'').trim(); });
+  var recent = users.slice(-5);
+  for(var i = recent.length - 1; i >= 0; i--){
+    var hit = aliceInferCompanionTopic(recent[i].content);
+    if(hit === 'coach') return 'coach';
+    if(hit && hit !== 'general' && ALICE_COMPANION_AMBIENTS[hit]) return hit;
+  }
+  var sticky = aliceInferCompanionTopic(_aliceState.companionTopic || '');
+  if(sticky && sticky !== 'coach' && ALICE_COMPANION_AMBIENTS[sticky]) return sticky;
+  return _aliceState.ambientMood && ALICE_COMPANION_AMBIENTS[_aliceState.ambientMood]
+    ? _aliceState.ambientMood
+    : 'default';
+}
+
+function aliceApplyCompanionAmbient(){
+  if(!aliceCompanionUiActive()) return;
+  var mood = aliceResolveAmbientMood();
+  _aliceState.ambientMood = mood;
+  var amb = ALICE_COMPANION_AMBIENTS[mood] || ALICE_COMPANION_AMBIENTS.default;
+  var card = document.getElementById('alice-companion-card');
+  if(!card) return;
+  card.style.background = amb.cardBg;
+  card.style.boxShadow = amb.cardShadow;
+  card.style.borderColor = amb.cardBorder;
+  card.setAttribute('data-ambient', mood);
+}
+
 function aliceTheme(){
   if(aliceCompanionUiActive()){
+    var mood = (_aliceState.sessionActive ? (_aliceState.ambientMood || aliceResolveAmbientMood()) : 'default');
+    var amb = ALICE_COMPANION_AMBIENTS[mood] || ALICE_COMPANION_AMBIENTS.default;
     return {
-      cardBg: 'linear-gradient(160deg,#120e00,#3a2d00,#7a5c00)',
-      cardShadow: '0 8px 40px rgba(255,193,7,0.5), 0 0 48px rgba(255,215,0,0.18)',
-      cardBorder: 'rgba(255,215,0,0.55)',
+      cardBg: amb.cardBg,
+      cardShadow: amb.cardShadow,
+      cardBorder: amb.cardBorder,
       studioLabel: '#FFD700',
       title: '#FFD700',
       titleShadow: 'rgba(255,215,0,0.75)',
@@ -2253,7 +2471,11 @@ function renderAlice(){
     : '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
       +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select></div>';
   var cardBorderW = isGold ? '2px' : '1px';
-  root.innerHTML = '<div style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:'+th.cardShadow+';border:'+cardBorderW+' solid '+th.cardBorder+';">'
+  var cardId = isGold ? ' id="alice-companion-card"' : '';
+  var ambientAttr = (isGold && _aliceState.sessionActive)
+    ? ' data-ambient="'+(_aliceState.ambientMood || aliceResolveAmbientMood())+'"'
+    : '';
+  root.innerHTML = '<div'+cardId+ambientAttr+' style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:'+th.cardShadow+';border:'+cardBorderW+' solid '+th.cardBorder+';">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'
     +'<div style="font-size:10px;letter-spacing:0.25em;color:'+th.studioLabel+';font-weight:700;">STUDIO INFINITY CR</div>'
@@ -2272,6 +2494,7 @@ function renderAlice(){
     warmInfinityApi();
     scrollAliceMessages();
     try { bindAlicePttMic(); } catch(e) { console.warn('Alice PTT bind:', e); }
+    if(aliceCompanionUiActive()) aliceApplyCompanionAmbient();
   }
 }
 
@@ -2479,6 +2702,8 @@ async function startAliceSession(sessionType, opts){
   }
   if(opts.continueTopic) _aliceState.companionTopic = String(opts.continueTopic).slice(0, 80);
   else _aliceState.companionTopic = '';
+  var startMood = aliceInferCompanionTopic(_aliceState.companionTopic);
+  _aliceState.ambientMood = (startMood && startMood !== 'coach') ? startMood : 'default';
   _aliceState.sessionStartedAt = Date.now();
   _aliceState.savedSession = null;
   _aliceState.scenario = null;
@@ -2670,8 +2895,18 @@ async function sendAliceMessage(micText){
   _aliceMicText = '';
   if(input) input.value = '';
   _aliceState.history.push({ role:'user', content:text });
-  if(_aliceState.sessionType === 'companion' && !_aliceState.companionTopic){
-    _aliceState.companionTopic = text.slice(0, 80);
+  if(_aliceState.sessionType === 'companion'){
+    var inferredMood = aliceInferCompanionTopic(text);
+    if(inferredMood && inferredMood !== 'coach'){
+      _aliceState.ambientMood = inferredMood;
+      // Keep a readable topic for chat; mood id alone kills story context
+      if(!_aliceState.companionTopic || ALICE_COMPANION_AMBIENTS[_aliceState.companionTopic]){
+        _aliceState.companionTopic = text.slice(0, 80);
+      }
+    } else if(!_aliceState.companionTopic){
+      _aliceState.companionTopic = text.slice(0, 80);
+    }
+    try { aliceApplyCompanionAmbient(); } catch(eAmb) {}
   }
   aliceRenderHistoryMessages();
   if(statusEl) statusEl.textContent = 'Alice está pensando…';
@@ -2754,10 +2989,11 @@ async function sendAliceMessage(micText){
       var fbAlice = await alicePostFallbackReply(text, _aliceState.history.slice(0, streamIdx).slice(-10));
       if(fbAlice) fullText = fbAlice;
     }
-    _aliceState.history[streamIdx] = { role:'assistant', content: fullText || 'I did not get that — could you try again?' };
-    if(fullText && fullText.trim().length > 2){
-      aliceQueueFullReply(fullText);
-    }
+    var spokenAlice = (fullText && fullText.trim().length > 2)
+      ? fullText.trim()
+      : 'I did not get that — could you try again?';
+    _aliceState.history[streamIdx] = { role:'assistant', content: spokenAlice };
+    aliceQueueFullReply(spokenAlice);
     aliceRenderHistoryMessages();
     saveAliceRuntimeStorage();
     if(statusEl) statusEl.textContent = '';
@@ -2775,7 +3011,9 @@ async function sendAliceMessage(micText){
         return;
       }
     } catch(fbErr){}
-    _aliceState.history[streamIdx] = { role:'assistant', content:'Error conectando con Alice. Intentá de nuevo.' };
+    var errSpeak = 'Sorry — connection glitch. Say that again.';
+    _aliceState.history[streamIdx] = { role:'assistant', content: errSpeak };
+    aliceQueueFullReply(errSpeak);
     aliceRenderHistoryMessages();
     if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez o escribí tu mensaje.';
   } finally {
@@ -4474,7 +4712,12 @@ document.addEventListener('visibilitychange', function(){
     if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
       _aliceSpeakEnabled = true;
       aliceUnlockMicAndSend(false);
-      if(_aliceTTSQueue.length && !_aliceTTSBusy) _aliceTTSFlush();
+      if(window._aliceAudio && window._aliceAudio.paused){
+        var resumeP = window._aliceAudio.play();
+        if(resumeP && typeof resumeP.catch === 'function') resumeP.catch(function(){});
+      } else if(_aliceTTSQueue.length && !_aliceTTSBusy){
+        _aliceTTSFlush();
+      }
       try { bindAlicePttMic(); } catch(e) {}
     }
     if(window._activePortalTab === 'nexora' && _nxState.active) resumeNexoraRuntime();
@@ -5007,8 +5250,14 @@ function _aliceTTSFlush(){
     if(!_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
     if(!b){
       _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-      if(_aliceTtsRetry[clean] < 5) _aliceTTSQueue.unshift(text);
-      else delete _aliceTtsRetry[clean];
+      if(_aliceTtsRetry[clean] < 3){
+        _aliceTTSQueue.unshift(text);
+        finishAliceLine();
+        return;
+      }
+      delete _aliceTtsRetry[clean];
+      // ElevenLabs down / 401 / empty — still speak (browser) so Companion never goes mute
+      if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
       finishAliceLine();
       return;
     }
@@ -5020,14 +5269,40 @@ function _aliceTTSFlush(){
         window._aliceAudio = null;
         clearTimeout(_aliceTtsWatchdog);
         _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-        if(_aliceTtsRetry[clean] < 5) _aliceTTSQueue.unshift(text);
-        else delete _aliceTtsRetry[clean];
+        if(_aliceTtsRetry[clean] < 3){
+          _aliceTTSQueue.unshift(text);
+          finishAliceLine();
+          return;
+        }
+        delete _aliceTtsRetry[clean];
+        if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
         finishAliceLine();
       }
     });
   }
 
   var cached = _aliceTtsPrefetch[clean];
+  if(cached && cached === 'loading'){
+    // Wait briefly for in-flight prefetch instead of starting a duplicate fetch race
+    var waitN = 0;
+    var waitPrefetch = setInterval(function(){
+      waitN++;
+      var ready = _aliceTtsPrefetch[clean];
+      if(ready && ready !== 'loading'){
+        clearInterval(waitPrefetch);
+        delete _aliceTtsPrefetch[clean];
+        playBlob(ready);
+      } else if(waitN >= 20 || !_aliceTtsPrefetch[clean]){
+        clearInterval(waitPrefetch);
+        delete _aliceTtsPrefetch[clean];
+        aliceFetchTtsBlob(clean).then(playBlob).catch(function(){
+          if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
+          finishAliceLine();
+        });
+      }
+    }, 100);
+    return;
+  }
   if(cached && cached !== 'loading'){
     delete _aliceTtsPrefetch[clean];
     playBlob(cached);
@@ -5038,8 +5313,15 @@ function _aliceTTSFlush(){
   .catch(function(){
     clearTimeout(_aliceTtsWatchdog);
     _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-    if(_aliceTtsRetry[clean] < 3) _aliceTTSQueue.unshift(text);
-    else delete _aliceTtsRetry[clean];
+    if(_aliceTtsRetry[clean] < 3){
+      _aliceTTSQueue.unshift(text);
+      _aliceTTSBusy=false;
+      _aliceState.speaking=_aliceTTSQueue.length>0;
+      setTimeout(_aliceTTSFlush, 40);
+      return;
+    }
+    delete _aliceTtsRetry[clean];
+    if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
     setTimeout(_aliceTTSFlush, 40);

@@ -3719,6 +3719,8 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    const companionPhase = companion ? Companion.resolveCompanionPhase(message, history) : null;
+    const companionFast = companion && (companionPhase === 'free_chat' || companionPhase === 'live_evaluate');
     if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
       persistStudentLearningState(student).catch(() => {});
     }
@@ -3735,17 +3737,39 @@ app.post('/alice', requireProductAuth, async (req, res) => {
         ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
         : '\nTURN: English ONLY — no Spanish unless they ask to explain.');
     const methodBlock = companion
-      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
+      ? (companionFast
+        ? `COMPANION FAST CHAT — topic "${topicHint || 'open'}".
+VOICE: cool natural English, expressive, human — never flat ESL.
+STORY topics (horror/mystery/adventure/tales): tell it with atmosphere; finish the beat.
+React, one follow-up. Mini-lesson only if they ask or structure breaks.`
+        : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
-    const systemPrompt = companion
+    const knowledgeSlice = companionFast
+      ? ''
+      : (companion
+        ? await tutorKnowledgeSliceFast(message, student, 'alice', { timeoutMs: 800 })
+        : await tutorKnowledgeSlice(message, student, 'alice'));
+
+    const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
+    const companionFastTokens = storyMood ? 900 : 550;
+
+    const systemPrompt = companionFast
+      ? `You are Alice Companion — English voice companion. Name: ALICE.
+PERSONALITY: Cool, warm, curious friend in their ear — expressive spoken English, not a robotic tutor.
+${Companion.ALICE_COMPANION_INTENT_RULE}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
+${methodBlock}
+Complete every sentence. NEVER cut off. If they want a story, tell it fully.
+STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}`
+      : companion
       ? `You are Alice Companion — an always-on English voice companion (personal practice assistant). Your name is ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
 ${JohnDoctrine.mandateBlock('alice')}
-${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 
-ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic: daily life, fashion, food, travel, work, feelings, stories, news, hobbies — no limits.
-Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat). If they want a story, tell one fully. If they want opinions, share them.
+ROLE: Talk, listen, interact, guide, educate, and show genuine interest. ANY topic.
+Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat).
 
 PERSONALITY: Warm, curious, human, never robotic. You sound like a friend in their ear 24/7.
 
@@ -3762,7 +3786,7 @@ RESPONSE STYLE:
 - Unlimited flowing conversation — no turn caps
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
-${await tutorKnowledgeSlice(message, student, 'alice')}`
+${knowledgeSlice}`
       : `You are Alice, a warm, patient, and encouraging English tutor. You love helping people and you never rush.
 ${INSTITUTIONAL_BRAIN_RULE}
 
@@ -3788,11 +3812,11 @@ RESPONSE STYLE:
 - One flowing spoken turn — prefer commas over heavy periods; no ellipses or dramatic pauses
 
 STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
-EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'alice')}`;
+EXERCISES:\n${tb||'(none yet)'}${knowledgeSlice}`;
 
-    const msgs = buildTutorChatMessages(history, message, 20);
+    const msgs = buildTutorChatMessages(history, message, companionFast ? 10 : 20);
 
-    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}`);
     const brain = await Brain.brainGetLLM('alice', 'chat', message, levelExtra);
     if (brain.hit) {
       res.set('X-Brain-LLM', 'HIT');
@@ -3800,7 +3824,7 @@ EXERCISES:\n${tb||'(none yet)'}${await tutorKnowledgeSlice(message, student, 'al
     }
 
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 1200 : 1000,
+      model: 'claude-haiku-4-5-20251001', max_tokens: companionFast ? companionFastTokens : (companion ? 900 : 1000),
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -4590,12 +4614,13 @@ async function tutorKnowledgeSliceFast(message, student, tutor, opts) {
     } catch (_) { /* ignore */ }
   }
   const learner = SharedLearner.buildSharedLearnerNote(student) || '';
+  const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 2500;
   try {
     return await Promise.race([
       tutorKnowledgeSlice(message, student, who, { ...options, canonTrackId: lockedId }),
       new Promise((resolve) => setTimeout(
         () => resolve(JohnDoctrine.fastFallbackBlock(who, lockedId, learner)),
-        2500
+        timeoutMs
       ))
     ]);
   } catch {
@@ -4636,6 +4661,8 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const adaptNote = buildStudyAdaptationNote(student, message);
     const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
+    const companionPhase = companion ? Companion.resolveCompanionPhase(message, history) : null;
+    const companionFast = companion && (companionPhase === 'free_chat' || companionPhase === 'live_evaluate');
     let trainerNote = '';
     if (!companion) {
       const drillEval = TrainerModel.evaluateStudentTurn(message, {
@@ -4657,22 +4684,40 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
         ? '\nTURN: Student asked for explanation — explain in Spanish (bilingual OK), then return to English.'
         : '\nTURN: English ONLY — no Spanish unless they ask to explain.');
     const methodBlock = companion
-      ? `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`
+      ? (companionFast
+        ? `COMPANION FAST CHAT — topic "${topicHint || 'open'}".
+VOICE: cool natural English, expressive, human — never flat ESL.
+STORY topics (horror/mystery/adventure/tales): tell it with atmosphere; finish the beat.
+React, one follow-up. Mini-lesson only if they ask or structure breaks.`
+        : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
-    const system = companion
+    const knowledgeSlice = companionFast
+      ? ''
+      : await tutorKnowledgeSliceFast(message, student, 'alice', companion ? { timeoutMs: 800 } : undefined);
+    const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
+    const companionFastTokens = storyMood ? 900 : 550;
+    const system = companionFast
+      ? `You are Alice Companion — English voice companion. Name: ALICE.
+PERSONALITY: Cool, warm, curious friend in their ear — expressive spoken English, not a robotic tutor.
+${Companion.ALICE_COMPANION_INTENT_RULE}
+${Companion.ALICE_LANGUAGE_RULE}
+${aliceLangTurn}
+${methodBlock}
+Complete every sentence. NEVER cut off. If they want a story, tell it fully.
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${sceneNote}`
+      : companion
       ? `You are Alice Companion — always-on English voice companion (personal practice assistant). Name: ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
 ${JohnDoctrine.mandateBlock('alice')}
-${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
-Talk, listen, interact, guide, educate, show genuine interest. ANY topic: life, fashion, food, travel, work, feelings, stories, news, hobbies.
-Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat). If they want a story — tell it fully. If they want opinions — share them.
+Talk, listen, interact, guide, educate, show genuine interest. ANY topic.
+Free chat OR on-demand English doubt as a FULL mini-lesson (name → pattern → bridge → examples → confirm → short oral practice → back to chat).
 ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
 ${TUTOR_TEACH_COMPLETE_RULE}
 Complete every sentence and story. NEVER cut off. On teach turns finish formula + bridge + example.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}
-${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}`
+${sceneNote}${knowledgeSlice}`
       : `You are Alice, a warm, patient, and encouraging English tutor using the Nexus Method.
 ${INSTITUTIONAL_BRAIN_RULE}
 ROLE: Tutor for Intermediate and Advanced students (ORT track) at Infinity Studio CR — not Alice Companion.
@@ -4686,13 +4731,13 @@ ${JillMethodOS.METHOD_OS_CORE}${JillMethodOS.METHOD_OS_ALICE_NOTE}
 ${TUTOR_TEACH_COMPLETE_RULE}
 RESPONSE STYLE: Complete every sentence — NEVER cut off mid-thought, mid-explanation, or mid-word. On teach turns: formula + bridge + example + practice. Ask ONE follow-up question. Always finish the full reply.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
-EXERCISES:\n${tb || '(none yet)'}${sceneNote}${await tutorKnowledgeSliceFast(message, student, 'alice')}`;
-    const msgs = buildTutorChatMessages(history, message, 20);
-    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}`);
+EXERCISES:\n${tb || '(none yet)'}${sceneNote}${knowledgeSlice}`;
+    const msgs = buildTutorChatMessages(history, message, companionFast ? 10 : 20);
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: companion ? 1200 : 1000,
+      max_tokens: companionFast ? companionFastTokens : (companion ? 900 : 1000),
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
@@ -4837,13 +4882,21 @@ app.post('/claire-tts', optionalAuth, async (req, res) => {
 
 app.post('/alice-tts', requireProductAuth, async (req, res) => {
   try {
-    const ok = await assertStudentTutorAccess(req, res, 'alice', null, { allowCompanionProduct: true });
+    const sessionType = req.body?.sessionType || null;
+    const ok = await assertStudentTutorAccess(req, res, 'alice', null, {
+      allowCompanionProduct: true,
+      sessionType: sessionType === 'companion' ? 'companion' : sessionType
+    });
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
     const languageCode = resolveTutorTtsLang(lang);
     const isEn = tutorTtsIsEnglish(languageCode);
+    const spoken = scrubNonCrSpanish(text);
+    if (!String(spoken || '').trim()) {
+      return res.status(400).json({ error: 'Empty TTS text' });
+    }
     return await synthesizeSpeech(req, res, {
-      text: scrubNonCrSpanish(text),
+      text: spoken,
       voiceId: ALICE_VOICE_ID,
       label: 'Alice',
       languageCode,

@@ -2,7 +2,7 @@
  * Alice Companion — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand mini-lesson: doubt → full explain → confirm → short oral practice → back to chat.
  */
-const COMPANION_BRAIN_VER = 'v11-doubt-mini-lesson';
+const COMPANION_BRAIN_VER = 'v13-cool-fast';
 const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
@@ -212,18 +212,22 @@ function inferTopicFromText(text) {
     return 'doubt:english';
   }
   const patterns = [
-    { re: /\b(history|historical|war|century|ancient|empire|revolution|story|stories|tale|legend)\b/, topic: 'stories' },
-    { re: /\b(science|space|nasa|planet|physics|chemistry|biology|discovery)\b/, topic: 'science' },
-    { re: /\b(work|job|career|office|customer|call center|interview)\b/, topic: 'work' },
-    { re: /\b(family|kids|children|parents|home|friends)\b/, topic: 'family' },
-    { re: /\b(travel|trip|vacation|country|city|flight)\b/, topic: 'travel' },
-    { re: /\b(sport|football|soccer|gym|exercise|fitness)\b/, topic: 'sports' },
-    { re: /\b(movie|film|music|book|series|netflix|song)\b/, topic: 'entertainment' },
-    { re: /\b(fashion|style|clothes|outfit|shoes|makeup|brand)\b/, topic: 'fashion' },
-    { re: /\b(food|recipe|cook|restaurant|coffee|dinner)\b/, topic: 'food' },
-    { re: /\b(love|dating|relationship|feelings|mood|stress|life)\b/, topic: 'life' },
-    { re: /\b(news|politics|world|economy)\b/, topic: 'world' },
-    { re: /\b(tech|phone|app|ai|internet|game|gaming)\b/, topic: 'tech' }
+    { re: /\b(horror|scary|scare[ds]?|ghost|haunted|creepy|thriller|nightmare|monster|zombie|vampire|terror|miedo|espanto|aparecido|fantasma|bruj[ao]|leyenda\s+urbana|cuento\s+de\s+miedo|historia\s+de\s+terror)\b/i, topic: 'horror' },
+    { re: /\b(mystery|detective|crime|asesinato|misterio|suspense|whodunit)\b/i, topic: 'mystery' },
+    { re: /\b(adventure|quest|explore|jungle|pirate|aventura|explor)\b/i, topic: 'adventure' },
+    { re: /\b(romance|love\s+story|dating|crush|romance|enamor)\b/i, topic: 'romance' },
+    { re: /\b(history|historical|war|century|ancient|empire|revolution|story|stories|tale|legend|cuento|historias?|narrat|fábula|fabula)\b/i, topic: 'stories' },
+    { re: /\b(science|space|nasa|planet|physics|chemistry|biology|discovery|ciencia|espacio)\b/i, topic: 'science' },
+    { re: /\b(work|job|career|office|customer|call center|interview|trabajo|oficina)\b/i, topic: 'work' },
+    { re: /\b(family|kids|children|parents|home|friends|familia|hijos|amigos)\b/i, topic: 'family' },
+    { re: /\b(travel|trip|vacation|country|city|flight|viaje|viajar|vacaciones)\b/i, topic: 'travel' },
+    { re: /\b(sport|football|soccer|gym|exercise|fitness|deporte|fútbol|futbol)\b/i, topic: 'sports' },
+    { re: /\b(movie|film|music|book|series|netflix|song|pel[ií]cula|música|musica|libro)\b/i, topic: 'entertainment' },
+    { re: /\b(fashion|style|clothes|outfit|shoes|makeup|brand|moda|ropa)\b/i, topic: 'fashion' },
+    { re: /\b(food|recipe|cook|restaurant|coffee|dinner|comida|cocina|receta)\b/i, topic: 'food' },
+    { re: /\b(love|feelings|mood|stress|life|sentimientos|estr[eé]s|vida)\b/i, topic: 'life' },
+    { re: /\b(news|politics|world|economy|noticias|pol[ií]tica)\b/i, topic: 'world' },
+    { re: /\b(tech|phone|app|ai|internet|game|gaming|tecnolog|juego)\b/i, topic: 'tech' }
   ];
   for (const p of patterns) {
     if (p.re.test(t)) return p.topic;
@@ -294,9 +298,10 @@ Do NOT ignore the error. Then continue the topic. ${wantSpanish ? 'Spanish OK fo
 
   if (phase === 'live_evaluate') {
     return `LIVE EVALUATE — they spoke English on "${topic || 'the topic'}".
-If solid: brief confirm + continue the conversation with real interest.
+If solid: short cool confirm (1 beat) + continue with real energy — keep the vibe alive.
 If weak: pause → feedback → mini-lesson explain → example → confirm → they retry.
-Stay in English unless they asked for Spanish explanation.`;
+Stay in English unless they asked for Spanish explanation.
+STORY turns: if the chat is a story, keep building atmosphere — don't flatten into a quiz.`;
   }
 
   if (phase === 'doubt_practice') {
@@ -314,8 +319,35 @@ Do NOT start a new unrelated lesson. Stay on this pattern until they land one cl
     return `TURN: They asked for explanation — run the mini-lesson in Spanish (bilingual OK), then return to English chat.`;
   }
 
-  return `FREE CHAT on "${topic || 'anything'}" — even complex topics. English ONLY. Listen, react with sense, one follow-up.
+  return `FREE CHAT on "${topic || 'anything'}" — even complex topics. English ONLY.
+VOICE: cool, natural, expressive — like a sharp friend in their ear. Not flat. Not textbook.
+Listen, react with personality, one follow-up.
+STORY MODE (horror / mystery / adventure / tales): if they want a story or are in one — tell it FULLY with atmosphere, tension, detail. Finish the beat. Longer replies OK.
+Normal chat: lively 3–7 sentences. No mini-lesson unless they ask or break structure.
 If doubt or broken structure appears: PAUSE → full mini-lesson (pattern → bridge → examples → confirm) → oral try → continue.`;
+}
+
+/** Lean system extras for fast companion turns — keep cool vibe, skip Super Brain. */
+const ALICE_COMPANION_FAST_VOICE = `VOICE & VIBE:
+- Cool, natural, expressive English — sharp friend in their ear, NEVER flat chatbot or dry ESL.
+- Real reactions, vivid words, light humor when it fits. Complete every sentence.
+- STORY MODE (horror, mystery, adventure, stories, romance, entertainment): build atmosphere — scene, tension, detail. Tell the beat fully. Longer is OK.
+- Normal chat: lively 3–7 sentences + one follow-up.
+- Mini-lesson ONLY if they ask or structure breaks.
+${ALICE_COMPANION_INTENT_RULE}`;
+
+function isCompanionStoryTopic(topic) {
+  return /^(horror|mystery|adventure|stories|romance|entertainment)\b/i.test(String(topic || '').trim());
+}
+
+function companionFastMaxTokens(topic) {
+  return isCompanionStoryTopic(topic) ? 900 : 560;
+}
+
+function buildCompanionFastMethodBlock(topic) {
+  return `COMPANION FAST CHAT — topic "${topic || 'open'}".
+${ALICE_COMPANION_FAST_VOICE}
+React with cool energy. Stay on the topic. If story mode — tell it, don't summarize it away.`;
 }
 
 function buildFocusKpiCoachLines(focusKpis) {
