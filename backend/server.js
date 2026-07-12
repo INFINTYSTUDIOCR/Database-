@@ -716,7 +716,7 @@ const DEMO_LIMITS = {
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
 const APP1_BUILD = '20260711-relevance';
-const JILL_BRAIN_VER = 'v40-candado-total';
+const JILL_BRAIN_VER = 'v41-no-mais';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -779,8 +779,8 @@ const ELEVEN_KEY = process.env.ELEVENLABS_KEY || '';
 // Alice tutor + Alice Companion — same ElevenLabs voice (do not diverge).
 const ALICE_VOICE_ID = 'r1KmysJdVYZjJCm4mL3b';
 const SUPER_BRAIN_VOICE_ID = process.env.SUPER_BRAIN_VOICE_ID || 'Gubgw9l4dtIoQA9YZHgx';
-// Jill = misma voz ElevenLabs que Alice — JILL_VOICE_ID en env se ignora para tutora/Pro.
-const JILL_VOICE_ID = ALICE_VOICE_ID;
+// Jill: por defecto misma voz que Alice. Para forzar una voz latina distinta: JILL_VOICE_ID en Render.
+const JILL_VOICE_ID = (process.env.JILL_VOICE_ID || '').trim() || ALICE_VOICE_ID;
 const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
 
 function loadVoicesConfig() {
@@ -2931,7 +2931,7 @@ function scrubNonCrSpanish(text) {
     .replace(/\bfiaca\b/gi, 'flojera')
     .replace(/mirá/gi, 'mira')
     .replace(/fíjate/gi, 'fijate')
-    // Brasil / portugués — PROHIBIDO
+    // Brasil / portugués — PROHIBIDO (scrub duro: el modelo a veces cuela portuñol)
     .replace(/voc[eê]s?/gi, 'vos')
     .replace(/obrigad[oa]/gi, 'gracias')
     .replace(/beleza/gi, 'tuanis')
@@ -2946,6 +2946,36 @@ function scrubNonCrSpanish(text) {
     .replace(/\bagora\b/gi, 'ahora')
     .replace(/\bmuito\b/gi, 'muy')
     .replace(/\blegal\b/gi, 'tuanis')
+    // "mais" (PT) ≠ "mas/más" (ES) — queja recurrente
+    .replace(/\bmais\b/gi, 'más')
+    .replace(/\btamb[eé]m\b/gi, 'también')
+    .replace(/\bainda\b/gi, 'todavía')
+    .replace(/\bhoje\b/gi, 'hoy')
+    .replace(/\bamanh[ãa]\b/gi, 'mañana')
+    .replace(/\bontem\b/gi, 'ayer')
+    .replace(/\bcoisa(?:s)?\b/gi, 'cosa')
+    .replace(/\bcerto\b/gi, 'cierto')
+    .replace(/\berrado\b/gi, 'incorrecto')
+    .replace(/\bbem\b/gi, 'bien')
+    .replace(/\bbom\b/gi, 'bueno')
+    .replace(/\bsim\b(?=\s*[,.!?…]|$)/gi, 'sí')
+    .replace(/\bs[oó]\b(?=\s|$|[.,!?])/gi, 'solo')
+    .replace(/\bj[aá]\b(?=\s|$|[.,!?])/gi, 'ya')
+    .replace(/\baqui\b/gi, 'aquí')
+    .replace(/\bali\b/gi, 'allí')
+    .replace(/\bvoc[eê]\s+pode\b/gi, 'vos podés')
+    .replace(/\bpreciso\s+de\b/gi, 'necesito')
+    .replace(/\ba\s+gente\b/gi, 'nosotros')
+    .replace(/\bqualquer\b/gi, 'cualquier')
+    .replace(/\bquando\b/gi, 'cuando')
+    .replace(/\bporque\b(?=\s+que\b)/gi, 'porque')
+    .replace(/\bcomigo\b/gi, 'conmigo')
+    .replace(/\bcontigo\b/gi, 'contigo')
+    .replace(/\bdepois\b/gi, 'después')
+    .replace(/\bantes\b/gi, 'antes')
+    .replace(/\bmuito\s+bem\b/gi, 'muy bien')
+    .replace(/\best[aá]\s+bom\b/gi, 'está bien')
+    .replace(/\bok\s+ent[aã]o\b/gi, 'ok entonces')
     .replace(/qu[eé]\s+gusto\s+verte(?:\s+de\s+nuevo)?(?:\s*,?\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+)?\s*[—–\-,:.]?\s*/gi, '')
     .replace(/\bclaro\s*,\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s*[—–\.]\s*(?=ac[aá]\s+te\s+va)/gi, '')
     .replace(/\s{2,}/g, ' ')
@@ -3876,7 +3906,8 @@ El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish
 Hablás SOLO en ESPAÑOL CORRECTO de Costa Rica / Centroamérica (voseo tico: vos, podés, querés, decime, armá) por defecto — saludo, charla, explicaciones, correcciones, teoría, análisis.
 ESPAÑOL CORRECTO (IRROMPIBLE): ortografía bien; conjugación bien; concordancia sujeto-verbo y género/número. Frases claras.
 PROHIBIDO ABSOLUTO acento gringo en español: no "español de gringo", no calco del inglés, no ritmo estadounidense al explicar en español, no deformar palabras.
-PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não).
+PROHIBIDO ABSOLUTO portugués/portuñol: "mais" (decí "más"/"mas"), você, pra, então, não, também, hoje, amanhã — NUNCA.
+PROHIBIDO: español de España (vosotros, vale muletilla, tío, ordenador, coche, ceceo), rioplatense/Argentina (che, boludo, laburo, mirá porteña), y portugués/Brasil (você, pra, então, não, mais).
 REGLA IRROMPIBLE: español = acento latino/tico CR; inglés = acento americano. NADA MÁS. NUNCA digas "che".
 Inglés ÚNICAMENTE cuando el estudiante pide explícitamente practicar/hablar en inglés, o cuando el ejercicio/chunk requiere que produzcan la oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, lo contextualizás en español primero — en una frase, no en un párrafo.

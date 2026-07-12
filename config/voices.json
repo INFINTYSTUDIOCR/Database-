@@ -1,7 +1,8 @@
 {
   "jill": {
     "voiceId": "r1KmysJdVYZjJCm4mL3b",
-    "label": "Jill — Foundations Tutor (same voice as Alice)",
+    "label": "Jill — Foundations Tutor",
+    "notes": "Default = Alice voice. To use a different LatAm Spanish female voice, set Render env JILL_VOICE_ID to that ElevenLabs voiceId and redeploy.",
     "elevenLabsUrl": "https://elevenlabs.io/app/voice-library?voiceId=r1KmysJdVYZjJCm4mL3b"
   },
   "alice": {
