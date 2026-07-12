@@ -99,6 +99,22 @@ function isEnglishPracticeUtterance(text) {
     && /[a-zA-Z]{2,}/.test(t);
 }
 
+/** Cambio de módulo solo con alias fuerte (no "will"/"can" sueltos). */
+function isStrongTopicSwitch(ask, namedTrack) {
+  if (!namedTrack) return false;
+  const n = normalize(ask);
+  const aliases = namedTrack.aliases || [];
+  let best = 0;
+  for (let i = 0; i < aliases.length; i++) {
+    const a = normalize(aliases[i]);
+    if (!a || a.length < 2) continue;
+    if (!n.includes(a)) continue;
+    if (a.length > best) best = a.length;
+  }
+  if (best >= 8) return true;
+  return /\b(preposicion(?:es)?|gerundio|futuro|pasado|presente|pronombre(?:s)?|art[ií]culo(?:s)?|negacion(?:es)?|modales|perfecto|continuo|comparativ|irregular)\b/i.test(String(ask || ''));
+}
+
 function stripAskShell(text) {
   let t = String(text || '');
   t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
@@ -162,10 +178,9 @@ function resolveAsk(userAsk, stickyTopic) {
   // SOLO un pedido EXPLÍCITO de OTRO tema puede cambiar.
   if (stickyTrack) {
     if (isExplicitTopicAsk(ask)) {
-      // Solo cambiar si nombraron OTRO módulo (preposiciones, gerundio…).
-      // "qué es have/will" NO abre query nueva — se responde dentro del lock.
+      // Solo cambiar si el alias que ganó es FUERTE (módulo nombrado), no "will"/"can"/"had"
       const named = pickTrack(ask) || pickTrack(stripAskShell(ask));
-      if (named && named.id !== stickyTrack.id) return named;
+      if (named && named.id !== stickyTrack.id && isStrongTopicSwitch(ask, named)) return named;
     }
     return stickyTrack;
   }

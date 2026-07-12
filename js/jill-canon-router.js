@@ -801,6 +801,21 @@
       && /[a-zA-Z]{2,}/.test(t);
   }
 
+  function isStrongTopicSwitch(ask, namedTrack) {
+    if (!namedTrack) return false;
+    var n = normalize(ask);
+    var aliases = namedTrack.aliases || [];
+    var best = 0;
+    for (var i = 0; i < aliases.length; i++) {
+      var a = normalize(aliases[i]);
+      if (!a || a.length < 2) continue;
+      if (n.indexOf(a) === -1) continue;
+      if (a.length > best) best = a.length;
+    }
+    if (best >= 8) return true;
+    return /\b(preposicion(?:es)?|gerundio|futuro|pasado|presente|pronombre(?:s)?|art[ií]culo(?:s)?|negacion(?:es)?|modales|perfecto|continuo|comparativ|irregular)\b/i.test(String(ask || ''));
+  }
+
   function stripAskShell(text) {
     var t = String(text || '');
     t = t.replace(/\b(dame|d[aá]me|mostr[aá]me|mu[eé]strame|mostrar|ense[nñ]ame|ense[nñ][aá]|ver|abrir|pon[eé]me|trae|quiero|necesito|explicame|expl[ií]came|explic[aá]|explica)\b/gi, ' ');
@@ -843,9 +858,9 @@
     // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar
     if (stickyTrack) {
       if (isExplicitTopicAsk(ask)) {
-        // Solo otro MÓDULO nombrado puede cambiar — no "qué es have/will"
+        // Solo otro MÓDULO nombrado (alias fuerte) — no "qué es will"
         var named = pickTrack(ask) || pickTrack(stripAskShell(ask));
-        if (named && named.id !== stickyTrack.id) return named;
+        if (named && named.id !== stickyTrack.id && isStrongTopicSwitch(ask, named)) return named;
       }
       return stickyTrack;
     }
