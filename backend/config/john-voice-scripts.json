@@ -1,18 +1,18 @@
 {
   "version": 3,
   "title": "Guion oral Foundations — Infinity (estilo de clase)",
-  "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar. VOZ: nunca digas Get It Straight ni Off the Clock. ING = í ene ge (CR). Español seseo.",
+  "note": "Fuente local siempre-on. Las IAs DEBEN seguir este guion al explicar cada track. Super Brain remoto puede ampliar, no reemplazar. VOZ: nunca digas Get It Straight ni Off the Clock. ING = í ene je (CR). Español seseo.",
   "globalVoice": "Empezá SIEMPRE desde el español. Detectá el patrón, no memorices reglas. Explicá el porqué antes del nombre gramatical. Pedí producción oral. Corregí con preguntas. Tono: directo, cálido, sin condescendencia. Voseo CR.",
   "lessons": {
     "getItStraightIng": {
       "source": "Foundations — ING (tres formas)",
-      "full": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención.",
-      "say": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención."
+      "full": "Mucha gente se confunde con el í ene je y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene je es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene je sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene je progreso; verbo más í ene je general; to más verbo intención.",
+      "say": "Mucha gente se confunde con el í ene je y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene je es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene je sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene je progreso; verbo más í ene je general; to más verbo intención."
     }
   },
   "tracks": {
     "gerundio": {
-      "say": "Mucha gente se confunde con el í ene ge y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene ge es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene ge progreso; verbo más í ene ge general; to más verbo intención.",
+      "say": "Mucha gente se confunde con el í ene je y dice I like watch TV o abusa del infinitivo. Tres formas: uno, to be más verbo más í ene je es presente progresivo — acción en progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene je sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Contraste: watching es en general; to watch es intención. Corrección: I like watching TV after work. However, I am not gonna be able to do it today. Recap: to be más verbo más í ene je progreso; verbo más í ene je general; to más verbo intención.",
       "mustSay": [
         "ando",
         "endo",
@@ -24,7 +24,7 @@
       "exampleAsk": "Decime una general con watching y una con intención con to watch. Después montá un However."
     },
     "progressive": {
-      "say": "Presente progresivo: to be más verbo más í ene ge es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching (general) ni I like to watch (intención).",
+      "say": "Presente progresivo: to be más verbo más í ene je es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching (general) ni I like to watch (intención).",
       "mustSay": [
         "to be",
         "ando",
@@ -34,7 +34,7 @@
       "exampleAsk": "Armá una progresiva: They are studying now."
     },
     "gerund_prep": {
-      "say": "Después de una preposición, el verbo va en í ene ge — ando endo — sin to be delante. Before leaving. After eating. No es presente progresivo.",
+      "say": "Después de una preposición, el verbo va en í ene je — ando endo — sin to be delante. Before leaving. After eating. No es presente progresivo.",
       "mustSay": [
         "ando",
         "endo"
@@ -42,7 +42,7 @@
       "exampleAsk": "Completá: Before ______ (go), call me."
     },
     "combined": {
-      "say": "Empezá con jaf. jas. jad. si hace falta. Have been más VERBO más í ene ge = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene ge. Decí ando/endo e í ene ge — nunca I N G.",
+      "say": "Empezá con jaf. jas. jad. si hace falta. Have been más VERBO más í ene je = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene je. Decí ando/endo e í ene je — nunca I N G.",
       "mustSay": [
         "jaf",
         "ando",
@@ -208,7 +208,7 @@
       "exampleAsk": "Decí: I could have gone."
     },
     "modal_have_been": {
-      "say": "Modal + have + been + VERBO más í ene ge. Must have been working = debió haber estado trabajando. Ando/endo = í ene ge.",
+      "say": "Modal + have + been + VERBO más í ene je. Must have been working = debió haber estado trabajando. Ando/endo = í ene je.",
       "mustSay": [
         "been",
         "ando",

@@ -65,7 +65,7 @@
       examples: [row('I am studying English now', 'Estoy estudiando inglés ahora'), row('She is cooking dinner', 'Ella está cocinando la cena'), row('They are playing soccer', 'Ellos están jugando fútbol')],
       pattern: 'Sin TO BE no hay progresivo. ING = ando/endo.',
       transforms: [tip('I study', 'I am studying', 'añadís am/is/are + ING'), tip('She cooks', 'She is cooking', 'cook → cooking')],
-      takeaway: 'Progresivo = TO BE + verbo + í ene ge (ando/endo).'
+      takeaway: 'Progresivo = TO BE + verbo + í ene je (ando/endo).'
     },
     perfect: {
       rules: [
@@ -145,7 +145,7 @@
       examples: [row('I have been studying English', 'He estado estudiando inglés'), row('She has been working', 'Ella ha estado trabajando'), row('They have been waiting', 'Ellos han estado esperando')],
       pattern: 'Have + been + ING = duración hasta ahora (ando/endo).',
       transforms: [tip('I study', 'I have been studying', 'have + been + ING'), tip('She works', 'She has been working', 'has + been + ING')],
-      takeaway: 'Have/has + been + verbo + í ene ge.'
+      takeaway: 'Have/has + been + verbo + í ene je.'
     },
     there: {
       rules: [row('There is', 'hay (1)', ''), row('There are', 'hay (2+)', ''), row('have / has', 'posesión', '(tengo / tiene)')],
@@ -180,7 +180,7 @@
       examples: [row('Before leaving, call me', 'Antes de irte, llamame'), row('After eating, we left', 'Después de comer, nos fuimos'), row('By practicing, you improve', 'Practicando, mejorás')],
       pattern: 'Después de prep, el verbo va en ING — no en base.',
       transforms: [tip('before leave', 'before leaving', 'prep + ING'), tip('without think', 'without thinking', 'nunca prep + base')],
-      takeaway: 'Tras preposición → VERBO + í ene ge.'
+      takeaway: 'Tras preposición → VERBO + í ene je.'
     },
     modal: {
       rules: [row('Aux ANTES del pronombre', 'pregunta', ''), row('Aux DESPUÉS del pronombre', 'respuesta', '')],
@@ -256,7 +256,7 @@
       examples: [row('She must have been working', 'Ella debió haber estado trabajando'), row('They should have been studying', 'Deberían haber estado estudiando'), row('He could have been sleeping', 'Podría haber estado durmiendo')],
       pattern: 'Modal + have + been + ING = conjetura sobre una acción en progreso.',
       transforms: [tip('She was working', 'She must have been working', 'conjetura'), tip('They study', 'They should have been studying', 'deberían haber estado')],
-      takeaway: 'Modal + have been + verbo + í ene ge.'
+      takeaway: 'Modal + have been + verbo + í ene je.'
     },
     overview: {
       rules: [row('PR', 'presente', 'I work'), row('PS', 'pasado', 'I worked'), row('PC', 'continuo', 'I am working'), row('PRP', 'perfecto', 'I have worked')],

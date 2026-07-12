@@ -84,11 +84,11 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bHAD\b/gi, ' had ');
   t = t.replace(/\bWILL\b/gi, ' will ');
 
-  // V+ing / VERBO+ING — spell in Costa Rican Spanish (í ene ge), NEVER English "ai en yi" (sounds Brazilian)
-  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bVing\b/gi, ' verbo más í ene ge ');
+  // V+ing / VERBO+ING — CR Spanish with JOTA: í ene je (never English "gee")
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bVing\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV\s*-\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV3\b/gi, ' past participle ');
@@ -108,11 +108,11 @@ function normalizeTtsTeachingForms(text) {
 
   t = t.replace(/\+/g, ' más ');
   t = t.replace(/\s*\|\s*/g, ' más ');
-  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
-  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene ge ');
-  t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene ge ');
+  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene je ');
+  t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene je ');
   // Have = jáf with Spanish JOTA (never English J → "yaf")
   t = t.replace(/\byaf\b/gi, 'jáf');
   t = t.replace(/\byas\b/gi, 'jás');
@@ -136,7 +136,7 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bTHAN\b/gi, ' than ');
   t = t.replace(/\bTHE\b/g, ' the ');
   t = t.replace(/\bAS\b/g, ' as ');
-  t = t.replace(/\bING\b/g, ' í ene ge ');
+  t = t.replace(/\bING\b/g, ' í ene je ');
   return t;
 }
 
@@ -144,7 +144,7 @@ var _TTS_EN_GRAMMAR = /^(am|is|are|was|were|be|been|being|do|does|did|have|has|h
 
 /** One TTS line — keep pause marks so paradigms are not mashed; soft human cadence. */
 function prepareTtsLine(text) {
-  return normalizeTtsTeachingForms(
+  var cleaned = normalizeTtsTeachingForms(
     String(text || '')
       .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
       // Internal labels — NEVER reach student ears
@@ -185,9 +185,19 @@ function prepareTtsLine(text) {
     .replace(/[;:/]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+  // L=ele, G=je, R=erre — never English letter names
+  return expandCrLetterNames(cleaned);
 }
 
-var _ES_TTS_WORD = /^(el|la|los|las|un|una|unos|unas|que|de|del|al|con|por|para|en|y|o|u|es|son|soy|estás|estoy|está|están|hola|gracias|claro|ejemplo|verbo|oración|regla|practica|practicá|decime|seguimos|entiendo|más|qué|cómo|vos|podés|armá|querés|vamos|hoy|ahora|paso|frase|modelo|ranura|fórmula|tema|lección|mini|simple|parte|palabras|inglés|español|pedime|escucho|listo|perfecto|muy|bien|retomemos|arrancamos|confirmá|enseñá|corregí|charla|libre|futuro|pasado|presente|gerundio|modal|estructura|mecánica|pieza|chunk|complemento|pronombre|artículo|preposición|siguiente|turno|respuesta|pregunta|duda|ayuda|explic|enseñ|podés|armás|querés|decís|habl|practic|segu|vamos|ok|dale|bueno|genial|excelente|primero|después|luego|también|pero|porque|cuando|donde|dónde|cuál|este|esta|ese|esa|tu|mi|su|nuestro|vuestro|sin|sobre|entre|hacia|desde|hasta|solo|si|sí|no|ni|ya|aún|todavía|siempre|nunca|aquí|allí|así|me|te|se|nos|les|lo|la|le|unos|unas|auxiliar|fórmula|ranuras|negación|negaciones)$/i;
+var _ES_TTS_WORD = /^(el|la|los|las|un|una|unos|unas|que|de|del|al|con|por|para|en|y|o|u|es|son|soy|estás|estoy|está|están|hola|gracias|claro|ejemplo|verbo|oración|regla|practica|practicá|decime|seguimos|entiendo|más|qué|cómo|vos|podés|armá|querés|vamos|hoy|ahora|paso|frase|modelo|ranura|fórmula|tema|lección|mini|simple|parte|palabras|inglés|español|pedime|escucho|listo|perfecto|muy|bien|retomemos|arrancamos|confirmá|enseñá|corregí|charla|libre|futuro|pasado|presente|gerundio|modal|estructura|mecánica|pieza|chunk|complemento|pronombre|artículo|preposición|siguiente|turno|respuesta|pregunta|duda|ayuda|explic|enseñ|podés|armás|querés|decís|habl|practic|segu|vamos|ok|dale|bueno|genial|excelente|primero|después|luego|también|pero|porque|cuando|donde|dónde|cuál|este|esta|ese|esa|tu|mi|su|nuestro|vuestro|sin|sobre|entre|hacia|desde|hasta|solo|si|sí|no|ni|ya|aún|todavía|siempre|nunca|aquí|allí|así|me|te|se|nos|les|lo|la|le|unos|unas|auxiliar|fórmula|ranuras|negación|negaciones|trabajo|trabajar|trabajando|trabajé|trabajó|trabajamos|trabajás|ele|eme|ene|erre|ese|jota|je|hache|uve|equis|eñe|letra|letras|abecedario|jota|tuanis|computadora|carro|celular|jugo|casa|clase|estudiante|tutora|tico|tica|costa|rica)$/i;
+
+/** CR Spanish letter names — L=ele, G=je (jota), R=erre. Never English el/gee/ar. */
+var _CR_LETTER_NAME = {
+  a: 'a', b: 'be', c: 'ce', d: 'de', e: 'e', f: 'efe', g: 'je', h: 'hache',
+  i: 'i', j: 'jota', k: 'ka', l: 'ele', m: 'eme', n: 'ene', o: 'o', p: 'pe',
+  q: 'cu', r: 'erre', s: 'ese', t: 'te', u: 'u', v: 'uve', w: 'doble uve',
+  x: 'equis', y: 'ye', z: 'zeta'
+};
 
 var _EN_TTS_WORD = /^(i|you|he|she|it|we|they|am|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|should|could|can|must|may|might|the|a|an|to|of|in|on|at|for|and|but|or|not|with|from|by|as|if|so|that|this|these|those|my|your|his|her|its|our|their|home|work|worked|study|studied|ready|tomorrow|today|yesterday|because|however|although|example|practice|sentence|verb|structure|hello|thanks|yes|please|let|me|rephrase|night|morning|tired|happy|here|there|next|month|week|day|travel|learn|speak|go|going|make|made|take|took|get|got|see|saw|know|knew|think|thought|want|need|say|said|tell|told|office|school|been|base|simple|past|present|future|progressive|perfect|continuous|modal|chunk|linker|however|top|that|what|how|when|where|who|why|which|some|any|every|each|both|all|one|two|three|first|second|third|time|year|life|world|people|thing|way|day|man|woman|child|children|good|great|new|old|long|short|high|low|big|small|other|same|different|right|left|early|late|hard|easy|fast|slow|warm|cool|hot|cold|open|close|start|stop|try|use|find|give|keep|leave|call|ask|help|show|move|live|believe|hold|turn|follow|begin|run|bring|write|provide|sit|stand|lose|pay|meet|include|continue|set|learn|change|lead|understand|watch|follow|create|read|allow|add|spend|grow|open|walk|win|offer|remember|love|consider|appear|buy|wait|serve|die|send|expect|build|stay|fall|cut|reach|kill|remain|suggest|raise|pass|sell|require|report|decide|pull)$/i;
 
@@ -196,18 +206,49 @@ function classifyTtsWord(word) {
   if (!w) return null;
   // Single MSI letters stay with surrounding language (usually Spanish)
   if (/^[PMVC]$/i.test(w)) return null;
-  // í ene ge already Spanish — do not force English letter names (ai/en/yi sounds Brazilian)
-  if (/^(í|ene|ge)$/i.test(w)) return 'es';
+  // Letter names CR — always Spanish TTS (ele / je / erre), never English el/gee/ar
+  if (/^(í|i|ene|eme|ele|erre|ese|je|ge|jota|hache|uve|equis|eñe|efe|doble)$/i.test(w)) return 'es';
   if (/[áéíóúñ¿¡]/i.test(w)) return 'es';
   var bare = w.toLowerCase().replace(/['']/g, "'");
+  // Spanish morphology BEFORE English — stops "Trabajo" → English TTS ("shrabajou")
+  if (/(ción|cion|mente|ando|endo|amos|emos|imos|áis|éis|ís|aba|ía|oso|osa|aje|aje|bilidad)$/i.test(bare)) return 'es';
+  if (/^(trabajar|trabajo|trabajando|trabajé|trabajó|trabajamos|trabajás|trabaja|trabajás)$/i.test(bare)) return 'es';
   if (_TTS_EN_GRAMMAR.test(bare)) return 'en';
   if (_ES_TTS_WORD.test(bare)) return 'es';
   if (_EN_TTS_WORD.test(bare)) return 'en';
   if (/^(don't|didn't|won't|can't|couldn't|shouldn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't|i'm|you're|we're|they're|he's|she's|it's|i've|you've|we've|they've|i'll|you'll|we'll|they'll|i'd|you'd|we'd|they'd)$/i.test(bare)) return 'en';
   if (/^[a-z]+ing$/i.test(bare) && bare.length > 4) return 'en';
   if (/^[a-z]+ed$/i.test(bare) && bare.length > 3 && !/^(red|fed|led|bed|wed)$/i.test(bare)) return 'en';
-  if (/^[A-Z][a-z]+$/.test(w) && bare.length > 2) return 'en';
+  // DO NOT treat Capitalized words as English — Spanish sentences start with caps ("Trabajo…")
   return null;
+}
+
+/** Expand letter names for CR TTS: L→ele, G→je, R→erre. */
+function expandCrLetterNames(text) {
+  var t = String(text || '');
+  t = t.replace(/\b(la|el|letra)\s+L\b/gi, '$1 ele');
+  t = t.replace(/\b(la|el|letra)\s+G\b/gi, '$1 je');
+  t = t.replace(/\b(la|el|letra)\s+R\b/gi, '$1 erre');
+  t = t.replace(/\b(la|el|letra)\s+J\b/gi, '$1 jota');
+  // Spelled clusters of single letters (I N G, L M N…) → CR names
+  t = t.replace(/\b([A-Za-zÁÉÍÓÚÑáéíóúñ])(?:\s+([A-Za-zÁÉÍÓÚÑáéíóúñ])){1,6}\b/g, function (m) {
+    var parts = m.trim().split(/\s+/);
+    if (parts.length < 2) return m;
+    if (!parts.every(function (p) { return p.length === 1; })) return m;
+    return parts.map(function (p) {
+      var k = p.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (p.toLowerCase() === 'ñ') return 'eñe';
+      return _CR_LETTER_NAME[k] || p;
+    }).join(' ');
+  });
+  // Force jota on leftover ge in letter-name phrases
+  t = t.replace(/\bí\s+ene\s+ge\b/gi, 'í ene je');
+  t = t.replace(/\bene\s+ge\b/gi, 'ene je');
+  // Soft accent — keep Spanish TTS (block Brazilian "shrabajou")
+  t = t.replace(/\btrabajo\b/gi, 'trabájo');
+  t = t.replace(/\btrabajando\b/gi, 'trabajándo');
+  t = t.replace(/\btrabajar\b/gi, 'trabajár');
+  return t;
 }
 
 /** Split mixed ES/EN tutor lines so each TTS chunk uses one language. */
@@ -226,12 +267,11 @@ function splitBilingualTtsSegments(text) {
   }
 
   tokens.forEach(function (tok) {
-    if (!/\w/.test(tok)) {
+    if (!/[\wáéíóúñüÁÉÍÓÚÑÜ]/i.test(tok)) {
       buf += tok;
       return;
     }
     var cls = classifyTtsWord(tok);
-    var nextLang = cls || lang;
     if (cls && cls !== lang && buf.trim()) {
       flush();
       lang = cls;
@@ -240,7 +280,8 @@ function splitBilingualTtsSegments(text) {
     } else if (cls) {
       lang = cls;
     }
-    buf += (buf && /\w$/.test(buf) ? ' ' : '') + tok;
+    if (buf && !/\s$/.test(buf)) buf += ' ';
+    buf += tok;
   });
   flush();
 

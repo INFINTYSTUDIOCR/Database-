@@ -704,8 +704,8 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20260711-jaf-jota';
-const JILL_BRAIN_VER = 'v33-jaf-jota';
+const APP1_BUILD = '20260711-tico-ele';
+const JILL_BRAIN_VER = 'v35-tico-ele';
 const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
 
 function isCompanionDemoSession(session) {
@@ -2076,7 +2076,7 @@ Completá: guion oral + 1–2 ejemplos señalados + práctica oral + "¿Te qued�
 PROHIBIDO tip corto. PROHIBIDO chatbot ESL. PROHIBIDO imponer otro módulo si pidieron X → enseñá X YA.
 Si perfecto / have-has-had: en VOZ decí "jáf. jás. jád." con JOTA española (nunca "yaf" de J inglesa, nunca "ave").
 Si futuro perfecto: will + have + participio.
-Si ING: "í ene ge" (español CR).`;
+Si ING: "í ene je" (español CR).`;
 const TURN_TAKING_RULE = '\nTURN-TAKING: The student finishes speaking before you reply. Respond promptly once they are done — no long pauses or filler. Never interrupt mid-thought. If they struggle to understand, stay calm and explain the same idea from another angle until it clicks.';
 function stripStageDirections(text) {
   if (!text) return text;
@@ -2676,10 +2676,10 @@ function getTTSCacheKey(text, voiceId, languageCode, speed, modelId){
   const spd = Number(speed ?? 1.08).toFixed(2);
   // MUST hash FULL text — slicing to 100 chars made stream-prefetch clips
   // poison the final reply (same prefix → short audio, voice cuts mid-sentence).
-  // v=jafjota1: jáf/jás/jád with Spanish jota (not English J / "yaf")
+  // v=ticoele1: L=ele G=je R=erre; no English TTS on Spanish words
   const model = modelId ? String(modelId).slice(0, 24) : 'default';
   const hash = crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex').slice(0, 32);
-  return voiceId + ':' + lang + ':s' + spd + ':jafjota1:' + model + ':' + hash;
+  return voiceId + ':' + lang + ':s' + spd + ':ticoele1:' + model + ':' + hash;
 }
 
 function cacheTTS(key, buffer){
@@ -2737,11 +2737,11 @@ function cleanTtsText(text) {
   t = t.replace(/\bHAS\b/gi, ' has ');
   t = t.replace(/\bHAD\b/gi, ' had ');
   t = t.replace(/\bWILL\b/gi, ' will ');
-  // ING → Costa Rican Spanish letter names (í ene ge), never English ai-en-yi
-  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bVing\b/gi, ' verbo más í ene ge ');
+  // ING → CR letter names with JOTA: í ene je (never English "gee" / ge gringo)
+  t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bVing\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*[+|\/]\s*s\b/gi, ' verbo más S ');
   t = t.replace(/\bV3\b/gi, ' past participle ');
   t = t.replace(/\bP\s*[|+/]\s*AUX(?:ILIAR)?\s*[|+/]\s*NOT\s*[|+/]\s*V\s*[|+/]\s*C\b/gi,
@@ -2758,10 +2758,12 @@ function cleanTtsText(text) {
   });
   t = t.replace(/\+/g, ' más ');
   t = t.replace(/\s*\|\s*/g, ' más ');
-  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene ge ');
-  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene ge ');
+  t = t.replace(/\bVERBO\s*más\s*ING\b/gi, ' verbo más í ene je ');
+  t = t.replace(/\bV\s*más\s*ing\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*más\s*s\b/gi, ' verbo más S ');
-  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene ge ');
+  t = t.replace(/\bI\s+N\s+G\b/g, ' í ene je ');
+  // Force jota: "ge" → English gee; always speak "je"
+  t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene je ');
   t = t.replace(/\bP\b/g, ' pronombre ');
   t = t.replace(/\bM\b/g, ' modal ');
   t = t.replace(/\bV\b/g, ' verbo ');
@@ -2776,7 +2778,7 @@ function cleanTtsText(text) {
   t = t.replace(/\bTHAN\b/gi, ' than ');
   t = t.replace(/\bTHE\b/g, ' the ');
   t = t.replace(/\bAS\b/g, ' as ');
-  t = t.replace(/\bING\b/g, ' í ene ge ');
+  t = t.replace(/\bING\b/g, ' í ene je ');
   return t
     .replace(/[¿¡]/g, '')
     .replace(/[—–―…]/g, '. ')
@@ -2804,6 +2806,39 @@ function humanizeSpokenForTts(text) {
     .replace(/\.{3,}/g, '.')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+/** CR classroom letters: L=ele, G=je (jota), R=erre — never English el/gee/ar. */
+const CR_LETTER_NAME = {
+  a: 'a', b: 'be', c: 'ce', d: 'de', e: 'e', f: 'efe', g: 'je', h: 'hache',
+  i: 'i', j: 'jota', k: 'ka', l: 'ele', m: 'eme', n: 'ene', o: 'o', p: 'pe',
+  q: 'cu', r: 'erre', s: 'ese', t: 'te', u: 'u', v: 'uve', w: 'doble uve',
+  x: 'equis', y: 'ye', z: 'zeta'
+};
+
+/** CR letter names + kill English gee on ING. */
+function applyCrIngPhonetics(text) {
+  let t = String(text || '');
+  t = t.replace(/\b(la|el|letra)\s+L\b/gi, '$1 ele');
+  t = t.replace(/\b(la|el|letra)\s+G\b/gi, '$1 je');
+  t = t.replace(/\b(la|el|letra)\s+R\b/gi, '$1 erre');
+  t = t.replace(/\b(la|el|letra)\s+J\b/gi, '$1 jota');
+  t = t.replace(/\b([A-Za-zÁÉÍÓÚÑáéíóúñ])(?:\s+([A-Za-zÁÉÍÓÚÑáéíóúñ])){1,6}\b/g, (m) => {
+    const parts = m.trim().split(/\s+/);
+    if (parts.length < 2 || !parts.every((p) => p.length === 1)) return m;
+    return parts.map((p) => {
+      if (p.toLowerCase() === 'ñ') return 'eñe';
+      const k = p.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return CR_LETTER_NAME[k] || p;
+    }).join(' ');
+  });
+  t = t.replace(/\bí\s+ene\s+ge\b/gi, 'í ene je');
+  t = t.replace(/\bene\s+ge\b/gi, 'ene je');
+  // Soft accent so ElevenLabs stays Spanish (not Brazilian "shrabajou")
+  t = t.replace(/\btrabajo\b/gi, 'trabájo');
+  t = t.replace(/\btrabajando\b/gi, 'trabajándo');
+  t = t.replace(/\btrabajar\b/gi, 'trabajár');
+  return t.replace(/\s{2,}/g, ' ').trim();
 }
 
 /** CR classroom phonetics: have/has/had → jáf/jás/jád with Spanish JOTA (never English J→"yaf", never "ave"). */
@@ -2946,6 +2981,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
     clean = applyCrHavePhonetics(clean);
+    clean = applyCrIngPhonetics(clean);
   }
   if (!clean) throw new Error('Empty text');
 
@@ -2954,8 +2990,8 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     ? (process.env.ELEVEN_TTS_MODEL_ES || 'eleven_turbo_v2_5')
     : (process.env.ELEVEN_TTS_MODEL || 'eleven_multilingual_v2');
 
-  // jafjota1 busts old clips that said English-J "yaf"
-  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|jafjota1|${modelId}`;
+  // ticoele1: ele/je/erre + no English-TTS-on-Spanish ("shrabajou")
+  const brainLang = `${languageCode || 'auto'}|s${Number(speed).toFixed(2)}|ticoele1|${modelId}`;
   const cacheKey = getTTSCacheKey(clean, voiceId, languageCode, speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
@@ -4703,9 +4739,9 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
       languageCode,
       // Tico CR: stable, low style — no Brasil / Argentina / gringa drawl
       speed: languageCode === 'en' ? 0.98 : 1.0,
-      stability: languageCode === 'en' ? 0.62 : 0.58,
-      similarityBoost: languageCode === 'en' ? 0.78 : 0.82,
-      style: languageCode === 'en' ? 0.06 : 0.08
+      stability: languageCode === 'en' ? 0.62 : 0.62,
+      similarityBoost: languageCode === 'en' ? 0.78 : 0.85,
+      style: languageCode === 'en' ? 0.06 : 0.04
     });
   } catch (err) {
     console.error('Alice TTS error:', err.message);
@@ -4729,9 +4765,9 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
       languageCode,
       // Tico classroom: stable, low style — no gringa drawl, no AR theatre, no PT drift
       speed: isEn ? 0.98 : 1.0,
-      stability: isEn ? 0.62 : 0.58,
-      similarityBoost: isEn ? 0.78 : 0.82,
-      style: isEn ? 0.06 : 0.08
+      stability: isEn ? 0.62 : 0.62,
+      similarityBoost: isEn ? 0.78 : 0.85,
+      style: isEn ? 0.06 : 0.04
     });
   } catch (err) {
     console.error('Jill TTS error:', err.message);

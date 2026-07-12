@@ -665,13 +665,13 @@
   var VOICE_PACK = {
     tracks: {
       gerundio: {
-        say: "Mucha gente se confunde con el í ene ge. Tres formas: uno, to be más verbo más í ene ge es progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene ge sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Mirás el tablero y practicás una oral."
+        say: "Mucha gente se confunde con el í ene je. Tres formas: uno, to be más verbo más í ene je es progreso — ando endo. Sin to be no hay ese progresivo. Dos, verbo más í ene je sin to be es actividad general: I like watching TV. Tres, to más verbo es intención: I like to watch TV. Mirás el tablero y practicás una oral."
       },
       progressive: {
-        say: "Presente progresivo: to be más verbo más í ene ge es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching, que es general, ni con I like to watch, que es intención."
+        say: "Presente progresivo: to be más verbo más í ene je es acción en progreso — ando endo. Ejemplo: I am watching TV. Sin to be no hay progresivo. No lo confundás con I like watching, que es general, ni con I like to watch, que es intención."
       },
       gerund_prep: {
-        say: "Tras prep, verbo más í ene ge igual a ando endo. Before leaving. No lleva am is are."
+        say: "Tras prep, verbo más í ene je igual a ando endo. Before leaving. No lleva am is are."
       },
       past: {
         say: "Pasado simple = foto terminada de ayer. Verbo en pasado + yesterday/ago/last. No es have + participio."

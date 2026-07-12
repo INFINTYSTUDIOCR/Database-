@@ -291,7 +291,7 @@ function formatLock(track) {
     '3) 1 ejemplo en inglés + práctica oral mirando el tablero.',
     '4) ¿Te quedó?',
     'PROHIBIDO: ESL genérico; leer tablero fila por fila; inventar otro método; cambiar de módulo.',
-    'VOZ: VERBO+ING = "verbo más í ene ge". Paradigmas con pausa (go. went. gone.).',
+    'VOZ: VERBO+ING = "verbo más í ene je". Paradigmas con pausa (go. went. gone.).',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
 }

@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v52-module01-pronouns';
+const JILL_PRO_BRAIN_VER = 'v54-tico-ele';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -32,12 +32,12 @@ const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO
 const TRACK_PHONETICS = {
   perfect: 'OBLIGATORIO voz: "jáf. jás. jád." con JOTA española (have. has. had.) — NUNCA "yaf" ni "ave". Presente: jáf/jás + participio. Pasado perfecto: jád + participio (había).',
   have_had: 'OBLIGATORIO voz: "jáf. jás. jád." con jota CR y pausa — NUNCA "yaf" ni "ave". Luego 1 ejemplo presente y 1 pasado perfecto.',
-  combined: 'Empezá con jáf. jás. jád. (jota, no yaf). Have/has + been + verbo + í ene ge = he estado + ando/endo.',
+  combined: 'Empezá con jáf. jás. jád. (jota, no yaf). Have/has + been + verbo + í ene je = he estado + ando/endo.',
   future_perfect: 'OBLIGATORIO: will + have + participio = habré/habrá. Ejemplo: I will have finished. NUNCA digas "primero otro tiempo". NUNCA lo cambies a should have ni a will solo.',
-  progressive: 'VERBO+ING = "í ene ge" (español CR). TO BE + verbo + í ene ge = ando/endo.',
-  gerundio: 'VERBO+ING = "í ene ge". Sin to be = gerundio; con to be = progresivo.',
-  gerund_prep: 'Tras prep → verbo + í ene ge (ando/endo).',
-  modal_have_been: 'Modal + have been + verbo + í ene ge. Decí "í ene ge", no "I N G".',
+  progressive: 'VERBO+ING = "í ene je" (español CR). TO BE + verbo + í ene je = ando/endo.',
+  gerundio: 'VERBO+ING = "í ene je". Sin to be = gerundio; con to be = progresivo.',
+  gerund_prep: 'Tras prep → verbo + í ene je (ando/endo).',
+  modal_have_been: 'Modal + have been + verbo + í ene je. Decí "í ene je", no "I N G".',
   irregular_verbs: 'Paradigmas con pausa: go. went. gone. / do. did. done.'
 };
 
@@ -126,7 +126,8 @@ const JILL_LANGUAGE_RULE = `IDIOMA (ESTRICTO — SOLO COSTA RICA / TICO):
 - Usá voseo tico natural: vos, podés, querés, decime, armá, practicá. Lexicon CR: computadora, carro, celular, jugo, tuanis.
 - En prosa preferí "mira" / "fijate" (sin teatralizar). NUNCA "che".
 - Inglés ÚNICAMENTE cuando piden practicar en inglés, o como EJEMPLO MODELO corto.
-- En ejemplos en inglés: palabras limpias (can, should, go). ING = "í ene ge" (español CR).
+- En ejemplos en inglés: palabras limpias (can, should, go). ING = "í ene je" con JOTA tica (je) — PROHIBIDO "ge" inglés tipo gee.
+- Letras en español CR: L = ele, G = je (jota), R = erre. NUNCA el/gee/ar gringo. NUNCA acento brasileño (trabajo ≠ shrabajou).
 - PROHIBIDO EN VOZ: nombres internos de lección/show/trainer.
 ${JILL_VOICE_HUMAN}`;
 
@@ -244,7 +245,7 @@ EN CADA EXPLICACIÓN — CHECKLIST (omitir = FALLAR):
 6) "¿Te quedó?" + práctica oral.
 FIDELIDAD: con TRACK LOCK → guion de ESE track. Sin inventar pedagogía. Sin cambiar de módulo.
 ${JILL_NEVER_MUTE}
-VOZ: VERBO+ING = "verbo más í ene ge" (español CR). PROHIBIDO ai-en-yi. PROHIBIDO nombres internos. Español TICO.
+VOZ: VERBO+ING = "verbo más í ene je" — je con jota CR. Letras: L=ele, G=je, R=erre. Español TICO puro — PROHIBIDO acento gringo/brasileño (trabajo no "shrabajou"). PROHIBIDO ai-en-yi. PROHIBIDO nombres internos.
 PROHIBIDO: ESL genérico; leer tablero fila por fila; tip corto; "primero otro tema"; improvisar método.`;
 
 const JILL_PRO_INFER_INTENT = `INTERPRETACIÓN DE ESTUDIANTES (OBLIGATORIO — sos IA, no un buscador literal):
@@ -292,12 +293,12 @@ const TRACK_TEACH_HINTS = {
   there: FULL_TEACH_ALL + ' Analogía: there is/are = HAY; have/has = posesión.',
   prepositions: FULL_TEACH_ALL + ' Analogía: IN=caja; ON=superficie; AT=punto.',
   prepositions_time: FULL_TEACH_ALL + ' Analogía: IN=mes/año; ON=día; AT=hora.',
-  gerundio: FULL_TEACH_ALL + ' 3 formas ING: to be+V+ING=progreso; V+ING sin to be=GENERAL; to+V=INTENCIÓN. Voz: í ene ge.',
+  gerundio: FULL_TEACH_ALL + ' 3 formas ING: to be+V+ING=progreso; V+ING sin to be=GENERAL; to+V=INTENCIÓN. Voz: í ene je.',
   gerund_prep: FULL_TEACH_ALL + ' Tras prep, VERBO+ING = ando/endo. Decí ando/endo.',
   negations: FULL_TEACH_ALL + ' Analogía: el auxiliar carga el NOT (nunca "I no…").',
   modales: FULL_TEACH_ALL + ' Analogía: will=-ré; would=-ría; should=debería; can=puedo.',
   modal: FULL_TEACH_ALL + ' Analogía moneda: auxiliar ANTES del pronombre = pregunta.',
-  progressive: FULL_TEACH_ALL + ' TO BE + verbo + ING = ando/endo. Sin to be no hay progresivo. Decí í ene ge.',
+  progressive: FULL_TEACH_ALL + ' TO BE + verbo + ING = ando/endo. Sin to be no hay progresivo. Decí í ene je.',
   past: FULL_TEACH_ALL + ' Analogía: pasado = foto terminada de ayer.',
   present: FULL_TEACH_ALL + ' Analogía: hábito/hecho; he/she/it + verbo+s.',
   perfect: FULL_TEACH_ALL + ' ' + TRACK_PHONETICS.perfect,
