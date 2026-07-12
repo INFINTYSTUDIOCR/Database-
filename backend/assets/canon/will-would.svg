@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-label="Clase 010  WILL RÉ · WOULD RÍA · Futuro perfecto">
+  <rect width="720" height="480" rx="14" fill="#f0f9ff"/>
+  <text x="360" y="24" text-anchor="middle" fill="#0369a1" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700">CLASE 010  WILL = RÉ · WOULD = RÍA · SISTEMA COMPLETO</text>
+  <text x="360" y="42" text-anchor="middle" fill="#0284c7" font-family="Inter,Segoe UI,sans-serif" font-size="10">Real ’ WILL · Hipotético ’ WOULD · Modal + verbo sin TO · BY + will have + PP</text>
+
+  <rect x="16" y="54" width="340" height="120" rx="8" fill="#dbeafe" stroke="#0284c7"/>
+  <text x="186" y="78" text-anchor="middle" fill="#0284c7" font-size="13" font-weight="700">WILL  RÉ</text>
+  <text x="186" y="98" text-anchor="middle" fill="#0c4a6e" font-size="11">futuro real · va a pasar</text>
+  <text x="186" y="118" text-anchor="middle" fill="#059669" font-size="12">Correré ’ I will run</text>
+  <text x="186" y="138" text-anchor="middle" fill="#0c4a6e" font-size="11">Iré · Comeré · Trabajaré</text>
+  <text x="186" y="158" text-anchor="middle" fill="#6b7280" font-size="10">WILL + verbo · sin TO · nadie cambia</text>
+
+  <rect x="364" y="54" width="340" height="120" rx="8" fill="#fce7f3" stroke="#db2777"/>
+  <text x="534" y="78" text-anchor="middle" fill="#db2777" font-size="13" font-weight="700">WOULD  RÍA</text>
+  <text x="534" y="98" text-anchor="middle" fill="#831843" font-size="11">hipotético · podría pasar</text>
+  <text x="534" y="118" text-anchor="middle" fill="#059669" font-size="12">Correría ’ I would run</text>
+  <text x="534" y="138" text-anchor="middle" fill="#831843" font-size="11">Iría · Comería · Trabajaría</text>
+  <text x="534" y="158" text-anchor="middle" fill="#6b7280" font-size="10">WOULD + verbo · sin TO · nadie cambia</text>
+
+  <rect x="16" y="186" width="688" height="26" rx="6" fill="#0369a1"/>
+  <text x="120" y="204" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">MODAL</text>
+  <text x="320" y="204" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">ESPAÑOL</text>
+  <text x="540" y="204" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">TIPO</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif" font-size="11">
+    <rect x="16" y="216" width="688" height="20" fill="#e0f2fe"/><text x="120" y="230" text-anchor="middle" fill="#0c4a6e">will</text><text x="320" y="230" text-anchor="middle" fill="#0284c7" font-weight="700">RÉ</text><text x="540" y="230" text-anchor="middle" fill="#059669">futuro real</text>
+    <rect x="16" y="236" width="688" height="20" fill="#f0f9ff"/><text x="120" y="250" text-anchor="middle" fill="#0c4a6e">would</text><text x="320" y="250" text-anchor="middle" fill="#db2777" font-weight="700">RÍA</text><text x="540" y="250" text-anchor="middle" fill="#059669">hipotético / deseo</text>
+    <rect x="16" y="256" width="688" height="20" fill="#e0f2fe"/><text x="120" y="270" text-anchor="middle" fill="#0c4a6e">can / could</text><text x="320" y="270" text-anchor="middle" fill="#0c4a6e">puedo / podía·ría</text><text x="540" y="270" text-anchor="middle" fill="#059669">capacidad</text>
+    <rect x="16" y="276" width="688" height="20" fill="#f0f9ff"/><text x="120" y="290" text-anchor="middle" fill="#0c4a6e">should / must</text><text x="320" y="290" text-anchor="middle" fill="#0c4a6e">debería / tengo que</text><text x="540" y="290" text-anchor="middle" fill="#059669">deber / obligación</text>
+    <rect x="16" y="296" width="688" height="20" fill="#e0f2fe"/><text x="120" y="310" text-anchor="middle" fill="#0c4a6e">may / might</text><text x="320" y="310" text-anchor="middle" fill="#0c4a6e">puede que / podría</text><text x="540" y="310" text-anchor="middle" fill="#059669">posibilidad</text>
+  </g>
+
+  <rect x="16" y="328" width="688" height="80" rx="8" fill="#fef3c7" stroke="#D97706"/>
+  <text x="360" y="352" text-anchor="middle" fill="#92400e" font-size="12" font-weight="700">FUTURO PERFECTO = WILL + HAVE + PARTICIPIO</text>
+  <text x="360" y="372" text-anchor="middle" fill="#0c4a6e" font-size="11">By Monday  I will have finished · Habré terminado</text>
+  <text x="360" y="392" text-anchor="middle" fill="#6b7280" font-size="10">BY + momento · will have (nunca will has) · participio · 6 piezas LEGO ’ 11 tiempos</text>
+
+  <text x="360" y="440" text-anchor="middle" fill="#0369a1" font-size="12" font-weight="600">¿Va a pasar de verdad ’ WILL · Es imaginario ’ WOULD?</text>
+  <text x="360" y="460" text-anchor="middle" fill="#0284c7" font-size="10">Won't / Wouldn't · Modal + verbo · Sin TO · Nadie cambia</text>
+</svg>

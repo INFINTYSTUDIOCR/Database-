@@ -7,7 +7,9 @@
       "id": "M001",
       "order": 1,
       "title": "Pronombres — los 5 tipos",
-      "canonTrackIds": ["pronouns"],
+      "canonTrackIds": [
+        "pronouns"
+      ],
       "say": "CANON: config/canon/module-01-pronombres.txt (íntegro). Hoy instalamos en inglés lo que ya saben en español: cinco tipos — sujeto, objeto, posesivo adjetivo, posesivo pronominal, reflexivo. Misma lógica. Diferente forma. Rapid Fire + identificación de tipo.",
       "bridge": "5 tipos ES↔EN: sujeto hace · objeto recibe · pos.adj acompaña · pos.pron reemplaza · reflexivo vuelve al sujeto.",
       "checklist": [
@@ -18,31 +20,197 @@
         "Identificación de tipo en frase",
         "Rapid Fire <2s"
       ],
-      "mini": { "questions": 8, "timerSec": 25, "passPct": 80 },
+      "mini": {
+        "questions": 8,
+        "timerSec": 25,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Ella — sujeto →", "options": ["She", "Her", "Hers", "Herself"], "answer": 0, "explain": "Sujeto = She." },
-        { "q": "Ella — objeto →", "options": ["Her", "She", "Hers", "Herself"], "answer": 0, "explain": "Objeto = Her." },
-        { "q": "Ella — posesivo adjetivo →", "options": ["Her", "Hers", "She", "Herself"], "answer": 0, "explain": "Pos.Adj acompaña: Her phone." },
-        { "q": "Ella — posesivo pronominal →", "options": ["Hers", "Her", "She", "Herself"], "answer": 0, "explain": "Pos.Pron reemplaza: The bag is hers." },
-        { "q": "Ella — reflexivo →", "options": ["Herself", "Her", "Hers", "She"], "answer": 0, "explain": "Reflexivo = Herself." },
-        { "q": "Él — objeto →", "options": ["Him", "He", "His", "Himself"], "answer": 0, "explain": "Objeto = Him." },
-        { "q": "Él — posesivo pronominal →", "options": ["His", "Him", "He", "Himself"], "answer": 0, "explain": "His no cambia entre adj y pronominal." },
-        { "q": "Nosotros — objeto →", "options": ["Us", "We", "Our", "Ours"], "answer": 0, "explain": "Objeto = Us." },
-        { "q": "Nosotros — reflexivo →", "options": ["Ourselves", "Us", "Our", "Ours"], "answer": 0, "explain": "Reflexivo plural = Ourselves." },
-        { "q": "I called her. — tipo de her →", "options": ["Objeto", "Sujeto", "Pos.Adj", "Reflexivo"], "answer": 0, "explain": "her recibe la acción = objeto." },
-        { "q": "That bag is hers. — tipo →", "options": ["Posesivo pronominal", "Posesivo adjetivo", "Objeto", "Sujeto"], "answer": 0, "explain": "hers reemplaza = pronominal." },
-        { "q": "Her phone is here. — tipo de Her →", "options": ["Posesivo adjetivo", "Posesivo pronominal", "Objeto", "Sujeto"], "answer": 0, "explain": "Her acompaña a phone = adj." },
-        { "q": "He hurt himself. — tipo →", "options": ["Reflexivo", "Objeto", "Sujeto", "Pos.Adj"], "answer": 0, "explain": "Acción vuelve al sujeto." },
-        { "q": "Vos/Ustedes — sujeto →", "options": ["You", "They", "We", "Them"], "answer": 0, "explain": "You = uno o varios (contexto)." },
-        { "q": "Ellos — posesivo adjetivo →", "options": ["Their", "Theirs", "Them", "Themselves"], "answer": 0, "explain": "Their house." },
-        { "q": "Este proyecto es nuestro →", "options": ["This project is ours", "This project is our", "This project is us", "This project is ourselves"], "answer": 0, "explain": "Pronominal = ours." }
+        {
+          "q": "Ella — sujeto →",
+          "options": [
+            "She",
+            "Her",
+            "Hers",
+            "Herself"
+          ],
+          "answer": 0,
+          "explain": "Sujeto = She."
+        },
+        {
+          "q": "Ella — objeto →",
+          "options": [
+            "Her",
+            "She",
+            "Hers",
+            "Herself"
+          ],
+          "answer": 0,
+          "explain": "Objeto = Her."
+        },
+        {
+          "q": "Ella — posesivo adjetivo →",
+          "options": [
+            "Her",
+            "Hers",
+            "She",
+            "Herself"
+          ],
+          "answer": 0,
+          "explain": "Pos.Adj acompaña: Her phone."
+        },
+        {
+          "q": "Ella — posesivo pronominal →",
+          "options": [
+            "Hers",
+            "Her",
+            "She",
+            "Herself"
+          ],
+          "answer": 0,
+          "explain": "Pos.Pron reemplaza: The bag is hers."
+        },
+        {
+          "q": "Ella — reflexivo →",
+          "options": [
+            "Herself",
+            "Her",
+            "Hers",
+            "She"
+          ],
+          "answer": 0,
+          "explain": "Reflexivo = Herself."
+        },
+        {
+          "q": "Él — objeto →",
+          "options": [
+            "Him",
+            "He",
+            "His",
+            "Himself"
+          ],
+          "answer": 0,
+          "explain": "Objeto = Him."
+        },
+        {
+          "q": "Él — posesivo pronominal →",
+          "options": [
+            "His",
+            "Him",
+            "He",
+            "Himself"
+          ],
+          "answer": 0,
+          "explain": "His no cambia entre adj y pronominal."
+        },
+        {
+          "q": "Nosotros — objeto →",
+          "options": [
+            "Us",
+            "We",
+            "Our",
+            "Ours"
+          ],
+          "answer": 0,
+          "explain": "Objeto = Us."
+        },
+        {
+          "q": "Nosotros — reflexivo →",
+          "options": [
+            "Ourselves",
+            "Us",
+            "Our",
+            "Ours"
+          ],
+          "answer": 0,
+          "explain": "Reflexivo plural = Ourselves."
+        },
+        {
+          "q": "I called her. — tipo de her →",
+          "options": [
+            "Objeto",
+            "Sujeto",
+            "Pos.Adj",
+            "Reflexivo"
+          ],
+          "answer": 0,
+          "explain": "her recibe la acción = objeto."
+        },
+        {
+          "q": "That bag is hers. — tipo →",
+          "options": [
+            "Posesivo pronominal",
+            "Posesivo adjetivo",
+            "Objeto",
+            "Sujeto"
+          ],
+          "answer": 0,
+          "explain": "hers reemplaza = pronominal."
+        },
+        {
+          "q": "Her phone is here. — tipo de Her →",
+          "options": [
+            "Posesivo adjetivo",
+            "Posesivo pronominal",
+            "Objeto",
+            "Sujeto"
+          ],
+          "answer": 0,
+          "explain": "Her acompaña a phone = adj."
+        },
+        {
+          "q": "He hurt himself. — tipo →",
+          "options": [
+            "Reflexivo",
+            "Objeto",
+            "Sujeto",
+            "Pos.Adj"
+          ],
+          "answer": 0,
+          "explain": "Acción vuelve al sujeto."
+        },
+        {
+          "q": "Vos/Ustedes — sujeto →",
+          "options": [
+            "You",
+            "They",
+            "We",
+            "Them"
+          ],
+          "answer": 0,
+          "explain": "You = uno o varios (contexto)."
+        },
+        {
+          "q": "Ellos — posesivo adjetivo →",
+          "options": [
+            "Their",
+            "Theirs",
+            "Them",
+            "Themselves"
+          ],
+          "answer": 0,
+          "explain": "Their house."
+        },
+        {
+          "q": "Este proyecto es nuestro →",
+          "options": [
+            "This project is ours",
+            "This project is our",
+            "This project is us",
+            "This project is ourselves"
+          ],
+          "answer": 0,
+          "explain": "Pronominal = ours."
+        }
       ]
     },
     {
       "id": "M002",
       "order": 2,
       "title": "Verbos presente + conjugaciones (Módulo 2)",
-      "canonTrackIds": ["present"],
+      "canonTrackIds": [
+        "present"
+      ],
       "say": "CANON: config/canon/module-02-verbos-presente.txt (íntegro). Pronombre solo no sirve — necesita verbo. TO = señal de infinitivo (desaparece al conjugar). Regla de oro: He/She/It — el verbo cambia. Go/Do → ES. Have → Has. Be → am/is/are. 16 verbos. Conectá con los 5 tipos de pronombres.",
       "bridge": "TO=infinitivo · He/She/It +S · Go/Do→ES · Have→Has · Be am/is/are · + objeto/pos.adj/reflexivo del M1.",
       "checklist": [
@@ -55,142 +223,757 @@
         "Integra objeto / pos.adj / reflexivo",
         "Detecta errores de conjugación"
       ],
-      "mini": { "questions": 8, "timerSec": 25, "passPct": 80 },
+      "mini": {
+        "questions": 8,
+        "timerSec": 25,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "¿Qué es el TO en To go?", "options": ["Señal de infinitivo", "Preposición de lugar", "Artículo", "Posesivo"], "answer": 0, "explain": "TO marca infinitivo; al conjugar desaparece." },
-        { "q": "She / go →", "options": ["She goes", "She go", "She gos", "She going"], "answer": 0, "explain": "She + O → ES = goes." },
-        { "q": "He / do →", "options": ["He does", "He do", "He dos", "He doing"], "answer": 0, "explain": "He + O → ES = does." },
-        { "q": "It / have →", "options": ["It has", "It have", "It haves", "It having"], "answer": 0, "explain": "Have con He/She/It → Has." },
-        { "q": "They / go →", "options": ["They go", "They goes", "They going", "They gone"], "answer": 0, "explain": "They no cambia el verbo." },
-        { "q": "She / make →", "options": ["She makes", "She make", "She making", "She made"], "answer": 0, "explain": "She → + S." },
-        { "q": "I / do →", "options": ["I do", "I does", "I doing", "I did"], "answer": 0, "explain": "I no cambia." },
-        { "q": "Make vs Do: crear un pastel →", "options": ["make", "do", "does", "making"], "answer": 0, "explain": "Make = crear." },
-        { "q": "Make vs Do: mi tarea →", "options": ["do", "make", "makes", "does"], "answer": 0, "explain": "Do = actividad." },
-        { "q": "Ella me ve →", "options": ["She sees me", "She see me", "She sees I", "She see I"], "answer": 0, "explain": "She + S + objeto me." },
-        { "q": "Ella manda su reporte →", "options": ["She sends her report", "She send her report", "She sends hers report", "She sends she report"], "answer": 0, "explain": "sends + pos.adj her." },
-        { "q": "Ella se ve en el espejo →", "options": ["She sees herself", "She sees her", "She see herself", "She sees she"], "answer": 0, "explain": "Reflexivo = herself." },
-        { "q": "She go to work every day →", "options": ["She goes to work every day", "She go to work every day", "She gos to work", "They goes to work"], "answer": 0, "explain": "Error: falta ES." },
-        { "q": "They goes to the office →", "options": ["They go to the office", "They goes to the office", "They going", "They gone"], "answer": 0, "explain": "They no lleva S." },
-        { "q": "She have a meeting →", "options": ["She has a meeting", "She have a meeting", "She haves", "She having"], "answer": 0, "explain": "Have → Has." },
-        { "q": "Yo soy / estoy →", "options": ["I am", "I is", "I are", "I be"], "answer": 0, "explain": "Be: I am." }
+        {
+          "q": "¿Qué es el TO en To go?",
+          "options": [
+            "Señal de infinitivo",
+            "Preposición de lugar",
+            "Artículo",
+            "Posesivo"
+          ],
+          "answer": 0,
+          "explain": "TO marca infinitivo; al conjugar desaparece."
+        },
+        {
+          "q": "She / go →",
+          "options": [
+            "She goes",
+            "She go",
+            "She gos",
+            "She going"
+          ],
+          "answer": 0,
+          "explain": "She + O → ES = goes."
+        },
+        {
+          "q": "He / do →",
+          "options": [
+            "He does",
+            "He do",
+            "He dos",
+            "He doing"
+          ],
+          "answer": 0,
+          "explain": "He + O → ES = does."
+        },
+        {
+          "q": "It / have →",
+          "options": [
+            "It has",
+            "It have",
+            "It haves",
+            "It having"
+          ],
+          "answer": 0,
+          "explain": "Have con He/She/It → Has."
+        },
+        {
+          "q": "They / go →",
+          "options": [
+            "They go",
+            "They goes",
+            "They going",
+            "They gone"
+          ],
+          "answer": 0,
+          "explain": "They no cambia el verbo."
+        },
+        {
+          "q": "She / make →",
+          "options": [
+            "She makes",
+            "She make",
+            "She making",
+            "She made"
+          ],
+          "answer": 0,
+          "explain": "She → + S."
+        },
+        {
+          "q": "I / do →",
+          "options": [
+            "I do",
+            "I does",
+            "I doing",
+            "I did"
+          ],
+          "answer": 0,
+          "explain": "I no cambia."
+        },
+        {
+          "q": "Make vs Do: crear un pastel →",
+          "options": [
+            "make",
+            "do",
+            "does",
+            "making"
+          ],
+          "answer": 0,
+          "explain": "Make = crear."
+        },
+        {
+          "q": "Make vs Do: mi tarea →",
+          "options": [
+            "do",
+            "make",
+            "makes",
+            "does"
+          ],
+          "answer": 0,
+          "explain": "Do = actividad."
+        },
+        {
+          "q": "Ella me ve →",
+          "options": [
+            "She sees me",
+            "She see me",
+            "She sees I",
+            "She see I"
+          ],
+          "answer": 0,
+          "explain": "She + S + objeto me."
+        },
+        {
+          "q": "Ella manda su reporte →",
+          "options": [
+            "She sends her report",
+            "She send her report",
+            "She sends hers report",
+            "She sends she report"
+          ],
+          "answer": 0,
+          "explain": "sends + pos.adj her."
+        },
+        {
+          "q": "Ella se ve en el espejo →",
+          "options": [
+            "She sees herself",
+            "She sees her",
+            "She see herself",
+            "She sees she"
+          ],
+          "answer": 0,
+          "explain": "Reflexivo = herself."
+        },
+        {
+          "q": "She go to work every day →",
+          "options": [
+            "She goes to work every day",
+            "She go to work every day",
+            "She gos to work",
+            "They goes to work"
+          ],
+          "answer": 0,
+          "explain": "Error: falta ES."
+        },
+        {
+          "q": "They goes to the office →",
+          "options": [
+            "They go to the office",
+            "They goes to the office",
+            "They going",
+            "They gone"
+          ],
+          "answer": 0,
+          "explain": "They no lleva S."
+        },
+        {
+          "q": "She have a meeting →",
+          "options": [
+            "She has a meeting",
+            "She have a meeting",
+            "She haves",
+            "She having"
+          ],
+          "answer": 0,
+          "explain": "Have → Has."
+        },
+        {
+          "q": "Yo soy / estoy →",
+          "options": [
+            "I am",
+            "I is",
+            "I are",
+            "I be"
+          ],
+          "answer": 0,
+          "explain": "Be: I am."
+        }
       ]
     },
     {
       "id": "M003",
       "order": 3,
       "title": "BE — am / is / are",
-      "canonTrackIds": ["present"],
+      "canonTrackIds": [
+        "present"
+      ],
       "say": "BE es el verbo más usado. Cambia tres veces: AM — ARE — IS. I am, You are, He/She/It is, We are, They are. Misma lógica que soy/sos/es/somos/son — otra forma.",
       "bridge": "I→am · You/We/They→are · He/She/It→is.",
-      "checklist": ["am/is/are correctos", "No mezcla I is / He are"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "am/is/are correctos",
+        "No mezcla I is / He are"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Yo soy / estoy →", "options": ["I am", "I is", "I are", "I be"], "answer": 0, "explain": "I am." },
-        { "q": "Ella es →", "options": ["She is", "She are", "She am", "She be"], "answer": 0, "explain": "She is." },
-        { "q": "Nosotros estamos →", "options": ["We are", "We is", "We am", "We be"], "answer": 0, "explain": "We are." },
-        { "q": "Ellos son →", "options": ["They are", "They is", "They am", "They be"], "answer": 0, "explain": "They are." },
-        { "q": "Eso está →", "options": ["It is", "It are", "It am", "It be"], "answer": 0, "explain": "It is." },
-        { "q": "Vos sos →", "options": ["You are", "You is", "You am", "You be"], "answer": 0, "explain": "You are." }
+        {
+          "q": "Yo soy / estoy →",
+          "options": [
+            "I am",
+            "I is",
+            "I are",
+            "I be"
+          ],
+          "answer": 0,
+          "explain": "I am."
+        },
+        {
+          "q": "Ella es →",
+          "options": [
+            "She is",
+            "She are",
+            "She am",
+            "She be"
+          ],
+          "answer": 0,
+          "explain": "She is."
+        },
+        {
+          "q": "Nosotros estamos →",
+          "options": [
+            "We are",
+            "We is",
+            "We am",
+            "We be"
+          ],
+          "answer": 0,
+          "explain": "We are."
+        },
+        {
+          "q": "Ellos son →",
+          "options": [
+            "They are",
+            "They is",
+            "They am",
+            "They be"
+          ],
+          "answer": 0,
+          "explain": "They are."
+        },
+        {
+          "q": "Eso está →",
+          "options": [
+            "It is",
+            "It are",
+            "It am",
+            "It be"
+          ],
+          "answer": 0,
+          "explain": "It is."
+        },
+        {
+          "q": "Vos sos →",
+          "options": [
+            "You are",
+            "You is",
+            "You am",
+            "You be"
+          ],
+          "answer": 0,
+          "explain": "You are."
+        }
       ]
     },
     {
       "id": "M004",
       "order": 4,
       "title": "HAVE / HAS",
-      "canonTrackIds": ["have_had"],
+      "canonTrackIds": [
+        "have_had"
+      ],
       "say": "HAVE = tener. Patrón: He, She, It — have se convierte en HAS. Todos los demás — have. I have / He has / She has / They have.",
       "bridge": "He/She/It → has. Resto → have.",
-      "checklist": ["has solo con 3ª", "have con I/you/we/they"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "has solo con 3ª",
+        "have con I/you/we/they"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Él tiene →", "options": ["He has", "He have", "He having", "He had"], "answer": 0, "explain": "He → has." },
-        { "q": "Yo tengo →", "options": ["I have", "I has", "I having", "I had"], "answer": 0, "explain": "I → have." },
-        { "q": "Ella tiene →", "options": ["She has", "She have", "She having", "She had"], "answer": 0, "explain": "She → has." },
-        { "q": "Ellos tienen →", "options": ["They have", "They has", "They having", "They had"], "answer": 0, "explain": "They → have." },
-        { "q": "Eso tiene →", "options": ["It has", "It have", "It having", "It had"], "answer": 0, "explain": "It → has." },
-        { "q": "Nosotros tenemos →", "options": ["We have", "We has", "We having", "We had"], "answer": 0, "explain": "We → have." }
+        {
+          "q": "Él tiene →",
+          "options": [
+            "He has",
+            "He have",
+            "He having",
+            "He had"
+          ],
+          "answer": 0,
+          "explain": "He → has."
+        },
+        {
+          "q": "Yo tengo →",
+          "options": [
+            "I have",
+            "I has",
+            "I having",
+            "I had"
+          ],
+          "answer": 0,
+          "explain": "I → have."
+        },
+        {
+          "q": "Ella tiene →",
+          "options": [
+            "She has",
+            "She have",
+            "She having",
+            "She had"
+          ],
+          "answer": 0,
+          "explain": "She → has."
+        },
+        {
+          "q": "Ellos tienen →",
+          "options": [
+            "They have",
+            "They has",
+            "They having",
+            "They had"
+          ],
+          "answer": 0,
+          "explain": "They → have."
+        },
+        {
+          "q": "Eso tiene →",
+          "options": [
+            "It has",
+            "It have",
+            "It having",
+            "It had"
+          ],
+          "answer": 0,
+          "explain": "It → has."
+        },
+        {
+          "q": "Nosotros tenemos →",
+          "options": [
+            "We have",
+            "We has",
+            "We having",
+            "We had"
+          ],
+          "answer": 0,
+          "explain": "We → have."
+        }
       ]
     },
     {
       "id": "M005",
       "order": 5,
       "title": "16 verbos esenciales (presente)",
-      "canonTrackIds": ["irregular_verbs", "present"],
+      "canonTrackIds": [
+        "irregular_verbs",
+        "present"
+      ],
       "say": "No son 100. Son 16. Con estos hablás de casi todo en presente. Regla de oro: He/She/It — el verbo cambia. Grupos: BE/HAVE; movimiento (go come take get give make do); percepción (see say send); estado (keep put let seem cut). Make = crear; Do = actividad. He does — DO se convierte en DOES.",
       "bridge": "16 verbos + He/She/It + S/DOES/HAS.",
-      "checklist": ["Reconoce los 16", "3ª persona correcta", "Make vs Do"],
-      "mini": { "questions": 5, "timerSec": 35, "passPct": 80 },
+      "checklist": [
+        "Reconoce los 16",
+        "3ª persona correcta",
+        "Make vs Do"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 35,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Él / give →", "options": ["He gives", "He give", "He giving", "He gave"], "answer": 0, "explain": "He gives." },
-        { "q": "Ella / do →", "options": ["She does", "She do", "She doing", "She did"], "answer": 0, "explain": "DO → DOES." },
-        { "q": "Make vs Do: crear un pastel →", "options": ["make", "do", "does", "making"], "answer": 0, "explain": "Make = crear." },
-        { "q": "Yo / take →", "options": ["I take", "I takes", "I taking", "I took"], "answer": 0, "explain": "I take." },
-        { "q": "Ellos / send →", "options": ["They send", "They sends", "They sending", "They sent"], "answer": 0, "explain": "They send." },
-        { "q": "Ella / keep →", "options": ["She keeps", "She keep", "She keeping", "She kept"], "answer": 0, "explain": "She keeps." },
-        { "q": "Él / get →", "options": ["He gets", "He get", "He getting", "He got"], "answer": 0, "explain": "He gets." }
+        {
+          "q": "Él / give →",
+          "options": [
+            "He gives",
+            "He give",
+            "He giving",
+            "He gave"
+          ],
+          "answer": 0,
+          "explain": "He gives."
+        },
+        {
+          "q": "Ella / do →",
+          "options": [
+            "She does",
+            "She do",
+            "She doing",
+            "She did"
+          ],
+          "answer": 0,
+          "explain": "DO → DOES."
+        },
+        {
+          "q": "Make vs Do: crear un pastel →",
+          "options": [
+            "make",
+            "do",
+            "does",
+            "making"
+          ],
+          "answer": 0,
+          "explain": "Make = crear."
+        },
+        {
+          "q": "Yo / take →",
+          "options": [
+            "I take",
+            "I takes",
+            "I taking",
+            "I took"
+          ],
+          "answer": 0,
+          "explain": "I take."
+        },
+        {
+          "q": "Ellos / send →",
+          "options": [
+            "They send",
+            "They sends",
+            "They sending",
+            "They sent"
+          ],
+          "answer": 0,
+          "explain": "They send."
+        },
+        {
+          "q": "Ella / keep →",
+          "options": [
+            "She keeps",
+            "She keep",
+            "She keeping",
+            "She kept"
+          ],
+          "answer": 0,
+          "explain": "She keeps."
+        },
+        {
+          "q": "Él / get →",
+          "options": [
+            "He gets",
+            "He get",
+            "He getting",
+            "He got"
+          ],
+          "answer": 0,
+          "explain": "He gets."
+        }
       ]
     },
     {
       "id": "M006",
       "order": 6,
       "title": "Artículos A / AN / THE",
-      "canonTrackIds": ["articles"],
+      "canonTrackIds": [
+        "articles"
+      ],
       "say": "A/AN = un/una (primera vez, indefinido). THE = el/la (ya conocido, definido). A + consonante; AN + sonido vocal (an hour — H muda). THE igual para singular y plural. En inglés A/AN cambia por sonido, no por género.",
       "bridge": "a/an = indefinido por sonido; the = definido.",
-      "checklist": ["a vs an por sonido", "the cuando ya se conoce", "an hour"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "a vs an por sonido",
+        "the cuando ya se conoce",
+        "an hour"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "___ apple →", "options": ["An apple", "A apple", "The apple", "Apple"], "answer": 0, "explain": "Vocal → an." },
-        { "q": "___ car (primera vez) →", "options": ["A car", "An car", "The car", "Car"], "answer": 0, "explain": "Consonante → a." },
-        { "q": "___ hour →", "options": ["An hour", "A hour", "The hour", "Hour"], "answer": 0, "explain": "H muda → an." },
-        { "q": "El carro que ya vimos →", "options": ["The car", "A car", "An car", "Car"], "answer": 0, "explain": "Definido → the." },
-        { "q": "___ office →", "options": ["An office", "A office", "The office", "Office"], "answer": 0, "explain": "Office empieza con vocal." },
-        { "q": "___ meeting →", "options": ["A meeting", "An meeting", "The meeting", "Meeting"], "answer": 0, "explain": "Consonante → a." }
+        {
+          "q": "___ apple →",
+          "options": [
+            "An apple",
+            "A apple",
+            "The apple",
+            "Apple"
+          ],
+          "answer": 0,
+          "explain": "Vocal → an."
+        },
+        {
+          "q": "___ car (primera vez) →",
+          "options": [
+            "A car",
+            "An car",
+            "The car",
+            "Car"
+          ],
+          "answer": 0,
+          "explain": "Consonante → a."
+        },
+        {
+          "q": "___ hour →",
+          "options": [
+            "An hour",
+            "A hour",
+            "The hour",
+            "Hour"
+          ],
+          "answer": 0,
+          "explain": "H muda → an."
+        },
+        {
+          "q": "El carro que ya vimos →",
+          "options": [
+            "The car",
+            "A car",
+            "An car",
+            "Car"
+          ],
+          "answer": 0,
+          "explain": "Definido → the."
+        },
+        {
+          "q": "___ office →",
+          "options": [
+            "An office",
+            "A office",
+            "The office",
+            "Office"
+          ],
+          "answer": 0,
+          "explain": "Office empieza con vocal."
+        },
+        {
+          "q": "___ meeting →",
+          "options": [
+            "A meeting",
+            "An meeting",
+            "The meeting",
+            "Meeting"
+          ],
+          "answer": 0,
+          "explain": "Consonante → a."
+        }
       ]
     },
     {
       "id": "M007",
       "order": 7,
       "title": "Preposiciones esenciales",
-      "canonTrackIds": ["prepositions", "prepositions_time"],
+      "canonTrackIds": [
+        "prepositions",
+        "prepositions_time"
+      ],
       "say": "IN = dentro / períodos largos. ON = encima / días. AT = punto exacto / hora. TO = hacia. WITH = con. FOR = para/por. Frase ancla: I'm at home and the book is in the room on the table.",
       "bridge": "IN caja · ON superficie · AT punto · TO dirección · WITH con · FOR para.",
-      "checklist": ["IN/ON/AT lugar y tiempo", "TO/WITH/FOR en frases"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "IN/ON/AT lugar y tiempo",
+        "TO/WITH/FOR en frases"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "I go ___ work →", "options": ["to", "in", "on", "at"], "answer": 0, "explain": "to = dirección." },
-        { "q": "She is ___ the office →", "options": ["at", "in", "on", "to"], "answer": 0, "explain": "at = punto (trabajo/oficina)." },
-        { "q": "Meeting ___ Monday →", "options": ["on", "in", "at", "to"], "answer": 0, "explain": "on + día." },
-        { "q": "He works ___ the morning →", "options": ["in", "on", "at", "to"], "answer": 0, "explain": "in + parte del día." },
-        { "q": "This email is ___ you →", "options": ["for", "with", "to", "at"], "answer": 0, "explain": "for = para." },
-        { "q": "I came ___ my sister →", "options": ["with", "for", "to", "at"], "answer": 0, "explain": "with = con." },
-        { "q": "Arrived ___ 2025 →", "options": ["in", "on", "at", "to"], "answer": 0, "explain": "in + año." },
-        { "q": "She is ___ home →", "options": ["at", "in", "on", "to"], "answer": 0, "explain": "at home." }
+        {
+          "q": "I go ___ work →",
+          "options": [
+            "to",
+            "in",
+            "on",
+            "at"
+          ],
+          "answer": 0,
+          "explain": "to = dirección."
+        },
+        {
+          "q": "She is ___ the office →",
+          "options": [
+            "at",
+            "in",
+            "on",
+            "to"
+          ],
+          "answer": 0,
+          "explain": "at = punto (trabajo/oficina)."
+        },
+        {
+          "q": "Meeting ___ Monday →",
+          "options": [
+            "on",
+            "in",
+            "at",
+            "to"
+          ],
+          "answer": 0,
+          "explain": "on + día."
+        },
+        {
+          "q": "He works ___ the morning →",
+          "options": [
+            "in",
+            "on",
+            "at",
+            "to"
+          ],
+          "answer": 0,
+          "explain": "in + parte del día."
+        },
+        {
+          "q": "This email is ___ you →",
+          "options": [
+            "for",
+            "with",
+            "to",
+            "at"
+          ],
+          "answer": 0,
+          "explain": "for = para."
+        },
+        {
+          "q": "I came ___ my sister →",
+          "options": [
+            "with",
+            "for",
+            "to",
+            "at"
+          ],
+          "answer": 0,
+          "explain": "with = con."
+        },
+        {
+          "q": "Arrived ___ 2025 →",
+          "options": [
+            "in",
+            "on",
+            "at",
+            "to"
+          ],
+          "answer": 0,
+          "explain": "in + año."
+        },
+        {
+          "q": "She is ___ home →",
+          "options": [
+            "at",
+            "in",
+            "on",
+            "to"
+          ],
+          "answer": 0,
+          "explain": "at home."
+        }
       ]
     },
     {
       "id": "M008",
       "order": 8,
       "title": "Negaciones DO / DOES",
-      "canonTrackIds": ["negations"],
+      "canonTrackIds": [
+        "negations"
+      ],
       "say": "En español: yo no voy. En inglés: ayudante DO/DOES + not. He/She/It → does not / doesn't. Resto → do not / don't. Cuando hay DON'T/DOESN'T el verbo vuelve a la forma base: He goes → He doesn't go (no goes).",
       "bridge": "don't/doesn't + verbo base. He/She/It → doesn't.",
-      "checklist": ["don't vs doesn't", "verbo base tras negación", "sin I no go"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "don't vs doesn't",
+        "verbo base tras negación",
+        "sin I no go"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "She goes to work → negación", "options": ["She doesn't go to work", "She don't goes to work", "She doesn't goes to work", "She not go to work"], "answer": 0, "explain": "doesn't + go." },
-        { "q": "I have a car → negación", "options": ["I don't have a car", "I doesn't have a car", "I don't has a car", "I no have a car"], "answer": 0, "explain": "don't + have." },
-        { "q": "He makes dinner → negación", "options": ["He doesn't make dinner", "He don't make dinner", "He doesn't makes dinner", "He not makes dinner"], "answer": 0, "explain": "doesn't + make." },
-        { "q": "They see the problem →", "options": ["They don't see the problem", "They doesn't see", "They don't sees", "They no see"], "answer": 0, "explain": "don't + see." },
-        { "q": "She does it alone →", "options": ["She doesn't do it alone", "She don't do it", "She doesn't does it", "She not do it"], "answer": 0, "explain": "doesn't + do." },
-        { "q": "¿He/She/It? → auxiliar de negación", "options": ["doesn't", "don't", "isn't", "aren't"], "answer": 0, "explain": "3ª → doesn't." }
+        {
+          "q": "She goes to work → negación",
+          "options": [
+            "She doesn't go to work",
+            "She don't goes to work",
+            "She doesn't goes to work",
+            "She not go to work"
+          ],
+          "answer": 0,
+          "explain": "doesn't + go."
+        },
+        {
+          "q": "I have a car → negación",
+          "options": [
+            "I don't have a car",
+            "I doesn't have a car",
+            "I don't has a car",
+            "I no have a car"
+          ],
+          "answer": 0,
+          "explain": "don't + have."
+        },
+        {
+          "q": "He makes dinner → negación",
+          "options": [
+            "He doesn't make dinner",
+            "He don't make dinner",
+            "He doesn't makes dinner",
+            "He not makes dinner"
+          ],
+          "answer": 0,
+          "explain": "doesn't + make."
+        },
+        {
+          "q": "They see the problem →",
+          "options": [
+            "They don't see the problem",
+            "They doesn't see",
+            "They don't sees",
+            "They no see"
+          ],
+          "answer": 0,
+          "explain": "don't + see."
+        },
+        {
+          "q": "She does it alone →",
+          "options": [
+            "She doesn't do it alone",
+            "She don't do it",
+            "She doesn't does it",
+            "She not do it"
+          ],
+          "answer": 0,
+          "explain": "doesn't + do."
+        },
+        {
+          "q": "¿He/She/It? → auxiliar de negación",
+          "options": [
+            "doesn't",
+            "don't",
+            "isn't",
+            "aren't"
+          ],
+          "answer": 0,
+          "explain": "3ª → doesn't."
+        }
       ]
     },
     {
       "id": "M009",
       "order": 9,
       "title": "Pasado simple + conjugaciones (Módulo 3 / Clase 007)",
-      "canonTrackIds": ["past"],
+      "canonTrackIds": [
+        "past"
+      ],
       "say": "CANON: config/canon/module-03-pasado-simple.txt (íntegro). Alivio: en pasado nadie cambia el verbo. Excepción BE: WAS (I/He/She/It) · WERE (You/We/They). 16 verbos. put/cut/let + ancla. Integra pronombres M1 + presente M2.",
       "bridge": "Pasado = todos iguales · was/were · ancla yesterday/last/ago · put/cut/let iguales · M1+M2+M3.",
       "checklist": [
@@ -203,31 +986,198 @@
         "Sin ED en irregulares",
         "Historia 2 min PR+PS"
       ],
-      "mini": { "questions": 8, "timerSec": 25, "passPct": 80 },
+      "mini": {
+        "questions": 8,
+        "timerSec": 25,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Go → pasado", "options": ["went", "goed", "goes", "gone"], "answer": 0, "explain": "go → went." },
-        { "q": "See → pasado", "options": ["saw", "seed", "seen", "sees"], "answer": 0, "explain": "see → saw." },
-        { "q": "Make → pasado", "options": ["made", "maked", "makes", "make"], "answer": 0, "explain": "make → made. No ED." },
-        { "q": "They + be (pasado) →", "options": ["They were", "They was", "They are", "They been"], "answer": 0, "explain": "They → WERE." },
-        { "q": "I + be (pasado) →", "options": ["I was", "I were", "I am", "I been"], "answer": 0, "explain": "I → WAS." },
-        { "q": "She goes → pasado", "options": ["She went", "She goes", "She goed", "She gone"], "answer": 0, "explain": "En pasado She no cambia." },
-        { "q": "He has → pasado", "options": ["He had", "He has", "He haved", "He have"], "answer": 0, "explain": "has → had para todos." },
-        { "q": "He does → pasado", "options": ["He did", "He does", "He doed", "He done"], "answer": 0, "explain": "does → did." },
-        { "q": "Put en pasado →", "options": ["put (+ ancla)", "putted", "puts", "puted"], "answer": 0, "explain": "put igual; ancla dice el tiempo." },
-        { "q": "She goed yesterday →", "options": ["She went yesterday", "She goed yesterday", "She goes yesterday", "She gone yesterday"], "answer": 0, "explain": "Irregular: went." },
-        { "q": "They was here →", "options": ["They were here", "They was here", "They are here", "They been here"], "answer": 0, "explain": "They → were." },
-        { "q": "I were at home →", "options": ["I was at home", "I were at home", "I am at home", "I been at home"], "answer": 0, "explain": "I → was." },
-        { "q": "Ella me mandó su reporte ayer →", "options": ["She sent me her report yesterday", "She send me her report yesterday", "She sent I her report yesterday", "She sended me her report yesterday"], "answer": 0, "explain": "sent + me + her + yesterday." },
-        { "q": "Give → pasado", "options": ["gave", "gived", "given", "gives"], "answer": 0, "explain": "give → gave." },
-        { "q": "Say → pasado", "options": ["said", "sayed", "says", "saying"], "answer": 0, "explain": "say → said." },
-        { "q": "Send → pasado", "options": ["sent", "sended", "sends", "sending"], "answer": 0, "explain": "send → sent. No ED." }
+        {
+          "q": "Go → pasado",
+          "options": [
+            "went",
+            "goed",
+            "goes",
+            "gone"
+          ],
+          "answer": 0,
+          "explain": "go → went."
+        },
+        {
+          "q": "See → pasado",
+          "options": [
+            "saw",
+            "seed",
+            "seen",
+            "sees"
+          ],
+          "answer": 0,
+          "explain": "see → saw."
+        },
+        {
+          "q": "Make → pasado",
+          "options": [
+            "made",
+            "maked",
+            "makes",
+            "make"
+          ],
+          "answer": 0,
+          "explain": "make → made. No ED."
+        },
+        {
+          "q": "They + be (pasado) →",
+          "options": [
+            "They were",
+            "They was",
+            "They are",
+            "They been"
+          ],
+          "answer": 0,
+          "explain": "They → WERE."
+        },
+        {
+          "q": "I + be (pasado) →",
+          "options": [
+            "I was",
+            "I were",
+            "I am",
+            "I been"
+          ],
+          "answer": 0,
+          "explain": "I → WAS."
+        },
+        {
+          "q": "She goes → pasado",
+          "options": [
+            "She went",
+            "She goes",
+            "She goed",
+            "She gone"
+          ],
+          "answer": 0,
+          "explain": "En pasado She no cambia."
+        },
+        {
+          "q": "He has → pasado",
+          "options": [
+            "He had",
+            "He has",
+            "He haved",
+            "He have"
+          ],
+          "answer": 0,
+          "explain": "has → had para todos."
+        },
+        {
+          "q": "He does → pasado",
+          "options": [
+            "He did",
+            "He does",
+            "He doed",
+            "He done"
+          ],
+          "answer": 0,
+          "explain": "does → did."
+        },
+        {
+          "q": "Put en pasado →",
+          "options": [
+            "put (+ ancla)",
+            "putted",
+            "puts",
+            "puted"
+          ],
+          "answer": 0,
+          "explain": "put igual; ancla dice el tiempo."
+        },
+        {
+          "q": "She goed yesterday →",
+          "options": [
+            "She went yesterday",
+            "She goed yesterday",
+            "She goes yesterday",
+            "She gone yesterday"
+          ],
+          "answer": 0,
+          "explain": "Irregular: went."
+        },
+        {
+          "q": "They was here →",
+          "options": [
+            "They were here",
+            "They was here",
+            "They are here",
+            "They been here"
+          ],
+          "answer": 0,
+          "explain": "They → were."
+        },
+        {
+          "q": "I were at home →",
+          "options": [
+            "I was at home",
+            "I were at home",
+            "I am at home",
+            "I been at home"
+          ],
+          "answer": 0,
+          "explain": "I → was."
+        },
+        {
+          "q": "Ella me mandó su reporte ayer →",
+          "options": [
+            "She sent me her report yesterday",
+            "She send me her report yesterday",
+            "She sent I her report yesterday",
+            "She sended me her report yesterday"
+          ],
+          "answer": 0,
+          "explain": "sent + me + her + yesterday."
+        },
+        {
+          "q": "Give → pasado",
+          "options": [
+            "gave",
+            "gived",
+            "given",
+            "gives"
+          ],
+          "answer": 0,
+          "explain": "give → gave."
+        },
+        {
+          "q": "Say → pasado",
+          "options": [
+            "said",
+            "sayed",
+            "says",
+            "saying"
+          ],
+          "answer": 0,
+          "explain": "say → said."
+        },
+        {
+          "q": "Send → pasado",
+          "options": [
+            "sent",
+            "sended",
+            "sends",
+            "sending"
+          ],
+          "answer": 0,
+          "explain": "send → sent. No ED."
+        }
       ]
     },
     {
       "id": "M010",
       "order": 10,
       "title": "Perfecto HAVE/HAS/HAD + BEEN+ING (Módulo 4 / Clase 008)",
-      "canonTrackIds": ["perfect", "combined"],
+      "canonTrackIds": [
+        "perfect",
+        "combined"
+      ],
       "say": "CANON: config/canon/module-04-perfecto.txt (íntegro). Español HABER+participio. HAVE/HAS+PP (afecta ahora). HAD+PP (antes de otro pasado). BEEN activa ING (sigue). Integra M1+M2+M3.",
       "bridge": "HAVE/HAS+PP · HAD+PP · HAVE/HAS+BEEN+ING · HAD+BEEN+ING · español primero.",
       "checklist": [
@@ -240,68 +1190,390 @@
         "Integra objeto/pos/reflexivo",
         "Historia 3 min 4 tiempos"
       ],
-      "mini": { "questions": 8, "timerSec": 28, "passPct": 80 },
+      "mini": {
+        "questions": 8,
+        "timerSec": 28,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Go → participio", "options": ["gone", "went", "goed", "going"], "answer": 0, "explain": "participio = gone." },
-        { "q": "See → participio", "options": ["seen", "saw", "seed", "seeing"], "answer": 0, "explain": "seen." },
-        { "q": "She / see (presente perfecto) →", "options": ["She has seen", "She have seen", "She seen", "She saw"], "answer": 0, "explain": "She → HAS + seen." },
-        { "q": "They / go (pasado perfecto) →", "options": ["They had gone", "They have gone", "They has gone", "They went"], "answer": 0, "explain": "HAD para todos." },
-        { "q": "I / have / work (sigue) →", "options": ["I have been working", "I have worked yesterday", "I am working for 3 years", "I had work"], "answer": 0, "explain": "sigue → BEEN+ING." },
-        { "q": "Fui al gym ayer →", "options": ["I went to the gym yesterday", "I have gone to the gym yesterday", "I have been to the gym yesterday", "I had gone yesterday"], "answer": 0, "explain": "ancla → pasado simple." },
-        { "q": "Alguna vez he ido a París →", "options": ["I have been to Paris", "I went to Paris yesterday", "I have went to Paris", "I had been to Paris yesterday"], "answer": 0, "explain": "sin cuándo → presente perfecto." },
-        { "q": "Cuando llegué ella ya se fue →", "options": ["When I arrived she had already left", "When I arrived she has left", "When I arrived she left already have", "When I arrive she had left"], "answer": 0, "explain": "primero = HAD." },
-        { "q": "He gone →", "options": ["I have gone / He has gone", "He gone", "I gone", "He have gone"], "answer": 0, "explain": "HAVE/HAS obligatorio." },
-        { "q": "They + be (presente perfecto) →", "options": ["They have been", "They has been", "They had been yesterday", "They are been"], "answer": 0, "explain": "They → HAVE." },
-        { "q": "Ella me ha mandado el reporte →", "options": ["She has sent me the report", "She have sent me the report", "She has send me the report", "She sent me the report have"], "answer": 0, "explain": "HAS + sent + me." },
-        { "q": "Give → participio", "options": ["given", "gave", "gived", "giving"], "answer": 0, "explain": "given." },
-        { "q": "She had been studying before the exam →", "options": ["pasado perfecto continuo", "presente perfecto", "pasado simple", "presente continuo"], "answer": 0, "explain": "HAD+BEEN+ING." },
-        { "q": "He has had → significado", "options": ["él ha tenido", "él tenía ayer", "él tiene ahora sin haber", "él había tenido"], "answer": 0, "explain": "HAVE+had = he tenido." },
-        { "q": "BEEN sin ING (acción sigue) →", "options": ["incompleto — falta ING", "correcto siempre", "es pasado simple", "es HAS"], "answer": 0, "explain": "BEEN activa ING." },
-        { "q": "Take → participio", "options": ["taken", "took", "taked", "taking"], "answer": 0, "explain": "taken." }
+        {
+          "q": "Go → participio",
+          "options": [
+            "gone",
+            "went",
+            "goed",
+            "going"
+          ],
+          "answer": 0,
+          "explain": "participio = gone."
+        },
+        {
+          "q": "See → participio",
+          "options": [
+            "seen",
+            "saw",
+            "seed",
+            "seeing"
+          ],
+          "answer": 0,
+          "explain": "seen."
+        },
+        {
+          "q": "She / see (presente perfecto) →",
+          "options": [
+            "She has seen",
+            "She have seen",
+            "She seen",
+            "She saw"
+          ],
+          "answer": 0,
+          "explain": "She → HAS + seen."
+        },
+        {
+          "q": "They / go (pasado perfecto) →",
+          "options": [
+            "They had gone",
+            "They have gone",
+            "They has gone",
+            "They went"
+          ],
+          "answer": 0,
+          "explain": "HAD para todos."
+        },
+        {
+          "q": "I / have / work (sigue) →",
+          "options": [
+            "I have been working",
+            "I have worked yesterday",
+            "I am working for 3 years",
+            "I had work"
+          ],
+          "answer": 0,
+          "explain": "sigue → BEEN+ING."
+        },
+        {
+          "q": "Fui al gym ayer →",
+          "options": [
+            "I went to the gym yesterday",
+            "I have gone to the gym yesterday",
+            "I have been to the gym yesterday",
+            "I had gone yesterday"
+          ],
+          "answer": 0,
+          "explain": "ancla → pasado simple."
+        },
+        {
+          "q": "Alguna vez he ido a París →",
+          "options": [
+            "I have been to Paris",
+            "I went to Paris yesterday",
+            "I have went to Paris",
+            "I had been to Paris yesterday"
+          ],
+          "answer": 0,
+          "explain": "sin cuándo → presente perfecto."
+        },
+        {
+          "q": "Cuando llegué ella ya se fue →",
+          "options": [
+            "When I arrived she had already left",
+            "When I arrived she has left",
+            "When I arrived she left already have",
+            "When I arrive she had left"
+          ],
+          "answer": 0,
+          "explain": "primero = HAD."
+        },
+        {
+          "q": "He gone →",
+          "options": [
+            "I have gone / He has gone",
+            "He gone",
+            "I gone",
+            "He have gone"
+          ],
+          "answer": 0,
+          "explain": "HAVE/HAS obligatorio."
+        },
+        {
+          "q": "They + be (presente perfecto) →",
+          "options": [
+            "They have been",
+            "They has been",
+            "They had been yesterday",
+            "They are been"
+          ],
+          "answer": 0,
+          "explain": "They → HAVE."
+        },
+        {
+          "q": "Ella me ha mandado el reporte →",
+          "options": [
+            "She has sent me the report",
+            "She have sent me the report",
+            "She has send me the report",
+            "She sent me the report have"
+          ],
+          "answer": 0,
+          "explain": "HAS + sent + me."
+        },
+        {
+          "q": "Give → participio",
+          "options": [
+            "given",
+            "gave",
+            "gived",
+            "giving"
+          ],
+          "answer": 0,
+          "explain": "given."
+        },
+        {
+          "q": "She had been studying before the exam →",
+          "options": [
+            "pasado perfecto continuo",
+            "presente perfecto",
+            "pasado simple",
+            "presente continuo"
+          ],
+          "answer": 0,
+          "explain": "HAD+BEEN+ING."
+        },
+        {
+          "q": "He has had → significado",
+          "options": [
+            "él ha tenido",
+            "él tenía ayer",
+            "él tiene ahora sin haber",
+            "él había tenido"
+          ],
+          "answer": 0,
+          "explain": "HAVE+had = he tenido."
+        },
+        {
+          "q": "BEEN sin ING (acción sigue) →",
+          "options": [
+            "incompleto — falta ING",
+            "correcto siempre",
+            "es pasado simple",
+            "es HAS"
+          ],
+          "answer": 0,
+          "explain": "BEEN activa ING."
+        },
+        {
+          "q": "Take → participio",
+          "options": [
+            "taken",
+            "took",
+            "taked",
+            "taking"
+          ],
+          "answer": 0,
+          "explain": "taken."
+        }
       ]
     },
     {
       "id": "M011",
       "order": 11,
       "title": "BEEN + ING (refuerzo Módulo 4)",
-      "canonTrackIds": ["combined", "perfect"],
+      "canonTrackIds": [
+        "combined",
+        "perfect"
+      ],
       "say": "CANON: misma clase module-04-perfecto. BEEN activa ING. ¿La acción sigue? → HAVE/HAS/HAD + BEEN + VERBO-ING. Si terminó → HAVE/HAS + PARTICIPIO.",
       "bridge": "BEEN → ING · he/había estado + ando/endo.",
-      "checklist": ["distingue PP vs BEEN+ING", "has been + ING", "had been + ING", "pregunta ancla ¿sigue?"],
-      "mini": { "questions": 5, "timerSec": 30, "passPct": 80 },
+      "checklist": [
+        "distingue PP vs BEEN+ING",
+        "has been + ING",
+        "had been + ING",
+        "pregunta ancla ¿sigue?"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 30,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "Empecé hace 3 años y sigo →", "options": ["I have been working here for 3 years", "I have worked here yesterday", "I am working here for 3 years", "I worked here for 3 years and stop"], "answer": 0, "explain": "sigue → BEEN+ING." },
-        { "q": "Ella sigue estudiando →", "options": ["She has been studying English", "She has studied English yesterday", "She is been studying", "She have been study"], "answer": 0, "explain": "has been + studying." },
-        { "q": "Ellos esperan desde hace una hora →", "options": ["They have been waiting for an hour", "They have waited yesterday", "They are waiting for an hour ago", "They been waiting"], "answer": 0, "explain": "have been + waiting." },
-        { "q": "Él no ha estado durmiendo bien →", "options": ["He hasn't been sleeping well", "He hasn't sleeping", "He don't been sleeping", "He hasn't been sleep"], "answer": 0, "explain": "hasn't been + ING." },
-        { "q": "Había estado trabajando cuando cancelaron →", "options": ["He had been working on that project when they cancelled it", "He has been working when they cancel", "He was working had", "He had working"], "answer": 0, "explain": "HAD+BEEN+ING." },
-        { "q": "BEEN activa →", "options": ["ING (ando/endo)", "ED", "S", "TO"], "answer": 0, "explain": "BEEN → ING." }
+        {
+          "q": "Empecé hace 3 años y sigo →",
+          "options": [
+            "I have been working here for 3 years",
+            "I have worked here yesterday",
+            "I am working here for 3 years",
+            "I worked here for 3 years and stop"
+          ],
+          "answer": 0,
+          "explain": "sigue → BEEN+ING."
+        },
+        {
+          "q": "Ella sigue estudiando →",
+          "options": [
+            "She has been studying English",
+            "She has studied English yesterday",
+            "She is been studying",
+            "She have been study"
+          ],
+          "answer": 0,
+          "explain": "has been + studying."
+        },
+        {
+          "q": "Ellos esperan desde hace una hora →",
+          "options": [
+            "They have been waiting for an hour",
+            "They have waited yesterday",
+            "They are waiting for an hour ago",
+            "They been waiting"
+          ],
+          "answer": 0,
+          "explain": "have been + waiting."
+        },
+        {
+          "q": "Él no ha estado durmiendo bien →",
+          "options": [
+            "He hasn't been sleeping well",
+            "He hasn't sleeping",
+            "He don't been sleeping",
+            "He hasn't been sleep"
+          ],
+          "answer": 0,
+          "explain": "hasn't been + ING."
+        },
+        {
+          "q": "Había estado trabajando cuando cancelaron →",
+          "options": [
+            "He had been working on that project when they cancelled it",
+            "He has been working when they cancel",
+            "He was working had",
+            "He had working"
+          ],
+          "answer": 0,
+          "explain": "HAD+BEEN+ING."
+        },
+        {
+          "q": "BEEN activa →",
+          "options": [
+            "ING (ando/endo)",
+            "ED",
+            "S",
+            "TO"
+          ],
+          "answer": 0,
+          "explain": "BEEN → ING."
+        }
       ]
     },
     {
       "id": "M012",
       "order": 12,
       "title": "Integración — historia 2 minutos",
-      "canonTrackIds": ["overview"],
+      "canonTrackIds": [
+        "overview"
+      ],
       "say": "Gate de dominio: contá algo real (rutina o hecho). Mínimo 6 pronombres, 8 de los 16 verbos, A/AN + THE, 2 prep, 1 negación, 1 HAVE+PP, ancla temporal clara. Jill no interrumpe. Al final: ¿cambiaste el verbo con He/She? ¿A/AN? ¿dónde está el perfecto? ¿el BEEN+ING sigue ahora?",
       "bridge": "Integrá todo el bloque. Mini Kaboom = mixed; historia = oral con Jill.",
-      "checklist": ["6+ pronombres", "8+ verbos", "artículos+prep+negación+PP", "ancla temporal", "sin mezclar tiempos"],
-      "mini": { "questions": 5, "timerSec": 40, "passPct": 80 },
+      "checklist": [
+        "6+ pronombres",
+        "8+ verbos",
+        "artículos+prep+negación+PP",
+        "ancla temporal",
+        "sin mezclar tiempos"
+      ],
+      "mini": {
+        "questions": 5,
+        "timerSec": 40,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "He/She/It en presente → el verbo…", "options": ["lleva S / DOES / HAS", "no cambia nunca", "siempre past", "usa to be siempre"], "answer": 0, "explain": "3ª persona marca." },
-        { "q": "Pasado simple → He/She…", "options": ["misma forma que I", "llevan S", "usan does", "usan have"], "answer": 0, "explain": "pasado = todos iguales." },
-        { "q": "Negación: She goes →", "options": ["She doesn't go", "She don't goes", "She doesn't goes", "She no go"], "answer": 0, "explain": "doesn't + base." },
-        { "q": "___ hour (artículo)", "options": ["An", "A", "The only", "—"], "answer": 0, "explain": "an hour." },
-        { "q": "Sigue pasando ahora →", "options": ["have been + ING", "have + PP", "went", "will go"], "answer": 0, "explain": "BEEN+ING." },
-        { "q": "I go ___ work", "options": ["to", "in", "on", "at"], "answer": 0, "explain": "to work." },
-        { "q": "Ustedes en inglés →", "options": ["You", "They", "We", "Them"], "answer": 0, "explain": "You." }
+        {
+          "q": "He/She/It en presente → el verbo…",
+          "options": [
+            "lleva S / DOES / HAS",
+            "no cambia nunca",
+            "siempre past",
+            "usa to be siempre"
+          ],
+          "answer": 0,
+          "explain": "3ª persona marca."
+        },
+        {
+          "q": "Pasado simple → He/She…",
+          "options": [
+            "misma forma que I",
+            "llevan S",
+            "usan does",
+            "usan have"
+          ],
+          "answer": 0,
+          "explain": "pasado = todos iguales."
+        },
+        {
+          "q": "Negación: She goes →",
+          "options": [
+            "She doesn't go",
+            "She don't goes",
+            "She doesn't goes",
+            "She no go"
+          ],
+          "answer": 0,
+          "explain": "doesn't + base."
+        },
+        {
+          "q": "___ hour (artículo)",
+          "options": [
+            "An",
+            "A",
+            "The only",
+            "—"
+          ],
+          "answer": 0,
+          "explain": "an hour."
+        },
+        {
+          "q": "Sigue pasando ahora →",
+          "options": [
+            "have been + ING",
+            "have + PP",
+            "went",
+            "will go"
+          ],
+          "answer": 0,
+          "explain": "BEEN+ING."
+        },
+        {
+          "q": "I go ___ work",
+          "options": [
+            "to",
+            "in",
+            "on",
+            "at"
+          ],
+          "answer": 0,
+          "explain": "to work."
+        },
+        {
+          "q": "Ustedes en inglés →",
+          "options": [
+            "You",
+            "They",
+            "We",
+            "Them"
+          ],
+          "answer": 0,
+          "explain": "You."
+        }
       ]
     },
     {
       "id": "M013",
       "order": 13,
       "title": "Clase 009 — Gerundio (Módulo 5)",
-      "canonTrackIds": ["gerundio", "progressive", "gerund_prep"],
+      "canonTrackIds": [
+        "gerundio",
+        "progressive",
+        "gerund_prep"
+      ],
       "say": "CANON: config/canon/module-05-gerundio.txt (íntegro). TO BE es la llave; ING es la puerta. TO apunta como flecha hacia intención o propósito; ING convierte la actividad en concepto. Después de preposición, siempre ING.",
       "bridge": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING.",
       "checklist": [
@@ -317,24 +1589,396 @@
         "Detecta y corrige errores sin ayuda",
         "Sostiene historia de 3 minutos con TO, ING y pronombres"
       ],
-      "mini": { "questions": 8, "timerSec": 28, "passPct": 80 },
+      "mini": {
+        "questions": 8,
+        "timerSec": 28,
+        "passPct": 80
+      },
       "kaboomBank": [
-        { "q": "She ___ working now.", "options": ["is", "—", "to", "has"], "answer": 0, "explain": "El continuo necesita la llave TO BE." },
-        { "q": "I ___ walking — ¿qué falta?", "options": ["am", "to", "enjoy", "at"], "answer": 0, "explain": "I am walking: TO BE activa el ING." },
-        { "q": "I enjoy ___ with my team.", "options": ["working", "to work", "work", "worked"], "answer": 0, "explain": "Enjoy pide ING." },
-        { "q": "I want ___ in that company.", "options": ["to work", "working", "work at", "worked"], "answer": 0, "explain": "Want apunta a intención: TO." },
-        { "q": "She is good at ___ English.", "options": ["speaking", "to speak", "speak", "spoke"], "answer": 0, "explain": "Después de preposición, siempre ING." },
-        { "q": "I am interested in ___.", "options": ["learning", "to learn", "learn", "learned"], "answer": 0, "explain": "In es preposición: ING." },
-        { "q": "Me detuve para comer.", "options": ["I stopped to eat", "I stopped eating", "I stop eat", "I stopped to eating"], "answer": 0, "explain": "STOP + TO inicia otra acción." },
-        { "q": "Dejé de comer.", "options": ["I stopped eating", "I stopped to eat", "I stopped eat", "I stop to eating"], "answer": 0, "explain": "STOP + ING termina la actividad." },
-        { "q": "Acordate de llamarla.", "options": ["Remember to call her", "Remember calling her", "Remember call her", "Remember to calling her"], "answer": 0, "explain": "REMEMBER + TO apunta al futuro." },
-        { "q": "Recuerdo haberla llamado.", "options": ["I remember calling her", "I remember to call her", "I remember call her", "I remembered to calling"], "answer": 0, "explain": "REMEMBER + ING recuerda el pasado." },
-        { "q": "Live + ING →", "options": ["living", "liveing", "livving", "lived"], "answer": 0, "explain": "Se elimina la E muda." },
-        { "q": "Run + ING →", "options": ["running", "runing", "runingg", "runned"], "answer": 0, "explain": "Duplica N + ING." },
-        { "q": "Die + ING →", "options": ["dying", "dieing", "diing", "died"], "answer": 0, "explain": "IE cambia a Y + ING." },
-        { "q": "They / pasado / eat →", "options": ["They were eating", "They was eating", "They eating", "They were eat"], "answer": 0, "explain": "Pasado continuo: were + eating." },
-        { "q": "She / presente perfecto continuo / study →", "options": ["She has been studying", "She has studying", "She is been studying", "She had study"], "answer": 0, "explain": "BEEN también activa ING." },
-        { "q": "We talked about ___.", "options": ["going", "to go", "go", "went"], "answer": 0, "explain": "About es preposición: ING." }
+        {
+          "q": "She ___ working now.",
+          "options": [
+            "is",
+            "—",
+            "to",
+            "has"
+          ],
+          "answer": 0,
+          "explain": "El continuo necesita la llave TO BE."
+        },
+        {
+          "q": "I ___ walking — ¿qué falta?",
+          "options": [
+            "am",
+            "to",
+            "enjoy",
+            "at"
+          ],
+          "answer": 0,
+          "explain": "I am walking: TO BE activa el ING."
+        },
+        {
+          "q": "I enjoy ___ with my team.",
+          "options": [
+            "working",
+            "to work",
+            "work",
+            "worked"
+          ],
+          "answer": 0,
+          "explain": "Enjoy pide ING."
+        },
+        {
+          "q": "I want ___ in that company.",
+          "options": [
+            "to work",
+            "working",
+            "work at",
+            "worked"
+          ],
+          "answer": 0,
+          "explain": "Want apunta a intención: TO."
+        },
+        {
+          "q": "She is good at ___ English.",
+          "options": [
+            "speaking",
+            "to speak",
+            "speak",
+            "spoke"
+          ],
+          "answer": 0,
+          "explain": "Después de preposición, siempre ING."
+        },
+        {
+          "q": "I am interested in ___.",
+          "options": [
+            "learning",
+            "to learn",
+            "learn",
+            "learned"
+          ],
+          "answer": 0,
+          "explain": "In es preposición: ING."
+        },
+        {
+          "q": "Me detuve para comer.",
+          "options": [
+            "I stopped to eat",
+            "I stopped eating",
+            "I stop eat",
+            "I stopped to eating"
+          ],
+          "answer": 0,
+          "explain": "STOP + TO inicia otra acción."
+        },
+        {
+          "q": "Dejé de comer.",
+          "options": [
+            "I stopped eating",
+            "I stopped to eat",
+            "I stopped eat",
+            "I stop to eating"
+          ],
+          "answer": 0,
+          "explain": "STOP + ING termina la actividad."
+        },
+        {
+          "q": "Acordate de llamarla.",
+          "options": [
+            "Remember to call her",
+            "Remember calling her",
+            "Remember call her",
+            "Remember to calling her"
+          ],
+          "answer": 0,
+          "explain": "REMEMBER + TO apunta al futuro."
+        },
+        {
+          "q": "Recuerdo haberla llamado.",
+          "options": [
+            "I remember calling her",
+            "I remember to call her",
+            "I remember call her",
+            "I remembered to calling"
+          ],
+          "answer": 0,
+          "explain": "REMEMBER + ING recuerda el pasado."
+        },
+        {
+          "q": "Live + ING →",
+          "options": [
+            "living",
+            "liveing",
+            "livving",
+            "lived"
+          ],
+          "answer": 0,
+          "explain": "Se elimina la E muda."
+        },
+        {
+          "q": "Run + ING →",
+          "options": [
+            "running",
+            "runing",
+            "runingg",
+            "runned"
+          ],
+          "answer": 0,
+          "explain": "Duplica N + ING."
+        },
+        {
+          "q": "Die + ING →",
+          "options": [
+            "dying",
+            "dieing",
+            "diing",
+            "died"
+          ],
+          "answer": 0,
+          "explain": "IE cambia a Y + ING."
+        },
+        {
+          "q": "They / pasado / eat →",
+          "options": [
+            "They were eating",
+            "They was eating",
+            "They eating",
+            "They were eat"
+          ],
+          "answer": 0,
+          "explain": "Pasado continuo: were + eating."
+        },
+        {
+          "q": "She / presente perfecto continuo / study →",
+          "options": [
+            "She has been studying",
+            "She has studying",
+            "She is been studying",
+            "She had study"
+          ],
+          "answer": 0,
+          "explain": "BEEN también activa ING."
+        },
+        {
+          "q": "We talked about ___.",
+          "options": [
+            "going",
+            "to go",
+            "go",
+            "went"
+          ],
+          "answer": 0,
+          "explain": "About es preposición: ING."
+        }
+      ]
+    },
+    {
+      "id": "M014",
+      "order": 14,
+      "title": "Clase 010 — WILL / WOULD (Módulo 6)",
+      "canonTrackIds": [
+        "modales",
+        "future",
+        "future_perfect"
+      ],
+      "say": "CANON: config/canon/module-06-will-would.txt (íntegro). WILL=RÉ para futuro real; WOULD=RÍA para lo hipotético. Modal + verbo base sin TO. Futuro perfecto: WILL + HAVE + PARTICIPIO; BY marca el momento límite.",
+      "bridge": "WILL=RÉ · WOULD=RÍA · modal+verbo sin TO · WILL+HAVE+PP · BY.",
+      "checklist": [
+        "Identifica RÉ y RÍA antes de construir",
+        "Convierte RÉ a WILL y RÍA a WOULD automáticamente",
+        "Usa WILL y WOULD con todos los pronombres sin cambiar el verbo",
+        "Distingue futuro real de situación hipotética",
+        "Usa WON'T y WOULDN'T y las contracciones positivas",
+        "Usa can, could, should, must, may y might",
+        "Construye WILL + HAVE + PARTICIPIO",
+        "Usa BY para el momento límite",
+        "Integra pronombres y tiempos anteriores",
+        "Detecta y corrige errores de modales",
+        "Sostiene una historia con WILL, WOULD y futuro perfecto"
+      ],
+      "mini": {
+        "questions": 8,
+        "timerSec": 28,
+        "passPct": 80
+      },
+      "kaboomBank": [
+        {
+          "q": "La terminación RÉ se convierte en…",
+          "options": [
+            "will",
+            "would",
+            "should",
+            "did"
+          ],
+          "answer": 0,
+          "explain": "RÉ → WILL."
+        },
+        {
+          "q": "La terminación RÍA se convierte en…",
+          "options": [
+            "would",
+            "will",
+            "can",
+            "has"
+          ],
+          "answer": 0,
+          "explain": "RÍA → WOULD."
+        },
+        {
+          "q": "Mañana iré al trabajo →",
+          "options": [
+            "I will go to work tomorrow",
+            "I would go to work tomorrow",
+            "I will to go tomorrow",
+            "I wills go tomorrow"
+          ],
+          "answer": 0,
+          "explain": "Futuro real: WILL + base."
+        },
+        {
+          "q": "Iría si pudiera →",
+          "options": [
+            "I would go if I could",
+            "I will go if I could",
+            "I would went if I could",
+            "I would to go"
+          ],
+          "answer": 0,
+          "explain": "Hipotético: WOULD + base."
+        },
+        {
+          "q": "Negación de I will go →",
+          "options": [
+            "I won't go",
+            "I willn't go",
+            "I won't to go",
+            "I no will go"
+          ],
+          "answer": 0,
+          "explain": "WILL NOT → WON'T."
+        },
+        {
+          "q": "Negación de She would come →",
+          "options": [
+            "She wouldn't come",
+            "She won't came",
+            "She would no come",
+            "She wouldn't to come"
+          ],
+          "answer": 0,
+          "explain": "WOULD NOT → WOULDN'T."
+        },
+        {
+          "q": "Capacidad actual: Yo puedo correr →",
+          "options": [
+            "I can run",
+            "I should run",
+            "I must run",
+            "I can to run"
+          ],
+          "answer": 0,
+          "explain": "CAN = capacidad actual."
+        },
+        {
+          "q": "Recomendación: Deberías estudiar →",
+          "options": [
+            "You should study",
+            "You must studied",
+            "You should to study",
+            "You can study"
+          ],
+          "answer": 0,
+          "explain": "SHOULD + verbo base."
+        },
+        {
+          "q": "Obligación fuerte: Tengo que ir →",
+          "options": [
+            "I must go",
+            "I may go",
+            "I would go",
+            "I must to go"
+          ],
+          "answer": 0,
+          "explain": "MUST + verbo base."
+        },
+        {
+          "q": "Después de un modal, el verbo lleva…",
+          "options": [
+            "forma base sin TO",
+            "TO siempre",
+            "pasado",
+            "S con He/She/It"
+          ],
+          "answer": 0,
+          "explain": "Modal + verbo directo, sin TO."
+        },
+        {
+          "q": "¿Cuál es correcta?",
+          "options": [
+            "She will go",
+            "She wills go",
+            "She will goes",
+            "She will to go"
+          ],
+          "answer": 0,
+          "explain": "No hay wills ni cambio del verbo."
+        },
+        {
+          "q": "Futuro perfecto →",
+          "options": [
+            "will + have + participio",
+            "will + had + pasado",
+            "would + have + ING",
+            "will + has + participio"
+          ],
+          "answer": 0,
+          "explain": "WILL + HAVE + PP."
+        },
+        {
+          "q": "Para el lunes →",
+          "options": [
+            "by Monday",
+            "in Monday",
+            "at Monday",
+            "for Monday ago"
+          ],
+          "answer": 0,
+          "explain": "BY introduce el momento límite."
+        },
+        {
+          "q": "She will have ___ by Monday.",
+          "options": [
+            "gone",
+            "went",
+            "go",
+            "going"
+          ],
+          "answer": 0,
+          "explain": "Después de HAVE va el participio: gone."
+        },
+        {
+          "q": "¿Cuál evita dos modales juntos?",
+          "options": [
+            "I will be able to go",
+            "I will can go",
+            "I would should go",
+            "I will must go"
+          ],
+          "answer": 0,
+          "explain": "No se apilan modales; use be able to."
+        },
+        {
+          "q": "¿Va a pasar de verdad o es hipotético?",
+          "options": [
+            "WILL para real; WOULD para hipotético",
+            "WOULD para real; WILL para hipotético",
+            "Siempre WILL",
+            "Siempre WOULD"
+          ],
+          "answer": 0,
+          "explain": "La pregunta guía de Clase 010."
+        }
       ]
     }
   ]

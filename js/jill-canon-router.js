@@ -69,15 +69,16 @@
       },
       {
         "id": "future_perfect",
-        "svg": "assets/canon/tiempos-prp.svg",
-        "title": "Futuro perfecto · will have + participio",
-        "formula": "pronombre + will + have + PARTICIPIO + complemento",
-        "example": "I will have finished by Friday.",
+        "svg": "assets/canon/will-would.svg",
+        "title": "Clase 010 — WILL + HAVE + PP y BY",
+        "formula": "BY + momento futuro + pronombre + will + have + PARTICIPIO",
+        "example": "By Monday, I will have finished the report.",
         "never": [
           "futuro simple will + base sin have",
-          "should have / could have (eso es modal + have)",
-          "presente perfecto sin will",
-          "pasado perfecto had"
+          "should have / could have / would have (eso pertenece a modal_have_pp)",
+          "will have + pasado en vez de participio",
+          "olvidar BY como momento límite",
+          "cortar o reescribir el guion canon module-06"
         ],
         "aliases": [
           "futuro perfecto",
@@ -94,7 +95,7 @@
           "quiero el futuro perfecto",
           "will have + participle"
         ],
-        "bridge": "Puente: will have + participio = habrá / habré + participio (acción terminada antes de un punto futuro). I will have finished = yo habré terminado. NO es should have."
+        "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ, WOULD=RÍA y modal + verbo sin TO. Futuro perfecto = WILL + HAVE + PARTICIPIO; BY introduce el momento límite. I will have gone, nunca will have went."
       },
       {
         "id": "combined",
@@ -244,7 +245,7 @@
         "formula": "TO BE + VERBO-ING = continuo | TO + VERBO = dirección/intención | VERBO-ING = concepto | preposición + VERBO-ING",
         "example": "I am working. / I want to work. / I enjoy working. / I am interested in learning.",
         "never": [
-          "presente continuo (am/is/are + ing)",
+          "presente continuo sin contrastar",
           "IN ON AT lugar",
           "cortar o reescribir el guion canon module-05"
         ],
@@ -260,6 +261,14 @@
           "gerund",
           "el gerund",
           "que es gerundio",
+          "ando endo",
+          "ando/endo",
+          "get it straight",
+          "get it straight ing",
+          "off the clock",
+          "i like watching",
+          "i like to watch",
+          "abuso del infinitivo",
           "modulo 5",
           "módulo 5",
           "clase 009",
@@ -318,13 +327,9 @@
           "preposiciones de tiempo",
           "preposicion de tiempo",
           "prep tiempo",
-          "in the morning",
-          "in the afternoon",
-          "on monday",
-          "on friday",
-          "at 5",
-          "in march",
-          "preposiciones tiempo"
+          "preposiciones tiempo",
+          "explicame preposiciones de tiempo",
+          "prep de tiempo in on at"
         ],
         "bridge": "Puente: IN = mes/año/parte del día; ON = día/fecha; AT = hora puntual."
       },
@@ -345,24 +350,16 @@
           "preposiciones",
           "preposicion",
           "prepositions",
-          "prep",
+          "prep lugar",
+          "preposiciones de lugar",
           "in on at",
           "in on y at",
           "in, on, at",
           "in/on/at",
           "in on at by",
-          "at in on",
-          "on at in",
-          "by car",
-          "by bus",
-          "in the box",
-          "on the table",
-          "at the office",
-          "at home",
           "explicame in on at",
           "corregime in on at",
-          "in on",
-          "on at"
+          "explicame preposiciones"
         ],
         "bridge": "Puente: IN = dentro; ON = encima; AT = punto; BY = medio — van en el complemento."
       },
@@ -454,6 +451,7 @@
           "have been + ing",
           "pasado simple",
           "IN ON AT",
+          "gerundio sin to be",
           "cortar o reescribir el guion canon module-05"
         ],
         "aliases": [
@@ -468,6 +466,10 @@
           "continuo",
           "el continuo",
           "ing continuo",
+          "estar + ando",
+          "estar + endo",
+          "estoy trabajando",
+          "ando endo continuo",
           "modulo 5",
           "módulo 5",
           "clase 009",
@@ -603,15 +605,16 @@
       },
       {
         "id": "modales",
-        "svg": "assets/canon/modales.svg",
-        "title": "Pronombre + Modal + Verbo",
-        "formula": "pronombre + modal + verbo(base, sin to) + complemento",
-        "example": "I can work. / She should study.",
+        "svg": "assets/canon/will-would.svg",
+        "title": "Clase 010 — WILL / WOULD y modales (Módulo 6)",
+        "formula": "pronombre + modal + verbo base (sin TO) + complemento",
+        "example": "I will go. / I would go. / She should study.",
         "never": [
           "metodo moneda",
           "inversion",
-          "have + participio",
-          "gerundio"
+          "confundir would have / should have con este track",
+          "modal + TO",
+          "cortar o reescribir el guion canon module-06"
         ],
         "aliases": [
           "modales",
@@ -636,9 +639,16 @@
           "como funciona will",
           "como funciona would",
           "explicame will",
-          "explicame would"
+          "explicame would",
+          "modulo 6",
+          "módulo 6",
+          "clase 010",
+          "clase 10",
+          "el ré",
+          "el ría",
+          "ré y ría"
         ],
-        "bridge": "Puente: will=-ré; would=-ría; should=debería; can=puedo; could=podría — modal + verbo base (sin to)."
+        "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ (va a pasar de verdad); WOULD=RÍA (hipotético). Todos los modales van con verbo base sin TO. El sistema culmina en WILL + HAVE + PARTICIPIO, con BY como momento límite."
       },
       {
         "id": "modal",
@@ -666,14 +676,15 @@
       },
       {
         "id": "future",
-        "svg": "assets/canon/tiempos-fut.svg",
-        "title": "Futuro will / going to",
-        "formula": "pronombre + will + verbo + complemento | pronombre + be + going to + verbo + complemento",
-        "example": "I will call you tomorrow. / I am going to study.",
+        "svg": "assets/canon/will-would.svg",
+        "title": "Clase 010 — WILL = RÉ (futuro real)",
+        "formula": "pronombre + will + verbo base (sin TO) + complemento",
+        "example": "I will call you tomorrow. / She will work on Monday.",
         "never": [
-          "futuro perfecto (will have + participio — otro módulo)",
-          "modales should",
-          "pasado simple"
+          "convertir going to en el foco principal de la clase",
+          "usar wills o will + TO",
+          "mezclar would have / should have",
+          "cortar o reescribir el guion canon module-06"
         ],
         "aliases": [
           "futuro simple",
@@ -686,9 +697,43 @@
           "be going to",
           "explicame el futuro simple",
           "futuro will",
-          "will y going to"
+          "will y going to",
+          "el ré"
         ],
-        "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención). Si piden futuro PERFECTO → will have + participio (otro track)."
+        "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ cuando va a pasar de verdad; WOULD=RÍA cuando es hipotético. Modal + verbo base sin TO. Going to puede nombrarse como plan, pero el foco es WILL/WOULD. Con WILL + HAVE + PARTICIPIO y BY se forma el futuro perfecto."
+      },
+      {
+        "id": "pronouns",
+        "svg": "assets/canon/pronombres.svg",
+        "title": "Los 5 tipos de pronombres",
+        "formula": "Sujeto | Objeto | Posesivo Adj | Posesivo Pron | Reflexivo",
+        "example": "She / Her / Her / Hers / Herself — We / Us / Our / Ours / Ourselves",
+        "never": [
+          "enseñar solo I/you/he sin los 5 tipos",
+          "mezclar con tiempos verbales en esta lección",
+          "cortar o reescribir el guion canon module-01"
+        ],
+        "aliases": [
+          "pronombres",
+          "los pronombres",
+          "5 tipos de pronombres",
+          "cinco tipos de pronombres",
+          "los 5 tipos",
+          "módulo 1",
+          "modulo 1",
+          "modulo 1 pronombres",
+          "pronouns",
+          "subject pronouns",
+          "object pronouns",
+          "posesivo adjetivo",
+          "posesivo pronominal",
+          "reflexivos",
+          "myself yourself himself",
+          "mine yours hers",
+          "explicame los pronombres",
+          "enseñame los pronombres"
+        ],
+        "bridge": "Puente: 5 tipos — sujeto hace la acción; objeto recibe; pos.adj acompaña; pos.pron reemplaza; reflexivo vuelve al sujeto. Misma lógica ES↔EN."
       },
       {
         "id": "overview",
@@ -715,7 +760,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711m05';
+  var CACHE_VER = '20260711m06';
   var VOICE_PACK = {
     tracks: {
       gerundio: {

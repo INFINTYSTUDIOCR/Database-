@@ -60,7 +60,10 @@ function loadModuleCanonTranscript(trackId) {
     combined: 'module-04-perfecto.txt',
     gerundio: 'module-05-gerundio.txt',
     progressive: 'module-05-gerundio.txt',
-    gerund_prep: 'module-05-gerundio.txt'
+    gerund_prep: 'module-05-gerundio.txt',
+    modales: 'module-06-will-would.txt',
+    future: 'module-06-will-would.txt',
+    future_perfect: 'module-06-will-would.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;

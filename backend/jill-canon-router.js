@@ -216,7 +216,10 @@ function loadModuleCanonTranscript(trackId) {
     combined: 'module-04-perfecto.txt',
     gerundio: 'module-05-gerundio.txt',
     progressive: 'module-05-gerundio.txt',
-    gerund_prep: 'module-05-gerundio.txt'
+    gerund_prep: 'module-05-gerundio.txt',
+    modales: 'module-06-will-would.txt',
+    future: 'module-06-will-would.txt',
+    future_perfect: 'module-06-will-would.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -236,6 +239,13 @@ function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
     const id = String(trackId || '').trim();
+    if (id === 'modales' || id === 'future' || id === 'future_perfect') {
+      return {
+        say: fromFile,
+        mustSay: ['will', 'would', 'ré', 'ría', 'by'],
+        exampleAsk: 'Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA.'
+      };
+    }
     if (id === 'gerundio' || id === 'progressive' || id === 'gerund_prep') {
       return {
         say: fromFile,
@@ -322,12 +332,19 @@ function formatLock(track) {
       'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     future: [
-      'ANTIMEZCLA: futuro will/going to.',
-      'RELEVANCIA OBLIGATORIA: SOLO futuro. PROHIBIDO tablero/explicación de preposiciones in/on/at aunque el ejemplo diga "in the morning". Eso es complemento del ejemplo — NO es la lección.'
+      'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
+      'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+    ],
+    future_perfect: [
+      'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
+      'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     modales: [
-      'ANTIMEZCLA: modales — will=-ré; would=-ría; etc.',
-      'RELEVANCIA: SOLO el modal pedido. PROHIBIDO saltar a preposiciones u otro módulo por una palabra incidental en el ejemplo.'
+      'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
+      'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     modal: ['ANTIMEZCLA: moneda — AUX delante = pregunta.'],
     negations: ['ANTIMEZCLA: negaciones AUX + NOT.'],

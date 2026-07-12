@@ -88,31 +88,37 @@
       "exampleAsk": "Antes de conjugar: ¿Es He, She o It? Luego Rapid Fire: She / go → She goes."
     },
     "future": {
-      "say": "Futuro simple: will más verbo base = el ré. Going to = voy a, plan. I will call. I am going to study. Si pidieron futuro PERFECTO, eso es otro módulo: will have más participio.",
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
       "mustSay": [
         "will",
-        "ré"
+        "would",
+        "ré",
+        "ría",
+        "by"
       ],
-      "exampleAsk": "Decí un plan con going to y una decisión con will."
+      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
     },
     "future_perfect": {
-      "say": "Futuro perfecto: will más have más participio — habré o habrá terminado antes de un punto futuro. I will have finished by Friday. Empezá YA con eso. PROHIBIDO decir primero otro tiempo. NO es should have ni will solo.",
-      "mustSay": [
-        "will have",
-        "participio",
-        "habré"
-      ],
-      "exampleAsk": "Decí: I will have finished by Friday."
-    },
-    "modales": {
-      "say": "Modales: will es ré; would es ría; should es debería; can es puedo; could es podría. Fórmula: pronombre + modal + verbo base + complemento. Sin to después del modal. I will go. She should study.",
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
       "mustSay": [
         "will",
-        "ré",
         "would",
-        "ría"
+        "ré",
+        "ría",
+        "by"
       ],
-      "exampleAsk": "Decí: I would help you."
+      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
+    },
+    "modales": {
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
+      "mustSay": [
+        "will",
+        "would",
+        "ré",
+        "ría",
+        "by"
+      ],
+      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
     },
     "modal": {
       "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",

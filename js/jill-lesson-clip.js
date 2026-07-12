@@ -152,36 +152,174 @@
       takeaway: 'jaf. jas. jad. — tres formas. Had = pasado perfecto auxiliar.'
     },
     future: {
-      rules: [row('will + verbo', '-ré / -rá', '(decisión / futuro)'), row('going to + verbo', 'voy a…', '(plan)')],
-      examples: [row('I will call you tomorrow', 'Te llamaré mañana'), row('I am going to study', 'Voy a estudiar'), row('They are going to travel', 'Ellos van a viajar')],
-      pattern: 'Will = decisión o predicción. Going to = plan ya pensado.',
-      transforms: [tip('I call', 'I will call', 'will + base'), tip('I study', 'I am going to study', 'be + going to + base')],
-      takeaway: 'Futuro: will + base, o am/is/are + going to + base.'
+      "rules": [
+        {
+          "left": "WILL + verbo base",
+          "right": "RÉ",
+          "note": "futuro real"
+        },
+        {
+          "left": "WILL NOT",
+          "right": "WON'T",
+          "note": "negación"
+        },
+        {
+          "left": "He / She / It",
+          "right": "will + base",
+          "note": "sin S"
+        },
+        {
+          "left": "going to",
+          "right": "voy a",
+          "note": "plan; mención secundaria"
+        }
+      ],
+      "examples": [
+        {
+          "left": "I will call you tomorrow",
+          "right": "Te llamaré mañana",
+          "note": ""
+        },
+        {
+          "left": "She will work on Monday",
+          "right": "Ella trabajará el lunes",
+          "note": ""
+        },
+        {
+          "left": "They won't come",
+          "right": "Ellos no vendrán",
+          "note": ""
+        }
+      ],
+      "pattern": "Clase 010: WILL produce el efecto RÉ y va con verbo base sin TO.",
+      "transforms": [
+        {
+          "left": "I call tomorrow",
+          "right": "I will call tomorrow",
+          "tip": "WILL + base"
+        },
+        {
+          "left": "She will goes",
+          "right": "She will go",
+          "tip": "sin S después de modal"
+        }
+      ],
+      "takeaway": "WILL=RÉ: futuro real, decisión, promesa o predicción."
     },
     future_perfect: {
-      rules: [
-        row('will + have + participio', 'habré / habrá…', '(futuro perfecto)'),
-        row('by Friday / by then', 'antes de ese punto', '(marca de tiempo)')
+      "rules": [
+        {
+          "left": "WILL + HAVE + PP",
+          "right": "habré / habrá…",
+          "note": "futuro perfecto"
+        },
+        {
+          "left": "BY + momento futuro",
+          "right": "para / antes de",
+          "note": "momento límite"
+        },
+        {
+          "left": "después de HAVE",
+          "right": "participio",
+          "note": "gone, no went"
+        }
       ],
-      examples: [
-        row('I will have finished', 'Yo habré terminado'),
-        row('She will have left by 5', 'Ella habrá salido para las 5'),
-        row('They will have done it', 'Ellos lo habrán hecho'),
-        row('We will have arrived', 'Habremos llegado')
+      "examples": [
+        {
+          "left": "By Monday, I will have finished",
+          "right": "Para el lunes habré terminado",
+          "note": ""
+        },
+        {
+          "left": "She will have gone by then",
+          "right": "Ella se habrá ido para entonces",
+          "note": ""
+        },
+        {
+          "left": "We will have eaten by 5",
+          "right": "Habremos comido para las 5",
+          "note": ""
+        }
       ],
-      pattern: 'Will + have + participio = acción terminada ANTES de un momento futuro. No es should have.',
-      transforms: [
-        tip('I finish', 'I will have finished', 'will + have + V3'),
-        tip('I will finish', 'I will have finished', 'futuro simple ≠ futuro perfecto')
+      "pattern": "Clase 010: BY + momento futuro + WILL HAVE + PARTICIPIO.",
+      "transforms": [
+        {
+          "left": "I will finish",
+          "right": "I will have finished by Monday",
+          "tip": "WILL + HAVE + V3"
+        },
+        {
+          "left": "She will have went",
+          "right": "She will have gone",
+          "tip": "participio, no pasado"
+        }
       ],
-      takeaway: 'Futuro perfecto = will + have + participio (habré terminado). Pediste esto → esto se enseña YA.'
+      "takeaway": "Futuro perfecto = WILL + HAVE + PARTICIPIO; BY marca el límite."
     },
     modales: {
-      rules: [row('will', '-ré', ''), row('would', '-ría', ''), row('should', 'debería', ''), row('can', 'puedo', '')],
-      examples: [row('I can work', 'Yo puedo trabajar'), row('She should study', 'Ella debería estudiar'), row('They will call you', 'Ellos te llamarán')],
-      pattern: 'Modal + verbo BASE (sin to). Nunca "can to work".',
-      transforms: [tip('I work', 'I can work', 'modal + base'), tip('She studies', 'She should study', 'should + base (sin -s)')],
-      takeaway: 'Después del modal el verbo vuelve a la forma base.'
+      "rules": [
+        {
+          "left": "WILL",
+          "right": "RÉ",
+          "note": "futuro real"
+        },
+        {
+          "left": "WOULD",
+          "right": "RÍA",
+          "note": "hipotético"
+        },
+        {
+          "left": "CAN / COULD",
+          "right": "puedo / podía-podría",
+          "note": ""
+        },
+        {
+          "left": "SHOULD / MUST",
+          "right": "debería / tengo que",
+          "note": ""
+        },
+        {
+          "left": "todos los modales",
+          "right": "+ verbo base SIN TO",
+          "note": "nunca cambian"
+        }
+      ],
+      "examples": [
+        {
+          "left": "I will go tomorrow",
+          "right": "Iré mañana",
+          "note": "RÉ"
+        },
+        {
+          "left": "I would go if I could",
+          "right": "Iría si pudiera",
+          "note": "RÍA"
+        },
+        {
+          "left": "I won't go / I wouldn't go",
+          "right": "No iré / No iría",
+          "note": ""
+        },
+        {
+          "left": "She should study / I must go",
+          "right": "recomendación / obligación",
+          "note": ""
+        }
+      ],
+      "pattern": "Clase 010: WILL=RÉ · WOULD=RÍA · modal + verbo base sin TO.",
+      "transforms": [
+        {
+          "left": "I go tomorrow",
+          "right": "I will go tomorrow",
+          "tip": "real → WILL"
+        },
+        {
+          "left": "I go if I can",
+          "right": "I would go if I could",
+          "tip": "hipotético → WOULD"
+        }
+      ],
+      "takeaway": "¿Va a pasar de verdad o es hipotético? WILL=RÉ · WOULD=RÍA."
     },
     combined: {
       rules: [
@@ -400,54 +538,49 @@
 
     future: clip({
       id: 'future',
-      title: 'Futuro · will / going to',
-      bridge: 'will = -ré · going to = voy a (plan)',
+      title: 'Clase 010 · WILL = RÉ',
+      bridge: 'WILL=RÉ real · WOULD=RÍA hipotético · modal + verbo base sin TO',
       slots: [
-        { id: 1, label: 'Pronombre', hint: 'I · she · we' },
-        { id: 2, label: 'Will / Going to', hint: '-ré · voy a' },
-        { id: 3, label: 'Verbo', hint: 'base' }
+        { id: 1, label: 'Pronombre', hint: 'I · she · they' },
+        { id: 2, label: 'WILL', hint: 'RÉ · futuro real' },
+        { id: 3, label: 'Verbo base', hint: 'sin TO · sin S' }
       ],
       examples: [
         T([['I', 1], [' ', 0], ['will', 2], [' ', 0], ['call', 3], [' you tomorrow.', 0]]),
-        T([['She', 1], [' ', 0], ['will', 2], [' ', 0], ['help', 3], [' us.', 0]]),
-        T([['I', 1], [' ', 0], ['am going to', 2], [' ', 0], ['study', 3], ['.', 0]]),
-        T([['They', 1], [' ', 0], ['are going to', 2], [' ', 0], ['travel', 3], ['.', 0]]),
-        T([['We', 1], [' ', 0], ['will', 2], [' ', 0], ['meet', 3], [' at 5.', 0]])
+        T([['She', 1], [' ', 0], ['will', 2], [' ', 0], ['work', 3], [' on Monday.', 0]]),
+        T([['They', 1], [" won't", 2], [' ', 0], ['come', 3], ['.', 0]])
       ]
     }),
 
     future_perfect: clip({
       id: 'future_perfect',
-      title: 'Futuro perfecto · will have + participio',
-      bridge: 'will + have + participio = habré / habrá terminado (antes de un punto futuro)',
+      title: 'Clase 010 · WILL + HAVE + PP',
+      bridge: 'BY + momento futuro · WILL + HAVE + PARTICIPIO',
       slots: [
-        { id: 1, label: 'Pronombre', hint: 'I · she · they' },
+        { id: 1, label: 'BY', hint: 'momento límite' },
         { id: 2, label: 'Will have', hint: 'habré / habrá' },
-        { id: 3, label: 'Participio', hint: 'finished · done · left' }
+        { id: 3, label: 'Participio', hint: 'finished · gone · eaten' }
       ],
       examples: [
-        T([['I', 1], [' ', 0], ['will have', 2], [' ', 0], ['finished', 3], ['.', 0]]),
-        T([['She', 1], [' ', 0], ['will have', 2], [' ', 0], ['left', 3], [' by 5.', 0]]),
-        T([['They', 1], [' ', 0], ['will have', 2], [' ', 0], ['done', 3], [' it.', 0]]),
-        T([['We', 1], [' ', 0], ['will have', 2], [' ', 0], ['arrived', 3], ['.', 0]]),
-        T([['You', 1], [' ', 0], ['will have', 2], [' ', 0], ['seen', 3], [' it.', 0]])
+        T([['By Monday, I', 1], [' ', 0], ['will have', 2], [' ', 0], ['finished', 3], ['.', 0]]),
+        T([['She', 0], [' ', 0], ['will have', 2], [' ', 0], ['gone', 3], [' by then.', 1]]),
+        T([['We', 0], [' ', 0], ['will have', 2], [' ', 0], ['eaten', 3], [' by 5.', 1]])
       ]
     }),
 
     modales: clip({
       id: 'modales',
-      title: 'Pronombre + Modal + Verbo',
-      bridge: 'will=-ré · would=-ría · should=debería · can=puedo · modal + verbo base (sin to)',
+      title: 'Clase 010 · WILL / WOULD y modales',
+      bridge: 'WILL=RÉ · WOULD=RÍA · modal + verbo base sin TO',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
-        { id: 2, label: 'Modal', hint: 'can · will · should' },
-        { id: 3, label: 'Verbo base', hint: 'sin to' }
+        { id: 2, label: 'Modal', hint: 'will · would · can · should · must' },
+        { id: 3, label: 'Verbo base', hint: 'sin TO · sin cambio' }
       ],
       examples: [
-        T([['I', 1], [' ', 0], ['can', 2], [' ', 0], ['work', 3], ['.', 0]]),
+        T([['I', 1], [' ', 0], ['will', 2], [' ', 0], ['go', 3], [' tomorrow.', 0]]),
+        T([['I', 1], [' ', 0], ['would', 2], [' ', 0], ['go', 3], [' if I could.', 0]]),
         T([['She', 1], [' ', 0], ['should', 2], [' ', 0], ['study', 3], ['.', 0]]),
-        T([['They', 1], [' ', 0], ['will', 2], [' ', 0], ['call', 3], [' you.', 0]]),
-        T([['We', 1], [' ', 0], ['would', 2], [' ', 0], ['help', 3], ['.', 0]]),
         T([['You', 1], [' ', 0], ['must', 2], [' ', 0], ['try', 3], ['.', 0]])
       ]
     }),

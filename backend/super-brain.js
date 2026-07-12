@@ -836,6 +836,12 @@ async function seedCanonTeachingModules() {
       title: 'Jill Foundations M013 — Clase 009 Gerundio',
       file: 'module-05-gerundio.txt',
       category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-06-will-would',
+      title: 'Jill Foundations M014 — Clase 010 WILL / WOULD',
+      file: 'module-06-will-would.txt',
+      category: 'jill-foundations'
     }
   ];
   const state = await loadState();

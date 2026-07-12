@@ -46,101 +46,318 @@
   },
   "present": {
     "rules": [
-      { "left": "TO + verbo", "right": "señal de infinitivo", "note": "desaparece al conjugar" },
-      { "left": "I / you / we / they", "right": "verbo base", "note": "sin cambio" },
-      { "left": "he / she / it", "right": "verbo + S", "note": "regla de oro" },
-      { "left": "go / do", "right": "goes / does", "note": "termina en O → ES" },
-      { "left": "have", "right": "has", "note": "cambia completo" },
-      { "left": "be", "right": "am / is / are", "note": "único con 3 formas" }
+      {
+        "left": "TO + verbo",
+        "right": "señal de infinitivo",
+        "note": "desaparece al conjugar"
+      },
+      {
+        "left": "I / you / we / they",
+        "right": "verbo base",
+        "note": "sin cambio"
+      },
+      {
+        "left": "he / she / it",
+        "right": "verbo + S",
+        "note": "regla de oro"
+      },
+      {
+        "left": "go / do",
+        "right": "goes / does",
+        "note": "termina en O → ES"
+      },
+      {
+        "left": "have",
+        "right": "has",
+        "note": "cambia completo"
+      },
+      {
+        "left": "be",
+        "right": "am / is / are",
+        "note": "único con 3 formas"
+      }
     ],
     "examples": [
-      { "left": "To go → I go", "right": "TO se fue al conjugar" },
-      { "left": "She goes", "right": "She + O → ES" },
-      { "left": "He does", "right": "He + O → ES" },
-      { "left": "It has", "right": "Have → Has" },
-      { "left": "She sees me", "right": "verbo + objeto (M1)" },
-      { "left": "He keeps his car", "right": "verbo + pos.adj (M1)" },
-      { "left": "She sees herself", "right": "verbo + reflexivo (M1)" }
+      {
+        "left": "To go → I go",
+        "right": "TO se fue al conjugar"
+      },
+      {
+        "left": "She goes",
+        "right": "She + O → ES"
+      },
+      {
+        "left": "He does",
+        "right": "He + O → ES"
+      },
+      {
+        "left": "It has",
+        "right": "Have → Has"
+      },
+      {
+        "left": "She sees me",
+        "right": "verbo + objeto (M1)"
+      },
+      {
+        "left": "He keeps his car",
+        "right": "verbo + pos.adj (M1)"
+      },
+      {
+        "left": "She sees herself",
+        "right": "verbo + reflexivo (M1)"
+      }
     ],
     "pattern": "He, She, It — agrega S. Go y Do — agrega ES. Have — cambia a Has. Be — am/is/are. Los módulos se conectan.",
     "transforms": [
-      { "left": "She / go", "right": "She goes", "tip": "O → ES" },
-      { "left": "He / do", "right": "He does", "tip": "O → ES" },
-      { "left": "It / have", "right": "It has", "tip": "Have → Has" },
-      { "left": "They / go", "right": "They go", "tip": "They no cambia" },
-      { "left": "She / make", "right": "She makes", "tip": "+ S" }
+      {
+        "left": "She / go",
+        "right": "She goes",
+        "tip": "O → ES"
+      },
+      {
+        "left": "He / do",
+        "right": "He does",
+        "tip": "O → ES"
+      },
+      {
+        "left": "It / have",
+        "right": "It has",
+        "tip": "Have → Has"
+      },
+      {
+        "left": "They / go",
+        "right": "They go",
+        "tip": "They no cambia"
+      },
+      {
+        "left": "She / make",
+        "right": "She makes",
+        "tip": "+ S"
+      }
     ],
     "takeaway": "16 verbos + He/She/It. Antes de conjugar: ¿Es He, She o It?"
   },
   "past": {
     "rules": [
-      { "left": "En pasado", "right": "nadie cambia el verbo", "note": "alivio vs presente" },
-      { "left": "I / He / She / It", "right": "WAS", "note": "BE excepción" },
-      { "left": "You / We / They", "right": "WERE", "note": "BE excepción" },
-      { "left": "put / cut / let", "right": "iguales PR=PS", "note": "ancla dice el tiempo" },
-      { "left": "Ancla", "right": "yesterday / last / ago", "note": "ubica la historia" }
+      {
+        "left": "En pasado",
+        "right": "nadie cambia el verbo",
+        "note": "alivio vs presente"
+      },
+      {
+        "left": "I / He / She / It",
+        "right": "WAS",
+        "note": "BE excepción"
+      },
+      {
+        "left": "You / We / They",
+        "right": "WERE",
+        "note": "BE excepción"
+      },
+      {
+        "left": "put / cut / let",
+        "right": "iguales PR=PS",
+        "note": "ancla dice el tiempo"
+      },
+      {
+        "left": "Ancla",
+        "right": "yesterday / last / ago",
+        "note": "ubica la historia"
+      }
     ],
     "examples": [
-      { "left": "She goes → She went", "right": "En pasado She no agrega S" },
-      { "left": "He has → He had", "right": "has desaparece; had para todos" },
-      { "left": "They was → They were", "right": "They → WERE" },
-      { "left": "I put … yesterday", "right": "put igual + ancla = pasado" },
-      { "left": "She sent me her report yesterday", "right": "M1+M2+M3 juntos" },
-      { "left": "Goed / sended / maked", "right": "NO existen — irregulares" }
+      {
+        "left": "She goes → She went",
+        "right": "En pasado She no agrega S"
+      },
+      {
+        "left": "He has → He had",
+        "right": "has desaparece; had para todos"
+      },
+      {
+        "left": "They was → They were",
+        "right": "They → WERE"
+      },
+      {
+        "left": "I put … yesterday",
+        "right": "put igual + ancla = pasado"
+      },
+      {
+        "left": "She sent me her report yesterday",
+        "right": "M1+M2+M3 juntos"
+      },
+      {
+        "left": "Goed / sended / maked",
+        "right": "NO existen — irregulares"
+      }
     ],
     "pattern": "En presente He/She/It cambia. En pasado nadie cambia. Excepción BE: was/were. put/cut/let + ancla.",
     "transforms": [
-      { "left": "Go", "right": "Went", "tip": "Rapid Fire" },
-      { "left": "She goes", "right": "She went", "tip": "presente→pasado" },
-      { "left": "They + be", "right": "They were", "tip": "WERE" },
-      { "left": "I + be", "right": "I was", "tip": "WAS" },
-      { "left": "She / put / yesterday", "right": "She put … yesterday", "tip": "ancla" }
+      {
+        "left": "Go",
+        "right": "Went",
+        "tip": "Rapid Fire"
+      },
+      {
+        "left": "She goes",
+        "right": "She went",
+        "tip": "presente→pasado"
+      },
+      {
+        "left": "They + be",
+        "right": "They were",
+        "tip": "WERE"
+      },
+      {
+        "left": "I + be",
+        "right": "I was",
+        "tip": "WAS"
+      },
+      {
+        "left": "She / put / yesterday",
+        "right": "She put … yesterday",
+        "tip": "ancla"
+      }
     ],
     "takeaway": "Pasado = todos iguales. WAS/WERE. Ancla con put/cut/let. Integra M1+M2."
   },
   "progressive": {
     "rules": [
-      { "left": "TO BE", "right": "llave del ING continuo", "note": "am/is/are/was/were/been" },
-      { "left": "ING", "right": "puerta: ando / endo", "note": "acción continua" },
-      { "left": "TO + verbo", "right": "flecha: intención", "note": "want/need/plan + TO" },
-      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "in/at/of/about/for" }
+      {
+        "left": "TO BE",
+        "right": "llave del ING continuo",
+        "note": "am/is/are/was/were/been"
+      },
+      {
+        "left": "ING",
+        "right": "puerta: ando / endo",
+        "note": "acción continua"
+      },
+      {
+        "left": "TO + verbo",
+        "right": "flecha: intención",
+        "note": "want/need/plan + TO"
+      },
+      {
+        "left": "preposición",
+        "right": "siempre + VERBO-ING",
+        "note": "in/at/of/about/for"
+      }
     ],
     "examples": [
-      { "left": "I am working", "right": "TO BE + ING — continuo" },
-      { "left": "They were eating", "right": "TO BE en pasado + ING" },
-      { "left": "She has been studying", "right": "BEEN también abre ING" },
-      { "left": "live → living / run → running", "right": "E muda / duplica consonante" }
+      {
+        "left": "I am working",
+        "right": "TO BE + ING — continuo"
+      },
+      {
+        "left": "They were eating",
+        "right": "TO BE en pasado + ING"
+      },
+      {
+        "left": "She has been studying",
+        "right": "BEEN también abre ING"
+      },
+      {
+        "left": "live → living / run → running",
+        "right": "E muda / duplica consonante"
+      }
     ],
     "pattern": "Clase 009: TO BE es la llave; ING es la puerta.",
     "transforms": [
-      { "left": "I walking", "right": "I am walking", "tip": "falta TO BE" },
-      { "left": "She working", "right": "She is working", "tip": "TO BE obligatorio" }
+      {
+        "left": "I walking",
+        "right": "I am walking",
+        "tip": "falta TO BE"
+      },
+      {
+        "left": "She working",
+        "right": "She is working",
+        "tip": "TO BE obligatorio"
+      }
     ],
     "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
   "perfect": {
     "rules": [
-      { "left": "Español", "right": "HABER + participio", "note": "he / ha / había" },
-      { "left": "HAVE / HAS + PP", "right": "afecta el presente", "note": "I/You/We/They · He/She/It" },
-      { "left": "HAD + PP", "right": "antes de otro pasado", "note": "HAD para todos" },
-      { "left": "HAVE/HAS/HAD + BEEN + ING", "right": "empezó y sigue", "note": "BEEN activa ING" },
-      { "left": "Sin HAVE/HAS", "right": "no hay perfecto", "note": "I gone = mal" }
+      {
+        "left": "Español",
+        "right": "HABER + participio",
+        "note": "he / ha / había"
+      },
+      {
+        "left": "HAVE / HAS + PP",
+        "right": "afecta el presente",
+        "note": "I/You/We/They · He/She/It"
+      },
+      {
+        "left": "HAD + PP",
+        "right": "antes de otro pasado",
+        "note": "HAD para todos"
+      },
+      {
+        "left": "HAVE/HAS/HAD + BEEN + ING",
+        "right": "empezó y sigue",
+        "note": "BEEN activa ING"
+      },
+      {
+        "left": "Sin HAVE/HAS",
+        "right": "no hay perfecto",
+        "note": "I gone = mal"
+      }
     ],
     "examples": [
-      { "left": "I have gone", "right": "yo he ido — sin cuándo exacto" },
-      { "left": "She has seen it", "right": "HAS porque She" },
-      { "left": "When I arrived she had left", "right": "HAD = primero en el tiempo" },
-      { "left": "I have been working", "right": "BEEN + ING = sigue ahora" },
-      { "left": "I went yesterday", "right": "pasado simple = ancla" },
-      { "left": "She has sent me her report", "right": "M1+M4 juntos" }
+      {
+        "left": "I have gone",
+        "right": "yo he ido — sin cuándo exacto"
+      },
+      {
+        "left": "She has seen it",
+        "right": "HAS porque She"
+      },
+      {
+        "left": "When I arrived she had left",
+        "right": "HAD = primero en el tiempo"
+      },
+      {
+        "left": "I have been working",
+        "right": "BEEN + ING = sigue ahora"
+      },
+      {
+        "left": "I went yesterday",
+        "right": "pasado simple = ancla"
+      },
+      {
+        "left": "She has sent me her report",
+        "right": "M1+M4 juntos"
+      }
     ],
     "pattern": "¿Sigue? → BEEN+ING. ¿Antes de otro pasado? → HAD+PP. ¿Afecta ahora sin cuándo? → HAVE/HAS+PP. ¿Sé cuándo? → pasado simple.",
     "transforms": [
-      { "left": "Go", "right": "Gone", "tip": "participio" },
-      { "left": "She / see", "right": "She has seen", "tip": "HAS" },
-      { "left": "They / go (antes)", "right": "They had gone", "tip": "HAD" },
-      { "left": "I / have / work", "right": "I have been working", "tip": "BEEN+ING" },
-      { "left": "I went yesterday", "right": "pasado simple", "tip": "ancla" }
+      {
+        "left": "Go",
+        "right": "Gone",
+        "tip": "participio"
+      },
+      {
+        "left": "She / see",
+        "right": "She has seen",
+        "tip": "HAS"
+      },
+      {
+        "left": "They / go (antes)",
+        "right": "They had gone",
+        "tip": "HAD"
+      },
+      {
+        "left": "I / have / work",
+        "right": "I have been working",
+        "tip": "BEEN+ING"
+      },
+      {
+        "left": "I went yesterday",
+        "right": "pasado simple",
+        "tip": "ancla"
+      }
     ],
     "takeaway": "Cuatro LEGO: HAVE+PP · HAD+PP · HAVE+BEEN+ING · HAD+BEEN+ING. Español primero."
   },
@@ -202,14 +419,24 @@
   "future": {
     "rules": [
       {
-        "left": "will + verbo",
-        "right": "-ré / -rá",
-        "note": "(decisión / futuro)"
+        "left": "WILL + verbo base",
+        "right": "RÉ",
+        "note": "futuro real"
       },
       {
-        "left": "going to + verbo",
-        "right": "voy a…",
-        "note": "(plan)"
+        "left": "WILL NOT",
+        "right": "WON'T",
+        "note": "negación"
+      },
+      {
+        "left": "He / She / It",
+        "right": "will + base",
+        "note": "sin S"
+      },
+      {
+        "left": "going to",
+        "right": "voy a",
+        "note": "plan; mención secundaria"
       }
     ],
     "examples": [
@@ -219,153 +446,199 @@
         "note": ""
       },
       {
-        "left": "I am going to study",
-        "right": "Voy a estudiar",
+        "left": "She will work on Monday",
+        "right": "Ella trabajará el lunes",
         "note": ""
       },
       {
-        "left": "They are going to travel",
-        "right": "Ellos van a viajar",
+        "left": "They won't come",
+        "right": "Ellos no vendrán",
         "note": ""
       }
     ],
-    "pattern": "Will = decisión o predicción. Going to = plan ya pensado.",
+    "pattern": "Clase 010: WILL produce el efecto RÉ y va con verbo base sin TO.",
     "transforms": [
       {
-        "left": "I call",
-        "right": "I will call",
-        "tip": "will + base"
+        "left": "I call tomorrow",
+        "right": "I will call tomorrow",
+        "tip": "WILL + base"
       },
       {
-        "left": "I study",
-        "right": "I am going to study",
-        "tip": "be + going to + base"
+        "left": "She will goes",
+        "right": "She will go",
+        "tip": "sin S después de modal"
       }
     ],
-    "takeaway": "Futuro: will + base, o am/is/are + going to + base."
+    "takeaway": "WILL=RÉ: futuro real, decisión, promesa o predicción."
   },
   "future_perfect": {
     "rules": [
       {
-        "left": "will + have + participio",
+        "left": "WILL + HAVE + PP",
         "right": "habré / habrá…",
-        "note": "(futuro perfecto)"
+        "note": "futuro perfecto"
       },
       {
-        "left": "by Friday / by then",
-        "right": "antes de ese punto",
-        "note": "(marca de tiempo)"
+        "left": "BY + momento futuro",
+        "right": "para / antes de",
+        "note": "momento límite"
+      },
+      {
+        "left": "después de HAVE",
+        "right": "participio",
+        "note": "gone, no went"
       }
     ],
     "examples": [
       {
-        "left": "I will have finished",
-        "right": "Yo habré terminado",
+        "left": "By Monday, I will have finished",
+        "right": "Para el lunes habré terminado",
         "note": ""
       },
       {
-        "left": "She will have left by 5",
-        "right": "Ella habrá salido para las 5",
+        "left": "She will have gone by then",
+        "right": "Ella se habrá ido para entonces",
         "note": ""
       },
       {
-        "left": "They will have done it",
-        "right": "Ellos lo habrán hecho",
-        "note": ""
-      },
-      {
-        "left": "We will have arrived",
-        "right": "Habremos llegado",
+        "left": "We will have eaten by 5",
+        "right": "Habremos comido para las 5",
         "note": ""
       }
     ],
-    "pattern": "Will + have + participio = acción terminada ANTES de un momento futuro. No es should have.",
+    "pattern": "Clase 010: BY + momento futuro + WILL HAVE + PARTICIPIO.",
     "transforms": [
       {
-        "left": "I finish",
-        "right": "I will have finished",
-        "tip": "will + have + V3"
+        "left": "I will finish",
+        "right": "I will have finished by Monday",
+        "tip": "WILL + HAVE + V3"
       },
       {
-        "left": "I will finish",
-        "right": "I will have finished",
-        "tip": "futuro simple ≠ futuro perfecto"
+        "left": "She will have went",
+        "right": "She will have gone",
+        "tip": "participio, no pasado"
       }
     ],
-    "takeaway": "Futuro perfecto = will + have + participio (habré terminado). Pediste esto → esto se enseña YA."
+    "takeaway": "Futuro perfecto = WILL + HAVE + PARTICIPIO; BY marca el límite."
   },
   "modales": {
     "rules": [
       {
-        "left": "will",
-        "right": "-ré",
+        "left": "WILL",
+        "right": "RÉ",
+        "note": "futuro real"
+      },
+      {
+        "left": "WOULD",
+        "right": "RÍA",
+        "note": "hipotético"
+      },
+      {
+        "left": "CAN / COULD",
+        "right": "puedo / podía-podría",
         "note": ""
       },
       {
-        "left": "would",
-        "right": "-ría",
+        "left": "SHOULD / MUST",
+        "right": "debería / tengo que",
         "note": ""
       },
       {
-        "left": "should",
-        "right": "debería",
-        "note": ""
-      },
-      {
-        "left": "can",
-        "right": "puedo",
-        "note": ""
+        "left": "todos los modales",
+        "right": "+ verbo base SIN TO",
+        "note": "nunca cambian"
       }
     ],
     "examples": [
       {
-        "left": "I can work",
-        "right": "Yo puedo trabajar",
+        "left": "I will go tomorrow",
+        "right": "Iré mañana",
+        "note": "RÉ"
+      },
+      {
+        "left": "I would go if I could",
+        "right": "Iría si pudiera",
+        "note": "RÍA"
+      },
+      {
+        "left": "I won't go / I wouldn't go",
+        "right": "No iré / No iría",
         "note": ""
       },
       {
-        "left": "She should study",
-        "right": "Ella debería estudiar",
-        "note": ""
-      },
-      {
-        "left": "They will call you",
-        "right": "Ellos te llamarán",
+        "left": "She should study / I must go",
+        "right": "recomendación / obligación",
         "note": ""
       }
     ],
-    "pattern": "Modal + verbo BASE (sin to). Nunca \"can to work\".",
+    "pattern": "Clase 010: WILL=RÉ · WOULD=RÍA · modal + verbo base sin TO.",
     "transforms": [
       {
-        "left": "I work",
-        "right": "I can work",
-        "tip": "modal + base"
+        "left": "I go tomorrow",
+        "right": "I will go tomorrow",
+        "tip": "real → WILL"
       },
       {
-        "left": "She studies",
-        "right": "She should study",
-        "tip": "should + base (sin -s)"
+        "left": "I go if I can",
+        "right": "I would go if I could",
+        "tip": "hipotético → WOULD"
       }
     ],
-    "takeaway": "Después del modal el verbo vuelve a la forma base."
+    "takeaway": "¿Va a pasar de verdad o es hipotético? WILL=RÉ · WOULD=RÍA."
   },
   "combined": {
     "rules": [
-      { "left": "BEEN", "right": "participio de BE", "note": "activa ING" },
-      { "left": "HAVE/HAS + BEEN + ING", "right": "he estado + ando/endo", "note": "sigue ahora" },
-      { "left": "HAD + BEEN + ING", "right": "había estado + ando/endo", "note": "seguía antes" },
-      { "left": "¿Sigue?", "right": "BEEN+ING", "note": "si no → HAVE+PP" }
+      {
+        "left": "BEEN",
+        "right": "participio de BE",
+        "note": "activa ING"
+      },
+      {
+        "left": "HAVE/HAS + BEEN + ING",
+        "right": "he estado + ando/endo",
+        "note": "sigue ahora"
+      },
+      {
+        "left": "HAD + BEEN + ING",
+        "right": "había estado + ando/endo",
+        "note": "seguía antes"
+      },
+      {
+        "left": "¿Sigue?",
+        "right": "BEEN+ING",
+        "note": "si no → HAVE+PP"
+      }
     ],
     "examples": [
-      { "left": "I have been working", "right": "yo he estado trabajando" },
-      { "left": "She has been going", "right": "HAS + BEEN + ING" },
-      { "left": "I had been studying", "right": "había estado estudiando" },
-      { "left": "BEEN sin ING", "right": "incompleto si la acción sigue" }
+      {
+        "left": "I have been working",
+        "right": "yo he estado trabajando"
+      },
+      {
+        "left": "She has been going",
+        "right": "HAS + BEEN + ING"
+      },
+      {
+        "left": "I had been studying",
+        "right": "había estado estudiando"
+      },
+      {
+        "left": "BEEN sin ING",
+        "right": "incompleto si la acción sigue"
+      }
     ],
     "pattern": "BEEN activa el ING — misma lógica que BE + ING en presente. Pieza LEGO del Módulo 4.",
     "transforms": [
-      { "left": "I / have / work", "right": "I have been working", "tip": "sigue" },
-      { "left": "She / had / go", "right": "She had been going", "tip": "HAD+BEEN" }
+      {
+        "left": "I / have / work",
+        "right": "I have been working",
+        "tip": "sigue"
+      },
+      {
+        "left": "She / had / go",
+        "right": "She had been going",
+        "tip": "HAD+BEEN"
+      }
     ],
     "takeaway": "BEEN → ING. Misma clase module-04-perfecto."
   },
@@ -521,41 +794,111 @@
   },
   "gerundio": {
     "rules": [
-      { "left": "TO BE + ING", "right": "llave + puerta", "note": "acción continua" },
-      { "left": "TO + verbo", "right": "flecha: intención / propósito", "note": "want/need/plan" },
-      { "left": "VERBO + ING", "right": "actividad como concepto", "note": "enjoy/keep/avoid" },
-      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "sin excepción" }
+      {
+        "left": "TO BE + ING",
+        "right": "llave + puerta",
+        "note": "acción continua"
+      },
+      {
+        "left": "TO + verbo",
+        "right": "flecha: intención / propósito",
+        "note": "want/need/plan"
+      },
+      {
+        "left": "VERBO + ING",
+        "right": "actividad como concepto",
+        "note": "enjoy/keep/avoid"
+      },
+      {
+        "left": "preposición",
+        "right": "siempre + VERBO-ING",
+        "note": "sin excepción"
+      }
     ],
     "examples": [
-      { "left": "I want to work", "right": "TO = intención" },
-      { "left": "I enjoy working", "right": "ING = concepto" },
-      { "left": "I stopped to eat", "right": "me detuve para comer" },
-      { "left": "I stopped eating", "right": "dejé de comer" },
-      { "left": "Remember to call / remember calling", "right": "futuro / recuerdo pasado" }
+      {
+        "left": "I want to work",
+        "right": "TO = intención"
+      },
+      {
+        "left": "I enjoy working",
+        "right": "ING = concepto"
+      },
+      {
+        "left": "I stopped to eat",
+        "right": "me detuve para comer"
+      },
+      {
+        "left": "I stopped eating",
+        "right": "dejé de comer"
+      },
+      {
+        "left": "Remember to call / remember calling",
+        "right": "futuro / recuerdo pasado"
+      }
     ],
     "pattern": "Clase 009: TO apunta; ING generaliza. STOP y REMEMBER cambian de significado.",
     "transforms": [
-      { "left": "I enjoy to work", "right": "I enjoy working", "tip": "enjoy + ING" },
-      { "left": "I want working", "right": "I want to work", "tip": "want + TO" }
+      {
+        "left": "I enjoy to work",
+        "right": "I enjoy working",
+        "tip": "enjoy + ING"
+      },
+      {
+        "left": "I want working",
+        "right": "I want to work",
+        "tip": "want + TO"
+      }
     ],
     "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
   "gerund_prep": {
     "rules": [
-      { "left": "preposición", "right": "siempre + VERBO-ING", "note": "in/at/of/about/for" },
-      { "left": "ING", "right": "actividad como concepto", "note": "nunca prep + TO" }
+      {
+        "left": "preposición",
+        "right": "siempre + VERBO-ING",
+        "note": "in/at/of/about/for"
+      },
+      {
+        "left": "ING",
+        "right": "actividad como concepto",
+        "note": "nunca prep + TO"
+      }
     ],
     "examples": [
-      { "left": "interested in learning", "right": "in + ING" },
-      { "left": "good at speaking", "right": "at + ING" },
-      { "left": "afraid of losing", "right": "of + ING" },
-      { "left": "talked about going", "right": "about + ING" },
-      { "left": "responsible for managing", "right": "for + ING" }
+      {
+        "left": "interested in learning",
+        "right": "in + ING"
+      },
+      {
+        "left": "good at speaking",
+        "right": "at + ING"
+      },
+      {
+        "left": "afraid of losing",
+        "right": "of + ING"
+      },
+      {
+        "left": "talked about going",
+        "right": "about + ING"
+      },
+      {
+        "left": "responsible for managing",
+        "right": "for + ING"
+      }
     ],
     "pattern": "Clase 009: después de preposición, siempre ING.",
     "transforms": [
-      { "left": "good at to speak", "right": "good at speaking", "tip": "prep + ING" },
-      { "left": "interested in to learn", "right": "interested in learning", "tip": "prep + ING" }
+      {
+        "left": "good at to speak",
+        "right": "good at speaking",
+        "tip": "prep + ING"
+      },
+      {
+        "left": "interested in to learn",
+        "right": "interested in learning",
+        "tip": "prep + ING"
+      }
     ],
     "takeaway": "TO BE=llave · ING=puerta · TO=flecha · ING=concepto · prep siempre ING."
   },
@@ -946,28 +1289,89 @@
   },
   "pronouns": {
     "rules": [
-      { "left": "Sujeto", "right": "hace la acción", "note": "I · You · He · She · It · We · They" },
-      { "left": "Objeto", "right": "recibe la acción", "note": "Me · You · Him · Her · It · Us · Them" },
-      { "left": "Pos.Adj", "right": "acompaña al sustantivo", "note": "My · Your · His · Her · Its · Our · Their" },
-      { "left": "Pos.Pron", "right": "reemplaza al sustantivo", "note": "Mine · Yours · His · Hers · Ours · Theirs" },
-      { "left": "Reflexivo", "right": "vuelve al sujeto", "note": "Myself · Yourself · Himself · Herself · Itself · Ourselves · Yourselves · Themselves" }
+      {
+        "left": "Sujeto",
+        "right": "hace la acción",
+        "note": "I · You · He · She · It · We · They"
+      },
+      {
+        "left": "Objeto",
+        "right": "recibe la acción",
+        "note": "Me · You · Him · Her · It · Us · Them"
+      },
+      {
+        "left": "Pos.Adj",
+        "right": "acompaña al sustantivo",
+        "note": "My · Your · His · Her · Its · Our · Their"
+      },
+      {
+        "left": "Pos.Pron",
+        "right": "reemplaza al sustantivo",
+        "note": "Mine · Yours · His · Hers · Ours · Theirs"
+      },
+      {
+        "left": "Reflexivo",
+        "right": "vuelve al sujeto",
+        "note": "Myself · Yourself · Himself · Herself · Itself · Ourselves · Yourselves · Themselves"
+      }
     ],
     "examples": [
-      { "left": "She goes to work", "right": "Sujeto — She hace" },
-      { "left": "I called her", "right": "Objeto — her recibe" },
-      { "left": "Her phone is here", "right": "Pos.Adj — Her acompaña" },
-      { "left": "That bag is hers", "right": "Pos.Pron — hers reemplaza" },
-      { "left": "He hurt himself", "right": "Reflexivo — vuelve al sujeto" },
-      { "left": "She / Her / Her / Hers / Herself", "right": "5 formas · 5 funciones" },
-      { "left": "We / Us / Our / Ours / Ourselves", "right": "progresión nosotros" }
+      {
+        "left": "She goes to work",
+        "right": "Sujeto — She hace"
+      },
+      {
+        "left": "I called her",
+        "right": "Objeto — her recibe"
+      },
+      {
+        "left": "Her phone is here",
+        "right": "Pos.Adj — Her acompaña"
+      },
+      {
+        "left": "That bag is hers",
+        "right": "Pos.Pron — hers reemplaza"
+      },
+      {
+        "left": "He hurt himself",
+        "right": "Reflexivo — vuelve al sujeto"
+      },
+      {
+        "left": "She / Her / Her / Hers / Herself",
+        "right": "5 formas · 5 funciones"
+      },
+      {
+        "left": "We / Us / Our / Ours / Ourselves",
+        "right": "progresión nosotros"
+      }
     ],
     "pattern": "Misma lógica español↔inglés. You e It no cambian sujeto↔objeto. His igual en Pos.Adj y Pos.Pron.",
     "transforms": [
-      { "left": "Ella — sujeto", "right": "She", "tip": "hace la acción" },
-      { "left": "Ella — objeto", "right": "Her", "tip": "recibe" },
-      { "left": "Ella — pos.adj", "right": "Her", "tip": "acompaña" },
-      { "left": "Ella — pos.pron", "right": "Hers", "tip": "reemplaza" },
-      { "left": "Ella — reflexivo", "right": "Herself", "tip": "vuelve" }
+      {
+        "left": "Ella — sujeto",
+        "right": "She",
+        "tip": "hace la acción"
+      },
+      {
+        "left": "Ella — objeto",
+        "right": "Her",
+        "tip": "recibe"
+      },
+      {
+        "left": "Ella — pos.adj",
+        "right": "Her",
+        "tip": "acompaña"
+      },
+      {
+        "left": "Ella — pos.pron",
+        "right": "Hers",
+        "tip": "reemplaza"
+      },
+      {
+        "left": "Ella — reflexivo",
+        "right": "Herself",
+        "tip": "vuelve"
+      }
     ],
     "takeaway": "Cinco tipos. Cinco funciones. Rapid Fire: español + tipo → inglés en <2s."
   }

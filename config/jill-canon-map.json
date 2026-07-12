@@ -62,15 +62,16 @@
     },
     {
       "id": "future_perfect",
-      "svg": "assets/canon/tiempos-prp.svg",
-      "title": "Futuro perfecto · will have + participio",
-      "formula": "pronombre + will + have + PARTICIPIO + complemento",
-      "example": "I will have finished by Friday.",
+      "svg": "assets/canon/will-would.svg",
+      "title": "Clase 010 — WILL + HAVE + PP y BY",
+      "formula": "BY + momento futuro + pronombre + will + have + PARTICIPIO",
+      "example": "By Monday, I will have finished the report.",
       "never": [
         "futuro simple will + base sin have",
-        "should have / could have (eso es modal + have)",
-        "presente perfecto sin will",
-        "pasado perfecto had"
+        "should have / could have / would have (eso pertenece a modal_have_pp)",
+        "will have + pasado en vez de participio",
+        "olvidar BY como momento límite",
+        "cortar o reescribir el guion canon module-06"
       ],
       "aliases": [
         "futuro perfecto",
@@ -87,7 +88,7 @@
         "quiero el futuro perfecto",
         "will have + participle"
       ],
-      "bridge": "Puente: will have + participio = habrá / habré + participio (acción terminada antes de un punto futuro). I will have finished = yo habré terminado. NO es should have."
+      "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ, WOULD=RÍA y modal + verbo sin TO. Futuro perfecto = WILL + HAVE + PARTICIPIO; BY introduce el momento límite. I will have gone, nunca will have went."
     },
     {
       "id": "combined",
@@ -597,15 +598,16 @@
     },
     {
       "id": "modales",
-      "svg": "assets/canon/modales.svg",
-      "title": "Pronombre + Modal + Verbo",
-      "formula": "pronombre + modal + verbo(base, sin to) + complemento",
-      "example": "I can work. / She should study.",
+      "svg": "assets/canon/will-would.svg",
+      "title": "Clase 010 — WILL / WOULD y modales (Módulo 6)",
+      "formula": "pronombre + modal + verbo base (sin TO) + complemento",
+      "example": "I will go. / I would go. / She should study.",
       "never": [
         "metodo moneda",
         "inversion",
-        "have + participio",
-        "gerundio"
+        "confundir would have / should have con este track",
+        "modal + TO",
+        "cortar o reescribir el guion canon module-06"
       ],
       "aliases": [
         "modales",
@@ -630,9 +632,16 @@
         "como funciona will",
         "como funciona would",
         "explicame will",
-        "explicame would"
+        "explicame would",
+        "modulo 6",
+        "módulo 6",
+        "clase 010",
+        "clase 10",
+        "el ré",
+        "el ría",
+        "ré y ría"
       ],
-      "bridge": "Puente: will=-ré; would=-ría; should=debería; can=puedo; could=podría — modal + verbo base (sin to)."
+      "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ (va a pasar de verdad); WOULD=RÍA (hipotético). Todos los modales van con verbo base sin TO. El sistema culmina en WILL + HAVE + PARTICIPIO, con BY como momento límite."
     },
     {
       "id": "modal",
@@ -660,14 +669,15 @@
     },
     {
       "id": "future",
-      "svg": "assets/canon/tiempos-fut.svg",
-      "title": "Futuro will / going to",
-      "formula": "pronombre + will + verbo + complemento | pronombre + be + going to + verbo + complemento",
-      "example": "I will call you tomorrow. / I am going to study.",
+      "svg": "assets/canon/will-would.svg",
+      "title": "Clase 010 — WILL = RÉ (futuro real)",
+      "formula": "pronombre + will + verbo base (sin TO) + complemento",
+      "example": "I will call you tomorrow. / She will work on Monday.",
       "never": [
-        "futuro perfecto (will have + participio — otro módulo)",
-        "modales should",
-        "pasado simple"
+        "convertir going to en el foco principal de la clase",
+        "usar wills o will + TO",
+        "mezclar would have / should have",
+        "cortar o reescribir el guion canon module-06"
       ],
       "aliases": [
         "futuro simple",
@@ -680,9 +690,10 @@
         "be going to",
         "explicame el futuro simple",
         "futuro will",
-        "will y going to"
+        "will y going to",
+        "el ré"
       ],
-      "bridge": "Puente: will = -ré (decisión/espontáneo); going to = voy a (plan/intención). Si piden futuro PERFECTO → will have + participio (otro track)."
+      "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ cuando va a pasar de verdad; WOULD=RÍA cuando es hipotético. Modal + verbo base sin TO. Going to puede nombrarse como plan, pero el foco es WILL/WOULD. Con WILL + HAVE + PARTICIPIO y BY se forma el futuro perfecto."
     },
     {
       "id": "pronouns",
