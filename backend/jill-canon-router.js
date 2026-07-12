@@ -298,17 +298,26 @@ function loadVoiceScript(trackId) {
 function formatLock(track) {
   if (!track) return '';
   const never = (track.never || []).join('; ');
+  const soloScope = [
+    `CANDADO UNIVERSAL — PEDIDO = ÚNICO TEMA:`,
+    `Este turno SOLO "${track.title}" (id=${track.id}). Nada más.`,
+    `PROHIBIDO ABSOLUTO: panorama F0, overview de tiempos, "sistema completo", once estructuras, u otro módulo/tiempo "de paso" / "para contexto" / "después vemos".`,
+    `Si el estudiante pidió pasado simple → SOLO pasado simple. Presente → SOLO presente. Perfecto → SOLO perfecto. Gerundio → SOLO gerundio. WILL/WOULD → SOLO eso. Pronombres → SOLO pronombres.`,
+    `ESPAÑOL: tico CR correcto. PROHIBIDO acento gringo en español (pronunciación, ritmo o frases calco del inglés).`
+  ];
   const antiMix = [];
   const locks = {
     past: [
       'ANTIMEZCLA — MÓDULO 3 PASADO SIMPLE (16 VERBOS + WAS/WERE):',
+      'SOLO pasado simple. PROHIBIDO presente, perfecto, continuo, futuro, will/would, panorama F0, "sistema completo".',
       'PROHIBIDO: pasado perfecto, present perfect, have/has/had + participio, ED en irregulares (goed/sended).',
       'SOLO: en pasado nadie cambia; BE → was/were; ancla yesterday/last/ago; put/cut/let + ancla.',
       'SEGUÍ EL GUION CANON module-03-pasado-simple SIN CORTAR NI REESCRIBIR.',
-      'ANTES de construir: preguntá "¿pasado o presente?"'
+      'ANTES de construir: preguntá "¿pasado o presente?" — y quedate en PASADO.'
     ],
     perfect: [
       'ANTIMEZCLA — MÓDULO 4 PERFECTO (HAVE/HAS/HAD + BEEN+ING):',
+      'SOLO perfecto (HAVE/HAS/HAD + PP / BEEN+ING). PROHIBIDO panorama F0, futuro, will/would overview, otros módulos.',
       'PROHIBIDO enseñar como pasado simple con yesterday; PROHIBIDO I gone sin HAVE/HAS; PROHIBIDO HAS en pasado perfecto.',
       'SOLO: HAVE/HAS+PP · HAD+PP · HAVE/HAS+BEEN+ING · HAD+BEEN+ING. Español HABER primero.',
       'SEGUÍ EL GUION CANON module-04-perfecto SIN CORTAR NI REESCRIBIR.',
@@ -316,6 +325,7 @@ function formatLock(track) {
     ],
     combined: [
       'ANTIMEZCLA — MÓDULO 4 BEEN+ING (misma clase module-04):',
+      'SOLO BEEN+ING. PROHIBIDO panorama de todos los tiempos.',
       'BEEN activa ING. HAVE/HAS/HAD + BEEN + VERBO-ING = he/había estado + ando/endo.',
       'SEGUÍ EL GUION CANON module-04-perfecto SIN CORTAR NI REESCRIBIR.'
     ],
@@ -329,62 +339,101 @@ function formatLock(track) {
     ],
     progressive: [
       'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'SOLO gerundio/continuo de esta clase. PROHIBIDO panorama F0 / otros tiempos.',
       'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
       'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     future: [
       'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'SOLO WILL/WOULD + modales + futuro perfecto de ESTA clase. PROHIBIDO reabrir presente/pasado/perfecto como clase aparte.',
       'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
       'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     future_perfect: [
       'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'SOLO WILL/WOULD + futuro perfecto. PROHIBIDO panorama de otros módulos.',
       'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
       'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     modales: [
       'ANTIMEZCLA — MÓDULO 6 / CLASE 010 WILL-WOULD:',
+      'SOLO WILL/WOULD + modales de ESTA clase. PROHIBIDO panorama F0 de todos los tiempos.',
       'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
       'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
-    modal: ['ANTIMEZCLA: moneda — AUX delante = pregunta.'],
-    negations: ['ANTIMEZCLA: negaciones AUX + NOT.'],
-    there: ['ANTIMEZCLA: there is/are = hay; no have.'],
+    modal: [
+      'ANTIMEZCLA: moneda — AUX delante = pregunta.',
+      'SOLO método moneda. PROHIBIDO abrir otros módulos.'
+    ],
+    negations: [
+      'ANTIMEZCLA: negaciones AUX + NOT.',
+      'SOLO negaciones. PROHIBIDO panorama de tiempos.'
+    ],
+    there: [
+      'ANTIMEZCLA: there is/are = hay; no have.',
+      'SOLO there is/are. PROHIBIDO otros módulos.'
+    ],
     gerundio: [
       'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'SOLO gerundio de esta clase. PROHIBIDO panorama F0 / otros tiempos.',
       'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
       'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     gerund_prep: [
       'ANTIMEZCLA — MÓDULO 5 / CLASE 009 GERUNDIO:',
+      'SOLO gerundio + prep. PROHIBIDO panorama F0 / otros tiempos.',
       'TO BE=llave; ING=puerta; TO=flecha; ING=concepto; después de preposición siempre ING.',
       'SEGUÍ EL GUION CANON module-05-gerundio ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
-    modal_have_pp: ['ANTIMEZCLA: modal + have + participio.'],
-    modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
+    modal_have_pp: [
+      'ANTIMEZCLA: modal + have + participio.',
+      'SOLO modal + have + PP. PROHIBIDO futuro perfecto will have ni panorama F0.'
+    ],
+    modal_have_been: [
+      'ANTIMEZCLA: modal + have been + ING.',
+      'SOLO modal + have been + ING. PROHIBIDO otros módulos.'
+    ],
     prepositions: [
       'ANTIMEZCLA: IN/ON/AT — analogía caja/superficie/punto.',
-      'SOLO si el estudiante PIDIÓ preposiciones. Nunca hijackear otra lección.'
+      'SOLO preposiciones pedidas. Nunca hijackear otra lección.'
     ],
     prepositions_time: [
       'ANTIMEZCLA: prep. de tiempo.',
       'SOLO si el estudiante PIDIÓ preposiciones de tiempo. "in the morning" dentro de un ejemplo de futuro NO abre este módulo.'
     ],
-    articles: ['ANTIMEZCLA: a/an/the.'],
-    comparatives: ['ANTIMEZCLA: comparativos.'],
-    irregular_verbs: ['ANTIMEZCLA: irregulares go. went. gone.'],
-    have_had: ['ANTIMEZCLA: have. has. had.'],
-    if_was_were: ['ANTIMEZCLA: if I was/were.'],
+    articles: [
+      'ANTIMEZCLA: a/an/the.',
+      'SOLO artículos. PROHIBIDO otros módulos.'
+    ],
+    comparatives: [
+      'ANTIMEZCLA: comparativos.',
+      'SOLO comparativos. PROHIBIDO otros módulos.'
+    ],
+    irregular_verbs: [
+      'ANTIMEZCLA: irregulares go. went. gone.',
+      'SOLO paradigmas irregulares pedidos. PROHIBIDO clase completa de todos los tiempos.'
+    ],
+    have_had: [
+      'ANTIMEZCLA: have. has. had.',
+      'SOLO have/has/had. PROHIBIDO panorama F0.'
+    ],
+    if_was_were: [
+      'ANTIMEZCLA: if I was/were.',
+      'SOLO was/were condicional. PROHIBIDO otros módulos.'
+    ],
     pronouns: [
       'ANTIMEZCLA — MÓDULO 1 PRONOMBRES (5 TIPOS):',
       'SOLO los cinco tipos: sujeto, objeto, posesivo adjetivo, posesivo pronominal, reflexivo.',
-      'PROHIBIDO mezclar con tiempos verbales / gerundio / perfecto en esta lección.',
+      'PROHIBIDO mezclar con tiempos verbales / gerundio / perfecto / panorama F0 en esta lección.',
       'SEGUÍ EL GUION CANON module-01-pronombres SIN CORTAR NI REESCRIBIR.'
     ],
-    overview: ['ANTIMEZCLA: overview de tiempos.']
+    overview: [
+      'ANTIMEZCLA: overview de tiempos.',
+      'SOLO overview SI el estudiante PIDIÓ panorama/todos los tiempos. Si pidió un solo tiempo, NO uses este track.'
+    ]
   };
   if (locks[track.id]) antiMix.push(...locks[track.id]);
-  else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '".');
+  else antiMix.push('ANTIMEZCLA: este turno SOLO el track "' + track.title + '". PROHIBIDO panorama F0 u otros módulos.');
   const voice = loadVoiceScript(track.id);
   const voiceBlock = voice
     ? [
@@ -411,15 +460,16 @@ function formatLock(track) {
     `Ejemplo canónico: ${track.example}`,
     never ? `PROHIBIDO: ${never}` : '',
     'PROHIBIDO EN VOZ/CHAT: nombres internos de lección, shows o trainers.',
+    ...soloScope,
     ...antiMix,
     ...voiceBlock,
     'CHECKLIST ESTE TURNO (si falta 1 = FALLASTE):',
     '1) Hablar el GUION ORAL de arriba (estilo de clase).',
-    '2) Incluir fórmula/puente del guion en español.',
+    '2) Incluir fórmula/puente del guion en español TICO correcto (sin acento gringo).',
     '3) 1 ejemplo en inglés + práctica oral mirando el tablero.',
     '4) ¿Te quedó?',
-    'PROHIBIDO: ESL genérico; leer tablero fila por fila; inventar otro método; cambiar de módulo.',
-    'RELEVANCIA IRROMPIBLE: SOLO este track. PROHIBIDO abrir otro tablero/tema (preposiciones, artículos, etc.) por palabras incidentales del ejemplo del estudiante.',
+    'PROHIBIDO: ESL genérico; leer tablero fila por fila; inventar otro método; cambiar de módulo; panorama de tiempos.',
+    'RELEVANCIA IRROMPIBLE: SOLO este track. PROHIBIDO abrir otro tablero/tema (preposiciones, artículos, otro tiempo, etc.) por palabras incidentales del ejemplo.',
     'VOZ: VERBO+ING = "verbo más í ene je". Paradigmas con pausa (go. went. gone.).',
     'Este turno: SOLO este track. [[CTYPE:whiteboard]]'
   ].filter(Boolean).join('\n');
