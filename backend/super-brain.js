@@ -824,6 +824,12 @@ async function seedCanonTeachingModules() {
       title: 'Jill Foundations M003 — Pasado simple + was/were',
       file: 'module-03-pasado-simple.txt',
       category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-04-perfecto',
+      title: 'Jill Foundations M004 — Perfecto HAVE/HAS/HAD + BEEN+ING',
+      file: 'module-04-perfecto.txt',
+      category: 'jill-foundations'
     }
   ];
   const state = await loadState();

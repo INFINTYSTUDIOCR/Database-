@@ -42,14 +42,14 @@
       "exampleAsk": "Completá: Before ______ (go), call me."
     },
     "combined": {
-      "say": "Empezá con jaf. jas. jad. si hace falta. Have been más VERBO más í ene je = he estado más ando/endo. Es duración hasta ahora. I have been studying = he estado estudiando. Have/has/had + been + í ene je. Decí ando/endo e í ene je — nunca I N G.",
+      "say": "CANON MÓDULO 4 — BEEN+ING vive en config/canon/module-04-perfecto.txt (íntegro). BEEN activa ING: have/has/had + been + verbo-ING = he/había estado + ando/endo. ¿Sigue? → BEEN+ING.",
       "mustSay": [
-        "jaf",
+        "been",
         "ando",
         "endo",
-        "been"
+        "have"
       ],
-      "exampleAsk": "Decí: She has been working all day."
+      "exampleAsk": "Antes: ¿sigue o terminó? Decí: I have been working."
     },
     "past": {
       "say": "CANON MÓDULO 3 — guion íntegro en config/canon/module-03-pasado-simple.txt. Alivio: en pasado nadie cambia. Excepción BE: I/He/She/It → WAS; You/We/They → WERE. put/cut/let iguales — ancla yesterday/last/ago. Integra M1+M2. Sin goed/sended/maked.",
@@ -63,14 +63,15 @@
       "exampleAsk": "Antes de construir: ¿pasado o presente? Rapid Fire: Go → Went. They → Were."
     },
     "perfect": {
-      "say": "Empezá siempre: jaf. jas. jad. — eso es have. has. had. en voz CR, nunca ave. Presente perfecto: jaf o jas más participio — he o ha. I have finished. Pasado perfecto: jad más participio — había. I had finished. Completá paradigm + ambos + ejemplo + ¿Te quedó?",
+      "say": "CANON MÓDULO 4 — guion íntegro en config/canon/module-04-perfecto.txt. Español HABER+participio → HAVE/HAS+PP · HAD+PP · BEEN activa ING. He/She/It → HAS. Pasado perfecto → solo HAD. Integra M1+M2+M3.",
       "mustSay": [
-        "jaf",
-        "jas",
-        "jad",
+        "have",
+        "has",
+        "had",
+        "been",
         "participio"
       ],
-      "exampleAsk": "Repetí: jaf. jas. jad. Luego: I had finished."
+      "exampleAsk": "Antes: ¿sigue o terminó? ¿Presente o otro pasado? Rapid Fire: Go → Gone. She → Has."
     },
     "present": {
       "say": "CANON MÓDULO 2 — el guion completo vive en config/canon/module-02-verbos-presente.txt (el sistema lo inyecta entero). TO = señal de infinitivo. He/She/It + S. Go/Do → ES. Have → Has. Be → am/is/are. 16 verbos. Conectá con los 5 tipos de pronombres del módulo 1.",

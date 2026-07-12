@@ -145,73 +145,29 @@
   },
   "perfect": {
     "rules": [
-      {
-        "left": "have · has · had",
-        "right": "jaf · jas · jad",
-        "note": "(decí con pausa)"
-      },
-      {
-        "left": "I / you / we / they",
-        "right": "have + participio",
-        "note": "(he…)"
-      },
-      {
-        "left": "he / she / it",
-        "right": "has + participio",
-        "note": "(ha…)"
-      },
-      {
-        "left": "todos",
-        "right": "had + participio",
-        "note": "(había… = pasado perfecto)"
-      }
+      { "left": "Español", "right": "HABER + participio", "note": "he / ha / había" },
+      { "left": "HAVE / HAS + PP", "right": "afecta el presente", "note": "I/You/We/They · He/She/It" },
+      { "left": "HAD + PP", "right": "antes de otro pasado", "note": "HAD para todos" },
+      { "left": "HAVE/HAS/HAD + BEEN + ING", "right": "empezó y sigue", "note": "BEEN activa ING" },
+      { "left": "Sin HAVE/HAS", "right": "no hay perfecto", "note": "I gone = mal" }
     ],
     "examples": [
-      {
-        "left": "have · has · had",
-        "right": "jaf · jas · jad",
-        "note": ""
-      },
-      {
-        "left": "I have finished",
-        "right": "Yo he terminado",
-        "note": ""
-      },
-      {
-        "left": "She has seen it",
-        "right": "Ella lo ha visto",
-        "note": ""
-      },
-      {
-        "left": "I had finished",
-        "right": "Yo había terminado",
-        "note": ""
-      },
-      {
-        "left": "They had gone",
-        "right": "Ellos habían ido",
-        "note": ""
-      }
+      { "left": "I have gone", "right": "yo he ido — sin cuándo exacto" },
+      { "left": "She has seen it", "right": "HAS porque She" },
+      { "left": "When I arrived she had left", "right": "HAD = primero en el tiempo" },
+      { "left": "I have been working", "right": "BEEN + ING = sigue ahora" },
+      { "left": "I went yesterday", "right": "pasado simple = ancla" },
+      { "left": "She has sent me her report", "right": "M1+M4 juntos" }
     ],
-    "pattern": "Primero el paradigm: jaf. jas. jad. Luego: have/has + participio = presente perfecto. Had + participio = pasado perfecto (había).",
+    "pattern": "¿Sigue? → BEEN+ING. ¿Antes de otro pasado? → HAD+PP. ¿Afecta ahora sin cuándo? → HAVE/HAS+PP. ¿Sé cuándo? → pasado simple.",
     "transforms": [
-      {
-        "left": "have / has",
-        "right": "he / ha + participio",
-        "tip": "presente perfecto"
-      },
-      {
-        "left": "had",
-        "right": "había + participio",
-        "tip": "pasado perfecto"
-      },
-      {
-        "left": "I finished yesterday",
-        "right": "I had finished before…",
-        "tip": "pasado simple ≠ pasado perfecto"
-      }
+      { "left": "Go", "right": "Gone", "tip": "participio" },
+      { "left": "She / see", "right": "She has seen", "tip": "HAS" },
+      { "left": "They / go (antes)", "right": "They had gone", "tip": "HAD" },
+      { "left": "I / have / work", "right": "I have been working", "tip": "BEEN+ING" },
+      { "left": "I went yesterday", "right": "pasado simple", "tip": "ancla" }
     ],
-    "takeaway": "Siempre empezá por jaf. jas. jad. Presente perfecto = have/has + participio. Pasado perfecto = had + participio."
+    "takeaway": "Cuatro LEGO: HAVE+PP · HAD+PP · HAVE+BEEN+ING · HAD+BEEN+ING. Español primero."
   },
   "have_had": {
     "rules": [
@@ -420,48 +376,23 @@
   },
   "combined": {
     "rules": [
-      {
-        "left": "have / has / had",
-        "right": "been",
-        "note": ""
-      },
-      {
-        "left": "been + VERBO+ING",
-        "right": "he estado + ando/endo",
-        "note": ""
-      }
+      { "left": "BEEN", "right": "participio de BE", "note": "activa ING" },
+      { "left": "HAVE/HAS + BEEN + ING", "right": "he estado + ando/endo", "note": "sigue ahora" },
+      { "left": "HAD + BEEN + ING", "right": "había estado + ando/endo", "note": "seguía antes" },
+      { "left": "¿Sigue?", "right": "BEEN+ING", "note": "si no → HAVE+PP" }
     ],
     "examples": [
-      {
-        "left": "I have been studying English",
-        "right": "He estado estudiando inglés",
-        "note": ""
-      },
-      {
-        "left": "She has been working",
-        "right": "Ella ha estado trabajando",
-        "note": ""
-      },
-      {
-        "left": "They have been waiting",
-        "right": "Ellos han estado esperando",
-        "note": ""
-      }
+      { "left": "I have been working", "right": "yo he estado trabajando" },
+      { "left": "She has been going", "right": "HAS + BEEN + ING" },
+      { "left": "I had been studying", "right": "había estado estudiando" },
+      { "left": "BEEN sin ING", "right": "incompleto si la acción sigue" }
     ],
-    "pattern": "Have + been + ING = duración hasta ahora (ando/endo).",
+    "pattern": "BEEN activa el ING — misma lógica que BE + ING en presente. Pieza LEGO del Módulo 4.",
     "transforms": [
-      {
-        "left": "I study",
-        "right": "I have been studying",
-        "tip": "have + been + ING"
-      },
-      {
-        "left": "She works",
-        "right": "She has been working",
-        "tip": "has + been + ING"
-      }
+      { "left": "I / have / work", "right": "I have been working", "tip": "sigue" },
+      { "left": "She / had / go", "right": "She had been going", "tip": "HAD+BEEN" }
     ],
-    "takeaway": "Have/has + been + verbo + í ene je."
+    "takeaway": "BEEN → ING. Misma clase module-04-perfecto."
   },
   "there": {
     "rules": [

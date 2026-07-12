@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  var CACHE_VER = '20260711m03';
+  var CACHE_VER = '20260711m04';
   var MAP = null;
   var LOAD = null;
 

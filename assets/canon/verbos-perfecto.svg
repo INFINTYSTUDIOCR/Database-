@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" role="img" aria-label="Modulo 4  Perfecto HAVE/HAS/HAD + BEEN+ING">
+  <rect width="720" height="560" rx="14" fill="#f8f5ff"/>
+  <text x="360" y="22" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700">MODULO 4  PERFECTO · HAVE / HAS / HAD + BEEN+ING</text>
+  <text x="360" y="40" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="10">Español HABER+participio · BEEN activa ING · piezas LEGO</text>
+
+  <!-- 4 structures -->
+  <rect x="16" y="50" width="168" height="58" rx="8" fill="#ede9fe" stroke="#5B21B6"/>
+  <text x="100" y="70" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="700">PRESENTE PERFECTO</text>
+  <text x="100" y="86" text-anchor="middle" fill="#312e81" font-size="10">HAVE/HAS + PP</text>
+  <text x="100" y="100" text-anchor="middle" fill="#059669" font-size="9">he / ha + participio</text>
+
+  <rect x="192" y="50" width="168" height="58" rx="8" fill="#ede9fe" stroke="#5B21B6"/>
+  <text x="276" y="70" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="700">PASADO PERFECTO</text>
+  <text x="276" y="86" text-anchor="middle" fill="#312e81" font-size="10">HAD + PP</text>
+  <text x="276" y="100" text-anchor="middle" fill="#059669" font-size="9">había + participio</text>
+
+  <rect x="368" y="50" width="168" height="58" rx="8" fill="#fce7f3" stroke="#db2777"/>
+  <text x="452" y="70" text-anchor="middle" fill="#db2777" font-size="10" font-weight="700">PRES. PERF. CONT.</text>
+  <text x="452" y="86" text-anchor="middle" fill="#312e81" font-size="10">HAVE/HAS + BEEN + ING</text>
+  <text x="452" y="100" text-anchor="middle" fill="#059669" font-size="9">he estado + ando/endo</text>
+
+  <rect x="544" y="50" width="160" height="58" rx="8" fill="#fce7f3" stroke="#db2777"/>
+  <text x="624" y="70" text-anchor="middle" fill="#db2777" font-size="10" font-weight="700">PAS. PERF. CONT.</text>
+  <text x="624" y="86" text-anchor="middle" fill="#312e81" font-size="10">HAD + BEEN + ING</text>
+  <text x="624" y="100" text-anchor="middle" fill="#059669" font-size="9">había estado + ando</text>
+
+  <rect x="16" y="118" width="688" height="24" rx="6" fill="#5B21B6"/>
+  <text x="60" y="134" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">VERBO</text>
+  <text x="180" y="134" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">PARTICIPIO</text>
+  <text x="380" y="134" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">HAVE/HAS + PP</text>
+  <text x="580" y="134" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">HAD + PP</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif" font-size="10">
+    <rect x="16" y="146" width="688" height="20" fill="#ede9fe"/><text x="60" y="160" text-anchor="middle" fill="#D97706" font-weight="700">be</text><text x="180" y="160" text-anchor="middle" fill="#db2777" font-weight="700">been*</text><text x="380" y="160" text-anchor="middle" fill="#0284c7">have/has been</text><text x="580" y="160" text-anchor="middle" fill="#059669">had been</text>
+    <rect x="16" y="166" width="688" height="20" fill="#f8f5ff"/><text x="60" y="180" text-anchor="middle" fill="#D97706" font-weight="700">have</text><text x="180" y="180" text-anchor="middle" fill="#312e81">had</text><text x="380" y="180" text-anchor="middle" fill="#0284c7">have/has had</text><text x="580" y="180" text-anchor="middle" fill="#059669">had had</text>
+    <rect x="16" y="186" width="688" height="20" fill="#ede9fe"/><text x="60" y="200" text-anchor="middle" fill="#D97706" font-weight="700">go</text><text x="180" y="200" text-anchor="middle" fill="#312e81">gone</text><text x="380" y="200" text-anchor="middle" fill="#0284c7">have/has gone</text><text x="580" y="200" text-anchor="middle" fill="#059669">had gone</text>
+    <rect x="16" y="206" width="688" height="20" fill="#f8f5ff"/><text x="60" y="220" text-anchor="middle" fill="#D97706" font-weight="700">come</text><text x="180" y="220" text-anchor="middle" fill="#312e81">come</text><text x="380" y="220" text-anchor="middle" fill="#0284c7">have/has come</text><text x="580" y="220" text-anchor="middle" fill="#059669">had come</text>
+    <rect x="16" y="226" width="688" height="20" fill="#ede9fe"/><text x="60" y="240" text-anchor="middle" fill="#D97706" font-weight="700">get</text><text x="180" y="240" text-anchor="middle" fill="#312e81">gotten</text><text x="380" y="240" text-anchor="middle" fill="#0284c7">have/has gotten</text><text x="580" y="240" text-anchor="middle" fill="#059669">had gotten</text>
+    <rect x="16" y="246" width="688" height="20" fill="#f8f5ff"/><text x="60" y="260" text-anchor="middle" fill="#D97706" font-weight="700">make</text><text x="180" y="260" text-anchor="middle" fill="#312e81">made</text><text x="380" y="260" text-anchor="middle" fill="#0284c7">have/has made</text><text x="580" y="260" text-anchor="middle" fill="#059669">had made</text>
+    <rect x="16" y="266" width="688" height="20" fill="#ede9fe"/><text x="60" y="280" text-anchor="middle" fill="#D97706" font-weight="700">do</text><text x="180" y="280" text-anchor="middle" fill="#312e81">done</text><text x="380" y="280" text-anchor="middle" fill="#0284c7">have/has done</text><text x="580" y="280" text-anchor="middle" fill="#059669">had done</text>
+    <rect x="16" y="286" width="688" height="20" fill="#f8f5ff"/><text x="60" y="300" text-anchor="middle" fill="#D97706" font-weight="700">take</text><text x="180" y="300" text-anchor="middle" fill="#312e81">taken</text><text x="380" y="300" text-anchor="middle" fill="#0284c7">have/has taken</text><text x="580" y="300" text-anchor="middle" fill="#059669">had taken</text>
+    <rect x="16" y="306" width="688" height="20" fill="#ede9fe"/><text x="60" y="320" text-anchor="middle" fill="#D97706" font-weight="700">give</text><text x="180" y="320" text-anchor="middle" fill="#312e81">given</text><text x="380" y="320" text-anchor="middle" fill="#0284c7">have/has given</text><text x="580" y="320" text-anchor="middle" fill="#059669">had given</text>
+    <rect x="16" y="326" width="688" height="20" fill="#f8f5ff"/><text x="60" y="340" text-anchor="middle" fill="#D97706" font-weight="700">put</text><text x="180" y="340" text-anchor="middle" fill="#312e81">put</text><text x="380" y="340" text-anchor="middle" fill="#0284c7">have/has put</text><text x="580" y="340" text-anchor="middle" fill="#059669">had put</text>
+    <rect x="16" y="346" width="688" height="20" fill="#ede9fe"/><text x="60" y="360" text-anchor="middle" fill="#D97706" font-weight="700">cut</text><text x="180" y="360" text-anchor="middle" fill="#312e81">cut</text><text x="380" y="360" text-anchor="middle" fill="#0284c7">have/has cut</text><text x="580" y="360" text-anchor="middle" fill="#059669">had cut</text>
+    <rect x="16" y="366" width="688" height="20" fill="#f8f5ff"/><text x="60" y="380" text-anchor="middle" fill="#D97706" font-weight="700">let</text><text x="180" y="380" text-anchor="middle" fill="#312e81">let</text><text x="380" y="380" text-anchor="middle" fill="#0284c7">have/has let</text><text x="580" y="380" text-anchor="middle" fill="#059669">had let</text>
+    <rect x="16" y="386" width="688" height="20" fill="#ede9fe"/><text x="60" y="400" text-anchor="middle" fill="#D97706" font-weight="700">keep</text><text x="180" y="400" text-anchor="middle" fill="#312e81">kept</text><text x="380" y="400" text-anchor="middle" fill="#0284c7">have/has kept</text><text x="580" y="400" text-anchor="middle" fill="#059669">had kept</text>
+    <rect x="16" y="406" width="688" height="20" fill="#f8f5ff"/><text x="60" y="420" text-anchor="middle" fill="#D97706" font-weight="700">see</text><text x="180" y="420" text-anchor="middle" fill="#312e81">seen</text><text x="380" y="420" text-anchor="middle" fill="#0284c7">have/has seen</text><text x="580" y="420" text-anchor="middle" fill="#059669">had seen</text>
+    <rect x="16" y="426" width="688" height="20" fill="#ede9fe"/><text x="60" y="440" text-anchor="middle" fill="#D97706" font-weight="700">say</text><text x="180" y="440" text-anchor="middle" fill="#312e81">said</text><text x="380" y="440" text-anchor="middle" fill="#0284c7">have/has said</text><text x="580" y="440" text-anchor="middle" fill="#059669">had said</text>
+    <rect x="16" y="446" width="688" height="20" fill="#f8f5ff"/><text x="60" y="460" text-anchor="middle" fill="#D97706" font-weight="700">send</text><text x="180" y="460" text-anchor="middle" fill="#312e81">sent</text><text x="380" y="460" text-anchor="middle" fill="#0284c7">have/has sent</text><text x="580" y="460" text-anchor="middle" fill="#059669">had sent</text>
+    <rect x="16" y="466" width="688" height="20" fill="#ede9fe"/><text x="60" y="480" text-anchor="middle" fill="#D97706" font-weight="700">seem</text><text x="180" y="480" text-anchor="middle" fill="#312e81">seemed</text><text x="380" y="480" text-anchor="middle" fill="#0284c7">have/has seemed</text><text x="580" y="480" text-anchor="middle" fill="#059669">had seemed</text>
+  </g>
+
+  <text x="360" y="510" text-anchor="middle" fill="#5B21B6" font-size="11" font-weight="600">HAVE = I/You/We/They · HAS = He/She/It · HAD = todos · *BEEN ’ activa ING</text>
+  <text x="360" y="528" text-anchor="middle" fill="#db2777" font-size="10">¿Sigue ahora? ’ BEEN+ING · ¿Antes de otro pasado? ’ HAD+PP · ¿Afecta ahora sin cuándo? ’ HAVE+PP</text>
+  <text x="360" y="546" text-anchor="middle" fill="#6d28d9" font-size="10">Conecta M1+M2+M3 ’ conversación real compleja</text>
+</svg>

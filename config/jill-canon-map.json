@@ -91,14 +91,14 @@
     },
     {
       "id": "combined",
-      "svg": "assets/canon/have-been-ing.svg",
-      "title": "Pronombre + Have + Been + Verbo (ING)",
-      "formula": "pronombre + have/has/had + been + VERBO + ING + complemento",
-      "example": "I have been studying English.",
+      "svg": "assets/canon/verbos-perfecto.svg",
+      "title": "Modulo 4 — BEEN + ING (perfecto continuo)",
+      "formula": "HAVE/HAS/HAD + BEEN + VERBO-ING — BEEN activa el ING (ando/endo)",
+      "example": "I have been working. She had been studying before the exam.",
       "never": [
         "presente continuo sin have",
-        "presente perfecto sin been",
-        "gerundio-prep"
+        "BEEN sin ING cuando la acción sigue",
+        "cortar el guion canon module-04"
       ],
       "aliases": [
         "have been",
@@ -111,9 +111,11 @@
         "present perfect continuous",
         "presente perfecto continuo",
         "ppc",
-        "have been + v"
+        "have been + v",
+        "he estado trabajando",
+        "habia estado"
       ],
-      "bridge": "Puente: have been + VERBO+ING = he estado + ando/endo (duración hasta ahora)."
+      "bridge": "Puente Modulo 4 (BEEN): BEEN = participio de BE → activa ING. HAVE/HAS+BEEN+ING = he estado + ando/endo. HAD+BEEN+ING = había estado. Misma clase que HAVE+PP."
     },
     {
       "id": "have_had",
@@ -449,15 +451,16 @@
     },
     {
       "id": "perfect",
-      "svg": "assets/canon/tiempos-prp.svg",
-      "title": "Pronombre + Have/Has + Participio",
-      "formula": "have/has + PARTICIPIO (presente perfecto) vs had + PARTICIPIO (pasado perfecto)",
-      "example": "He has done it.",
+      "svg": "assets/canon/verbos-perfecto.svg",
+      "title": "Modulo 4 — Perfecto HAVE/HAS/HAD + BEEN+ING",
+      "formula": "HAVE/HAS+PP · HAD+PP · HAVE/HAS+BEEN+ING · HAD+BEEN+ING — español HABER primero",
+      "example": "I have gone. She has seen it. When I arrived she had left. I have been working here.",
       "never": [
-        "pasado simple",
-        "have been + ing",
-        "articulos",
-        "to have posesion"
+        "enseñar perfecto como pasado simple con ancla yesterday",
+        "I gone / she seen sin HAVE/HAS",
+        "HAS en pasado perfecto (solo HAD)",
+        "BEEN sin ING cuando la acción sigue",
+        "cortar o reescribir el guion canon module-04"
       ],
       "aliases": [
         "presente perfecto",
@@ -473,19 +476,21 @@
         "pronombre + have + participio",
         "perfecto",
         "el perfecto",
-        "qué es had",
-        "que es had",
-        "what is had",
-        "omission of had",
-        "omisión de had",
-        "omitir had",
-        "had en pasado perfecto",
-        "had en el perfecto",
-        "jaf jas jad",
-        "explicame el pasado perfecto",
-        "explicame pasado perfecto"
+        "modulo 4",
+        "módulo 4",
+        "modulo 4 perfecto",
+        "clase 008",
+        "clase 8",
+        "have has had participio",
+        "explicame el perfecto",
+        "explicame el presente perfecto",
+        "explicame pasado perfecto",
+        "enseñame el perfecto",
+        "he ido",
+        "habia ido",
+        "había ido"
       ],
-      "bridge": "Puente: have/has + participio = he/ha + participio; had + participio = había + participio (pasado perfecto). NO es pasado simple (worked/went)."
+      "bridge": "Puente Modulo 4: español HABER+participio → HAVE/HAS+PP (afecta ahora) · HAD+PP (antes de otro pasado) · BEEN activa ING (sigue ahora). Piezas LEGO. Integra M1+M2+M3."
     },
     {
       "id": "past",

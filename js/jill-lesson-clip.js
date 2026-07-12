@@ -109,25 +109,28 @@
     },
     perfect: {
       rules: [
-        row('have · has · had', 'jaf · jas · jad', '(decí con pausa)'),
-        row('I / you / we / they', 'have + participio', '(he…)'),
-        row('he / she / it', 'has + participio', '(ha…)'),
-        row('todos', 'had + participio', '(había… = pasado perfecto)')
+        row('Español', 'HABER + participio', 'he / ha / había'),
+        row('HAVE / HAS + PP', 'afecta el presente', 'I/You/We/They · He/She/It'),
+        row('HAD + PP', 'antes de otro pasado', 'HAD para todos'),
+        row('HAVE/HAS/HAD + BEEN + ING', 'empezó y sigue', 'BEEN activa ING'),
+        row('Sin HAVE/HAS', 'no hay perfecto', 'I gone = mal')
       ],
       examples: [
-        row('have · has · had', 'jaf · jas · jad'),
-        row('I have finished', 'Yo he terminado'),
-        row('She has seen it', 'Ella lo ha visto'),
-        row('I had finished', 'Yo había terminado'),
-        row('They had gone', 'Ellos habían ido')
+        row('I have gone', 'yo he ido — sin cuándo exacto'),
+        row('She has seen it', 'HAS porque She'),
+        row('When I arrived she had left', 'HAD = primero'),
+        row('I have been working', 'BEEN + ING = sigue'),
+        row('I went yesterday', 'pasado simple = ancla'),
+        row('She has sent me her report', 'M1+M4')
       ],
-      pattern: 'Primero el paradigm: jaf. jas. jad. Luego: have/has + participio = presente perfecto. Had + participio = pasado perfecto (había).',
+      pattern: '¿Sigue? → BEEN+ING. ¿Antes de otro pasado? → HAD+PP. ¿Afecta ahora sin cuándo? → HAVE/HAS+PP.',
       transforms: [
-        tip('have / has', 'he / ha + participio', 'presente perfecto'),
-        tip('had', 'había + participio', 'pasado perfecto'),
-        tip('I finished yesterday', 'I had finished before…', 'pasado simple ≠ pasado perfecto')
+        tip('Go', 'Gone', 'participio'),
+        tip('She / see', 'She has seen', 'HAS'),
+        tip('They / go (antes)', 'They had gone', 'HAD'),
+        tip('I / have / work', 'I have been working', 'BEEN+ING')
       ],
-      takeaway: 'Siempre empezá por jaf. jas. jad. Presente perfecto = have/has + participio. Pasado perfecto = had + participio.'
+      takeaway: 'Cuatro LEGO: HAVE+PP · HAD+PP · HAVE+BEEN+ING · HAD+BEEN+ING.'
     },
     have_had: {
       rules: [
@@ -181,11 +184,24 @@
       takeaway: 'Después del modal el verbo vuelve a la forma base.'
     },
     combined: {
-      rules: [row('have / has / had', 'been', ''), row('been + VERBO+ING', 'he estado + ando/endo', '')],
-      examples: [row('I have been studying English', 'He estado estudiando inglés'), row('She has been working', 'Ella ha estado trabajando'), row('They have been waiting', 'Ellos han estado esperando')],
-      pattern: 'Have + been + ING = duración hasta ahora (ando/endo).',
-      transforms: [tip('I study', 'I have been studying', 'have + been + ING'), tip('She works', 'She has been working', 'has + been + ING')],
-      takeaway: 'Have/has + been + verbo + í ene je.'
+      rules: [
+        row('BEEN', 'participio de BE', 'activa ING'),
+        row('HAVE/HAS + BEEN + ING', 'he estado + ando/endo', 'sigue ahora'),
+        row('HAD + BEEN + ING', 'había estado + ando/endo', 'seguía antes'),
+        row('¿Sigue?', 'BEEN+ING', 'si no → HAVE+PP')
+      ],
+      examples: [
+        row('I have been working', 'yo he estado trabajando'),
+        row('She has been going', 'HAS + BEEN + ING'),
+        row('I had been studying', 'había estado estudiando'),
+        row('BEEN sin ING', 'incompleto si sigue')
+      ],
+      pattern: 'BEEN activa el ING — misma lógica que BE + ING. Pieza LEGO del Módulo 4.',
+      transforms: [
+        tip('I / have / work', 'I have been working', 'sigue'),
+        tip('She / had / go', 'She had been going', 'HAD+BEEN')
+      ],
+      takeaway: 'BEEN → ING. Misma clase module-04-perfecto.'
     },
     there: {
       rules: [row('There is', 'hay (1)', ''), row('There are', 'hay (2+)', ''), row('have / has', 'posesión', '(tengo / tiene)')],
@@ -367,19 +383,19 @@
 
     perfect: clip({
       id: 'perfect',
-      title: 'Have / Has / Had + Participio',
-      bridge: 'jaf. jas. jad. → have/has + participio (he/ha) · had + participio (había = pasado perfecto)',
+      title: 'Módulo 4 · Perfecto',
+      bridge: 'HAVE/HAS+PP · HAD+PP · BEEN+ING — español HABER primero',
       slots: [
-        { id: 1, label: 'Pronombre', hint: 'I · he · they' },
-        { id: 2, label: 'Have / Has / Had', hint: 'jaf · jas · jad' },
-        { id: 3, label: 'Participio', hint: 'done · gone · seen' }
+        { id: 1, label: 'Pronombre', hint: 'I · she · they' },
+        { id: 2, label: 'HAVE/HAS/HAD', hint: 'he · ha · había' },
+        { id: 3, label: 'Participio / BEEN+ING', hint: 'gone · been working' }
       ],
       examples: [
-        T([['have', 2], ['. ', 0], ['has', 2], ['. ', 0], ['had', 2], ['.', 0]]),
-        T([['He', 1], [' ', 0], ['has', 2], [' ', 0], ['done', 3], [' it.', 0]]),
-        T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['seen', 3], [' that.', 0]]),
-        T([['I', 1], [' ', 0], ['had', 2], [' ', 0], ['finished', 3], ['.', 0]]),
-        T([['They', 1], [' ', 0], ['had', 2], [' ', 0], ['gone', 3], ['.', 0]])
+        T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['gone', 3], ['.', 0]]),
+        T([['She', 1], [' ', 0], ['has', 2], [' ', 0], ['seen', 3], [' it.', 0]]),
+        T([['They', 1], [' ', 0], ['had', 2], [' ', 0], ['left', 3], [' before I arrived.', 0]]),
+        T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['been working', 3], [' here.', 0]]),
+        T([['She', 1], [' ', 0], ['has', 2], [' ', 0], ['sent', 3], [' me her report.', 0]])
       ]
     }),
 
@@ -439,20 +455,20 @@
 
     combined: clip({
       id: 'combined',
-      title: 'Have + Been + Verbo + ING',
-      bridge: 'have been + VERBO+ING = he estado + ando/endo',
+      title: 'Módulo 4 · BEEN + ING',
+      bridge: 'BEEN activa ING · he/había estado + ando/endo',
       slots: [
         { id: 1, label: 'Pronombre', hint: 'I · she · they' },
-        { id: 2, label: 'Have / Has', hint: 'have · has · had' },
+        { id: 2, label: 'Have / Has / Had', hint: 'have · has · had' },
         { id: 3, label: 'Been', hint: 'been' },
         { id: 4, label: 'Verbo + ING', hint: 'ando / endo' }
       ],
       examples: [
-        T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['been', 3], [' ', 0], ['studying', 4], [' English.', 0]]),
-        T([['She', 1], [' ', 0], ['has', 2], [' ', 0], ['been', 3], [' ', 0], ['working', 4], ['.', 0]]),
+        T([['I', 1], [' ', 0], ['have', 2], [' ', 0], ['been', 3], [' ', 0], ['working', 4], ['.', 0]]),
+        T([['She', 1], [' ', 0], ['has', 2], [' ', 0], ['been', 3], [' ', 0], ['going', 4], ['.', 0]]),
         T([['They', 1], [' ', 0], ['have', 2], [' ', 0], ['been', 3], [' ', 0], ['waiting', 4], ['.', 0]]),
-        T([['We', 1], [' ', 0], ['have', 2], [' ', 0], ['been', 3], [' ', 0], ['living', 4], [' here.', 0]]),
-        T([['He', 1], [' ', 0], ['had', 2], [' ', 0], ['been', 3], [' ', 0], ['running', 4], ['.', 0]])
+        T([['I', 1], [' ', 0], ['had', 2], [' ', 0], ['been', 3], [' ', 0], ['studying', 4], ['.', 0]]),
+        T([['He', 1], [' ', 0], ['had', 2], [' ', 0], ['been', 3], [' ', 0], ['living', 4], [' here.', 0]])
       ]
     }),
 

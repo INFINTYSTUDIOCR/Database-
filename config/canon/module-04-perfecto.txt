@@ -1,0 +1,810 @@
+﻿Modulo 4 — Perfecto HAVE/HAS/HAD + BEEN+ING (Clase 008)
+
+OPINIÓN ANTES DE EMPEZAR
+Esta es la clase que más confunde a los hispanohablantes — y la razón es simple.
+En español el perfecto existe pero nadie lo enseña como sistema. Se enseña como tiempo verbal aislado. El estudiante lo memoriza sin entender por qué existe.
+Acá la clave es exactamente lo que describís — partir del español. He ido. Hemos comido. Habían llegado. El estudiante ya usa estas formas todos los días. Solo hay que mostrarle que el inglés hace exactamente lo mismo con una estructura diferente.
+La excepción del BEEN es brillante de enseñar porque conecta dos cosas que el estudiante ya sabe — el have + participio del perfecto y el gerundio del módulo anterior. No es una regla nueva. Es una combinación de dos piezas LEGO que ya tiene.
+Lo más importante de esta clase es que el estudiante entienda la diferencia entre las tres estructuras antes de producir:
+HAVE + PARTICIPIO — pasó y afecta el presente.
+HAD + PARTICIPIO — pasó antes de otra cosa en el pasado.
+HAVE + BEEN + ING — empezó antes y sigue ahora mismo.
+Si entiende esa diferencia — puede construir cualquier cosa.
+Vamos.
+________________________________________
+APERTURA
+________________________________________
+"Hola. ¿Cómo está?
+Muy bien.
+Hasta ahora usted puede hablar en presente y en pasado.
+Puede describir. Puede narrar. Puede contar historias.
+Hoy vamos a agregar algo que va a cambiar completamente su nivel.
+Porque hay situaciones que ni el presente ni el pasado simple pueden describir correctamente.
+Por ejemplo.
+'Yo he ido a ese restaurante.'
+¿Es presente? No — ya fui.
+¿Es pasado simple? No — no sé exactamente cuándo.
+Es algo que pasó — y que todavía tiene relevancia ahora.
+Eso es el perfecto.
+Y usted ya lo usa en español todos los días.
+Hoy lo vamos a instalar en inglés.
+¿Listo? Vamos."
+________________________________________
+PARTE 1 — EL ESPAÑOL NOS ENSEÑA TODO
+________________________________________
+"Primero — vamos al español.
+Porque el inglés no inventó nada nuevo aquí.
+En español usted dice:
+He ido.
+Has comido.
+Ha llegado.
+Hemos trabajado.
+Han terminado.
+¿Qué tienen en común todas esas frases?
+Todas usan el verbo HABER — he, has, ha, hemos, han.
+Y después — un participio. Ido. Comido. Llegado. Trabajado. Terminado.
+La fórmula en español es:
+HABER + PARTICIPIO.
+He + ido.
+Ha + llegado.
+Hemos + trabajado.
+Eso es el presente perfecto en español.
+En inglés — exactamente lo mismo.
+Solo que en lugar de HABER — usamos HAVE o HAS.
+HAVE o HAS + PARTICIPIO.
+I have gone — yo he ido.
+She has arrived — ella ha llegado.
+We have worked — nosotros hemos trabajado.
+¿Notó?
+HAVE — para I, You, We, They.
+HAS — para He, She, It.
+La misma regla del presente del Módulo 006.
+¿Por qué es imperativo el HAVE o HAS?
+Porque sin el HAVE o HAS — no hay perfecto.
+En español usted no puede decir 'yo ido.'
+Suena mal. Falta el HABER.
+En inglés igual — no puede decir 'I gone.'
+Falta el HAVE.
+El HAVE o HAS es obligatorio.
+Siempre.
+Sin excepción."
+________________________________________
+PARTE 2 — EL PARTICIPIO
+________________________________________
+"Ahora — ¿qué es el participio?
+En el Módulo 006 vimos los 16 verbos.
+Presente — pasado — participio.
+La tercera columna — esa es el participio.
+Vamos a repasarlos:"
+
+VERBO     PRESENTE    PASADO    PARTICIPIO   SIGNIFICADO
+be        am/are/is   was/were  been         sido/estado
+have      have/has    had       had          tenido
+go        go/goes     went      gone         ido
+come      come/comes  came      come         venido
+get       get/gets    got       gotten       conseguido
+make      make/makes  made      made         hecho
+do        do/does     did       done         hecho
+take      take/takes  took      taken        tomado
+give      give/gives  gave      given        dado
+put       put/puts    put       put          puesto
+cut       cut/cuts    cut       cut          cortado
+let       let/lets    let       let          dejado
+keep      keep/keeps  kept      kept         mantenido
+see       see/sees    saw       seen         visto
+say       say/says    said      said         dicho
+send      send/sends  sent      sent         mandado
+seem      seem/seems  seemed    seemed       parecido
+
+"¿Notó algo?
+Algunos participios son iguales al pasado.
+Had, made, done, put, cut, let, kept, said, sent, seemed.
+Otros son completamente diferentes.
+Gone — went en pasado pero gone en participio.
+Seen — saw en pasado pero seen en participio.
+Given — gave en pasado pero given en participio.
+Taken — took en pasado pero taken en participio.
+Gotten — got en pasado pero gotten en participio.
+Been — was/were en pasado pero been en participio.
+Come — came en pasado pero come en participio — igual que presente.
+Done — did en pasado pero done en participio.
+Hay que conocerlos.
+Pero no como lista.
+Como patrones.
+Los que cambian completamente — gone, seen, given, taken, gotten, been — son los más importantes. Son los que más se usan.
+Y hay uno muy especial — BEEN.
+Volvemos a él en un momento.
+Primero — el presente perfecto completo."
+________________________________________
+PARTE 3 — PRESENTE PERFECTO — HAVE + PARTICIPIO
+________________________________________
+"El presente perfecto dice que algo pasó — y todavía afecta el presente.
+En español — he ido, ha llegado, hemos comido.
+En inglés — have + participio, has + participio.
+Vamos a construirlo con los 16 verbos:"
+
+"BE — been
+I have been — yo he sido, yo he estado.
+You have been — vos has sido, vos has estado.
+He has been — él ha sido, él ha estado.
+She has been — ella ha sido, ella ha estado.
+It has been — eso ha sido, eso ha estado.
+We have been — nosotros hemos sido, hemos estado.
+You have been — ustedes han sido, han estado.
+They have been — ellos han sido, ellos han estado.
+
+HAVE — had
+I have had — yo he tenido.
+You have had — vos has tenido.
+He has had — él ha tenido.
+She has had — ella ha tenido.
+We have had — nosotros hemos tenido.
+They have had — ellos han tenido.
+
+GO — gone
+I have gone — yo he ido.
+You have gone — vos has ido.
+He has gone — él ha ido.
+She has gone — ella ha ido.
+We have gone — nosotros hemos ido.
+They have gone — ellos han ido.
+
+COME — come
+I have come — yo he venido.
+He has come — él ha venido.
+They have come — ellos han venido.
+
+GET — gotten
+I have gotten — yo he conseguido.
+She has gotten — ella ha conseguido.
+We have gotten — nosotros hemos conseguido.
+
+MAKE — made
+I have made — yo he hecho.
+He has made — él ha hecho.
+They have made — ellos han hecho.
+
+DO — done
+I have done — yo he hecho.
+She has done — ella ha hecho.
+We have done — nosotros hemos hecho.
+
+TAKE — taken
+I have taken — yo he tomado.
+He has taken — él ha tomado.
+They have taken — ellos han tomado.
+
+GIVE — given
+I have given — yo he dado.
+She has given — ella ha dado.
+We have given — nosotros hemos dado.
+
+SEE — seen
+I have seen — yo he visto.
+He has seen — él ha visto.
+They have seen — ellos han visto.
+
+SAY — said
+I have said — yo he dicho.
+She has said — ella ha dicho.
+We have said — nosotros hemos dicho.
+
+SEND — sent
+I have sent — yo he mandado.
+He has sent — él ha mandado.
+They have sent — ellos han mandado.
+
+KEEP — kept
+I have kept — yo he mantenido.
+She has kept — ella ha mantenido.
+We have kept — nosotros hemos mantenido.
+
+PUT — put
+I have put — yo he puesto.
+He has put — él ha puesto.
+They have put — ellos han puesto.
+
+LET — let
+I have let — yo he dejado.
+He has let — él ha dejado.
+They have let — ellos han dejado.
+
+CUT — cut
+I have cut — yo he cortado.
+She has cut — ella ha cortado.
+We have cut — nosotros hemos cortado.
+
+SEEM — seemed
+I have seemed — yo he parecido.
+He has seemed — él ha parecido.
+They have seemed — ellos han parecido."
+________________________________________
+PARTE 4 — LA DIFERENCIA ENTRE PASADO SIMPLE Y PRESENTE PERFECTO
+________________________________________
+"Acá hay algo muy importante.
+¿Cuándo uso el pasado simple — went, saw, made?
+¿Cuándo uso el presente perfecto — have gone, have seen, have made?
+En español la diferencia es clara.
+Pasado simple — acción terminada en un momento específico.
+'Ayer fui al trabajo.' — Sé exactamente cuándo.
+Presente perfecto — acción que pasó pero no sé cuándo exactamente — o que sigue relevante ahora.
+'He ido a ese restaurante.' — No digo cuándo. Solo que fui.
+En inglés — exactamente lo mismo.
+Pasado simple:
+'I went to the office yesterday.' — Sé cuándo. Ayer.
+Presente perfecto:
+'I have been to that office.' — No digo cuándo. Solo que fui alguna vez.
+La pregunta que siempre me hago:
+¿Sé exactamente cuándo pasó — y quiero decirlo?
+Sí — pasado simple. Went, saw, made.
+No — o no importa cuándo — presente perfecto. Have gone, have seen, have made.
+Eso es todo."
+________________________________________
+PARTE 5 — PASADO PERFECTO — HAD + PARTICIPIO
+________________________________________
+"Ahora el pasado perfecto.
+En español usted dice:
+Había ido.
+Habías comido.
+Había llegado.
+Habíamos trabajado.
+Habían terminado.
+¿Notó la diferencia con el presente perfecto?
+Presente perfecto — he, has, ha, hemos, han.
+Pasado perfecto — había, habías, había, habíamos, habían.
+El presente perfecto conecta con el presente.
+El pasado perfecto conecta con otro momento en el pasado.
+En español — se usa HABER en imperfecto — había, habías, había.
+En inglés — se usa HAD para todos los pronombres.
+HAD + PARTICIPIO.
+No HAVE. No HAS. Solo HAD.
+Para todos.
+I had gone — yo había ido.
+You had gone — vos habías ido.
+He had gone — él había ido.
+She had gone — ella había ido.
+We had gone — nosotros habíamos ido.
+They had gone — ellos habían ido.
+¿Cuándo se usa?
+Cuando algo pasó ANTES de otra cosa que también está en el pasado.
+Ejemplo en español:
+'Cuando llegué — ella ya había salido.'
+Llegué — pasado simple. Primer evento en el tiempo cronológico.
+Había salido — pasado perfecto. Pasó ANTES de que yo llegara.
+En inglés:
+'When I arrived — she had already left.'
+Arrived — pasado simple.
+Had left — pasado perfecto. Pasó antes del arrived.
+La imagen es esta.
+Pasado perfecto ← Pasado simple ← Presente
+El pasado perfecto está más atrás en el tiempo.
+Siempre precede a otro evento en el pasado.
+HAD + PARTICIPIO.
+Para todos los pronombres.
+Siempre."
+________________________________________
+PARTE 6 — LA EXCEPCIÓN — BEEN + ING
+________________________________________
+"Ahora — la excepción más importante de estas dos estructuras.
+Y cuando digo excepción — no es una regla nueva.
+Es una combinación de dos piezas que usted ya sabe.
+¿Recuerdan el gerundio del Módulo 006?
+BE + ING.
+I am working — yo estoy trabajando.
+She is going — ella está yendo.
+Eso es el gerundio. La acción que está pasando ahora mismo.
+Ahora — ¿qué pasa cuando ese BE aparece como participio?
+El participio de BE — ¿cuál es?
+BEEN.
+I have been. She has been. They had been.
+Cuando el participio es BEEN — algo especial ocurre.
+La acción no terminó.
+La acción empezó antes — y sigue pasando ahora mismo.
+Y para mostrar que sigue — necesitamos el gerundio.
+La estructura completa es:
+HAVE / HAS + BEEN + VERBO-ING
+O en pasado perfecto:
+HAD + BEEN + VERBO-ING
+En español — la traducción es el ENDO o ANDO con el HABÍA.
+He estado trabajando — I have been working.
+Había estado trabajando — I had been working.
+He estado yendo — I have been going.
+Había estado yendo — I had been going.
+¿Por qué se activa el ING?
+Porque BEEN es el participio de BE.
+Y BE activa el ING — igual que en el presente.
+I am working — BE activa el ING.
+I have been working — BEEN activa el ING.
+Misma lógica. Diferente tiempo.
+Eso es el LEGO.
+No memorizamos reglas.
+Combinamos piezas que ya conocemos."
+________________________________________
+LAS TRES ESTRUCTURAS JUNTAS
+________________________________________
+ESTRUCTURA              FORMULA                  SIGNIFICADO EN ESPAÑOL
+Presente perfecto       HAVE/HAS + PARTICIPIO    He/Ha/Hemos/Han + participio
+Pasado perfecto         HAD + PARTICIPIO         Había/Habíamos/Habían + participio
+Presente perf. cont.    HAVE/HAS + BEEN + ING    He/Ha estado + endo/ando
+Pasado perf. cont.      HAD + BEEN + ING         Había/Habíamos estado + endo/ando
+
+"Cuatro estructuras.
+Pero todas vienen de la misma lógica.
+HAVE — conecta con el presente.
+HAD — conecta con el pasado.
+BEEN + ING — la acción sigue ocurriendo.
+Son piezas LEGO.
+HAVE + PARTICIPIO.
+HAVE + BEEN + ING.
+HAD + PARTICIPIO.
+HAD + BEEN + ING.
+Cuatro combinaciones. Cuatro significados diferentes.
+Todas construidas con piezas que usted ya conoce."
+________________________________________
+TABLA COMPLETA — LOS 16 VERBOS EN PERFECTO
+________________________________________
+VERBO   PARTICIPIO   PRES PERFECTO         PAS PERFECTO
+be      been         have/has been         had been
+have    had          have/has had          had had
+go      gone         have/has gone         had gone
+come    come         have/has come         had come
+get     gotten       have/has gotten       had gotten
+make    made         have/has made         had made
+do      done         have/has done         had done
+take    taken        have/has taken        had taken
+give    given        have/has given        had given
+put     put          have/has put          had put
+cut     cut          have/has cut          had cut
+let     let          have/has let          had let
+keep    kept         have/has kept         had kept
+see     seen         have/has seen         had seen
+say     said         have/has said         had said
+send    sent         have/has sent         had sent
+seem    seemed       have/has seemed       had seemed
+________________________________________
+BATERÍA DE EJERCICIOS
+________________________________________
+EJERCICIO 1 — Rapid Fire — Participios
+Jill da el verbo. Estudiante da el participio con su significado.
+
+"Primero — los participios. Rápido.
+Go."
+Espera.
+"Gone — ido. Correcto.
+See."
+Espera.
+"Seen — visto. Perfecto.
+Give."
+Espera.
+"Given — dado. Muy bien.
+Take."
+Espera.
+"Taken — tomado. Correcto.
+Make."
+Espera.
+"Made — hecho. Perfecto.
+Do."
+Espera.
+"Done — hecho. Muy bien.
+Come."
+Espera.
+"Come — venido. Igual que el presente. Correcto.
+Get."
+Espera.
+"Gotten — conseguido. Perfecto.
+Have."
+Espera.
+"Had — tenido. Muy bien.
+Be."
+Espera.
+"Been — sido, estado. Correcto. Este es el especial — cuando aparece este activamos el ING.
+Send."
+Espera.
+"Sent — mandado. Perfecto.
+Keep."
+Espera.
+"Kept — mantenido. Muy bien.
+Say."
+Espera.
+"Said — dicho. Correcto.
+Put."
+Espera.
+"Put — puesto. Igual que presente y pasado. Perfecto.
+Cut."
+Espera.
+"Cut — cortado. Igual. Muy bien.
+Let."
+Espera.
+"Let — dejado. Igual. Correcto.
+Seem."
+Espera.
+"Seemed — parecido. Perfecto."
+________________________________________
+EJERCICIO 2 — HAVE vs HAS — Rapid Fire
+Refuerzo de la regla del Módulo 006.
+
+"HAVE o HAS. En menos de 1 segundo.
+Recuerde — He, She, It — HAS. Nadie más — HAVE.
+I."
+Espera.
+"Have. Correcto.
+She."
+Espera.
+"Has. Perfecto.
+They."
+Espera.
+"Have. Muy bien.
+He."
+Espera.
+"Has. Correcto.
+We."
+Espera.
+"Have. Perfecto.
+It."
+Espera.
+"Has. Muy bien.
+You."
+Espera.
+"Have. Correcto.
+Ella."
+Espera.
+"Has. Perfecto.
+Nosotros."
+Espera.
+"Have. Muy bien.
+Él."
+Espera.
+"Has. Correcto."
+________________________________________
+EJERCICIO 3 — Construcción de presente perfecto
+Jill da pronombre y verbo. Estudiante construye presente perfecto con significado.
+
+"Ahora construimos.
+Pronombre + HAVE o HAS + PARTICIPIO.
+Yo digo el pronombre y el verbo. Usted construye.
+I / go."
+Espera.
+"I have gone — yo he ido. Correcto.
+She / see."
+Espera.
+"She has seen — ella ha visto. Perfecto. HAS porque es She.
+They / make."
+Espera.
+"They have made — ellos han hecho. Muy bien.
+He / send."
+Espera.
+"He has sent — él ha mandado. Correcto. HAS porque es He.
+We / give."
+Espera.
+"We have given — nosotros hemos dado. Perfecto.
+It / seem."
+Espera.
+"It has seemed — eso ha parecido. Muy bien. HAS porque es It.
+I / have."
+Espera.
+"I have had — yo he tenido. Correcto.
+She / be."
+Espera.
+"She has been — ella ha sido, ella ha estado. Perfecto. HAS porque es She. Y BEEN — el participio especial.
+They / keep."
+Espera.
+"They have kept — ellos han mantenido. Muy bien.
+He / come."
+Espera.
+"He has come — él ha venido. Correcto. Come es igual en presente y en participio."
+________________________________________
+EJERCICIO 4 — Construcción de pasado perfecto
+Jill da pronombre y verbo. Estudiante construye pasado perfecto con significado.
+
+"Ahora el pasado perfecto.
+HAD + PARTICIPIO para todos. No hay HAVE ni HAS. Solo HAD.
+I / go."
+Espera.
+"I had gone — yo había ido. Correcto.
+She / see."
+Espera.
+"She had seen — ella había visto. Perfecto. ¿Notó? Ya no hay HAS — es HAD para todos.
+They / make."
+Espera.
+"They had made — ellos habían hecho. Muy bien.
+He / send."
+Espera.
+"He had sent — él había mandado. Correcto. HAD — igual para He.
+We / give."
+Espera.
+"We had given — nosotros habíamos dado. Perfecto.
+I / be."
+Espera.
+"I had been — yo había sido, yo había estado. Muy bien. BEEN — el especial.
+She / keep."
+Espera.
+"She had kept — ella había mantenido. Correcto.
+They / go."
+Espera.
+"They had gone — ellos habían ido. Perfecto.
+He / have."
+Espera.
+"He had had — él había tenido. Muy bien. ¿Raro? HAD + HAD. El primero es el auxiliar. El segundo es el participio de HAVE."
+________________________________________
+EJERCICIO 5 — BEEN + ING — La excepción
+Jill da pronombre y verbo. Estudiante construye HAVE/HAS/HAD + BEEN + ING con significado.
+
+"Ahora la excepción.
+BEEN activa el ING.
+Cuando el participio es BEEN — el verbo que sigue termina en ING.
+Yo doy el pronombre, el auxiliar y el verbo. Usted construye.
+I / have / work."
+Espera.
+"I have been working — yo he estado trabajando. Correcto.
+She / has / go."
+Espera.
+"She has been going — ella ha estado yendo. Perfecto. HAS porque es She.
+They / have / study."
+Espera.
+"They have been studying — ellos han estado estudiando. Muy bien.
+He / has / make."
+Espera.
+"He has been making — él ha estado haciendo. Correcto. HAS porque es He.
+We / have / work."
+Espera.
+"We have been working — nosotros hemos estado trabajando. Perfecto.
+I / had / work."
+Espera.
+"I had been working — yo había estado trabajando. Muy bien. Pasado perfecto continuo.
+She / had / go."
+Espera.
+"She had been going — ella había estado yendo. Correcto. HAD para todos en pasado.
+They / had / study."
+Espera.
+"They had been studying — ellos habían estado estudiando. Perfecto.
+He / had / live."
+Espera.
+"He had been living — él había estado viviendo. Muy bien."
+________________________________________
+EJERCICIO 6 — Presente perfecto vs pasado simple
+Refuerzo de la diferencia entre los dos tiempos.
+
+"La diferencia más importante.
+Pasado simple — sé exactamente cuándo. Tengo el ancla.
+Presente perfecto — no digo cuándo. Solo que pasó.
+Yo doy la situación. Usted me dice cuál tiempo usar — y construye.
+Fui al gimnasio ayer."
+Espera.
+"Pasado simple — tengo el ancla 'ayer'.
+I went to the gym yesterday. Correcto.
+Alguna vez en mi vida he ido a París."
+Espera.
+"Presente perfecto — no digo cuándo. Solo que fui.
+I have been to Paris. Perfecto.
+Ella mandó el reporte esta mañana."
+Espera.
+"Pasado simple — tengo el ancla 'this morning'.
+She sent the report this morning. Muy bien.
+Él ha mandado muchos reportes en su vida."
+Espera.
+"Presente perfecto — experiencia general. No hay ancla específica.
+He has sent many reports. Correcto.
+Nosotros vimos esa película el año pasado."
+Espera.
+"Pasado simple — tengo el ancla 'last year'.
+We saw that movie last year. Perfecto.
+¿Han visto esa película alguna vez?"
+Espera.
+"Presente perfecto — experiencia. No hay ancla.
+Have they seen that movie? Muy bien."
+________________________________________
+EJERCICIO 7 — Pasado perfecto en contexto
+Jill da situaciones con dos eventos. Estudiante identifica cuál pasó primero y construye.
+
+"El pasado perfecto siempre conecta dos eventos en el pasado.
+El que pasó PRIMERO — pasado perfecto — HAD + PARTICIPIO.
+El que pasó DESPUÉS — pasado simple.
+Yo digo la situación. Usted construye.
+Cuando llegué — ella ya se fue."
+Espera.
+"When I arrived — she had already left.
+Arrived — pasado simple. Llegué después.
+Had left — pasado perfecto. Ella se fue primero. Correcto.
+Cuando abrí el reporte — él ya lo había mandado."
+Espera.
+"When I opened the report — he had already sent it.
+Opened — pasado simple. Abrí después.
+Had sent — pasado perfecto. Él mandó primero. Perfecto.
+Cuando llamé — ellos ya habían terminado la reunión."
+Espera.
+"When I called — they had already finished the meeting.
+Called — pasado simple.
+Had finished — pasado perfecto. Muy bien.
+Cuando ella llegó — yo ya me había ido."
+Espera.
+"When she arrived — I had already gone.
+Arrived — pasado simple.
+Had gone — pasado perfecto. Correcto."
+________________________________________
+EJERCICIO 8 — BEEN + ING en contexto
+Estudiante identifica si la acción sigue o terminó.
+
+"Antes de construir — siempre me pregunto:
+¿La acción sigue pasando ahora mismo?
+Sí — HAVE/HAS + BEEN + ING.
+No — HAVE/HAS + PARTICIPIO.
+Yo digo la situación. Usted decide y construye.
+Empecé a trabajar aquí hace tres años — y sigo trabajando aquí."
+Espera.
+"¿Sigue? Sí.
+I have been working here for three years. Correcto.
+Ella estudió inglés el año pasado — ya no estudia."
+Espera.
+"¿Sigue? No. Ya terminó.
+She studied English last year — pasado simple. Perfecto.
+Ellos han estado esperando desde hace una hora — todavía esperan."
+Espera.
+"¿Sigue? Sí.
+They have been waiting for an hour. Muy bien.
+Él vivió en Costa Rica — pero ya se fue."
+Espera.
+"¿Sigue? No.
+He lived in Costa Rica — pasado simple. Correcto.
+Nosotros hemos estado trabajando en ese proyecto toda la semana — y seguimos."
+Espera.
+"¿Sigue? Sí.
+We have been working on that project all week. Perfecto.
+Ella había estado estudiando antes del examen — ya lo presentó."
+Espera.
+"¿Sigue? No — terminó antes de otra cosa en el pasado.
+She had been studying before the exam — pasado perfecto continuo. Muy bien."
+________________________________________
+EJERCICIO 9 — Integración con pronombres objeto
+Refuerzo del Módulo 005 — Tipo 2.
+
+"Ahora integramos los pronombres objeto.
+Me, you, him, her, it, us, them.
+En perfecto — el objeto no cambia. Igual que siempre.
+Ella me ha mandado el reporte."
+Espera.
+"She has sent me the report.
+Sujeto — She. HAS — porque es She. Objeto — me. Correcto.
+Él nos ha dado las instrucciones."
+Espera.
+"He has given us the instructions.
+Sujeto — He. HAS. Objeto — us. Perfecto.
+Nosotros los hemos visto antes."
+Espera.
+"We have seen them before.
+Sujeto — We. HAVE. Objeto — them. Muy bien.
+Ellos me habían mandado el correo antes de la reunión."
+Espera.
+"They had sent me the email before the meeting.
+Sujeto — They. HAD — pasado perfecto. Objeto — me. Correcto.
+Ella nos había dado su opinión antes de que llegáramos."
+Espera.
+"She had given us her opinion before we arrived.
+Sujeto — She. HAD. Objeto — us. Posesivo adjetivo — her. Perfecto."
+________________________________________
+EJERCICIO 10 — Integración con posesivos y reflexivos
+Refuerzo completo del Módulo 005.
+
+"Ahora con posesivos adjetivos y reflexivos.
+Todos los módulos juntos.
+Ella ha mantenido su trabajo ella misma — sin ayuda."
+Espera.
+"She has kept her job herself.
+Sujeto — She. HAS. Participio — kept. Posesivo adjetivo — her. Reflexivo de énfasis — herself. Correcto.
+Él se ha dado cuenta de que su reporte era el mejor."
+Espera.
+"He has realized that his report was the best.
+Sujeto — He. HAS. Participio — realized. Posesivo adjetivo — his. Perfecto.
+Nosotros nos hemos organizado solos — y nuestros resultados hablan por sí mismos."
+Espera.
+"We have organized ourselves — and our results speak for themselves.
+Sujeto — We. HAVE. Participio — organized. Reflexivo — ourselves. Posesivo adjetivo — our. Reflexivo — themselves. Muy bien.
+Ella había estado trabajando en su proyecto por meses — y lo terminó ella misma."
+Espera.
+"She had been working on her project for months — and she finished it herself.
+HAD BEEN + ING — pasado perfecto continuo. Posesivo adjetivo — her. Reflexivo — herself. Correcto."
+________________________________________
+EJERCICIO 11 — Los cuatro tiempos integrados
+Estudiante identifica el tiempo correcto y construye.
+
+"Ahora mezclamos todo.
+Cuatro tiempos — presente, pasado simple, presente perfecto, pasado perfecto.
+Yo doy la situación. Usted identifica el tiempo y construye.
+Ella va al trabajo todos los días."
+Espera.
+"Presente — She goes to work every day. Correcto.
+Ella fue al trabajo ayer."
+Espera.
+"Pasado simple — She went to work yesterday. Perfecto.
+Ella ha ido a ese trabajo muchas veces."
+Espera.
+"Presente perfecto — She has gone to that job many times. Muy bien.
+Cuando llegué — ella ya había ido al trabajo."
+Espera.
+"Pasado perfecto — When I arrived — she had already gone to work. Correcto.
+Él ha estado trabajando aquí desde enero — y sigue."
+Espera.
+"Presente perfecto continuo — He has been working here since January. Perfecto.
+Él había estado trabajando en ese proyecto cuando lo cancelaron."
+Espera.
+"Pasado perfecto continuo — He had been working on that project when they cancelled it. Muy bien."
+________________________________________
+EJERCICIO 12 — Historia de tres minutos
+Integración total de todos los módulos.
+
+"El ejercicio final.
+Cuénteme algo real.
+Puede ser su vida. Su trabajo. Una experiencia importante.
+Requisitos obligatorios:
+Al menos 2 frases en presente.
+Al menos 2 frases en pasado simple.
+Al menos 2 frases en presente perfecto — HAVE/HAS + PARTICIPIO.
+Al menos 1 frase en pasado perfecto — HAD + PARTICIPIO.
+Al menos 1 frase con BEEN + ING.
+Los cinco tipos de pronombres — al menos uno de cada tipo.
+Mínimo 12 oraciones.
+Cuando termine — yo le pregunto:
+¿Dónde está el presente perfecto?
+¿Dónde está el pasado perfecto?
+¿Dónde está el BEEN + ING?
+¿Cómo sé que la acción del BEEN + ING sigue pasando?
+¿Usó los cinco tipos de pronombres?
+¿Listo? Ancla temporal primero. Empiece."
+Estudiante habla. Jill no interrumpe.
+Al terminar — las cinco preguntas.
+Si faltó algún elemento — el estudiante continúa la historia agregando lo que faltó. No reinicia.
+________________________________________
+CRITERIOS DE DOMINIO — CLASE 008
+________________________________________
+"Usted domina esta clase cuando puede hacer todo esto sin dudar:
+☐ Da el participio de los 16 verbos en menos de 1 segundo
+☐ Usa HAVE con I, You, We, They — siempre
+☐ Usa HAS con He, She, It — siempre en presente perfecto
+☐ Usa HAD para todos los pronombres en pasado perfecto
+☐ Distingue presente perfecto de pasado simple por contexto
+☐ Construye pasado perfecto con dos eventos ordenados correctamente
+☐ Activa el ING cuando el participio es BEEN
+☐ Distingue HAVE + PARTICIPIO de HAVE + BEEN + ING por si la acción sigue o terminó
+☐ Integra pronombres objeto en estructuras perfectas
+☐ Integra posesivos adjetivos en estructuras perfectas
+☐ Integra reflexivos en estructuras perfectas
+☐ Mezcla los cuatro tiempos correctamente en una historia
+☐ Sostiene una historia de 3 minutos con todos los elementos integrados
+Si no cumple alguno — volvemos a ese ejercicio específico.
+No avanzamos hasta que todos estén marcados."
+________________________________________
+NOTAS PARA JILL
+________________________________________
+ANTES de cualquier construcción perfecta →
+  "¿La acción sigue pasando o ya terminó?"
+  "¿Conecta con el presente o con otro evento en el pasado?"
+  El estudiante identifica primero. Construye después.
+
+SI el estudiante usa HAVE cuando debería usar HAS →
+  "¿Cuál es el pronombre? ¿Es He, She o It?"
+  Regla: He, She, It — HAS en presente perfecto.
+
+SI el estudiante usa HAS en pasado perfecto →
+  "En pasado perfecto — ¿HAVE, HAS o HAD?"
+  Solo HAD. Para todos.
+
+SI el estudiante usa BEEN sin ING →
+  "BEEN activa el ING. ¿Qué le falta a esta frase?"
+  Guiar al ING sin dar la respuesta.
+
+SI el estudiante confunde presente perfecto con pasado simple →
+  "¿Sabe exactamente cuándo pasó y quiere decirlo?"
+  Sí → pasado simple.
+  No → presente perfecto.
+
+SI el estudiante dice HAD BEEN sin ING →
+  Misma regla — BEEN siempre activa el ING.
+
+SI el estudiante olvida integrar pronombres de módulos anteriores →
+  Detener. Pedir que agregue el tipo faltante.
+  No reiniciar. Continuar desde donde paró.
+
+SIEMPRE →
+  Español como puente — he, has, han, había, habíamos, habían.
+  Patrón antes que regla gramatical.
+  Los cuatro módulos se conectan siempre.
+  Al final de esta clase el estudiante puede sostener una conversación real compleja.

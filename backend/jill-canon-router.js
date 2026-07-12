@@ -211,7 +211,9 @@ function loadModuleCanonTranscript(trackId) {
   const files = {
     pronouns: 'module-01-pronombres.txt',
     present: 'module-02-verbos-presente.txt',
-    past: 'module-03-pasado-simple.txt'
+    past: 'module-03-pasado-simple.txt',
+    perfect: 'module-04-perfecto.txt',
+    combined: 'module-04-perfecto.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -231,6 +233,13 @@ function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
     const id = String(trackId || '').trim();
+    if (id === 'perfect' || id === 'combined') {
+      return {
+        say: fromFile,
+        mustSay: ['have', 'has', 'had', 'been', 'been + ing'],
+        exampleAsk: 'Antes: ¿sigue o terminó? ¿Conecta con presente o con otro pasado? Rapid Fire: Go → Gone. She → Has.'
+      };
+    }
     if (id === 'past') {
       return {
         say: fromFile,
@@ -279,7 +288,16 @@ function formatLock(track) {
       'ANTES de construir: preguntá "¿pasado o presente?"'
     ],
     perfect: [
-      'ANTIMEZCLA — PERFECTO (have/has/had + participio): NO lo enseñes como pasado simple.'
+      'ANTIMEZCLA — MÓDULO 4 PERFECTO (HAVE/HAS/HAD + BEEN+ING):',
+      'PROHIBIDO enseñar como pasado simple con yesterday; PROHIBIDO I gone sin HAVE/HAS; PROHIBIDO HAS en pasado perfecto.',
+      'SOLO: HAVE/HAS+PP · HAD+PP · HAVE/HAS+BEEN+ING · HAD+BEEN+ING. Español HABER primero.',
+      'SEGUÍ EL GUION CANON module-04-perfecto SIN CORTAR NI REESCRIBIR.',
+      'ANTES: ¿sigue o terminó? ¿Conecta con presente o con otro pasado?'
+    ],
+    combined: [
+      'ANTIMEZCLA — MÓDULO 4 BEEN+ING (misma clase module-04):',
+      'BEEN activa ING. HAVE/HAS/HAD + BEEN + VERBO-ING = he/había estado + ando/endo.',
+      'SEGUÍ EL GUION CANON module-04-perfecto SIN CORTAR NI REESCRIBIR.'
     ],
     present: [
       'ANTIMEZCLA — MÓDULO 2 VERBOS PRESENTE (16 VERBOS + CONJUGACIÓN):',
@@ -309,7 +327,6 @@ function formatLock(track) {
       'RELEVANCIA: SOLO gerundio/ING. PROHIBIDO preposiciones in/on/at como lección aparte.'
     ],
     gerund_prep: ['ANTIMEZCLA: prep + VERBO+ING = ando/endo. Decí ando/endo.'],
-    combined: ['ANTIMEZCLA: have been + ING = he estado + ando/endo.'],
     modal_have_pp: ['ANTIMEZCLA: modal + have + participio.'],
     modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
     prepositions: [
