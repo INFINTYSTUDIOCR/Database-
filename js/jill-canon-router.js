@@ -843,7 +843,8 @@
     // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar
     if (stickyTrack) {
       if (isExplicitTopicAsk(ask)) {
-        var named = pickTrack(ask) || pickTrack(stripAskShell(ask)) || resolvePieceTrack(ask, '');
+        // Solo otro MÓDULO nombrado puede cambiar — no "qué es have/will"
+        var named = pickTrack(ask) || pickTrack(stripAskShell(ask));
         if (named && named.id !== stickyTrack.id) return named;
       }
       return stickyTrack;

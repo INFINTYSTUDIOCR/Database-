@@ -162,7 +162,9 @@ function resolveAsk(userAsk, stickyTopic) {
   // SOLO un pedido EXPLÍCITO de OTRO tema puede cambiar.
   if (stickyTrack) {
     if (isExplicitTopicAsk(ask)) {
-      const named = pickTrack(ask) || pickTrack(stripAskShell(ask)) || resolvePieceTrack(ask, '');
+      // Solo cambiar si nombraron OTRO módulo (preposiciones, gerundio…).
+      // "qué es have/will" NO abre query nueva — se responde dentro del lock.
+      const named = pickTrack(ask) || pickTrack(stripAskShell(ask));
       if (named && named.id !== stickyTrack.id) return named;
     }
     return stickyTrack;
