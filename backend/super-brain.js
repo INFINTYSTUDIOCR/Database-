@@ -842,6 +842,12 @@ async function seedCanonTeachingModules() {
       title: 'Jill Foundations M014 — Clase 010 WILL / WOULD',
       file: 'module-06-will-would.txt',
       category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-07-preposiciones',
+      title: 'Jill Foundations M015 — Clase 011 IN / ON / AT + Preposiciones',
+      file: 'module-07-preposiciones.txt',
+      category: 'jill-foundations'
     }
   ];
   const state = await loadState();

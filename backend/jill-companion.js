@@ -302,8 +302,8 @@ ${JILL_PRO_DOUBT_MODE}
 const TRACK_TEACH_HINTS = {
   irregular_verbs: FULL_TEACH_ALL + ' Analogía: tres columnas = tres fotos. do. did. done. / get. got. gotten. con pausa.',
   there: FULL_TEACH_ALL + ' Analogía: there is/are = HAY; have/has = posesión.',
-  prepositions: FULL_TEACH_ALL + ' Analogía: IN=caja; ON=superficie; AT=punto.',
-  prepositions_time: FULL_TEACH_ALL + ' Analogía: IN=mes/año; ON=día; AT=hora.',
+  prepositions: FULL_TEACH_ALL + ' CANON MÓDULO 7 / Clase 011: tres círculos IN grande=adentro, ON mediano=encima, AT=punto. SEGUÍ guion module-07-preposiciones ÍNTEGRO. Solo preposiciones — no artículos.',
+  prepositions_time: FULL_TEACH_ALL + ' CANON MÓDULO 7 / Clase 011: IN períodos; ON días; AT horas; SINCE/FOR/DURING/BY. SEGUÍ guion module-07-preposiciones ÍNTEGRO.',
   gerundio: FULL_TEACH_ALL + ' CANON MÓDULO 5 / Clase 009: TO BE=llave; ING=puerta; TO=flecha; ING=concepto; prep siempre ING. SEGUÍ guion module-05-gerundio ÍNTEGRO.',
   gerund_prep: FULL_TEACH_ALL + ' CANON MÓDULO 5 / Clase 009: TO BE=llave; ING=puerta; TO=flecha; ING=concepto; prep siempre ING. SEGUÍ guion module-05-gerundio ÍNTEGRO.',
   negations: FULL_TEACH_ALL + ' Analogía: el auxiliar carga el NOT (nunca "I no…").',

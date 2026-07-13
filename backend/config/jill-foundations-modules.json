@@ -1980,6 +1980,194 @@
           "explain": "La pregunta guía de Clase 010."
         }
       ]
+    },
+    {
+      "id": "M015",
+      "order": 15,
+      "title": "Clase 011 — IN / ON / AT + Preposiciones (Módulo 7)",
+      "canonTrackIds": [
+        "prepositions",
+        "prepositions_time"
+      ],
+      "say": "CANON: config/canon/module-07-preposiciones.txt (íntegro). Tres círculos: IN grande=adentro; ON mediano=encima; AT=punto exacto. Lugar, tiempo, movimiento, relación. Solo preposiciones — no artículos.",
+      "bridge": "IN adentro · ON encima · AT punto · SINCE/FOR · INTO/IN · LIKE/AS.",
+      "checklist": [
+        "Usa IN para espacios cerrados, períodos largos y estados",
+        "Usa ON para superficies, días específicos y medios de comunicación",
+        "Usa AT para puntos exactos, horas y lugares de actividad",
+        "Distingue IN de AT en lugares por el enfoque",
+        "Distingue SINCE de FOR por punto vs duración",
+        "Distingue FOR de DURING por duración vs evento",
+        "Distingue UNTIL de BY por continuidad vs límite",
+        "Usa INTO vs IN por movimiento vs estado",
+        "Usa LIKE vs AS por comparación vs rol real",
+        "Usa OVER vs ABOVE vs ON por movimiento vs contacto vs nivel",
+        "Integra preposiciones con los cinco tipos de pronombres",
+        "Integra preposiciones con todos los tiempos verbales",
+        "Detecta y corrige errores de preposiciones sin ayuda",
+        "Sostiene una historia de 3 minutos con preposiciones correctas integradas"
+      ],
+      "mini": {
+        "questions": 8,
+        "timerSec": 28,
+        "passPct": 80
+      },
+      "kaboomBank": [
+        {
+          "q": "The morning →",
+          "options": [
+            "In the morning",
+            "On the morning",
+            "At the morning",
+            "By the morning"
+          ],
+          "answer": 0,
+          "explain": "Período del día — IN."
+        },
+        {
+          "q": "Monday →",
+          "options": [
+            "On Monday",
+            "In Monday",
+            "At Monday",
+            "For Monday"
+          ],
+          "answer": 0,
+          "explain": "Día específico — ON."
+        },
+        {
+          "q": "7pm →",
+          "options": [
+            "At 7pm",
+            "On 7pm",
+            "In 7pm",
+            "Since 7pm"
+          ],
+          "answer": 0,
+          "explain": "Hora exacta — AT."
+        },
+        {
+          "q": "Home (actividad) →",
+          "options": [
+            "At home",
+            "In home",
+            "On home",
+            "At the home"
+          ],
+          "answer": 0,
+          "explain": "Punto de actividad — AT sin THE."
+        },
+        {
+          "q": "The phone (medio) →",
+          "options": [
+            "On the phone",
+            "In the phone",
+            "At the phone",
+            "By the phone"
+          ],
+          "answer": 0,
+          "explain": "Medio de comunicación — ON."
+        },
+        {
+          "q": "Trabajo aquí desde 2020 →",
+          "options": [
+            "since 2020",
+            "for 2020",
+            "during 2020",
+            "by 2020"
+          ],
+          "answer": 0,
+          "explain": "SINCE = desde un punto específico."
+        },
+        {
+          "q": "Trabajé durante cinco horas →",
+          "options": [
+            "for five hours",
+            "since five hours",
+            "during five hours",
+            "by five hours"
+          ],
+          "answer": 0,
+          "explain": "FOR = duración."
+        },
+        {
+          "q": "Me dormí durante la reunión →",
+          "options": [
+            "during the meeting",
+            "for the meeting",
+            "since the meeting",
+            "at the meeting ago"
+          ],
+          "answer": 0,
+          "explain": "DURING = en ese evento."
+        },
+        {
+          "q": "Terminaré antes del viernes →",
+          "options": [
+            "by Friday",
+            "until Friday",
+            "in Friday",
+            "on Friday ago"
+          ],
+          "answer": 0,
+          "explain": "BY = límite; UNTIL = continuidad."
+        },
+        {
+          "q": "Ella entró al cuarto →",
+          "options": [
+            "into the room",
+            "in the room",
+            "on the room",
+            "at the room"
+          ],
+          "answer": 0,
+          "explain": "INTO = movimiento hacia adentro."
+        },
+        {
+          "q": "Ella trabaja como gerente (rol real) →",
+          "options": [
+            "as a manager",
+            "like a manager",
+            "for a manager",
+            "in a manager"
+          ],
+          "answer": 0,
+          "explain": "AS = rol real; LIKE = comparación."
+        },
+        {
+          "q": "Él trabaja como una máquina →",
+          "options": [
+            "like a machine",
+            "as a machine",
+            "in a machine",
+            "at a machine"
+          ],
+          "answer": 0,
+          "explain": "LIKE = comparación."
+        },
+        {
+          "q": "Paciente internada en el hospital →",
+          "options": [
+            "in the hospital",
+            "at the hospital",
+            "on the hospital",
+            "by the hospital"
+          ],
+          "answer": 0,
+          "explain": "IN = espacio interior (paciente)."
+        },
+        {
+          "q": "Fue al hospital a visitar →",
+          "options": [
+            "at the hospital",
+            "in the hospital",
+            "on the hospital",
+            "into the hospital"
+          ],
+          "answer": 0,
+          "explain": "AT = punto de destino."
+        }
+      ]
     }
   ]
 }

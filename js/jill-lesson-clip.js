@@ -349,18 +349,18 @@
       takeaway: 'No mezcles HAY (there) con TENGO (have).'
     },
     prepositions: {
-      rules: [row('IN', 'dentro / caja', ''), row('ON', 'encima / superficie', ''), row('AT', 'punto en el mapa', '')],
-      examples: [row('The book is on the table', 'El libro está sobre la mesa'), row('I am at home', 'Estoy en casa'), row('She lives in San José', 'Ella vive en San José')],
-      pattern: 'IN = caja, ON = superficie, AT = punto.',
-      transforms: [tip('in the box', 'on the table', 'dentro vs encima'), tip('at the door', 'in the room', 'punto vs interior')],
-      takeaway: 'Las prep de lugar van en el complemento, no en el verbo.'
+      rules: [row('IN', 'círculo grande — adentro', 'espacio / período'), row('ON', 'círculo mediano — encima', 'superficie / día'), row('AT', 'punto exacto', 'ubicación / hora')],
+      examples: [row('The book is on the table', 'El libro está encima de la mesa'), row('I am at home', 'Estoy en casa'), row('She lives in San José', 'Ella vive en San José'), row('She walked into the room', 'Ella entró al cuarto')],
+      pattern: 'Clase 011: tres círculos — IN grande, ON mediano, AT punto.',
+      transforms: [tip('in the office', 'at the office', 'espacio vs punto'), tip('in the room', 'into the room', 'estado vs movimiento')],
+      takeaway: 'EN español hace tres · inglés los separa · patrón antes que lista.'
     },
     prepositions_time: {
-      rules: [row('IN', 'mes / año', ''), row('ON', 'día / fecha', ''), row('AT', 'hora', '')],
-      examples: [row('We meet on Monday', 'Nos vemos el lunes'), row('In March it rains', 'En marzo llueve'), row('At 5 pm we start', 'A las 5 empezamos')],
-      pattern: 'Misma lógica: IN amplio, ON día, AT hora exacta.',
-      transforms: [tip('in 2024', 'on Friday', 'año vs día'), tip('at 5', 'in the morning', 'hora vs parte del día')],
-      takeaway: 'IN mes/año · ON día · AT hora.'
+      rules: [row('IN', 'períodos largos', 'mes / año / parte del día'), row('ON', 'días y fechas', ''), row('AT', 'horas exactas', '')],
+      examples: [row('We meet on Monday', 'Nos vemos el lunes'), row('In March it rains', 'En marzo llueve'), row('At 5 pm we start', 'A las 5 empezamos'), row('I have worked here since 2020', 'Trabajo aquí desde 2020')],
+      pattern: 'Clase 011: mismos círculos en tiempo — IN períodos, ON días, AT horas.',
+      transforms: [tip('since 2020', 'for five years', 'punto vs duración'), tip('until Friday', 'by Friday', 'continúa vs límite')],
+      takeaway: 'IN períodos · ON días · AT horas · SINCE/FOR/DURING/BY.'
     },
     gerundio: {
       rules: [row('TO BE + ING', 'llave + puerta', 'continuo'), row('TO + verbo', 'flecha: intención', ''), row('VERBO + ING', 'actividad como concepto', ''), row('preposición', 'siempre + ING', '')],
@@ -751,29 +751,28 @@
 
     prepositions: clip({
       id: 'prepositions',
-      title: 'IN · ON · AT · BY',
-      bridge: 'IN=dentro · ON=encima · AT=punto · BY=medio — van en el complemento',
+      title: 'Clase 011 · IN · ON · AT',
+      bridge: 'IN=adentro · ON=encima · AT=punto — tres círculos',
       slots: [
-        { id: 1, label: 'IN', hint: 'dentro' },
+        { id: 1, label: 'IN', hint: 'adentro' },
         { id: 2, label: 'ON', hint: 'encima' },
-        { id: 3, label: 'AT', hint: 'punto' },
-        { id: 4, label: 'BY', hint: 'medio' }
+        { id: 3, label: 'AT', hint: 'punto' }
       ],
       examples: [
         T([['The book is', 0], [' ', 0], ['on', 2], [' the table.', 0]]),
         T([['I am', 0], [' ', 0], ['at', 3], [' home.', 0]]),
         T([['She lives', 0], [' ', 0], ['in', 1], [' San José.', 0]]),
-        T([['I go', 0], [' ', 0], ['by', 4], [' bus.', 0]]),
+        T([['She walked', 0], [' ', 0], ['into', 1], [' the room.', 0]]),
         T([['Meet me', 0], [' ', 0], ['at', 3], [' the door.', 0]])
       ]
     }),
 
     prepositions_time: clip({
       id: 'prepositions_time',
-      title: 'Preposiciones de tiempo',
-      bridge: 'IN = mes/año · ON = día · AT = hora',
+      title: 'Clase 011 · Prep. de tiempo',
+      bridge: 'IN períodos · ON días · AT horas',
       slots: [
-        { id: 1, label: 'IN', hint: 'mes / año' },
+        { id: 1, label: 'IN', hint: 'período' },
         { id: 2, label: 'ON', hint: 'día / fecha' },
         { id: 3, label: 'AT', hint: 'hora' }
       ],

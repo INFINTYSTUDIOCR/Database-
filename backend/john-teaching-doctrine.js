@@ -65,7 +65,9 @@ function loadModuleCanonTranscript(trackId) {
     gerund_prep: 'module-05-gerundio.txt',
     modales: 'module-06-will-would.txt',
     future: 'module-06-will-would.txt',
-    future_perfect: 'module-06-will-would.txt'
+    future_perfect: 'module-06-will-would.txt',
+    prepositions: 'module-07-preposiciones.txt',
+    prepositions_time: 'module-07-preposiciones.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;

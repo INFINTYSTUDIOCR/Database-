@@ -145,22 +145,29 @@
       "exampleAsk": "Negá: She works on Sundays."
     },
     "prepositions": {
-      "say": "El en español se parte en tres. IN = adentro, caja. ON = encima, superficie. AT = punto neutro. I'm at home and the book is in the room on the table.",
+      "say": "CANON MÓDULO 7 / Clase 011 — guion íntegro en config/canon/module-07-preposiciones.txt. El sistema inyecta el canon completo; no cortar ni reescribir. Tres círculos: IN grande, ON mediano, AT punto.",
       "mustSay": [
         "in",
         "on",
-        "at"
+        "at",
+        "adentro",
+        "encima",
+        "punto"
       ],
-      "exampleAsk": "Decí la frase ancla con at, in y on."
+      "exampleAsk": "Antes de elegir: ¿espacio grande, superficie o punto exacto? Rapid Fire: The morning. / Monday. / 7pm."
     },
     "prepositions_time": {
-      "say": "Mismo trío, ahora tiempo. IN = mes, año, parte del día. ON = día o fecha. AT = hora puntual. We meet on Monday in March at 5 pm.",
+      "say": "CANON MÓDULO 7 / Clase 011 — mismo guion íntegro en config/canon/module-07-preposiciones.txt. IN períodos; ON días; AT horas; SINCE/FOR/DURING/BY. No cortar ni reescribir.",
       "mustSay": [
         "in",
         "on",
-        "at"
+        "at",
+        "since",
+        "for",
+        "during",
+        "by"
       ],
-      "exampleAsk": "Decí: on Friday at noon."
+      "exampleAsk": "Antes: ¿período, día o hora? Rapid Fire: January. / Monday. / Midnight."
     },
     "articles": {
       "say": "A / an = uno cualquiera, indefinido. The = el o la específico, definido. A cat vs the cat. An hour por el sonido.",

@@ -219,7 +219,9 @@ function loadModuleCanonTranscript(trackId) {
     gerund_prep: 'module-05-gerundio.txt',
     modales: 'module-06-will-would.txt',
     future: 'module-06-will-would.txt',
-    future_perfect: 'module-06-will-would.txt'
+    future_perfect: 'module-06-will-would.txt',
+    prepositions: 'module-07-preposiciones.txt',
+    prepositions_time: 'module-07-preposiciones.txt'
   };
   const name = files[String(trackId || '').trim()];
   if (!name) return null;
@@ -244,6 +246,13 @@ function loadVoiceScript(trackId) {
         say: fromFile,
         mustSay: ['will', 'would', 'ré', 'ría', 'by'],
         exampleAsk: 'Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA.'
+      };
+    }
+    if (id === 'prepositions' || id === 'prepositions_time') {
+      return {
+        say: fromFile,
+        mustSay: ['in', 'on', 'at', 'adentro', 'encima', 'punto'],
+        exampleAsk: 'Antes de elegir: ¿espacio grande, superficie o punto exacto? Rapid Fire: The morning. / Monday. / 7pm.'
       };
     }
     if (id === 'gerundio' || id === 'progressive' || id === 'gerund_prep') {
@@ -394,12 +403,16 @@ function formatLock(track) {
       'SOLO modal + have been + ING. PROHIBIDO otros módulos.'
     ],
     prepositions: [
-      'ANTIMEZCLA: IN/ON/AT — analogía caja/superficie/punto.',
-      'SOLO preposiciones pedidas. Nunca hijackear otra lección.'
+      'ANTIMEZCLA — MÓDULO 7 / CLASE 011 PREPOSICIONES:',
+      'SOLO preposiciones de ESTA clase (IN/ON/AT + resto por función). PROHIBIDO artículos a/an/the como foco. PROHIBIDO panorama F0.',
+      'Tres círculos: IN grande=adentro; ON mediano=encima; AT=punto exacto.',
+      'SEGUÍ EL GUION CANON module-07-preposiciones ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     prepositions_time: [
-      'ANTIMEZCLA: prep. de tiempo.',
-      'SOLO si el estudiante PIDIÓ preposiciones de tiempo. "in the morning" dentro de un ejemplo de futuro NO abre este módulo.'
+      'ANTIMEZCLA — MÓDULO 7 / CLASE 011 PREPOSICIONES (tiempo):',
+      'SOLO preposiciones de tiempo de ESTA clase. PROHIBIDO artículos. PROHIBIDO abrir otros módulos.',
+      'IN períodos; ON días; AT horas; SINCE/FOR/DURING/BY.',
+      'SEGUÍ EL GUION CANON module-07-preposiciones ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
     ],
     articles: [
       'ANTIMEZCLA: a/an/the.',

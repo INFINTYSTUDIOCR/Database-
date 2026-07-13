@@ -696,101 +696,111 @@
     "rules": [
       {
         "left": "IN",
-        "right": "dentro / caja",
-        "note": ""
+        "right": "círculo grande — adentro",
+        "note": "espacio / período / estado"
       },
       {
         "left": "ON",
-        "right": "encima / superficie",
-        "note": ""
+        "right": "círculo mediano — encima",
+        "note": "superficie / día / medio"
       },
       {
         "left": "AT",
-        "right": "punto en el mapa",
-        "note": ""
+        "right": "punto exacto",
+        "note": "ubicación / hora / actividad"
       }
     ],
     "examples": [
       {
         "left": "The book is on the table",
-        "right": "El libro está sobre la mesa",
-        "note": ""
+        "right": "El libro está encima de la mesa",
+        "note": "ON = superficie"
       },
       {
         "left": "I am at home",
         "right": "Estoy en casa",
-        "note": ""
+        "note": "AT = punto de actividad"
       },
       {
         "left": "She lives in San José",
         "right": "Ella vive en San José",
-        "note": ""
-      }
-    ],
-    "pattern": "IN = caja, ON = superficie, AT = punto.",
-    "transforms": [
-      {
-        "left": "in the box",
-        "right": "on the table",
-        "tip": "dentro vs encima"
+        "note": "IN = espacio grande"
       },
       {
-        "left": "at the door",
-        "right": "in the room",
-        "tip": "punto vs interior"
+        "left": "She walked into the room",
+        "right": "Ella entró al cuarto",
+        "note": "INTO = movimiento"
       }
     ],
-    "takeaway": "Las prep de lugar van en el complemento, no en el verbo."
+    "pattern": "Clase 011: tres círculos — IN grande, ON mediano, AT punto.",
+    "transforms": [
+      {
+        "left": "in the office",
+        "right": "at the office",
+        "tip": "espacio interior vs punto"
+      },
+      {
+        "left": "in the room",
+        "right": "into the room",
+        "tip": "estado vs movimiento"
+      }
+    ],
+    "takeaway": "EN español hace tres · inglés los separa · patrón antes que lista."
   },
   "prepositions_time": {
     "rules": [
       {
         "left": "IN",
-        "right": "mes / año",
-        "note": ""
+        "right": "períodos largos",
+        "note": "mes / año / parte del día"
       },
       {
         "left": "ON",
-        "right": "día / fecha",
-        "note": ""
+        "right": "días y fechas",
+        "note": "Monday / birthday"
       },
       {
         "left": "AT",
-        "right": "hora",
-        "note": ""
+        "right": "horas exactas",
+        "note": "7pm / noon / midnight"
       }
     ],
     "examples": [
       {
         "left": "We meet on Monday",
         "right": "Nos vemos el lunes",
-        "note": ""
+        "note": "ON = día"
       },
       {
         "left": "In March it rains",
         "right": "En marzo llueve",
-        "note": ""
+        "note": "IN = mes"
       },
       {
         "left": "At 5 pm we start",
         "right": "A las 5 empezamos",
-        "note": ""
-      }
-    ],
-    "pattern": "Misma lógica: IN amplio, ON día, AT hora exacta.",
-    "transforms": [
-      {
-        "left": "in 2024",
-        "right": "on Friday",
-        "tip": "año vs día"
+        "note": "AT = hora"
       },
       {
-        "left": "at 5",
-        "right": "in the morning",
-        "tip": "hora vs parte del día"
+        "left": "I have worked here since 2020",
+        "right": "Trabajo aquí desde 2020",
+        "note": "SINCE = punto"
       }
     ],
-    "takeaway": "IN mes/año · ON día · AT hora."
+    "pattern": "Clase 011: mismos círculos en tiempo — IN períodos, ON días, AT horas.",
+    "transforms": [
+      {
+        "left": "since 2020",
+        "right": "for five years",
+        "tip": "punto vs duración"
+      },
+      {
+        "left": "until Friday",
+        "right": "by Friday",
+        "tip": "continúa vs límite"
+      }
+    ],
+    "takeaway": "IN períodos · ON días · AT horas · SINCE/FOR/DURING/BY."
   },
   "gerundio": {
     "rules": [

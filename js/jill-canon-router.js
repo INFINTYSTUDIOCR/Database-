@@ -314,14 +314,14 @@
       },
       {
         "id": "prepositions_time",
-        "svg": "assets/canon/preposiciones-tiempo.svg",
-        "title": "Preposiciones de tiempo",
-        "formula": "IN (mes/año/parte del día) | ON (día/fecha) | AT (hora puntual)",
-        "example": "We meet on Monday in March at 5 pm.",
+        "svg": "assets/canon/preposiciones.svg",
+        "title": "Clase 011 — Preposiciones de tiempo (IN / ON / AT)",
+        "formula": "IN = períodos largos | ON = días y fechas | AT = horas exactas | SINCE/FOR/DURING/BY",
+        "example": "We meet on Monday in March at 5 pm. / I have worked here since 2020.",
         "never": [
           "gerundio",
-          "preposiciones lugar sin tiempo",
-          "presente continuo"
+          "artículos a/an/the como foco",
+          "cortar o reescribir el guion canon module-07"
         ],
         "aliases": [
           "preposiciones de tiempo",
@@ -329,22 +329,24 @@
           "prep tiempo",
           "preposiciones tiempo",
           "explicame preposiciones de tiempo",
-          "prep de tiempo in on at"
+          "prep de tiempo in on at",
+          "since for during by",
+          "since vs for",
+          "durante vs for"
         ],
-        "bridge": "Puente: IN = mes/año/parte del día; ON = día/fecha; AT = hora puntual."
+        "bridge": "Puente Módulo 7 / Clase 011: mismos tres círculos — IN períodos; ON días/fechas; AT horas. SINCE=punto; FOR=duración; DURING=evento; BY=límite."
       },
       {
         "id": "prepositions",
         "svg": "assets/canon/preposiciones.svg",
-        "title": "Preposiciones IN ON AT BY",
-        "formula": "IN = dentro | ON = encima/superficie | AT = punto exacto | BY = medio — van en el complemento",
-        "example": "The book is on the table. / I am at home.",
+        "title": "Clase 011 — IN / ON / AT + Preposiciones (Módulo 7)",
+        "formula": "IN = adentro (grande) | ON = encima (mediano) | AT = punto exacto | resto por función",
+        "example": "The book is on the table. / I am at home. / She walked into the room.",
         "never": [
           "gerundio",
           "gerundio-prep",
-          "presente continuo",
-          "V-ing",
-          "there is"
+          "artículos a/an/the como foco de esta clase",
+          "cortar o reescribir el guion canon module-07"
         ],
         "aliases": [
           "preposiciones",
@@ -359,9 +361,19 @@
           "in on at by",
           "explicame in on at",
           "corregime in on at",
-          "explicame preposiciones"
+          "explicame preposiciones",
+          "modulo 7",
+          "módulo 7",
+          "clase 011",
+          "clase 11",
+          "tres circulos",
+          "tres círculos",
+          "since for during by",
+          "like vs as",
+          "into",
+          "los tres circulos"
         ],
-        "bridge": "Puente: IN = dentro; ON = encima; AT = punto; BY = medio — van en el complemento."
+        "bridge": "Puente Módulo 7 / Clase 011: EN español hace los tres. IN=adentro (grande); ON=encima (mediano); AT=punto exacto. Tres círculos. Solo preposiciones — no artículos."
       },
       {
         "id": "negations",
@@ -760,7 +772,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260711m06';
+  var CACHE_VER = '20260713m07';
   var VOICE_PACK = {
     tracks: {
       gerundio: {
@@ -1028,8 +1040,17 @@
       combined: ['ANTIMEZCLA: have been + ING.'],
       modal_have_pp: ['ANTIMEZCLA: modal + have + PP.'],
       modal_have_been: ['ANTIMEZCLA: modal + have been + ING.'],
-      prepositions: ['ANTIMEZCLA: IN/ON/AT.'],
-      prepositions_time: ['ANTIMEZCLA: prep. tiempo.'],
+      prepositions: [
+        'ANTIMEZCLA — MÓDULO 7 / CLASE 011 PREPOSICIONES:',
+        'SOLO preposiciones. PROHIBIDO artículos a/an/the como foco.',
+        'Tres círculos: IN grande=adentro; ON mediano=encima; AT=punto.',
+        'SEGUÍ EL GUION CANON module-07-preposiciones ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+      ],
+      prepositions_time: [
+        'ANTIMEZCLA — MÓDULO 7 / CLASE 011 PREPOSICIONES (tiempo):',
+        'IN períodos; ON días; AT horas; SINCE/FOR/DURING/BY.',
+        'SEGUÍ EL GUION CANON module-07-preposiciones ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+      ],
       articles: ['ANTIMEZCLA: artículos.'],
       comparatives: ['ANTIMEZCLA: comparativos.'],
       irregular_verbs: ['ANTIMEZCLA: irregulares.'],
