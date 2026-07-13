@@ -364,6 +364,57 @@ app.get('/keycheck', async (req, res) => {
 const TUTOR_LIMIT = 200;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
+/** Per-student Companion caps (preguntas = user turns). Matched by name/id. */
+const COMPANION_QUOTA_OVERRIDES = [
+  {
+    nameRe: /\beddy[\s._-]*flores\b/i,
+    maxQuestions: 25,
+    cooldownMs: 5 * 60 * 60 * 1000
+  }
+];
+
+function studentDisplayBlob(student) {
+  return [
+    student?.id,
+    student?.portalUser,
+    student?.name,
+    student?.info?.name,
+    student?.info?.fullName
+  ].filter(Boolean).join(' ');
+}
+
+function resolveCompanionQuota(student) {
+  if (!student) return null;
+  const blob = studentDisplayBlob(student);
+  for (const rule of COMPANION_QUOTA_OVERRIDES) {
+    if (Array.isArray(rule.ids) && rule.ids.some((id) => String(id) === String(student.id))) {
+      return { maxQuestions: rule.maxQuestions, cooldownMs: rule.cooldownMs };
+    }
+    if (rule.nameRe && rule.nameRe.test(blob)) {
+      return { maxQuestions: rule.maxQuestions, cooldownMs: rule.cooldownMs };
+    }
+  }
+  const cfg = student.companionConfig && typeof student.companionConfig === 'object'
+    ? student.companionConfig
+    : null;
+  const maxQ = cfg && Number(cfg.maxQuestions);
+  if (maxQ > 0) {
+    const hours = Number(cfg.cooldownHours);
+    return {
+      maxQuestions: maxQ,
+      cooldownMs: (hours > 0 ? hours : 5) * 60 * 60 * 1000
+    };
+  }
+  return null;
+}
+
+function formatCooldownWait(msLeft) {
+  const mins = Math.max(1, Math.ceil(msLeft / 60000));
+  if (mins < 60) return `${mins} minuto${mins === 1 ? '' : 's'}`;
+  const hours = Math.ceil(mins / 60);
+  return `${hours} hora${hours === 1 ? '' : 's'}`;
+}
+
 async function checkTutorLimit(sid, tutor, table) {
   if (!sid) return { ok: true };
   const t = table || 'infinity_sessions';
@@ -375,13 +426,50 @@ async function checkTutorLimit(sid, tutor, table) {
     if (d.resetAt && Date.now() > new Date(d.resetAt).getTime()) { d.count = 0; d.resetAt = null; }
     if (d.count >= TUTOR_LIMIT) {
       if (!d.resetAt) { d.resetAt = new Date(Date.now() + COOLDOWN_MS).toISOString(); await sbSet(t, `${prefix}-${sid}`, d); }
-      const mins = Math.ceil((new Date(d.resetAt).getTime() - Date.now()) / 60000);
-      return { ok: false, wait: mins < 60 ? `${mins} minutos` : `${Math.ceil(mins/60)} horas` };
+      const wait = formatCooldownWait(new Date(d.resetAt).getTime() - Date.now());
+      return { ok: false, wait };
     }
     d.count++;
     await sbSet(t, `${prefix}-${sid}`, d);
     return { ok: true };
   } catch (e) { return { ok: true }; }
+}
+
+/** Alice Companion only: question quota for matched students (e.g. Eddy Flores = 25 / 5h). */
+async function checkCompanionQuestionLimit(student, table) {
+  const quota = resolveCompanionQuota(student);
+  if (!quota || !student?.id) return { ok: true };
+  const t = table || 'infinity_sessions';
+  const key = `COMPANION-Q-${student.id}`;
+  try {
+    const rows = await sbGet(t);
+    const row = rows.find((r) => r.id === key);
+    let d = row?.data || { count: 0, resetAt: null };
+    if (d.resetAt && Date.now() > new Date(d.resetAt).getTime()) {
+      d.count = 0;
+      d.resetAt = null;
+    }
+    if (d.count >= quota.maxQuestions) {
+      if (!d.resetAt) {
+        d.resetAt = new Date(Date.now() + quota.cooldownMs).toISOString();
+        await sbSet(t, key, d);
+      }
+      const wait = formatCooldownWait(new Date(d.resetAt).getTime() - Date.now());
+      return {
+        ok: false,
+        wait,
+        maxQuestions: quota.maxQuestions,
+        reply:
+          `You've used all ${quota.maxQuestions} Companion questions for now. Come back in ${wait}.\n` +
+          `ALICE: Llegaste a ${quota.maxQuestions} preguntas en Companion. Descansá ${wait} y volvé.`
+      };
+    }
+    d.count++;
+    await sbSet(t, key, d);
+    return { ok: true, remaining: Math.max(0, quota.maxQuestions - d.count) };
+  } catch (e) {
+    return { ok: true };
+  }
 }
 
 async function checkLimit(sid, table) {
@@ -3742,16 +3830,28 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     }
 
     // CHAT
-    const limit = await checkLimit(student?.id, sessionTable);
-    if (!limit.ok) return res.json({
-      reply: `You've reached your practice limit for today. Rest and come back in ${limit.wait}!\nALICE: ¡Muy bien por practicar! Descansá ${limit.wait} y volvé con energía.`,
-      limitReached: true
-    });
+    const companionEarly = effectiveSessionType === 'companion';
+    if (companionEarly) {
+      const cq = await checkCompanionQuestionLimit(student, sessionTable);
+      if (!cq.ok) {
+        return res.json({
+          reply: cq.reply || `You've reached your Companion limit. Come back in ${cq.wait}.`,
+          limitReached: true,
+          wait: cq.wait,
+          companionQuota: true
+        });
+      }
+    } else {
+      const limit = await checkLimit(student?.id, sessionTable);
+      if (!limit.ok) return res.json({
+        reply: `You've reached your practice limit for today. Rest and come back in ${limit.wait}!\nALICE: ¡Muy bien por practicar! Descansá ${limit.wait} y volvé con energía.`,
+        limitReached: true
+      });
+    }
 
+    const companion = companionEarly;
     const tb = (student?.trainingBook||[]).slice(0,5)
       .map(ex=>`- ${ex.title} (${ex.kpi||''}): ${ex.studentTask||''}`).join('\n');
-
-    const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     const companionPhase = companion ? Companion.resolveCompanionPhase(message, history) : null;
     const companionFast = companion && (companionPhase === 'free_chat' || companionPhase === 'live_evaluate');
@@ -4684,6 +4784,13 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const companionCtx = Companion.resolveCompanionSession(student, sessionType);
     const effectiveSessionType = companionCtx.sessionType;
     const companionCfg = companionCtx.config;
+    const companion = effectiveSessionType === 'companion';
+    if (companion) {
+      const cq = await checkCompanionQuestionLimit(student, 'infinity_sessions');
+      if (!cq.ok) {
+        return Brain.writeBrainSSE(res, cq.reply || `You've reached your Companion limit. Come back in ${cq.wait}.`);
+      }
+    }
     const tb = (student?.trainingBook || []).slice(0, 5)
       .map(ex => `- ${ex.title} (${ex.kpi || ''}): ${ex.studentTask || ''}`).join('\n');
     const sceneNote = scenario ? `\nActive scenario: ${scenario.title || ''} — ${scenario.desc || ''}` : '';
@@ -4693,7 +4800,6 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'alice');
     const adaptNote = buildStudyAdaptationNote(student, message);
-    const companion = effectiveSessionType === 'companion';
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     const companionPhase = companion ? Companion.resolveCompanionPhase(message, history) : null;
     const companionFast = companion && (companionPhase === 'free_chat' || companionPhase === 'live_evaluate');
