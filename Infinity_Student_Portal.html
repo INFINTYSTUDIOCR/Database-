@@ -3679,7 +3679,8 @@ async function jillPostFallbackReply(studentPayload, historyForApi, text, jillCt
         responseMs: responseMs,
         calibrationContext: jillCtx.calibrationContext || null,
         sessionType: _jillState.sessionType || 'tutor',
-        companionTopic: _jillState.companionTopic || ''
+        companionTopic: _jillState.companionTopic || '',
+        canonTrackId: _jillState.canonTrackId || null
       })
     });
     if(!resp.ok) return null;
@@ -4852,8 +4853,11 @@ function jillResolveCanonTrack(userText, replyText) {
   if (typeof JillCanonRouter === 'undefined') return null;
   var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
   var explicit = typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userText);
-  // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar. Cero queries nuevas.
+  var wantsVis = typeof JillCanonRouter.wantsVisual === 'function' && JillCanonRouter.wantsVisual(userText);
+  // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar.
   if (locked && !explicit) return locked;
+  // Sin pedido de enseñar / tablero → NO inventar lock por palabras sueltas (ej. "in" → prep).
+  if (!explicit && !wantsVis) return locked || null;
   if (JillCanonRouter.resolveAskId) {
     var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', locked || '');
     if (fromUserOnly) return fromUserOnly;
@@ -4873,43 +4877,63 @@ function jillInferTeachTrack(text) {
   return null;
 }
 
+function jillClearSessionLocks(){
+  _jillState.canonTrackId = null;
+  _jillState.companionTopic = '';
+  try { if (typeof JillVisualStage !== 'undefined') JillVisualStage.resetSession(); } catch (eClr) {}
+}
+
+function jillStudentAskedBoard(userAsk) {
+  var ask = String(userAsk || '').trim();
+  if (!ask || typeof JillCanonRouter === 'undefined') return false;
+  if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(ask)) return true;
+  if (JillCanonRouter.isExplicitTopicAsk && JillCanonRouter.isExplicitTopicAsk(ask)) {
+    // Solo abrir si el pedido resuelve a un track real (no "explicame" vacío)
+    if (JillCanonRouter.resolveAskId && JillCanonRouter.resolveAskId(ask, _jillState.canonTrackId || '')) return true;
+    if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(ask)) return true;
+  }
+  return false;
+}
+
 function jillActivateVisualStage(text, contentType){
   if(typeof JillVisualStage === 'undefined') return;
   var bundle = (typeof JillFoundations !== 'undefined') ? jillActiveBundle() : null;
-  var ct = contentType || 'text';
   var userAsk = jillLastUserTopic();
   var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
-  // ESCLAVO AL LOCK: tablero = lección activa. Nunca nuevo módulo por palabras incidentales.
-  var fromUser = null;
-  if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
-    fromUser = JillCanonRouter.resolveAskId(userAsk || '', locked || '');
+  // Tablero = SOLO el lock. Nunca otra columna. Solo pedido EXPLÍCITO cambia el lock.
+  var col = locked || null;
+  if (jillStudentAskedBoard(userAsk) && typeof JillCanonRouter.resolveAskId === 'function') {
+    var fromUser = JillCanonRouter.resolveAskId(userAsk || '', locked || '');
+    if (fromUser) {
+      _jillState.canonTrackId = fromUser;
+      if (_jillState.sessionType === 'companion') _jillState.companionTopic = fromUser;
+      col = fromUser;
+    }
   }
-  var col = fromUser || locked || null;
-  if (fromUser && (!locked || fromUser === locked || (typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userAsk)))) {
-    _jillState.canonTrackId = fromUser;
-    col = fromUser;
-    ct = 'whiteboard';
-  } else if (locked) {
-    col = locked;
-    ct = 'whiteboard';
-  } else if (!col) {
-    _jillState.canonTrackId = null;
+  if (!col) {
     try { JillVisualStage.hide(); } catch (eHide) {}
     return;
-  } else {
-    ct = 'whiteboard';
   }
-  var shown = JillVisualStage.show(text, ct, bundle, { userTopic: userAsk || '', column: col, tutor: 'jill' });
+  // Defensa final: la columna mostrada ES el lock, punto.
+  col = _jillState.canonTrackId || col;
+  var shown = JillVisualStage.show(text, 'whiteboard', bundle, { userTopic: userAsk || '', column: col, tutor: 'jill' });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
 }
 
 function jillSpeakTurn(text, contentType){
   text = jillScrubNonCr(text);
-  // Board FIRST — student must SEE the exercise sentences while Jill speaks them
-  if(typeof JillVisualStage !== 'undefined') {
-    try { jillActivateVisualStage(text, contentType || 'whiteboard'); } catch(eVis) {}
+  var userAsk = jillLastUserTopic();
+  var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
+  var asked = jillStudentAskedBoard(userAsk);
+  var sameBoardOpen = typeof JillVisualStage !== 'undefined'
+    && JillVisualStage.isActive && JillVisualStage.isActive()
+    && JillVisualStage.getTrackId && JillVisualStage.getTrackId() === locked;
+  // Panel SOLO si el estudiante lo pide (o ya está abierto en EL MISMO track). Cero tablero improvisado por CTYPE.
+  if (locked && (asked || sameBoardOpen)) {
+    try { jillActivateVisualStage(text, 'whiteboard'); } catch(eVis) {}
+  } else if (!locked && typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()) {
+    try { JillVisualStage.hide(); } catch (eHide2) {}
   }
-  // Small delay so the clip mounts and paints the first sentence before audio
   setTimeout(function(){ jillSpeak(text); }, 120);
 }
 
@@ -6068,6 +6092,7 @@ async function endJillSession(){
     _jillState.sessionActive = false;
     _jillState.history = [];
     _jillState.evaluation = null;
+    jillClearSessionLocks();
     renderJill();
     return;
   }
@@ -6159,7 +6184,12 @@ async function endJillSession(){
           JillTrainerInsights.refreshCharts(s);
         }
         if(s.id) await dbSet('infinity_students', s.id, s);
-        if(data.evaluation.jill_message) jillSpeakTurn(data.evaluation.jill_message, 'text');
+        // Eval closing: clear lock/board first so TTS never opens a wrong whiteboard
+        jillClearSessionLocks();
+        if(data.evaluation.jill_message) {
+          var evalMsg = jillScrubNonCr(data.evaluation.jill_message);
+          setTimeout(function(){ jillSpeak(evalMsg); }, 80);
+        }
       }
     } catch(e){
       if(statusEl) statusEl.textContent = 'No se pudo evaluar — intentá de nuevo.';
@@ -6171,7 +6201,7 @@ async function endJillSession(){
     _jillState.sessionActive = false;
     _jillState.history = [];
     _jillState.evaluation = null;
-    if(typeof JillVisualStage !== 'undefined') JillVisualStage.resetSession();
+    jillClearSessionLocks();
     renderJill();
     return;
   }
@@ -6181,7 +6211,7 @@ async function endJillSession(){
 
 async function startJillSession(s){
   if(!s) return;
-  _jillState.canonTrackId = null;
+  jillClearSessionLocks();
   var isCompanion = _jillState.sessionType === 'companion';
   if(typeof AiProfile !== 'undefined') AiProfile.purgeBadPreferredName(s);
   if(!isCompanion && typeof JillCalibration !== 'undefined') JillCalibration.ensure(s);
@@ -6299,17 +6329,14 @@ async function sendJillMsg(micText, sendOpts){
   _jillMicText = '';
   if(inp) inp.value = '';
   var turnStarted = _jillState.drillTurnStartedAt || Date.now();
-  if(isCompanion){
-    var newTopic = jillDetectCompanionTopic(text);
-    if(newTopic) _jillState.companionTopic = newTopic.slice(0, 120);
-  }
   // Canon drill: score oral production against the open SVG track (visual ring only)
   if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()
     && typeof JillVisualStage.scoreOral === 'function'){
     try{ JillVisualStage.scoreOral(text); }catch(eOral){}
   }
   _jillState.history.push({role:'user', content:text});
-  var historyForApi = _jillState.history.slice(-10);
+  // Jill Pro: keep more turns so track + doubt stay consistent session-long
+  var historyForApi = isCompanion ? _jillState.history.slice(-20) : _jillState.history.slice(-10);
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'jill', dbSet).catch(function(){});
   if(typeof AiProfile !== 'undefined') AiProfile.applyStudySignalsFromMessage(text, dbSet, s).catch(function(){});
@@ -6384,20 +6411,16 @@ async function sendJillMsg(micText, sendOpts){
     var canonTrackId = jillResolveCanonTrack(text, '');
     if(canonTrackId){
       _jillState.canonTrackId = canonTrackId;
-      // Solo actualizar companionTopic con pedidos explícitos de tema — no con ejemplos en inglés
-      if(_jillState.sessionType === 'companion'
-          && !(typeof JillCanonRouter !== 'undefined' && JillCanonRouter.isEnglishPracticeUtterance && JillCanonRouter.isEnglishPracticeUtterance(text))) {
-        _jillState.companionTopic = String(text || '').slice(0, 120);
-      }
-    } else {
-      // Sin orden explícita ni práctica → nada de tablero/lock improvisado
-      // PERO: si hay lock previo y es práctica, jillResolveCanonTrack ya lo devolvió
+      // Sticky = track id (same lock as board/voice). Never overwrite with practice English or guessed titles.
+      if(isCompanion) _jillState.companionTopic = canonTrackId;
+    } else if(!jillIsPracticeContinue(text)) {
       _jillState.canonTrackId = null;
+      if(isCompanion) _jillState.companionTopic = '';
       try { if (typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch (eClr) {}
     }
     var resp = await infinityFetch('/jill/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', canonTrackId: canonTrackId || null, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
+      body: JSON.stringify({ student:studentPayload, history:historyForApi, message:text, sessionType: _jillState.sessionType || 'tutor', companionTopic: _jillState.companionTopic || '', canonTrackId: _jillState.canonTrackId || null, weakKpis:jillCtx.weakKpis||(s&&s.quizWeakKpis)||[], jillBundle: jillCtx.jillBundle, matrixContext: jillCtx.matrixContext || null, vocabContext: jillCtx.vocabContext || null, nemesisState: jillCtx.nemesisState, track: jillCtx.track, reinforcement: jillCtx.reinforcement||[], drillContext: drillEval, responseMs: responseMs, calibrationContext: jillCtx.calibrationContext || null }),
       signal: ctrl.signal
     });
     if(!resp.ok) throw new Error('stream_'+resp.status);

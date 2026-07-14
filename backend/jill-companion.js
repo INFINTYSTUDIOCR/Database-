@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v64-no-mais';
+const JILL_PRO_BRAIN_VER = 'v65-board-lock';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
@@ -29,6 +29,7 @@ const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO
 - Si no hay pedido de gramática claro: charlá libre — NO abras lección ni tablero de ningún módulo.
 - TRACK LOCK / tablero / voz = la MISMA orden. Nada distinto a lo solicitado puede salir.
 - PROHIBIDO ABSOLUTO: si pidieron presente simple (o un solo tiempo), NO des clase de TODOS los tiempos / F0 / panorama MSI / "sistema completo".
+- TABLERO: [[CTYPE:whiteboard]] SOLO con TRACK LOCK de pedido explícito. Charla o práctica oral → [[CTYPE:text]]. NUNCA whiteboard de otro módulo (hablar pasado + imagen de prep = FALLO GRAVE).
 - Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.
 - ESPAÑOL: correcto, tico, ortografía y conjugación bien — sin deformar.`;
 
@@ -393,6 +394,9 @@ function resolveSessionTopic(history, companionTopic, lastUserMessage) {
   if (fromLast && String(fromLast).startsWith('doubt:')) return fromLast;
   if (companionTopic && String(companionTopic).trim()) {
     const sticky = String(companionTopic).trim().slice(0, 80);
+    // Track-id sticky (board lock) must not be replaced by a casual chat-topic guess.
+    const stickyIsTrack = !!(JillCanonRouter.trackById && JillCanonRouter.trackById(sticky));
+    if (stickyIsTrack) return sticky;
     // If sticky was a wrong early guess and latest turn has a clearer chat topic, prefer latest.
     if (fromLast && fromLast !== 'general chat' && fromLast !== 'open chat' && !/^doubt:/i.test(sticky)) {
       return fromLast;

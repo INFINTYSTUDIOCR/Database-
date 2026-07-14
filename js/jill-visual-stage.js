@@ -51,18 +51,12 @@
       return null;
     }
 
-    // ESCLAVO A LA ORDEN: solo el pedido del estudiante. Nunca improvisar desde el reply.
-    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId) {
+    // Solo pedido EXPLÍCITO del estudiante. pickTrack suelto inventaba columnas desde práctica en inglés.
+    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.isExplicitTopicAsk
+        && JillCanonRouter.isExplicitTopicAsk(user)
+        && JillCanonRouter.resolveAskId) {
       var userId = JillCanonRouter.resolveAskId(user, '');
       if (userId) return userId;
-    }
-    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.pickTrackId) {
-      var userPick = JillCanonRouter.pickTrackId(user);
-      if (userPick) return userPick;
-    }
-    if (user && typeof JillFoundations !== 'undefined' && JillFoundations.detectCanonColumn) {
-      var fromUserCol = detectColumn(user, bundle);
-      if (fromUserCol) return fromUserCol;
     }
 
     // Jill: sin pedido explícito → null (no abrir tablero ajeno)
@@ -84,9 +78,9 @@
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
       if (global.JillLessonClip.resolveNexusId(user)) return true;
     }
-    if (user && typeof JillCanonRouter !== 'undefined') {
+    if (user && typeof JillCanonRouter !== 'undefined'
+        && JillCanonRouter.isExplicitTopicAsk && JillCanonRouter.isExplicitTopicAsk(user)) {
       if (JillCanonRouter.resolveAskId && JillCanonRouter.resolveAskId(user, '')) return true;
-      if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(user)) return true;
       if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(user)) return true;
     }
     return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|should|could|can|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|pasado perfecto|presente perfecto|pasada perfecto|perfecto|irregular|was|were|going to|have|has|had|jaf|jas|jad|presente|futuro|overview|mapa)\b/i.test(user);
@@ -282,7 +276,13 @@
     var tutor = opts.tutor === 'alice' ? 'alice' : 'jill';
     activeTutor = tutor;
     var userTopic = opts.userTopic || '';
-    var col = opts.column || resolveColumn(text, bundle, userTopic, tutor);
+    // Forced column from portal lock always wins — never re-pick a mismatched board mid-lesson
+    var col = opts.column || null;
+    if (!col) col = resolveColumn(text, bundle, userTopic, tutor);
+    // Jill: sin columna forzada del lock → no improvisar tablero
+    if (tutor === 'jill' && !opts.column) {
+      return false;
+    }
     if (!col || !shouldShow(contentType, text, bundle, userTopic, col, tutor)) {
       return false;
     }

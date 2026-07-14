@@ -2964,9 +2964,7 @@ function applyCrHavePhonetics(text) {
   t = t.replace(/\bhave\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jáf $1');
   t = t.replace(/\bhas\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jás $1');
   t = t.replace(/\bhad\s+(been|gone|done|seen|made|taken|given|gotten|got|said|sent|kept|put|let|cut|worked|finished|studied|eaten|come)\b/gi, 'jád $1');
-  // Bare English "have" / "had" only — NEVER bare lowercase "has" (Spanish: ¿Has…?)
-  t = t.replace(/\bhave\b/gi, 'jáf');
-  t = t.replace(/\bhad\b/gi, 'jád');
+  // NEVER bare lowercase have/had — mangles Spanish teaching ("I have" already covered; leftover "have" in prose becomes nonsense TTS)
   return forceSpanishJotaHave(t);
 }
 
@@ -4436,8 +4434,9 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       : (JillPro.studentWantsEnglishPractice(message)
         ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
         : '');
-    const lockedTrackIdChat = (JillCanonRouter.resolveAskId ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '') : null)
-      || canonTrackId
+    // Portal canonTrackId is source of truth — sticky topic must not steal the board/voice lock.
+    const lockedTrackIdChat = canonTrackId
+      || (JillCanonRouter.resolveAskId ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '') : null)
       || null;
     const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackIdChat)
@@ -4571,11 +4570,11 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const topicHint = isJillCompanion
       ? JillPro.resolveSessionTopic(history, companionTopic, message)
       : '';
-    // Board/voz sync: portal track wins; else resolve from this message
-    const lockedTrackId = (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId
+    // Board/voz sync: portal canonTrackId wins; sticky companionTopic is fallback only
+    const lockedTrackId = canonTrackId
+      || (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.resolveAskId
         ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '')
         : null)
-      || canonTrackId
       || null;
     const lockedTrack = lockedTrackId && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackId)
@@ -4681,8 +4680,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     await streamAnthropicSSE(res, {
       max_tokens: (isJillCompanion || lockedTrack) ? 2000 : 1400,
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:whiteboard]] si es mini-lección/duda/tablero; [[CTYPE:text]] solo en charla libre. NEVER cut off. HABLA el GUION ORAL completo (estilo de clase) — el tablero se ve, no se lee.`
-        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${lockedTrack ? '[[CTYPE:whiteboard]]' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]] o [[CTYPE:whiteboard]]'} según el turno. NEVER cut off mid-sentence. Si hay TRACK LOCK: lección COMPLETA del tablero.`,
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: ${lockedTrack ? '[[CTYPE:whiteboard]] (SOLO este track: ' + lockedTrack.id + ' — NUNCA otro módulo)' : '[[CTYPE:text]]'}. Charla libre / práctica oral sin pedido = text. NEVER cut off. HABLA el GUION ORAL del LOCK — el tablero (si abre) es el mismo id.`
+        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${lockedTrack ? '[[CTYPE:whiteboard]] (track ' + lockedTrack.id + ' únicamente)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off. Si hay TRACK LOCK: lección COMPLETA de ESE tablero — cero imagen de otro módulo.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });
