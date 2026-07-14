@@ -39,16 +39,14 @@
 
   function resolveColumn(replyText, bundle, userTopic, tutor) {
     var user = String(userTopic || '').trim();
-    var reply = String(replyText || '').trim();
     var preferNexus = tutor === 'alice';
 
-    // Alice (tutor o companion): SOLO tableros Nexus. NUNCA Foundations Jill (modales/Clase 010/WILL…).
+    // Alice: SOLO pedido del estudiante. NUNCA abrir por tips de Alice (however/linker en el reply).
     if (preferNexus) {
+      if (!user) return null;
       if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
         var nxUser = global.JillLessonClip.resolveNexusId(user);
         if (nxUser) return nxUser;
-        var nxReply = global.JillLessonClip.resolveNexusId(reply);
-        if (nxReply) return nxReply;
       }
       return null;
     }
@@ -79,26 +77,28 @@
       && !/\b(explic|ens[eé][nñ]|explain|teach|linker|star|nexus|negaci|gerundio|f[oó]rmula|will|would|should|however)\b/i.test(user)) {
       return false;
     }
+    // Alice: tablero solo si EL ESTUDIANTE pide explicación / Nexus — no por correcciones con "however"
+    if (tutor === 'alice') {
+      return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda)\b/i.test(user);
+    }
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
-      if (global.JillLessonClip.resolveNexusId(user) || global.JillLessonClip.resolveNexusId(reply)) return true;
+      if (global.JillLessonClip.resolveNexusId(user)) return true;
     }
     if (user && typeof JillCanonRouter !== 'undefined') {
       if (JillCanonRouter.resolveAskId && JillCanonRouter.resolveAskId(user, '')) return true;
       if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(user)) return true;
       if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(user)) return true;
     }
-    // No abrir stage solo porque el reply de Jill menciona un módulo
-    if (tutor === 'alice' && reply && typeof JillCanonRouter !== 'undefined') {
-      if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(reply)) return true;
-    }
-    var blob = user + ' ' + reply;
-    var nexusCue = /\b(explic|ens[eé][nñ]|explain|teach|no entiendo|don'?t understand|duda|linker|connector|star|nexus|idea\s*\+|however|on top of that|recovery|pattern|estructura|f[oó]rmula|whiteboard|pizarr|tablero)\b/i.test(blob);
-    if (tutor === 'alice') return nexusCue || /\b(how (do|to)|what (is|are)|c[oó]mo se|qu[eé] es)\b/i.test(blob);
-    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|should|could|can|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|pasado perfecto|presente perfecto|pasada perfecto|perfecto|irregular|was|were|going to|have|has|had|jaf|jas|jad|presente|futuro|overview|mapa)\b/i.test(blob);
+    return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|should|could|can|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|pasado perfecto|presente perfecto|pasada perfecto|perfecto|irregular|was|were|going to|have|has|had|jaf|jas|jad|presente|futuro|overview|mapa)\b/i.test(user);
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    // Solo con orden explícita (columna forzada o pedida por el estudiante)
+    // Alice: nunca bastar con columna forzada si el estudiante no pidió tablero
+    if (tutor === 'alice') {
+      if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
+      if (forcedColumn && /^nexus_/i.test(String(forcedColumn))) return true;
+      return !!resolveColumn(text, bundle, userTopic, tutor);
+    }
     if (forcedColumn) return true;
     if (resolveColumn(text, bundle, userTopic, tutor)) return true;
     return false;
