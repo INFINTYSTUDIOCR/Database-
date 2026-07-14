@@ -38,7 +38,7 @@
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260713m07"></script>
-<script src="js/jill-visual-stage.js?v=20260711alice1"></script>
+<script src="js/jill-visual-stage.js?v=20260714alice2"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260713m07"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -388,21 +388,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   /* Alice lesson stage (same clip engine as Jill) */
   #alice-lesson-shell{position:relative;}
   #alice-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
-  #alice-lesson-shell.jill-stage-active #alice-visual-stage{display:flex;flex:1 1 auto;min-height:220px;}
-  #alice-stage-media{flex:1;min-height:180px;position:relative;}
+  #alice-lesson-shell.jill-stage-active #alice-visual-stage{display:flex;flex:0 0 auto;min-height:0;max-height:min(42vh,280px);}
+  #alice-stage-media{flex:1;min-height:120px;max-height:min(38vh,260px);position:relative;overflow:auto;}
   #alice-stage-caption{display:none!important;}
-  #alice-lesson-shell.jill-stage-active #alice-messages{display:none!important;}
+  /* Alice: NUNCA ocultar el chat — el tablero no puede tapar correcciones */
+  #alice-lesson-shell.jill-stage-active #alice-messages{
+    display:block!important;
+    max-height:min(36vh,240px)!important;
+    flex:1 1 auto;
+  }
   #alice-lesson-shell.jill-stage-active #alice-control-dock{
     background:rgba(15,10,40,0.92);border:1px solid rgba(167,139,250,0.4);
     border-radius:16px;padding:12px;box-shadow:0 -8px 32px rgba(0,0,0,0.35);
   }
+  #alice-stage-close-wrap{display:none;justify-content:flex-end;margin:0 0 4px;}
+  #alice-lesson-shell.jill-stage-active #alice-stage-close-wrap{display:flex;}
   #alice-lesson-shell:fullscreen{
     width:100%;height:100%;overflow:hidden;box-sizing:border-box;
     border-radius:0!important;display:flex;flex-direction:column;
     background:#0f0a28;padding:12px;
   }
   #alice-lesson-shell:fullscreen #alice-session-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;}
-  #alice-lesson-shell:fullscreen.jill-stage-active #alice-stage-media{min-height:0;max-height:calc(100vh - 200px);}
+  #alice-lesson-shell:fullscreen.jill-stage-active #alice-stage-media{min-height:0;max-height:calc(40vh - 40px);}
+  #alice-lesson-shell:fullscreen.jill-stage-active #alice-messages{display:block!important;max-height:min(30vh,220px)!important;}
   #jill-control-dock{
     flex-shrink:0;position:relative;z-index:5;
     display:flex;flex-direction:column;gap:8px;
@@ -2582,6 +2590,7 @@ function renderAliceSession(){
       :'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">'+badgeText+'</div>'
     )
     +'<div id="alice-visual-stage" hidden>'
+    +'<div id="alice-stage-close-wrap"><button type="button" onclick="aliceCloseVisualStage()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(192,132,252,0.45);color:#e9d5ff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;">Cerrar tablero</button></div>'
     +'<div id="alice-stage-media"></div>'
     +'<div id="alice-stage-caption" hidden></div>'
     +'</div>'
@@ -3547,6 +3556,17 @@ function aliceLastUserTopic(){
   return (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
 }
 
+/** Tablero Alice solo si el estudiante pide explicación / Nexus — no por tips con "however". */
+function aliceWantsNexusBoard(userText){
+  var t = String(userText || '');
+  if(!t.trim()) return false;
+  return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa)\b/i.test(t);
+}
+
+function aliceCloseVisualStage(){
+  try { if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch(e) {}
+}
+
 function aliceActivateVisualStage(text){
   // Alice Companion = charla libre: NUNCA tableros Foundations (Clase 010 WILL/WOULD, MSI, etc.)
   if(_aliceState && _aliceState.sessionType === 'companion'){
@@ -3554,11 +3574,16 @@ function aliceActivateVisualStage(text){
     return;
   }
   if(typeof JillVisualStage === 'undefined') return;
-  var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
   var userTopic = aliceLastUserTopic();
+  // Si el estudiante no pidió explicación/tablero, cerrar y no tapar el chat
+  if(!aliceWantsNexusBoard(userTopic)){
+    try { JillVisualStage.hide(); } catch(e2) {}
+    return;
+  }
+  var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
   var sticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
-  var blob = (userTopic + ' ' + sticky + ' ' + plain).trim();
-  var col = JillVisualStage.resolveColumn(plain, null, blob, 'alice');
+  var blob = (userTopic + ' ' + sticky).trim();
+  var col = JillVisualStage.resolveColumn('', null, blob, 'alice');
   // Alice tutor solo Nexus — nunca columnas Foundations de Jill
   if(col && !/^nexus_/i.test(String(col))) {
     col = (typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId)
