@@ -112,6 +112,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #jill-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
 #alice-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
   #jill-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
+  #claire-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
+  #claire-lesson-shell, #claire-lesson-shell button, #claire-lesson-shell select, #claire-lesson-shell .claire-bubble{-webkit-user-select:none;user-select:none;}
+  #claire-input{-webkit-user-select:text;user-select:text;}
+  #claire-lesson-shell ::selection{background:rgba(192,132,252,0.42);color:#fff;}
+  #claire-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
+  #claire-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
+  .claire-mode-chip{background:rgba(192,132,252,0.14);border:1px solid rgba(192,132,252,0.38);color:#e9d5ff;font-size:11px;font-weight:800;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+  .claire-mode-chip:hover{background:rgba(192,132,252,0.24);}
   .jill-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(61,220,151,0.35);color:#bbf7d0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
   .jill-chip:hover{background:rgba(61,220,151,0.22);}
   .jill-chip-kaboom{background:rgba(91,33,182,0.35);border-color:rgba(167,139,250,0.55);color:#e9d5ff;}
@@ -2500,10 +2508,10 @@ function claireFormatMessagesHtml(){
       +(isClaire
         ?'<div style="font-size:10px;color:'+th.accent+';font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">'+roleLabel+'</div>'
         :'<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;margin-bottom:4px;">VOS</div>')
-      +'<div style="max-width:88%;background:'+(isClaire?(th.msgBg||('rgba('+th.rgb+',0.12)')):'rgba(255,255,255,0.08)')
-      +';border:1px solid '+(isClaire?'rgba('+th.rgb+',0.45)':'rgba(255,255,255,0.12)')
+      +'<div class="claire-bubble" style="max-width:88%;background:'+(isClaire?'rgba(192,132,252,0.16)':'rgba(255,255,255,0.09)')
+      +';border:1px solid '+(isClaire?'rgba(192,132,252,0.5)':'rgba(255,255,255,0.18)')
       +';border-radius:'+(isClaire?'4px 14px 14px 14px':'14px 4px 14px 14px')
-      +';padding:10px 14px;font-size:13px;line-height:1.6;color:white;text-align:left;">'
+      +';padding:10px 14px;font-size:13px;line-height:1.6;color:#f8f7ff;text-align:left;box-shadow:0 8px 24px rgba(0,0,0,0.12);">'
       +clean
       +'</div></div>';
   }).join('');
@@ -2529,14 +2537,14 @@ function renderClaire(){
     return '<option value="'+k+'"'+(k===_claireState.accent?' selected':'')+'>'+label+'</option>';
   }).join('');
   var headerRight = '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
-    +'<select onchange="_claireState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select></div>';
+    +'<select onchange="_claireState.accent=this.value" style="appearance:none;-webkit-appearance:none;background:#24114d;border:1px solid rgba('+th.rgb+',0.45);color:#ffffff;border-radius:8px;padding:5px 22px 5px 9px;font-size:11px;font-weight:700;">'+accentOptions+'</select></div>';
   root.innerHTML =
     '<div id="claire-lesson-shell" style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:'+th.cardShadow+';border:1px solid '+th.cardBorder+';">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">'
     +'<div>'
-    +'<div style="font-size:10px;letter-spacing:0.25em;color:'+th.studioLabel+';font-weight:700;">STUDIO INFINITY CR</div>'
+    +'<div style="font-size:10px;letter-spacing:0.25em;color:'+th.studioLabel+';font-weight:800;">STUDIO INFINITY CR</div>'
     +'<div style="font-size:28px;font-weight:900;color:'+th.title+';letter-spacing:0.05em;text-shadow:0 0 28px '+th.titleShadow+';">'+th.headline+'</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,0.88);">'+th.subtitle+'</div>'
+    +'<div style="font-size:11px;color:#f5f3ff;">'+th.subtitle+'</div>'
     +'</div>'
     +headerRight
     +'</div>'
@@ -2564,10 +2572,10 @@ function renderClaireStart(){
 function renderClaireSession(){
   var th = claireTheme();
   var chips = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-    +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Listening Part 2.\')">Listening</button>'
-    +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Reading Part 5.\')">Reading Part 5</button>'
-    +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una mini práctica TOEIC Reading Part 7.\')">Reading Part 7</button>'
-    +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica de vocabulario TOEIC en contexto laboral.\')">Vocabulario</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Listening Part 2.\')">Listening</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Reading Part 5.\')">Reading Part 5</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una mini práctica TOEIC Reading Part 7.\')">Reading Part 7</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de vocabulario TOEIC en contexto laboral.\')">Vocabulario</button>'
     +'</div>';
   return '<div id="claire-session-main">'
     + chips
