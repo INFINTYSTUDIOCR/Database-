@@ -1,0 +1,34 @@
+name: Alice App #1 QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'js/alice-*.js'
+      - 'js/demo-api.js'
+      - 'js/demo-stream.js'
+      - 'js/b2b-alice-report.js'
+      - 'Infinity_Student_Portal.html'
+      - 'Infinity_Nexus_Engine.html'
+      - 'try-alice.html'
+      - 'pricing.html'
+      - 'index.html'
+      - 'hablemos.html'
+      - 'tests/**'
+      - 'scripts/run-alice-qa.mjs'
+  pull_request:
+    branches: [main]
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Syntax check backend
+        run: node --check backend/server.js
+      - name: Run Alice QA suites
+        run: node scripts/run-alice-qa.mjs

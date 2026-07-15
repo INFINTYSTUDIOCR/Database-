@@ -1,5 +1,5 @@
 /**
- * Alice Companion — KPI-aware session logic (testable, server-only).
+ * Alice Modo Libre — KPI-aware session logic (testable, server-only).
  * Free chat + on-demand mini-lesson: doubt → full explain → confirm → short oral practice → back to chat.
  */
 const COMPANION_BRAIN_VER = 'v13-cool-fast';

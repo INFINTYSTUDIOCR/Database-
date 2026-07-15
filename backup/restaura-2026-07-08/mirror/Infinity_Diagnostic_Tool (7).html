@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="js/site-urls.js"></script>
+<title>Infinity Studio — Operational English Diagnostic Tool</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/live-kpi-charts.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;
+  --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
+  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
+  --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
+  --purple:#5B21B6;--pb:#EDE9FE;--pm:#7C3AED;
+  --gray:#F8F8FF;--border:#E2E8F0;
+  --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;
+  --r:8px;--rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F8F8FF;color:var(--text);min-height:100vh;}
+.topbar{background:var(--navy);color:white;padding:0.875rem 1.5rem;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.tb-logo{background:rgba(255,255,255,0.15);border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;letter-spacing:0.06em;}
+.tb-name{font-size:14px;font-weight:700;}.tb-sub{font-size:11px;opacity:0.6;margin-top:1px;}
+.tb-right{margin-left:auto;display:flex;gap:8px;}
+
+.main{max-width:900px;margin:0 auto;padding:1.5rem;}
+.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px;color:var(--navy);}
+.sect-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);font-weight:700;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1rem;}
+@media(max-width:600px){.form-grid,.form-grid-3{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--text);}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--nm);}
+.fg textarea{resize:vertical;min-height:70px;}
+
+/* KPI INPUT */
+.kpi-block{background:var(--gray);border-radius:var(--rl);padding:1.25rem;margin-bottom:0.75rem;}
+.kpi-block-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.kpi-block-desc{font-size:12px;color:var(--t2);margin-bottom:1rem;line-height:1.5;}
+.kpi-scale{display:flex;gap:8px;margin-bottom:0.75rem;flex-wrap:wrap;}
+.kpi-btn{width:52px;height:52px;border-radius:var(--r);border:2px solid var(--border);background:white;font-size:18px;font-weight:800;cursor:pointer;color:var(--t3);transition:all 0.15s;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:inherit;}
+.kpi-btn:hover{border-color:var(--nm);color:var(--navy);}
+.kpi-btn.sel-1{border-color:var(--rm);background:var(--rb);color:var(--red);}
+.kpi-btn.sel-2{border-color:#E05D44;background:#FEF0ED;color:#7A2E1B;}
+.kpi-btn.sel-3{border-color:var(--amber);background:var(--ab);color:var(--ad);}
+.kpi-btn.sel-4{border-color:#5A9E6F;background:#E8F5EE;color:#2D6A40;}
+.kpi-btn.sel-5{border-color:var(--gm);background:var(--gb);color:var(--green);}
+.kpi-label-row{display:flex;justify-content:space-between;font-size:10px;color:var(--t3);font-weight:600;margin-bottom:0.75rem;}
+.kpi-obs{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;resize:none;min-height:55px;color:var(--text);}
+.kpi-obs:focus{outline:none;border-color:var(--nm);}
+
+/* PARAMS */
+.params-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:500px){.params-grid{grid-template-columns:1fr;}}
+.param{border:1.5px solid var(--border);border-radius:var(--r);padding:0.75rem;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:8px;}
+.param:hover{border-color:var(--nm);background:var(--nl);}
+.param.sel{border-color:var(--nm);background:var(--nl);}
+.param-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all 0.15s;}
+.param.sel .param-check{background:var(--navy);border-color:var(--navy);color:white;}
+.param-check i{font-size:10px;display:none;}
+.param.sel .param-check i{display:block;}
+.param-text{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;}
+.param-sub{font-size:11px;color:var(--t3);margin-top:2px;}
+
+/* GENERATE BTN */
+.gen-btn{width:100%;padding:15px;border:none;border-radius:var(--r);background:var(--navy);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.15s;margin-top:1rem;}
+.gen-btn:hover{opacity:0.9;}
+.gen-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* RESULTS */
+.result-wrap{display:none;}
+.result-wrap.show{display:block;}
+
+/* LEVEL BANNER */
+.level-banner{border-radius:var(--rl);padding:1.75rem 2rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.lb-advanced{background:var(--navy);}
+.lb-functional{background:#BA7517;}
+.lb-emerging{background:#A32D2D;}
+.lb-survival{background:#64748B;}
+.lb-left{}
+.lb-level{font-size:28px;font-weight:800;color:white;margin-bottom:4px;}
+.lb-name{font-size:16px;color:rgba(255,255,255,0.85);margin-bottom:4px;}
+.lb-desc{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;max-width:500px;}
+.lb-right{text-align:right;}
+.lb-score{font-size:56px;font-weight:800;color:white;line-height:1;}
+.lb-score-label{font-size:12px;color:rgba(255,255,255,0.6);}
+
+/* KPI RESULTS */
+.kpi-result-row{display:flex;align-items:center;gap:12px;padding:0.75rem 0;border-bottom:0.5px solid var(--border);}
+.kpi-result-row:last-child{border-bottom:none;}
+.kri-name{font-size:13px;font-weight:700;color:var(--text);width:160px;flex-shrink:0;}
+.kri-bar-bg{flex:1;height:10px;background:var(--gray);border-radius:5px;overflow:hidden;}
+.kri-bar-fill{height:100%;border-radius:5px;transition:width 0.4s;}
+.kri-val{font-size:14px;font-weight:800;width:40px;text-align:right;flex-shrink:0;}
+.kri-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;width:80px;text-align:center;flex-shrink:0;}
+
+/* DIAGNOSIS BLOCKS */
+.diag-block{border-radius:var(--rl);padding:1.25rem;margin-bottom:0.75rem;border-left:4px solid;}
+.diag-critical{background:var(--rb);border-color:var(--rm);}
+.diag-developing{background:var(--ab);border-color:var(--amber);}
+.diag-strong{background:var(--gb);border-color:var(--gm);}
+.diag-title{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.diag-critical .diag-title{color:var(--red);}
+.diag-developing .diag-title{color:var(--ad);}
+.diag-strong .diag-title{color:var(--green);}
+.diag-body{font-size:13px;line-height:1.7;}
+.diag-critical .diag-body{color:var(--rm);}
+.diag-developing .diag-body{color:var(--ad);}
+.diag-strong .diag-body{color:var(--gm);}
+
+/* EXERCISES */
+.ex-block{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:0.75rem;}
+.ex-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.ex-title{font-size:14px;font-weight:700;color:var(--text);}
+.ex-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.ex-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;}
+.tag-writing{background:var(--nl);color:var(--nd);}
+.tag-debate{background:var(--pb);color:var(--purple);}
+.tag-simulation{background:var(--gb);color:var(--green);}
+.tag-roleplay{background:var(--ab);color:var(--ad);}
+.tag-drill{background:#FEF0ED;color:#7A2E1B;}
+.ex-kpi{font-size:11px;font-weight:700;color:var(--t3);margin-bottom:6px;}
+.ex-body{font-size:13px;color:var(--t2);line-height:1.7;}
+.ex-instructions{font-size:12px;color:var(--text);background:var(--gray);border-radius:var(--r);padding:0.875rem;margin-top:8px;line-height:1.7;}
+.ex-freq{font-size:12px;font-weight:700;color:var(--nm);margin-top:8px;display:flex;align-items:center;gap:5px;}
+
+/* SESSION PLAN */
+.week-block{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:0.75rem;}
+.week-header{background:var(--navy);color:white;padding:0.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.week-title{font-size:13px;font-weight:700;}
+.week-focus{font-size:11px;opacity:0.75;}
+.session-row{display:grid;grid-template-columns:80px 1fr 120px 100px;padding:0.875rem 1.25rem;border-bottom:1px solid var(--border);font-size:13px;align-items:start;}
+.session-row:last-child{border-bottom:none;}
+.session-row:nth-child(even){background:var(--gray);}
+.ses-num{font-size:12px;font-weight:700;color:var(--t3);}
+.ses-content{font-size:13px;color:var(--text);line-height:1.5;}
+.ses-content strong{color:var(--navy);}
+.ses-type{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;}
+.ses-duration{font-size:12px;color:var(--t3);}
+.ses-head{background:var(--gray);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);padding:6px 1.25rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:80px 1fr 120px 100px;}
+
+/* PRINT */
+@media print{
+  .topbar,.gen-btn,.no-print{display:none!important;}
+  body{background:white;}
+  .main{padding:0;}
+}
+
+.btn{padding:8px 14px;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:opacity 0.15s;}
+.btn:hover{opacity:0.9;}
+.btn-navy{background:var(--navy);color:white;}
+.btn-outline{background:white;color:var(--t2);border:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="data:image/png;base64,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" alt="Off The Clock" style="height:52px;object-fit:contain;">
+  <div>
+    <div class="tb-name">Operational English Diagnostic Tool</div>
+    <div class="tb-sub">Nexus Method · Advanced assessment · 4-week session plan · Infinity Studio CR</div>
+  </div>
+  <div class="tb-right no-print">
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);" onclick="window.print()"><i class="ti ti-printer"></i>Print</button>
+    <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);" onclick="resetAll()"><i class="ti ti-refresh"></i>Reset</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STUDENT INFO -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-user" style="color:var(--nm);"></i>Student information</div>
+    <div class="form-grid">
+      <div class="fg"><label>Full name *</label><input type="text" id="s-name" placeholder="Student name"></div>
+      <div class="fg"><label>Trainer</label><input type="text" id="s-trainer" placeholder="Trainer name"></div>
+      <div class="fg"><label>Date</label><input type="date" id="s-date"></div>
+      <div class="fg"><label>Program type</label>
+        <select id="s-program">
+          <option value="individual">Individual Premium</option>
+          <option value="institutional">Institutional</option>
+          <option value="corporate">Corporate</option>
+          <option value="group">Group</option>
+        </select>
+      </div>
+      <div class="fg"><label>Occupation / Context</label><input type="text" id="s-occupation" placeholder="e.g. Customer service rep, student, manager..."></div>
+      <div class="fg"><label>English use context</label>
+        <select id="s-context">
+          <option value="customer_service">Customer service / Call center</option>
+          <option value="corporate">Corporate meetings / Presentations</option>
+          <option value="interviews">Job interviews</option>
+          <option value="academic">Academic / University</option>
+          <option value="tourism">Tourism / Hospitality</option>
+          <option value="general">General professional</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Initial observations</label><textarea id="s-obs" placeholder="First impressions, communication style, accent, confidence level, body language, hesitation patterns..."></textarea></div>
+  </div>
+
+  <!-- KPI ASSESSMENT -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--nm);"></i>KPI Assessment — 5 operational dimensions</div>
+    <p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;">Rate each dimension from 1 to 5 based on direct observation. Add specific observations for each KPI — these feed directly into the diagnostic recommendations.</p>
+    <div id="kpi-inputs"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem;">
+      <div style="height:200px;position:relative;"><canvas id="diag-tool-radar"></canvas></div>
+      <div style="height:200px;position:relative;"><canvas id="diag-tool-bar"></canvas></div>
+    </div>
+  </div>
+
+
+
+  <!-- OPERATIONAL PARAMETERS -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list-check" style="color:var(--nm);"></i>Operational parameters observed</div>
+    <p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;">Select all parameters observed during the assessment session. These directly influence exercise selection and session plan.</p>
+    <div class="params-grid" id="params-grid"></div>
+  </div>
+
+  <!-- GENERATE -->
+  <button class="gen-btn no-print" id="gen-btn" onclick="generateDiagnostic()">
+    <i class="ti ti-file-analytics"></i>Generate full diagnostic report
+  </button>
+
+  <!-- RESULTS -->
+  <div class="result-wrap" id="result-wrap">
+
+    <!-- LEVEL BANNER -->
+    <div id="level-banner"></div>
+
+    <!-- KPI PROFILE -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-radar" style="color:var(--nm);"></i>KPI performance profile</div>
+      <div id="kpi-results"></div>
+    </div>
+
+    <!-- DIAGNOSIS -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-stethoscope" style="color:var(--rm);"></i>Detailed diagnosis — by KPI</div>
+      <div id="diagnosis-blocks"></div>
+    </div>
+
+    <!-- RECOMMENDED EXERCISES -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-dumbbell" style="color:var(--pm);"></i>Recommended exercises — prioritized by gap</div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;">Exercises are ordered by urgency based on KPI scores. Address critical gaps first.</p>
+      <div id="exercise-blocks"></div>
+    </div>
+
+    <!-- 4-WEEK SESSION PLAN -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-calendar" style="color:var(--gm);"></i>4-week session plan — personalized</div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:1.25rem;">Session-by-session plan based on this student's specific KPI profile and identified gaps. 2 sessions per week.</p>
+      <div id="session-plan"></div>
+    </div>
+
+    <!-- TRAINER NOTES -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-notes" style="color:var(--amber);"></i>Trainer notes & next milestone</div>
+      <div id="trainer-notes"></div>
+      <div style="margin-top:1rem;" class="no-print">
+        <button class="btn btn-navy" onclick="saveToSupabase()"><i class="ti ti-cloud-upload"></i>Save to student files</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
+
+async function dbSet(table, id, data) {
+  await fetch(SUPA_URL+'/rest/v1/'+table, {method:'POST',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+    body:JSON.stringify({id:id,data:data,updated_at:new Date().toISOString()})
+  });
+}
+
+// ── KPI DEFINITIONS ───────────────────────
+const KPIS = [
+  {id:'IG',name:'Idea Generation',full:'Capacity to generate, expand and sustain ideas spontaneously',
+   descriptors:{1:'Cannot generate ideas without heavy prompting. Long silences. Single-word or fragmented responses.',2:'Generates basic ideas but stops immediately. Cannot expand. Needs constant trainer prompting.',3:'Generates ideas but development is inconsistent. Can expand when prompted but not independently.',4:'Generates and expands ideas with minor prompting. Occasional gaps but recovers with guidance.',5:'Generates rich, layered ideas independently. Sustains topic naturally without trainer input.'},
+   low_rec:'Focus on idea generation drills — trainer asks open questions, student must respond with minimum 3 sentences. No yes/no answers. Introduce Idea+Linker+Idea pattern immediately.',
+   mid_rec:'Expand idea capacity through debate and structured monologues. Assign 1-minute speaking exercises on familiar topics before advancing to unfamiliar ones.',
+   high_rec:'Challenge with abstract and unfamiliar topics. Introduce STAR method for structured idea development under time pressure.'},
+  {id:'ST',name:'Structural Thinking',full:'Logical organization of ideas with clear beginning, development and conclusion',
+   descriptors:{1:'No structure observed. Ideas appear randomly. No connectors or transitions used.',2:'Attempts structure but loses thread. Basic connectors only (and, but). No clear conclusion.',3:'Shows awareness of structure but execution is inconsistent. Uses some linkers but not fluidly.',4:'Organizes ideas with clear structure most of the time. Uses varied connectors. Occasional structural gaps.',5:'Consistently structured communication. Rich use of linkers, transitions and logical sequencing.'},
+   low_rec:'Introduce Idea+Linker+Idea as the foundational pattern. Student must write 3 connected sentences minimum for every response. Ban one-sentence answers.',
+   mid_rec:'Advance to STAR method (Situation-Task-Action-Result). Assign writing exercises where structure is graded separately from content.',
+   high_rec:'Challenge with complex multi-point arguments. Introduce contrast, concession and elaboration linkers. Practice debate with time limits.'},
+  {id:'RA',name:'Recovery Ability',full:'Capacity to handle communication blocks through substitution, description and continuation',
+   descriptors:{1:'Freezes completely when blocked. Cannot recover. Requires trainer intervention every time.',2:'Freezes but eventually attempts. Recovery is very slow (10+ seconds). Gives up on complex ideas.',3:'Shows recovery attempts but strategy is inconsistent. Sometimes freezes, sometimes finds alternatives.',4:'Recovers in most situations using substitution or simplification. Occasional freezes on complex vocabulary.',5:'Recovers instantly and naturally. Uses multiple strategies: simplification, description, examples, circumlocution.'},
+   low_rec:'Implement the 3-second rule: student must produce any word within 3 seconds, even if wrong. Teach substitution technique: "the thing that...", "a kind of...", "similar to...". Daily recovery drills.',
+   mid_rec:'Drill technical vocabulary substitution. If student cannot say the word, they must describe it in one sentence. No freezing allowed — silence is the only failure.',
+   high_rec:'Introduce high-pressure rapid-fire scenarios. Student must recover from intentional trainer interruptions and topic changes mid-sentence.'},
+  {id:'PS',name:'Problem Solving Communication',full:'Ability to identify problems, propose solutions and communicate them effectively under pressure',
+   descriptors:{1:'Cannot identify or articulate problems. Responds to complex scenarios with confusion or silence.',2:'Identifies problems but cannot propose solutions. Communicates issues but not resolution paths.',3:'Proposes basic solutions but communication is hesitant. Loses structure under mild pressure.',4:'Identifies and proposes solutions clearly. Handles most pressure situations with minor communication gaps.',5:'Communicates problems and solutions with precision, empathy and professional vocabulary under full pressure.'},
+   low_rec:'Begin with simple problem statements: student identifies the issue and names one solution. No pressure, no time limit initially. Advance to 2-solution scenarios.',
+   mid_rec:'Introduce customer service scenarios with scripted problems. Student must identify issue, acknowledge, propose solution and confirm in 4 turns.',
+   high_rec:'Full corporate simulation: angry client, unclear situation, multiple issues. Student must maintain professional communication while solving in real time.'},
+  {id:'R',name:'Responsiveness',full:'Speed and quality of responses — processing and responding at natural conversation speed',
+   descriptors:{1:'Response time is very slow (10+ seconds consistently). Significant processing lag. Cannot maintain conversation speed.',2:'Slow responses (5-10 seconds). Noticeable lag disrupts conversation flow.',3:'Acceptable response time but inconsistent. Fast on familiar topics, very slow on unfamiliar ones.',4:'Good response speed on most topics. Minor lag on complex vocabulary or unexpected questions.',5:'Responds at natural conversation speed consistently. Handles unexpected questions without significant lag.'},
+   low_rec:'Rapid-fire drills with low-stakes questions. Trainer fires 10 simple questions in 2 minutes — student responds immediately. Incorrect answers acceptable; speed is the target.',
+   mid_rec:'Introduce conversation pace training: trainer maintains natural speed, student must keep up. Pauses longer than 3 seconds are noted and reviewed.',
+   high_rec:'Full-speed professional scenarios with interruptions. Trainer deliberately throws off-topic questions and unexpected pivots. Student must respond and redirect professionally.'},
+];
+
+const PARAMS = [
+  {id:'filler_words',name:'Excessive filler words',desc:'Uhh, like, you know, basically — disrupts professional flow'},
+  {id:'self_correction',name:'Constant self-correction',desc:'Restarts sentences repeatedly — signals insecurity'},
+  {id:'direct_translation',name:'Direct translation patterns',desc:'Spanish sentence structure in English output'},
+  {id:'tense_errors',name:'Tense coordination errors',desc:'Mixes present/past/future incorrectly'},
+  {id:'pronunciation',name:'Pronunciation barriers',desc:'Pronunciation affects comprehension by listener'},
+  {id:'vocabulary_gaps',name:'Professional vocabulary gaps',desc:'Lacks workplace-specific terminology'},
+  {id:'code_switching',name:'Code switching',desc:'Switches to Spanish mid-sentence when stuck'},
+  {id:'no_linkers',name:'Absent connectors',desc:'Ideas are disconnected — no linkers used'},
+  {id:'monotone',name:'Monotone delivery',desc:'Flat intonation affects communication impact'},
+  {id:'eye_contact',name:'Poor eye contact / confidence',desc:'Physical communication confidence low'},
+  {id:'length',name:'Very short responses',desc:'One or two sentences maximum — cannot expand'},
+  {id:'listening',name:'Listening comprehension gaps',desc:'Misunderstands questions or needs repetition'},
+  {id:'pace_fast',name:'Speaks too fast',desc:'Speed compensates for insecurity — clarity suffers'},
+  {id:'interruption',name:'Difficulty handling interruptions',desc:'Loses thread when interrupted mid-thought'},
+];
+
+var ratings = {IG:0,ST:0,RA:0,PS:0,R:0};
+var observations = {IG:'',ST:'',RA:'',PS:'',R:''};
+var selectedParams = new Set();
+
+// ── NEXUS EXERCISE ENGINE ─────────────────────────────────────────────────
+// Based on Nexus Method: Arquitectura → Expansión → Naturalidad
+// Source: Trainer Guide — Infinity Studio CR
+
+// ── INIT ──────────────────────────────────
+document.getElementById('s-date').valueAsDate = new Date();
+
+// Render KPI inputs
+document.getElementById('kpi-inputs').innerHTML = KPIS.map(function(kpi){
+  var btns = [1,2,3,4,5].map(function(n){
+    return '<button class="kpi-btn" id="kbtn-'+kpi.id+'-'+n+'" onclick="setRating(\''+kpi.id+'\','+n+')">'+n+'<span style="font-size:9px;margin-top:1px;display:block;opacity:0.6;">'+['','min','low','mid','good','max'][n]+'</span></button>';
+  }).join('');
+  return '<div class="kpi-block">'
+    +'<div class="kpi-block-title">'+kpi.name+'</div>'
+    +'<div class="kpi-block-desc">'+kpi.full+'</div>'
+    +'<div class="kpi-scale">'+btns+'</div>'
+    +'<div class="kpi-label-row"><span>1 — Cannot perform</span><span>3 — Developing</span><span>5 — Operational</span></div>'
+    +'<div style="margin-bottom:6px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">Current level descriptor</div>'
+    +'<div id="kpi-desc-'+kpi.id+'" style="font-size:12px;color:var(--t2);background:var(--gray);border-radius:var(--r);padding:8px 10px;margin-bottom:8px;font-style:italic;min-height:36px;line-height:1.5;">Select a score to see the level description.</div>'
+    +'<textarea class="kpi-obs" id="obs-'+kpi.id+'" placeholder="Specific observations for '+kpi.name+' — what exactly did you see? Give concrete examples from the session..." oninput="observations[\''+kpi.id+'\']=this.value"></textarea>'
+    +'</div>';
+}).join('');
+
+setTimeout(function(){ refreshDiagToolCharts(); },80);
+
+// Render params
+document.getElementById('params-grid').innerHTML = PARAMS.map(function(p){
+  return '<div class="param" id="param-'+p.id+'" onclick="toggleParam(\''+p.id+'\')">'
+    +'<div class="param-check"><i class="ti ti-check"></i></div>'
+    +'<div><div class="param-text">'+p.name+'</div><div class="param-sub">'+p.desc+'</div></div>'
+    +'</div>';
+}).join('');
+
+function setRating(kpi, val){
+  ratings[kpi] = val;
+  [1,2,3,4,5].forEach(function(n){
+    var btn = document.getElementById('kbtn-'+kpi+'-'+n);
+    btn.className = 'kpi-btn' + (n===val?' sel-'+n:'');
+  });
+  var kpiDef = KPIS.find(function(k){return k.id===kpi;});
+  var descEl = document.getElementById('kpi-desc-'+kpi);
+  if(descEl&&kpiDef) descEl.textContent = kpiDef.descriptors[val]||'';
+  refreshDiagToolCharts();
+}
+
+function refreshDiagToolCharts(){
+  if(typeof LiveKpiCharts==='undefined') return;
+  LiveKpiCharts.updateMacro('diag-tool','diag-tool-radar','diag-tool-bar',ratings,5);
+}
+
+function toggleParam(id){
+  var el = document.getElementById('param-'+id);
+  if(selectedParams.has(id)){ selectedParams.delete(id); el.classList.remove('sel'); }
+  else { selectedParams.add(id); el.classList.add('sel'); }
+}
+
+
+
+var NEXUS_LINKERS = {
+  add:    ['and','also','in addition','furthermore','as well','not only that'],
+  reason: ['because','since','due to','as','given that'],
+  result: ['so','therefore','as a result','consequently','which means that'],
+  contrast:['but','however','even though','although','nevertheless','despite this','on the other hand'],
+  sequence:['first','then','after that','finally','eventually','subsequently'],
+  natural: ['the thing is','on top of that','to be honest','what happens is','actually','at the end of the day','just in case','not only that but also']
+};
+
+var NEXUS_IRREGULAR_VERBS = [
+  {inf:'come',past:'came',part:'come'},{inf:'let',past:'let',part:'let'},
+  {inf:'go',past:'went',part:'gone'},{inf:'put',past:'put',part:'put'},
+  {inf:'take',past:'took',part:'taken'},{inf:'give',past:'gave',part:'given'},
+  {inf:'get',past:'got',part:'gotten'},{inf:'keep',past:'kept',part:'kept'},
+  {inf:'make',past:'made',part:'made'},{inf:'do',past:'did',part:'done'},
+  {inf:'say',past:'said',part:'said'},{inf:'see',past:'saw',part:'seen'},
+  {inf:'send',past:'sent',part:'sent'},{inf:'be',past:'was/were',part:'been'},
+  {inf:'have',past:'had',part:'had'},{inf:'seem',past:'seemed',part:'seemed'}
+];
+
+var NEXUS_SPEED_DRILLS = [
+  {es:'Ella dice',en:'She says'},{es:'Yo dije',en:'I said'},
+  {es:'Él va',en:'He goes'},{es:'Eso fue',en:'That was'},
+  {es:'Nosotros damos',en:'We give'},{es:'Ellos dieron',en:'They gave'},
+  {es:'Ustedes dejan',en:'You leave'},{es:'Nosotros dejamos',en:'We left'},
+  {es:'Esa mantendrá',en:'That will keep'},{es:'Él vendría',en:'He would come'},
+  {es:'Yo tendría',en:'I would have'},{es:'Estamos teniendo',en:'We are having'}
+];
+
+var NEXUS_NATURAL_EXPRESSIONS = [
+  {es:'La cosa es que',en:'The thing is (that)'},
+  {es:'Encima de eso',en:'On top of that'},
+  {es:'Para ser honesto',en:'To be honest'},
+  {es:'Lo que pasa es que',en:'What happens is that'},
+  {es:'En realidad',en:'Actually'},
+  {es:'Al final del día',en:'At the end of the day'},
+  {es:'No solo eso',en:'Not only that'},
+  {es:'A pesar de',en:'Despite / In spite of'},
+  {es:'Me di cuenta',en:'I realized'},
+  {es:'Encontrar la manera',en:'Find the way / figure out'}
+];
+
+var NEXUS_PREFIXES = [
+  {prefix:'un-',meaning:'negación',base:'happy',result:'unhappy'},
+  {prefix:'dis-',meaning:'contrario',base:'agree',result:'disagree'},
+  {prefix:'mis-',meaning:'error',base:'understand',result:'misunderstand'},
+  {prefix:'re-',meaning:'repetir',base:'do',result:'redo'},
+  {prefix:'over-',meaning:'exceso',base:'react',result:'overreact'},
+  {prefix:'under-',meaning:'insuficiente',base:'estimate',result:'underestimate'}
+];
+
+var NEXUS_SUFFIXES = [
+  {suffix:'-ness',converts:'adjetivo → sustantivo',base:'happy',result:'happiness'},
+  {suffix:'-ment',converts:'verbo → sustantivo',base:'develop',result:'development'},
+  {suffix:'-ful',converts:'sustantivo → adjetivo',base:'stress',result:'stressful'},
+  {suffix:'-less',converts:'sustantivo → adjetivo (sin)',base:'hope',result:'hopeless'},
+  {suffix:'-able',converts:'verbo → adjetivo (posible)',base:'manage',result:'manageable'},
+  {suffix:'-ly',converts:'adjetivo → adverbio',base:'quick',result:'quickly'}
+];
+
+var NEXUS_PHRASAL_VERBS = [
+  {pv:'Wake up',meaning:'despertarse'},{pv:'Give up',meaning:'rendirse'},
+  {pv:'Run out of',meaning:'quedarse sin'},{pv:'Look after',meaning:'cuidar'},
+  {pv:'Find out',meaning:'descubrir'},{pv:'Turn off',meaning:'apagar'},
+  {pv:'Pick up',meaning:'recoger/mejorar'},{pv:'Drop off',meaning:'dejar'}
+];
+
+// ── COMPLETE EXERCISE LIBRARY (Nexus-based) ──────────────────────────────
+var EXERCISE_LIBRARY = {
+
+  // IDEA GENERATION ─────────────────────────────────────────────────────
+  IG_critical: {
+    title: 'Idea Expansion Drill — Minimum 3 Sentences',
+    kpi: 'Idea Generation', type: 'writing', priority: 'CRITICAL', nexus_phase: 'Phase 1 — Arquitectura',
+    objective: 'Eliminate one-sentence responses. Install the habit of expanding every idea.',
+    trainer_script: 'Trainer asks: "What did you do yesterday?"\nStudent responds with one sentence.\nTrainer immediately says: "Keep going." — NO additional prompting.\nIf student stops again: "Keep going." — Same phrase, every time.\nOnly acceptable stop: student reaches 3+ connected sentences.',
+    instructions: [
+      'STEP 1 — Trainer fires a simple open question',
+      'STEP 2 — Student must produce minimum 3 connected sentences',
+      'STEP 3 — Structure: [Idea] + [Linker] + [Expansion] + [Linker] + [Close]',
+      'STEP 4 — Trainer marks any response under 3 sentences as INCOMPLETE — no exceptions',
+      'STEP 5 — After week 2: raise minimum to 5 sentences'
+    ],
+    example: {
+      bad: '"I went to work." ← ONE SENTENCE. INCOMPLETE. Trainer says: keep going.',
+      good: '"I went to work yesterday, which was actually quite demanding. However, I managed to finish everything on time. As a result, I felt really productive by the end of the day."'
+    },
+    linkers_required: ['which means that','however','as a result','because','on top of that'],
+    grading: 'Content is irrelevant. Length + connectors = the only metrics.',
+    frequency: 'Every session — first 10 minutes. NON-NEGOTIABLE.',
+    red_flags: ['Student repeats "and" more than twice consecutively','Student stops and looks at trainer for approval after one sentence','Student uses "uhh" or "like" as connectors']
+  },
+
+  IG_developing: {
+    title: '1-Minute Monologue — Familiar to Unfamiliar Progression',
+    kpi: 'Idea Generation', type: 'debate', priority: 'HIGH', nexus_phase: 'Phase 2 — Expansión',
+    objective: 'Build idea density and sustain discourse without trainer input.',
+    trainer_script: 'Trainer sets a topic, starts a visible timer for 60 seconds.\nTrainer does NOT interrupt, react, or respond.\nAfter 60 seconds: trainer counts distinct ideas (not sentences) in the response.',
+    instructions: [
+      'WEEK 1 — Familiar topics: their job, their city, their daily routine',
+      'WEEK 2 — Moderate topics: a current event, a product, a work process',
+      'WEEK 3 — Unfamiliar topics: an abstract concept, a hypothetical scenario',
+      'WEEK 4 — High-pressure: topic given 5 seconds before speaking',
+      'RULE: Silence for more than 3 seconds = FAILURE. Any word counts — keep going.',
+      'TARGET: 4+ distinct ideas per minute by week 4'
+    ],
+    example: {
+      bad: '"I think that... uhh... customer service is important... because... people need help." ← 3-second silences. Incomplete.',
+      good: '"Customer service is the backbone of any business. The thing is, when a client calls, they already have a problem — so the agent job is to solve it, not to create more friction. On top of that, how you communicate is just as important as what you say."'
+    },
+    linkers_required: NEXUS_LINKERS.natural.concat(NEXUS_LINKERS.result),
+    grading: 'Count ideas per minute. Target: Week 1 = 2+, Week 2 = 3+, Week 3-4 = 4+.',
+    frequency: '3x per week — 5 minutes per session.',
+    red_flags: ['Student narrates without connecting ideas','Student repeats the same idea with different words','Student asks "is that good?" mid-exercise']
+  },
+
+  IG_strong: {
+    title: 'STAR Method — Advanced Idea Architecture',
+    kpi: 'Idea Generation', type: 'simulation', priority: 'DEVELOPMENT', nexus_phase: 'Phase 2 → 3',
+    objective: 'Channel strong idea generation into structured professional narratives.',
+    trainer_script: 'Assign a professional scenario. Student constructs a full STAR response.',
+    instructions: [
+      'S — SITUATION: Set the context (2-3 sentences, past tense)',
+      'T — TASK: What was the challenge or responsibility (1-2 sentences)',
+      'A — ACTION: What steps were taken (3-4 sentences, action verbs, linkers mandatory)',
+      'R — RESULT: What happened as a result (1-2 sentences, quantifiable when possible)',
+      'TOTAL: Minimum 8 sentences. Minimum 4 different linkers. No "and" used more than twice.'
+    ],
+    example: {
+      good: '"Last year, I was handling a customer who was extremely upset about a billing error. The situation required immediate de-escalation. First, I acknowledged the issue without making excuses. Then, I verified the account details and discovered the error was on our end. As a result, I processed a full credit and personally followed up the next day. The customer not only stayed with us but left a positive review."'
+    },
+    linkers_required: ['first','then','as a result','however','which meant that'],
+    grading: 'Grade each section (S/T/A/R) separately. Check: tense consistency, linker variety, professional vocabulary.',
+    frequency: '1x per week as main exercise.',
+    red_flags: ['Student merges S and T into one vague block','Result is missing or assumed']
+  },
+
+  // STRUCTURAL THINKING ─────────────────────────────────────────────────
+  ST_critical: {
+    title: 'Idea → Linker → Idea — Foundation Installation',
+    kpi: 'Structural Thinking', type: 'writing', priority: 'CRITICAL', nexus_phase: 'Phase 1 — Arquitectura',
+    objective: 'Install the Nexus core pattern. Every response must be connected. No isolated sentences ever.',
+    trainer_script: 'Every time a student produces an isolated sentence (no connector), trainer taps the table once.\nStudent must IMMEDIATELY add a connector and continue — no stopping, no starting over.\nRule: No more than 2 consecutive "and" — trainer taps at the third.',
+    instructions: [
+      'PATTERN: [Idea] → [Linker] → [Idea] → [Linker] → [Idea]',
+      'WEEK 1 — Adding: furthermore, in addition, as well, also',
+      'WEEK 2 — Contrasting: however, on the other hand, even though, despite this',
+      'WEEK 3 — Cause/result: because, since, as a result, which means that',
+      'WEEK 4 — Natural: the thing is, on top of that, to be honest',
+      'HOMEWORK: 10 connected sentences daily — linker underlined by student'
+    ],
+    example: {
+      bad: '"I work in customer service. It is difficult. I have to speak English." ← Three isolated sentences. Zero connectors. UNACCEPTABLE.',
+      good: '"I work in customer service, which means that I have to speak English every day. However, it can be challenging at times because clients often speak very fast. On top of that, I have to maintain a professional tone even under pressure."'
+    },
+    linkers_required: NEXUS_LINKERS.add.concat(NEXUS_LINKERS.contrast).concat(NEXUS_LINKERS.result),
+    grading: 'Every sentence without a connector = 0 points for that sentence. No partial credit.',
+    frequency: 'Daily homework (10 sentences). Applied in every oral exchange during sessions.',
+    red_flags: ['Student uses "and" as their only connector','Student writes connected but speaks disconnected','Student adds linkers at the START of every sentence like a list — not integrated']
+  },
+
+  ST_developing: {
+    title: 'Written Anecdote — Nexus Structure Protocol',
+    kpi: 'Structural Thinking', type: 'writing', priority: 'HIGH', nexus_phase: 'Phase 2 — Expansión',
+    objective: 'Apply full discourse structure in a 15-minute written exercise. Then convert to oral under pressure.',
+    trainer_script: 'PART 1 (15 min): Student writes anecdote independently.\nPART 2 (Oral): Student reads aloud. Trainer interrupts and says: "Tell it in past perfect." Student must reconstruct orally in a different tense.\nThis forces structural mastery under pressure.',
+    instructions: [
+      'TOPIC: A failure / an injustice / a difficult decision (student chooses)',
+      'MANDATORY REQUIREMENTS:',
+      '  ✓ Minimum 5 connectors (from different categories)',
+      '  ✓ Minimum 5 natural expressions (the thing is, on top of that, etc.)',
+      '  ✓ Minimum 12 lines',
+      '  ✓ Correct temporal coherence throughout',
+      '  ✓ No isolated sentences — every idea must connect',
+      'STRUCTURE: (1) Context → (2) Main event → (3) Problem/conflict → (4) Result → (5) Reflection',
+      'PART 2 — Trainer corrections: Wrong tense, missing connector, ideas without expansion, more than 2 consecutive "and"'
+    ],
+    example: {
+      good: '"Actually, I underestimated the situation. The thing is, I thought it was manageable; however, I completely misunderstood the instructions. On top of that, I was under a lot of pressure. As a result, my performance was disappointing. Nevertheless, that experience helped me develop resilience and awareness."',
+      linkers_in_example: ['actually','the thing is','however','on top of that','as a result','nevertheless']
+    },
+    linkers_required: NEXUS_LINKERS.contrast.concat(NEXUS_LINKERS.natural).concat(NEXUS_LINKERS.result),
+    grading: 'Count: connectors used (min 5), natural expressions (min 5), structural sections present (5). Deduct for isolated sentences.',
+    frequency: '1x per week as main session exercise.',
+    red_flags: ['Student writes a list of events without connecting them','Student uses only "and" and "but"','Student cannot reconstruct orally what they wrote']
+  },
+
+  ST_strong: {
+    title: 'Discourse under Pressure — Trainer Interruptions',
+    kpi: 'Structural Thinking', type: 'roleplay', priority: 'ADVANCED', nexus_phase: 'Phase 3 — Naturalidad',
+    objective: 'Maintain structural integrity when interrupted. Real conversations never wait.',
+    trainer_script: 'Student is mid-sentence. Trainer interrupts:\n"Stop. Tell me the same thing but in past perfect."\n"Stop. Now make it hypothetical."\n"Stop. Now tell it as if it did not happen."\nStudent must reconstruct immediately — no pause allowed.',
+    instructions: [
+      'Student begins any structured response (anecdote, STAR, argument)',
+      'Trainer interrupts at random points — not at natural breaks',
+      'Commands: "Past perfect" / "Hypothetical" / "Present tense" / "More professional" / "More natural"',
+      'Student must comply and continue WITHOUT losing the thread of the story',
+      'Graded on: speed of reconstruction, accuracy of tense change, maintenance of connectors'
+    ],
+    example: {
+      good: 'Trainer interrupts mid-sentence: Past perfect. Student rebuilds instantly: By the time I arrived at the meeting, I had already reviewed all materials, however I had not anticipated the concerns.'
+    },
+    grading: 'Can student change tense mid-thought without losing structure? That is the only metric.',
+    frequency: '2x per week — 10 minutes. Increases pressure each week.',
+    red_flags: ['Student starts completely over instead of reconstructing','Student loses connectors when switching tenses']
+  },
+
+  // RECOVERY ABILITY ────────────────────────────────────────────────────
+  RA_critical: {
+    title: 'No Freeze Protocol — 3-Second Rule',
+    kpi: 'Recovery Ability', type: 'drill', priority: 'CRITICAL', nexus_phase: 'Phase 1 — Arquitectura',
+    objective: 'Eliminate the freeze response permanently. Any word within 3 seconds. Always.',
+    trainer_script: 'Trainer has a visible timer. Fires a question or term.\nStudent has exactly 3 seconds to produce ANY word.\nIf student freezes past 3 seconds: trainer says "Go." — immediately.\nRule: An incorrect answer is NOT failure. Silence IS failure.',
+    instructions: [
+      'SUBSTITUTION TECHNIQUES to teach (in order):',
+      '  1. "Something similar to..." + description',
+      '  2. "The thing that does/makes..." + function',
+      '  3. "A kind of... that..." + category + feature',
+      '  4. "I think it means..." + approximate + "but I am not certain"',
+      '  5. "You know when..." + situation description',
+      'DRILL: Trainer fires 10 technical/unfamiliar terms in 3 minutes',
+      'Student must respond to each within 3 seconds using substitution',
+      'Terms: amortization, escalation protocol, billing cycle, compliance, procurement, KPI, delinquency, grace period, dispute resolution, ROI'
+    ],
+    example: {
+      bad: '"Amortization is... uhh... I do not know." ← FREEZE. Failure.',
+      good: '"Amortization is something similar to a payment schedule — the thing that shows you how your loan balance decreases over time."'
+    },
+    grading: 'Pass: response within 3 seconds using any substitution technique. Fail: silence beyond 3 seconds.',
+    frequency: 'Every session — first 5 minutes. Timer is always visible. Non-negotiable.',
+    red_flags: ['Student says "I do not know" — never acceptable, teach substitution first','Student looks at ceiling before responding — freeze starting']
+  },
+
+  RA_developing: {
+    title: 'Vocabulary Substitution — Describe Without the Word',
+    kpi: 'Recovery Ability', type: 'roleplay', priority: 'HIGH', nexus_phase: 'Phase 1-2',
+    objective: 'Replace any unknown word with a professional description. No stops allowed.',
+    trainer_script: 'Trainer gives student a list of 10 professional terms.\nStudent must explain each to a hypothetical client who does not know the term.\nStudent CANNOT say "I do not know" or pause more than 3 seconds.\nTrainer grades fluency of recovery — NOT accuracy of definition.',
+    instructions: [
+      'TECHNIQUE: "Think of it as..." / "Essentially what happens is..." / "The best way to describe it..."',
+      'EXAMPLE: Student does not know "grace period"',
+      '  Wrong: "I do not know what that is." ← Unacceptable',
+      '  Right: "Think of it as a short window of time after your due date where you can still pay without a penalty. Essentially, it is the bank giving you a few extra days just in case."',
+      'WEEK 1: Basic financial terms',
+      'WEEK 2: Abstract concepts (compliance, liability, dispute)',
+      'WEEK 3: Combined — term + real client explanation + follow-up question from trainer'
+    ],
+    grading: 'Was there a substitution? Was it professional? Did it answer the implied question? 1 point each per term.',
+    frequency: '2x per week — 10 minutes.',
+    red_flags: ['Student uses exact same substitution pattern for every word','Student description is technically wrong AND they know it — teach them to hedge: "I believe..."']
+  },
+
+  RA_strong: {
+    title: 'Rapid Fire Interruptions — Maintain Thread',
+    kpi: 'Recovery Ability', type: 'simulation', priority: 'ADVANCED', nexus_phase: 'Phase 3',
+    objective: 'Recover from intentional derailments while maintaining professional communication.',
+    trainer_script: 'Student is mid-explanation. Trainer fires a completely off-topic question.\nStudent must answer briefly AND redirect back to the original topic.\nTrainer deliberately throws unfamiliar vocabulary into their own questions.',
+    instructions: [
+      'Student begins a structured explanation (billing process, service feature, etc.)',
+      'Trainer interrupts with: "Wait, what does [unfamiliar term] mean?" mid-sentence',
+      'Student: (1) Defines/substitutes the term, (2) Says "As I was saying...", (3) Continues from exact point of interruption',
+      'Interruptions increase in frequency each week',
+      'ADVANCED: Trainer introduces a second topic mid-interruption — student must manage both'
+    ],
+    grading: 'Did student recover thread after interruption? Did they use "As I was saying" or equivalent? Were there filler words during recovery?',
+    frequency: '2x per week — 15 minutes.',
+    red_flags: ['Student says "Can you repeat the question?" — teach them to buy time professionally instead: "That\'s a great point, let me address that..."']
+  },
+
+  // PROBLEM SOLVING ─────────────────────────────────────────────────────
+  PS_critical: {
+    title: '4-Turn Resolution Framework',
+    kpi: 'Problem Solving Communication', type: 'simulation', priority: 'CRITICAL', nexus_phase: 'Phase 2 — Expansión',
+    objective: 'Build a reliable 4-turn structure for any customer service or professional problem.',
+    trainer_script: 'Trainer plays client with a specific problem.\nStudent must complete the resolution in exactly 4 structured turns.\nTrainer DOES NOT make it easy — they ask follow-up questions, express doubt, ask for clarification.',
+    instructions: [
+      'TURN 1 — ACKNOWLEDGE: "I understand that [restate the problem]. I sincerely apologize for the inconvenience."',
+      'TURN 2 — INVESTIGATE: "Let me pull up your account. Could you please confirm [specific detail]?"',
+      'TURN 3 — PROPOSE: "What I can do for you today is [solution]. This will [result/benefit]."',
+      'TURN 4 — CONFIRM + CLOSE: "Does that work for you? Is there anything else I can help you with today?"',
+      'ESCALATION VERSION: If client pushes back at Turn 3 → student must offer an alternative without transferring',
+      'KEY RULE: Student cannot transfer the call. They own the problem start to finish.'
+    ],
+    example: {
+      scenario: 'Client: "I was charged twice for my monthly payment and nobody is helping me."',
+      good: 'T1: "I completely understand your frustration, and I sincerely apologize that this has not been resolved yet. That should never happen." T2: "Let me pull up your account right now. Could you confirm the last 4 digits of your card on file?" T3: "I can see the duplicate charge. What I am going to do is reverse the second payment immediately — you will see it reflected within 24 to 48 hours." T4: "I have processed that reversal for you. Is there anything else I can help you with today?"'
+    },
+    grading: 'Grade each turn: Present (1), Professional vocabulary (1), Correct tense (1), No transfer (1). Max 16 points.',
+    frequency: '1x per week — full simulation. 15 minutes.',
+    red_flags: ['Student says "I cannot do that" — teach: "What I can do is..."','Student apologizes 3+ times in one turn — wastes turns','Student transfers without attempting resolution']
+  },
+
+  PS_developing: {
+    title: 'Escalation Scenario — De-escalation Under Pressure',
+    kpi: 'Problem Solving Communication', type: 'simulation', priority: 'HIGH', nexus_phase: 'Phase 2-3',
+    objective: 'Communicate solutions professionally while managing emotional pressure from client.',
+    trainer_script: 'Trainer plays a client who escalates progressively across 4 turns.\nTurn 1: Mild frustration. Turn 2: Clearly upset. Turn 3: Demands manager. Turn 4: Threatens cancellation.\nStudent must maintain professional language in ALL 4 turns.',
+    instructions: [
+      'TRAINER ESCALATION SCRIPT:',
+      '  T1: "Hi, I have a billing issue that I have been trying to resolve for a week."',
+      '  T2: "This is ridiculous. I have called three times already."',
+      '  T3: "I want to speak to your manager right now."',
+      '  T4: "Fine. Cancel my account. I am done with this company."',
+      'STUDENT MUST: Stay calm in all 4 turns, never use defensive language, take ownership at T1, offer alternative to manager at T3, present retention offer at T4',
+      'BANNED PHRASES: That is not my department / There is nothing I can do / You need to call back'
+    ],
+    grading: 'Did student de-escalate? Did they offer a solution? Did they attempt retention? Professional vocabulary maintained? 4 criteria × 3 points = 12 max.',
+    frequency: '1x per week — after PS foundation is solid.',
+    red_flags: ['Student becomes apologetic to the point of submission — teach: empathy ≠ weakness','Student loses professional vocabulary when client gets aggressive']
+  },
+
+  PS_strong: {
+    title: 'The Impossible Client — Creative Problem Solving',
+    kpi: 'Problem Solving Communication', type: 'roleplay', priority: 'ADVANCED', nexus_phase: 'Phase 3',
+    objective: 'Generate creative solutions when standard responses fail. Professional language under maximum pressure.',
+    trainer_script: 'Trainer plays a client who rejects EVERY solution offered.\nStudent must generate minimum 3 different solution attempts without using:\n"can\'t" / "impossible" / "not allowed" / "you need to" / "I am sorry but"',
+    instructions: [
+      'TRAINER SCRIPT: Reject every solution with: "That does not work for me."',
+      'Student must generate new options each time without starting over',
+      'After 3 rejections: student must professionally document and close the interaction',
+      'CLOSING SCRIPT: "I understand none of these options have worked for you today. I am going to escalate this to our specialized team and they will contact you within 24 hours with additional options. Is that acceptable?"',
+      'Debrief: Student lists what vocabulary they used under pressure — trainer identifies gaps'
+    ],
+    grading: 'Did student avoid banned phrases? Did they generate 3+ distinct solutions? Did they close professionally?',
+    frequency: 'Advanced students only — every 2 weeks.',
+    red_flags: ['Student freezes after second rejection — drill recovery technique simultaneously']
+  },
+
+  // RESPONSIVENESS ──────────────────────────────────────────────────────
+  R_critical: {
+    title: 'Rapid Fire — 10 Questions in 2 Minutes',
+    kpi: 'Responsiveness', type: 'drill', priority: 'CRITICAL', nexus_phase: 'Phase 1 — Arquitectura',
+    objective: 'Build response speed on familiar topics. Speed is the ONLY metric — not accuracy.',
+    trainer_script: 'Trainer fires one question every 12 seconds. Timer visible to both.\nRule: Any response = pass. Silence beyond 5 seconds = fail.\nTrainer does NOT react to answers — fires next question immediately after 12 seconds.',
+    instructions: [
+      'QUESTION SEQUENCE:',
+      '  1. What is your name?  2. Where do you work?  3. What time do you start?',
+      '  4. What did you do yesterday?  5. What is your biggest work challenge?',
+      '  6. How do you handle a difficult client?  7. What does your company do?',
+      '  8. What is your favorite part of your job?  9. How long in this position?',
+      '  10. What would you change about your work?',
+      'WEEK 2: Replace familiar questions with professional scenarios',
+      'WEEK 3: Mix familiar + unfamiliar + vocabulary questions',
+      'WEEK 4: Rapid fire with follow-up — trainer asks "Why?" after every answer'
+    ],
+    grading: 'Responses per 12-second window: Full answer (3pts), Partial answer (2pts), Single word (1pt), Silence (0pts). Max 30pts.',
+    frequency: 'Every session — first 5 minutes as warm-up. Timer always visible.',
+    red_flags: ['Student rushes and produces incomprehensible output — speed without clarity = fail','Student answers confidently but incorrectly on professional topics — drill content alongside speed']
+  },
+
+  R_developing: {
+    title: 'Natural Conversation Pace — No Accommodation',
+    kpi: 'Responsiveness', type: 'roleplay', priority: 'HIGH', nexus_phase: 'Phase 2',
+    objective: 'Train student to match natural English speech speed without requesting accommodations.',
+    trainer_script: 'Trainer speaks at FULL natural speed throughout.\nStudent cannot ask "Can you speak slower?" or "Can you repeat?"\nStudent must develop coping strategies for speed.',
+    instructions: [
+      'COPING STRATEGIES to teach:',
+      '  • "Just to make sure I understood correctly..." (buys 3 seconds, sounds professional)',
+      '  • "That\'s a great point. Let me address that..." (buys 5 seconds)',
+      '  • "So if I understand correctly, you are saying..." (confirms + buys time)',
+      'Trainer conducts a 5-minute natural-speed conversation',
+      'Topics progress from simple to professional',
+      'Student notes after: which moments caused lag? Which strategies helped?',
+      'Target: Zero lag over 2 seconds on professional topics by week 4'
+    ],
+    grading: 'Lag events counted (pause over 2 seconds). Target: Week 1 = 10 or fewer, Week 2 = 7, Week 3 = 4, Week 4 = 2 or fewer.',
+    frequency: '2x per week — 5 to 10 minutes per session.',
+    red_flags: ['Student goes silent instead of using stalling technique — teach phrases first','Student comprehension drops but speed improves — check listening KPI simultaneously']
+  },
+
+  R_strong: {
+    title: 'Speed Drill — Pronoun + Tense Response (Nexus Table)',
+    kpi: 'Responsiveness', type: 'drill', priority: 'ADVANCED', nexus_phase: 'Phase 1 refinement',
+    objective: 'Automate pronoun + tense combination at 1-second response speed. B1 requirement.',
+    trainer_script: 'Trainer fires Spanish phrases from the Nexus speed table.\nStudent must produce the English equivalent in under 1 second.\nNo tolerance for hesitation on this list — these must be automatic.',
+    instructions: [
+      'NEXUS SPEED TABLE (from trainer guide):',
+      '  Ella dice → She says  |  Yo dije → I said',
+      '  Él va → He goes  |  Eso fue → That was',
+      '  Nosotros damos → We give  |  Ellos dieron → They gave',
+      '  Ustedes dejan → You leave  |  Nosotros dejamos → We left',
+      '  Esa mantendrá → That will keep  |  Él vendría → He would come',
+      '  Yo tendría → I would have  |  Estamos teniendo → We are having',
+      'ALSO DRILL: The 16 irregular verbs — present/past/participle within 1 second each',
+      'RULE: If response exceeds 1 second → that item goes back to the bottom of the drill list'
+    ],
+    grading: 'Under 1 second = pass. Over 1 second = fail. 12/12 required to advance from this drill.',
+    frequency: 'Every session until all 12 items are under 1 second. Then monthly maintenance.',
+    red_flags: ['Student passes drill but fails in conversation — the goal is automatization under real conditions, not memorization']
+  },
+
+  // PARAM-SPECIFIC EXERCISES ────────────────────────────────────────────
+  PARAM_filler: {
+    title: 'Filler Word Elimination — Silence Over Uhh',
+    kpi: 'All KPIs', type: 'drill', priority: 'HIGH', nexus_phase: 'Phase 1-2',
+    objective: 'Replace every filler word with professional silence or a stalling phrase.',
+    trainer_script: 'Session rule starting TODAY: every filler word (uhh, like, you know, basically, so, I mean) = trainer taps table ONCE.\nStudent stops, breathes, continues without the filler.\nNo exceptions. No warnings.',
+    instructions: [
+      'WEEK 1 — Awareness: Trainer counts and reports total fillers at end of session',
+      'WEEK 2 — Self-monitoring: Student taps their own table when they catch a filler',
+      'WEEK 3 — Replacement: Every filler replaced with one of these:',
+      '  • [2-second pause] — silence is MORE professional than "uhh"',
+      '  • "That\'s a good question." — buys 3 seconds',
+      '  • "Let me think about that for a moment." — buys 5 seconds',
+      'TARGET: Under 5 fillers per 5-minute conversation by week 4'
+    ],
+    grading: 'Count fillers per session. Graph the reduction. Show student their progress visually.',
+    frequency: 'Applied in every session from session 1. No exceptions.',
+    red_flags: ['Student replaces fillers with a new filler ("well...") — count it the same way']
+  },
+
+  PARAM_translation: {
+    title: 'Direct Translation Correction — English Thinking Patterns',
+    kpi: 'Structural Thinking', type: 'writing', priority: 'HIGH', nexus_phase: 'Phase 1',
+    objective: 'Rewire Spanish sentence structure habits. English = Subject + Verb + Object. Always.',
+    trainer_script: 'Collect 5 direct translation errors from the current session.\nWrite them on paper/board — DO NOT correct them yet.\nStudent must identify what is wrong and rewrite correctly.',
+    instructions: [
+      'COMMON TRANSLATION TRAPS — teach these specifically:',
+      '  ✗ "It is that I think that maybe..." → ✓ "I think..."',
+      '  ✗ "Is not that I do not want..." → ✓ "It\'s not that I do not want..."',
+      '  ✗ "The people they say..." → ✓ "People say..."',
+      '  ✗ "I have 5 years working here." → ✓ "I have been working here for 5 years."',
+      '  ✗ "She told me that she wanted go." → ✓ "She told me she wanted to go."',
+      'WEEKLY: Build a personalized "translation trap" list for this specific student',
+      'Student keeps this list and reviews before every session'
+    ],
+    grading: 'How many of the 5 daily errors repeat from previous session? Target: zero repeat errors by week 3.',
+    frequency: '2x per week — based on errors collected from session.',
+    red_flags: ['Student writes correctly but speaks with translation patterns — they are thinking in Spanish first. Drill oral more than written.']
+  },
+
+  PARAM_tense: {
+    title: 'Tense Table Mastery — WILL vs WOULD + ING vs TO + Perfect Tenses',
+    kpi: 'Structural Thinking', type: 'writing', priority: 'HIGH', nexus_phase: 'Phase 1 — Arquitectura',
+    objective: 'Eliminate tense mixing. Student knows which switch to flip for each time frame.',
+    trainer_script: 'The Nexus method does not teach 20 tenses. It teaches SWITCHES:\nwill / would / have / had / been / is/are — each switch creates a different reality.',
+    instructions: [
+      'SWITCH TABLE (Nexus Framework):',
+      '  WILL + verb → Future real (Correré = I will run)',
+      '  WOULD + verb → Hypothetical future (Correría = I would run)',
+      '  HAVE + participle → Past affecting now (He corrido = I have run)',
+      '  HAD + participle → Past before another past (Había corrido = I had run)',
+      '  HAVE BEEN + ING → Started before, continues now (He estado corriendo = I have been running)',
+      'ING vs TO rule:',
+      '  Intención/necesidad/plan → TO (I want TO go / I need TO call)',
+      '  Disfrute/actividad/después de preposición → ING (I enjoy working / After calling)',
+      'EXERCISE: Student writes one sentence in each "switch" using the same base situation',
+      'Then reads orally — trainer changes the switch mid-sentence'
+    ],
+    grading: 'Can student use all 6 switches correctly in writing? In speech? Under interruption?',
+    frequency: '2x per week until all switches are automatic.',
+    red_flags: ['Student confuses WOULD and WILL — most common error at Functional level','Student uses simple present for everything — missing tense awareness entirely']
+  },
+
+  PARAM_prefixes: {
+    title: 'Prefix + Suffix Installation — Vocabulary Expansion',
+    kpi: 'Idea Generation', type: 'writing', priority: 'MEDIUM', nexus_phase: 'Phase 3 — Naturalidad',
+    objective: 'Expand vocabulary systematically using Nexus prefix/suffix framework.',
+    trainer_script: 'Teach the rule: Prefix = changes meaning. Suffix = changes function.\nStudent must use minimum 2 prefixes + 2 suffixes in every written exercise by Phase 3.',
+    instructions: [
+      'PREFIXES (change meaning):',
+      '  un- (negation): unhappy, uncertain, unacceptable',
+      '  dis- (opposite): disagree, disconnect, disappoint',
+      '  mis- (error): misunderstand, miscommunicate, mismanage',
+      '  re- (repeat): reconsider, reassign, restructure',
+      '  over- (excess): overreact, overload, overwhelm',
+      '  under- (insufficient): underestimate, underperform, underprepared',
+      'SUFFIXES (change function):',
+      '  -ness (adj→noun): awareness, effectiveness, responsiveness',
+      '  -ment (verb→noun): development, improvement, achievement',
+      '  -ful (noun→adj): stressful, helpful, resourceful',
+      '  -able (verb→adj): manageable, acceptable, avoidable',
+      '  -ly (adj→adverb): professionally, consistently, effectively',
+      'ADVANCED EXERCISE: Student writes anecdote using minimum 2 prefixes + 2 suffixes, identified by circling them'
+    ],
+    grading: 'Were prefixes/suffixes used correctly? Were they integrated naturally (not forced)?',
+    frequency: '1x per week — add to anecdote requirements from Phase 3.',
+    red_flags: ['Student forces uncommon words just to use a prefix — teach: only use words you can pronounce and explain']
+  }
+};
+
+// ── MAIN EXERCISE BUILDER ─────────────────────────────────────────────
+function buildExercises(r, level, context, params){
+  var exercises = [];
+  var sortedKPIs = Object.keys(r).sort(function(a,b){return r[a]-r[b];});
+
+  // Add exercises based on each KPI level
+  sortedKPIs.forEach(function(kpi){
+    var v = r[kpi];
+    var key = v<=2?kpi+'_critical':v<=3?kpi+'_developing':kpi+'_strong';
+    if(EXERCISE_LIBRARY[key]) exercises.push(EXERCISE_LIBRARY[key]);
+  });
+
+  // Add param-specific exercises
+  if(params.has('filler_words')) exercises.push(EXERCISE_LIBRARY.PARAM_filler);
+  if(params.has('direct_translation')) exercises.push(EXERCISE_LIBRARY.PARAM_translation);
+  if(params.has('tense_errors')) exercises.push(EXERCISE_LIBRARY.PARAM_tense);
+  if(params.has('vocabulary_gaps') || params.has('no_linkers')) exercises.push(EXERCISE_LIBRARY.PARAM_prefixes);
+
+  // Sort: critical first, then high, then others
+  var order = {'CRITICAL':0,'HIGH':1,'ADVANCED':2,'MEDIUM':3,'DEVELOPMENT':4};
+  exercises.sort(function(a,b){ return (order[a.priority]||5)-(order[b.priority]||5); });
+
+  return exercises.slice(0,8);
+}
+
+// ── EXERCISE RENDERER ─────────────────────────────────────────────────
+function renderExercise(ex){
+  var typeColors = {
+    writing:['#EDE9FE','#3B0E8C'],
+    debate:['#EEEDFE','#3C3489'],
+    simulation:['#E1F5EE','#085041'],
+    roleplay:['#FAEEDA','#633806'],
+    drill:['#FCEBEB','#791F1F']
+  };
+  var prioColors = {
+    CRITICAL:['#FCEBEB','#A32D2D'],
+    HIGH:['#FAEEDA','#633806'],
+    ADVANCED:['#EEEDFE','#3C3489'],
+    MEDIUM:['#EDE9FE','#3B0E8C'],
+    DEVELOPMENT:['#E1F5EE','#085041']
+  };
+  var tc = typeColors[ex.type]||['#F4F6FB','#64748B'];
+  var pc = prioColors[ex.priority]||['#F4F6FB','#64748B'];
+
+  var instructionsHtml = (ex.instructions||[]).map(function(step){
+    return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">'
+      +'<span style="width:6px;height:6px;border-radius:50%;background:var(--nm);flex-shrink:0;margin-top:6px;"></span>'
+      +'<span style="font-size:12px;color:var(--text);line-height:1.6;">'+step+'</span></div>';
+  }).join('');
+
+  var exampleHtml = '';
+  if(ex.example){
+    exampleHtml = '<div style="margin-top:10px;">'
+      +(ex.example.bad?'<div style="background:var(--rb);border-radius:var(--r);padding:0.75rem;margin-bottom:6px;font-size:12px;color:var(--rm);line-height:1.6;"><strong>✗ Incorrect:</strong> '+ex.example.bad+'</div>':'')
+      +(ex.example.good?'<div style="background:var(--gb);border-radius:var(--r);padding:0.75rem;font-size:12px;color:var(--green);line-height:1.6;"><strong>✓ Target:</strong> '+ex.example.good+'</div>':'')
+      +'</div>';
+  }
+
+  var trainerScriptHtml = ex.trainer_script
+    ?'<div style="background:#FFF8F0;border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:0.875rem;margin-bottom:10px;">'
+      +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin-bottom:6px;"><i class="ti ti-microphone" style="margin-right:4px;"></i>Trainer script</div>'
+      +'<div style="font-size:12px;color:var(--ad);line-height:1.7;white-space:pre-line;">'+ex.trainer_script+'</div>'
+      +'</div>'
+    :'';
+
+  var redFlagsHtml = ex.red_flags&&ex.red_flags.length
+    ?'<div style="background:var(--rb);border-radius:var(--r);padding:0.875rem;margin-top:10px;">'
+      +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--rm);margin-bottom:6px;">⚑ Red flags — watch for these</div>'
+      +ex.red_flags.map(function(f){return '<div style="font-size:12px;color:var(--rm);margin-bottom:4px;line-height:1.5;">• '+f+'</div>';}).join('')
+      +'</div>'
+    :'';
+
+  var gradingHtml = ex.grading
+    ?'<div style="background:var(--nl);border-radius:var(--r);padding:0.875rem;margin-top:10px;">'
+      +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--nd);margin-bottom:4px;">Grading criteria</div>'
+      +'<div style="font-size:12px;color:var(--nm);line-height:1.6;">'+ex.grading+'</div>'
+      +'</div>'
+    :'';
+
+  return '<div style="background:white;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1rem;">'
+    +'<div style="background:var(--navy);padding:1rem 1.25rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
+    +'<div><div style="font-size:14px;font-weight:700;color:white;margin-bottom:6px;">'+ex.title+'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+    +'<span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:'+tc[0]+';color:'+tc[1]+';">'+ex.type+'</span>'
+    +'<span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:'+pc[0]+';color:'+pc[1]+';">'+ex.priority+'</span>'
+    +'<span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);">'+ex.nexus_phase+'</span>'
+    +'</div></div>'
+    +'<div style="text-align:right;flex-shrink:0;">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:2px;">KPI Target</div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--gold,#F5A623);">'+ex.kpi+'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="padding:1.25rem;">'
+    +'<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;margin-bottom:1rem;font-size:13px;color:var(--text);line-height:1.6;">'
+    +'<strong>Objective:</strong> '+ex.objective+'</div>'
+    +trainerScriptHtml
+    +'<div style="margin-bottom:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);">Step-by-step instructions</div>'
+    +instructionsHtml
+    +exampleHtml
+    +gradingHtml
+    +redFlagsHtml
+    +'<div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--nm);">'
+    +'<i class="ti ti-repeat"></i>'+ex.frequency+'</div>'
+    +'</div></div>';
+}
+
+// ── SESSION PLAN BUILDER ──────────────────────────────────────────────
+function buildSessionPlan(r, level, context){
+  var sortedKPIs = Object.keys(r).sort(function(a,b){return r[a]-r[b];});
+  var primary = sortedKPIs[0];
+  var secondary = sortedKPIs[1];
+  var kpiNames = {IG:'Idea Generation',ST:'Structural Thinking',RA:'Recovery Ability',PS:'Problem Solving',R:'Responsiveness'};
+  var levelPhase = level==='Survival'||level==='Emerging'?'Phase 1 — Arquitectura':level==='Functional'?'Phase 1→2':' Phase 2→3';
+
+  var sessionTypeColors = {writing:'tag-writing',debate:'tag-debate',simulation:'tag-simulation',roleplay:'tag-roleplay',drill:'tag-drill'};
+
+  var plan = [
+    {week:'Week 1',focus:'Foundation — '+kpiNames[primary]+' is the priority',note:'All sessions begin with Rapid Fire warm-up (5 min). No exceptions.',
+     sessions:[
+       {num:'S1',title:'Assessment debrief + foundation install',content:'Review KPI profile with student. Student receives written copy. Establish 4-week targets. Introduce Idea+Linker+Idea pattern. Assign daily homework: 10 connected sentences.',type:'writing',duration:'60 min',kpi:kpiNames[primary]},
+       {num:'S2',title:'No-Freeze drill + writing exercise',content:'3-Second Rule drill (5 min). Writing: 10 sentences with Week 1 linkers (add/sequence). Trainer corrects in real time — no delayed feedback.',type:'drill',duration:'60 min',kpi:kpiNames[primary]},
+     ]},
+    {week:'Week 2',focus:'Pattern reinforcement + introduce '+kpiNames[secondary],note:'Check homework compliance. If less than 70% done — repeat Week 1 before advancing.',
+     sessions:[
+       {num:'S3',title:'Structured monologue + recovery drill',content:'Recovery drill (5 min). 1-Minute monologue on familiar topic. Trainer counts ideas per minute and connector variety. Introduce contrast linkers.',type:'roleplay',duration:'60 min',kpi:kpiNames[secondary]},
+       {num:'S4',title:'STAR method introduction + written anecdote',content:'Introduce STAR framework. Student writes one complete STAR response. Trainer grades each section separately. Second half: oral version of the same content.',type:'writing',duration:'60 min',kpi:'ST + '+kpiNames[primary]},
+     ]},
+    {week:'Week 3',focus:'Pressure introduction — '+kpiNames[primary]+' + '+kpiNames[secondary]+' under stress',note:'This is where real progress becomes visible. Push the pressure — it is the method.',
+     sessions:[
+       {num:'S5',title:'Basic professional simulation',content:'4-Turn resolution framework. Trainer plays client relevant to student context ('+context+'). Student must complete resolution without transferring. Debrief: vocabulary gaps identified.',type:'simulation',duration:'60 min',kpi:'PS + R'},
+       {num:'S6',title:'Debate + written anecdote',content:'Debate: student defends a position for 3 minutes. Trainer challenges with 3 objections. Second half: written anecdote using minimum 5 connectors + 3 natural expressions. Trainer marks structure.',type:'debate',duration:'60 min',kpi:'ST + IG'},
+     ]},
+    {week:'Week 4',focus:'Pressure simulation + full re-assessment',note:'Do not skip the re-assessment. The data is what justifies the next 4 weeks.',
+     sessions:[
+       {num:'S7',title:'Advanced simulation — full pressure scenario',content:'Escalation or complex problem scenario. Student must maintain professional language throughout. Trainer escalates across 4 turns. Recording recommended for student self-review.',type:'simulation',duration:'60 min',kpi:'PS + RA + R'},
+       {num:'S8',title:'Full KPI re-assessment + path planning',content:'Same 5 KPIs, same rubric as session 1. Compare scores — show progress visually. Plan next 4 weeks based on new data. Document milestone achieved.',type:'drill',duration:'60 min',kpi:'All KPIs'},
+     ]},
+  ];
+
+  var html = '';
+  plan.forEach(function(week){
+    html += '<div style="border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:0.875rem;">'
+      +'<div style="background:var(--navy);color:white;padding:0.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
+      +'<div style="font-size:13px;font-weight:700;color:#F5A623;">'+week.week+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,0.75);">'+week.focus+'</div>'
+      +'</div>'
+      +'<div style="background:var(--ab);padding:6px 1.25rem;font-size:12px;color:var(--ad);border-bottom:1px solid var(--border);">'
+      +'<i class="ti ti-alert-circle" style="margin-right:4px;"></i>'+week.note+'</div>'
+      +'<div style="display:grid;grid-template-columns:60px 1fr 1fr 120px 80px;padding:6px 1.25rem;background:var(--gray);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--t3);border-bottom:1px solid var(--border);">'
+      +'<span>#</span><span>Session focus</span><span>Content</span><span>KPI target</span><span>Duration</span></div>'
+      +week.sessions.map(function(s){
+        return '<div style="display:grid;grid-template-columns:60px 1fr 1fr 120px 80px;padding:0.875rem 1.25rem;border-bottom:1px solid var(--border);font-size:12px;align-items:start;">'
+          +'<span style="font-weight:700;color:var(--nm);">'+s.num+'</span>'
+          +'<span style="font-weight:600;color:var(--text);">'+s.title+'</span>'
+          +'<span style="color:var(--t2);line-height:1.5;">'+s.content+'</span>'
+          +'<span><span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:var(--nl);color:var(--nd);">'+s.kpi+'</span></span>'
+          +'<span style="color:var(--t3);">'+s.duration+'</span>'
+          +'</div>';
+      }).join('')
+      +'</div>';
+  });
+  return html;
+}
+
+function getMilestone(level, r){
+  var total = Object.values(r).reduce(function(s,v){return s+v;},0);
+  var sorted = Object.keys(r).sort(function(a,b){return r[a]-r[b];});
+  var primary = sorted[0];
+  var kpiNames = {IG:'Idea Generation',ST:'Structural Thinking',RA:'Recovery Ability',PS:'Problem Solving',R:'Responsiveness'};
+  var milestones = {
+    Survival: 'Student produces minimum 5-sentence connected written responses independently. '+kpiNames[primary]+' score moves from '+r[primary]+' → 3/5 minimum. Rutina 15+10 is active. No oral pressure until this is achieved.',
+    Emerging: 'Student speaks for 1 continuous minute on a familiar topic without freezing. '+kpiNames[primary]+' score moves from '+r[primary]+' → 3/5. No-Freeze drill passed at 80%+ consistency.',
+    Functional: 'Student completes a basic 4-Turn resolution simulation maintaining professional vocabulary throughout. '+kpiNames[primary]+' score moves from '+r[primary]+' → 4/5. Written anecdote passed (5 connectors, 12 lines, structure intact).',
+    Advanced: 'Student handles a full escalation scenario (4 turns, aggressive client) with zero defensive language, full STAR structure and natural expressions. Ready for Assessment Center protocols. Final '+kpiNames[primary]+' score: 5/5.'
+  };
+  return milestones[level]||'Complete full re-assessment at session 8 to determine next milestone.';
+}
+
+
+
+
+
+// ── GENERATE ──────────────────────────────
+function generateDiagnostic(){
+  var name = document.getElementById('s-name').value.trim();
+  if(!name){alert('Enter student name first.');return;}
+  var allRated = Object.values(ratings).every(function(v){return v>0;});
+  if(!allRated){alert('Please rate all 5 KPIs before generating the diagnostic.');return;}
+
+  var total = Object.values(ratings).reduce(function(s,v){return s+v;},0);
+  var level = total>=21?'Advanced':total>=16?'Functional':total>=11?'Emerging':'Survival';
+  var context = document.getElementById('s-context').value;
+
+  // Level banner
+  var lbClass = 'lb-'+level.toLowerCase();
+  var levelDescs = {
+    Advanced:'Strong operational communicator. Focus shifts to performance under pressure, accent exposure and corporate simulation.',
+    Functional:'Communicates but with structural and fluency gaps. Needs targeted KPI work and increasing oral pressure.',
+    Emerging:'Communication is present but unreliable. Foundation installation required before any professional simulation.',
+    Survival:'Communication is critically limited. Start with written foundations only — no oral pressure yet.'
+  };
+  document.getElementById('level-banner').innerHTML =
+    '<div class="level-banner '+lbClass+'">'
+    +'<div class="lb-left">'
+    +'<div class="lb-level">'+level.toUpperCase()+'</div>'
+    +'<div class="lb-name">'+name+'</div>'
+    +'<div class="lb-desc">'+levelDescs[level]+'</div>'
+    +'</div>'
+    +'<div class="lb-right"><div class="lb-score">'+total+'</div><div class="lb-score-label">out of 25</div></div>'
+    +'</div>';
+
+  // KPI results — Chart.js (mismo perfil que la evaluación)
+  document.getElementById('kpi-results').innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
+    +'<div style="height:200px;position:relative;"><canvas id="diag-result-radar"></canvas></div>'
+    +'<div style="height:200px;position:relative;"><canvas id="diag-result-bar"></canvas></div></div>';
+  if(typeof LiveKpiCharts!=='undefined'){
+    LiveKpiCharts.updateMacro('diag-result','diag-result-radar','diag-result-bar',ratings,5);
+  }
+
+  // Diagnosis blocks
+  var diagHtml = '';
+  // Sort KPIs: critical first
+  var sortedKPIs = KPIS.slice().sort(function(a,b){return ratings[a.id]-ratings[b.id];});
+  sortedKPIs.forEach(function(kpi){
+    var v = ratings[kpi.id];
+    var obs = observations[kpi.id];
+    var blockClass = v<=2?'diag-critical':v<=3?'diag-developing':'diag-strong';
+    var icon = v<=2?'ti-alert-triangle':v<=3?'ti-tool':'ti-check';
+    var label = v<=2?'Critical gap':v<=3?'Developing':'Strong area';
+    var rec = v<=2?kpi.low_rec:v<=3?kpi.mid_rec:kpi.high_rec;
+    diagHtml += '<div class="diag-block '+blockClass+'">'
+      +'<div class="diag-title"><i class="ti '+icon+'"></i>'+kpi.name+' — '+label+' ('+v+'/5)</div>'
+      +'<div class="diag-body">'
+      +'<strong>What was observed:</strong> '+kpi.descriptors[v]+'<br><br>'
+      +(obs?'<strong>Trainer notes:</strong> '+obs+'<br><br>':'')
+      +'<strong>Recommendation:</strong> '+rec
+      +'</div>'
+      +'</div>';
+  });
+
+  // Add param observations
+  if(selectedParams.size > 0){
+    var paramNotes = Array.from(selectedParams).map(function(pid){
+      var p = PARAMS.find(function(x){return x.id===pid;});
+      return p?'• <strong>'+p.name+'</strong>: '+p.desc:'';
+    }).join('<br>');
+    diagHtml += '<div class="diag-block diag-developing">'
+      +'<div class="diag-title"><i class="ti ti-eye"></i>Additional patterns observed</div>'
+      +'<div class="diag-body">'+paramNotes+'</div>'
+      +'</div>';
+  }
+  document.getElementById('diagnosis-blocks').innerHTML = diagHtml;
+
+  // Exercises
+  var exercises = buildExercises(ratings, level, context, selectedParams);
+  document.getElementById('exercise-blocks').innerHTML = exercises.map(function(ex){ return renderExercise(ex); }).join('');
+
+  // Session plan
+  var plan = buildSessionPlan(ratings, level, context);
+  document.getElementById('session-plan').innerHTML = plan;
+
+  // Trainer notes
+  var weakest = sortedKPIs[0];
+  var secondWeakest = sortedKPIs[1];
+  var milestone = getMilestone(level, ratings);
+  document.getElementById('trainer-notes').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">'
+    +'<div style="background:var(--rb);border-radius:var(--r);padding:1rem;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--rm);margin-bottom:4px;">Primary focus</div><div style="font-size:13px;font-weight:700;color:var(--red);">'+weakest.name+'</div><div style="font-size:12px;color:var(--rm);">Score '+ratings[weakest.id]+'/5 — Address first</div></div>'
+    +'<div style="background:var(--ab);border-radius:var(--r);padding:1rem;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ad);margin-bottom:4px;">Secondary focus</div><div style="font-size:13px;font-weight:700;color:var(--ad);">'+secondWeakest.name+'</div><div style="font-size:12px;color:var(--ad);">Score '+ratings[secondWeakest.id]+'/5 — Address after week 2</div></div>'
+    +'</div>'
+    +'<div style="background:var(--nl);border:1px solid #B5D4F4;border-radius:var(--r);padding:1rem;">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--nd);margin-bottom:6px;">4-week milestone</div>'
+    +'<div style="font-size:13px;color:var(--nd);line-height:1.7;">'+milestone+'</div>'
+    +'</div>';
+
+  document.getElementById('result-wrap').classList.add('show');
+
+
+  document.getElementById('result-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── EXERCISE BUILDER ──────────────────────
+
+async function saveToSupabase(){
+  var name = document.getElementById('s-name').value.trim();
+  if(!name){alert('No student name entered.');return;}
+  var total = Object.values(ratings).reduce(function(s,v){return s+v;},0);
+  var level = total>=21?'Advanced':total>=16?'Functional':total>=11?'Emerging':'Survival';
+  var id = 'IS-'+name.replace(/\s+/g,'-').toUpperCase()+'-'+Date.now();
+  var file = {
+    id:id,
+    info:{name:name,dob:'',occupation:document.getElementById('s-occupation').value,phone:'',email:'',referred:'',
+      start:new Date().toISOString().split('T')[0],program:document.getElementById('s-program').value,
+      fee:'',sessions:'',trainer:document.getElementById('s-trainer').value,phase:'1',level:level,
+      score:total,current_score:total,obs:document.getElementById('s-obs').value},
+    payment:{fee:'',due_day:'',method:'sinpe',notes:'',history:[]},
+    skills:{},
+    kpis:{phase1:{IG:ratings.IG,ST:ratings.ST,RA:ratings.RA,PS:ratings.PS,R:ratings.R},
+      phase2:{IG:'',ST:'',RA:'',PS:'',R:''},phase3:{IG:'',ST:'',RA:'',PS:'',R:''},phase4:{IG:'',ST:'',RA:'',PS:'',R:''}},
+    kpi_analysis:Object.keys(observations).map(function(k){return k+': '+observations[k];}).filter(function(s){return s.length>3;}).join('\n'),
+    compliance:{scheduled:0,attended:0,missed:0,late:0,writing:0,debates:0,simulations:0,overall:'',notes:''},
+    notes:[{phase:1,date:new Date().toISOString().split('T')[0],trainer:document.getElementById('s-trainer').value||'Infinity Trainer',
+      text:'File auto-created from Diagnostic Tool.\nLevel: '+level+' | Score: '+total+'/25\nKPIs — IG:'+ratings.IG+' ST:'+ratings.ST+' RA:'+ratings.RA+' PS:'+ratings.PS+' R:'+ratings.R+'\nParameters: '+Array.from(selectedParams).join(', ')}],
+    path_custom:''
+  };
+  try{
+    await dbSet('infinity_students',id,file);
+    alert('Student file saved to Infinity Student Files. Open Infinity_Student_File.html to view.');
+  }catch(e){ alert('Could not save. Check connection.'); }
+}
+
+function resetAll(){
+  if(!confirm('Reset the entire form?')) return;
+  location.reload();
+}
+</script>
+</body>
+</html>

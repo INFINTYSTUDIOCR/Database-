@@ -108,12 +108,12 @@ const priceChecks = [
   ['Foundations', '₡67.500'],
   ['ORT', '₡67.500'],
   ['Jill', '₡12.500'],
-  ['Alice tutora', '₡18.500'],
-  ['Alice Companion', '₡24.500'],
+  ['Alice · Modo Tutor', '₡18.500'],
+  ['Alice · Modo Libre', '₡24.500'],
   ['Nexora Pro', '₡28.500'],
   ['Alice+', '₡49.500'],
   ['TC + 8%', 'TC + 8%'],
-  ['Alice tutora ≠ Alice Companion', 'Alice tutora ≠ Alice Companion']
+  ['Una sola Alice, dos modos', 'Una sola Alice, dos modos']
 ];
 let pricingOk = true;
 for (const [label, needle] of priceChecks) {

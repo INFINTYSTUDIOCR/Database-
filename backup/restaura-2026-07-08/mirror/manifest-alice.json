@@ -1,0 +1,33 @@
+{
+  "id": "infinity-alice-practice",
+  "name": "Alice — English Practice",
+  "short_name": "Alice",
+  "description": "Free English conversation practice with Alice. Talk anytime, like Siri.",
+  "start_url": "/try-alice.html",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#5B21B6",
+  "theme_color": "#5B21B6",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Free chat with Alice",
+      "short_name": "Chat",
+      "url": "/try-alice.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Student portal",
+      "short_name": "Portal",
+      "url": "/Infinity_Student_Portal.html?tab=alice&quick=companion",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

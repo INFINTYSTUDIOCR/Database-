@@ -1,0 +1,8 @@
+# Identidad Git local — PLANTILLA (no activa)
+# Copiá este archivo a git-identity.local (está en .gitignore) y editá tus datos.
+# Para activar cuando quieras:
+#   Johnny (default):  powershell -File scripts\activar-git-identidad.ps1
+#   Jill Pro:          powershell -File scripts\activar-git-identidad.ps1 -Profile jill-pro
+
+GIT_USER_NAME=Johnny
+GIT_USER_EMAIL=johnny@infinitystudiocr.com

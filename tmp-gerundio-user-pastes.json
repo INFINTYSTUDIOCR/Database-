@@ -1,0 +1,27 @@
+﻿[
+    {
+        "Kind":  "user-line",
+        "Path":  "C:\\Users\\ARMANDO\\.cursor\\projects\\c-Users-ARMANDO-Projects-Database-clone\\agent-transcripts\\0d90f16e-29c6-4a09-961b-4e70978628e3\\0d90f16e-29c6-4a09-961b-4e70978628e3.jsonl",
+        "Line":  65,
+        "LineLen":  8303,
+        "SizeKB":  436.2,
+        "HasGerundio":  false,
+        "Snippet":  ""
+    },
+    {
+        "Kind":  "file",
+        "Path":  "C:\\Users\\ARMANDO\\.cursor\\projects\\c-Users-ARMANDO-Projects-Database-clone\\agent-tools\\4504f802-bf54-4a9b-906c-1f6b784e9acf.txt",
+        "SizeKB":  373.3,
+        "TextLen":  382269,
+        "HasGerundio":  true,
+        "Snippet":  "www.BasicEnglish.org Charles K. Ogden \u0026 Augusto Ghio D. INGLES BASICO ------------------------------------------------------------------------------------------------------------------ INTRODUCCION "
+    },
+    {
+        "Kind":  "file",
+        "Path":  "C:\\Users\\ARMANDO\\.cursor\\projects\\c-Users-ARMANDO-Projects-Database-clone\\agent-tools\\86d673e5-2ac9-4e6c-aeed-e9742dd66247.txt",
+        "SizeKB":  27.9,
+        "TextLen":  28548,
+        "HasGerundio":  true,
+        "Snippet":  "1 Augusto Ghio Ingles Basico 053821 | PDF Ir al contenido principal Abrir el men� de navegaci�n Cerrar sugerenciasBuscarBuscar Change Language, Espa�olCambiar idioma, Espa�ol Iniciar sesi�n Inic"
+    }
+]

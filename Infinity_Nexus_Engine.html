@@ -668,7 +668,7 @@ textarea.inp{resize:vertical;min-height:80px;}
 
 <div class="modal-bg" id="modal-companion-config">
   <div class="modal" style="max-width:520px;">
-    <div class="modal-title"><i class="ti ti-messages" style="color:#86EFAC;"></i>Configurar Alice Companion</div>
+    <div class="modal-title"><i class="ti ti-messages" style="color:#86EFAC;"></i>Configurar Alice Modo Libre</div>
     <input type="hidden" id="companion-sid">
     <div class="ib ib-navy">Modo companion: el estudiante elige el tema; Alice practica KPIs de forma invisible. Activá solo cuando esté listo para conversación libre.</div>
     <div class="form-group">
@@ -1475,10 +1475,11 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +(isMaster?('<button data-sid="'+id+'" data-tutor="jill" class="btn btn-sm" style="background:'+(studentJillOn(s)?'rgba(61,220,151,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillOn(s)?'#3DDC97':'rgba(255,255,255,0.3)')+';color:'+(studentJillOn(s)?'#3DDC97':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-left"></i> Jill '+(studentJillOn(s)?'✓ ON':'OFF')+'</button>'):'')
-    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentJillProOn(s)?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillProOn(s)?'#A78BFA':'rgba(255,255,255,0.3)')+';color:'+(studentJillProOn(s)?'#C4B5FD':'var(--t2)')+';font-weight:700;" onclick="toggleStudentJillPro(this.dataset.sid)"><i class="ti ti-skull"></i> Jill Pro '+(studentJillProOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentJillProOn(s)?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillProOn(s)?'#A78BFA':'rgba(255,255,255,0.3)')+';color:'+(studentJillProOn(s)?'#C4B5FD':'var(--t2)')+';font-weight:700;" onclick="toggleStudentJillPro(this.dataset.sid)"><i class="ti ti-messages"></i> Jill Libre '+(studentJillProOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" data-tutor="alice" class="btn btn-sm" style="background:'+(studentAliceOn(s)?'rgba(192,132,252,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentAliceOn(s)?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(studentAliceOn(s)?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-right"></i> Alice '+(studentAliceOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentClaireOn(s)?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentClaireOn(s)?'#C4B5FD':'rgba(255,255,255,0.3)')+';color:'+(studentClaireOn(s)?'#DDD6FE':'var(--t2)')+';font-weight:700;" onclick="toggleStudentClaire(this.dataset.sid)"><i class="ti ti-headphones"></i> Claire TOEIC '+(studentClaireOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(245,166,35,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#F5A623':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#F5A623':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'):'')
-    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Alice Libre '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'):'')
 
     +'<div class="profile-header">'
     +'<div><div class="ph-name">'+((s.info&&s.info.name)||'—')+'</div>'
@@ -4514,6 +4515,9 @@ function studentJillProOn(s){
 function studentJillTabOn(s){
   return studentJillOn(s) || studentJillProOn(s);
 }
+function studentClaireOn(s){
+  return !!(s && s.claireEnabled === true);
+}
 
 function toggleStudentTutor(sid, tutor){
   if(!hasMasterAccess()) return;
@@ -4541,22 +4545,43 @@ function toggleStudentTutor(sid, tutor){
   }
 }
 
+function toggleStudentClaire(sid){
+  if(!hasMasterAccess()) return;
+  var s = DB[sid]; if(!s) return;
+  var on = studentClaireOn(s);
+  var name = (s.info&&s.info.name)||'este estudiante';
+  if(on){
+    confirmAction('Apagar Claire TOEIC', '¿Apagar Claire TOEIC para '+name+'? El estudiante no puede activarla solo.', async function(){
+      s.claireEnabled = false;
+      await dbSet('infinity_students', sid, s); DB[sid]=s;
+      showToast('Claire TOEIC OFF'); openStudent(sid);
+    }, 'Apagar');
+  } else {
+    s.claireEnabled = true;
+    dbSet('infinity_students', sid, s).then(function(){
+      DB[sid]=s;
+      showToast('Claire TOEIC ON');
+      openStudent(sid);
+    }).catch(function(){ showToast('Error al guardar','err'); });
+  }
+}
+
 function toggleStudentJillPro(sid){
   if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
   var on = studentJillProOn(s);
   var name = (s.info&&s.info.name)||'este estudiante';
   if(on){
-    confirmAction('Apagar Jill Pro', '¿Apagar Jill Pro (Foundations Companion) para '+name+'? El estudiante no puede activarlo solo.', async function(){
+    confirmAction('Apagar Jill Modo Libre', '¿Apagar Modo Libre (Foundations Companion) para '+name+'? El estudiante no puede activarlo solo.', async function(){
       s.jillProEnabled = false;
       await dbSet('infinity_students', sid, s); DB[sid]=s;
-      showToast('Jill Pro OFF'); openStudent(sid);
+      showToast('Jill Modo Libre OFF'); openStudent(sid);
     }, 'Apagar');
   } else {
     s.jillProEnabled = true;
     dbSet('infinity_students', sid, s).then(function(){
       DB[sid]=s;
-      showToast('Jill Pro ON');
+      showToast('Jill Modo Libre ON');
       openStudent(sid);
     }).catch(function(){ showToast('Error al guardar','err'); });
   }
@@ -4692,10 +4717,10 @@ function toggleStudentCompanion(sid){
   if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
   if(s.companionEnabled){
-    confirmAction('Desactivar Companion', '¿Desactivar Alice Companion para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
+    confirmAction('Desactivar Alice Modo Libre', '¿Desactivar Alice Modo Libre para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
       s.companionEnabled = false;
       await dbSet('infinity_students', sid, s); DB[sid]=s;
-      showToast('Companion desactivado'); openStudent(sid);
+      showToast('Alice Modo Libre desactivado'); openStudent(sid);
     }, 'Sí, desactivar');
   } else {
     document.getElementById('companion-sid').value = sid;
@@ -4733,11 +4758,11 @@ async function confirmStudentCompanion(){
   };
 
   if(!s.notes) s.notes=[];
-  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Companion activado — conversación libre · Eval: '+evalMode+(focusKpis.length?' · KPIs: '+focusKpis.join(', '):'')+(topicSeeds?' · Temas: '+topicSeeds:'')+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
+  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Alice Modo Libre activado — conversación libre · Eval: '+evalMode+(focusKpis.length?' · KPIs: '+focusKpis.join(', '):'')+(topicSeeds?' · Temas: '+topicSeeds:'')+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
   await dbSet('infinity_students', sid, s); DB[sid]=s;
-  await logAction('Activó Alice Companion', ((s.info&&s.info.name)||sid));
+  await logAction('Activó Alice Modo Libre', ((s.info&&s.info.name)||sid));
   closeModal('modal-companion-config');
-  showToast('Companion activado para '+((s.info&&s.info.name)||'el estudiante'));
+  showToast('Alice Modo Libre activado para '+((s.info&&s.info.name)||'el estudiante'));
   openStudent(sid);
 }
 

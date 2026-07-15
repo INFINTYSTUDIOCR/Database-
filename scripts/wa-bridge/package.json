@@ -2,7 +2,7 @@
   "name": "infinity-wa-bridge",
   "version": "1.0.0",
   "private": true,
-  "description": "WhatsApp Desktop bridge — activate Alice Companion from your PC chat",
+  "description": "WhatsApp Desktop bridge — activate Alice Modo Libre from your PC chat",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

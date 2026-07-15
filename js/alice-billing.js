@@ -1,5 +1,5 @@
 /**
- * Alice Companion Premium — WhatsApp activation + restore by email.
+ * Alice Modo Libre Premium — WhatsApp activation + restore by email.
  * Card checkout is optional/secondary; primary path is WhatsApp.
  */
 (function (global) {
@@ -162,14 +162,14 @@
     fetchConfig().then(function (cfg) {
       var active = isActiveLocal();
       if (active) {
-        container.innerHTML = '<div class="alice-premium-badge"><i class="ti ti-crown"></i> Alice Companion activa — ' +
+        container.innerHTML = '<div class="alice-premium-badge"><i class="ti ti-crown"></i> Alice Modo Libre activa — ' +
           (cfg.days || 30) + ' días ilimitados</div>';
         return;
       }
       var price = cfg.crcHint || '₡24.500 · 30 días';
-      var wa = cfg.whatsapp || 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Quiero Alice Companion. Mi email: ');
+      var wa = cfg.whatsapp || 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Quiero Alice Modo Libre. Mi email: ');
       var html = '<div class="alice-premium-offer">' +
-        '<strong>Alice Companion Premium</strong> · ' + price +
+        '<strong>Alice Modo Libre Premium</strong> · ' + price +
         '<span class="alice-premium-hint">Escribinos por WhatsApp con tu email. Te activamos el mismo día.</span>' +
         '</div>';
       html += '<a class="demo-cta-wa btn-premium-checkout" href="' + wa + '" target="_blank" rel="noopener" style="display:inline-flex;text-decoration:none;">' +
@@ -190,7 +190,7 @@
         };
       }
     }).catch(function () {
-      container.innerHTML = '<a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20Companion" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Alice Companion por WhatsApp</a>' +
+      container.innerHTML = '<a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%20Modo%20Libre" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Alice Modo Libre por WhatsApp</a>' +
         '<button type="button" id="btn-alice-restore" style="display:block;margin-top:10px;background:transparent;border:0;text-decoration:underline;cursor:pointer;font-size:13px;">Ya me activaron — entrar con mi email</button>';
       var restoreBtn = document.getElementById('btn-alice-restore');
       if (restoreBtn) {

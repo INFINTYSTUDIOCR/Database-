@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probar Rapid drill — Jill | Infinity Studio CR</title>
+<link rel="canonical" href="https://studioinfinitycr.com/try-jill.html">
+<link rel="icon" href="icon-192.png?v=20260704" type="image/png">
+<meta name="theme-color" content="#5B21B6">
+<meta name="description" content="Demo pública Rapid drill — 1 ronda Kahoot bajo presión con Jill. Estructura, tiempos, moneda. Infinity Studio CR Foundations.">
+<meta property="og:title" content="Rapid drill Jill — Demo gratis">
+<meta property="og:description" content="Una ronda de quiz bajo presión: llama → polvorín. Probá Foundations sin registrarte.">
+<script src="js/site-config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css?v=20260703b">
+<link rel="stylesheet" href="css/demo.css">
+<style>
+.jill-demo-wrap{max-width:520px;margin:0 auto;padding:0 12px 32px;}
+.jill-demo-hero{text-align:center;margin-bottom:20px;}
+.jill-demo-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(91,33,182,0.1);border:1px solid rgba(91,33,182,0.2);color:#5B21B6;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:12px;}
+.jill-demo-stage{background:linear-gradient(160deg,#1e1b4b,#4c1d95,#5b21b6);border-radius:20px;padding:1.25rem;color:white;box-shadow:0 8px 32px rgba(91,33,182,0.45);border:1px solid rgba(167,139,250,0.35);min-height:200px;}
+.jill-demo-cta{margin-top:20px;text-align:center;}
+.btn-jill-start{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#F5A623,#FBBF24);color:#1E1E2E;border:none;font-weight:800;padding:14px 28px;border-radius:12px;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(245,166,35,0.35);}
+.btn-jill-start:hover{transform:translateY(-1px);}
+.jill-premium-offer{font-size:14px;margin-bottom:10px;line-height:1.6;color:#4A4A6A;}
+.jill-premium-hint{display:block;font-size:12px;color:#8888AA;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260704" alt="Infinity Studio CR" class="nav-logo-page"></a>
+  <div class="nav-links">
+    <a href="index.html">← Inicio</a>
+    <a href="pricing.html">Precios</a>
+    <a href="Infinity_Student_Portal.html" style="font-weight:700;color:#5B21B6;">Portal →</a>
+  </div>
+</nav>
+
+<div class="jill-demo-wrap">
+  <div class="jill-demo-hero" id="jill-demo-hero">
+    <div class="jill-demo-badge"><i class="ti ti-bolt"></i> Rapid drill · Demo pública</div>
+    <h1 style="font-size:26px;font-weight:900;color:#5B21B6;margin:0 0 10px;">Una ronda bajo presión</h1>
+    <p style="font-size:14px;color:#4A4A6A;line-height:1.7;margin:0 0 8px;">
+      <strong>Rapid drill</strong> es el quiz Kahoot de Jill: la llama avanza hacia el polvorín mientras respondés.
+      Estructura MSI, tiempos, moneda y vocab — <strong>3 preguntas</strong> en esta demo.
+    </p>
+    <p style="font-size:12px;color:#8888AA;margin:0;">Sin registro · una ronda · trofeos y rachas en el portal completo</p>
+  </div>
+
+  <div class="jill-demo-stage" id="jill-demo-stage" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>
+        <div style="font-size:22px;font-weight:900;color:#e9d5ff;">RAPID DRILL</div>
+      </div>
+      <button type="button" id="jill-demo-exit" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Inicio demo</button>
+    </div>
+    <div id="jill-quiz-zone"></div>
+  </div>
+
+  <div class="jill-demo-cta" id="jill-demo-start-wrap">
+    <button type="button" class="btn-jill-start" id="btn-start-rapid-drill"><i class="ti ti-flame"></i> Empezar Rapid drill</button>
+  </div>
+
+  <div id="jill-billing-zone" style="margin-top:24px;text-align:center;"></div>
+</div>
+
+<script src="js/demo-api.js"></script>
+<script src="js/jill-quiz.js?v=20260707brain"></script>
+<script src="js/jill-billing.js?v=20260707j"></script>
+<script>
+(function () {
+  var demoStudent = {
+    id: 'DEMO-JILL-RAPID',
+    nemesisState: { domain: [], reinforcement: ['k3', 'k4'] },
+    jillProgress: { activeBundle: 'F1-msi', completedBundles: [], sessionLog: [] },
+    jillRapidDrill: { winStreak: 0, bestWinStreak: 0, totalWins: 0, trophies: 0 }
+  };
+
+  window.jillCloseKahootQuiz = function () {
+    document.getElementById('jill-demo-stage').hidden = true;
+    document.getElementById('jill-demo-start-wrap').style.display = '';
+    document.getElementById('jill-demo-hero').style.display = '';
+  };
+
+  window.jillOpenKahootQuiz = function () {
+    startRapidDrill();
+  };
+
+  function startRapidDrill() {
+    document.getElementById('jill-demo-hero').style.display = 'none';
+    document.getElementById('jill-demo-start-wrap').style.display = 'none';
+    var stage = document.getElementById('jill-demo-stage');
+    stage.hidden = false;
+    var zone = document.getElementById('jill-quiz-zone');
+    if (typeof JillQuiz !== 'undefined') {
+      JillQuiz.mount(zone, demoStudent, null, null, { questionCount: 3, demoMode: true });
+    }
+  }
+
+  document.getElementById('btn-start-rapid-drill').addEventListener('click', startRapidDrill);
+  document.getElementById('jill-demo-exit').addEventListener('click', jillCloseKahootQuiz);
+
+  if (typeof JillBilling !== 'undefined') {
+    JillBilling.renderUpgradeButton(document.getElementById('jill-billing-zone'), {
+      waLabel: 'Quiero Jill Pro — WhatsApp'
+    });
+    JillBilling.activateFromUrl();
+  }
+})();
+</script>
+</body>
+</html>

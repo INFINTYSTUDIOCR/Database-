@@ -1,12 +1,12 @@
 /**
- * Jill Pro Premium ó Stripe Checkout standby (clone Alice Companion pattern).
+ * Jill Modo Libre Premium ù Stripe Checkout standby (clone Alice Modo Libre pattern).
  * Plug: STRIPE_SECRET_KEY + STRIPE_PRICE_JILL_PRO + STRIPE_WEBHOOK_SECRET (optional separate webhook route).
  * Until configured: WhatsApp + manual grant only.
  */
 const crypto = require('crypto');
 
 const PREMIUM_DAYS = parseInt(process.env.JILL_PRO_PREMIUM_DAYS || '30', 10);
-/** Default $25 ? ?12.500 Jill Pro monthly. */
+/** Default $25 / 12.500 CRC Jill Modo Libre monthly. */
 const PREMIUM_USD_CENTS = parseInt(process.env.JILL_PRO_PREMIUM_USD_CENTS || '2500', 10);
 const PREMIUM_TABLE = 'infinity_sessions';
 
@@ -50,16 +50,16 @@ function publicConfig() {
     days: PREMIUM_DAYS,
     priceUsd: usd,
     priceLabel: 'USD ' + usd.toFixed(usd % 1 ? 2 : 0),
-    crcHint: '?12.500 ∑ Jill Pro 30 dÌas',
+    crcHint: '?12.500 ù Jill Modo Libre 30 dùas',
     features: [
-      'Jill Pro Companion ilimitada (30 dÌas)',
-      'Modo libre ? lecciÛn MSI (regla + canon + pr·ctica)',
-      'ActivaciÛn por WhatsApp (mismo dÌa)',
-      'Voz + micrÛfono',
-      'Recuper· acceso con tu email'
+      'Jill Modo Libre ilimitada (30 dùas)',
+      'Modo libre ? lecciùn MSI (regla + canon + prùctica)',
+      'Activaciùn por WhatsApp (mismo dùa)',
+      'Voz + micrùfono',
+      'Recuperù acceso con tu email'
     ],
     whatsapp: 'https://wa.me/50660060981?text=' + encodeURIComponent(
-      'Hola! Quiero Jill Pro Premium (?12.500 / 30 dÌas).\nMi email para activar: '
+      'Hola! Quiero Jill Modo Libre Premium (12.500 CRC / 30 dùas).\nMi email para activar: '
     ),
     plugEnv: [
       'STRIPE_SECRET_KEY',
@@ -230,11 +230,11 @@ async function manualGrant(sbSet, sbGetOne, { email, days, source } = {}) {
 
 function clientActivationMessage(email, expiresAt, clientUrl) {
   const url = clientUrl || 'https://studioinfinitycr.com/Infinity_Student_Portal.html';
-  const hasta = expiresAt ? new Date(expiresAt).toLocaleDateString('es-CR') : '30 dÌas';
+  const hasta = expiresAt ? new Date(expiresAt).toLocaleDateString('es-CR') : '30 dùas';
   return (
-    'Listo! Jill Pro ya esta activa.\n\n' +
+    'Listo! Jill Modo Libre ya esta activa.\n\n' +
     '1. Entra al portal: ' + url + '\n' +
-    '2. Toca: Ya me activaron ó entrar con mi email\n' +
+    '2. Toca: Ya me activaron ù entrar con mi email\n' +
     '3. Escribe este email: ' + email + '\n\n' +
     'Valido hasta: ' + hasta + '\n' +
     'Cualquier duda, escribime aqui.'
@@ -260,7 +260,7 @@ async function createCheckoutSession({ email, successUrl, cancelUrl }) {
         currency: (process.env.JILL_PRO_PREMIUM_CURRENCY || 'usd').toLowerCase(),
         unit_amount: PREMIUM_USD_CENTS,
         product_data: {
-          name: 'Jill Pro Premium ó 30 dÌas',
+          name: 'Jill Modo Libre Premium ù 30 dùas',
           description: 'Foundations Companion: charla libre + lecciones MSI. Infinity Studio CR.',
           images: process.env.JILL_PRO_PREMIUM_IMAGE ? [process.env.JILL_PRO_PREMIUM_IMAGE] : undefined
         }

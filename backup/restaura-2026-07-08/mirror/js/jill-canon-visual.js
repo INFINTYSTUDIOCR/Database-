@@ -1,0 +1,145 @@
+/**
+ * Motor visual Jill  canon SVG inline + GIF opcional, mismo fondo en todos.
+ */
+(function (global) {
+  'use strict';
+
+  var _cfg = null;
+  var _load = null;
+  var _svgCache = {};
+  var CACHE_VER = '20260707j';
+  var DEFAULT_BG = '#f3ebff';
+
+  function assetUrl(path) {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    if (path.charAt(0) === '/') return path;
+    return path.replace(/^\//, '');
+  }
+
+  function preloadSvg(path) {
+    if (!path) return Promise.resolve('');
+    var rel = assetUrl(path);
+    var abs = rel.charAt(0) === '/' ? rel : '/' + rel;
+    if (_svgCache[rel]) return Promise.resolve(_svgCache[rel]);
+    if (_svgCache[abs]) return Promise.resolve(_svgCache[abs]);
+
+    function tryFetch(url) {
+      return fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + CACHE_VER)
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .catch(function () { return ''; });
+    }
+
+    return tryFetch(rel).then(function (txt) {
+      if (txt && txt.indexOf('<svg') >= 0) {
+        _svgCache[rel] = txt;
+        _svgCache[abs] = txt;
+        return txt;
+      }
+      return tryFetch(abs).then(function (txt2) {
+        if (txt2 && txt2.indexOf('<svg') >= 0) {
+          _svgCache[rel] = txt2;
+          _svgCache[abs] = txt2;
+        }
+        return txt2 || '';
+      });
+    });
+  }
+
+  function loadConfig() {
+    if (_cfg) {
+      var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+      return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
+    }
+    if (_load) return _load;
+    _load = fetch('config/jill-canon-visual.json?v=' + CACHE_VER)
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (data) {
+        _cfg = data || {};
+        var paths = (_cfg.clips || []).map(function (c) { return c.svg; }).filter(Boolean);
+        return Promise.all(paths.map(preloadSvg)).then(function () { return _cfg; });
+      })
+      .catch(function () {
+        _cfg = { background: DEFAULT_BG, clips: [] };
+        return _cfg;
+      });
+    return _load;
+  }
+
+  function clipForColumn(columnId, fallback) {
+    var clips = (_cfg && _cfg.clips) || [];
+    for (var i = 0; i < clips.length; i++) {
+      var c = clips[i];
+      if (c.columns && c.columns.indexOf(columnId) >= 0) return c;
+    }
+    return fallback ? { id: fallback.id, svg: fallback.path, gif: null, title: fallback.title } : null;
+  }
+
+  function frameStyle() {
+    var bg = (_cfg && _cfg.background) || DEFAULT_BG;
+    var img = _cfg && _cfg.backgroundImage;
+    if (img) {
+      return 'background-color:' + bg + ';background-image:url(' + assetUrl(img) + '?v=' + CACHE_VER + ');background-size:28px 28px;background-repeat:no-repeat;background-position:6px 6px;';
+    }
+    return 'background-color:' + bg + ';';
+  }
+
+  function inlineSvgMarkup(svgText, alt) {
+    var inner = String(svgText || '').replace(/<\?xml[\s\S]*?\?>/gi, '').trim();
+    if (!inner || inner.indexOf('<svg') < 0) return '';
+    inner = inner.replace(/<svg\b/i, '<svg style="width:100%;height:100%;display:block" role="img" aria-label="' + esc(alt) + '"');
+    return '<div class="jill-canon-svg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px 8px;box-sizing:border-box;pointer-events:none;">'
+      + inner
+      + '</div>';
+  }
+
+  function render(columnId, fallbackRef) {
+    var clip = clipForColumn(columnId, fallbackRef);
+    if (!clip) return '';
+    var isGif = !!clip.gif;
+    var alt = clip.title || (fallbackRef && fallbackRef.title) || 'Canon Jill';
+    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);';
+
+    if (isGif) {
+      var gifSrc = assetUrl(clip.gif) + '?v=' + CACHE_VER;
+      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
+        + '<img src="' + gifSrc + '" alt="' + esc(alt) + '" style="display:block;width:100%;height:100%;object-fit:contain;" loading="eager" decoding="async">'
+        + '</div>';
+    }
+
+    var svgPath = clip.svg || (fallbackRef && fallbackRef.path);
+    var rel = assetUrl(svgPath);
+    var cached = _svgCache[rel] || _svgCache['/' + rel.replace(/^\//, '')];
+    var inline = cached ? inlineSvgMarkup(cached, alt) : '';
+
+    if (inline) {
+      return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
+        + inline
+        + '</div>';
+    }
+
+    var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
+    return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
+      + '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px 8px;box-sizing:border-box;" loading="eager" decoding="async">'
+      + '</div>';
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function setGif(columnId, gifPath) {
+    if (!_cfg || !_cfg.clips) return;
+    _cfg.clips.forEach(function (c) {
+      if (c.columns && c.columns.indexOf(columnId) >= 0) c.gif = gifPath;
+    });
+  }
+
+  global.JillCanonVisual = {
+    loadConfig: loadConfig,
+    render: render,
+    assetUrl: assetUrl,
+    setGif: setGif,
+    DEFAULT_BG: DEFAULT_BG
+  };
+})(typeof window !== 'undefined' ? window : global);

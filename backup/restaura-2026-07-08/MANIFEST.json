@@ -1,0 +1,36 @@
+{
+  "id": "restaura-2026-07-08",
+  "createdAt": "2026-07-08T10:24:00-06:00",
+  "triggerWord": "Restaura",
+  "gitCommitAtBackup": "f07b995",
+  "gitCommitMessage": "feat(brain): doctrina metodo John Ramirez + ingesta de transcripciones",
+  "restoreScript": "backup/restaura-2026-07-08/restore.ps1",
+  "mirrorPath": "backup/restaura-2026-07-08/mirror",
+  "excludedFromMirror": ["node_modules", ".git", "backup", ".wwebjs_cache", ".wwebjs_auth", "*.log"],
+  "verifiedFunctional": {
+    "backendModulesLoad": true,
+    "serverBoots": true,
+    "serverHealthCheck": "GET /jill/drill/questions -> 401 (auth OK, ruteo OK)",
+    "structureCoachTested": true,
+    "classAnalyzerTested": true
+  },
+  "keyFiles": [
+    "Infinity_Student_Portal.html",
+    "backend/server.js",
+    "backend/jill-structure-coach.js",
+    "backend/jill-class-analyzer.js",
+    "backend/jill-method-os.js",
+    "backend/config/jill-method-os.md",
+    "backend/jill-drill-brain.js",
+    "js/jill-drill-bank.js",
+    "try-jill.html",
+    "pricing.html"
+  ],
+  "highlights": [
+    "Jill Learning DJ: escucha por turno, detecta fallos de estructura (tiempos, preposiciones, expresiones, vocabulario, orden) y ajusta el ritmo (down/hold/up).",
+    "Cascada de fallos de conversacion al cerebro (jill-drill-brain.cascadeTurnFailures).",
+    "Analisis de clases grabadas: /jill/class-transcript y /jill/class-audio (transcribe con Whisper/ElevenLabs Scribe), agrupa patrones y cascada al Super Brain.",
+    "Doctrina metodo John Ramirez (jill-method-os) inyectada en Jill y Alice; documento fuente que crece por clase.",
+    "Ingesta de transcripciones: /jill/ingest-teaching convierte videos/clases de John en doctrina publicada al Super Brain."
+  ]
+}

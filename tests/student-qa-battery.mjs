@@ -12,7 +12,7 @@ function qaPayload(obj) {
 
 const ROTATION_PLAN = [
   { service: 'jill', scenario: 'default', label: 'Jill Foundations' },
-  { service: 'alice', scenario: 'default', label: 'Alice Coaching' },
+  { service: 'alice', scenario: 'default', label: 'Alice Modo Tutor' },
   { service: 'nexora', scenario: 'star', label: 'Nexora STAR' },
   { service: 'nexora', scenario: 'customer_service', label: 'Nexora CS Call' },
   { service: 'jill', scenario: 'default', label: 'Jill rotation 2' },

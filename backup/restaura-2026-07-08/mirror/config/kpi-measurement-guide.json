@@ -1,0 +1,110 @@
+{
+  "title": "Guía de medición KPI — Infinity Nexus Method",
+  "subtitle": "Qué mide cada indicador, qué problema busca corregir y cómo calibrarlo con ejemplos.",
+  "macros": {
+    "IG": {
+      "name": "Idea Generation",
+      "scale": "1–5 (suma macro /25)",
+      "measures": "Capacidad de producir y desarrollar ideas en inglés hablado — no gramática perfecta, sino tener qué decir y expandirlo.",
+      "fixes": "Congelamiento por ‘no sé qué decir’, respuestas de una palabra, monólogos planos sin desarrollo.",
+      "calibration": "1–2: casi no genera ideas propias. 3: responde pero sin expandir. 4: desarrolla con detalle. 5: genera, conecta y profundiza espontáneamente.",
+      "exampleLow": "Trainer: ‘Tell me about your week.’ → Alumno: ‘Fine.’ (sin elaborar)",
+      "exampleHigh": "‘This week was busy because we had a deadline; on top of that, I learned a new process.’",
+      "when": "Intake Diagnostic (baseline) y Weekly Pulse paso Confirmación."
+    },
+    "ST": {
+      "name": "Structural Thinking",
+      "scale": "1–5",
+      "measures": "Organización lógica del mensaje: introducción, desarrollo, cierre; uso de linkers Nexus.",
+      "fixes": "Hablar en fragmentos sueltos, saltar de tema, STAR incompleto, ‘cuadrado’ sin conectores.",
+      "calibration": "1–2: sin estructura reconocible. 3: orden básico. 4: STAR o Idea+Linker+Idea claro. 5: estructura consistente bajo presión.",
+      "exampleLow": "‘I work… customer… problem… yes.’ (ideas sueltas)",
+      "exampleHigh": "‘Situation: we had a backlog. Task: clear tickets. Action: I prioritized by SLA. Result: 40% faster.’",
+      "when": "Intake + cada Weekly Pulse; Jill prioriza ST en Foundations."
+    },
+    "RA": {
+      "name": "Recovery Ability",
+      "scale": "1–5",
+      "measures": "Completar el pensamiento y recuperarse después de un error sin abandonar la conversación.",
+      "fixes": "Ideas colgadas, silencio tras error, ‘sorry’ y parar, mensajes inconclusos.",
+      "calibration": "1–2: abandona la idea o se queda mudo. 3: repara a medias. 4: ‘Let me rephrase…’ y continúa. 5: recuperación natural y rápida.",
+      "exampleLow": "Se trabaja en voz pasiva, se confunde, dice ‘sorry’ y no continúa.",
+      "exampleHigh": "‘Sorry, let me rephrase — I mean we resolved it by Friday.’",
+      "when": "Sesiones trainer + evidencia Alice/Jill entre pulsos."
+    },
+    "PS": {
+      "name": "Problem Solving",
+      "scale": "1–5",
+      "measures": "Comunicación operacional para seguir instrucciones, buscar info y resolver con palabras (CRM, CS).",
+      "fixes": "No puede explicar pasos, no confirma entendimiento, no cierra resolución con el cliente.",
+      "calibration": "1–2: no sigue instrucciones ni propone solución. 3: intenta pero vago. 4: reconoce → propone → confirma. 5: resolución clara con timeline.",
+      "exampleLow": "Cliente pregunta por cargo; alumno repite política sin abordar el caso.",
+      "exampleHigh": "‘I see the $49 charge — I’ll verify and email confirmation within 24 hours.’",
+      "when": "ORT + Nexora; micro k18–k22 alimentan PS."
+    },
+    "R": {
+      "name": "Responsiveness",
+      "scale": "1–5",
+      "measures": "Velocidad de arranque, sostener conversación, confianza, colaboración y desempeño bajo presión.",
+      "fixes": "Lentitud al responder, monosílabos, miedo a hablar, colapsa cuando hay presión o interrupción.",
+      "calibration": "1–2: respuestas muy lentas o evasivas. 3: participa con ayuda. 4: fluye en diálogo. 5: espontáneo y estable bajo presión (Nexora).",
+      "exampleLow": "8 segundos de silencio antes de ‘I don’t know.’",
+      "exampleHigh": "Responde en <3 s, hace follow-up, mantiene tono bajo pregunta difícil del entrevistador.",
+      "when": "Tracker k1,k5–k7,k11–k17,k23–k25 + simulaciones Nexora."
+    }
+  },
+  "microGroups": [
+    {
+      "title": "Comunicación básica (A1)",
+      "ids": ["k1", "k2", "k3", "k4"]
+    },
+    {
+      "title": "Interacción (A2)",
+      "ids": ["k5", "k6", "k7"]
+    },
+    {
+      "title": "FSF — Fluidez estructural (A3–A5)",
+      "ids": ["k8", "k9", "k10", "k11", "k12", "k13"]
+    },
+    {
+      "title": "Colaboración (A4)",
+      "ids": ["k14", "k15", "k16", "k17"]
+    },
+    {
+      "title": "Operational Readiness (A6)",
+      "ids": ["k18", "k19", "k20", "k21", "k22"]
+    },
+    {
+      "title": "Pressure Performance (A7)",
+      "ids": ["k23", "k24", "k25", "k26"]
+    }
+  ],
+  "micro": {
+    "k1": { "name": "Response Speed", "max": 10, "measures": "Tiempo que tarda en iniciar una respuesta hablada.", "fixes": "Congelamiento inicial, ‘um…’ prolongado, esperar traducción mental completa.", "calibration": "Escala 1–10. ≤3 s con frase corta = 7–8. >5 s o no arranca = 2–3.", "exampleLow": "Pregunta simple → 7 s de silencio → ‘Yes.’", "exampleHigh": "Pregunta → en 2 s: ‘Yes, I can help with that.’" },
+    "k2": { "name": "Response Completion", "max": 5, "measures": "Si cierra el pensamiento con conclusión clara.", "fixes": "Frases colgadas, abandono a mitad de idea.", "calibration": "1–2: nunca cierra. 3: cierra a medias. 4–5: cierre explícito (‘…and that’s why’).", "exampleLow": "‘We had a meeting and…’ (corta)", "exampleHigh": "‘…and that’s basically how we solved it.’" },
+    "k3": { "name": "Thought Organization", "max": 5, "measures": "Estructura lógica (STAR: situación, tarea, acción, resultado).", "fixes": "Saltos caóticos; gramática secundaria — importa el orden.", "calibration": "1–2: sin orden. 3: parcial STAR. 4–5: STAR completo en respuesta larga.", "exampleLow": "Mezcla resultado antes de acción.", "exampleHigh": "Situation → Task → Action → Result en orden." },
+    "k4": { "name": "Communication Clarity", "max": 5, "measures": "Si el mensaje se entiende sin repetir tres veces.", "fixes": "Ambigüedad, jerga innecesaria, no reformular cuando hay confusión.", "calibration": "1–2: trainer no entiende. 3: entiende con repregunta. 4–5: claro a la primera.", "exampleLow": "Explicación circular sin punto.", "exampleHigh": "Una oración con sujeto, acción y resultado claros." },
+    "k5": { "name": "Conversation Sustainability", "max": 5, "measures": "Capacidad de sostener diálogo con follow-ups.", "fixes": "Monosílabos que matan la conversación.", "calibration": "1–2: solo sí/no. 3: una pregunta de follow-up. 4–5: mantiene hilo varias vueltas.", "exampleLow": "‘Yes.’ / ‘No.’ repetido.", "exampleHigh": "‘Yes — what about your team? Have you tried…?’" },
+    "k6": { "name": "Participation Level", "max": 5, "measures": "Frecuencia e iniciativa para intervenir.", "fixes": "Esperar siempre que le hablen; no aportar.", "calibration": "1–2: casi no participa. 3: cuando lo invitan. 4–5: interviene solo con aportes útiles.", "exampleLow": "Silencio en breakout grupal.", "exampleHigh": "Propone idea sin que le pregunten." },
+    "k7": { "name": "Turn Taking", "max": 5, "measures": "Entrar y salir del turno sin interrumpir ni quedarse fuera.", "fixes": "Interrumpe o nunca toma turno en grupo.", "calibration": "1–2: interrumpe o evita hablar. 3: timing irregular. 4–5: entra en pausa natural.", "exampleLow": "Corta al compañero a mitad de frase.", "exampleHigh": "Espera pausa y enlaza: ‘Building on that…’" },
+    "k8": { "name": "Linking Usage", "max": 5, "measures": "Uso natural de conectores Nexus (however, therefore, on top of that…).", "fixes": "Discurso ‘cuadrado’ sin pivotes entre ideas.", "calibration": "0 conectores = 1–2. 1 forzado = 3. 2+ variados naturales = 4–5.", "exampleLow": "‘I worked. I was tired. I went home.’", "exampleHigh": "‘I worked; however, I stayed because we had a deadline.’" },
+    "k9": { "name": "Idea Expansion", "max": 5, "measures": "Extender respuestas (Yes → Yes, because… on top of that…).", "fixes": "Respuestas mínimas que no desarrollan.", "calibration": "1–2: una palabra. 3: una razón. 4–5: cadena Idea+Linker+Idea.", "exampleLow": "‘Do you like your job?’ → ‘Yes.’", "exampleHigh": "‘Yes, because I learn daily; on top of that, the team is supportive.’" },
+    "k10": { "name": "Thought Connection", "max": 5, "measures": "Cohesión global del discurso — las ideas ‘caminan’ juntas.", "fixes": "Párrafos que suenan como lista suelta.", "calibration": "k8 = conector puntual; k10 = hilo completo coherente.", "exampleLow": "Tres ideas sin relación aparente.", "exampleHigh": "Cada oración enlaza con la anterior temáticamente." },
+    "k11": { "name": "Communication Confidence", "max": 5, "measures": "Seguridad y convicción al hablar — no se evalúa acento nativo.", "fixes": "Voz baja, disculparse de más, tono de disculpa permanente.", "calibration": "1–2: casi inaudible o muy dubitativo. 4–5: tono firme aunque haya errores.", "exampleLow": "‘Sorry, my English is bad…’ antes de cada frase.", "exampleHigh": "Responde directo sin pre-disculparse." },
+    "k12": { "name": "Risk Taking", "max": 5, "measures": "Intentar comunicarse aunque pueda equivocarse.", "fixes": "Silencio por miedo al error.", "calibration": "1–2: no intenta palabras nuevas. 4–5: prueba estructuras aunque falle y recupera.", "exampleLow": "Se queda mudo ante vocabulario nuevo.", "exampleHigh": "Intenta phrasal verb aunque lo corrijan después." },
+    "k13": { "name": "Recovery Ability", "max": 5, "measures": "Recuperación micro tras error en la misma intervención.", "fixes": "Parar después del error.", "calibration": "Modelo: ‘Sorry, let me rephrase…’ + continuar = 4–5.", "exampleLow": "Error → silencio → cambia de tema.", "exampleHigh": "Error → reformula → completa la idea." },
+    "k14": { "name": "Team Interaction", "max": 5, "measures": "Trabajo efectivo con otros en inglés (Foundations).", "fixes": "Aislarse en pair work.", "calibration": "Observar pair drills y clase presencial.", "exampleLow": "Solo escucha en breakout.", "exampleHigh": "Divide roles y habla en turnos." },
+    "k15": { "name": "Active Listening", "max": 5, "measures": "Escucha y responde al contenido, no solo espera turno.", "fixes": "Respuestas genéricas desconectadas.", "calibration": "Señal +: parafrasea antes de opinar.", "exampleLow": "‘Interesting.’ sin referir lo dicho.", "exampleHigh": "‘So you mean the SLA was missed — did you escalate?’" },
+    "k16": { "name": "Contribution Quality", "max": 5, "measures": "Utilidad del aporte (vs k6 = cantidad).", "fixes": "Hablar mucho sin aportar.", "calibration": "k6 alto + k16 bajo = mucho ruido, poco valor.", "exampleLow": "Repite lo que otros dijeron.", "exampleHigh": "Añade ejemplo concreto nuevo al grupo." },
+    "k17": { "name": "Peer Support", "max": 5, "measures": "Ayuda a compañeros a reformular en inglés.", "fixes": "Traducir por ellos en lugar de coaching.", "calibration": "4–5: guía con preguntas, no traduce completo.", "exampleLow": "Le dice la frase en inglés completa al compañero.", "exampleHigh": "‘Try starting with However…’" },
+    "k18": { "name": "Instruction Following", "max": 5, "measures": "Seguir y confirmar instrucciones (puente ORT).", "fixes": "Ejecutar sin entender o ignorar pasos.", "calibration": "4–5: repite instrucción en sus palabras antes de actuar.", "exampleLow": "Salta pasos del script CRM.", "exampleHigh": "‘So I verify ID, then pull account — correct?’" },
+    "k19": { "name": "Information Retrieval", "max": 5, "measures": "Localizar dato en CRM/material con velocidad.", "fixes": "Se pierde en sistema simulado.", "calibration": "Tiempo + precisión del dato citado.", "exampleLow": "Inventa monto no listado en CRM.", "exampleHigh": "Cita cargo exacto de la ficha simulada." },
+    "k20": { "name": "Problem Solving Communication", "max": 5, "measures": "Resolver usando palabras: reconocer → proponer → confirmar.", "fixes": "Solo escucha quejas sin cerrar loop.", "calibration": "CS estándar Infinity en simulación.", "exampleLow": "‘I understand’ sin next step.", "exampleHigh": "‘I’ll reverse the fee and send email today — OK?’" },
+    "k21": { "name": "Customer Interaction Readiness", "max": 5, "measures": "Saludo, empatía y cierre profesional en sim.", "fixes": "Tono robótico o demasiado casual.", "calibration": "Nexora CS + roleplay clase.", "exampleLow": "Abre con jerga o sin saludo.", "exampleHigh": "Saludo + empatía + cierre con resumen." },
+    "k22": { "name": "Professional Communication", "max": 5, "measures": "Tono operacional adecuado (formalidad, sin slang).", "fixes": "Suena académico o demasiado buddy con cliente.", "calibration": "BPO/CS estándar, no chat entre amigos.", "exampleLow": "‘Hey buddy, no worries lol.’", "exampleHigh": "‘I understand your concern; let me check that for you.’" },
+    "k23": { "name": "Performance Under Pressure", "max": 5, "measures": "Comportamiento cuando cliente/interviewer presiona.", "fixes": "Colapsa, acelera sin sentido o se pone a la defensiva.", "calibration": "Clave Nexora — cliente angry/impatient.", "exampleLow": "Cliente grita → alumno calla o discute.", "exampleHigh": "Mantiene calma, empatía y estructura." },
+    "k24": { "name": "Spontaneous Communication", "max": 5, "measures": "Respuesta sin script preparado.", "fixes": "Solo funciona con frases memorizadas.", "calibration": "Alice + Rapid drill + preguntas sorpresa.", "exampleLow": "Pregunta nueva → repite script irrelevante.", "exampleHigh": "Adapta respuesta STAR a pregunta inesperada." },
+    "k25": { "name": "Adaptability", "max": 5, "measures": "Cambiar de tema/rol sin bloquearse.", "fixes": "Se traba al cambiar escenario Nexora.", "calibration": "Rotación de escenarios en sim.", "exampleLow": "De CS a negociación → pierde hilo.", "exampleHigh": "Reorienta lenguaje al nuevo contexto." },
+    "k26": { "name": "Critical Thinking Expression", "max": 5, "measures": "Expresar razonamiento complejo (opinión + because + example + although).", "fixes": "Opinión sin soporte o sin matices.", "calibration": "Debate + monólogo estructurado Fase 3.", "exampleLow": "‘I think it’s good.’", "exampleHigh": "‘I support it because X; although Y, the result was Z.’" }
+  }
+}

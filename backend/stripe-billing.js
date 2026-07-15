@@ -1,5 +1,5 @@
 /**
- * Alice Companion Premium — Stripe Checkout + 30-day pass (Supabase-backed).
+ * Alice Modo Libre Premium — Stripe Checkout + 30-day pass (Supabase-backed).
  * Foolproof flow: pay → auto-activate token → unlimited Companion.
  * Restore: same email used at checkout.
  */
@@ -49,15 +49,15 @@ function publicConfig() {
     days: PREMIUM_DAYS,
     priceUsd: usd,
     priceLabel: 'USD ' + usd.toFixed(usd % 1 ? 2 : 0),
-    crcHint: '₡24.500 · Alice Companion 30 días',
+    crcHint: '₡24.500 · Alice Modo Libre 30 días',
     features: [
-      'Alice Companion ilimitada (30 días)',
+      'Alice Modo Libre ilimitada (30 días)',
       'Activación por WhatsApp (mismo día)',
       'Voz + micrófono',
       'Recuperá acceso con tu email'
     ],
     whatsapp: 'https://wa.me/50660060981?text=' + encodeURIComponent(
-      'Hola! Quiero Alice Companion Premium (₡24.500 / 30 días).\nMi email para activar: '
+      'Hola! Quiero Alice Modo Libre Premium (₡24.500 / 30 días).\nMi email para activar: '
     )
   };
 }
@@ -235,7 +235,7 @@ function clientActivationMessage(email, expiresAt, clientUrl) {
   const url = clientUrl || 'https://studioinfinitycr.com/try-alice.html';
   const hasta = expiresAt ? new Date(expiresAt).toLocaleDateString('es-CR') : '30 días';
   return (
-    'Listo! Alice Companion ya esta activa.\n\n' +
+    'Listo! Alice Modo Libre ya esta activa.\n\n' +
     '1. Entra aqui: ' + url + '\n' +
     '2. Toca: Ya me activaron — entrar con mi email\n' +
     '3. Escribe este email: ' + email + '\n\n' +
@@ -314,7 +314,7 @@ async function createCheckoutSession({ email, successUrl, cancelUrl }) {
         currency: (process.env.ALICE_PREMIUM_CURRENCY || 'usd').toLowerCase(),
         unit_amount: PREMIUM_USD_CENTS,
         product_data: {
-          name: 'Alice Companion Premium — 30 días',
+          name: 'Alice Modo Libre Premium — 30 días',
           description: 'Práctica de inglés ilimitada por voz. Infinity Studio CR.',
           images: process.env.ALICE_PREMIUM_IMAGE ? [process.env.ALICE_PREMIUM_IMAGE] : undefined
         }

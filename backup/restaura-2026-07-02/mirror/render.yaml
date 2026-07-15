@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: alice-by-infinity
+    runtime: node
+    rootDir: backend
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DEMO_IP_WHITELIST
+        value: "38.210.166.95"

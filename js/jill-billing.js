@@ -1,5 +1,5 @@
 /**
- * Jill Pro Premium — WhatsApp activation + restore (Stripe standby).
+ * Jill Modo Libre Premium — WhatsApp activation + restore (Stripe standby).
  */
 (function (global) {
   'use strict';
@@ -53,7 +53,7 @@
 
   function askEmail(defaultEmail) {
     var email = window.prompt(
-      'Tu email (el mismo que le diste por WhatsApp al activar Jill Pro):',
+      'Tu email (el mismo que le diste por WhatsApp al activar Jill Modo Libre):',
       defaultEmail || savedEmail() || ''
     );
     if (email == null) return null;
@@ -137,17 +137,17 @@
     fetchConfig().then(function (cfg) {
       var active = isActiveLocal();
       if (active) {
-        container.innerHTML = '<div class="jill-premium-badge"><i class="ti ti-crown"></i> Jill Pro activa — ' +
+        container.innerHTML = '<div class="jill-premium-badge"><i class="ti ti-crown"></i> Jill Modo Libre activa — ' +
           (cfg.days || 30) + ' días</div>';
         return;
       }
       var price = cfg.crcHint || '?12.500 · 30 días';
-      var wa = cfg.whatsapp || 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Quiero Jill Pro. Mi email: ');
+      var wa = cfg.whatsapp || 'https://wa.me/50660060981?text=' + encodeURIComponent('Hola! Quiero Jill Modo Libre. Mi email: ');
       var standbyNote = cfg.standby
         ? '<span class="jill-premium-hint">Pago con tarjeta próximamente — activación por WhatsApp hoy.</span>'
         : '';
       var html = '<div class="jill-premium-offer">' +
-        '<strong>Jill Pro Premium</strong> · ' + price + standbyNote +
+        '<strong>Jill Modo Libre Premium</strong> · ' + price + standbyNote +
         '</div>';
       html += '<a class="demo-cta-wa btn-premium-checkout" href="' + wa + '" target="_blank" rel="noopener" style="display:inline-flex;text-decoration:none;">' +
         '<i class="ti ti-brand-whatsapp"></i> ' + (opts.waLabel || 'Activar por WhatsApp') + '</a>';
@@ -163,7 +163,7 @@
         restoreBtn.onclick = function () {
           restoreAccess().then(function (data) {
             if (data && data.premiumToken) {
-              alert('¡Listo! Jill Pro activa. Entrá al portal del estudiante.');
+              alert('¡Listo! Jill Modo Libre activa. Entrá al portal del estudiante.');
               location.href = 'Infinity_Student_Portal.html';
             }
           });
@@ -178,7 +178,7 @@
         };
       }
     }).catch(function () {
-      container.innerHTML = '<a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20Jill%20Pro" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Jill Pro por WhatsApp</a>';
+      container.innerHTML = '<a class="demo-cta-wa" href="https://wa.me/50660060981?text=Hola!%20Quiero%20Jill%20Modo%20Libre" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Jill Modo Libre por WhatsApp</a>';
     });
   }
 

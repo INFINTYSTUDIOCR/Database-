@@ -26,7 +26,7 @@ async function startClaire() {
     _ch.push({role:'assistant', content:d.reply});
   } catch(e) {
     showTyping(false);
-    addMsg('¡Hola! Soy Claire de Infinity Studio CR. ¿En qué puedo ayudarte? 😊', 'c');
+    addMsg('Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?', 'c');
   }
 }
 
@@ -56,7 +56,7 @@ async function sendClaire() {
   _ch.push({role:'user', content:txt});
   _count++;
   updateCount();
-  if (_count === 90) setTimeout(function(){ addMsg('💡 Si quieres seguir con un trainer humano, agenda tu evaluación gratuita cuando quieras.', 'c'); }, 300);
+  if (_count === 90) setTimeout(function(){ addMsg('Si quiere seguir, Claire puede armarle un plan TOEIC completo aquí mismo: diagnóstico, Listening, Reading y práctica diaria bajo presión.', 'c'); }, 300);
   if (_count >= _LIMIT) { setTimeout(showLimit, 600); return; }
   showTyping(true);
   try {
@@ -71,7 +71,7 @@ async function sendClaire() {
     _ch.push({role:'assistant', content:d.reply});
   } catch(e) {
     showTyping(false);
-    addMsg('Disculpa, hubo un problema. Escríbenos al WhatsApp: +506 6006 0981', 'c');
+    addMsg('Hubo un problema técnico. Reintente en unos segundos y seguimos con su práctica TOEIC.', 'c');
   }
 }
 
@@ -178,7 +178,7 @@ function updateCount() {
   var el = document.getElementById('cc');
   if (!el) return;
   var rem = _LIMIT - _count;
-  var hint = el.getAttribute('data-default-hint') || 'Asistente con IA · orientación sobre programas';
+  var hint = el.getAttribute('data-default-hint') || 'Coach TOEIC autónoma · práctica y score plan';
   el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : hint;
   el.style.color = rem <= 5 && rem > 0 ? '#F5A623' : '#94A3B8';
 }
@@ -190,7 +190,7 @@ function showLimit() {
   if (cmb) cmb.disabled = true;
   if (window._ca) window._ca.pause();
   trackClaireEvent('claire_limit_reached','session_cap');
-  addMsg('¡Fue un gusto hablar contigo! Agenda tu evaluación gratuita por WhatsApp cuando quieras.', 'c');
+  addMsg('Sesión completada. Vuelva cuando quiera y Claire continúa con su plan, práctica y corrección.', 'c');
 }
 
 window.addEventListener('beforeunload', function(){ if(window._ca) window._ca.pause(); });

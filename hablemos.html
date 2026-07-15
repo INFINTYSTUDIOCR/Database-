@@ -38,7 +38,7 @@
   <div class="page-main">
     <div class="content-block">
       <h2>Consulta personalizada</h2>
-      <p>En Infinity Studio CR no vendemos paquetes genéricos. Primero entendemos tu perfil, tu meta laboral y tu nivel operacional. Después te recomendamos el camino: Conversatorio, Job Finder, Foundations, ORT o el ecosistema completo.</p>
+      <p>En Infinity Studio CR no vendemos paquetes genéricos. Primero entendemos tu perfil, tu meta laboral, si necesitás TOEIC y tu nivel operacional. Después te recomendamos el camino: Claire TOEIC, Conversatorio, Job Finder, Foundations, ORT o el ecosistema completo.</p>
     </div>
     <div class="content-block">
       <h2>Cómo funciona</h2>
@@ -78,6 +78,7 @@
           <option value="">No estoy seguro/a</option>
           <option>El Conversatorio</option>
           <option>Job Finder</option>
+          <option>Preparación TOEIC con Claire</option>
           <option>Foundations / ORT</option>
           <option>Ecosistema completo Infinity</option>
         </select>
@@ -112,21 +113,21 @@
 </footer>
 
 <div id="claire-widget" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;font-family:'Inter',sans-serif;">
-  <div onclick="toggleClaire()" title="Claire — asistente virtual del sitio" aria-label="Abrir Claire, asistente virtual" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClaire();}" style="width:64px;height:64px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(91,33,182,0.5);">
+  <div onclick="toggleClaire()" title="Claire — coach TOEIC" aria-label="Abrir Claire, coach TOEIC" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClaire();}" style="width:64px;height:64px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(91,33,182,0.5);">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
   </div>
   <div id="cw" style="display:none;position:absolute;bottom:76px;right:0;width:370px;background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;">
     <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);padding:1rem;display:flex;align-items:center;gap:12px;">
-      <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:white;">Claire</div><div id="claire-role" style="font-size:11px;color:rgba(255,255,255,0.9);">Asistente virtual — programas y precios</div></div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:white;">Claire</div><div id="claire-role" style="font-size:11px;color:rgba(255,255,255,0.9);">Coach TOEIC — diagnóstico y práctica</div></div>
       <div onclick="toggleClaire()" style="cursor:pointer;color:rgba(255,255,255,0.7);font-size:24px;">×</div>
     </div>
     <div id="cm" style="height:300px;overflow-y:auto;padding:1rem;background:#F8F8FF;"></div>
     <div id="ct" style="display:none;padding:4px 1rem;font-size:12px;color:#94A3B8;background:#F8F8FF;">Claire está escribiendo...</div>
     <div style="padding:0.75rem;border-top:1px solid #E2E8F0;background:white;display:flex;gap:8px;">
-      <input id="ci" placeholder="Escribí tu mensaje..." style="flex:1;border:1.5px solid #E2E8F0;border-radius:50px;padding:9px 16px;font-size:13px;font-family:inherit;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendClaire();}">
+      <input id="ci" placeholder="Ej: quiero prepararme para TOEIC..." style="flex:1;border:1.5px solid #E2E8F0;border-radius:50px;padding:9px 16px;font-size:13px;font-family:inherit;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendClaire();}">
       <button onclick="sendClaire()" style="width:40px;height:40px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;border-radius:50%;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
     </div>
-    <div id="cc" style="text-align:center;font-size:10px;margin-top:6px;color:#94A3B8;" data-default-hint="Asistente con IA · orientación sobre programas">Asistente con IA · orientación sobre programas</div>
+    <div id="cc" style="text-align:center;font-size:10px;margin-top:6px;color:#94A3B8;" data-default-hint="Coach TOEIC autónoma · práctica y score plan">Coach TOEIC autónoma · práctica y score plan</div>
   </div>
 </div>
 <script src="js/enroll.js"></script>
@@ -135,7 +136,8 @@
   var map = {
     jill: { title: 'Solicitar demo Jill', note: 'Demo guiada de Jill — tutora Fundamentos estructurales (Foundations).', select: 'Foundations / ORT' },
     nexora: { title: 'Solicitar demo Nexora', note: 'Demo guiada de Nexora — simulaciones STAR y atención al cliente con voz.', select: 'Ecosistema completo Infinity' },
-    'alice-coach': { title: 'Solicitar demo Alice Coach', note: 'Demo guiada de Alice tutora Nexus — coaching alineado a KPIs y Training Book.', select: 'Ecosistema completo Infinity' }
+    claire: { title: 'Solicitar Claire TOEIC', note: 'Preparación TOEIC con Claire — diagnóstico, Listening, Reading, presión controlada y score plan.', select: 'Preparación TOEIC con Claire' },
+    'alice-coach': { title: 'Solicitar demo Alice Modo Tutor', note: 'Demo guiada de Alice Modo Tutor — coaching Nexus alineado a KPIs y Training Book.', select: 'Ecosistema completo Infinity' }
   };
   var key = (new URLSearchParams(location.search).get('solicitar') || '').toLowerCase();
   var cfg = map[key];

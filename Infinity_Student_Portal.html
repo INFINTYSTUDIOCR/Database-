@@ -326,7 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #jill-lesson-shell.jill-stage-active #jill-chips,
   #jill-lesson-shell.jill-stage-active #jill-habit-wrap,
   #jill-lesson-shell.jill-stage-active #jill-matrix-panel{display:none!important;}
-  /* Alice Companion — ambient by topic (story mode) */
+  /* Alice Modo Libre — ambient by topic (story mode) */
   #alice-companion-card{
     transition: background 0.9s ease, box-shadow 0.9s ease, border-color 0.9s ease;
     position:relative;overflow:hidden;
@@ -557,6 +557,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="portal-nav-item" data-tab="news" onclick="switchPortalTab('news')"><i class="ti ti-news"></i>News</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill')"><i class="ti ti-message-circle"></i>Jill</div>
   <div class="portal-nav-item" data-tab="alice" id="nav-alice" style="display:none;" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
+  <div class="portal-nav-item" data-tab="claire" id="nav-claire" style="display:none;" onclick="switchPortalTab('claire')"><i class="ti ti-headphones"></i>Claire</div>
   <div class="portal-nav-item" data-tab="nexora" id="nav-nexora" style="display:none;" onclick="switchPortalTab('nexora');setTimeout(function(){ ensureNexoraTab(window._currentStudent); },100);"><i class="ti ti-sparkles"></i>Nexora</div>
 </div>
 
@@ -752,6 +753,7 @@ function switchPortalTab(tab){
   }
   if(tab === 'alice' && s && !studentAliceTabOn(s)) tab = 'progreso';
   if(tab === 'jill' && s && !studentJillTabOn(s)) tab = 'progreso';
+  if(tab === 'claire' && s && !studentClaireOn(s)) tab = 'progreso';
   if(tab === 'nexora' && s && !studentNexoraOn(s)) tab = 'progreso';
   var prevTab = window._activePortalTab || 'progreso';
   if(tab !== prevTab && prevTab) window._portalPrevTab = prevTab;
@@ -782,6 +784,7 @@ function switchPortalTab(tab){
     });
   }
   if(tab==='jill') renderJill();
+  if(tab==='claire') renderClaire();
   if(tab==='progreso'){
     var ps = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
     if(ps) setTimeout(function(){ initPortalLiveCharts(ps); },80);
@@ -879,6 +882,7 @@ function buildJillPreviewStudent(){
     jillProEnabled: true,
     aliceEnabled: false,
     companionEnabled: false,
+    claireEnabled: false,
     system_mode: 'jill',
     info: { name: 'Vista previa', phase: 1 },
     jillGrowth: {
@@ -957,6 +961,7 @@ function applyServerStudentFlags(d){
   if(typeof d.jillEnabled === 'boolean') CURRENT_STUDENT.jillEnabled = d.jillEnabled;
   if(typeof d.jillProEnabled === 'boolean') CURRENT_STUDENT.jillProEnabled = d.jillProEnabled;
   if(typeof d.companionEnabled === 'boolean') CURRENT_STUDENT.companionEnabled = d.companionEnabled;
+  if(typeof d.claireEnabled === 'boolean') CURRENT_STUDENT.claireEnabled = d.claireEnabled;
   if(d.companionEnabled === true || d.companionEnabled === 'true' || d.companionEnabled === 1) CURRENT_STUDENT.companionEnabled = true;
   window._currentStudent = CURRENT_STUDENT;
   window._portalStudent = CURRENT_STUDENT;
@@ -1131,12 +1136,12 @@ function showPortal(s){
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Typing por escenario</div>'
     +'<div id="portal-persona-container"></div>'
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-help-circle"></i>Quiz de práctica</div>'
-    +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-help-circle"></i>Generar quiz de práctica</button></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-device-gamepad-2"></i>Infinity Language Arcade</div>'
+    +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-device-gamepad-2"></i>Abrir arcade de práctica</button></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Drills</div>'
     +'<div id="portal-nemesis-container">'+drillRecursosBtns
-    +'<button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i>Quiz de práctica</button></div>'
+    +'<button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i>Language Arcade</button></div>'
     +'</div>';
 
   // ── NOTAS DE SESIÓN ───────────────────────────────────
@@ -1165,6 +1170,7 @@ function showPortal(s){
     +'<div class="tab-pane" id="tp-news">'+newsHtml+'</div>'
     +'<div class="tab-pane" id="tp-jill"><div id="jill-root"></div></div>'
     +'<div class="tab-pane" id="tp-alice"><div id="alice-root"></div></div>'
+    +'<div class="tab-pane" id="tp-claire"><div id="claire-root"></div></div>'
     +'<div class="tab-pane" id="tp-nexora"><div id="nexora-root">'
     +'<div style="background:linear-gradient(135deg,#0a0a0f,#1a1a28);border-radius:12px;padding:1.5rem;color:white;border:1px solid rgba(245,166,35,0.2);">'
     +'<div style="font-size:10px;letter-spacing:0.2em;color:#F5A623;margin-bottom:4px;font-weight:800;">STUDIO INFINITY CR</div>'
@@ -1413,6 +1419,10 @@ function studentNexoraOn(s){
 }
 
 // ── TUTOR ACCESS (Alice / Jill ON-OFF — master en Engine) ───
+function studentClaireOn(s){
+  if(!s) return false;
+  return studentPortalAccessOk(s) && s.claireEnabled === true;
+}
 function studentAliceOn(s){
   if(!s) return false;
   if(typeof s.aliceEnabled === 'boolean') return s.aliceEnabled;
@@ -1473,7 +1483,7 @@ function resolveRapidDrillTier(force){
     if(studentCompanionOn(s) && !studentAliceOn(s)) return 'advanced';
     return 'foundations';
   }
-  // Jill Tutora + Jill Pro → always Foundations (oraciones, tiempos, estructura, prep)
+  // Jill Modo Tutor + Modo Libre → always Foundations (oraciones, tiempos, estructura, prep)
   if(tab === 'jill') return 'foundations';
   if(studentCompanionOn(s) && !studentAliceOn(s) && !studentJillTabOn(s)) return 'advanced';
   return 'foundations';
@@ -1487,7 +1497,7 @@ function drillMountOpts(){
   if(tab === 'jill') tier = 'foundations';
   return { drillTier: tier, drillOwner: tab === 'alice' ? 'alice' : 'jill' };
 }
-/** Jill, Jill Pro, Alice o Alice+ — acceso a juegos (Rapid drill, quiz). */
+/** Jill, Modo Libre, Alice o Alice+ — acceso a juegos (Rapid drill, quiz). */
 function studentGamesOn(s){
   return studentJillTabOn(s) || studentAliceTabOn(s);
 }
@@ -1499,7 +1509,7 @@ function portalQuizBundle(){
 }
 function portalOpenPracticeQuiz(){
   if(!studentGamesOn(CURRENT_STUDENT)){
-    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    showToast('Activá Jill, Modo Libre o Alice con tu trainer.','err');
     return;
   }
   switchPortalTab('recursos');
@@ -1517,11 +1527,11 @@ function renderPortalGamesButtons(variant){
     if(studentCompanionOn(s) || aliceCompanionUiActive())
       html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.45);color:#FFEB3B;font-weight:800;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>';
   } else {
-    // Jill Tutora / Jill Pro — Foundations only (never STAR / CS / linkers)
+    // Jill Modo Tutor / Modo Libre — Foundations only (never STAR / CS / linkers)
     if(studentJillOn(s) || studentJillProOn(s) || jillCompanionUiActive())
       html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
   }
-  html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>';
+  html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>';
   return html + '</div>';
 }
 function portalCloseRapidDrill(refresh){
@@ -1557,7 +1567,7 @@ function aliceOpenRapidDrill(){
 function portalOpenRapidDrill(tierOverride){
   var s = CURRENT_STUDENT;
   if(!studentGamesOn(s)){
-    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    showToast('Activá Jill, Modo Libre o Alice con tu trainer.','err');
     return;
   }
   if(typeof JillQuiz === 'undefined'){
@@ -1612,8 +1622,8 @@ function syncJillNavLabel(s){
   if(!nav) return;
   var jill = studentJillOn(s);
   var pro = studentJillProOn(s);
-  if(pro && !jill) nav.innerHTML = '<i class="ti ti-skull"></i>Jill Pro';
-  else if(jill && pro) nav.innerHTML = '<i class="ti ti-message-circle"></i>Jill + Pro';
+  if(pro && !jill) nav.innerHTML = '<i class="ti ti-messages"></i>Jill Libre';
+  else if(jill && pro) nav.innerHTML = '<i class="ti ti-message-circle"></i>Jill';
   else nav.innerHTML = '<i class="ti ti-message-circle"></i>Jill';
 }
 
@@ -1905,164 +1915,691 @@ function startPersonaTypingTest(personaKey, containerId){
   }, p.words);
 }
 
-// ── QUIZ DE PRÁCTICA (máx 8 preguntas, no afecta KPIs) ────
-var QUIZ_BANK = {
-  k1:{ q:'Te preguntan "What did you do yesterday?" — ¿cuál es la mejor reacción?', options:['Pensar 10 segundos en español primero y traducir','Empezar a hablar casi de inmediato, aunque sea corto','Decir "I dont know" y esperar otra pregunta','Pedir que te lo repitan'], answer:1, explain:'La meta es reducir el tiempo de arranque — empezar a hablar enseguida, aunque la respuesta sea simple al inicio.' },
-  k2:{ q:'¿Cuál de estas respuestas está "completa" según el método?', options:['"I went to work."','"I went to work, and that is basically it."','"I went..."','"Work, yes."'], answer:1, explain:'Cerrar la idea explícitamente ("...and that is basically it") evita dejarla a la mitad.' },
-  k3:{ q:'¿Qué estructura ayuda a organizar una respuesta larga?', options:['Decir todo lo que se te ocurra sin orden','Situación → Tarea → Acción → Resultado (STAR)','Hablar solo en pasado','Usar la misma oración varias veces'], answer:1, explain:'STAR da un orden lógico: qué pasaba, qué había que hacer, qué hiciste, qué resultó.' },
-  k4:{ q:'Si alguien no te entendió, ¿qué deberías hacer?', options:['Repetir exactamente lo mismo más fuerte','Decirlo con palabras más simples y distintas','Cambiar de tema','Hablar en español'], answer:1, explain:'Reformular con vocabulario más simple suele resolver problemas de claridad mejor que repetir igual.' },
-  k8:{ q:'¿Cuál de estas opciones es un conector de CONTRASTE?', options:['on top of that','however','as well as','once that'], answer:1, explain:'"However" (sin embargo) marca contraste — categoría clave de las páginas 10-11.' },
-  k9:{ q:'Te preguntan "Do you like your job?" — respondés solo "Yes". ¿Qué falta?', options:['Nada, está completo','Expandir: "Yes, because... and on top of that..."','Decir "No" en cambio','Cambiar de idioma'], answer:1, explain:'Toda respuesta corta debe expandirse en una cadena Idea + Linker + Idea.' },
-  k10:{ q:'¿Qué hace que una historia de 1 minuto suene conectada y no como ideas sueltas?', options:['Hablar muy rápido','Usar linkers entre cada idea (so, however, then...)','Repetir la misma palabra','Hacer pausas largas'], answer:1, explain:'Los linkers son el "pegamento" entre ideas — sin ellos, las ideas suenan desconectadas.' },
-  k11:{ q:'¿Cuál frase suena más segura/confiada?', options:['"Maybe I think... I dont know..."','"I really think that..., in my experience..."','"I guess so, sorry."','"Whatever you say."'], answer:1, explain:'Frases como "I really think that..." transmiten convicción sin necesitar perfección gramatical.' },
-  k12:{ q:'Aprendiste el phrasal verb "figure out". ¿Qué deberías hacer?', options:['Guardarlo para usarlo "cuando esté listo"','Usarlo al menos 2 veces hoy, aunque te equivoques','Esperar a que el trainer lo use primero','Evitarlo por si lo usás mal'], answer:1, explain:'Risk Taking: el objetivo es comunicar, no la perfección — usar lo nuevo aunque haya errores.' },
-  k13:{ q:'Te trabaste a mitad de una oración. ¿Qué es lo mejor?', options:['Quedarte en silencio hasta recordar','Decir "Sorry, let me rephrase that" y seguir','Empezar a hablar en español','Terminar la sesión'], answer:1, explain:'Recovery Ability: reparar y continuar mantiene la conversación viva.' },
-  k18:{ q:'Tu trainer te da 3 instrucciones seguidas. ¿Qué deberías hacer antes de empezar?', options:['Empezar inmediatamente sin decir nada','Repetirlas en tus palabras: "So first I need to..., then..."','Pedir que te las escriban en español','Ignorar la última instrucción'], answer:1, explain:'Confirmar la tarea con tus palabras asegura que entendiste antes de actuar.' },
-  k20:{ q:'Un cliente tiene un problema. ¿Cuál es el orden correcto?', options:['Proponer solución → reconocer el problema → confirmar','Reconocer el problema → proponer solución → confirmar','Confirmar → ignorar → proponer solución','Solo disculparse y terminar'], answer:1, explain:'Secuencia STAR de servicio: reconocer, resolver, confirmar.' },
-  k21:{ q:'¿Cuál es una buena frase de cierre de una interacción de servicio?', options:['"Bye."','"Is there anything else I can help you with?"','"That is all, goodbye forever."','"I dont care."'], answer:1, explain:'Un cierre profesional ofrece ayuda adicional antes de terminar.' },
-  k26:{ q:'Para dar una opinión con pensamiento crítico, ¿qué deberías agregar?', options:['Solo "I think..."','"I think... because... for example... although some people might say..."','Nada más, es suficiente decir "yes" o "no"','Repetir la pregunta'], answer:1, explain:'Opinión + justificación + ejemplo + matiz/contraargumento muestra pensamiento crítico real.' }
+// ── INFINITY LANGUAGE ARCADE (reemplaza quiz estático) ─────
+var ARCADE_MODES = {
+  verb: { title:'Verb Hunt', icon:'ti-target-arrow', desc:'Descubrí verbos clave como word reveal.', category:'verb', color:'#0f766e' },
+  structure: { title:'Structure Creator', icon:'ti-blocks', desc:'Ordená bloques para formar la oración.', category:'structure', color:'#5b21b6' },
+  preposition: { title:'Preposition Challenge', icon:'ti-map-pin', desc:'in / on / at / by / to / for en contexto.', category:'preposition', color:'#b45309' },
+  linker: { title:'Linker Quest', icon:'ti-route', desc:'Elegí el conector lógico correcto.', category:'linker', color:'#6d28d9' },
+  phrasal: { title:'Phrasal Master', icon:'ti-puzzle', desc:'Phrasal verbs útiles para trabajo real.', category:'phrasal', color:'#1d4ed8' },
+  frenzy: { title:'Frenzy Mode', icon:'ti-flame', desc:'Mezcla todo y prioriza tus fallos.', category:'mixed', color:'#be123c' }
 };
 
-// Quiz session rotation: avoid repeating the same questions back-to-back
-window._quizUsedKeys = [];
+var ARCADE_BANK = {
+  verb: [
+    { id:'verb-go-past', kpi:'k2', prompt:'Past of GO', clue:'Complete: Yesterday I ___ home.', answer:'went', explain:'GO en pasado es WENT. No es goed.' },
+    { id:'verb-have-pp', kpi:'k3', prompt:'Past participle of HAVE', clue:'Complete: I have ___ a long day.', answer:'had', explain:'Presente perfecto: have + participio. HAVE → HAD.' },
+    { id:'verb-do-past', kpi:'k2', prompt:'Past of DO', clue:'Complete: She ___ the report yesterday.', answer:'did', explain:'DO en pasado es DID.' },
+    { id:'verb-see-pp', kpi:'k3', prompt:'Past participle of SEE', clue:'Complete: I have ___ that before.', answer:'seen', explain:'SEE → SAW → SEEN. Con have se usa SEEN.' },
+    { id:'verb-make-past', kpi:'k2', prompt:'Past of MAKE', clue:'Complete: We ___ a decision.', answer:'made', explain:'MAKE en pasado es MADE.' },
+    { id:'verb-take-pp', kpi:'k3', prompt:'Past participle of TAKE', clue:'Complete: They have ___ the test.', answer:'taken', explain:'TAKE → TOOK → TAKEN.' },
+    { id:'verb-work-ing', kpi:'k2', prompt:'-ING form of WORK', clue:'Complete: I am ___ now.', answer:'working', explain:'Presente continuo: am/is/are + verbo-ing.' },
+    { id:'verb-study-past', kpi:'k2', prompt:'Past of STUDY', clue:'Complete: He ___ last night.', answer:'studied', explain:'Study cambia Y por IED: studied.' }
+  ],
+  structure: [
+    { id:'str-neg-monday', kpi:'k3', prompt:'Armá la oración negativa.', blocks:['on Mondays',"doesn't",'she','work'], answer:['she',"doesn't",'work','on Mondays'], explain:"She + doesn't + verbo base + complemento." },
+    { id:'str-question-live', kpi:'k3', prompt:'Armá la pregunta.', blocks:['live','where','you','do'], answer:['where','do','you','live'], explain:'WH + auxiliar + sujeto + verbo base.' },
+    { id:'str-present-perfect', kpi:'k3', prompt:'Armá la oración en presente perfecto.', blocks:['have','I','finished','the report'], answer:['I','have','finished','the report'], explain:'Sujeto + have + participio + complemento.' },
+    { id:'str-progressive', kpi:'k3', prompt:'Armá la oración en presente continuo.', blocks:['is','she','working','now'], answer:['she','is','working','now'], explain:'Sujeto + to be + verbo-ing.' },
+    { id:'str-because', kpi:'k9', prompt:'Armá una respuesta con razón.', blocks:['because','I','learn','every day','like my job'], answer:['I','like my job','because','I','learn','every day'], explain:'Idea + because + razón concreta.' },
+    { id:'str-question-gym', kpi:'k3', prompt:'Armá la pregunta correcta.', blocks:['he','go','does','to the gym'], answer:['does','he','go','to the gym'], explain:'Does + he + verbo base.' }
+  ],
+  preposition: [
+    { id:'prep-city', kpi:'k4', prompt:'I live ___ San José.', options:['in','on','at','by'], answer:0, explain:'IN + ciudad o país.' },
+    { id:'prep-surface', kpi:'k4', prompt:'The laptop is ___ the table.', options:['in','on','at','to'], answer:1, explain:'ON + superficie.' },
+    { id:'prep-hour', kpi:'k4', prompt:'The meeting starts ___ 5 pm.', options:['in','on','at','for'], answer:2, explain:'AT + hora.' },
+    { id:'prep-transport', kpi:'k4', prompt:'I usually go ___ bus.', options:['in','on','at','by'], answer:3, explain:'BY + medio de transporte.' },
+    { id:'prep-days', kpi:'k4', prompt:'We train ___ Mondays.', options:['in','on','at','to'], answer:1, explain:'ON + días.' },
+    { id:'prep-purpose', kpi:'k4', prompt:'This is ___ my TOEIC preparation.', options:['in','on','for','by'], answer:2, explain:'FOR expresa propósito.' }
+  ],
+  linker: [
+    { id:'link-contrast-apply', kpi:'k8', prompt:'I wanted to apply, ___ I lacked experience.', options:['because','however','therefore','on top of that'], answer:1, explain:'Hay contraste entre querer aplicar y faltar experiencia.' },
+    { id:'link-cause-rain', kpi:'k8', prompt:'I stayed home ___ it was raining.', options:['because','however','therefore','despite'], answer:0, explain:'BECAUSE introduce causa.' },
+    { id:'link-result-prepared', kpi:'k8', prompt:'She prepared well; ___, she passed the interview.', options:['however','as a result','although','besides'], answer:1, explain:'As a result conecta causa con resultado.' },
+    { id:'link-addition', kpi:'k10', prompt:'I improved my grammar. ___, I speak faster now.', options:['However','On top of that','Although','Despite'], answer:1, explain:'On top of that agrega otra idea.' },
+    { id:'link-sequence', kpi:'k8', prompt:'First, we reviewed the brief. ___, we called the client.', options:['Then','Because','Despite','Although'], answer:0, explain:'Then ordena una secuencia.' },
+    { id:'link-nevertheless', kpi:'k8', prompt:'The plan failed; ___, we learned what to fix.', options:['nevertheless','therefore','because','first'], answer:0, explain:'Nevertheless marca contraste: aun así.' }
+  ],
+  phrasal: [
+    { id:'phr-figure-out', kpi:'k12', prompt:'We need to ___ the problem before Friday.', options:['figure out','turn down','look after','give up'], answer:0, explain:'Figure out = resolver / entender.' },
+    { id:'phr-set-up', kpi:'k12', prompt:'Can you ___ the meeting for tomorrow?', options:['set up','look for','turn off','get by'], answer:0, explain:'Set up = organizar / configurar.' },
+    { id:'phr-follow-up', kpi:'k21', prompt:'I will ___ with the client after the call.', options:['follow up','give in','take off','run out'], answer:0, explain:'Follow up = dar seguimiento.' },
+    { id:'phr-look-for', kpi:'k12', prompt:'I am ___ a better job opportunity.', options:['looking for','turning down','setting up','checking out'], answer:0, explain:'Look for = buscar.' },
+    { id:'phr-turn-down', kpi:'k12', prompt:'She had to ___ the offer because of the schedule.', options:['turn down','look up','set up','come across'], answer:0, explain:'Turn down = rechazar.' },
+    { id:'phr-run-out', kpi:'k13', prompt:'We ___ time during the interview.', options:['ran out of','looked for','set up','turned down'], answer:0, explain:'Run out of = quedarse sin algo.' }
+  ]
+};
 
-function generateQuizForStudent(s, allowRepeat){
-  var allKeys = Object.keys(QUIZ_BANK);
+window._arcadeState = null;
+window._arcadeSeen = window._arcadeSeen || [];
 
-  // Identify weak KPIs from recent quiz history (< 70% in last 10 quizzes)
-  var kpiRecord = {};
-  (s.quizzes||[]).slice(-10).forEach(function(q){
-    (q.kpiResults||[]).forEach(function(r){
-      if(!kpiRecord[r.kpi]) kpiRecord[r.kpi] = {ok:0,fail:0};
-      r.correct ? kpiRecord[r.kpi].ok++ : kpiRecord[r.kpi].fail++;
+function arcadeEsc(s){
+  return String(s || '').replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function arcadeShuffle(arr){
+  var a = (arr || []).slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function ensureArcadePressureStyles(){
+  if(document.getElementById('language-arcade-pressure-styles')) return;
+  var st = document.createElement('style');
+  st.id = 'language-arcade-pressure-styles';
+  st.textContent = ''
+    + '@keyframes arcadeScanSweep{0%{transform:translateX(-120%);opacity:.1}45%{opacity:.65}100%{transform:translateX(120%);opacity:.1}}'
+    + '@keyframes arcadeFocusPulse{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(.92);opacity:.95}}'
+    + '@keyframes arcadeGridDrift{0%{background-position:0 0,0 0}100%{background-position:48px 0,0 48px}}'
+    + '@keyframes arcadeDotBlink{0%,100%{opacity:.35}50%{opacity:1}}'
+    + '.arcade-pressure{position:relative;margin:0 0 12px;border-radius:16px;padding:12px;overflow:hidden;background:rgba(15,23,42,.58);border:1px solid rgba(196,181,253,.28);box-shadow:inset 0 0 26px rgba(124,58,237,.18)}'
+    + '.arcade-pressure:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(196,181,253,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(196,181,253,.12) 1px,transparent 1px);background-size:24px 24px;animation:arcadeGridDrift 7s linear infinite;opacity:.5}'
+    + '.arcade-pressure:after{content:"";position:absolute;top:0;bottom:0;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:arcadeScanSweep 2.8s ease-in-out infinite}'
+    + '.arcade-focus-ring{position:absolute;right:14px;top:50%;width:42px;height:42px;margin-top:-21px;border-radius:50%;border:2px solid rgba(196,181,253,.7);box-shadow:0 0 0 8px rgba(196,181,253,.08),0 0 22px rgba(196,181,253,.45);animation:arcadeFocusPulse 1.65s ease-in-out infinite}'
+    + '.arcade-focus-ring:before,.arcade-focus-ring:after{content:"";position:absolute;background:rgba(196,181,253,.85)}'
+    + '.arcade-focus-ring:before{left:50%;top:-8px;width:2px;height:56px;margin-left:-1px}'
+    + '.arcade-focus-ring:after{top:50%;left:-8px;height:2px;width:56px;margin-top:-1px}'
+    + '.arcade-pressure-inner{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding-right:62px}'
+    + '.arcade-pressure-dot{width:9px;height:9px;border-radius:50%;background:#c4b5fd;box-shadow:0 0 14px rgba(196,181,253,.9);animation:arcadeDotBlink 1.1s ease-in-out infinite}'
+    + '.arcade-pressure-copy{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#ddd6fe;font-weight:900;line-height:1.35}'
+    + '.arcade-pressure-copy span{display:block;font-size:11px;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.68);font-weight:700;margin-top:2px}';
+  document.head.appendChild(st);
+}
+
+function arcadeQuestionKey(q){
+  return q && (q.id || ((q.category || '') + ':' + (q.prompt || q.clue || '')));
+}
+
+function arcadeCategoryLabel(cat){
+  return ({
+    verb:'Verb Hunt',
+    structure:'Structure Creator',
+    preposition:'Preposition Challenge',
+    linker:'Linker Quest',
+    phrasal:'Phrasal Master'
+  })[cat] || cat;
+}
+
+function arcadeAllQuestions(){
+  var out = [];
+  Object.keys(ARCADE_BANK).forEach(function(cat){
+    ARCADE_BANK[cat].forEach(function(q){
+      out.push(Object.assign({ category:cat }, q));
     });
   });
-  var weakKpis = Object.keys(kpiRecord).filter(function(k){
-    var rec = kpiRecord[k];
-    return rec.fail > rec.ok; // more failures than successes
+  return out;
+}
+
+function arcadeWeakCategories(s){
+  var counts = {};
+  var hist = ((s && s.quizzes) || []).slice(-10);
+  hist.forEach(function(q){
+    (q.kpiResults || []).forEach(function(r){
+      var cat = r.category || '';
+      if(!cat) return;
+      if(!counts[cat]) counts[cat] = { ok:0, fail:0 };
+      r.correct ? counts[cat].ok++ : counts[cat].fail++;
+    });
+  });
+  var stored = (s && s.arcadeWeakCategories) || {};
+  Object.keys(stored).forEach(function(cat){
+    if(!counts[cat]) counts[cat] = { ok:0, fail:0 };
+    counts[cat].fail += stored[cat] || 0;
+  });
+  return Object.keys(counts).filter(function(cat){ return counts[cat].fail > counts[cat].ok; });
+}
+
+function arcadeLettersFor(answer){
+  var base = String(answer || '').toUpperCase().replace(/[^A-Z]/g,'').split('');
+  var letters = {};
+  base.forEach(function(ch){ letters[ch] = true; });
+  'ETAOINSHRDLU'.split('').forEach(function(ch){
+    if(Object.keys(letters).length < 10) letters[ch] = true;
+  });
+  return arcadeShuffle(Object.keys(letters));
+}
+
+function generateQuizForStudent(s, allowRepeat){
+  return pickArcadeQuestions('frenzy', s || CURRENT_STUDENT, 8, allowRepeat);
+}
+
+function pickArcadeQuestions(mode, s, count, allowRepeat){
+  count = count || (mode === 'frenzy' ? 8 : 6);
+  var cats = mode === 'frenzy'
+    ? ['verb','structure','preposition','linker','phrasal']
+    : [(ARCADE_MODES[mode] && ARCADE_MODES[mode].category) || mode];
+  var seen = allowRepeat ? [] : ((s && s.arcadeSeen) || window._arcadeSeen || []);
+  var weak = arcadeWeakCategories(s);
+  var pool = [];
+  var used = {};
+
+  function push(q){
+    var key = arcadeQuestionKey(q);
+    if(!q || !key || used[key]) return;
+    if(!allowRepeat && seen.indexOf(key) >= 0) return;
+    used[key] = true;
+    pool.push(q);
+  }
+
+  weak.forEach(function(cat){
+    if(cats.indexOf(cat) >= 0) arcadeShuffle(ARCADE_BANK[cat] || []).forEach(function(q){ push(Object.assign({ category:cat }, q)); });
   });
 
-  // Assigned exercise KPIs
-  var tbKpis = (s.trainingBook||[]).map(function(ex){
-    var m=(ex.kpi||'').match(/k(\d+)/); return m?('k'+m[1]):null;
-  }).filter(Boolean);
-
-  var exclude = allowRepeat ? [] : window._quizUsedKeys;
-  var pool = [];
-
-  // Priority 1: weak KPIs not recently used
-  weakKpis.forEach(function(k){ if(QUIZ_BANK[k] && pool.indexOf(k)===-1 && exclude.indexOf(k)===-1) pool.push(k); });
-  // Priority 2: assigned KPIs not recently used
-  tbKpis.forEach(function(k){ if(QUIZ_BANK[k] && pool.indexOf(k)===-1 && exclude.indexOf(k)===-1) pool.push(k); });
-  // Fill remainder randomly from unused
-  var tries=0;
-  while(pool.length<8 && tries<300){
-    var r=allKeys[Math.floor(Math.random()*allKeys.length)];
-    if(pool.indexOf(r)===-1 && exclude.indexOf(r)===-1) pool.push(r);
-    tries++;
-  }
-  // If bank is exhausted, allow repeats
-  if(pool.length<8){
-    tries=0;
-    while(pool.length<8 && pool.length<allKeys.length && tries<100){
-      var r2=allKeys[Math.floor(Math.random()*allKeys.length)];
-      if(pool.indexOf(r2)===-1) pool.push(r2);
-      tries++;
+  if(mode === 'frenzy'){
+    var catOrder = arcadeShuffle(cats);
+    while(pool.length < count && catOrder.length){
+      catOrder.forEach(function(cat){
+        if(pool.length >= count) return;
+        arcadeShuffle(ARCADE_BANK[cat] || []).forEach(function(q){
+          if(pool.length < count) push(Object.assign({ category:cat }, q));
+        });
+      });
+      if(pool.length < count && !allowRepeat){
+        seen = [];
+        allowRepeat = true;
+      } else break;
     }
+  } else {
+    arcadeShuffle(ARCADE_BANK[cats[0]] || []).forEach(function(q){ push(Object.assign({ category:cats[0] }, q)); });
   }
 
-  pool = pool.slice(0,8);
-  window._quizUsedKeys = pool.slice(); // remember for next rotation
-  return pool.map(function(k){ return Object.assign({kpi:k}, QUIZ_BANK[k]); });
+  if(pool.length < count){
+    var fallback = mode === 'frenzy' ? arcadeAllQuestions() : (ARCADE_BANK[cats[0]] || []).map(function(q){ return Object.assign({ category:cats[0] }, q); });
+    arcadeShuffle(fallback).forEach(function(q){
+      if(pool.length < count){
+        var key = arcadeQuestionKey(q);
+        if(!used[key]){ used[key] = true; pool.push(q); }
+      }
+    });
+  }
+
+  var picked = pool.slice(0, count);
+  var pickedKeys = picked.map(arcadeQuestionKey);
+  window._arcadeSeen = pickedKeys.concat(window._arcadeSeen || []).slice(0, 40);
+  if(s){
+    s.arcadeSeen = pickedKeys.concat(s.arcadeSeen || []).slice(0, 40);
+  }
+  return picked;
 }
 
 function _buildQuizHTML(quiz, containerId){
-  return '<div class="ib ib-navy" style="margin-bottom:8px;">Quiz de práctica — '+quiz.length+' preguntas. <strong>No afecta tus KPIs</strong>, es solo para practicar.</div>'
-    + quiz.map(function(item,i){
-        return '<div class="card" style="margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:8px;">'+(i+1)+'. '+item.q+'</div>'
-          + item.options.map(function(opt,j){
-              return '<label style="display:block;font-size:13px;padding:6px 0;cursor:pointer;"><input type="radio" name="quiz-q'+i+'" value="'+j+'" style="margin-right:8px;">'+opt+'</label>';
-            }).join('')
-          + '</div>';
-      }).join('')
-    + '<div style="display:flex;justify-content:flex-end;">'
-    +   '<button class="btn btn-navy" onclick="submitQuiz(\''+containerId+'\')"><i class="ti ti-check"></i>Enviar respuestas</button>'
-    + '</div>'
-    + '<div id="'+containerId+'-result" style="margin-top:10px;"></div>';
+  return renderArcadeMenuHtml(containerId);
 }
 
 function renderQuizWidget(containerId){
-  var s = CURRENT_STUDENT;
-  var quiz = generateQuizForStudent(s, false);
-  window._currentQuiz = quiz;
-  var c = document.getElementById(containerId);
-  if(!c) return;
-  c.innerHTML = _buildQuizHTML(quiz, containerId);
+  renderArcadeMenu(containerId);
 }
 
 function repeatQuiz(containerId){
-  var quiz = window._currentQuiz||[];
-  if(!quiz.length){ renderQuizWidget(containerId); return; }
-  var c = document.getElementById(containerId);
-  if(!c) return;
-  c.innerHTML = _buildQuizHTML(quiz, containerId);
+  var st = window._arcadeState;
+  if(st && st.mode) startArcadeMode(st.mode, containerId);
+  else renderArcadeMenu(containerId);
 }
 
-async function submitQuiz(containerId){
-  var quiz = window._currentQuiz||[];
-  var correct=0;
-  var kpiResults=[];
-  var detailHtml = quiz.map(function(item,i){
-    var sel = document.querySelector('input[name="quiz-q'+i+'"]:checked');
-    var selVal = sel ? parseInt(sel.value) : -1;
-    var isCorrect = selVal===item.answer;
-    if(isCorrect) correct++;
-    kpiResults.push({ kpi:item.kpi, correct:isCorrect });
-    return '<div style="background:'+(isCorrect?'var(--gb)':'var(--rb)')+';border-radius:var(--r);padding:8px 10px;margin-bottom:6px;font-size:12px;">'
-      +'<strong>'+(i+1)+'. '+(isCorrect?'✓ Correcto':'✗ '+(selVal===-1?'Sin responder':'Incorrecto'))+'</strong> — '
-      +'<em>'+item.options[item.answer]+'</em>'
-      +'<div style="margin-top:4px;color:var(--text);">'+item.explain+'</div></div>';
-  }).join('');
+function submitQuiz(containerId){
+  if(window._arcadeState) finishArcadeRound(containerId || window._arcadeState.containerId);
+}
 
-  var score = Math.round((correct/quiz.length)*100);
-  var missedKpis = kpiResults.filter(function(r){return !r.correct;}).map(function(r){return r.kpi;});
-  var medal = score===100?'🏆':score>=75?'⭐':score>=50?'📈':'💪';
-  var msg = score===100?'¡Perfecto! Dominás estos temas.'
-    :score>=75?'¡Muy bien! Repasá los que fallaste.'
-    :score>=50?'Vas progresando. El nuevo quiz priorizará los temas débiles.'
-    :'Estos temas necesitan más práctica — Jill los va a reforzar.';
+function renderArcadeMenuHtml(containerId){
+  var s = CURRENT_STUDENT || {};
+  var weak = arcadeWeakCategories(s);
+  var last = (s.quizzes || []).slice().reverse().find(function(q){ return q.mode === 'language-arcade'; });
+  return '<div class="ib ib-navy" style="margin-bottom:10px;"><strong>Infinity Language Arcade</strong> — 6 modos de práctica. No afecta KPI oficial, pero sí alimenta refuerzos para Jill/Alice.</div>'
+    + (weak.length ? '<div class="ib ib-amber" style="margin-bottom:10px;">Frenzy priorizará: '+weak.map(arcadeCategoryLabel).join(' · ')+'</div>' : '')
+    + (last ? '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Última ronda: '+arcadeEsc(last.arcadeMode || 'Arcade')+' · '+last.correct+'/'+last.total+' · '+last.score+'%</div>' : '')
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">'
+    + Object.keys(ARCADE_MODES).map(function(key){
+      var m = ARCADE_MODES[key];
+      return '<button type="button" onclick="startArcadeMode(\''+key+'\',\''+containerId+'\')" style="text-align:left;border:1px solid rgba(91,33,182,0.18);background:linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,248,255,0.95));border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(91,33,182,0.08);">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;color:'+m.color+';font-weight:900;"><i class="ti '+m.icon+'" style="font-size:20px;"></i>'+m.title+'</div>'
+        + '<div style="font-size:12px;color:var(--t2);line-height:1.45;">'+m.desc+'</div>'
+        + '</button>';
+    }).join('')
+    + '</div>';
+}
 
-  document.getElementById(containerId+'-result').innerHTML =
-    '<div class="card">'
-    +'<div style="text-align:center;font-size:36px;margin-bottom:4px;">'+medal+'</div>'
-    +'<div style="text-align:center;font-size:28px;font-weight:800;color:var(--navy);">'+correct+'/'+quiz.length+' <span style="font-size:16px;color:var(--t3);">('+score+'%)</span></div>'
-    +'<div style="font-size:12px;color:var(--t2);text-align:center;margin-bottom:12px;">'+msg+'</div>'
-    + detailHtml
-    +'<div style="display:flex;gap:8px;margin-top:14px;justify-content:center;">'
-    +'<button class="btn" style="background:#e5e7eb;color:#374151;" onclick="repeatQuiz(\''+containerId+'\')"><i class="ti ti-refresh"></i> Repetir este quiz</button>'
-    +'<button class="btn btn-navy" onclick="renderQuizWidget(\''+containerId+'\')"><i class="ti ti-arrows-shuffle"></i> Nuevo quiz</button>'
-    +'</div>'
-    +'</div>';
+function renderArcadeMenu(containerId){
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  ensureArcadePressureStyles();
+  window._arcadeState = null;
+  c.innerHTML = renderArcadeMenuHtml(containerId);
+}
 
-  // Save to student record with per-KPI breakdown so Jill/Alice can target weak areas
+function startArcadeMode(mode, containerId){
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  var m = ARCADE_MODES[mode] || ARCADE_MODES.frenzy;
+  var s = CURRENT_STUDENT || {};
+  var quiz = pickArcadeQuestions(mode, s, mode === 'frenzy' ? 8 : 6, false);
+  window._currentQuiz = quiz;
+  window._arcadeState = {
+    mode: mode,
+    modeTitle: m.title,
+    containerId: containerId,
+    quiz: quiz,
+    idx: 0,
+    correct: 0,
+    streak: 0,
+    bestStreak: 0,
+    results: [],
+    verbLetters: [],
+    wrongLetters: [],
+    attemptsLeft: 6,
+    selectedBlocks: []
+  };
+  renderArcadeRound(window._arcadeState);
+}
+
+function arcadeProgressText(st){
+  var q = st.quiz[st.idx];
+  if(q.category !== 'verb') return '';
+  var guessed = {};
+  (st.verbLetters || []).forEach(function(ch){ guessed[ch] = true; });
+  return String(q.answer || '').toUpperCase().split('').map(function(ch){
+    return /[A-Z]/.test(ch) ? (guessed[ch] ? ch : '_') : ch;
+  }).join(' ');
+}
+
+function renderArcadeRound(st){
+  var c = document.getElementById(st.containerId);
+  if(!c) return;
+  ensureArcadePressureStyles();
+  var q = st.quiz[st.idx];
+  if(!q){ finishArcadeRound(st.containerId); return; }
+  st.verbLetters = [];
+  st.wrongLetters = [];
+  st.attemptsLeft = 6;
+  st.selectedBlocks = [];
+  st.answered = false;
+  c.innerHTML = arcadeRoundShell(st, q, arcadeQuestionBody(st, q));
+}
+
+function arcadeRoundShell(st, q, body){
+  var m = ARCADE_MODES[st.mode] || ARCADE_MODES.frenzy;
+  return '<div style="background:linear-gradient(160deg,#111827,#1e1b4b,#312e81);border-radius:20px;padding:1.2rem;color:white;border:1px solid rgba(196,181,253,0.35);box-shadow:0 10px 28px rgba(30,27,75,0.25);">'
+    + '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;">'
+    + '<div><div style="font-size:10px;letter-spacing:.2em;color:#c4b5fd;font-weight:800;">INFINITY LANGUAGE ARCADE</div>'
+    + '<div style="font-size:24px;font-weight:900;color:white;">'+arcadeEsc(st.modeTitle)+'</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,0.72);">'+arcadeEsc(arcadeCategoryLabel(q.category))+' · '+(st.idx+1)+'/'+st.quiz.length+' · racha '+st.streak+'</div></div>'
+    + '<button type="button" onclick="renderArcadeMenu(\''+st.containerId+'\')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;border-radius:10px;padding:7px 12px;cursor:pointer;font-size:12px;">Menú</button>'
+    + '</div>'
+    + arcadePressureHtml(st, q)
+    + body
+    + '<div id="'+st.containerId+'-result" style="margin-top:12px;"></div>'
+    + '</div>';
+}
+
+function arcadePressureHtml(st, q){
+  var mode = (st.mode === 'frenzy') ? 'Frenzy focus' : arcadeCategoryLabel(q.category);
+  var hint = q.category === 'verb'
+    ? 'La retícula busca la palabra. No espere a sentirse listo.'
+    : (q.category === 'structure'
+      ? 'El orden se cierra. Arme la frase antes de pensarlo demasiado.'
+      : 'El scanner ya está encima de la respuesta. Elija con criterio.');
+  return '<div class="arcade-pressure" aria-hidden="true">'
+    + '<div class="arcade-focus-ring"></div>'
+    + '<div class="arcade-pressure-inner">'
+    + '<div class="arcade-pressure-dot"></div>'
+    + '<div class="arcade-pressure-copy">FOCUS LOCK · '+arcadeEsc(mode)+'<span>'+arcadeEsc(hint)+'</span></div>'
+    + '</div></div>';
+}
+
+function arcadeQuestionBody(st, q){
+  if(q.category === 'verb') return arcadeVerbBody(st, q);
+  if(q.category === 'structure') return arcadeStructureBody(st, q);
+  return arcadeChoiceBody(st, q);
+}
+
+function arcadeVerbBody(st, q){
+  var letters = arcadeLettersFor(q.answer);
+  return '<div style="background:rgba(255,255,255,0.96);color:#111827;border-radius:18px;padding:18px;text-align:center;">'
+    + '<div style="font-size:12px;color:#6d28d9;font-weight:900;letter-spacing:.08em;margin-bottom:6px;">VERB HUNT</div>'
+    + '<div style="font-size:18px;font-weight:900;margin-bottom:6px;">'+arcadeEsc(q.prompt)+'</div>'
+    + '<div style="font-size:13px;color:#4b5563;margin-bottom:14px;">'+arcadeEsc(q.clue)+'</div>'
+    + '<div id="arcade-word" style="font-family:monospace;font-size:30px;font-weight:900;letter-spacing:6px;color:#1e1b4b;margin-bottom:12px;">'+arcadeProgressText(st)+'</div>'
+    + '<div id="arcade-attempts" style="font-size:12px;color:#b45309;font-weight:800;margin-bottom:12px;">Intentos: '+st.attemptsLeft+'</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;">'
+    + letters.map(function(ch){ return '<button type="button" data-letter="'+ch+'" onclick="arcadeGuessLetter(this.dataset.letter)" style="width:38px;height:38px;border-radius:10px;border:1px solid #c4b5fd;background:#ede9fe;color:#4c1d95;font-weight:900;cursor:pointer;">'+ch+'</button>'; }).join('')
+    + '</div></div>';
+}
+
+function arcadeStructureBody(st, q){
+  var blocks = arcadeShuffle(q.blocks || []);
+  st.blockPool = blocks;
+  return '<div style="background:rgba(255,255,255,0.96);color:#111827;border-radius:18px;padding:18px;">'
+    + '<div style="font-size:12px;color:#6d28d9;font-weight:900;letter-spacing:.08em;margin-bottom:6px;text-align:center;">STRUCTURE CREATOR</div>'
+    + '<div style="font-size:17px;font-weight:900;margin-bottom:12px;text-align:center;">'+arcadeEsc(q.prompt)+'</div>'
+    + '<div id="arcade-build" style="min-height:52px;border:2px dashed #c4b5fd;border-radius:14px;padding:10px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><span style="font-size:12px;color:#6b7280;">Tocá bloques para construir...</span></div>'
+    + '<div id="arcade-blocks" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">'
+    + blocks.map(function(b,i){ return '<button type="button" data-idx="'+i+'" onclick="arcadePickBlock('+i+')" style="background:#5b21b6;color:white;border:none;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer;">'+arcadeEsc(b)+'</button>'; }).join('')
+    + '</div>'
+    + '<div style="display:flex;gap:8px;justify-content:center;"><button type="button" onclick="arcadeUndoBlock()" class="btn btn-outline">Deshacer</button><button type="button" onclick="arcadeSubmitBuild()" class="btn btn-navy">Revisar estructura</button></div>'
+    + '</div>';
+}
+
+function arcadeChoiceBody(st, q){
+  return '<div style="background:rgba(255,255,255,0.96);color:#111827;border-radius:18px;padding:18px;text-align:center;">'
+    + '<div style="font-size:12px;color:#6d28d9;font-weight:900;letter-spacing:.08em;margin-bottom:6px;">'+arcadeEsc(arcadeCategoryLabel(q.category)).toUpperCase()+'</div>'
+    + '<div style="font-size:18px;font-weight:900;line-height:1.45;margin-bottom:14px;">'+arcadeEsc(q.prompt)+'</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">'
+    + (q.options || []).map(function(opt,i){
+      return '<button type="button" onclick="arcadeChooseOption('+i+')" style="background:#f8fafc;border:2px solid #ddd6fe;color:#1f2937;border-radius:14px;padding:13px 10px;font-weight:900;cursor:pointer;">'+arcadeEsc(opt)+'</button>';
+    }).join('')
+    + '</div></div>';
+}
+
+function arcadeGuessLetter(letter){
+  var st = window._arcadeState; if(!st) return;
+  var q = st.quiz[st.idx]; if(!q || q.category !== 'verb') return;
+  letter = String(letter || '').toUpperCase();
+  var ans = String(q.answer || '').toUpperCase();
+  if(ans.indexOf(letter) >= 0){
+    if(st.verbLetters.indexOf(letter) < 0) st.verbLetters.push(letter);
+  } else {
+    if(st.wrongLetters.indexOf(letter) < 0){ st.wrongLetters.push(letter); st.attemptsLeft--; }
+  }
+  var word = document.getElementById('arcade-word');
+  var attempts = document.getElementById('arcade-attempts');
+  if(word) word.textContent = arcadeProgressText(st);
+  if(attempts) attempts.textContent = 'Intentos: ' + st.attemptsLeft + (st.wrongLetters.length ? ' · fallos: ' + st.wrongLetters.join(', ') : '');
+  var solved = ans.replace(/[^A-Z]/g,'').split('').every(function(ch){ return st.verbLetters.indexOf(ch) >= 0; });
+  if(solved) arcadeFinishQuestion(true, q.answer);
+  else if(st.attemptsLeft <= 0) arcadeFinishQuestion(false, '');
+}
+
+function arcadePickBlock(idx){
+  var st = window._arcadeState; if(!st || !st.blockPool) return;
+  if(st.selectedBlocks.indexOf(idx) >= 0) return;
+  st.selectedBlocks.push(idx);
+  arcadeRenderBuild();
+}
+
+function arcadeUndoBlock(){
+  var st = window._arcadeState; if(!st) return;
+  st.selectedBlocks.pop();
+  arcadeRenderBuild();
+}
+
+function arcadeRenderBuild(){
+  var st = window._arcadeState; if(!st) return;
+  var build = document.getElementById('arcade-build');
+  var blocks = document.getElementById('arcade-blocks');
+  if(build){
+    var selected = st.selectedBlocks.map(function(i){ return st.blockPool[i]; });
+    build.innerHTML = selected.length
+      ? selected.map(function(b){ return '<span style="background:#ede9fe;color:#4c1d95;border-radius:10px;padding:8px 10px;font-weight:900;">'+arcadeEsc(b)+'</span>'; }).join('')
+      : '<span style="font-size:12px;color:#6b7280;">Tocá bloques para construir...</span>';
+  }
+  if(blocks){
+    blocks.querySelectorAll('button[data-idx]').forEach(function(btn){
+      var i = parseInt(btn.getAttribute('data-idx'),10);
+      btn.disabled = st.selectedBlocks.indexOf(i) >= 0;
+      btn.style.opacity = btn.disabled ? '0.35' : '1';
+    });
+  }
+}
+
+function arcadeSubmitBuild(){
+  var st = window._arcadeState; if(!st) return;
+  var q = st.quiz[st.idx];
+  var built = st.selectedBlocks.map(function(i){ return st.blockPool[i]; });
+  var correct = (q.answer || []).join(' ').toLowerCase() === built.join(' ').toLowerCase();
+  arcadeFinishQuestion(correct, built.join(' '));
+}
+
+function arcadeChooseOption(idx){
+  var st = window._arcadeState; if(!st) return;
+  var q = st.quiz[st.idx];
+  arcadeFinishQuestion(idx === q.answer, (q.options || [])[idx] || '');
+}
+
+function arcadeFinishQuestion(correct, response){
+  var st = window._arcadeState; if(!st) return;
+  if(st.answered) return;
+  st.answered = true;
+  var q = st.quiz[st.idx];
+  var answerText = q.category === 'structure' ? (q.answer || []).join(' ') : (q.category === 'verb' ? q.answer : ((q.options || [])[q.answer] || ''));
+  if(correct){ st.correct++; st.streak++; st.bestStreak = Math.max(st.bestStreak, st.streak); }
+  else st.streak = 0;
+  st.results.push({ kpi:q.kpi || 'k10', category:q.category, correct:!!correct, prompt:q.prompt || q.clue || '', answer:answerText, response:response || '' });
+  var box = document.getElementById(st.containerId + '-result');
+  if(!box) return;
+  box.innerHTML = '<div style="background:'+(correct?'rgba(16,185,129,0.18)':'rgba(245,158,11,0.18)')+';border:1px solid '+(correct?'rgba(16,185,129,0.45)':'rgba(245,158,11,0.45)')+';border-radius:14px;padding:12px;text-align:center;">'
+    + '<div style="font-size:22px;margin-bottom:4px;">'+(correct?'✓':'×')+'</div>'
+    + '<div style="font-weight:900;color:white;margin-bottom:6px;">'+(correct?'Correcto':'Correcta: '+arcadeEsc(answerText))+'</div>'
+    + '<div style="font-size:12px;color:rgba(255,255,255,0.78);line-height:1.5;margin-bottom:10px;">'+arcadeEsc(q.explain || '')+'</div>'
+    + '<button type="button" class="btn btn-navy" onclick="arcadeNextQuestion()">'+(st.idx+1<st.quiz.length?'Siguiente':'Ver resultado')+'</button>'
+    + '</div>';
+}
+
+function arcadeNextQuestion(){
+  var st = window._arcadeState; if(!st) return;
+  st.idx++;
+  if(st.idx >= st.quiz.length) finishArcadeRound(st.containerId);
+  else renderArcadeRound(st);
+}
+
+async function finishArcadeRound(containerId){
+  var st = window._arcadeState; if(!st) return;
+  var correct = st.correct;
+  var total = st.quiz.length || 1;
+  var score = Math.round((correct / total) * 100);
+  var failedCats = {};
+  st.results.forEach(function(r){ if(!r.correct) failedCats[r.category] = (failedCats[r.category] || 0) + 1; });
+  try {
+    await saveArcadeResult(st, score);
+  } catch(e) {
+    if(typeof showToast === 'function') showToast('Resultado local guardado; sincronización pendiente.','warn');
+  }
+  var medal = score===100?'🏆':score>=80?'⭐':score>=60?'📈':'🎯';
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = '<div class="card" style="text-align:center;">'
+    + '<div style="font-size:42px;margin-bottom:4px;">'+medal+'</div>'
+    + '<div style="font-size:12px;color:var(--purple);font-weight:900;letter-spacing:.12em;">INFINITY LANGUAGE ARCADE</div>'
+    + '<div style="font-size:28px;font-weight:900;color:var(--navy);">'+correct+'/'+total+' <span style="font-size:16px;color:var(--t3);">('+score+'%)</span></div>'
+    + '<div style="font-size:13px;color:var(--t2);margin:8px auto 12px;max-width:460px;">'+(score>=80?'Buen control. Subí el nivel con Frenzy Mode.':'Detectamos refuerzos. Jill/Alice pueden usar estos fallos en tu próxima práctica.')+'</div>'
+    + (Object.keys(failedCats).length ? '<div class="ib ib-amber" style="text-align:left;margin-bottom:12px;">Refuerzo detectado: '+Object.keys(failedCats).map(arcadeCategoryLabel).join(' · ')+'</div>' : '<div class="ib ib-green" style="text-align:left;margin-bottom:12px;">Sin categorías débiles en esta ronda.</div>')
+    + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
+    + '<button class="btn btn-navy" onclick="startArcadeMode(\''+st.mode+'\',\''+containerId+'\')"><i class="ti ti-refresh"></i> Otra ronda</button>'
+    + '<button class="btn btn-outline" onclick="renderArcadeMenu(\''+containerId+'\')"><i class="ti ti-grid-dots"></i> Cambiar modo</button>'
+    + '<button class="btn btn-outline" onclick="startArcadeMode(\'frenzy\',\''+containerId+'\')"><i class="ti ti-flame"></i> Frenzy Mode</button>'
+    + '</div></div>';
+}
+
+async function saveArcadeResult(st, score){
   var s = CURRENT_STUDENT;
-  if(!s.quizzes) s.quizzes=[];
-  s.quizzes.push({ date:new Date().toISOString(), correct, total:quiz.length, score, kpiResults, kpis:quiz.map(function(q){return q.kpi;}) });
-  // Keep a rolling summary of weak KPIs for Jill to read on session start
+  if(!s) return;
+  if(!s.quizzes) s.quizzes = [];
+  if(!s.arcadeWeakCategories) s.arcadeWeakCategories = {};
+  var kpiResults = st.results.map(function(r){ return { kpi:r.kpi, correct:r.correct, category:r.category }; });
+  st.results.forEach(function(r){
+    if(!r.correct) s.arcadeWeakCategories[r.category] = (s.arcadeWeakCategories[r.category] || 0) + 1;
+    else if(s.arcadeWeakCategories[r.category]) s.arcadeWeakCategories[r.category] = Math.max(0, s.arcadeWeakCategories[r.category] - 1);
+  });
+  s.quizzes.push({
+    date:new Date().toISOString(),
+    mode:'language-arcade',
+    arcadeMode:st.modeTitle,
+    correct:st.correct,
+    total:st.quiz.length,
+    score:score,
+    kpiResults:kpiResults,
+    categories:st.results.map(function(r){ return r.category; }),
+    kpis:st.results.map(function(r){ return r.kpi; })
+  });
   var kpiAccum = {};
-  (s.quizzes||[]).slice(-10).forEach(function(q){
-    (q.kpiResults||[]).forEach(function(r){
-      if(!kpiAccum[r.kpi]) kpiAccum[r.kpi]={ok:0,fail:0};
+  (s.quizzes || []).slice(-10).forEach(function(q){
+    (q.kpiResults || []).forEach(function(r){
+      if(!kpiAccum[r.kpi]) kpiAccum[r.kpi] = { ok:0, fail:0 };
       r.correct ? kpiAccum[r.kpi].ok++ : kpiAccum[r.kpi].fail++;
     });
   });
   s.quizWeakKpis = Object.keys(kpiAccum).filter(function(k){ return kpiAccum[k].fail > kpiAccum[k].ok; });
-  await dbSet('infinity_students', s.id, s);
+  if(s.id && typeof dbSet === 'function') await dbSet('infinity_students', s.id, s);
 }
 // ── ALICE — Tutora de inglés con voz ─────────────────────
 var ALICE_BACKEND = 'https://alice-by-infinity.onrender.com/alice';
 var INFINITY_API = 'https://alice-by-infinity.onrender.com';
 var ALICE_SECRET = 'otro-secreto-distinto-2026';
+
+var _claireState = {
+  history: [],
+  sessionActive: false,
+  sending: false,
+  sessionId: null
+};
+
+function claireEscapeHtml(s){
+  return String(s || '').replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function claireFormatMessagesHtml(){
+  if(!_claireState.history.length){
+    return '<div style="text-align:center;color:rgba(255,255,255,0.55);font-size:13px;padding:18px;">Iniciá Claire TOEIC para diagnóstico, Listening, Reading y plan de práctica.</div>';
+  }
+  return _claireState.history.map(function(m){
+    var isClaire = m.role === 'assistant';
+    return '<div style="display:flex;justify-content:'+(isClaire?'flex-start':'flex-end')+';">'
+      +'<div style="max-width:86%;background:'+(isClaire?'rgba(91,33,182,0.18)':'rgba(255,255,255,0.92)')+';border:1px solid '+(isClaire?'rgba(167,139,250,0.35)':'rgba(255,255,255,0.65)')+';color:'+(isClaire?'#f5f3ff':'#111827')+';border-radius:16px;padding:10px 13px;font-size:13px;line-height:1.55;text-align:left;">'
+      +claireEscapeHtml(m.content).replace(/\n/g,'<br>')
+      +'</div></div>';
+  }).join('');
+}
+
+function renderClaire(){
+  var root = document.getElementById('claire-root');
+  if(!root) return;
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  if(!studentClaireOn(s)){
+    root.innerHTML = '<div class="card" style="text-align:center;font-size:13px;color:var(--t2);">Claire TOEIC no está activa en esta cuenta.</div>';
+    return;
+  }
+  var hasSession = _claireState.sessionActive;
+  root.innerHTML =
+    '<div style="background:linear-gradient(160deg,#2e1065,#5b21b6,#7c3aed);border-radius:20px;padding:1.5rem;color:white;box-shadow:0 8px 32px rgba(91,33,182,0.42);border:1px solid rgba(196,181,253,0.38);">'
+    +'<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:1.1rem;">'
+    +'<div><div style="font-size:10px;letter-spacing:0.22em;color:#ddd6fe;font-weight:800;">STUDIO INFINITY CR</div>'
+    +'<div style="font-size:28px;font-weight:900;color:white;letter-spacing:0.04em;">CLAIRE TOEIC</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.86);">Coach TOEIC autónoma — diagnóstico, práctica y score plan</div></div>'
+    +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);display:flex;align-items:center;justify-content:center;font-size:22px;"><i class="ti ti-headphones"></i></div>'
+    +'</div>'
+    +(!hasSession
+      ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:14px;padding:1rem;margin-bottom:1rem;font-size:13px;line-height:1.7;color:rgba(255,255,255,0.9);"><strong>Claire prepara TOEIC de punta a punta.</strong> Diagnostica tu meta, detecta tu punto débil, te entrena con Listening/Reading y te da el siguiente ejercicio.</div>'
+      : '')
+    +'<div id="claire-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+claireFormatMessagesHtml()+'</div>'
+    +'<div id="claire-status" style="font-size:12px;color:#ddd6fe;text-align:center;min-height:18px;font-weight:700;margin-bottom:8px;"></div>'
+    +(hasSession
+      ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Haga un diagnóstico TOEIC inicial: meta, fecha y sección débil.\')">Diagnóstico</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Entréneme en Listening TOEIC con una micro-práctica y corrección.\')">Listening</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Entréneme en Reading TOEIC Part 5 o Part 7 con feedback.\')">Reading</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Ármeme un plan TOEIC de 7 días y empecemos con el primer ejercicio.\')">Plan 7 días</button>'
+        +'</div>'
+      : '')
+    +(hasSession
+      ? '<div style="display:flex;gap:8px;align-items:center;"><input id="claire-input" class="inp" placeholder="Ej: necesito 750 en TOEIC en 2 meses..." style="flex:1;background:rgba(255,255,255,0.94);border:2px solid rgba(196,181,253,0.55);color:#111827;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendClairePortalMessage();"><button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#5b21b6,#a855f7);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendClairePortalMessage()" aria-label="Enviar a Claire"><i class="ti ti-send"></i></button></div>'
+      : '<button type="button" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:1px solid rgba(255,255,255,0.25);color:white;font-weight:900;font-size:15px;padding:14px 24px;border-radius:14px;cursor:pointer;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Iniciar Claire TOEIC</button>')
+    +'</div>';
+}
+
+async function clairePost(payload){
+  if(typeof infinityFetch === 'function'){
+    return infinityFetch('/claire', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload || {})
+    });
+  }
+  return fetch(INFINITY_API + '/claire', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload || {})
+  });
+}
+
+function claireQuickPrompt(text){
+  if(!_claireState.sessionActive){
+    startClaireSession().then(function(){
+      var inp = document.getElementById('claire-input');
+      if(inp){ inp.value = text; sendClairePortalMessage(); }
+    });
+    return;
+  }
+  var inp = document.getElementById('claire-input');
+  if(inp){
+    inp.value = text;
+    sendClairePortalMessage();
+  }
+}
+
+async function startClaireSession(){
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  if(!studentClaireOn(s)){
+    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    return;
+  }
+  _claireState.sessionActive = true;
+  _claireState.sessionId = 'portal-claire-' + (s.id || Date.now());
+  _claireState.history = [];
+  renderClaire();
+  var statusEl = document.getElementById('claire-status');
+  if(statusEl) statusEl.textContent = 'Claire se conecta…';
+  try{
+    var r = await clairePost({ mode:'start', sessionId:_claireState.sessionId });
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error || 'claire_start_'+r.status);
+    _claireState.history = [{ role:'assistant', content: data.reply || 'Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?' }];
+  }catch(e){
+    _claireState.history = [{ role:'assistant', content:'Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?' }];
+  }
+  renderClaire();
+}
+
+async function sendClairePortalMessage(){
+  if(_claireState.sending) return;
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  if(!studentClaireOn(s)){
+    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    return;
+  }
+  if(!_claireState.sessionActive){
+    await startClaireSession();
+    return;
+  }
+  var inp = document.getElementById('claire-input');
+  var text = (inp ? inp.value : '').trim();
+  if(!text) return;
+  if(inp) inp.value = '';
+  _claireState.sending = true;
+  _claireState.history.push({ role:'user', content:text });
+  renderClaire();
+  var statusEl = document.getElementById('claire-status');
+  if(statusEl) statusEl.textContent = 'Claire responde…';
+  try{
+    var r = await clairePost({
+      sessionId: _claireState.sessionId,
+      message: text,
+      history: _claireState.history.slice(-12)
+    });
+    var data = await r.json();
+    if(!r.ok) throw new Error(data.error || 'claire_'+r.status);
+    _claireState.history.push({ role:'assistant', content: data.reply || 'Sigamos con TOEIC: contame tu meta de score y tu fecha límite.' });
+  }catch(e){
+    _claireState.history.push({ role:'assistant', content:'No pude responder ahora. Reintentá en unos segundos o contame tu meta TOEIC en una frase.' });
+  }finally{
+    _claireState.sending = false;
+    renderClaire();
+  }
+}
 
 // Acentos disponibles para práctica de listening
 var ALICE_ACCENTS = {
@@ -2537,16 +3074,16 @@ function renderAliceStart(){
   if(companionOnly) mode = 'companion';
   var modePicker = (companionOn && aliceTutorOn)
     ? '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
-      +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Práctica Nexus</button>'
-      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(255,215,0,0.35),rgba(234,179,8,0.25));border:2px solid #FFD700;color:#FFEB3B;box-shadow:0 0 16px rgba(255,215,0,0.35);':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Alice Companion</button>'
+      +'<button type="button" onclick="_aliceState.sessionType=\'practice\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='practice'?'background:rgba(192,132,252,0.25);border:2px solid #C084FC;color:#C084FC;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo Tutor</button>'
+      +'<button type="button" onclick="_aliceState.sessionType=\'companion\';renderAlice()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(255,215,0,0.35),rgba(234,179,8,0.25));border:2px solid #FFD700;color:#FFEB3B;box-shadow:0 0 16px rgba(255,215,0,0.35);':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo Libre</button>'
       +'</div>'
     : '';
   var intro = companionOnly
-    ? '<strong>Alice Companion</strong> — conversación libre en inglés (cualquier tema). Corrección on the go: si te trabás, pausa, explica, ejemplo y sigue. Para quien lee/escribe/entiende pero necesita hablar.'
+    ? '<strong>Alice Modo Libre</strong> — conversación libre en inglés (cualquier tema). Corrección on the go: si te trabás, pausa, explica, ejemplo y sigue. Para quien lee/escribe/entiende pero necesita hablar.'
     : (companionOn
-      ? '<strong>Alice</strong> (intermedio/avanzado) = conversación + linkers + STAR + transiciones. <strong>Alice Companion</strong> = mismo cerebro en charla libre ilimitada. No es Jill (Foundations/MSI).'
-      : '<strong>Alice</strong> — intermedio/avanzado: te sigue el ritmo, corrige en vivo y refuerza linkers, estructura avanzada e improvisación (STAR). Ideal si entendés pero no hablás fluido. <span style="opacity:.85;">Companion (charla libre) es premium — pedí a tu trainer.</span>');
-  var startLabel = companionOnly ? 'Iniciar Companion' : 'Iniciar sesión';
+      ? '<strong>Alice Modo Tutor</strong> = conversación + linkers + STAR + transiciones. <strong>Alice Modo Libre</strong> = mismo cerebro en charla libre ilimitada. No es Jill (Foundations/MSI).'
+      : '<strong>Alice Modo Tutor</strong> — intermedio/avanzado: te sigue el ritmo, corrige en vivo y refuerza linkers, estructura avanzada e improvisación (STAR). Ideal si entendés pero no hablás fluido. <span style="opacity:.85;">Modo Libre (charla libre) es premium — pedí a tu trainer.</span>');
+  var startLabel = companionOnly ? 'Iniciar Modo Libre' : 'Iniciar sesión';
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba('+th.rgb+',0.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
     +intro
@@ -2567,15 +3104,15 @@ function renderAliceSession(){
   var msgs = aliceFormatAllMessagesHtml();
   var scn = _aliceState.scenario;
   var badgeText = (_aliceState.sessionType==='companion')
-    ? '💬 Alice Companion · Charla libre · cualquier tema, sin cortes'
-    : '🎓 Alice · Tutora · Método Nexus';
+    ? '💬 Alice Modo Libre · Charla libre · cualquier tema, sin cortes'
+    : '🎓 Alice Modo Tutor · Método Nexus';
   var gameChips = studentGamesOn(CURRENT_STUDENT)
     ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
       +(_aliceState.sessionType==='companion'
         ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'advanced\')">⚡ Challenge drill</button>'
         : (studentAliceOn(CURRENT_STUDENT) ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'foundations\')">⚡ Rapid drill</button>' : '')
         +(studentCompanionOn(CURRENT_STUDENT) && _aliceState.sessionType!=='companion' ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'advanced\')">⚡ Challenge drill</button>' : ''))
-      +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
+      +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">🎮 Arcade</button>'
       +'</div>'
     : '';
   return '<div id="alice-lesson-shell">'
@@ -2703,7 +3240,7 @@ async function startAliceSession(sessionType, opts){
     return;
   }
   if(_aliceState.sessionType === 'companion' && !studentCompanionOn(CURRENT_STUDENT)){
-    showToast('Alice Companion no está activo — pedí a tu trainer.','err');
+    showToast('Alice Modo Libre no está activo — pedí a tu trainer.','err');
     _aliceState.sessionActive = false;
     _aliceStarting = false;
     renderAlice();
@@ -3568,7 +4105,7 @@ function aliceCloseVisualStage(){
 }
 
 function aliceActivateVisualStage(text){
-  // Alice Companion = charla libre: NUNCA tableros Foundations (Clase 010 WILL/WOULD, MSI, etc.)
+  // Alice Modo Libre = charla libre: NUNCA tableros Foundations (Clase 010 WILL/WOULD, MSI, etc.)
   if(_aliceState && _aliceState.sessionType === 'companion'){
     try { if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch(eHide) {}
     return;
@@ -4774,9 +5311,11 @@ function applySystemMode(s){
 
   var navJill   = document.getElementById('nav-jill');
   var navAlice  = document.getElementById('nav-alice');
+  var navClaire = document.getElementById('nav-claire');
 
   if(navJill)  navJill.style.display  = studentJillTabOn(s)  ? 'flex' : 'none';
   if(navAlice) navAlice.style.display = studentAliceTabOn(s) ? 'flex' : 'none';
+  if(navClaire) navClaire.style.display = studentClaireOn(s) ? 'flex' : 'none';
   syncAliceNavLabel(s);
   syncJillNavLabel(s);
 
@@ -4785,6 +5324,7 @@ function applySystemMode(s){
   var active = window._activePortalTab;
   if(active === 'alice' && !studentAliceTabOn(s)) switchPortalTab('progreso');
   else if(active === 'jill' && !studentJillTabOn(s)) switchPortalTab('progreso');
+  else if(active === 'claire' && !studentClaireOn(s)) switchPortalTab('progreso');
   else if(active === 'nexora' && !studentNexoraOn(s)) switchPortalTab('progreso');
 }
 
@@ -4968,7 +5508,7 @@ function jillShowTtsError(status){
   var st = document.getElementById('jill-status');
   if(!st) return;
   if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
-  else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Jill o Jill Pro.';
+  else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Jill o Modo Libre.';
   else if(status === 500 || status === 503) st.textContent = 'Voz Jill (Alice) no disponible — reintentá en unos segundos.';
   else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
 }
@@ -5569,7 +6109,7 @@ function renderJillChips(){
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
-    +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">📝 Quiz</button>'
+    +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">🎮 Arcade</button>'
     + foundationsChip
     +'</div>';
 }
@@ -5648,7 +6188,7 @@ function jillOpenKaboomQuizCore(){
 function jillOpenKaboomQuiz(){
   var s = CURRENT_STUDENT;
   if(!studentGamesOn(s)){
-    showToast('Activá Jill, Jill Pro o Alice con tu trainer.','err');
+    showToast('Activá Jill, Modo Libre o Alice con tu trainer.','err');
     return;
   }
   if(!studentJillTabOn(s)){
@@ -5885,13 +6425,13 @@ function maybeShowJillOnboarding(){
     +'<div style="font-size:11px;font-weight:800;letter-spacing:0.14em;color:#c4b5fd;margin-bottom:8px;">BIENVENIDO A JILL</div>'
     +'<div style="font-size:20px;font-weight:900;color:#e9d5ff;margin-bottom:14px;">Elegí tu modo</div>'
     +'<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">'
-    +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Jill Tutora</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Foundations: estructura MSI, tiempos, gerundio, negaciones, preguntas — clase + práctica hasta que lo implementés.</div></div>'
-    +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Jill Pro</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion Foundations: charla + dudas. Corrige en vivo, explica y confirma — no es Alice (linkers/STAR).</div></div>'
+    +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Modo Tutor</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Foundations guiado: estructura MSI, tiempos, gerundio, negaciones, preguntas — clase + práctica hasta que lo implementés.</div></div>'
+    +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Modo Libre</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion Foundations: charla + dudas. Corrige en vivo, explica y confirma — no es Alice (linkers/STAR).</div></div>'
     +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Alice</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Intermedio/avanzado: conversación, linkers, transiciones, STAR — para quien entiende pero necesita hablar.</div></div>'
     +'<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:12px;padding:12px;"><strong style="color:#e9d5ff;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — solo Alice / Companion. Jill nunca pregunta eso.</div></div>'
     +'</div>'
     +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill Pro</a></div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill</a></div>'
     +'</div>';
   document.body.appendChild(overlay);
   document.getElementById('jill-onboard-dismiss').onclick = function(){
@@ -5913,8 +6453,8 @@ function renderJillStart(){
   var mode = resolveDefaultJillSessionType(s);
   var modePicker = (jillOn && proOn)
     ? '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'
-      +'<button type="button" onclick="_jillState.sessionType=\'tutor\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='tutor'?'background:linear-gradient(135deg,rgba(61,220,151,0.35),rgba(16,185,129,0.25));border:2px solid #3DDC97;color:#ecfdf5;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Tutora</button>'
-      +'<button type="button" onclick="_jillState.sessionType=\'companion\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(91,33,182,0.25));border:2px solid #A78BFA;color:#f5f3ff;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Jill Pro</button>'
+      +'<button type="button" onclick="_jillState.sessionType=\'tutor\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='tutor'?'background:linear-gradient(135deg,rgba(61,220,151,0.35),rgba(16,185,129,0.25));border:2px solid #3DDC97;color:#ecfdf5;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo Tutor</button>'
+      +'<button type="button" onclick="_jillState.sessionType=\'companion\';renderJill()" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;'+(mode==='companion'?'background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(91,33,182,0.25));border:2px solid #A78BFA;color:#f5f3ff;':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);')+'">Modo Libre</button>'
       +'</div>'
     : '';
   var tutorDrillBtn = (studentGamesOn(s) && (jillOn || proOn))
@@ -5923,18 +6463,18 @@ function renderJillStart(){
   var challengeDrillBtn = '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
-      +'<strong>Jill Tutora</strong> — Foundations: pronombres, tiempos, preposiciones, gerundio, preguntas, negaciones, estructura MSI (P|M|V|C) y conectores básicos. Explica como clase, te hace producir y confirma que lo implementás.'
+      +'<strong>Modo Tutor</strong> — Foundations guiado: pronombres, tiempos, preposiciones, gerundio, preguntas, negaciones, estructura MSI (P|M|V|C) y conectores básicos. Jill explica como clase, te hace producir y confirma que lo implementás.'
       +'</div>'
       +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'tutor\')"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
     : '';
   var proBlock = proOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.35);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.75;">'
-      +'<strong>Jill Pro</strong> — misma base Foundations, en modo companion: charlá de cualquier tema + dudas bajo demanda. Si te trabás o lo armás mal, pausa, explica, da ejemplo y sigue. No es Alice (linkers/STAR).'
+      +'<strong>Modo Libre</strong> — misma base Foundations, en modo companion: charlá de cualquier tema + dudas bajo demanda. Si te trabás o lo armás mal, Jill pausa, explica, da ejemplo y sigue. No es Alice (linkers/STAR).'
       +'</div>'
-      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(91,33,182,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'companion\')"><i class="ti ti-messages"></i> Iniciar Jill Pro</button>'
+      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:2px solid rgba(167,139,250,0.55);color:#f5f3ff;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(91,33,182,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'companion\')"><i class="ti ti-messages"></i> Iniciar Modo Libre</button>'
     : '';
   if(!jillOn && !proOn){
-    return '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.6);padding:1rem;">Jill y Jill Pro no están activos — pedí a tu trainer.</div>';
+    return '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.6);padding:1rem;">Jill no está activa — pedí a tu trainer.</div>';
   }
   var showTutor = jillOn && (!proOn || mode === 'tutor');
   var showPro = proOn && (!jillOn || mode === 'companion');
@@ -5951,7 +6491,7 @@ function renderJillStart(){
     + (showPro ? proBlock : '')
     + (showTutor ? tutorDrillBtn : '')
     + (showPro ? challengeDrillBtn : '')
-    + (studentGamesOn(s) ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-help-circle"></i> Quiz de práctica</button>' : '')
+    + (studentGamesOn(s) ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>' : '')
     +'</div></div>';
 }
 
@@ -6040,7 +6580,7 @@ function startJillSessionClick(sessionType){
   _jillState.sessionType = sessionType;
   if(sessionType === 'companion'){
     if(!studentJillProOn(s)){
-      showToast('Jill Pro no está activo — pedí a tu trainer.','err');
+      showToast('Modo Libre no está activo — pedí a tu trainer.','err');
       return;
     }
   } else if(!studentJillOn(s)){
@@ -6221,7 +6761,7 @@ async function startJillSession(s){
     _jillState.activeBundle = JillFoundations.getActiveBundle(s);
   }
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Pro se conecta…' : 'Jill se conecta…';
+  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Modo Libre se conecta…' : 'Jill se conecta…';
   if(typeof infinityEnsureAuth === 'function'){
     var okAuth = await infinityEnsureAuth({ attempts: 2 });
     if(!okAuth || !getAuthToken()){
@@ -6321,7 +6861,7 @@ async function sendJillMsg(micText, sendOpts){
   var micBtn = document.getElementById('jill-mic-btn');
   if(micBtn) micBtn.classList.add('ptt-busy');
   var statusEl = document.getElementById('jill-status');
-  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Pro responde…' : 'Jill responde…';
+  if(statusEl) statusEl.textContent = isCompanion ? 'Jill Modo Libre responde…' : 'Jill responde…';
   var unwatchJill = voiceSendWatchdog(function(){ return _jillSending; }, function(){ _jillSending = false; });
   jillCancelSpeech();
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('jill-mic-btn'));
@@ -6335,7 +6875,7 @@ async function sendJillMsg(micText, sendOpts){
     try{ JillVisualStage.scoreOral(text); }catch(eOral){}
   }
   _jillState.history.push({role:'user', content:text});
-  // Jill Pro: keep more turns so track + doubt stay consistent session-long
+  // Modo Libre: keep more turns so track + doubt stay consistent session-long
   var historyForApi = isCompanion ? _jillState.history.slice(-20) : _jillState.history.slice(-10);
   var s = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   if(typeof AiProfile !== 'undefined') AiProfile.processUserNameReply(text, 'jill', dbSet).catch(function(){});

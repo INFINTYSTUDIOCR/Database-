@@ -1,0 +1,19 @@
+---
+description: Restaurar proyecto al backup restaura-2026-07-08 cuando el usuario dice "Restaura"
+alwaysApply: true
+---
+
+# Palabra de restauración: Restaura
+
+Si el usuario escribe **`Restaura`** (solo esa palabra o como instrucción explícita de volver al punto de guardado):
+
+1. **No improvisar** — restaurar desde el snapshot oficial más reciente.
+2. Ejecutar desde la raíz del repo:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File backup\restaura-2026-07-08\restore.ps1
+   ```
+3. Leer `backup/restaura-2026-07-08/RESTORE.md` y `MANIFEST.json` si hace falta contexto.
+4. Confirmar al usuario qué se restauró y recordar Ctrl+F5 en el portal + redeploy backend si aplica.
+5. **No** borrar las carpetas `backup/restaura-2026-07-08/` ni `backup/restaura-2026-07-02/` ni otros backups en `backup/`.
+
+Punto actual (2026-07-08): estado con Jill Learning DJ (escucha por turno + ritmo adaptativo) y análisis de clases grabadas, verificado funcional (backend arranca, módulos cargan). El punto anterior `restaura-2026-07-02` (Alice companion + parches TTS) queda disponible como fallback.

@@ -1,0 +1,12 @@
+---
+description: Never change UI, layout, or behavior unless the user explicitly requested it
+alwaysApply: true
+---
+
+# No cambios no solicitados
+
+- **Solo implementar lo que el usuario pidió explícitamente** en el mensaje actual o en instrucciones claras previas.
+- **Prohibido scope creep**: no rediseñar vistas, no añadir flujos alternativos, no cambiar layout/UX "de paso" mientras se arregla un bug o se aplican colores.
+- **Parche mínimo**: si piden color, solo color. Si piden voz, solo voz. Si piden un botón, solo ese botón.
+- **Nexora**: la simulación de customer service y escenarios vive en `nexora.html` (Nexora Lab). **No** reintroducir ni priorizar el modal embebido `nexoraShowCRM` en el portal del estudiante sin orden explícita.
+- **Antes de tocar UI o flujo**: confirmar que la petición lo autoriza. Si hay duda, preguntar — no improvisar.

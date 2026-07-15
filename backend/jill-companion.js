@@ -1,7 +1,7 @@
 /**
- * Jill Pro — Foundations Companion.
+ * Jill Modo Libre — Foundations Companion.
  * Charla libre de cualquier tema + coach en vivo (duda o mala estructura).
- * Jill Tutora = sessionType tutor + bundles. Jill Pro = sessionType companion.
+ * Modo Tutor = sessionType tutor + bundles. Modo Libre = sessionType companion.
  */
 const fs = require('fs');
 const path = require('path');
@@ -284,7 +284,7 @@ const JILL_PRO_COMPANION_RULES = `JILL PRO — COMPANION + COACH EN VIVO:
 - Sos Jill, compañera de práctica en inglés (Foundations). Voz femenina, cálida, paciente, clara — método Infinity / MSI.
 ${JILL_LANGUAGE_RULE}
 ${JILL_PRO_INTENT_RULE}
-- NO sos Jill Tutora de bundle: sin currículo F0 forzado ni matriz obligatoria.
+- NO sos Jill Modo Tutor de bundle: sin currículo F0 forzado ni matriz obligatoria.
 - Charlá de CUALQUIER tema con sentido (simple o complejo): vida, trabajo, ciencia, historias, dudas de clase.
 - CUALQUIER duda de inglés que pidan: mini-lección COMPLETA (no tip express) → confirmá → 1 práctica oral → volvé a la charla.
 - PROHIBIDO: simular entrevistas de trabajo, STAR interviews, customer service, Nexora o role-play de Alice. Si piden entrevista: 1 frase — "eso es Nexora / Alice" — y volvé a Foundations (charla o duda gramatical).
@@ -491,7 +491,7 @@ function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote,
   const MethodOS = (() => { try { return require('./jill-method-os'); } catch (_) { return null; } })();
   const osCore = MethodOS && MethodOS.METHOD_OS_CORE ? MethodOS.METHOD_OS_CORE : '';
   const osOrders = MethodOS && MethodOS.METHOD_OS_STUDENT_ORDERS ? MethodOS.METHOD_OS_STUDENT_ORDERS : STUDENT_ORDERS_RULE;
-  return `Sos Jill Pro — compañera de inglés en Infinity Studio CR (Foundations).
+  return `Sos Jill Modo Libre — compañera de inglés en Infinity Studio CR (Foundations).
 Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente. NUNCA hables como hombre ni como profesora de bundle rígida.
 ${JohnDoctrine.mandateBlock('jill')}
 ${osCore}
@@ -506,7 +506,7 @@ function buildJillProOpeningInstruction(display, returning, topic) {
   if (returning) {
     return `Bienvenida breve a ${display} EN ESPAÑOL (2-3 oraciones). Preguntá qué quieren hoy: charlar de cualquier tema O traer una duda de inglés — si traen duda, les explicás COMPLETO (fórmula + puente + ejemplo + práctica oral corta), no un tip. Dejá claro que si se traban, pausás, aclarás y seguís.${topic ? ` Si retoman: "${topic}".` : ''}`;
   }
-  return `Primera sesión Jill Pro con ${display}: saludo cálido EN ESPAÑOL. Companion + coach en vivo. Preguntá de qué quieren hablar o qué duda traen — cualquier duda de inglés Foundations se explica completa. 2-3 oraciones.`;
+  return `Primera sesión Jill Modo Libre con ${display}: saludo cálido EN ESPAÑOL. Companion + coach en vivo. Preguntá de qué quieren hablar o qué duda traen — cualquier duda de inglés Foundations se explica completa. 2-3 oraciones.`;
 }
 
 function buildJillProStreamTeachInstruction(topic, message, history, forcedTrackId) {
@@ -653,7 +653,7 @@ Si inglés mal armado: DETENÉ → feedback → ejemplo oral → que lo digan.
 
 function buildJillProEvalPrompt(student, hist, metrics, topic) {
   const name = student?.info?.name || student?.name || 'el estudiante';
-  return `Evalua esta sesion Jill Pro (companion + coach en vivo) de ${name}.
+  return `Evalua esta sesion Jill Modo Libre (companion + coach en vivo) de ${name}.
 Tema: ${topic || 'charla libre'}. Turnos: ${metrics.turns || 0}.
 Valorá: conversación con sentido, correcciones a tiempo, claridad de explicaciones, si confirmó entendimiento.
 

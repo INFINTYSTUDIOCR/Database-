@@ -1,5 +1,5 @@
 /**
- * Alice Companion — unit + static integration QA
+ * Alice Modo Libre — unit + static integration QA
  * Ejecutar: node tests/companion-qa.mjs
  */
 import { readFileSync, existsSync } from 'fs';
@@ -127,7 +127,7 @@ else fail('alice-companion.js', 'MISSING');
 
 // ── Report ────────────────────────────────────────────────────
 const failed = results.filter((r) => !r.ok);
-console.log('\n=== Alice Companion QA ===\n');
+console.log('\n=== Alice Modo Libre QA ===\n');
 results.forEach((r) => console.log((r.ok ? '✓' : '✗') + ' ' + r.name + (r.detail ? ' — ' + r.detail : '')));
 console.log('\n' + results.length + ' checks, ' + failed.length + ' failed\n');
 process.exit(failed.length ? 1 : 0);

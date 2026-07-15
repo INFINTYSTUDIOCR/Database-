@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Activar Companion — solo vos</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,sans-serif;background:#f5f3ff;margin:0;padding:24px;color:#1e1b4b}
+  .box{max-width:440px;margin:32px auto;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 12px 40px rgba(91,33,182,.12)}
+  h1{font-size:1.3rem;margin:0 0 8px}
+  .steps{font-size:14px;color:#64748b;line-height:1.55;margin:0 0 20px;padding:12px 14px;background:#f8fafc;border-radius:10px}
+  .steps strong{color:#1e1b4b}
+  label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
+  input{width:100%;padding:12px 14px;border:1px solid #ddd6fe;border-radius:10px;font-size:16px;margin-bottom:14px}
+  button{width:100%;padding:16px;border:0;border-radius:12px;background:#5b21b6;color:#fff;font-size:17px;font-weight:800;cursor:pointer}
+  button:disabled{opacity:.6;cursor:wait}
+  .ok{background:#ecfdf5;color:#065f46;padding:14px;border-radius:10px;font-size:15px;margin-top:14px;display:none;line-height:1.45;font-weight:600}
+  .err{background:#fef2f2;color:#991b1b;padding:12px;border-radius:10px;font-size:14px;margin-top:14px;display:none}
+  .hint{font-size:12px;color:#94a3b8;margin:-8px 0 14px}
+  .note{font-size:12px;color:#64748b;margin-top:16px;line-height:1.45}
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>Activar Alice Companion</h1>
+    <div class="steps">
+      <strong>WhatsApp se manda solo</strong> (si tenés encendido WHATSAPP-2-INICIAR en tu PC).<br><br>
+      1. Cliente paga y te da email + número<br>
+      2. Llenás los campos y tocás el botón<br>
+      3. El cliente recibe el WhatsApp solo — vos no pegás nada
+    </div>
+
+    <label for="pass">Tu clave secreta</label>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="ANALYZE_SECRET de Render">
+    <p class="hint">Se guarda en este navegador.</p>
+
+    <label for="email">Email del cliente</label>
+    <input id="email" type="email" autocomplete="off" placeholder="cliente@gmail.com">
+
+    <label for="phone">WhatsApp del cliente</label>
+    <input id="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="50688887777">
+    <p class="hint">Con código de país, sin +. Ej: 50688887777</p>
+
+    <button type="button" id="btn">Activar (WhatsApp automático)</button>
+
+    <div class="ok" id="ok"></div>
+    <div class="err" id="err"></div>
+    <p class="note">Si el mensaje no llega en 10 segundos: en tu PC debe estar abierta la ventana negra de WHATSAPP-2-INICIAR.</p>
+  </div>
+
+<script>
+(function () {
+  var BACKEND = 'https://alice-by-infinity.onrender.com';
+  var PASS_KEY = 'infinity_activar_secret';
+  var btn = document.getElementById('btn');
+  var ok = document.getElementById('ok');
+  var err = document.getElementById('err');
+  var passEl = document.getElementById('pass');
+
+  try {
+    var saved = localStorage.getItem(PASS_KEY);
+    if (saved) passEl.value = saved;
+  } catch (e) {}
+
+  function showErr(text) {
+    ok.style.display = 'none';
+    err.style.display = 'block';
+    err.textContent = text;
+  }
+
+  function showOk(text) {
+    err.style.display = 'none';
+    ok.style.display = 'block';
+    ok.textContent = text;
+  }
+
+  function onlyDigits(s) {
+    return String(s || '').replace(/\D/g, '');
+  }
+
+  btn.onclick = async function () {
+    var pass = passEl.value.trim();
+    var email = document.getElementById('email').value.trim().toLowerCase();
+    var phone = onlyDigits(document.getElementById('phone').value);
+
+    ok.style.display = err.style.display = 'none';
+
+    if (!pass) return showErr('Falta tu clave secreta (ANALYZE_SECRET de Render).');
+    if (!email || email.indexOf('@') < 0) return showErr('Poné el email del cliente.');
+    if (phone.length < 10) return showErr('Poné el WhatsApp del cliente (ej. 50688887777).');
+
+    try { localStorage.setItem(PASS_KEY, pass); } catch (e) {}
+
+    btn.disabled = true;
+    btn.textContent = 'Activando…';
+
+    try {
+      var r = await fetch(BACKEND + '/billing/manual-grant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Bridge-Secret': pass
+        },
+        body: JSON.stringify({ email: email, phone: phone, source: 'activar_web' })
+      });
+      var data = await r.json().catch(function () { return {}; });
+
+      if (!r.ok) {
+        showErr(r.status === 401
+          ? 'Clave incorrecta. Revisá ANALYZE_SECRET en Render.'
+          : (data.error || data.message || 'No se pudo activar.'));
+        return;
+      }
+
+      if (data.whatsapp && data.whatsapp.id) {
+        showOk('Activado. WhatsApp en cola: se envía solo en unos segundos (PC con WHATSAPP-2-INICIAR encendido).');
+      } else {
+        showOk('Activado, pero no se encoló WhatsApp. Revisá el número.');
+      }
+      document.getElementById('email').value = '';
+      document.getElementById('phone').value = '';
+    } catch (e) {
+      showErr('Error de red. Revisá internet o el servidor.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Activar (WhatsApp automático)';
+    }
+  };
+})();
+</script>
+</body>
+</html>

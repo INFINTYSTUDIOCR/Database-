@@ -1,0 +1,7 @@
+{
+  "description": "IPs con demos ilimitados (Alice, Jill, Nexora). También DEMO_IP_WHITELIST en Render (comma-separated).",
+  "ips": [
+    "38.210.166.95"
+  ],
+  "owner": "Armando — Infinity Studio CR"
+}

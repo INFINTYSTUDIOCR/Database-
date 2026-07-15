@@ -1,0 +1,12 @@
+node_modules/
+backend/node_modules/
+scripts/wa-bridge/node_modules/
+scripts/wa-bridge/.wwebjs_auth/
+scripts/wa-bridge/.wwebjs_cache/
+scripts/wa-bridge/.env
+scripts/git-identity.local
+scripts/git-identity.jill-pro.local
+.env
+backend/.env
+*.log
+.DS_Store

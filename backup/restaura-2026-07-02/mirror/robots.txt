@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# App shells — login required; keep crawl budget on marketing pages
+Disallow: /Infinity_Student_Portal.html
+Disallow: /Infinity_Nexus_Engine.html
+Disallow: /Infinity_Diagnostic_Tool*
+Disallow: /Infinity_Training_Book*
+Disallow: /nexora.html
+Disallow: /portal-access.html
+
+Sitemap: https://studioinfinitycr.com/sitemap.xml

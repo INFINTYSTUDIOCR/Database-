@@ -1,0 +1,87 @@
+/* Viñetas de producto — logos estáticos */
+.program-vignette,
+.vignette-slot {
+  height: 220px;
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f7fc 55%, #f3effe 100%);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.program-vignette .vignette-logo,
+.vignette-slot .vignette-logo {
+  max-width: 92%;
+  max-height: 82%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(91, 33, 182, 0.15));
+}
+
+.visual-banner.vignette-slot,
+.visual-banner.purple.vignette-slot,
+.visual-banner.gold.vignette-slot,
+.visual-banner.rose.vignette-slot {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f7fc 55%, #f3effe 100%);
+}
+
+.visual-banner.vignette-slot .vignette-logo-fallback,
+.program-vignette .vignette-logo-fallback,
+.vignette-slot .vignette-logo-fallback {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--purple, #5b21b6);
+  text-align: center;
+  line-height: 1.3;
+  padding: 1rem;
+}
+
+/* Eco cards — viñeta compacta */
+.eco-vignette,
+.program-vignette.eco-vignette-wide {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 1rem;
+  border-radius: var(--rl, 16px);
+}
+
+.eco-vignette .vignette-logo,
+.program-vignette.eco-vignette-wide .vignette-logo {
+  max-width: 88%;
+  max-height: 78%;
+}
+
+.visual-banner.vignette-slot {
+  padding: 0;
+  height: 220px;
+}
+
+.visual-banner.vignette-slot .program-vignette,
+.visual-banner.vignette-slot.vignette-slot {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.page-hero-logo[data-vignette] {
+  width: min(320px, 88vw);
+  height: 220px;
+  margin: 0 auto 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  background: linear-gradient(145deg, #ffffff 0%, #f3effe 55%, #ede9fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-hero-logo[data-vignette] .vignette-logo {
+  max-width: 94%;
+  max-height: 88%;
+}

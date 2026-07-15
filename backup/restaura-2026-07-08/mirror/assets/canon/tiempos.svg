@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Tiempos verbales">
+  <rect width="320" height="180" rx="12" fill="none"/>
+  <text x="160" y="52" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="13" font-weight="bold">TIEMPOS · SIGLAS</text>
+  <text x="72" y="78" fill="#6d28d9" font-size="11" font-weight="bold">PR</text><text x="102" y="78" fill="#312e81" font-size="10">P + V + C</text>
+  <text x="72" y="96" fill="#6d28d9" font-size="11" font-weight="bold">PS</text><text x="102" y="96" fill="#312e81" font-size="10">P + V(pasado) + C</text>
+  <text x="72" y="114" fill="#6d28d9" font-size="11" font-weight="bold">PC</text><text x="102" y="114" fill="#312e81" font-size="10">P + To Be + V+ing</text>
+  <text x="72" y="132" fill="#6d28d9" font-size="11" font-weight="bold">PRP</text><text x="102" y="132" fill="#312e81" font-size="10">P + Have + PP</text>
+  <text x="72" y="150" fill="#6d28d9" font-size="11" font-weight="bold">MOD</text><text x="102" y="150" fill="#312e81" font-size="10">P + M + V</text>
+  <text x="230" y="88" text-anchor="middle" fill="#D97706" font-size="9">I work</text>
+  <text x="230" y="104" text-anchor="middle" fill="#D97706" font-size="9">I worked</text>
+  <text x="230" y="120" text-anchor="middle" fill="#D97706" font-size="9">I am working</text>
+  <text x="230" y="136" text-anchor="middle" fill="#D97706" font-size="9">I have worked</text>
+  <text x="230" y="152" text-anchor="middle" fill="#D97706" font-size="9">I will work</text>
+  <rect x="195" y="72" width="70" height="88" rx="6" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.45"/>
+</svg>

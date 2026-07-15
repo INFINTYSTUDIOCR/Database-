@@ -1,0 +1,91 @@
+/** Client-side demo buffer — public website demos (not live AI) */
+window.DEMO_BUFFER = {
+  alice_companion: {
+    start: "Hi! I'm Alice — your English companion. No lesson plan today: we can talk about whatever you like — work, travel, stories, daily life. What do you feel like chatting about?",
+    steps: [
+      "I love that topic. Tell me more — what happened recently that made you think about it?",
+      "Interesting! If you had to explain that to a friend in English in two sentences, how would you say it? Take your time.",
+      "You're doing great — this is real practice. One more: what would you like to do or change about that situation?"
+    ],
+    finish: {
+      reply: "That was a lovely mini chat! In the full Alice Companion you can talk anytime, about anything, with the same voice and no cut-offs.\n\nALICE: Unlock Companion for unlimited practice — same Alice voice, 24/7.",
+      evaluation: {
+        overall_score: 74,
+        highlights: ["You kept a natural conversation going", "You practiced real spoken English"],
+        improvements: ["Add one connector (however, on top of that) when you switch ideas", "Expand answers with one extra detail"],
+        connectors_found: [],
+        connectors_suggested: ["however", "on top of that", "even though"]
+      }
+    }
+  },
+  alice: {
+    start: "Hi! I'm Alice — your English performance coach at Infinity Studio CR. In this mini session we'll practice real operational English together. Ready? Tell me — what do you do for work, in one or two sentences?",
+    steps: [
+      "Good start! Now let's push a little. Describe a challenge you faced recently at work. Try to use the connector **however** when you switch ideas.",
+      "Nice effort! I noticed your structure — let me coach you. Remember: **Idea + Linker + Idea**. For example: \"We had a deadline, **however** the client changed the scope, **so** we reprioritized.\" Can you try one more sentence using **on top of that** or **even though**?",
+      "You're doing exactly what our students practice — speaking under light pressure with immediate feedback. One more: how would you explain your role to an international manager in 30 seconds?"
+    ],
+    finish: {
+      reply: "Great mini session! You showed willingness to speak, and that's the hardest part. In the full program, Alice tracks your KPIs, connectors, and recovery techniques 24/7.\n\nALICE: ¡Excelente primer paso! En el programa completo trabajamos conectores, estructura oral y fluidez bajo presión real.",
+      evaluation: {
+        overall_score: 72,
+        highlights: ["You completed the demo session", "You attempted extended responses in English"],
+        improvements: ["Practice Idea + Linker + Idea structure", "Use connectors: however, on top of that, even though"],
+        connectors_found: [],
+        connectors_suggested: ["however", "on top of that", "even though", "therefore"]
+      }
+    }
+  },
+  jill: {
+    start: "¡Hola! Soy Jill, tu tutora de Foundations en Infinity Studio CR. Acá empezamos sin presión: estructura, chunks y tus primeros linkers. ¿Qué te gustaría mejorar en inglés esta semana?",
+    steps: [
+      "¡Muy bien! En Foundations no memorizamos listas — construimos **Idea + chunk + Idea**. Probá decir 'I want to improve' y agregá UNA razón con **because**.",
+      "Buen intento. Ahora un tiempo verbal: contame qué **hiciste ayer** — una oración corta en pasado simple.",
+      "Estás armando la base que Alice va a pulir después. Última: completá este chunk — 'However, I think…' y terminá con tu propia idea."
+    ],
+    finish: {
+      reply: "¡Excelente mini sesión de Foundations! Practicaste estructura, tiempo verbal y un linker — así construye Jill tu base antes de Alice y Nexora.\n\nJILL: En el programa completo te guío paso a paso desde chunking hasta linkers reales.",
+      evaluation: {
+        overall_score: 70,
+        highlights: ["Completaste el demo de Jill", "Intentaste respuestas estructuradas"],
+        improvements: ["Practicá because/however en cada respuesta", "Mantené Idea + Linker + Idea"],
+        connectors_found: [],
+        connectors_suggested: ["because", "however", "on top of that"]
+      }
+    }
+  },
+  nexora_star: {
+    start: "Thanks for joining. I'm conducting a brief STAR behavioral interview. First question: **Tell me about a time you had to handle a difficult situation at work.** Focus on Situation, Task, Action, and Result — and be specific about YOUR actions.",
+    steps: [
+      "Thank you. You've described the situation — **what specific actions did YOU take**, and what was the measurable result?",
+      "Good. One more: **Tell me about a time you had to meet a tight deadline while quality still mattered.** Use STAR format again."
+    ],
+    finish: {
+      reply: "That concludes our mini STAR interview. You handled the pressure of a structured interview — that's exactly what Nexora trains.",
+      evaluation: {
+        overall_score: 70,
+        structure_score: 65,
+        wins: ["You completed the STAR demo", "You attempted structured answers under interview pressure"],
+        improvements: ["Name YOUR specific action in each story", "End with a measurable Result", "Use connectors to link ideas smoothly"],
+        verdict: "Solid demo effort! In the full ORT program, Nexora runs longer scenarios with live scoring on clarity, connectors, and confidence."
+      }
+    }
+  },
+  nexora_cs: {
+    start: "Hello, this is **Maria Santos** calling about my account. I've been charged **$49.99** that I don't recognize, and honestly I'm quite frustrated. Can you help me with this?",
+    steps: [
+      "I've been a customer for two years and this has never happened before. **What exactly are you going to do about it?**",
+      "Okay... I'm listening. But I need you to be clear — **will this charge be removed**, and how long will it take?"
+    ],
+    finish: {
+      reply: "Alright, I'll wait for the confirmation email. Thank you for handling this.",
+      evaluation: {
+        overall_score: 68,
+        client_satisfaction: 7,
+        wins: ["You stayed in the call", "You attempted to address the client's concern"],
+        improvements: ["Acknowledge emotion first before explaining policy", "Use empathy phrases: \"I understand how frustrating this is\"", "Offer a clear next step with a timeline"],
+        verdict: "Good demo! Full Nexora CS simulations add hold management, escalation paths, and connector scoring under real call pressure."
+      }
+    }
+  }
+};

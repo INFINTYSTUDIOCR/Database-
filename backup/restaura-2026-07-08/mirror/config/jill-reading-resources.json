@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "title": "Lectura — afinar el oído (Jill + leer)",
+  "intro": "Leé en voz alta 5–10 min después de practicar con Jill. Anotá 3 palabras nuevas para tu lista activa.",
+  "sections": [
+    {
+      "id": "news-easy",
+      "label": "Noticias · nivel fácil",
+      "links": [
+        { "title": "BBC Learning English — News Review", "url": "https://www.bbc.co.uk/learningenglish/english/features/news-review", "lang": "en" },
+        { "title": "VOA Learning English", "url": "https://learningenglish.voanews.com/", "lang": "en" },
+        { "title": "Breaking News English", "url": "https://breakingnewsenglish.com/", "lang": "en" }
+      ]
+    },
+    {
+      "id": "news-cr",
+      "label": "Noticias · Costa Rica / región",
+      "links": [
+        { "title": "La Nación — Internacionales", "url": "https://www.nacion.com/el-mundo/", "lang": "es", "note": "Leé titular en español → intentá resumir en inglés con PR o PC" },
+        { "title": "Reuters — World", "url": "https://www.reuters.com/world/", "lang": "en" }
+      ]
+    },
+    {
+      "id": "short-reads",
+      "label": "Lecturas cortas",
+      "links": [
+        { "title": "British Council — Reading", "url": "https://learnenglish.britishcouncil.org/skills/reading", "lang": "en" },
+        { "title": "News in Levels", "url": "https://www.newsinlevels.com/", "lang": "en" }
+      ]
+    }
+  ],
+  "jillPrompt": "Después de Foundations drill, recordá: leé 5 min en uno de tus recursos y traé 1 oración PR o PC al chat."
+}

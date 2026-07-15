@@ -1,0 +1,17 @@
+{
+  "id": "restaura-2026-07-02",
+  "createdAt": "2026-07-02T21:15:00-06:00",
+  "triggerWord": "Restaura",
+  "gitCommitAtBackup": "658b1293abbc6df72c22e07dd27ef1cb448fc669",
+  "gitCommitMessage": "Fix missing pwa-register.js on Student Portal (install button was broken).",
+  "restoreScript": "backup/restaura-2026-07-02/restore.ps1",
+  "mirrorPath": "backup/restaura-2026-07-02/mirror",
+  "excludedFromMirror": ["node_modules", ".git", "backup"],
+  "keyFiles": [
+    "Infinity_Student_Portal.html",
+    "backend/server.js",
+    "js/tts-chunks.js",
+    "nexora.html",
+    "js/nexora-scenario-library.js"
+  ]
+}

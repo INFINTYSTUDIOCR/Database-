@@ -1,0 +1,55 @@
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--gray-light, #f3f4f6);
+  border-radius: 999px;
+  border: 1px solid rgba(91, 33, 182, 0.12);
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.lang-btn:hover {
+  opacity: 0.85;
+}
+
+.lang-btn.active {
+  opacity: 1;
+  background: white;
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.18);
+}
+
+.lang-btn .flag {
+  width: 22px;
+  height: 16px;
+  border-radius: 2px;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+nav .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  nav .nav-actions {
+    margin-left: auto;
+  }
+}

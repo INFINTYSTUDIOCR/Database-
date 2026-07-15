@@ -46,7 +46,7 @@
     { s: '.hero-pills .pill:nth-child(2)', en: 'AI practice at night', es: 'Práctica con IA de noche' },
     { s: '.hero-pills .pill:nth-child(3)', en: 'We track your progress', es: 'Te decimos cómo vas' },
     { s: '.hero-ctas .btn-primary', html: true, en: '<i class="ti ti-help"></i>Is this for you?', es: '<i class="ti ti-help"></i>¿Es para vos?' },
-    { s: '.hero-ctas a[href="try-alice.html"]', html: true, en: '<i class="ti ti-messages"></i>Try Alice Companion', es: '<i class="ti ti-messages"></i>Probar Alice Companion' },
+    { s: '.hero-ctas a[href="try-alice.html"]', html: true, en: '<i class="ti ti-messages"></i>Try Alice Free Mode', es: '<i class="ti ti-messages"></i>Probar Alice Modo Libre' },
     { s: '.hero-photo-tag', html: true, en: '<i class="ti ti-user-heart"></i> Private 1-on-1', es: '<i class="ti ti-user-heart"></i> Privado 1 a 1' },
     { s: '.stats-bar .stat-item:nth-child(1) .stat-label', en: 'h/month private trainer', es: 'h/mes trainer privado' },
     { s: '.stats-bar .stat-item:nth-child(2) .stat-label', en: 'AI support', es: 'IA de apoyo' },
@@ -54,7 +54,7 @@
     { s: '#elegi-tu-vida .section-tag', en: 'Your motivation', es: 'Tu motivación' },
     { s: '#elegi-tu-vida .section-title', html: true, en: 'What brings you <span style="color:var(--purple)">here?</span>', es: '¿Qué te trae <span style="color:var(--purple)">aquí?</span>' },
     { s: '#elegi-tu-vida .section-sub', en: 'Pick the real reason — we take you to the right path, not a generic course.', es: 'Elige el motivo real — te llevamos al camino correcto, no a un curso genérico.' },
-    { s: '#elegi-tu-vida .who-more a', en: 'Try Alice Companion free →', es: 'Probar Alice Companion gratis →' },
+    { s: '#elegi-tu-vida .who-more a', en: 'Try Alice Free Mode →', es: 'Probar Alice Modo Libre →' },
     { s: '#para-mi .para-mi-head h2', en: 'Is this for you?', es: '¿Es para vos?' },
     { s: '#para-mi .who-grid a:nth-child(1) h3', html: true, en: '<i class="ti ti-seedling"></i> I barely know English', es: '<i class="ti ti-seedling"></i> Casi no sé inglés' },
     { s: '#para-mi .who-grid a:nth-child(2) h3', html: true, en: '<i class="ti ti-bolt"></i> I freeze when I speak', es: '<i class="ti ti-bolt"></i> Me trabo al hablar' },
@@ -198,8 +198,8 @@
     { s: '#contact .section-tag', en: 'Contact', es: 'Contacto' },
     { s: '#contact .section-title', html: true, en: 'Ready To <span style="color:var(--purple)">Operate</span> In English?', es: '¿Listo Para <span style="color:var(--purple)">Operar</span> En Inglés?' },
     { s: '.contact-form h3', en: 'Book your diagnostic session', es: 'Agenda tu sesión de diagnóstico' },
-    { s: '.contact-claire-hint', html: true, en: 'Questions before writing? <strong>Claire</strong> (purple bubble bottom right) answers by chat or voice about Foundations, ORT and pricing.', es: '¿Dudas antes de escribir? <strong>Claire</strong> (burbuja morada abajo a la derecha) responde por chat o voz sobre Foundations, ORT y precios.' },
-    { s: '#claire-role', en: 'Site assistant — programs & pricing', es: 'Asistente virtual — programas y precios' },
+    { s: '.contact-claire-hint', html: true, en: 'Preparing for TOEIC? <strong>Claire</strong> trains differently: diagnostics, Listening, Reading, controlled pressure, direct correction and a score plan instead of passive question banks.', es: '¿Te preparás para TOEIC? <strong>Claire</strong> entrena distinto: diagnóstico, Listening, Reading, presión controlada, corrección directa y plan de score en vez de bancos pasivos de preguntas.' },
+    { s: '#claire-role', en: 'TOEIC coach — diagnostics & practice', es: 'Coach TOEIC — diagnóstico y práctica' },
     { s: '.contact-form .form-group:has(#cf-name) .form-label', en: 'Full name', es: 'Nombre completo' },
     { s: '#cf-name', attr: 'placeholder', en: 'Your name', es: 'Tu nombre' },
     { s: '.contact-form .form-group:has(#cf-email) .form-label', en: 'Email', es: 'Correo' },
@@ -348,7 +348,7 @@
     { s: '#panel-training-book .tb-section-title:nth-of-type(4)', en: 'Nexora — Upcoming Simulation', es: 'Nexora — Próxima Simulación' },
     { s: '#panel-training-book .tb-section-sub:nth-of-type(4)', en: 'Assigned scenario based on your readiness profile', es: 'Escenario asignado según tu perfil de preparación' },
     { s: '#panel-training-book .tb-section-title:nth-of-type(5)', en: 'Weekly Progress', es: 'Progreso Semanal' },
-    { s: '#ci', attr: 'placeholder', en: 'Type your message…', es: 'Escribe tu mensaje…' },
+    { s: '#ci', attr: 'placeholder', en: 'Ex: I want to prepare for TOEIC…', es: 'Ej: quiero prepararme para TOEIC…' },
     { s: '#ct', en: 'Claire is typing...', es: 'Claire está escribiendo...' }
   ];
 
@@ -442,14 +442,14 @@
 
   function applyClaireWidget(lang) {
     var role = document.getElementById('claire-role');
-    if (role) role.textContent = lang === 'es' ? 'Asistente virtual — programas y precios' : 'Site assistant — programs & pricing';
+    if (role) role.textContent = lang === 'es' ? 'Coach TOEIC — diagnóstico y práctica' : 'TOEIC coach — diagnostics & practice';
     var online = document.querySelector('#claire-widget [style*="Infinity Studio CR"]');
     if (online) online.innerHTML = '<span style="width:6px;height:6px;background:#25D366;border-radius:50%;display:inline-block;"></span>' + (lang === 'es' ? 'Infinity Studio CR · En línea' : 'Infinity Studio CR · Online');
     var vi = document.getElementById('cvi');
     if (vi && vi.style.display !== 'none') vi.textContent = lang === 'es' ? '🎙 Escuchando' : '🎙 Listening';
     var cc = document.getElementById('cc');
     if (cc) {
-      var hint = lang === 'es' ? 'Asistente con IA · orientación sobre programas (no reemplaza al profe)' : 'AI assistant · program guidance (not a substitute for your coach)';
+      var hint = lang === 'es' ? 'Coach TOEIC autónoma · práctica y score plan' : 'Autonomous TOEIC coach · practice and score plan';
       cc.setAttribute('data-default-hint', hint);
       var t = cc.textContent || '';
       if (!/mensaje|message/i.test(t)) cc.textContent = hint;

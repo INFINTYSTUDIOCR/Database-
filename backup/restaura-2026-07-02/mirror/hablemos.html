@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hablemos — Infinity Studio CR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/lang-toggle.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo-page"></a>
+  <div class="nav-links">
+    <a href="index.html#about">About</a>
+    <a href="index.html#programs">Programs</a>
+    <a href="index.html#contact" class="active">Contact</a>
+    <a href="#consulta" class="nav-cta">Consulta gratis</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="index.html">Inicio</a> <span>/</span> Hablemos</div>
+    <h1 class="page-title">Hablemos</h1>
+    <p class="page-lead">¿No sabés cuál programa es para vos? Contanos tu situación y te orientamos — sin compromiso, respuesta rápida.</p>
+  </div>
+</header>
+
+<main class="page-grid">
+  <div class="page-main">
+    <div class="content-block">
+      <h2>Consulta personalizada</h2>
+      <p>En Infinity Studio CR no vendemos paquetes genéricos. Primero entendemos tu perfil, tu meta laboral y tu nivel operacional. Después te recomendamos el camino: Conversatorio, Job Finder, Foundations, ORT o el ecosistema completo.</p>
+    </div>
+    <div class="content-block">
+      <h2>Cómo funciona</h2>
+      <div class="feature-row">
+        <div class="feature-chip"><i class="ti ti-message-circle"></i> 1. Nos escribís</div>
+        <div class="feature-chip"><i class="ti ti-user-search"></i> 2. Evaluamos perfil</div>
+        <div class="feature-chip"><i class="ti ti-route"></i> 3. Te damos ruta clara</div>
+        <div class="feature-chip"><i class="ti ti-calendar"></i> 4. Agendás si querés</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <h2>Contacto directo</h2>
+      <p style="margin-bottom:1rem;">Preferís WhatsApp inmediato:</p>
+      <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20saber%20cu%C3%A1l%20programa%20es%20para%20m%C3%AD" target="_blank" rel="noopener" class="btn-primary" style="width:auto;display:inline-flex;padding:14px 28px;background:#25D366;box-shadow:0 4px 20px rgba(37,211,102,0.35);">
+        <i class="ti ti-brand-whatsapp"></i> +506 6006 0981
+      </a>
+    </div>
+
+    <div class="enroll-box" id="consulta">
+      <h3>Formulario de consulta</h3>
+      <p class="sub">Dejanos tus datos y te respondemos con la mejor recomendación.</p>
+      <div class="form-group">
+        <label class="form-label" for="en-name">Nombre completo *</label>
+        <input class="form-input" id="en-name" type="text" placeholder="Tu nombre">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="en-email">Email</label>
+        <input class="form-input" id="en-email" type="email" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="en-phone">WhatsApp *</label>
+        <input class="form-input" id="en-phone" type="tel" placeholder="+506 0000 0000">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="en-schedule">¿Qué te interesa?</label>
+        <select class="form-input" id="en-schedule">
+          <option value="">No estoy seguro/a</option>
+          <option>El Conversatorio</option>
+          <option>Job Finder</option>
+          <option>Foundations / ORT</option>
+          <option>Ecosistema completo Infinity</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="en-note">Contanos tu situación</label>
+        <textarea class="form-input" id="en-note" placeholder="Meta laboral, nivel de inglés, experiencia..."></textarea>
+      </div>
+      <button type="button" class="btn-primary" onclick="submitEnroll('Consulta Hablemos')">
+        <i class="ti ti-send"></i> Enviar consulta por WhatsApp
+      </button>
+    </div>
+    <a href="index.html#programs" class="btn-secondary"><i class="ti ti-arrow-left"></i> Ver todos los programas</a>
+  </div>
+
+  <aside class="visual-card">
+    <div class="visual-banner green"><i class="ti ti-brand-whatsapp"></i></div>
+    <div class="visual-body">
+      <div class="visual-tag">Consulta · Sin compromiso</div>
+      <ul class="visual-meta">
+        <li><i class="ti ti-clock"></i> Respuesta en horario laboral CR</li>
+        <li><i class="ti ti-gift"></i> Evaluación inicial gratuita</li>
+        <li><i class="ti ti-brand-tiktok"></i> <a href="https://www.tiktok.com/@infinitystudiocr" target="_blank" rel="noopener" style="color:var(--purple);">@infinitystudiocr</a></li>
+        <li><i class="ti ti-brand-youtube"></i> <a href="https://www.youtube.com/@thelabcr" target="_blank" rel="noopener" style="color:var(--purple);">@thelabcr</a></li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<footer class="page-footer">
+  Infinity Studio CR · <a href="index.html">studioinfinitycr.com</a> · info@studioinfinitycr.com
+</footer>
+
+<div id="claire-widget" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;font-family:'Inter',sans-serif;">
+  <div onclick="toggleClaire()" style="width:64px;height:64px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(91,33,182,0.5);">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+  </div>
+  <div id="cw" style="display:none;position:absolute;bottom:76px;right:0;width:370px;background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);padding:1rem;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:white;">Claire</div></div>
+      <div onclick="toggleClaire()" style="cursor:pointer;color:rgba(255,255,255,0.7);font-size:24px;">×</div>
+    </div>
+    <div id="cm" style="height:300px;overflow-y:auto;padding:1rem;background:#F8F8FF;"></div>
+    <div id="ct" style="display:none;padding:4px 1rem;font-size:12px;color:#94A3B8;background:#F8F8FF;">Claire está escribiendo...</div>
+    <div style="padding:0.75rem;border-top:1px solid #E2E8F0;background:white;display:flex;gap:8px;">
+      <input id="ci" placeholder="Escribí tu mensaje..." style="flex:1;border:1.5px solid #E2E8F0;border-radius:50px;padding:9px 16px;font-size:13px;font-family:inherit;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendClaire();}">
+      <button onclick="sendClaire()" style="width:40px;height:40px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;border-radius:50%;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+    <div id="cc"></div>
+  </div>
+</div>
+<script src="js/enroll.js"></script>
+<script src="js/claire.js"></script>
+<script src="js/i18n.js"></script>
+</body>
+</html>

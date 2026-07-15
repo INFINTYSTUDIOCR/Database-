@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "background": "#f3ebff",
+  "backgroundImage": "assets/canon/frame-bg.png",
+  "frame": { "width": 320, "height": 180, "radius": 12 },
+  "palette": {
+    "title": "#5B21B6",
+    "label": "#6d28d9",
+    "body": "#312e81",
+    "accent": "#7c3aed",
+    "example": "#D97706"
+  },
+  "clips": [
+    { "id": "tiempos", "columns": ["present", "past", "combined"], "svg": "assets/canon/tiempos.svg", "gif": null, "title": "Tiempos verbales" },
+    { "id": "preposiciones", "columns": ["progressive"], "svg": "assets/canon/preposiciones.svg", "gif": null, "title": "Preposiciones" },
+    { "id": "articulos", "columns": ["perfect"], "svg": "assets/canon/articulos.svg", "gif": null, "title": "Artículos" },
+    { "id": "moneda", "columns": ["modal"], "svg": "assets/canon/moneda.svg", "gif": null, "title": "Método moneda" }
+  ]
+}
