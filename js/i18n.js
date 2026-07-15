@@ -198,8 +198,8 @@
     { s: '#contact .section-tag', en: 'Contact', es: 'Contacto' },
     { s: '#contact .section-title', html: true, en: 'Ready To <span style="color:var(--purple)">Operate</span> In English?', es: '¿Listo Para <span style="color:var(--purple)">Operar</span> En Inglés?' },
     { s: '.contact-form h3', en: 'Book your diagnostic session', es: 'Agenda tu sesión de diagnóstico' },
-    { s: '.contact-claire-hint', html: true, en: 'Preparing for TOEIC? <strong>Claire</strong> trains differently: diagnostics, Listening, Reading, controlled pressure, direct correction and a score plan instead of passive question banks.', es: '¿Te preparás para TOEIC? <strong>Claire</strong> entrena distinto: diagnóstico, Listening, Reading, presión controlada, corrección directa y plan de score en vez de bancos pasivos de preguntas.' },
-    { s: '#claire-role', en: 'TOEIC coach — diagnostics & practice', es: 'Coach TOEIC — diagnóstico y práctica' },
+    { s: '.contact-claire-hint', html: true, en: 'Preparing for TOEIC? <strong>Claire</strong> works with direct Listening, Reading, vocabulary exercises and immediate correction.', es: '¿Te preparás para TOEIC? <strong>Claire</strong> trabaja con ejercicios directos de Listening, Reading, vocabulario y corrección inmediata.' },
+    { s: '#claire-role', en: 'TOEIC — direct practice', es: 'TOEIC — práctica directa' },
     { s: '.contact-form .form-group:has(#cf-name) .form-label', en: 'Full name', es: 'Nombre completo' },
     { s: '#cf-name', attr: 'placeholder', en: 'Your name', es: 'Tu nombre' },
     { s: '.contact-form .form-group:has(#cf-email) .form-label', en: 'Email', es: 'Correo' },
@@ -449,7 +449,7 @@
     if (vi && vi.style.display !== 'none') vi.textContent = lang === 'es' ? '🎙 Escuchando' : '🎙 Listening';
     var cc = document.getElementById('cc');
     if (cc) {
-      var hint = lang === 'es' ? 'Coach TOEIC autónoma · práctica y score plan' : 'Autonomous TOEIC coach · practice and score plan';
+      var hint = lang === 'es' ? 'Práctica TOEIC directa · Listening y Reading' : 'Direct TOEIC practice · Listening and Reading';
       cc.setAttribute('data-default-hint', hint);
       var t = cc.textContent || '';
       if (!/mensaje|message/i.test(t)) cc.textContent = hint;

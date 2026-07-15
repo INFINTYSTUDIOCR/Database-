@@ -2,7 +2,7 @@
 # Plain-text facts for AI crawlers and search assistants.
 # Canonical site: https://studioinfinitycr.com/
 
-> Private operational English coaching based in Costa Rica, serving Latin America online. Not an academy — ORT, TOEIC preparation with Claire, KPIs, AI coaches (Jill, Alice Modo Tutor / Modo Libre, Claire, Nexora), human trainers. Legacy brand: TU506 (Training United 506).
+> Private operational English coaching based in Costa Rica, serving Latin America online. Not an academy — ORT, TOEIC preparation with Claire, KPIs, and AI coaches (Jill, Alice Modo Tutor / Modo Libre, Claire, Nexora). Legacy brand: TU506 (Training United 506).
 
 ## Latin America (regional)
 Inglés operacional para profesionales en Latinoamérica — entrevistas BPO, call center, trabajo remoto.
@@ -12,9 +12,9 @@ Inglés operacional para profesionales en Latinoamérica — entrevistas BPO, ca
 - Jill, Alice Modo Tutor, Claire TOEIC, Nexora: guided demo by request — https://studioinfinitycr.com/hablemos.html#consulta
 
 ## TOEIC preparation with Claire
-Claire is the autonomous TOEIC and operational English performance coach in the student portal. She is designed for people who need a measurable TOEIC goal, plus teachers or professionals who need to perform under pressure.
-- Focus: TOEIC Listening & Reading, inference, distractors, time management, vocabulary, and score planning.
-- Why effective vs traditional TOEIC prep: Claire does not only explain grammar or serve question banks; she starts with simulation, applies controlled pressure, corrects the highest-impact error, and repeats until the response becomes automatic.
+Claire is the autonomous TOEIC practice coach in the student portal.
+- Focus: TOEIC Listening & Reading, inference, distractors, time management, and vocabulary.
+- Why effective vs traditional TOEIC prep: Claire does not only explain grammar or serve question banks; she launches exercises, corrects the key trap, and continues with guided repetition.
 - Access: activated in the student portal / by request — https://studioinfinitycr.com/hablemos.html?solicitar=claire#consulta
 
 ## Alice Modo Libre (premium mode — free trial on web)
@@ -38,7 +38,7 @@ Entrenamiento para entrevistas en inglés con IA y simulaciones reales.
 ## Programs (Core)
 - Foundations — communication core, Jill 24/7, zero pressure. https://studioinfinitycr.com/foundations.html
 - ORT (Operational Readiness Training) — execution under pressure, Alice tutor 24/7, Nexora included. https://studioinfinitycr.com/ort.html
-- Claire TOEIC — autonomous TOEIC preparation, score plan, Listening/Reading drills, pressure and correction. https://studioinfinitycr.com/hablemos.html?solicitar=claire#consulta
+- Claire TOEIC — autonomous TOEIC practice, Listening/Reading drills, vocabulary and correction. https://studioinfinitycr.com/hablemos.html?solicitar=claire#consulta
 - Nexora Professional — simulation lab, 30-day access. https://studioinfinitycr.com/pricing.html
 - Alice Modo Libre Premium — unlimited free-flow voice practice (paid add-on; trial on web)
 

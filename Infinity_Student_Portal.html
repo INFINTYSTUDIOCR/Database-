@@ -2464,7 +2464,7 @@ function claireEscapeHtml(s){
 
 function claireFormatMessagesHtml(){
   if(!_claireState.history.length){
-    return '<div style="text-align:center;color:rgba(255,255,255,0.55);font-size:13px;padding:18px;">Iniciá Claire TOEIC para diagnóstico, Listening, Reading y plan de práctica.</div>';
+    return '<div style="text-align:center;color:rgba(255,255,255,0.55);font-size:13px;padding:18px;">Iniciá Claire TOEIC para práctica directa de Listening, Reading y vocabulario.</div>';
   }
   return _claireState.history.map(function(m){
     var isClaire = m.role === 'assistant';
@@ -2489,24 +2489,24 @@ function renderClaire(){
     +'<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:1.1rem;">'
     +'<div><div style="font-size:10px;letter-spacing:0.22em;color:#ddd6fe;font-weight:800;">STUDIO INFINITY CR</div>'
     +'<div style="font-size:28px;font-weight:900;color:white;letter-spacing:0.04em;">CLAIRE TOEIC</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,0.86);">Coach TOEIC autónoma — diagnóstico, práctica y score plan</div></div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,0.86);">Práctica TOEIC directa — Listening, Reading y vocabulario</div></div>'
     +'<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);display:flex;align-items:center;justify-content:center;font-size:22px;"><i class="ti ti-headphones"></i></div>'
     +'</div>'
     +(!hasSession
-      ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:14px;padding:1rem;margin-bottom:1rem;font-size:13px;line-height:1.7;color:rgba(255,255,255,0.9);"><strong>Claire prepara TOEIC de punta a punta.</strong> Diagnostica tu meta, detecta tu punto débil, te entrena con Listening/Reading y te da el siguiente ejercicio.</div>'
+      ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:14px;padding:1rem;margin-bottom:1rem;font-size:13px;line-height:1.7;color:rgba(255,255,255,0.9);"><strong>Claire ejecuta práctica TOEIC.</strong> Entrás, respondés un ejercicio y recibís corrección inmediata.</div>'
       : '')
     +'<div id="claire-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;display:flex;flex-direction:column;gap:10px;">'+claireFormatMessagesHtml()+'</div>'
     +'<div id="claire-status" style="font-size:12px;color:#ddd6fe;text-align:center;min-height:18px;font-weight:700;margin-bottom:8px;"></div>'
     +(hasSession
       ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Haga un diagnóstico TOEIC inicial: meta, fecha y sección débil.\')">Diagnóstico</button>'
-        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Entréneme en Listening TOEIC con una micro-práctica y corrección.\')">Listening</button>'
-        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Entréneme en Reading TOEIC Part 5 o Part 7 con feedback.\')">Reading</button>'
-        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Ármeme un plan TOEIC de 7 días y empecemos con el primer ejercicio.\')">Plan 7 días</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Listening Part 2.\')">Listening</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Reading Part 5.\')">Reading Part 5</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una mini práctica TOEIC Reading Part 7.\')">Reading Part 7</button>'
+        +'<button type="button" class="jill-chip" onclick="claireQuickPrompt(\'Lance una práctica de vocabulario TOEIC en contexto laboral.\')">Vocabulario</button>'
         +'</div>'
       : '')
     +(hasSession
-      ? '<div style="display:flex;gap:8px;align-items:center;"><input id="claire-input" class="inp" placeholder="Ej: necesito 750 en TOEIC en 2 meses..." style="flex:1;background:rgba(255,255,255,0.94);border:2px solid rgba(196,181,253,0.55);color:#111827;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendClairePortalMessage();"><button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#5b21b6,#a855f7);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendClairePortalMessage()" aria-label="Enviar a Claire"><i class="ti ti-send"></i></button></div>'
+      ? '<div style="display:flex;gap:8px;align-items:center;"><input id="claire-input" class="inp" placeholder="Responda la opción o pida Listening / Reading / Vocabulario..." style="flex:1;background:rgba(255,255,255,0.94);border:2px solid rgba(196,181,253,0.55);color:#111827;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendClairePortalMessage();"><button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#5b21b6,#a855f7);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendClairePortalMessage()" aria-label="Enviar a Claire"><i class="ti ti-send"></i></button></div>'
       : '<button type="button" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:1px solid rgba(255,255,255,0.25);color:white;font-weight:900;font-size:15px;padding:14px 24px;border-radius:14px;cursor:pointer;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Iniciar Claire TOEIC</button>')
     +'</div>';
 }
@@ -2557,9 +2557,9 @@ async function startClaireSession(){
     var r = await clairePost({ mode:'start', sessionId:_claireState.sessionId });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_start_'+r.status);
-    _claireState.history = [{ role:'assistant', content: data.reply || 'Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?' }];
+    _claireState.history = [{ role:'assistant', content: data.reply || 'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
   }catch(e){
-    _claireState.history = [{ role:'assistant', content:'Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?' }];
+    _claireState.history = [{ role:'assistant', content:'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
   }
   renderClaire();
 }
@@ -2592,9 +2592,9 @@ async function sendClairePortalMessage(){
     });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_'+r.status);
-    _claireState.history.push({ role:'assistant', content: data.reply || 'Sigamos con TOEIC: contame tu meta de score y tu fecha límite.' });
+    _claireState.history.push({ role:'assistant', content: data.reply || 'Sigamos con TOEIC.\n\nChoose the correct option: The meeting was postponed ___ the manager was unavailable.\n\nA) because\nB) although\nC) despite\nD) unless' });
   }catch(e){
-    _claireState.history.push({ role:'assistant', content:'No pude responder ahora. Reintentá en unos segundos o contame tu meta TOEIC en una frase.' });
+    _claireState.history.push({ role:'assistant', content:'No pude responder ahora. Reintentá en unos segundos o pedí: Listening, Reading o Vocabulario.' });
   }finally{
     _claireState.sending = false;
     renderClaire();

@@ -26,7 +26,7 @@ async function startClaire() {
     _ch.push({role:'assistant', content:d.reply});
   } catch(e) {
     showTyping(false);
-    addMsg('Bien. Antes de empezar, dígame la verdad: ¿cuánto tiempo lleva estudiando inglés, y cuánto de ese tiempo lo pasó hablando de verdad, bajo presión?', 'c');
+    addMsg('Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.', 'c');
   }
 }
 
@@ -56,7 +56,7 @@ async function sendClaire() {
   _ch.push({role:'user', content:txt});
   _count++;
   updateCount();
-  if (_count === 90) setTimeout(function(){ addMsg('Si quiere seguir, Claire puede armarle un plan TOEIC completo aquí mismo: diagnóstico, Listening, Reading y práctica diaria bajo presión.', 'c'); }, 300);
+  if (_count === 90) setTimeout(function(){ addMsg('Seguimos con práctica TOEIC directa: Listening, Reading o vocabulario. Escriba el modo y lanzo el siguiente ejercicio.', 'c'); }, 300);
   if (_count >= _LIMIT) { setTimeout(showLimit, 600); return; }
   showTyping(true);
   try {
@@ -178,7 +178,7 @@ function updateCount() {
   var el = document.getElementById('cc');
   if (!el) return;
   var rem = _LIMIT - _count;
-  var hint = el.getAttribute('data-default-hint') || 'Coach TOEIC autónoma · práctica y score plan';
+  var hint = el.getAttribute('data-default-hint') || 'Práctica TOEIC directa · Listening y Reading';
   el.textContent = rem <= 5 && rem > 0 ? rem + ' mensaje' + (rem===1?'':'s') + ' restante' + (rem===1?'':'s') : hint;
   el.style.color = rem <= 5 && rem > 0 ? '#F5A623' : '#94A3B8';
 }
