@@ -2448,12 +2448,12 @@ var ARCADE_BANK = {
     { id:'verb-study-past', kpi:'k2', prompt:'Past of STUDY', clue:'Complete: He ___ last night.', answer:'studied', explain:'Study cambia Y por IED: studied.' }
   ],
   structure: [
-    { id:'str-neg-monday', kpi:'k3', prompt:'Armá la oración negativa.', blocks:['on Mondays',"doesn't",'she','work'], answer:['she',"doesn't",'work','on Mondays'], explain:"She + doesn't + verbo base + complemento." },
-    { id:'str-question-live', kpi:'k3', prompt:'Armá la pregunta.', blocks:['live','where','you','do'], answer:['where','do','you','live'], explain:'WH + auxiliar + sujeto + verbo base.' },
-    { id:'str-present-perfect', kpi:'k3', prompt:'Armá la oración en presente perfecto.', blocks:['have','I','finished','the report'], answer:['I','have','finished','the report'], explain:'Sujeto + have + participio + complemento.' },
-    { id:'str-progressive', kpi:'k3', prompt:'Armá la oración en presente continuo.', blocks:['is','she','working','now'], answer:['she','is','working','now'], explain:'Sujeto + to be + verbo-ing.' },
-    { id:'str-because', kpi:'k9', prompt:'Armá una respuesta con razón.', blocks:['because','I','learn','every day','like my job'], answer:['I','like my job','because','I','learn','every day'], explain:'Idea + because + razón concreta.' },
-    { id:'str-question-gym', kpi:'k3', prompt:'Armá la pregunta correcta.', blocks:['he','go','does','to the gym'], answer:['does','he','go','to the gym'], explain:'Does + he + verbo base.' }
+    { id:'str-neg-monday', kpi:'k3', prompt:'Armá la oración negativa.', clue:'She / Mondays / work', blocks:['she',"doesn't",'work','on Mondays'], answer:['she',"doesn't",'work','on Mondays'], explain:"She + doesn't + verbo base + complemento." },
+    { id:'str-question-live', kpi:'k3', prompt:'Armá la pregunta.', clue:'where / you / live', blocks:['where','do','you','live'], answer:['where','do','you','live'], explain:'WH + auxiliar + sujeto + verbo base.' },
+    { id:'str-present-perfect', kpi:'k3', prompt:'Armá la oración en presente perfecto.', clue:'I / the report / finished', blocks:['I','have','finished','the report'], answer:['I','have','finished','the report'], explain:'Sujeto + have + participio + complemento.' },
+    { id:'str-progressive', kpi:'k3', prompt:'Armá la oración en presente continuo.', clue:'she / working / now', blocks:['she','is','working','now'], answer:['she','is','working','now'], explain:'Sujeto + to be + verbo-ing.' },
+    { id:'str-because', kpi:'k9', prompt:'Armá una respuesta con razón.', clue:'I like my job + because…', blocks:['I','like my job','because','I learn','every day'], answer:['I','like my job','because','I learn','every day'], explain:'Idea + because + razón concreta.' },
+    { id:'str-question-gym', kpi:'k3', prompt:'Armá la pregunta correcta.', clue:'does / he / go / to the gym', blocks:['does','he','go','to the gym'], answer:['does','he','go','to the gym'], explain:'Does + he + verbo base + complemento.' }
   ],
   preposition: [
     { id:'prep-city', kpi:'k4', prompt:'I live ___ San José.', options:['in','on','at','by'], answer:0, explain:'IN + ciudad o país.' },
@@ -2499,8 +2499,53 @@ function arcadeShuffle(arr){
   return a;
 }
 
+/** Normaliza tokens de estructura para comparar sin romper el aprendizaje. */
+function arcadeNormToken(t){
+  return String(t || '').toLowerCase().replace(/[？?!.¡¿]/g,'').replace(/\s+/g,' ').trim();
+}
+
+/**
+ * Garantiza que Structure Creator siempre sea resoluble:
+ * cada pieza de la respuesta existe en blocks (con la misma cantidad).
+ */
+function arcadeEnsureStructureSolvable(q){
+  if(!q) return q;
+  var out = Object.assign({}, q);
+  if(out.category && out.category !== 'structure') return out;
+  var answer = (out.answer || []).map(function(t){ return String(t); });
+  if(!answer.length) return out;
+  out.answer = answer;
+  var need = {};
+  answer.forEach(function(t){
+    var k = arcadeNormToken(t);
+    need[k] = (need[k] || 0) + 1;
+  });
+  var have = {};
+  (out.blocks || []).forEach(function(t){
+    var k = arcadeNormToken(t);
+    have[k] = (have[k] || 0) + 1;
+  });
+  var solvable = Object.keys(need).every(function(k){ return (have[k] || 0) >= need[k]; });
+  if(!solvable || !(out.blocks || []).length){
+    out.blocks = answer.slice();
+  }
+  return out;
+}
+
+function arcadeStructureMatch(answerArr, builtArr){
+  var a = (answerArr || []).map(arcadeNormToken).filter(Boolean);
+  var b = (builtArr || []).map(arcadeNormToken).filter(Boolean);
+  if(a.length !== b.length) return false;
+  for(var i = 0; i < a.length; i++){
+    if(a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 function ensureArcadePressureStyles(){
-  if(document.getElementById('language-arcade-hh-styles-v2')) return;
+  if(document.getElementById('language-arcade-hh-styles-v3')) return;
+  var stale2 = document.getElementById('language-arcade-hh-styles-v2');
+  if(stale2) stale2.remove();
   var stale = document.getElementById('language-arcade-hh-styles');
   if(stale) stale.remove();
   var old = document.getElementById('language-arcade-pressure-styles');
@@ -2513,7 +2558,7 @@ function ensureArcadePressureStyles(){
     document.head.appendChild(link);
   }
   var st = document.createElement('style');
-  st.id = 'language-arcade-hh-styles-v2';
+  st.id = 'language-arcade-hh-styles-v3';
   st.textContent = ''
     + '@keyframes arcadeScanSweep{0%{transform:translateX(-130%);opacity:.15}40%{opacity:.9}100%{transform:translateX(130%);opacity:.15}}'
     + '@keyframes arcadeFocusPulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(.86);opacity:1}}'
@@ -2571,6 +2616,12 @@ function ensureArcadePressureStyles(){
     + '.arcade-pix-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}'
     + '.arcade-pix-letter{width:34px;height:34px;border-radius:4px;border:2px solid #111;background:#ede9fe;color:#4c1d95;font-family:"Press Start 2P",monospace;font-size:9px;cursor:pointer;box-shadow:2px 2px 0 #000;}'
     + '.arcade-pix-opt{font-family:"Press Start 2P",monospace;font-size:8px;background:#f8fafc;border:2px solid #111;color:#111;border-radius:4px;padding:12px 8px;cursor:pointer;box-shadow:3px 3px 0 #000;line-height:1.4;}'
+    + '.arcade-block-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}'
+    + '.arcade-build-slot{min-height:56px;border:2px dashed #111;border-radius:6px;padding:10px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#f8fafc;}'
+    + '.arcade-build-ph{font-size:12px;color:#6b7280;font-family:system-ui,Segoe UI,sans-serif;}'
+    + '.arcade-chip{font-family:system-ui,Segoe UI,sans-serif;font-size:13px;font-weight:800;border:2px solid #111;background:#5b21b6;color:#fff;border-radius:10px;padding:10px 12px;cursor:pointer;box-shadow:3px 3px 0 #000;line-height:1.2;max-width:100%;}'
+    + '.arcade-chip.placed{background:#ede9fe;color:#4c1d95;cursor:default;box-shadow:2px 2px 0 #111;}'
+    + '.arcade-chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}'
     + '.arcade-hh-result{margin-top:10px;border:3px solid #fff;border-radius:4px;padding:10px;text-align:center;box-shadow:3px 3px 0 #000;font-family:"Press Start 2P",monospace;}'
     + '.arcade-hh-result.ok{background:rgba(16,185,129,.25);}'
     + '.arcade-hh-result.bad{background:rgba(245,158,11,.25);}'
@@ -2689,7 +2740,9 @@ function pickArcadeQuestions(mode, s, count, allowRepeat){
     });
   }
 
-  var picked = pool.slice(0, count);
+  var picked = pool.slice(0, count).map(function(q){
+    return (q.category === 'structure') ? arcadeEnsureStructureSolvable(q) : q;
+  });
   var pickedKeys = picked.map(arcadeQuestionKey);
   window._arcadeSeen = pickedKeys.concat(window._arcadeSeen || []).slice(0, 40);
   if(s){
@@ -2855,14 +2908,19 @@ function arcadeVerbBody(st, q){
 }
 
 function arcadeStructureBody(st, q){
-  var blocks = arcadeShuffle(q.blocks || []);
+  q = arcadeEnsureStructureSolvable(q);
+  st.quiz[st.idx] = q;
+  var blocks = arcadeShuffle(q.blocks || q.answer || []);
   st.blockPool = blocks;
+  var need = (q.answer || []).length;
   return '<div class="arcade-game-card">'
     + '<div class="arcade-game-label">STRUCTURE CREATOR</div>'
     + '<div class="arcade-game-prompt">'+arcadeEsc(q.prompt)+'</div>'
-    + '<div id="arcade-build" style="min-height:52px;border:2px dashed #111;border-radius:4px;padding:10px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#f8fafc;"><span style="font-size:12px;color:#6b7280;">Tocá bloques para construir...</span></div>'
-    + '<div id="arcade-blocks" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">'
-    + blocks.map(function(b,i){ return '<button type="button" class="arcade-pix-btn" data-idx="'+i+'" onclick="arcadePickBlock('+i+')">'+arcadeEsc(b)+'</button>'; }).join('')
+    + (q.clue ? '<div class="arcade-game-clue">Pista: '+arcadeEsc(q.clue)+'</div>' : '')
+    + '<div class="arcade-game-clue" id="arcade-build-count">Usá las '+need+' piezas · orden correcto = oración completa</div>'
+    + '<div id="arcade-build" class="arcade-build-slot"><span class="arcade-build-ph">Tocá bloques para construir...</span></div>'
+    + '<div id="arcade-blocks" class="arcade-block-row">'
+    + blocks.map(function(b,i){ return '<button type="button" class="arcade-chip" data-idx="'+i+'" onclick="arcadePickBlock('+i+')">'+arcadeEsc(b)+'</button>'; }).join('')
     + '</div>'
     + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
     + '<button type="button" class="arcade-pix-btn secondary" onclick="arcadeUndoBlock()">Deshacer</button>'
@@ -2915,13 +2973,20 @@ function arcadeUndoBlock(){
 
 function arcadeRenderBuild(){
   var st = window._arcadeState; if(!st) return;
+  var q = st.quiz[st.idx] || {};
+  var need = (q.answer || []).length;
   var build = document.getElementById('arcade-build');
   var blocks = document.getElementById('arcade-blocks');
+  var count = document.getElementById('arcade-build-count');
+  var selected = st.selectedBlocks.map(function(i){ return st.blockPool[i]; });
   if(build){
-    var selected = st.selectedBlocks.map(function(i){ return st.blockPool[i]; });
     build.innerHTML = selected.length
-      ? selected.map(function(b){ return '<span style="background:#ede9fe;color:#4c1d95;border-radius:10px;padding:8px 10px;font-weight:900;">'+arcadeEsc(b)+'</span>'; }).join('')
-      : '<span style="font-size:12px;color:#6b7280;">Tocá bloques para construir...</span>';
+      ? selected.map(function(b){ return '<span class="arcade-chip placed">'+arcadeEsc(b)+'</span>'; }).join('')
+      : '<span class="arcade-build-ph">Tocá bloques para construir...</span>';
+  }
+  if(count){
+    count.textContent = selected.length + '/' + need + ' piezas'
+      + (selected.length === need ? ' · listo para Revisar' : ' · tocá las que faltan');
   }
   if(blocks){
     blocks.querySelectorAll('button[data-idx]').forEach(function(btn){
@@ -2934,9 +2999,18 @@ function arcadeRenderBuild(){
 
 function arcadeSubmitBuild(){
   var st = window._arcadeState; if(!st) return;
-  var q = st.quiz[st.idx];
+  var q = arcadeEnsureStructureSolvable(st.quiz[st.idx]);
+  st.quiz[st.idx] = q;
   var built = st.selectedBlocks.map(function(i){ return st.blockPool[i]; });
-  var correct = (q.answer || []).join(' ').toLowerCase() === built.join(' ').toLowerCase();
+  if(built.length !== (q.answer || []).length){
+    var box = document.getElementById(st.containerId + '-result');
+    if(box){
+      box.innerHTML = '<div class="arcade-hh-result bad"><div class="msg">Usá las '+(q.answer || []).length+' piezas</div>'
+        + '<div class="explain">Todavía faltan o sobran bloques. Deshacé y armá la oración completa.</div></div>';
+    }
+    return;
+  }
+  var correct = arcadeStructureMatch(q.answer, built);
   arcadeFinishQuestion(correct, built.join(' '));
 }
 
