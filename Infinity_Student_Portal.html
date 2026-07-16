@@ -1192,10 +1192,7 @@ function showPortal(s){
   var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
   var drillRecursosBtns = '';
   if(studentJillOn(s) || studentAliceOn(s) || studentJillProOn(s)){
-    drillRecursosBtns += '<button class="btn" style="background:var(--ad);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
-  }
-  if(studentCompanionOn(s) || studentAliceOn(s)){
-    drillRecursosBtns += '<button class="btn" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill (Alice)</button>';
+    drillRecursosBtns += '<button class="btn" style="background:var(--ad);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill Kaboom (Foundations)</button>';
   }
   if(!drillRecursosBtns){
     drillRecursosBtns = '<div style="font-size:13px;color:var(--t3);">Activá Jill o Alice con tu trainer.</div>';
@@ -1228,10 +1225,11 @@ function showPortal(s){
     +'<div id="portal-persona-container"></div>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-device-gamepad-2"></i>Infinity Arcade</div>'
-    +'<div style="font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;">Challenge drill y Language Arcade viven aquí. Tocá la pantalla de la máquina para elegir.</div>'
+    +'<div style="font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;"><strong>No es Kaboom.</strong> Challenge Drill y Language Arcade son juegos de la máquina. Kaboom vive en Drills (Rapid drill Foundations).</div>'
     + arcadeGate
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Drills</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Drills · Kaboom</div>'
+    +'<div style="font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:8px;">Rapid drill Kaboom = Foundations (oraciones, tiempos, estructura). Aparte del Arcade.</div>'
     +'<div id="portal-nemesis-container">'+drillRecursosBtns+'</div>'
     +'</div>';
 
@@ -1633,20 +1631,16 @@ function renderInfinityArcadeCabinet(containerId){
     + '</div>';
   clearTimeout(window._infArcadeBootTimer);
   window._infArcadeBootTimer = setTimeout(function(){
-    showInfinityArcadeHome(canChallenge);
+    showInfinityArcadeHome();
   }, 1100);
 }
 
 function showInfinityArcadeHome(canChallenge){
   var inner = document.getElementById('inf-arcade-screen-inner');
   if(!inner) return;
-  if(canChallenge == null) canChallenge = !!(studentCompanionOn(CURRENT_STUDENT) || studentAliceOn(CURRENT_STUDENT));
-  var challengeBtn = canChallenge
-    ? '<button type="button" class="inf-arcade-btn inf-arcade-btn-challenge" onclick="infinityArcadePickChallenge()"><i class="ti ti-bolt"></i> Challenge Drill</button>'
-    : '';
   inner.innerHTML =
     '<div class="inf-arcade-title">SKILL TESTS</div>'
-    + challengeBtn
+    + '<button type="button" class="inf-arcade-btn inf-arcade-btn-challenge" onclick="infinityArcadePickChallenge()"><i class="ti ti-bolt"></i> Challenge Drill</button>'
     + '<button type="button" class="inf-arcade-btn inf-arcade-btn-modes" onclick="showInfinityArcadeModes()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>';
 }
 
@@ -1654,7 +1648,7 @@ function showInfinityArcadeModes(){
   var inner = document.getElementById('inf-arcade-screen-inner');
   if(!inner) return;
   var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
-  var keys = Object.keys(modes);
+  var keys = Object.keys(modes).filter(function(k){ return k !== 'challenge'; });
   if(!keys.length){
     inner.innerHTML = '<div class="inf-arcade-boot">Sin modos</div>'
       + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">Volver</button>';
@@ -1675,27 +1669,13 @@ function showInfinityArcadeModes(){
 }
 
 function infinityArcadePickChallenge(){
-  if(!(studentCompanionOn(CURRENT_STUDENT) || studentAliceOn(CURRENT_STUDENT))){
-    showToast('Challenge drill es de Alice / Modo Libre.','err');
-    return;
-  }
-  if(typeof JillQuiz === 'undefined'){
-    showToast('Quiz no disponible','err');
-    return;
-  }
-  window._rapidDrillTier = 'advanced';
-  openInfinityArcadeFullscreen('Challenge Drill', 'Kaboom bajo presión — Alice');
-  var body = document.getElementById('inf-arcade-fs-body');
-  if(!body) return;
-  body.innerHTML = '<div style="margin-bottom:10px;">'
-    + ((typeof JillQuiz !== 'undefined' && CURRENT_STUDENT) ? JillQuiz.renderNemesisTopics(CURRENT_STUDENT) : '')
-    + '</div><div id="inf-arcade-fs-quiz"></div>';
-  var zone = document.getElementById('inf-arcade-fs-quiz');
-  if(zone) JillQuiz.mount(zone, CURRENT_STUDENT, portalQuizBundle(), null, { drillTier: 'advanced', drillOwner: 'alice' });
+  // Challenge Drill = Arcade pressure mode — NOT Rapid drill Kaboom
+  infinityArcadeStartMode('challenge');
 }
 
 function infinityArcadeStartMode(mode){
-  openInfinityArcadeFullscreen('Language Arcade', (ARCADE_MODES[mode] && ARCADE_MODES[mode].title) || mode);
+  var m = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES[mode]) ? ARCADE_MODES[mode] : null;
+  openInfinityArcadeFullscreen(m && m.title ? m.title : 'Language Arcade', 'Infinity Arcade · no es Kaboom');
   startArcadeMode(mode, 'inf-arcade-fs-body');
 }
 
@@ -1754,7 +1734,7 @@ function infinityArcadeFsShowModes(){
   var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
   body.innerHTML =
     '<div class="inf-arcade-fs-modes">'
-    + Object.keys(modes).map(function(key){
+    + Object.keys(modes).filter(function(k){ return k !== 'challenge'; }).map(function(key){
         var m = modes[key];
         return '<button type="button" class="inf-arcade-fs-mode-btn" onclick="infinityArcadeStartMode(\''+key+'\')">'
           + '<strong>'+(m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')+(m.title || key)+'</strong>'
@@ -1763,6 +1743,7 @@ function infinityArcadeFsShowModes(){
       }).join('')
     + '</div>'
     + '<div style="margin-top:14px;text-align:center;">'
+    + '<button type="button" class="inf-arcade-fs-close" style="margin-right:8px;" onclick="infinityArcadeStartMode(\'challenge\')">⚡ Challenge Drill</button>'
     + '<button type="button" class="inf-arcade-fs-close" onclick="closeInfinityArcadeFullscreen()">← Volver a la máquina</button>'
     + '</div>';
 }
@@ -2166,6 +2147,7 @@ function startPersonaTypingTest(personaKey, containerId){
 
 // ── INFINITY LANGUAGE ARCADE (reemplaza quiz estático) ─────
 var ARCADE_MODES = {
+  challenge: { title:'Challenge Drill', icon:'ti-bolt', desc:'Presión arcade: linkers + estructura + fallos. No es Kaboom.', category:'mixed', color:'#F59E0B' },
   verb: { title:'Verb Hunt', icon:'ti-target-arrow', desc:'Descubrí verbos clave como word reveal.', category:'verb', color:'#0f766e' },
   structure: { title:'Structure Creator', icon:'ti-blocks', desc:'Ordená bloques para formar la oración.', category:'structure', color:'#5b21b6' },
   preposition: { title:'Preposition Challenge', icon:'ti-map-pin', desc:'in / on / at / by / to / for en contexto.', category:'preposition', color:'#b45309' },
@@ -2318,9 +2300,12 @@ function generateQuizForStudent(s, allowRepeat){
 }
 
 function pickArcadeQuestions(mode, s, count, allowRepeat){
-  count = count || (mode === 'frenzy' ? 8 : 6);
-  var cats = mode === 'frenzy'
-    ? ['verb','structure','preposition','linker','phrasal']
+  var mixed = (mode === 'frenzy' || mode === 'challenge');
+  count = count || (mode === 'challenge' ? 10 : (mode === 'frenzy' ? 8 : 6));
+  var cats = mixed
+    ? (mode === 'challenge'
+      ? ['linker','structure','phrasal','preposition','verb']
+      : ['verb','structure','preposition','linker','phrasal'])
     : [(ARCADE_MODES[mode] && ARCADE_MODES[mode].category) || mode];
   var seen = allowRepeat ? [] : ((s && s.arcadeSeen) || window._arcadeSeen || []);
   var weak = arcadeWeakCategories(s);
@@ -2429,7 +2414,8 @@ function startArcadeMode(mode, containerId){
   if(!c) return;
   var m = ARCADE_MODES[mode] || ARCADE_MODES.frenzy;
   var s = CURRENT_STUDENT || {};
-  var quiz = pickArcadeQuestions(mode, s, mode === 'frenzy' ? 8 : 6, false);
+  var qCount = mode === 'challenge' ? 10 : (mode === 'frenzy' ? 8 : 6);
+  var quiz = pickArcadeQuestions(mode, s, qCount, false);
   window._currentQuiz = quiz;
   window._arcadeState = {
     mode: mode,
@@ -3514,8 +3500,8 @@ function renderAlice(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kaboom bajo presión — trofeos y rachas</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · KABOOM</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Foundations bajo presión — no es Infinity Arcade</div>'
       +'</div>'
       +'<button type="button" onclick="portalCloseRapidDrill(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Alice</button>'
       +'</div>'
@@ -6904,8 +6890,8 @@ function renderJill(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Kaboom bajo presión — llama → polvorín · trofeos y rachas</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · KABOOM</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Foundations bajo presión — no es Infinity Arcade</div>'
       +'</div>'
       +'<button type="button" onclick="jillCloseKaboomQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
       +'</div>'
