@@ -81,11 +81,15 @@ function wantsVisual(text) {
   return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
 }
 
-/** Pedido explícito de tema (español) vs frase de práctica en inglés. */
-function isExplicitTopicAsk(text) {
+/** Solo comando de enseñar (explicame / explain / teach me). Evita falsos positivos por palabras parecidas ES↔EN. */
+function isTeachCommand(text) {
   const t = String(text || '');
-  return /\b(explicame|expl[ií]came|explic[aá]|ense[nñ]ame|ense[nñ][aá]|mostr[aá]me|dame|quiero (saber|aprender|entender)|qu[eé] es|c[oó]mo se (usa|forma|dice)|ayudame|ayud[aá]me|duda|hablame de|habl[aá]me de|tema de|lecci[oó]n|m[oó]dulo)\b/i.test(t)
-    || /\b(preposiciones|gerundio|futuro|pasado|presente|pronombres|art[ií]culos|modales|negaciones)\b/i.test(t);
+  return /\b(explicame|expl[ií]c[aá](?:me|melo|me\s+lo)?|explain(?:\s+me)?|teach(?:\s+me)?|ense[nñ]ame|ense[nñ][aá](?:me)?|mostr[aá]me(?:\s+el)?\s+(tablero|imagen|pizarra)|show\s+me)\b/i.test(t);
+}
+
+/** Pedido explícito de tema = comando explicame (no “qué es”, no módulo suelto). */
+function isExplicitTopicAsk(text) {
+  return isTeachCommand(text);
 }
 
 /** Producción oral / ejemplo en inglés (no es pedido de nuevo módulo). */
@@ -510,6 +514,7 @@ module.exports = {
   trackById,
   wantsVisual,
   stripAskShell,
+  isTeachCommand,
   isExplicitTopicAsk,
   isEnglishPracticeUtterance,
   resolveAsk,

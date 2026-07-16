@@ -897,10 +897,14 @@
     return /\b(imagen|pizarr[oó]n|whiteboard|tablero|visual|diagrama|cuadro)\b/i.test(String(text || ''));
   }
 
-  function isExplicitTopicAsk(text) {
+  /** Solo comando de enseñar (explicame / explain / teach me). NO palabras sueltas ni “qué es”. */
+  function isTeachCommand(text) {
     var t = String(text || '');
-    return /\b(explicame|expl[ií]came|explic[aá]|ense[nñ]ame|ense[nñ][aá]|mostr[aá]me|dame|quiero (saber|aprender|entender)|qu[eé] es|c[oó]mo se (usa|forma|dice)|ayudame|ayud[aá]me|duda|hablame de|habl[aá]me de|tema de|lecci[oó]n|m[oó]dulo)\b/i.test(t)
-      || /\b(preposiciones|gerundio|futuro|pasado|presente|pronombres|art[ií]culos|modales|negaciones)\b/i.test(t);
+    return /\b(explicame|expl[ií]c[aá](?:me|melo|me\s+lo)?|explain(?:\s+me)?|teach(?:\s+me)?|ense[nñ]ame|ense[nñ][aá](?:me)?|mostr[aá]me(?:\s+el)?\s+(tablero|imagen|pizarra)|show\s+me)\b/i.test(t);
+  }
+
+  function isExplicitTopicAsk(text) {
+    return isTeachCommand(text);
   }
 
   function isEnglishPracticeUtterance(text) {
@@ -1111,6 +1115,7 @@
     pickTrackId: pickTrackId,
     wantsVisual: wantsVisual,
     stripAskShell: stripAskShell,
+    isTeachCommand: isTeachCommand,
     isExplicitTopicAsk: isExplicitTopicAsk,
     isEnglishPracticeUtterance: isEnglishPracticeUtterance,
     resolveAsk: resolveAsk,

@@ -34,7 +34,7 @@
 <script src="js/b2b-alice-report.js"></script>
 <script src="js/tutor-reply.js"></script>
 <script src="js/jill-learner-intent.js?v=20260711ops"></script>
-<script src="js/jill-canon-router.js?v=20260713m07"></script>
+<script src="js/jill-canon-router.js?v=20260715explicame1"></script>
 <script src="js/jill-canon-visual.js?v=20260715teach1"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260715teach1"></script>
@@ -4416,14 +4416,19 @@ function aliceLastUserTopic(){
   return (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
 }
 
-/** Tablero Alice (Tutor + Libre): solo nexus_* al enseñar. Nunca Foundations. */
+/** Tablero Alice: solo con comando explicame/explain o lock Nexus ya activo. */
+function aliceIsTeachCommand(text){
+  var t = String(text || '');
+  if(typeof JillCanonRouter !== 'undefined' && JillCanonRouter.isTeachCommand) return JillCanonRouter.isTeachCommand(t);
+  return /\b(explicame|expl[ií]c[aá](?:me|melo|me\s+lo)?|explain(?:\s+me)?|teach(?:\s+me)?|ense[nñ]ame|ense[nñ][aá](?:me)?)\b/i.test(t);
+}
+
 function aliceWantsNexusBoard(userText, replyText){
   var u = String(userText || '');
   var r = String(replyText || '');
-  if(_aliceState && _aliceState.nexusLockId) return true;
-  if(/\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda|ejercicio|practice|practic)\b/i.test(u)) return true;
-  if(/\[\[CTYPE:whiteboard\]\]/i.test(r)) return true;
-  if(/\b(idea\s*\+\s*linker|linker|however|furthermore|as a result|star method|situation|your turn|build me a sentence|conectores?|nexus)\b/i.test(r)) return true;
+  if(_aliceState && _aliceState.nexusLockId && !aliceIsTeachCommand(u)) return true;
+  if(aliceIsTeachCommand(u)) return true;
+  if(/\[\[CTYPE:whiteboard\]\]/i.test(r) && (_aliceState && _aliceState.nexusLockId)) return true;
   return false;
 }
 
@@ -4439,23 +4444,23 @@ function aliceActivateVisualStage(text){
     return;
   }
   var sticky = (_aliceState && _aliceState.nexusLockId) ? String(_aliceState.nexusLockId) : '';
-  var topicSticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
-  var fromUser = (typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId)
-    ? JillLessonClip.resolveNexusId(userTopic)
-    : null;
-  var col = fromUser || sticky || null;
-  if(!col && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
-    col = JillLessonClip.resolveNexusId((userTopic + ' ' + topicSticky).trim());
+  var fromUser = null;
+  // Solo el comando EXPLICAME puede cambiar el lock Nexus (evita homófonos ES↔EN).
+  if(aliceIsTeachCommand(userTopic) && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
+    fromUser = JillLessonClip.resolveNexusId(userTopic);
   }
-  // Hard-lock: solo nexus_*. Nunca Foundations / TOEIC.
+  var col = fromUser || sticky || null;
+  if(!col && aliceIsTeachCommand(userTopic) && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
+    col = JillLessonClip.resolveNexusId(userTopic) || 'nexus_idea_chain';
+  }
   if(col && !/^nexus_/i.test(String(col))) col = null;
   if(!col && sticky && /^nexus_/i.test(sticky)) col = sticky;
-  if(!col) col = 'nexus_idea_chain';
+  if(!col) return;
   if(!/^nexus_/i.test(String(col))) return;
   _aliceState.nexusLockId = col;
   var shown = JillVisualStage.show(plain, 'whiteboard', null, {
     tutor: 'alice',
-    userTopic: userTopic || topicSticky || col,
+    userTopic: userTopic || col,
     column: col
   });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
@@ -5738,17 +5743,17 @@ function jillIsPracticeContinue(text) {
 function jillResolveCanonTrack(userText, replyText) {
   if (typeof JillCanonRouter === 'undefined') return null;
   var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
-  var explicit = typeof JillCanonRouter.isExplicitTopicAsk === 'function' && JillCanonRouter.isExplicitTopicAsk(userText);
+  var teachCmd = (JillCanonRouter.isTeachCommand || JillCanonRouter.isExplicitTopicAsk || function(){ return false; })(userText);
   var wantsVis = typeof JillCanonRouter.wantsVisual === 'function' && JillCanonRouter.wantsVisual(userText);
-  // LOCK GENERAL: lección activa → solo pedido EXPLÍCITO de OTRO tema puede cambiar.
-  if (locked && !explicit) return locked;
-  // Sin pedido de enseñar / tablero → NO inventar lock por palabras sueltas (ej. "in" → prep).
-  if (!explicit && !wantsVis) return locked || null;
+  // LOCK: lección activa → solo comando EXPLICAME (u equivalente) puede cambiar de módulo.
+  if (locked && !teachCmd) return locked;
+  // Sin comando de enseñar / tablero → NO inventar lock por palabras sueltas (homófonos ES↔EN).
+  if (!teachCmd && !wantsVis) return locked || null;
   if (JillCanonRouter.resolveAskId) {
     var fromUserOnly = JillCanonRouter.resolveAskId(userText || '', locked || '');
     if (fromUserOnly) return fromUserOnly;
   }
-  if (JillCanonRouter.pickTrackId && explicit) {
+  if (JillCanonRouter.pickTrackId && teachCmd) {
     var picked = JillCanonRouter.pickTrackId(userText || '');
     if (picked) return picked;
   }
@@ -5772,9 +5777,9 @@ function jillClearSessionLocks(){
 function jillStudentAskedBoard(userAsk) {
   var ask = String(userAsk || '').trim();
   if (!ask || typeof JillCanonRouter === 'undefined') return false;
-  if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(ask)) return true;
-  if (JillCanonRouter.isExplicitTopicAsk && JillCanonRouter.isExplicitTopicAsk(ask)) {
-    // Solo abrir si el pedido resuelve a un track real (no "explicame" vacío)
+  var teachCmd = (JillCanonRouter.isTeachCommand || JillCanonRouter.isExplicitTopicAsk || function(){ return false; })(ask);
+  if (JillCanonRouter.wantsVisual && JillCanonRouter.wantsVisual(ask) && teachCmd) return true;
+  if (teachCmd) {
     if (JillCanonRouter.resolveAskId && JillCanonRouter.resolveAskId(ask, _jillState.canonTrackId || '')) return true;
     if (JillCanonRouter.pickTrackId && JillCanonRouter.pickTrackId(ask)) return true;
   }

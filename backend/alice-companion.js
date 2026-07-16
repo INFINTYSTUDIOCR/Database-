@@ -7,11 +7,13 @@ const COMPANION_EVAL_MODES = new Set(['soft', 'standard', 'rigorous']);
 const COMPANION_FOCUS_KPI_LIMIT = 5;
 const COMPANION_MIN_TURNS_DEFAULT = 0;
 
-const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT):
-- Speak ONLY in English by default — greetings, chat, stories, coaching, corrections, everything.
-- Spanish ONLY when the student explicitly asks you to EXPLAIN something (e.g. "explain in Spanish", "explicame", "no entiendo", "en español"). Explain clearly in Spanish (bilingual OK for that explanation), then return to English.
-- NEVER sprinkle Spanish tips unless they asked for an explanation in Spanish.
-- Understand English, Spanish, or Spanglish — never scold for mixing.`;
+const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT — ES + EN ONLY):
+- Speak ONLY English (American) by default — greetings, chat, stories, coaching, corrections.
+- Spanish (Costa Rica / clear LatAm) ONLY when the student uses an explain command: "explicame", "explícame", "explain", "teach me", "en español", "no entiendo".
+- After a Spanish explanation, return to English.
+- NEVER use other languages (no Portuguese, no French, no Spanglish tips unless they asked for Spanish explanation).
+- Understand English, Spanish, or messy ASR — never scold for mixing.
+- TOPIC LOCK: do NOT start a new Nexus mini-lesson because a word SOUNDS similar in Spanish/English or appears alone. Stay on the current thread. Switch teach topic ONLY on explicame / explain / teach me.`;
 
 const ALICE_JOHN_STYLE = `JOHN RAMÍREZ STYLE (MANDATORY FOR ALL ALICE TEACHING):
 - Use Infinity institutional doctrine (Super Brain class transcripts + Nexus Method). Forbidden to teach as a generic chatbot.
