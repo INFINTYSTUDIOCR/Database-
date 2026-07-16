@@ -558,26 +558,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inf-arcade-lobby-bar{position:absolute;top:max(8px,env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:3;pointer-events:none;}
 .inf-arcade-lobby-bar button{pointer-events:auto;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
 .inf-arcade-lobby-label{font-size:11px;letter-spacing:.16em;font-weight:800;color:#c4b5fd;}
-.inf-arcade-cabinet-wrap{position:relative;height:min(92vh,900px);width:auto;max-width:96vw;margin:0 auto;animation:infArcadeIn .7s cubic-bezier(.2,.8,.2,1) both,infArcadeGlow 3.2s ease-in-out infinite;flex:0 0 auto;}
-.inf-arcade-cabinet-img{display:block;height:100%;width:auto;max-width:96vw;object-fit:contain;object-position:center;user-select:none;pointer-events:none;}
-.inf-arcade-screen{position:absolute;left:20.8%;top:15.2%;width:58.4%;height:30.5%;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(8,47,73,.28);box-shadow:inset 0 0 18px rgba(255,255,255,.2);z-index:2;}
-.inf-arcade-screen:before{content:"";position:absolute;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);opacity:.45;pointer-events:none;animation:infArcadeScan 2.8s linear infinite;}
-.inf-arcade-screen-inner{position:relative;z-index:1;width:100%;height:100%;padding:8px;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;text-align:center;overflow:auto;-webkit-overflow-scrolling:touch;}
-.inf-arcade-boot{font-size:12px;font-weight:900;letter-spacing:.18em;color:#0f172a;text-transform:uppercase;animation:infArcadeBootBlink 1s ease-in-out infinite;}
-.inf-arcade-title{font-size:10px;font-weight:900;letter-spacing:.14em;color:#0f172a;opacity:.9;margin-bottom:2px;flex:0 0 auto;}
-.inf-arcade-game-list{display:flex;flex-direction:column;gap:6px;width:100%;flex:1 1 auto;justify-content:center;}
-.inf-arcade-btn{width:100%;border:none;border-radius:10px;padding:10px 8px;font-size:12px;font-weight:900;cursor:pointer;line-height:1.15;box-shadow:0 3px 0 rgba(0,0,0,.18);transition:transform .12s ease;}
+.inf-arcade-cabinet-wrap{position:relative;display:inline-block;width:fit-content;max-width:96vw;line-height:0;margin:0 auto;vertical-align:middle;animation:infArcadeIn .7s cubic-bezier(.2,.8,.2,1) both,infArcadeGlow 3.2s ease-in-out infinite;}
+.inf-arcade-cabinet-img{display:block;max-height:min(92vh,900px);width:auto;height:auto;max-width:96vw;user-select:none;pointer-events:none;}
+.inf-arcade-screen{position:absolute;left:0;top:0;width:0;height:0;border-radius:11px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(6,40,70,.22);box-shadow:inset 0 0 14px rgba(255,255,255,.18);z-index:2;box-sizing:border-box;}
+.inf-arcade-screen.is-ready{opacity:1;}
+.inf-arcade-screen:before{content:"";position:absolute;left:0;right:0;height:32%;background:linear-gradient(180deg,rgba(255,255,255,.2),transparent);opacity:.4;pointer-events:none;animation:infArcadeScan 2.8s linear infinite;}
+.inf-arcade-screen-inner{position:relative;z-index:1;width:100%;height:100%;padding:7px;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:5px;text-align:center;overflow:auto;-webkit-overflow-scrolling:touch;}
+.inf-arcade-boot{font-size:11px;font-weight:900;letter-spacing:.16em;color:#0f172a;text-transform:uppercase;animation:infArcadeBootBlink 1s ease-in-out infinite;}
+.inf-arcade-title{font-size:9px;font-weight:900;letter-spacing:.12em;color:#0f172a;opacity:.9;margin-bottom:1px;flex:0 0 auto;}
+.inf-arcade-game-list{display:flex;flex-direction:column;gap:5px;width:100%;flex:1 1 auto;justify-content:center;}
+.inf-arcade-btn{width:100%;border:none;border-radius:9px;padding:8px 6px;font-size:11px;font-weight:900;cursor:pointer;line-height:1.1;box-shadow:0 2px 0 rgba(0,0,0,.18);transition:transform .12s ease;}
 .inf-arcade-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18);}
 .inf-arcade-btn-rapid{background:linear-gradient(135deg,#34d399,#059669);color:#042f1e;}
 .inf-arcade-btn-challenge{background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1200;}
 .inf-arcade-btn-modes{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;}
-.inf-arcade-btn-mode{background:rgba(15,23,42,.82);color:#e0f2fe;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:8px 6px;}
-.inf-arcade-btn-back{background:rgba(255,255,255,.6);color:#1e1b4b;font-size:11px;padding:7px;}
-.inf-arcade-modes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.inf-arcade-btn-mode{background:rgba(15,23,42,.82);color:#e0f2fe;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:7px 5px;}
+.inf-arcade-btn-back{background:rgba(255,255,255,.65);color:#1e1b4b;font-size:10px;padding:6px;}
+.inf-arcade-modes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 @media(max-width:480px){
-  .inf-arcade-cabinet-wrap{height:min(88vh,820px);max-width:98vw;}
-  .inf-arcade-btn{font-size:11px;padding:9px 6px;}
-  .inf-arcade-screen{left:20%;top:14.8%;width:60%;height:31%;}
+  .inf-arcade-cabinet-img{max-height:min(88vh,820px);max-width:98vw;}
+  .inf-arcade-btn{font-size:10px;padding:7px 5px;}
 }
 .inf-arcade-fs{position:fixed;inset:0;z-index:2400;display:none;flex-direction:column;background:linear-gradient(165deg,#07061a 0%,#1e1b4b 42%,#312e81 100%);color:#fff;}
 .inf-arcade-fs.is-open{display:flex;}
@@ -1649,6 +1649,46 @@ function closeInfinityArcadeLobby(){
   clearTimeout(window._infArcadeBootTimer);
 }
 
+function layoutInfinityArcadeScreen(){
+  var wrap = document.getElementById('inf-arcade-wrap');
+  var img = wrap ? wrap.querySelector('.inf-arcade-cabinet-img') : null;
+  var screen = document.getElementById('inf-arcade-screen');
+  if(!wrap || !img || !screen) return false;
+  var iw = img.clientWidth || 0;
+  var ih = img.clientHeight || 0;
+  if(iw < 40 || ih < 40) return false;
+  // Fracción del PNG donde está el monitor cyan (anclado a la imagen, no al viewport)
+  var L = 0.208, T = 0.152, W = 0.584, H = 0.288;
+  var ol = img.offsetLeft || 0;
+  var ot = img.offsetTop || 0;
+  screen.style.left = Math.round(ol + L * iw) + 'px';
+  screen.style.top = Math.round(ot + T * ih) + 'px';
+  screen.style.width = Math.round(W * iw) + 'px';
+  screen.style.height = Math.round(H * ih) + 'px';
+  screen.classList.add('is-ready');
+  return true;
+}
+
+function bindInfinityArcadeScreenLayout(img){
+  function run(){
+    layoutInfinityArcadeScreen();
+  }
+  if(img){
+    if(img.complete && img.naturalWidth) run();
+    else img.addEventListener('load', run, { once: true });
+  }
+  if(!window._infArcadeResizeBound){
+    window._infArcadeResizeBound = true;
+    window.addEventListener('resize', function(){
+      if(window._infArcadeLobbyOpen) layoutInfinityArcadeScreen();
+    });
+  }
+  // Reintento por si el layout flex tarda un frame
+  setTimeout(run, 30);
+  setTimeout(run, 120);
+  setTimeout(run, 320);
+}
+
 function renderInfinityArcadeCabinet(containerId){
   var c = document.getElementById(containerId || 'portal-arcade-cabinet');
   if(!c) return;
@@ -1665,9 +1705,12 @@ function renderInfinityArcadeCabinet(containerId){
     +   '</div>'
     + '</div>'
     + '</div>';
+  var img = c.querySelector('.inf-arcade-cabinet-img');
+  bindInfinityArcadeScreenLayout(img);
   clearTimeout(window._infArcadeBootTimer);
   window._infArcadeBootTimer = setTimeout(function(){
     showInfinityArcadeHome();
+    layoutInfinityArcadeScreen();
   }, 900);
 }
 
@@ -1685,10 +1728,15 @@ function showInfinityArcadeHome(){
           + '</button>';
       }).join('')
     + '</div>';
+  layoutInfinityArcadeScreen();
 }
 
 function infinityArcadeRunGame(gameId){
-  var g = (INFINITY_ARCADE_GAMES || []).find(function(x){ return x.id === gameId; });
+  var games = INFINITY_ARCADE_GAMES || [];
+  var g = null;
+  for(var i = 0; i < games.length; i++){
+    if(games[i].id === gameId){ g = games[i]; break; }
+  }
   if(!g) return;
   if(g.run === 'rapid') return infinityArcadePickRapid();
   if(g.run === 'challenge') return infinityArcadePickChallenge();
@@ -1706,6 +1754,7 @@ function showInfinityArcadeModes(){
   if(!keys.length){
     inner.innerHTML = '<div class="inf-arcade-boot">Sin modos</div>'
       + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">Volver</button>';
+    layoutInfinityArcadeScreen();
     return;
   }
   inner.innerHTML =
@@ -1720,6 +1769,7 @@ function showInfinityArcadeModes(){
       }).join('')
     + '</div>'
     + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">← Menú</button>';
+  layoutInfinityArcadeScreen();
 }
 
 function infinityArcadePickRapid(){
