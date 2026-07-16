@@ -599,6 +599,9 @@ body.tt-fs-lock{overflow:hidden;}
 .tt-lang-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .tt-lang-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;}
 .tt-lang-btn.is-on{background:linear-gradient(145deg,#F5A623,#FFD700);color:#1a1200;border-color:transparent;box-shadow:0 8px 18px rgba(245,166,35,.35);}
+.tt-scenario-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.tt-scenario-btn{border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);color:#E9D5FF;border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
+.tt-scenario-btn.is-on{background:rgba(245,166,35,.22);border-color:rgba(245,166,35,.7);color:#FBBF24;}
 .tt-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;}
 .tt-controls .btn{min-height:44px;}
 #tt-target{color:#1E1E2E!important;background:#fff!important;border:2px solid rgba(245,166,35,.45)!important;border-radius:14px!important;box-shadow:0 8px 24px rgba(0,0,0,.18);min-height:120px;}
@@ -1303,21 +1306,15 @@ function showPortal(s){
 
     +'<div class="inf-skill">'
     +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
-    +'<p class="inf-skill-lead">Texto visible o por audio (Alice) — cambiás el modo adentro. 60s · WPM + accuracy.</p>'
+    +'<p class="inf-skill-lead">Un solo lab: adentro elegís texto/audio, idioma y escenario (Call Center, 911, Grandma).</p>'
     +'<div id="portal-typing-container">'
     +'<button type="button" class="inf-action" onclick="openTypingLab({})" style="width:100%;">'
-    +'<span class="inf-action-kicker">60 segundos · EN / ES</span>'
+    +'<span class="inf-action-kicker">60 segundos · EN / ES · escenarios</span>'
     +'<span class="inf-action-title"><i class="ti ti-keyboard"></i> Abrir Typing Lab</span>'
-    +'<span class="inf-action-sub">Escribí lo que ves o escuchá a Alice — un solo lab</span>'
+    +'<span class="inf-action-sub">Modo, Alice y vocabulario — todo adentro</span>'
     +'</button>'
     +'</div>'
-    +(lastTt?'<div class="inf-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
-    +'</div>'
-
-    +'<div class="inf-skill">'
-    +'<h3><i class="ti ti-users"></i> Typing por escenario</h3>'
-    +'<p class="inf-skill-lead">Cada escenario trae su vocabulario y meta de velocidad.</p>'
-    +'<div id="portal-persona-container"></div>'
+    +(lastTt?'<div class="inf-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.persona?' · '+lastTt.persona:'')+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
     +'</div>'
 
     +'<div class="inf-skill" style="background:linear-gradient(165deg,#EDE9FE,#fff);">'
@@ -1365,7 +1362,6 @@ function showPortal(s){
 
   document.getElementById('portal-content').innerHTML = html;
   switchPortalTab(opts.tab || 'progreso');
-  renderTypingPersonaPicker('portal-persona-container');
   // Arcade lobby opens on demand (fullscreen) — not embedded small.
 
   // Verificar si el trainer habilitó Nexora
@@ -1544,15 +1540,21 @@ function openTypingLab(opts, wordBank, onComplete){
   ensureTypingFullscreen();
   var fs = document.getElementById('tt-fs');
   var title = document.getElementById('tt-fs-title');
-  var transcription = !!(opts && opts.transcription);
+  opts = opts || {};
+  var transcription = !!opts.transcription;
+  var personaKey = opts.personaKey || '';
+  var persona = (typeof TYPING_PERSONAS !== 'undefined' && personaKey && TYPING_PERSONAS[personaKey]) ? TYPING_PERSONAS[personaKey] : null;
+  if(persona) wordBank = persona.words;
   if(title){
-    title.innerHTML = (transcription ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING TEST')
-      + '<span id="tt-fs-sub">'+(transcription ? 'Audio EN / ES · 60s' : 'Texto visible · 60s')+'</span>';
+    var sub = transcription ? 'Audio EN / ES · 60s' : 'Texto visible · 60s';
+    if(persona) sub = persona.label + ' · meta ' + persona.targetWpm + ' WPM';
+    title.innerHTML = (transcription ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING LAB')
+      + '<span id="tt-fs-sub">'+sub+'</span>';
   }
   if(fs) fs.classList.add('is-open');
   document.body.classList.add('tt-fs-lock');
   window._ttFsOpen = true;
-  renderTypingTestWidget('tt-fs-body', onComplete || savePortalTypingResult, wordBank || null, opts || {});
+  renderTypingTestWidget('tt-fs-body', onComplete || savePortalTypingResult, wordBank || null, opts);
 }
 
 function closeTypingLab(){
@@ -1573,22 +1575,51 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   }
   var container = document.getElementById(containerId);
   if(!container) return;
-  var transcriptionMode = !!(opts && opts.transcription);
-  if(opts && opts.lang) _ttLang = opts.lang;
+  opts = opts || {};
+  var transcriptionMode = !!opts.transcription;
+  if(opts.lang) _ttLang = opts.lang;
   var lang = _ttLang || 'en-US';
   var isEs = String(lang).toLowerCase().indexOf('es') === 0;
+  var personaKey = opts.personaKey || '';
+  var persona = (typeof TYPING_PERSONAS !== 'undefined' && personaKey && TYPING_PERSONAS[personaKey]) ? TYPING_PERSONAS[personaKey] : null;
+  if(persona) wordBank = persona.words;
   var targetText = generateTypingTestText(45, wordBank, lang);
   var DURATION = 60;
+
+  function ttOpts(extra){
+    var o = { transcription: transcriptionMode, lang: lang, personaKey: personaKey };
+    if(extra){ for(var k in extra) if(Object.prototype.hasOwnProperty.call(extra,k)) o[k]=extra[k]; }
+    return o;
+  }
+  function refreshTtTitle(nextTrans, nextPersona){
+    var title = document.getElementById('tt-fs-title');
+    if(!title) return;
+    var p = (typeof TYPING_PERSONAS !== 'undefined' && nextPersona && TYPING_PERSONAS[nextPersona]) ? TYPING_PERSONAS[nextPersona] : null;
+    var sub = nextTrans ? 'Audio EN / ES · 60s' : 'Texto visible · 60s';
+    if(p) sub = p.label + ' · meta ' + p.targetWpm + ' WPM';
+    title.innerHTML = (nextTrans ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING LAB')
+      + '<span id="tt-fs-sub">'+sub+'</span>';
+  }
+
+  var scenarioBtns = '<button type="button" class="tt-scenario-btn'+(personaKey?'':' is-on')+'" data-persona="">General</button>';
+  if(typeof TYPING_PERSONAS !== 'undefined'){
+    Object.keys(TYPING_PERSONAS).forEach(function(key){
+      var p = TYPING_PERSONAS[key];
+      scenarioBtns += '<button type="button" class="tt-scenario-btn'+(personaKey===key?' is-on':'')+'" data-persona="'+key+'"><i class="ti '+p.icon+'"></i> '+p.label+'</button>';
+    });
+  }
 
   container.innerHTML = '<div class="tt-wrap">'
     +'<div class="tt-lang-row" role="group" aria-label="Idioma">'
     + '<button type="button" class="tt-lang-btn'+(isEs?'':' is-on')+'" id="tt-lang-en" data-lang="en-US">EN · Alice</button>'
     + '<button type="button" class="tt-lang-btn'+(isEs?' is-on':'')+'" id="tt-lang-es" data-lang="es-CR">ES · Alice</button>'
     + '</div>'
+    +'<div class="tt-scenario-row" role="group" aria-label="Escenario">'+scenarioBtns+'</div>'
     +'<div class="ib ib-navy" style="font-size:13px;max-width:100%;box-sizing:border-box;line-height:1.55;">'
     +(transcriptionMode
       ? '<strong>Transcripción (voz Alice):</strong> escuchá el audio y escribí exactamente lo que oís (mayúsculas, puntuación y apóstrofes). 60 segundos.'
       : '<strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos.')
+    +(persona ? ' <strong>Escenario:</strong> '+persona.label+' (meta '+persona.targetWpm+' WPM).' : '')
     +'</div>'
     +'<div class="tt-controls">'
     +'<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:13px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
@@ -1596,7 +1627,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
       ? '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-keyboard"></i> Modo texto visible</button>'
       : '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-ear"></i> Modo transcripción</button>')
     +'</div>'
-    +(transcriptionMode?'<p class="tt-hint">Elegí <strong>EN</strong> o <strong>ES</strong> arriba · tocá <strong>Escuchar audio</strong> si no se oye.</p>':'')
+    +(transcriptionMode?'<p class="tt-hint">Elegí <strong>EN</strong> o <strong>ES</strong> · escenario arriba · tocá <strong>Escuchar audio</strong> si no se oye.</p>':'')
     +'<div id="tt-target" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;line-height:1.9;font-weight:600;color:#1E1E2E;background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;'
     +(transcriptionMode?'filter:blur(6px);opacity:0.5;':'')+'"></div>'
     +'<textarea id="tt-input" class="inp" placeholder="'+(transcriptionMode?'Escribí lo que escuchás…':'Empezá a escribir aquí...')+'" style="min-height:110px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;color:#1E1E2E;max-width:100%;box-sizing:border-box;width:100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
@@ -1619,12 +1650,8 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   if(modeBtn) modeBtn.addEventListener('click', function(){
     stopTypingAudio();
     var nextTrans = !transcriptionMode;
-    var title = document.getElementById('tt-fs-title');
-    if(title){
-      title.innerHTML = (nextTrans ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING TEST')
-        + '<span id="tt-fs-sub">'+(nextTrans ? 'Audio EN / ES · 60s' : 'Texto visible · 60s')+'</span>';
-    }
-    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: nextTrans, lang: lang });
+    refreshTtTitle(nextTrans, personaKey);
+    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, ttOpts({ transcription: nextTrans }));
   });
 
   ['tt-lang-en','tt-lang-es'].forEach(function(id){
@@ -1638,7 +1665,18 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
       }
       stopTypingAudio();
       _ttLang = next;
-      renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: transcriptionMode, lang: next });
+      renderTypingTestWidget('tt-fs-body', onComplete, wordBank, ttOpts({ lang: next }));
+    });
+  });
+
+  Array.prototype.forEach.call(container.querySelectorAll('.tt-scenario-btn'), function(el){
+    el.addEventListener('click', function(){
+      var nextKey = el.getAttribute('data-persona') || '';
+      if(nextKey === personaKey) return;
+      stopTypingAudio();
+      var nextBank = (nextKey && TYPING_PERSONAS[nextKey]) ? TYPING_PERSONAS[nextKey].words : null;
+      refreshTtTitle(transcriptionMode, nextKey);
+      renderTypingTestWidget('tt-fs-body', onComplete, nextBank, ttOpts({ personaKey: nextKey }));
     });
   });
 
@@ -1697,13 +1735,18 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     var result = { wpm:wpm, accuracy:accuracy, coordination:coordination, date:new Date().toISOString(),
       mode: transcriptionMode ? 'transcription' : 'typing',
       errors:{ caps:capsErrors, punctuation:punctErrors, apostrophes:apostropheErrors, spaces:spaceErrors, letters:letterErrors } };
+    if(persona){
+      result.persona = persona.label;
+      result.targetWpm = persona.targetWpm;
+      result.metGoal = result.wpm >= persona.targetWpm && result.accuracy>=85;
+    }
 
     statusEl.textContent = 'Finalizado';
     if(transcriptionMode && targetEl){ targetEl.style.filter='none'; targetEl.style.opacity='1'; }
     var accCol = accuracy>=95?'var(--gm)':accuracy>=80?'var(--amber)':'var(--rm)';
     var wpmCol = wpm>=40?'var(--gm)':wpm>=25?'var(--amber)':'var(--rm)';
     document.getElementById('tt-result').innerHTML = '<div style="background:rgba(255,255,255,.95);border-radius:16px;padding:16px;color:#1E1E2E;overflow:hidden;max-width:100%;">'
-      +'<div style="font-size:14px;font-weight:900;color:#5B21B6;margin-bottom:12px;"><i class="ti ti-keyboard"></i> '+(transcriptionMode?'Resultado — Transcripción':'Resultado')+'</div>'
+      +'<div style="font-size:14px;font-weight:900;color:#5B21B6;margin-bottom:12px;"><i class="ti ti-keyboard"></i> '+(transcriptionMode?'Resultado — Transcripción':'Resultado')+(persona?' · '+persona.label:'')+'</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:12px;">'
       +'<div><div style="font-size:28px;font-weight:800;color:'+wpmCol+';">'+wpm+'</div><div style="font-size:11px;color:#4A4A6A;">WPM</div></div>'
       +'<div><div style="font-size:28px;font-weight:800;color:'+accCol+';">'+accuracy+'%</div><div style="font-size:11px;color:#4A4A6A;">Accuracy</div></div>'
@@ -2633,31 +2676,13 @@ var TYPING_PERSONAS = {
 };
 
 function renderTypingPersonaPicker(containerId, onComplete){
+  // Escenarios viven dentro del Typing Lab (botones General / Call Center / 911 / Grandma).
   var c = document.getElementById(containerId);
-  if(!c) return;
-  var tones = ['inf-action','inf-action inf-action-gold','inf-action inf-action-soft'];
-  var keys = Object.keys(TYPING_PERSONAS);
-  c.innerHTML = '<div class="inf-persona-stack">'
-    + keys.map(function(key, i){
-        var p = TYPING_PERSONAS[key];
-        return '<button type="button" class="'+(tones[i % tones.length])+'" data-key="'+key+'" onclick="startPersonaTypingTest(this.dataset.key,\''+containerId+'\')">'
-          + '<span class="inf-action-kicker">Meta '+p.targetWpm+' WPM</span>'
-          + '<span class="inf-action-title"><i class="ti '+p.icon+'"></i> '+p.label+'</span>'
-          + '<span class="inf-action-sub">'+p.desc+'</span>'
-          + '</button>';
-      }).join('')
-    + '</div><div id="'+containerId+'-widget" style="margin-top:10px;"></div>';
+  if(c) c.innerHTML = '';
 }
 
 function startPersonaTypingTest(personaKey, containerId){
-  var p = TYPING_PERSONAS[personaKey];
-  if(!p) return;
-  openTypingLab({}, p.words, function(result){
-    result.persona = p.label;
-    result.targetWpm = p.targetWpm;
-    result.metGoal = result.wpm >= p.targetWpm && result.accuracy>=85;
-    savePortalTypingResult(result);
-  });
+  openTypingLab({ personaKey: personaKey || '' });
 }
 
 // ── INFINITY LANGUAGE ARCADE (reemplaza quiz estático) ─────
