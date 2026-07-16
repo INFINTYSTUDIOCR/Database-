@@ -555,8 +555,68 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes infArcadeMarqueeFlash{0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,0)}40%{box-shadow:0 0 0 3px rgba(250,204,21,.85),0 0 28px rgba(250,204,21,.55)}70%{box-shadow:0 0 0 6px rgba(250,204,21,.25),0 0 36px rgba(34,197,94,.35)}}
 @keyframes infArcadeScreenPop{0%{opacity:0;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
 @keyframes infArcadeBtnIn{0%{opacity:0;transform:translateY(10px) scale(.92)}100%{opacity:1;transform:none}}
-.inf-arcade-stage{border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#12082a,#1a0a3a 40%,#0b1220);padding:14px;border:1px solid rgba(196,181,253,.28);text-align:center;}
-.inf-arcade-enter{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:420px;margin:0 auto;padding:16px 18px;border:none;border-radius:14px;cursor:pointer;font-weight:900;font-size:15px;color:#1a1200;background:linear-gradient(135deg,#FFD700,#F59E0B);box-shadow:0 8px 24px rgba(245,158,11,.35);}
+@keyframes portalLensFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes portalLensShine{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+.portal-lens-stack{display:flex;flex-direction:column;gap:14px;margin:0 0 14px;}
+.portal-lens{
+  position:relative;overflow:hidden;border:none;cursor:pointer;text-align:left;
+  padding:18px 20px;color:#fff;font-weight:800;
+  border-radius:22px;
+  box-shadow:0 14px 32px rgba(15,23,42,.18),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .18s ease,filter .18s ease;
+  background-size:200% 200%;animation:portalLensFloat 5s ease-in-out infinite,portalLensShine 8s linear infinite;
+}
+.portal-lens:hover{transform:scale(1.02);filter:brightness(1.05)}
+.portal-lens:active{transform:scale(.98)}
+.portal-lens:before{
+  content:"";position:absolute;left:-20%;top:-40%;width:70%;height:90%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.38),transparent 68%);
+  pointer-events:none;
+}
+.portal-lens > *{position:relative;z-index:1}
+.portal-lens-kicker{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
+.portal-lens-title{display:block;font-size:16px;line-height:1.25;margin-bottom:2px}
+.portal-lens-sub{display:block;font-size:12px;font-weight:600;opacity:.88;line-height:1.35}
+.portal-lens-cyan{background:linear-gradient(135deg,#22d3ee,#6366f1,#a855f7);color:#fff}
+.portal-lens-mint{background:linear-gradient(135deg,#34d399,#14b8a6,#0ea5e9);color:#042f2e}
+.portal-lens-sun{background:linear-gradient(135deg,#fde047,#fb923c,#f43f5e);color:#1a1200}
+.portal-lens-violet{background:linear-gradient(135deg,#c084fc,#8b5cf6,#ec4899);color:#fff}
+.portal-lens-rose{background:linear-gradient(135deg,#fda4af,#fb7185,#f472b6);color:#4c0519}
+.portal-skill-panel{
+  border-radius:28px;padding:18px 16px 16px;margin-bottom:14px;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%,rgba(56,189,248,.35),transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 80%,rgba(244,114,182,.28),transparent 50%),
+    linear-gradient(160deg,#0f172a 0%,#1e1b4b 45%,#312e81 100%);
+  color:#e0e7ff;box-shadow:0 16px 40px rgba(30,27,75,.28);
+}
+.portal-skill-panel h3{margin:0 0 6px;font-size:18px;font-weight:900;letter-spacing:.02em;color:#fff}
+.portal-skill-panel .portal-skill-lead{font-size:12px;line-height:1.55;color:rgba(224,231,255,.82);margin:0 0 14px}
+.portal-skill-panel .portal-skill-meta{font-size:11px;color:#a5f3fc;margin-top:12px;line-height:1.45}
+.portal-skill-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:520px){.portal-skill-grid.two{grid-template-columns:1fr 1fr}}
+.inf-arcade-stage{
+  border-radius:32px;overflow:hidden;text-align:center;padding:22px 16px 18px;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(250,204,21,.35),transparent 42%),
+    radial-gradient(circle at 80% 70%,rgba(34,211,238,.3),transparent 45%),
+    linear-gradient(165deg,#1a0a3a,#0b1220 55%,#172554);
+  border:2px solid rgba(250,204,21,.35);
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+}
+.inf-arcade-stage .inf-arcade-kicker{font-size:11px;letter-spacing:.18em;font-weight:800;color:#fde68a;margin-bottom:12px}
+.inf-arcade-enter{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  width:min(100%,360px);margin:0 auto;padding:18px 28px;border:none;cursor:pointer;
+  font-weight:900;font-size:15px;color:#1a1200;
+  border-radius:999px;
+  background:linear-gradient(135deg,#fef08a,#fbbf24,#f97316);
+  box-shadow:0 12px 28px rgba(251,146,60,.45),inset 0 1px 0 rgba(255,255,255,.5);
+  animation:portalLensFloat 4.5s ease-in-out infinite;
+}
+.inf-arcade-enter:hover{filter:brightness(1.06)}
+.inf-arcade-stage .inf-arcade-note{font-size:11px;color:rgba(196,181,253,.9);margin-top:12px;line-height:1.5;max-width:360px;margin-left:auto;margin-right:auto}
 .inf-arcade-lobby{position:fixed;inset:0;z-index:2390;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a0a3a 0%,#07061a 70%);padding:max(8px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));box-sizing:border-box;}
 .inf-arcade-lobby.is-open{display:flex;}
 .inf-arcade-lobby-bar{position:absolute;top:max(8px,env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:5;pointer-events:none;}
@@ -1230,9 +1290,9 @@ function showPortal(s){
   var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
   var arcadeGate = studentGamesOn(s)
     ? '<div class="inf-arcade-stage" id="portal-arcade-stage">'
-      + '<div style="font-size:11px;letter-spacing:.16em;font-weight:800;color:#c4b5fd;margin-bottom:10px;">INSERT COIN · SKILL TESTS</div>'
+      + '<div class="inf-arcade-kicker">INSERT COIN · SKILL TESTS</div>'
       + '<button type="button" class="inf-arcade-enter" onclick="openInfinityArcadeLobby()"><i class="ti ti-device-gamepad-2"></i> Abrir Infinity Arcade</button>'
-      + '<div style="font-size:11px;color:rgba(196,181,253,.75);margin-top:10px;line-height:1.45;">Todos los juegos aquí: Rapid Drill, Challenge Drill, Language Arcade y los que agreguemos.</div>'
+      + '<div class="inf-arcade-note">Rapid Drill, Challenge Drill, Language Arcade y más — todo en la máquina.</div>'
       + '<div id="portal-quiz-container" style="display:none;"></div>'
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
@@ -1245,19 +1305,34 @@ function showPortal(s){
     +'<a href="https://learnenglish.britishcouncil.org/skills/reading" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">British Council — Reading</a>'
     +'<a href="https://www.nacion.com/el-mundo/" target="_blank" rel="noopener" style="color:var(--navy);font-weight:600;">La Nación — resumí titular en inglés (PR/PC)</a>'
     +'</div>'+vocabCard+'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-keyboard"></i>Typing Test</div>'
-    +'<div id="portal-typing-container" style="max-width:100%;overflow:hidden;">'
-    +'<div style="display:flex;flex-wrap:wrap;gap:8px;">'
-    +'<button class="btn btn-navy" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)"><i class="ti ti-keyboard"></i>Iniciar Typing Test (60s)</button>'
-    +'<button class="btn btn-outline" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult, null, {transcription:true})"><i class="ti ti-ear"></i>Transcripción por audio</button>'
-    +'</div></div>'
-    +(lastTt?'<div style="margin-top:10px;font-size:12px;color:var(--t2);word-break:break-word;">Último resultado'+(lastTt.mode==='transcription'?' (transcripción)':'')+': '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% accuracy · Coordination '+lastTt.coordination+' ('+fmtDate(lastTt.date)+')</div>':'')
+
+    +'<div class="portal-skill-panel">'
+    +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
+    +'<p class="portal-skill-lead">Velocidad y oído — tocá una pastilla para empezar. Nada de botones grises: elegí tu modo y listo.</p>'
+    +'<div class="portal-skill-grid two" id="portal-typing-container">'
+    +'<button type="button" class="portal-lens portal-lens-cyan" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)">'
+    +'<span class="portal-lens-kicker">60 segundos</span>'
+    +'<span class="portal-lens-title"><i class="ti ti-keyboard"></i> Typing Test</span>'
+    +'<span class="portal-lens-sub">Escribí lo que ves · WPM + accuracy</span>'
+    +'</button>'
+    +'<button type="button" class="portal-lens portal-lens-mint" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult, null, {transcription:true})">'
+    +'<span class="portal-lens-kicker">Por audio</span>'
+    +'<span class="portal-lens-title"><i class="ti ti-ear"></i> Transcripción</span>'
+    +'<span class="portal-lens-sub">Escuchá y escribí lo que oís</span>'
+    +'</button>'
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Typing por escenario</div>'
+    +(lastTt?'<div class="portal-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
+    +'</div>'
+
+    +'<div class="portal-skill-panel" style="background:radial-gradient(ellipse 80% 60% at 80% 15%,rgba(251,146,60,.35),transparent 55%),radial-gradient(ellipse 70% 50% at 10% 85%,rgba(167,139,250,.3),transparent 50%),linear-gradient(160deg,#1e1b4b 0%,#4c1d95 50%,#9d174d 100%);">'
+    +'<h3><i class="ti ti-users"></i> Typing por escenario</h3>'
+    +'<p class="portal-skill-lead">Cada escenario trae su vocabulario y meta de velocidad. Elegí el personaje y entrená.</p>'
     +'<div id="portal-persona-container"></div>'
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-device-gamepad-2"></i>Infinity Arcade</div>'
-    +'<div style="font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;">Hub de juegos en pantalla completa. Rapid Drill (Kaboom), Challenge Drill y Language Arcade viven en la máquina.</div>'
+
+    +'<div class="portal-skill-panel" style="padding-bottom:8px;">'
+    +'<h3><i class="ti ti-device-gamepad-2"></i> Infinity Arcade</h3>'
+    +'<p class="portal-skill-lead">Hub de juegos a pantalla completa. Tocá la pastilla dorada y entrá a la máquina.</p>'
     + arcadeGate
     +'</div>';
 
@@ -2403,12 +2478,19 @@ var TYPING_PERSONAS = {
 
 function renderTypingPersonaPicker(containerId, onComplete){
   var c = document.getElementById(containerId);
-  c.innerHTML = '<div class="ib ib-navy">Elegí un escenario. Cada uno tiene su propio vocabulario y meta de velocidad — son retos distintos, no solo el mismo test con otras palabras.</div>'
-    + Object.keys(TYPING_PERSONAS).map(function(key){
+  if(!c) return;
+  var tones = ['portal-lens-sun','portal-lens-violet','portal-lens-rose'];
+  var keys = Object.keys(TYPING_PERSONAS);
+  c.innerHTML = '<div class="portal-lens-stack">'
+    + keys.map(function(key, i){
         var p = TYPING_PERSONAS[key];
-        return '<button data-key="'+key+'" class="btn btn-outline" style="margin:4px;" onclick="startPersonaTypingTest(this.dataset.key,\''+containerId+'\')"><i class="ti '+p.icon+'"></i> '+p.label+' <span style="font-size:10px;color:var(--t3);">('+p.targetWpm+' WPM)</span></button>';
+        return '<button type="button" class="portal-lens '+(tones[i % tones.length])+'" data-key="'+key+'" onclick="startPersonaTypingTest(this.dataset.key,\''+containerId+'\')">'
+          + '<span class="portal-lens-kicker">Meta '+p.targetWpm+' WPM</span>'
+          + '<span class="portal-lens-title"><i class="ti '+p.icon+'"></i> '+p.label+'</span>'
+          + '<span class="portal-lens-sub">'+p.desc+'</span>'
+          + '</button>';
       }).join('')
-    + '<div id="'+containerId+'-widget" style="margin-top:10px;"></div>';
+    + '</div><div id="'+containerId+'-widget" style="margin-top:4px;"></div>';
 }
 
 function startPersonaTypingTest(personaKey, containerId){
