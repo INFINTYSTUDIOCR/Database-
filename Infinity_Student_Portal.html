@@ -585,13 +585,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inf-action-soft .inf-action-title{color:var(--navy);}
 .inf-action-soft .inf-action-sub{color:var(--t2);opacity:1;}
 .inf-persona-stack{display:flex;flex-direction:column;gap:10px;}
-#tt-target{color:var(--text)!important;background:#fff!important;border:1px solid rgba(91,33,182,.18);box-shadow:inset 0 0 0 1px rgba(91,33,182,.04);}
+/* Typing Lab — pantalla completa */
+.tt-fs{position:fixed;inset:0;z-index:2380;display:none;flex-direction:column;background:linear-gradient(165deg,#3B0E8C 0%,#5B21B6 42%,#1e1b4b 100%);color:#fff;box-sizing:border-box;}
+.tt-fs.is-open{display:flex;}
+.tt-fs-bar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid rgba(245,166,35,.28);background:rgba(0,0,0,.22);}
+.tt-fs-title{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#FBBF24;}
+.tt-fs-title span{display:block;font-size:11px;letter-spacing:0;font-weight:700;color:#E9D5FF;text-transform:none;margin-top:2px;}
+.tt-fs-close{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
+.tt-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:960px;margin:0 auto;box-sizing:border-box;}
+body.tt-fs-lock{overflow:hidden;}
+.tt-wrap{background:rgba(255,255,255,.08);border:1px solid rgba(196,181,253,.35);border-radius:20px;padding:18px;backdrop-filter:blur(10px);box-shadow:0 18px 40px rgba(0,0,0,.28);}
+.tt-wrap .ib{margin-bottom:12px;background:rgba(237,233,254,.95)!important;color:#3B0E8C!important;border-left-color:#F5A623!important;}
+.tt-lang-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.tt-lang-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;}
+.tt-lang-btn.is-on{background:linear-gradient(145deg,#F5A623,#FFD700);color:#1a1200;border-color:transparent;box-shadow:0 8px 18px rgba(245,166,35,.35);}
+.tt-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;}
+.tt-controls .btn{min-height:44px;}
+#tt-target{color:#1E1E2E!important;background:#fff!important;border:2px solid rgba(245,166,35,.45)!important;border-radius:14px!important;box-shadow:0 8px 24px rgba(0,0,0,.18);min-height:120px;}
 #tt-target span{color:inherit;}
-.tt-wrap{background:#fff;border:1px solid rgba(91,33,182,.16);border-radius:16px;padding:12px;margin-top:10px;}
-.tt-wrap .ib{margin-bottom:10px;}
-.tt-lang-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.tt-lang-btn{border:1px solid rgba(91,33,182,.28);background:#EDE9FE;color:var(--nd);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;}
-.tt-lang-btn.is-on{background:linear-gradient(145deg,#5B21B6,#7C3AED);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(91,33,182,.25);}
+#tt-input.inp{background:#fff;color:#1E1E2E;border:2px solid rgba(196,181,253,.55);font-size:16px;min-height:110px;}
+.tt-meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px;color:#E9D5FF;}
+.tt-meta #tt-timer{font-size:22px;font-weight:900;color:#FBBF24;}
+.tt-meta #tt-status{font-size:13px;font-weight:700;color:#E9D5FF;}
+.tt-hint{font-size:12px;color:#E9D5FF;margin:0 0 10px;line-height:1.45;}
 .inf-arcade-stage{border-radius:18px;overflow:hidden;background:linear-gradient(165deg,#3B0E8C,#5B21B6 48%,#1e1b4b);padding:18px 14px;border:1px solid rgba(245,166,35,.35);text-align:center;box-shadow:0 12px 28px rgba(59,14,140,.28);}
 .inf-arcade-stage .inf-arcade-kicker{font-size:11px;letter-spacing:.16em;font-weight:800;color:#FBBF24;margin-bottom:12px;}
 .inf-arcade-enter{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:420px;margin:0 auto;padding:16px 18px;border:none;border-radius:14px;cursor:pointer;font-weight:900;font-size:15px;color:#1a1200;background:linear-gradient(135deg,#FFD700,#F5A623);box-shadow:0 8px 24px rgba(245,166,35,.35);}
@@ -1289,13 +1305,13 @@ function showPortal(s){
     +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
     +'<p class="inf-skill-lead">Velocidad y oído con la paleta Infinity. Tocá un modo para empezar.</p>'
     +'<div class="inf-skill-grid two" id="portal-typing-container">'
-    +'<button type="button" class="inf-action" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult)">'
+    +'<button type="button" class="inf-action" onclick="openTypingLab({})">'
     +'<span class="inf-action-kicker">60 segundos</span>'
     +'<span class="inf-action-title"><i class="ti ti-keyboard"></i> Typing Test</span>'
     +'<span class="inf-action-sub">Escribí lo que ves · WPM + accuracy</span>'
     +'</button>'
-    +'<button type="button" class="inf-action inf-action-soft" onclick="renderTypingTestWidget(\'portal-typing-container\', savePortalTypingResult, null, {transcription:true})">'
-    +'<span class="inf-action-kicker">Por audio</span>'
+    +'<button type="button" class="inf-action inf-action-soft" onclick="openTypingLab({transcription:true})">'
+    +'<span class="inf-action-kicker">Por audio · Alice</span>'
     +'<span class="inf-action-title"><i class="ti ti-ear"></i> Transcripción</span>'
     +'<span class="inf-action-sub">Escuchá y escribí exactamente lo que oís</span>'
     +'</button>'
@@ -1513,7 +1529,53 @@ function speakTypingTarget(text, btn, lang){
   });
 }
 
+function ensureTypingFullscreen(){
+  if(document.getElementById('tt-fs')) return;
+  var el = document.createElement('div');
+  el.id = 'tt-fs';
+  el.className = 'tt-fs';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML =
+    '<div class="tt-fs-bar">'
+    + '<div class="tt-fs-title" id="tt-fs-title">TYPING LAB<span id="tt-fs-sub">Infinity Studio CR</span></div>'
+    + '<button type="button" class="tt-fs-close" onclick="closeTypingLab()"><i class="ti ti-x"></i> Cerrar</button>'
+    + '</div>'
+    + '<div class="tt-fs-body" id="tt-fs-body"></div>';
+  document.body.appendChild(el);
+}
+
+function openTypingLab(opts, wordBank, onComplete){
+  ensureTypingFullscreen();
+  var fs = document.getElementById('tt-fs');
+  var title = document.getElementById('tt-fs-title');
+  var transcription = !!(opts && opts.transcription);
+  if(title){
+    title.innerHTML = (transcription ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING TEST')
+      + '<span id="tt-fs-sub">'+(transcription ? 'Audio EN / ES · 60s' : 'Texto visible · 60s')+'</span>';
+  }
+  if(fs) fs.classList.add('is-open');
+  document.body.classList.add('tt-fs-lock');
+  window._ttFsOpen = true;
+  renderTypingTestWidget('tt-fs-body', onComplete || savePortalTypingResult, wordBank || null, opts || {});
+}
+
+function closeTypingLab(){
+  stopTypingAudio();
+  var fs = document.getElementById('tt-fs');
+  if(fs) fs.classList.remove('is-open');
+  document.body.classList.remove('tt-fs-lock');
+  window._ttFsOpen = false;
+  var body = document.getElementById('tt-fs-body');
+  if(body) body.innerHTML = '';
+}
+
 function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
+  // Siempre usar pantalla completa para el test activo
+  if(containerId !== 'tt-fs-body'){
+    openTypingLab(opts || {}, wordBank, onComplete);
+    return;
+  }
   var container = document.getElementById(containerId);
   if(!container) return;
   var transcriptionMode = !!(opts && opts.transcription);
@@ -1524,32 +1586,30 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   var DURATION = 60;
 
   container.innerHTML = '<div class="tt-wrap">'
-    +(transcriptionMode
-      ? '<div class="tt-lang-row" role="group" aria-label="Idioma del audio">'
-        + '<button type="button" class="tt-lang-btn'+(isEs?'':' is-on')+'" id="tt-lang-en" data-lang="en-US">EN · Alice</button>'
-        + '<button type="button" class="tt-lang-btn'+(isEs?' is-on':'')+'" id="tt-lang-es" data-lang="es-CR">ES · Alice</button>'
-        + '</div>'
-      : '')
-    +'<div class="ib ib-navy" style="font-size:12px;max-width:100%;box-sizing:border-box;">'
+    +'<div class="tt-lang-row" role="group" aria-label="Idioma">'
+    + '<button type="button" class="tt-lang-btn'+(isEs?'':' is-on')+'" id="tt-lang-en" data-lang="en-US">EN · Alice</button>'
+    + '<button type="button" class="tt-lang-btn'+(isEs?' is-on':'')+'" id="tt-lang-es" data-lang="es-CR">ES · Alice</button>'
+    + '</div>'
+    +'<div class="ib ib-navy" style="font-size:13px;max-width:100%;box-sizing:border-box;line-height:1.55;">'
     +(transcriptionMode
       ? '<strong>Transcripción (voz Alice):</strong> escuchá el audio y escribí exactamente lo que oís (mayúsculas, puntuación y apóstrofes). 60 segundos.'
-      : '<strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos. Cada carácter incorrecto reduce tu accuracy.')
+      : '<strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos.')
     +'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;">'
-    +'<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:12px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
+    +'<div class="tt-controls">'
+    +'<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:13px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
     +(transcriptionMode
-      ? '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:12px;"><i class="ti ti-keyboard"></i> Modo texto visible</button>'
-      : '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:12px;"><i class="ti ti-ear"></i> Modo transcripción (audio)</button>')
+      ? '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-keyboard"></i> Modo texto visible</button>'
+      : '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-ear"></i> Modo transcripción</button>')
     +'</div>'
-    +'<div id="tt-target" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;line-height:1.9;font-weight:600;color:#1E1E2E;background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;'
-    +(transcriptionMode?'filter:blur(5px);opacity:0.45;':'')+'"></div>'
-    +(transcriptionMode?'<div id="tt-audio-hint" style="font-size:12px;color:var(--t2);margin:-4px 0 10px;">Audio con voz <strong>Alice</strong>. Usá EN/ES arriba y <strong>Escuchar audio</strong>.</div>':'')
-    +'<textarea id="tt-input" class="inp" placeholder="'+(transcriptionMode?'Escribí lo que escuchás…':'Empezá a escribir aquí...')+'" style="min-height:80px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;color:var(--text);max-width:100%;box-sizing:border-box;width:100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:6px;">'
-    +'<span id="tt-timer" style="font-size:16px;font-weight:800;color:var(--navy);">60s</span>'
-    +'<span id="tt-status" style="font-size:12px;color:var(--t2);font-weight:600;">'+(transcriptionMode?'Listo — escuchá a Alice':'Listo para empezar')+'</span>'
+    +(transcriptionMode?'<p class="tt-hint">Elegí <strong>EN</strong> o <strong>ES</strong> arriba · tocá <strong>Escuchar audio</strong> si no se oye.</p>':'')
+    +'<div id="tt-target" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;line-height:1.9;font-weight:600;color:#1E1E2E;background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;'
+    +(transcriptionMode?'filter:blur(6px);opacity:0.5;':'')+'"></div>'
+    +'<textarea id="tt-input" class="inp" placeholder="'+(transcriptionMode?'Escribí lo que escuchás…':'Empezá a escribir aquí...')+'" style="min-height:110px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;color:#1E1E2E;max-width:100%;box-sizing:border-box;width:100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
+    +'<div class="tt-meta">'
+    +'<span id="tt-timer">60s</span>'
+    +'<span id="tt-status">'+(transcriptionMode?'Listo — escuchá a Alice':'Listo para empezar')+'</span>'
     +'</div>'
-    +'<div id="tt-result" style="margin-top:10px;max-width:100%;overflow:hidden;"></div>'
+    +'<div id="tt-result" style="margin-top:14px;max-width:100%;overflow:hidden;"></div>'
     +'</div>';
 
   var targetEl = document.getElementById('tt-target');
@@ -1563,7 +1623,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   var modeBtn = document.getElementById('tt-mode-btn');
   if(modeBtn) modeBtn.addEventListener('click', function(){
     stopTypingAudio();
-    renderTypingTestWidget(containerId, onComplete, wordBank, { transcription: !transcriptionMode, lang: lang });
+    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: !transcriptionMode, lang: lang });
   });
 
   ['tt-lang-en','tt-lang-es'].forEach(function(id){
@@ -1577,13 +1637,12 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
       }
       stopTypingAudio();
       _ttLang = next;
-      renderTypingTestWidget(containerId, onComplete, wordBank, { transcription: true, lang: next });
+      renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: transcriptionMode, lang: next });
     });
   });
 
   if(transcriptionMode){
     try{ if(window.speechSynthesis) speechSynthesis.getVoices(); }catch(e){}
-    // Mismo gesto del click (EN/ES o Transcripción) — evita bloqueo de autoplay
     speakTypingTarget(targetText, listenBtn, lang);
   }
 
@@ -1642,15 +1701,15 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     if(transcriptionMode && targetEl){ targetEl.style.filter='none'; targetEl.style.opacity='1'; }
     var accCol = accuracy>=95?'var(--gm)':accuracy>=80?'var(--amber)':'var(--rm)';
     var wpmCol = wpm>=40?'var(--gm)':wpm>=25?'var(--amber)':'var(--rm)';
-    document.getElementById('tt-result').innerHTML = '<div class="card" style="overflow:hidden;max-width:100%;">'
-      +'<div class="card-title"><i class="ti ti-keyboard"></i>'+(transcriptionMode?'Resultado — Transcripción':'Resultado')+'</div>'
+    document.getElementById('tt-result').innerHTML = '<div style="background:rgba(255,255,255,.95);border-radius:16px;padding:16px;color:#1E1E2E;overflow:hidden;max-width:100%;">'
+      +'<div style="font-size:14px;font-weight:900;color:#5B21B6;margin-bottom:12px;"><i class="ti ti-keyboard"></i> '+(transcriptionMode?'Resultado — Transcripción':'Resultado')+'</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:12px;">'
-      +'<div><div style="font-size:28px;font-weight:800;color:'+wpmCol+';">'+wpm+'</div><div style="font-size:11px;color:var(--t3);">WPM</div></div>'
-      +'<div><div style="font-size:28px;font-weight:800;color:'+accCol+';">'+accuracy+'%</div><div style="font-size:11px;color:var(--t3);">Accuracy</div></div>'
-      +'<div><div style="font-size:28px;font-weight:800;color:var(--navy);">'+coordination+'</div><div style="font-size:11px;color:var(--t3);">Coordination</div></div>'
+      +'<div><div style="font-size:28px;font-weight:800;color:'+wpmCol+';">'+wpm+'</div><div style="font-size:11px;color:#4A4A6A;">WPM</div></div>'
+      +'<div><div style="font-size:28px;font-weight:800;color:'+accCol+';">'+accuracy+'%</div><div style="font-size:11px;color:#4A4A6A;">Accuracy</div></div>'
+      +'<div><div style="font-size:28px;font-weight:800;color:#5B21B6;">'+coordination+'</div><div style="font-size:11px;color:#4A4A6A;">Coordination</div></div>'
       +'</div>'
       +(capsErrors+punctErrors+apostropheErrors>0
-        ?'<div style="background:var(--rb);border-radius:var(--r);padding:8px 10px;font-size:11px;color:var(--rm);">'
+        ?'<div style="background:#FCEBEB;border-radius:10px;padding:8px 10px;font-size:11px;color:#791F1F;">'
           +'<strong>Errores detectados:</strong> '
           +(capsErrors?capsErrors+' mayúsculas · ':'')
           +(apostropheErrors?apostropheErrors+' apóstrofes · ':'')
@@ -1658,6 +1717,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
           +(spaceErrors?spaceErrors+' espacios · ':'')
           +(letterErrors?letterErrors+' letras':'')
           +'</div>':'')
+      +'<div style="margin-top:12px;text-align:center;"><button type="button" class="btn btn-navy" onclick="closeTypingLab()">Cerrar</button></div>'
       +'</div>';
 
     if(onComplete) onComplete(result);
@@ -2590,18 +2650,13 @@ function renderTypingPersonaPicker(containerId, onComplete){
 
 function startPersonaTypingTest(personaKey, containerId){
   var p = TYPING_PERSONAS[personaKey];
-  var widgetId = containerId+'-widget';
-  var host = document.getElementById(widgetId);
-  if(!host) return;
-  host.innerHTML = '<div class="ib ib-navy">'+p.desc+'</div>';
-  var subId = widgetId+'-inner';
-  host.innerHTML += '<div id="'+subId+'"></div>';
-  renderTypingTestWidget(subId, function(result){
+  if(!p) return;
+  openTypingLab({}, p.words, function(result){
     result.persona = p.label;
     result.targetWpm = p.targetWpm;
     result.metGoal = result.wpm >= p.targetWpm && result.accuracy>=85;
     savePortalTypingResult(result);
-  }, p.words);
+  });
 }
 
 // ── INFINITY LANGUAGE ARCADE (reemplaza quiz estático) ─────
