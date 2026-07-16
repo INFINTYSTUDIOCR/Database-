@@ -592,9 +592,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tt-fs-title{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#FBBF24;}
 .tt-fs-title span{display:block;font-size:11px;letter-spacing:0;font-weight:700;color:#E9D5FF;text-transform:none;margin-top:2px;}
 .tt-fs-close{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
-.tt-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:960px;margin:0 auto;box-sizing:border-box;}
+.tt-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px clamp(16px,4vw,40px);padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:none;margin:0;box-sizing:border-box;}
 body.tt-fs-lock{overflow:hidden;}
-.tt-wrap{background:rgba(255,255,255,.08);border:1px solid rgba(196,181,253,.35);border-radius:20px;padding:18px;backdrop-filter:blur(10px);box-shadow:0 18px 40px rgba(0,0,0,.28);}
+.tt-wrap{width:100%;max-width:none;background:rgba(255,255,255,.08);border:1px solid rgba(196,181,253,.35);border-radius:20px;padding:clamp(16px,2.5vw,28px);backdrop-filter:blur(10px);box-shadow:0 18px 40px rgba(0,0,0,.28);box-sizing:border-box;}
 .tt-wrap .ib{margin-bottom:12px;background:rgba(237,233,254,.95)!important;color:#3B0E8C!important;border-left-color:#F5A623!important;}
 .tt-lang-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .tt-lang-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;}
@@ -1623,7 +1623,13 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   var modeBtn = document.getElementById('tt-mode-btn');
   if(modeBtn) modeBtn.addEventListener('click', function(){
     stopTypingAudio();
-    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: !transcriptionMode, lang: lang });
+    var nextTrans = !transcriptionMode;
+    var title = document.getElementById('tt-fs-title');
+    if(title){
+      title.innerHTML = (nextTrans ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING TEST')
+        + '<span id="tt-fs-sub">'+(nextTrans ? 'Audio EN / ES · 60s' : 'Texto visible · 60s')+'</span>';
+    }
+    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, { transcription: nextTrans, lang: lang });
   });
 
   ['tt-lang-en','tt-lang-es'].forEach(function(id){
