@@ -1157,9 +1157,6 @@ function showPortal(s){
   if(studentJillOn(s) || studentAliceOn(s) || studentJillProOn(s)){
     drillRecursosBtns += '<button class="btn" style="background:var(--ad);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
   }
-  if(studentCompanionOn(s)){
-    drillRecursosBtns += '<button class="btn" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill (Alice)</button>';
-  }
   if(!drillRecursosBtns){
     drillRecursosBtns = '<div style="font-size:13px;color:var(--t3);">Activá Jill o Alice con tu trainer.</div>';
   }
@@ -1183,12 +1180,8 @@ function showPortal(s){
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Typing por escenario</div>'
     +'<div id="portal-persona-container"></div>'
     +'</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-device-gamepad-2"></i>Infinity Language Arcade</div>'
-    +'<div id="portal-quiz-container"><button class="btn btn-navy" onclick="renderQuizWidget(\'portal-quiz-container\')"><i class="ti ti-device-gamepad-2"></i>Abrir arcade de práctica</button></div>'
-    +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Drills</div>'
-    +'<div id="portal-nemesis-container">'+drillRecursosBtns
-    +'<button class="btn btn-outline" style="margin-top:8px;width:100%;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i>Language Arcade</button></div>'
+    +'<div id="portal-nemesis-container">'+drillRecursosBtns+'</div>'
     +'</div>';
 
   // ── NOTAS DE SESIÓN ───────────────────────────────────
@@ -1567,19 +1560,16 @@ function renderPortalGamesButtons(variant){
   var s = CURRENT_STUDENT;
   var accent = variant === 'alice' ? '#C084FC' : '#e9d5ff';
   var border = variant === 'alice' ? 'rgba(192,132,252,0.45)' : 'rgba(167,139,250,0.45)';
-  var html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;width:100%;">';
+  // Challenge drill + Language Arcade removed from all portal versions.
+  var html = '';
   if(variant === 'alice'){
     if(studentAliceOn(s) && !aliceCompanionUiActive())
-      html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
-    if(studentCompanionOn(s) || aliceCompanionUiActive())
-      html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.45);color:#FFEB3B;font-weight:800;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill</button>';
-  } else {
-    // Jill Modo Tutor / Modo Libre — Foundations only (never STAR / CS / linkers)
-    if(studentJillOn(s) || studentJillProOn(s) || jillCompanionUiActive())
-      html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
+      html = '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
+  } else if(studentJillOn(s) || studentJillProOn(s) || jillCompanionUiActive()){
+    html = '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid '+border+';color:'+accent+';font-weight:700;font-size:13px;padding:10px 20px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
   }
-  html += '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>';
-  return html + '</div>';
+  if(!html) return '';
+  return '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;width:100%;">'+html+'</div>';
 }
 function portalCloseRapidDrill(refresh){
   if(_aliceState.quizActive){
@@ -3425,13 +3415,9 @@ function renderAliceSession(){
   var badgeText = (_aliceState.sessionType==='companion')
     ? '💬 Alice Modo Libre · Charla libre · cualquier tema, sin cortes'
     : '🎓 Alice Modo Tutor · Método Nexus';
-  var gameChips = studentGamesOn(CURRENT_STUDENT)
+  var gameChips = (studentGamesOn(CURRENT_STUDENT) && _aliceState.sessionType !== 'companion' && studentAliceOn(CURRENT_STUDENT))
     ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-      +(_aliceState.sessionType==='companion'
-        ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'advanced\')">⚡ Challenge drill</button>'
-        : (studentAliceOn(CURRENT_STUDENT) ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'foundations\')">⚡ Rapid drill</button>' : '')
-        +(studentCompanionOn(CURRENT_STUDENT) && _aliceState.sessionType!=='companion' ? '<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'advanced\')">⚡ Challenge drill</button>' : ''))
-      +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">🎮 Arcade</button>'
+      +'<button type="button" class="jill-chip jill-chip-kaboom" onclick="portalOpenRapidDrill(\'foundations\')">⚡ Rapid drill</button>'
       +'</div>'
     : '';
   // Companion keep nested shell id only if outer card is companion-card; Tutor shell is the outer card.
@@ -6467,7 +6453,6 @@ function renderJillChips(){
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Dame otro ejemplo con el chunk de hoy\')">📝 Otro ejemplo</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Repetí la regla en inglés, despacio\')">🔊 En inglés</button>'
     +'<button type="button" class="jill-chip" onclick="jillSendChip(\'Explicación corta en 2 frases\')">⚡ Corto</button>'
-    +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">🎮 Arcade</button>'
     + foundationsChip
     +'</div>';
 }
@@ -6786,7 +6771,6 @@ function maybeShowJillOnboarding(){
     +'<div style="background:rgba(61,220,151,0.12);border:1px solid rgba(61,220,151,0.35);border-radius:12px;padding:12px;"><strong style="color:#86EFAC;">Modo Tutor</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Foundations guiado: estructura MSI, tiempos, gerundio, negaciones, preguntas — clase + práctica hasta que lo implementés.</div></div>'
     +'<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:12px;"><strong style="color:#c4b5fd;">Modo Libre</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Companion Foundations: charla + dudas. Corrige en vivo, explica y confirma — no es Alice (linkers/STAR).</div></div>'
     +'<div style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:12px;padding:12px;"><strong style="color:#fde68a;">Alice</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Intermedio/avanzado: conversación, linkers, transiciones, STAR — para quien entiende pero necesita hablar.</div></div>'
-    +'<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:12px;padding:12px;"><strong style="color:#e9d5ff;">Challenge drill</strong><div style="font-size:12px;color:rgba(255,255,255,0.82);margin-top:4px;line-height:1.5;">Linkers, STAR, presión — solo Alice / Companion. Jill nunca pregunta eso.</div></div>'
     +'</div>'
     +'<button type="button" id="jill-onboard-dismiss" style="width:100%;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;">Entendido — empezar</button>'
     +'<div style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-top:10px;"><a href="try-jill.html" style="color:#c4b5fd;">Probar Rapid drill demo</a> · <a href="pricing.html" style="color:#c4b5fd;">Precios Jill</a></div>'
@@ -6849,7 +6833,6 @@ function renderJillStart(){
     + (showPro ? proBlock : '')
     + (showTutor ? tutorDrillBtn : '')
     + (showPro ? challengeDrillBtn : '')
-    + (studentGamesOn(s) ? '<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.82);font-weight:600;font-size:12px;padding:9px 18px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;margin-top:8px;" onclick="portalOpenPracticeQuiz()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>' : '')
     +'</div></div>';
 }
 
