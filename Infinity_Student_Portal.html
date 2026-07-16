@@ -3413,7 +3413,7 @@ function renderAliceStart(){
     +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:'+(companionOnly||mode==='companion'?'2px solid rgba(255,215,0,0.55)':'none')+';color:'+(companionOnly||mode==='companion'?'#1a1200':'white')+';font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startAliceSession('+(companionOnly?"'companion'":"(_aliceState.sessionType||'practice')")+')"><i class="ti ti-player-play"></i> '+startLabel+'</button>'
     +(hasSaved?'<button style="display:inline-flex;align-items:center;gap:8px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.3);color:'+th.accent+';font-weight:700;font-size:14px;padding:12px 28px;border-radius:12px;cursor:pointer;width:100%;justify-content:center;" onclick="resumeAliceSession()"><i class="ti ti-player-skip-forward"></i> Retomar sesión guardada</button>':'')
     +'</div>'
-    + renderPortalGamesButtons('alice')
+    +(mode === 'companion' || companionOnly ? '' : renderPortalGamesButtons('alice'))
     +((_aliceState.evaluation) ? '<div style="margin-top:1.25rem;">'+renderAliceEvaluation()+'</div>' : '')
     +'</div>';
 }
