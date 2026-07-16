@@ -602,8 +602,14 @@ body.tt-fs-lock{overflow:hidden;}
 .tt-scenario-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .tt-scenario-btn{border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.18);color:#E9D5FF;border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
 .tt-scenario-btn.is-on{background:rgba(245,166,35,.22);border-color:rgba(245,166,35,.7);color:#FBBF24;}
-.tt-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;}
+.tt-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;align-items:center;}
 .tt-controls .btn{min-height:44px;}
+.tt-mode-toggle{display:inline-flex;gap:0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.28);}
+.tt-mode-opt{border:none;background:rgba(0,0,0,.22);color:#E9D5FF;padding:12px 16px;font-size:13px;font-weight:800;cursor:pointer;min-height:44px;}
+.tt-mode-opt.is-on{background:linear-gradient(145deg,#F5A623,#FFD700);color:#1a1200;}
+.tt-audio-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:120px;background:rgba(0,0,0,.28);border:2px dashed rgba(245,166,35,.45);border-radius:14px;padding:18px;margin-bottom:12px;color:#E9D5FF;text-align:center;}
+.tt-audio-panel strong{color:#FBBF24;font-size:14px;}
+.tt-audio-panel p{font-size:12px;margin:0;opacity:.9;line-height:1.45;}
 #tt-target{color:#1E1E2E!important;background:#fff!important;border:2px solid rgba(245,166,35,.45)!important;border-radius:14px!important;box-shadow:0 8px 24px rgba(0,0,0,.18);min-height:120px;}
 #tt-target span{color:inherit;}
 #tt-input.inp{background:#fff;color:#1E1E2E;border:2px solid rgba(196,181,253,.55);font-size:16px;min-height:110px;}
@@ -1609,41 +1615,56 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     +'<div class="tt-scenario-row" role="group" aria-label="Escenario">'+scenarioBtns+'</div>'
     +'<div class="ib ib-navy" style="font-size:13px;max-width:100%;box-sizing:border-box;line-height:1.55;">'
     +(transcriptionMode
-      ? '<strong>Transcripción (voz Alice):</strong> un solo texto completo — escuchá y escribí exactamente (mayúsculas, comas, puntos, apóstrofes, dos puntos). 60s.'
-      : '<strong>Escribí el texto completo exactamente</strong> — mayúsculas, comas, puntos, apóstrofes y dos puntos. 60 segundos.')
-    +(persona ? ' <strong>Escenario:</strong> '+persona.label+' (meta '+persona.targetWpm+' WPM · ritmo '+(persona.speechRate||0.92)+').' : '')
+      ? '<strong>Solo audio:</strong> escuchá a Alice y escribí exactamente (mayúsculas, comas, puntos, apóstrofes, dos puntos). El texto está oculto. 60s.'
+      : '<strong>Ver texto:</strong> escribí el pasaje exactamente — mayúsculas, comas, puntos, apóstrofes y dos puntos. Sin audio. 60s.')
+    +(persona ? ' <strong>Escenario:</strong> '+persona.label+' (meta '+persona.targetWpm+' WPM).' : '')
     +'</div>'
     +'<div class="tt-controls">'
-    +'<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:13px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
-    +(transcriptionMode
-      ? '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-keyboard"></i> Modo texto visible</button>'
-      : '<button type="button" class="btn btn-outline" id="tt-mode-btn" style="font-size:13px;background:rgba(255,255,255,.9);"><i class="ti ti-ear"></i> Modo transcripción</button>')
+    +'<div class="tt-mode-toggle" role="group" aria-label="Modo">'
+    +'<button type="button" class="tt-mode-opt'+(transcriptionMode?'':' is-on')+'" id="tt-mode-text" data-mode="text"><i class="ti ti-eye"></i> Ver texto</button>'
+    +'<button type="button" class="tt-mode-opt'+(transcriptionMode?' is-on':'')+'" id="tt-mode-audio" data-mode="audio"><i class="ti ti-headphones"></i> Solo audio</button>'
     +'</div>'
-    +(transcriptionMode?'<p class="tt-hint">Elegí <strong>EN</strong> o <strong>ES</strong> · escenario arriba · tocá <strong>Escuchar audio</strong> si no se oye.</p>':'')
-    +'<div id="tt-target" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;line-height:1.9;font-weight:600;color:#1E1E2E;background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;'
-    +(transcriptionMode?'filter:blur(6px);opacity:0.5;':'')+'"></div>'
+    +(transcriptionMode
+      ? '<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:13px;"><i class="ti ti-player-play"></i> Repetir audio</button>'
+      : '')
+    +'</div>'
+    +(transcriptionMode
+      ? '<div class="tt-audio-panel" id="tt-audio-panel"><strong><i class="ti ti-ear"></i> Texto oculto</strong><p>Solo audio — no se muestra el pasaje mientras Alice habla.</p></div><div id="tt-target" style="display:none;" aria-hidden="true"></div>'
+      : '<div id="tt-target" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;line-height:1.9;font-weight:600;color:#1E1E2E;background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;overflow:hidden;user-select:none;"></div>')
     +'<textarea id="tt-input" class="inp" placeholder="'+(transcriptionMode?'Escribí lo que escuchás…':'Empezá a escribir aquí...')+'" style="min-height:110px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;color:#1E1E2E;max-width:100%;box-sizing:border-box;width:100%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>'
     +'<div class="tt-meta">'
     +'<span id="tt-timer">60s</span>'
-    +'<span id="tt-status">'+(transcriptionMode?'Listo — escuchá a Alice':'Listo para empezar')+'</span>'
+    +'<span id="tt-status">'+(transcriptionMode?'Listo — solo audio':'Listo — texto visible')+'</span>'
     +'</div>'
     +'<div id="tt-result" style="margin-top:14px;max-width:100%;overflow:hidden;"></div>'
     +'</div>';
 
   var targetEl = document.getElementById('tt-target');
-  targetEl.innerHTML = targetText.split('').map(function(ch,i){
-    var display = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return '<span id="tt-ch-'+i+'">'+display+'</span>';
-  }).join('');
+  if(targetEl){
+    targetEl.innerHTML = targetText.split('').map(function(ch,i){
+      var display = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return '<span id="tt-ch-'+i+'">'+display+'</span>';
+    }).join('');
+  }
 
   var listenBtn = document.getElementById('tt-listen-btn');
-  if(listenBtn) listenBtn.addEventListener('click', function(){ speakTypingTarget(targetText, listenBtn, lang, _ttSpeechRate); });
-  var modeBtn = document.getElementById('tt-mode-btn');
-  if(modeBtn) modeBtn.addEventListener('click', function(){
-    stopTypingAudio();
-    var nextTrans = !transcriptionMode;
-    refreshTtTitle(nextTrans, personaKey);
-    renderTypingTestWidget('tt-fs-body', onComplete, wordBank, ttOpts({ transcription: nextTrans }));
+  if(listenBtn){
+    listenBtn.addEventListener('click', function(){
+      if(!transcriptionMode) return;
+      speakTypingTarget(targetText, listenBtn, lang, _ttSpeechRate);
+    });
+  }
+
+  ['tt-mode-text','tt-mode-audio'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('click', function(){
+      var wantAudio = el.getAttribute('data-mode') === 'audio';
+      if(wantAudio === transcriptionMode) return;
+      stopTypingAudio();
+      refreshTtTitle(wantAudio, personaKey);
+      renderTypingTestWidget('tt-fs-body', onComplete, wordBank, ttOpts({ transcription: wantAudio }));
+    });
   });
 
   ['tt-lang-en','tt-lang-es'].forEach(function(id){
@@ -1652,7 +1673,8 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     el.addEventListener('click', function(){
       var next = el.getAttribute('data-lang') || 'en-US';
       if(next === lang){
-        speakTypingTarget(targetText, listenBtn, next, _ttSpeechRate);
+        // Solo repetir audio en modo Solo audio — nunca leer con texto visible.
+        if(transcriptionMode) speakTypingTarget(targetText, listenBtn, next, _ttSpeechRate);
         return;
       }
       stopTypingAudio();
@@ -1673,9 +1695,12 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     });
   });
 
+  // Solo audio: Alice habla. Ver texto: silencio (nunca las dos a la vez).
   if(transcriptionMode){
     try{ if(window.speechSynthesis) speechSynthesis.getVoices(); }catch(e){}
     speakTypingTarget(targetText, listenBtn, lang, _ttSpeechRate);
+  } else {
+    stopTypingAudio();
   }
 
   var input = document.getElementById('tt-input');
@@ -1735,7 +1760,11 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     }
 
     statusEl.textContent = 'Finalizado';
-    if(transcriptionMode && targetEl){ targetEl.style.filter='none'; targetEl.style.opacity='1'; }
+    if(transcriptionMode){
+      var panel = document.getElementById('tt-audio-panel');
+      if(panel) panel.innerHTML = '<strong><i class="ti ti-check"></i> Pasaje revelado</strong><p style="margin:8px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.7;color:#fff;text-align:left;max-width:100%;overflow-wrap:anywhere;">'+String(targetText).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</p>';
+    }
+    if(targetEl){ targetEl.style.display='block'; targetEl.style.filter='none'; targetEl.style.opacity='1'; }
     var accCol = accuracy>=95?'var(--gm)':accuracy>=80?'var(--amber)':'var(--rm)';
     var wpmCol = wpm>=40?'var(--gm)':wpm>=25?'var(--amber)':'var(--rm)';
     document.getElementById('tt-result').innerHTML = '<div style="background:rgba(255,255,255,.95);border-radius:16px;padding:16px;color:#1E1E2E;overflow:hidden;max-width:100%;">'
