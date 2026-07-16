@@ -1425,23 +1425,33 @@ var TYPING_TEST_PHRASES_ES = [
 
 var _ttAudio = null;
 var _ttLang = 'en-US';
+var _ttSpeechRate = 0.92;
+
+function personaPhraseBank(persona, lang){
+  if(!persona) return null;
+  var isEs = String(lang || '').toLowerCase().indexOf('es') === 0;
+  if(isEs && persona.phrasesEs && persona.phrasesEs.length) return persona.phrasesEs;
+  return persona.phrases || null;
+}
 
 function generateTypingTestText(wordCount, bank, lang){
-  if(bank && Array.isArray(bank)){
-    var words=[];
-    for(var i=0;i<wordCount;i++){ words.push(bank[Math.floor(Math.random()*bank.length)]); }
-    return words.join(' ');
-  }
   var isEs = String(lang || _ttLang || '').toLowerCase().indexOf('es') === 0;
-  var pool = isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES;
-  var shuffled = pool.slice().sort(function(){ return Math.random()-0.5; });
+  var pool = (bank && Array.isArray(bank) && bank.length)
+    ? bank.slice()
+    : (isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES).slice();
+  // Nunca armar sopa de palabras sueltas: solo frases/oraciones.
+  var phrases = pool.filter(function(p){ return String(p || '').indexOf(' ') >= 0; });
+  if(!phrases.length){
+    phrases = (isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES).slice();
+  }
+  var shuffled = phrases.sort(function(){ return Math.random()-0.5; });
   var result = '';
   var i = 0;
-  while(result.length < 200 && i < shuffled.length){
+  while(result.length < 220 && i < shuffled.length){
     result += (result ? ' ' : '') + shuffled[i];
     i++;
   }
-  return result.slice(0, 280);
+  return result.slice(0, 320);
 }
 
 function stopTypingAudio(){
@@ -1452,7 +1462,7 @@ function stopTypingAudio(){
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
 }
 
-function speakTypingBrowser(text, btn, lang){
+function speakTypingBrowser(text, btn, lang, rate){
   if(!window.speechSynthesis){
     if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-volume"></i> Escuchar audio'; }
     showToast('No hay audio disponible ahora','err');
@@ -1460,7 +1470,7 @@ function speakTypingBrowser(text, btn, lang){
   }
   var u = new SpeechSynthesisUtterance(text);
   u.lang = lang || 'en-US';
-  u.rate = 0.92;
+  u.rate = (typeof rate === 'number' && rate > 0) ? rate : (_ttSpeechRate || 0.92);
   var voices = speechSynthesis.getVoices() || [];
   var pref = (u.lang || 'en').slice(0, 2).toLowerCase();
   var v = voices.find(function(vo){ return (vo.lang || '').toLowerCase() === String(u.lang).toLowerCase(); })
@@ -1473,9 +1483,10 @@ function speakTypingBrowser(text, btn, lang){
 }
 
 /** Audio de transcripción con voz Alice (ElevenLabs). Fallback: navegador. */
-function speakTypingTarget(text, btn, lang){
+function speakTypingTarget(text, btn, lang, rate){
   if(!text) return;
   lang = lang || _ttLang || 'en-US';
+  rate = (typeof rate === 'number' && rate > 0) ? rate : (_ttSpeechRate || 0.92);
   stopTypingAudio();
   if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2 spin"></i> Alice…'; }
 
@@ -1484,39 +1495,40 @@ function speakTypingTarget(text, btn, lang){
   };
 
   var playBlob = function(blob){
-    if(!blob || !blob.size){ speakTypingBrowser(text, btn, lang); return; }
+    if(!blob || !blob.size){ speakTypingBrowser(text, btn, lang, rate); return; }
     var url = URL.createObjectURL(blob);
     var audio = new Audio(url);
     _ttAudio = audio;
+    audio.playbackRate = Math.max(0.7, Math.min(1.35, rate / 0.92));
     audio.onended = function(){ URL.revokeObjectURL(url); if(_ttAudio === audio) _ttAudio = null; done(); };
-    audio.onerror = function(){ URL.revokeObjectURL(url); if(_ttAudio === audio) _ttAudio = null; speakTypingBrowser(text, btn, lang); };
-    audio.play().catch(function(){ URL.revokeObjectURL(url); speakTypingBrowser(text, btn, lang); });
+    audio.onerror = function(){ URL.revokeObjectURL(url); if(_ttAudio === audio) _ttAudio = null; speakTypingBrowser(text, btn, lang, rate); };
+    audio.play().catch(function(){ URL.revokeObjectURL(url); speakTypingBrowser(text, btn, lang, rate); });
   };
 
   if(typeof infinityFetch !== 'function' || typeof authHeaders !== 'function'){
-    speakTypingBrowser(text, btn, lang);
+    speakTypingBrowser(text, btn, lang, rate);
     return;
   }
 
   infinityFetch('/alice-tts', {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ text: text, lang: lang, sessionType: 'practice' })
+    body: JSON.stringify({ text: text, lang: lang, sessionType: 'practice', rate: rate })
   }).then(function(r){
     if(!r || !r.ok){
-      speakTypingBrowser(text, btn, lang);
+      speakTypingBrowser(text, btn, lang, rate);
       return null;
     }
     var ct = (r.headers.get('content-type') || '').toLowerCase();
     if(ct.indexOf('audio') === -1){
-      speakTypingBrowser(text, btn, lang);
+      speakTypingBrowser(text, btn, lang, rate);
       return null;
     }
     return r.blob();
   }).then(function(blob){
     if(blob) playBlob(blob);
   }).catch(function(){
-    speakTypingBrowser(text, btn, lang);
+    speakTypingBrowser(text, btn, lang, rate);
   });
 }
 
@@ -1544,7 +1556,12 @@ function openTypingLab(opts, wordBank, onComplete){
   var transcription = !!opts.transcription;
   var personaKey = opts.personaKey || '';
   var persona = (typeof TYPING_PERSONAS !== 'undefined' && personaKey && TYPING_PERSONAS[personaKey]) ? TYPING_PERSONAS[personaKey] : null;
-  if(persona) wordBank = persona.words;
+  if(persona){
+    wordBank = personaPhraseBank(persona, opts.lang || _ttLang);
+    _ttSpeechRate = persona.speechRate || 0.92;
+  } else {
+    _ttSpeechRate = 0.92;
+  }
   if(title){
     var sub = transcription ? 'Audio EN / ES · 60s' : 'Texto visible · 60s';
     if(persona) sub = persona.label + ' · meta ' + persona.targetWpm + ' WPM';
@@ -1582,7 +1599,12 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   var isEs = String(lang).toLowerCase().indexOf('es') === 0;
   var personaKey = opts.personaKey || '';
   var persona = (typeof TYPING_PERSONAS !== 'undefined' && personaKey && TYPING_PERSONAS[personaKey]) ? TYPING_PERSONAS[personaKey] : null;
-  if(persona) wordBank = persona.words;
+  if(persona){
+    wordBank = personaPhraseBank(persona, lang);
+    _ttSpeechRate = persona.speechRate || 0.92;
+  } else {
+    _ttSpeechRate = 0.92;
+  }
   var targetText = generateTypingTestText(45, wordBank, lang);
   var DURATION = 60;
 
@@ -1596,7 +1618,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     if(!title) return;
     var p = (typeof TYPING_PERSONAS !== 'undefined' && nextPersona && TYPING_PERSONAS[nextPersona]) ? TYPING_PERSONAS[nextPersona] : null;
     var sub = nextTrans ? 'Audio EN / ES · 60s' : 'Texto visible · 60s';
-    if(p) sub = p.label + ' · meta ' + p.targetWpm + ' WPM';
+    if(p) sub = p.label + ' · meta ' + p.targetWpm + ' WPM · ritmo ' + (p.speechRate || 0.92).toFixed(2);
     title.innerHTML = (nextTrans ? 'TRANSCRIPCIÓN · ALICE' : 'TYPING LAB')
       + '<span id="tt-fs-sub">'+sub+'</span>';
   }
@@ -1619,7 +1641,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     +(transcriptionMode
       ? '<strong>Transcripción (voz Alice):</strong> escuchá el audio y escribí exactamente lo que oís (mayúsculas, puntuación y apóstrofes). 60 segundos.'
       : '<strong>Escribí el texto exactamente como aparece</strong> — incluyendo mayúsculas, puntuación y apóstrofes. El test dura 60 segundos.')
-    +(persona ? ' <strong>Escenario:</strong> '+persona.label+' (meta '+persona.targetWpm+' WPM).' : '')
+    +(persona ? ' <strong>Escenario:</strong> '+persona.label+' (meta '+persona.targetWpm+' WPM · audio a ritmo '+(persona.speechRate||0.92)+').' : '')
     +'</div>'
     +'<div class="tt-controls">'
     +'<button type="button" class="btn btn-navy" id="tt-listen-btn" style="font-size:13px;"><i class="ti ti-volume"></i> Escuchar audio</button>'
@@ -1645,7 +1667,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
   }).join('');
 
   var listenBtn = document.getElementById('tt-listen-btn');
-  if(listenBtn) listenBtn.addEventListener('click', function(){ speakTypingTarget(targetText, listenBtn, lang); });
+  if(listenBtn) listenBtn.addEventListener('click', function(){ speakTypingTarget(targetText, listenBtn, lang, _ttSpeechRate); });
   var modeBtn = document.getElementById('tt-mode-btn');
   if(modeBtn) modeBtn.addEventListener('click', function(){
     stopTypingAudio();
@@ -1660,7 +1682,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
     el.addEventListener('click', function(){
       var next = el.getAttribute('data-lang') || 'en-US';
       if(next === lang){
-        speakTypingTarget(targetText, listenBtn, next);
+        speakTypingTarget(targetText, listenBtn, next, _ttSpeechRate);
         return;
       }
       stopTypingAudio();
@@ -1674,7 +1696,8 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
       var nextKey = el.getAttribute('data-persona') || '';
       if(nextKey === personaKey) return;
       stopTypingAudio();
-      var nextBank = (nextKey && TYPING_PERSONAS[nextKey]) ? TYPING_PERSONAS[nextKey].words : null;
+      var nextP = (nextKey && TYPING_PERSONAS[nextKey]) ? TYPING_PERSONAS[nextKey] : null;
+      var nextBank = nextP ? personaPhraseBank(nextP, lang) : null;
       refreshTtTitle(transcriptionMode, nextKey);
       renderTypingTestWidget('tt-fs-body', onComplete, nextBank, ttOpts({ personaKey: nextKey }));
     });
@@ -1682,7 +1705,7 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
 
   if(transcriptionMode){
     try{ if(window.speechSynthesis) speechSynthesis.getVoices(); }catch(e){}
-    speakTypingTarget(targetText, listenBtn, lang);
+    speakTypingTarget(targetText, listenBtn, lang, _ttSpeechRate);
   }
 
   var input = document.getElementById('tt-input');
@@ -2664,15 +2687,78 @@ function renderProgressBlock(s){
 }
 // ── TYPING TEST POR ESCENARIO (personas) ──────────────────
 var TYPING_PERSONAS = {
-  callcenter: { label:'Call Center Agent', icon:'ti-headset', targetWpm:40,
-    words:['account','verify','transfer','hold','apologize','resolve','policy','reference','support','assist','confirm','update','balance','department','escalate','refund','request','available','schedule','provide','contact','service','complete','further','regarding','attached','respond','feedback','process','report'],
-    desc:'Vocabulario de soporte al cliente. Meta: 40 WPM.' },
-  emergency: { label:'911 Operator', icon:'ti-phone-call', targetWpm:50,
-    words:['emergency','address','location','ambulance','police','injured','breathing','conscious','danger','help','immediately','stay','calm','send','street','building','victim','accident','fire','urgent','confirm','repeat','description','units','dispatch','response','safe','clear','wait','assist'],
-    desc:'Vocabulario de emergencia, escritura bajo presión. Meta: 50 WPM (más exigente).' },
-  grandma: { label:'My Grandma', icon:'ti-heart', targetWpm:30,
-    words:['grandson','cookies','remember','visit','weather','garden','photo','family','dinner','weekend','miss','call','letter','recipe','holiday','church','neighbor','story','tea','sweater','grandchildren','birthday','flowers','porch','afternoon','blanket','radio','sunshine','walk','smile'],
-    desc:'Vocabulario casual/familiar, ritmo relajado. Meta: 30 WPM.' }
+  callcenter: {
+    label:'Call Center Agent', icon:'ti-headset', targetWpm:40, speechRate:0.95,
+    desc:'Textos de soporte al cliente. Meta: 40 WPM. Ritmo normal.',
+    phrases:[
+      "Thank you for calling support. How may I assist you with your account today?",
+      "I understand your frustration. Let me verify your account number and look into this.",
+      "Please don't hang up — I'm transferring you to the billing department right away.",
+      "I've updated your contact information. You'll receive a confirmation by email shortly.",
+      "We apologize for the inconvenience. A refund will be processed within three to five business days.",
+      "Could you please repeat your order number? I want to make sure I have the correct details.",
+      "Your case has been escalated to a senior agent. Someone will call you back within 24 hours.",
+      "On hold, you'll hear a short message. Your call is important to us — thanks for waiting."
+    ],
+    phrasesEs:[
+      "Gracias por llamar a soporte. ¿En qué puedo ayudarle con su cuenta hoy?",
+      "Entiendo su frustración. Déjeme verificar el número de cuenta y revisar el caso.",
+      "Por favor no cuelgue: lo transfiero al departamento de facturación de inmediato.",
+      "Actualicé su información de contacto. Recibirá una confirmación por correo en breve.",
+      "Disculpe las molestias. El reembolso se procesará en tres a cinco días hábiles.",
+      "¿Podría repetir el número de pedido? Quiero asegurarme de tener los datos correctos.",
+      "Su caso se escaló a un agente senior. Alguien le devolverá la llamada en 24 horas.",
+      "En espera escuchará un mensaje breve. Su llamada es importante — gracias por esperar."
+    ]
+  },
+  emergency: {
+    label:'911 Operator', icon:'ti-phone-call', targetWpm:50, speechRate:1.15,
+    desc:'Textos de emergencia bajo presión. Meta: 50 WPM. Ritmo más rápido.',
+    phrases:[
+      "Nine-one-one, what's your emergency? Stay on the line and give me your exact location.",
+      "Is anyone injured? Are they conscious and breathing? Don't hang up until units arrive.",
+      "I'm dispatching police and an ambulance now. Keep the door unlocked if it's safe.",
+      "Repeat the street address slowly. Confirm the building number and nearest intersection.",
+      "Stay calm. Help is on the way. Tell me if the situation changes while we wait.",
+      "Do not move the victim unless there's immediate danger. Keep them warm and still.",
+      "Units are two minutes out. Step outside and wave if you can do so safely.",
+      "I need a clear description: clothing, vehicle, and direction of travel. Speak clearly."
+    ],
+    phrasesEs:[
+      "Nueve-uno-uno, ¿cuál es su emergencia? Quédese en la línea y dígame su ubicación exacta.",
+      "¿Hay alguien herido? ¿Está consciente y respira? No cuelgue hasta que lleguen las unidades.",
+      "Despacho policía y ambulancia ahora. Deje la puerta abierta si es seguro hacerlo.",
+      "Repita la dirección despacio. Confirme el número del edificio y la intersección más cercana.",
+      "Mantenga la calma. La ayuda va en camino. Avíseme si la situación cambia mientras esperamos.",
+      "No mueva a la víctima salvo peligro inmediato. Manténgala abrigada y quieta.",
+      "Las unidades llegan en dos minutos. Salga y haga señas si puede hacerlo con seguridad.",
+      "Necesito una descripción clara: ropa, vehículo y dirección. Hable con claridad."
+    ]
+  },
+  grandma: {
+    label:'My Grandma', icon:'ti-heart', targetWpm:30, speechRate:0.78,
+    desc:'Textos familiares, ritmo relajado. Meta: 30 WPM. Audio más lento.',
+    phrases:[
+      "Oh sweetheart, I baked your favorite cookies this morning. Don't forget to visit this weekend.",
+      "The garden looks lovely in the sunshine. I sat on the porch with a cup of tea.",
+      "I miss hearing your voice. Call me when you have a quiet afternoon, okay?",
+      "Remember the old radio in the living room? Your grandfather used to listen every night.",
+      "I found a recipe for the holiday pie. We'll make it together if you come for dinner.",
+      "The neighbors brought flowers for my birthday. It made me smile all afternoon.",
+      "Please write a short letter to your cousins. Family stories keep us close, you know.",
+      "Wear a warm sweater if you go for a walk. The weather turns chilly after church."
+    ],
+    phrasesEs:[
+      "Ay, mi amor, horneé tus galletas favoritas esta mañana. No olvides visitarme este fin de semana.",
+      "El jardín se ve hermoso con el sol. Me senté en el porche con una taza de té.",
+      "Extraño oír tu voz. Llámame cuando tengas una tarde tranquila, ¿sí?",
+      "¿Recuerdas el radio viejo de la sala? Tu abuelo lo escuchaba todas las noches.",
+      "Encontré la receta del pay de las fiestas. Lo preparamos juntos si vienes a cenar.",
+      "Los vecinos trajeron flores por mi cumpleaños. Me hicieron sonreír toda la tarde.",
+      "Por favor escríbele una cartita a tus primos. Las historias de familia nos mantienen unidos.",
+      "Ponte un suéter abrigado si sales a caminar. El clima se pone fresco después de la iglesia."
+    ]
+  }
 };
 
 function renderTypingPersonaPicker(containerId, onComplete){
