@@ -1378,49 +1378,49 @@ function showPortal(s){
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
 // Vocabulario operacional (alineado al contexto de Infinity Studio CR)
 var TYPING_TEST_PHRASES = [
-  "I don't understand why my account was charged twice this month.",
-  "Could you please send me the updated report by Friday afternoon?",
-  "We're happy to assist you with your request as soon as possible.",
-  "The meeting has been rescheduled for Monday at 9:30 a.m.",
-  "Please don't hesitate to contact us if you have any questions.",
-  "I'd like to confirm that your order has been processed successfully.",
-  "However, we weren't able to verify the information you provided.",
-  "She said, 'I'll call you back within 24 hours.' We're still waiting.",
-  "On top of that, the system hasn't been updated since last Tuesday.",
-  "It's important that you review the policy before signing the document.",
-  "Even though the deadline passed, we're still accepting applications.",
-  "The customer's account was flagged for suspicious activity at 11:45 p.m.",
-  "We can't process your refund without a valid receipt or order number.",
-  "As a result, the team wasn't notified about the changes in time.",
-  "I'll need to transfer your call to the billing department right away.",
-  "Don't worry — we've already escalated the issue to our senior team.",
-  "What's the best time to reach you? We're available Monday to Friday.",
-  "The report shows that 78% of customers rated our service as 'excellent'.",
-  "I'm sorry, but I wasn't able to find your account in our system.",
-  "Let's schedule a follow-up call for Thursday at 2:00 p.m., if that works."
+  "I don't understand why my account was charged twice this month; please check invoice #4521 at 9:30 a.m.",
+  "Could you please send me the updated report by Friday afternoon? I'd appreciate a PDF, not a link.",
+  "We're happy to assist you with your request as soon as possible — don't worry, you're next.",
+  "The meeting's been rescheduled for Monday at 9:30 a.m.: bring the client's file, please.",
+  "Please don't hesitate to contact us if you have any questions; we're available 8:00–5:00.",
+  "I'd like to confirm that your order has been processed successfully. Reference: ORD-7781.",
+  "However, we weren't able to verify the information you provided: name, email, and ID.",
+  "She said, 'I'll call you back within 24 hours.' We're still waiting — it's been two days.",
+  "On top of that, the system hasn't been updated since last Tuesday, 11:45 p.m.",
+  "It's important that you review the policy before signing: Section 3.2, 'Refunds & Returns'.",
+  "Even though the deadline passed, we're still accepting applications until Friday, 5:00 p.m.",
+  "The customer's account was flagged for suspicious activity at 11:45 p.m.; don't share the PIN.",
+  "We can't process your refund without a valid receipt or order number — e.g., #A-2048.",
+  "As a result, the team wasn't notified about the changes in time. Let's fix this today.",
+  "I'll need to transfer your call to the billing department right away. Please hold, okay?",
+  "Don't worry — we've already escalated the issue to our senior team. You'll hear from us soon.",
+  "What's the best time to reach you? We're available Monday to Friday, 9:00 a.m. to 6:00 p.m.",
+  "The report shows that 78% of customers rated our service as 'excellent'; isn't that great?",
+  "I'm sorry, but I wasn't able to find your account in our system. Can you spell your last name?",
+  "Let's schedule a follow-up call for Thursday at 2:00 p.m., if that works. Thanks!"
 ];
 
 var TYPING_TEST_PHRASES_ES = [
-  "No entiendo por qué me cobraron dos veces este mes en la cuenta.",
-  "¿Podría enviarme el informe actualizado para el viernes por la tarde?",
-  "Con gusto le ayudamos con su solicitud lo antes posible.",
-  "La reunión se reprogramó para el lunes a las 9:30 a.m.",
-  "No dude en contactarnos si tiene alguna pregunta adicional.",
-  "Me gustaría confirmar que su pedido se procesó correctamente.",
-  "Sin embargo, no pudimos verificar la información que nos envió.",
-  "Ella dijo: 'Le llamo en 24 horas.' Todavía estamos esperando.",
-  "Además, el sistema no se ha actualizado desde el martes pasado.",
-  "Es importante que revise la política antes de firmar el documento.",
-  "Aunque pasó la fecha límite, todavía estamos aceptando solicitudes.",
-  "La cuenta del cliente se marcó por actividad sospechosa a las 11:45 p.m.",
-  "No podemos procesar el reembolso sin un recibo o número de pedido válido.",
-  "Como resultado, el equipo no fue notificado de los cambios a tiempo.",
-  "Necesito transferir su llamada al departamento de facturación ahora mismo.",
-  "No se preocupe: ya escalamos el caso con el equipo senior.",
-  "¿Cuál es el mejor horario para localizarlo? Atendemos de lunes a viernes.",
-  "El informe muestra que el 78% de los clientes calificó el servicio como 'excelente'.",
-  "Lo siento, pero no pude encontrar su cuenta en nuestro sistema.",
-  "Agendemos una llamada de seguimiento para el jueves a las 2:00 p.m., si le sirve."
+  "No entiendo por qué me cobraron dos veces este mes; revise la factura #4521 a las 9:30 a.m.",
+  "¿Podría enviarme el informe actualizado para el viernes por la tarde? Prefiero PDF, no un enlace.",
+  "Con gusto le ayudamos con su solicitud lo antes posible — no se preocupe, es el siguiente.",
+  "La reunión se reprogramó para el lunes a las 9:30 a.m.: traiga el expediente del cliente, por favor.",
+  "No dude en contactarnos si tiene alguna pregunta; atendemos de 8:00 a 17:00.",
+  "Me gustaría confirmar que su pedido se procesó correctamente. Referencia: PED-7781.",
+  "Sin embargo, no pudimos verificar la información que nos envió: nombre, correo e identificación.",
+  "Ella dijo: 'Le llamo en 24 horas.' Todavía estamos esperando — ya van dos días.",
+  "Además, el sistema no se ha actualizado desde el martes pasado, a las 11:45 p.m.",
+  "Es importante que revise la política antes de firmar: Sección 3.2, 'Reembolsos y devoluciones'.",
+  "Aunque pasó la fecha límite, todavía aceptamos solicitudes hasta el viernes, 5:00 p.m.",
+  "La cuenta del cliente se marcó por actividad sospechosa a las 11:45 p.m.; no comparta el PIN.",
+  "No podemos procesar el reembolso sin un recibo o número de pedido válido — p. ej., #A-2048.",
+  "Como resultado, el equipo no fue notificado de los cambios a tiempo. Corrijámoslo hoy.",
+  "Necesito transferir su llamada al departamento de facturación ahora mismo. Espere, ¿sí?",
+  "No se preocupe: ya escalamos el caso con el equipo senior. Pronto tendrá noticias.",
+  "¿Cuál es el mejor horario para localizarlo? Atendemos de lunes a viernes, 9:00 a.m. a 6:00 p.m.",
+  "El informe muestra que el 78% de los clientes calificó el servicio como 'excelente'; ¿no es genial?",
+  "Lo siento, pero no pude encontrar su cuenta en nuestro sistema. ¿Me deletrea el apellido?",
+  "Agendemos una llamada de seguimiento para el jueves a las 2:00 p.m., si le sirve. ¡Gracias!"
 ];
 
 var _ttAudio = null;
@@ -1434,24 +1434,48 @@ function personaPhraseBank(persona, lang){
   return persona.phrases || null;
 }
 
+/** Pasaje tipable: oraciones completas con puntuación (nunca truncar a media frase). */
 function generateTypingTestText(wordCount, bank, lang){
   var isEs = String(lang || _ttLang || '').toLowerCase().indexOf('es') === 0;
-  var pool = (bank && Array.isArray(bank) && bank.length)
-    ? bank.slice()
-    : (isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES).slice();
-  // Nunca armar sopa de palabras sueltas: solo frases/oraciones.
-  var phrases = pool.filter(function(p){ return String(p || '').indexOf(' ') >= 0; });
-  if(!phrases.length){
-    phrases = (isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES).slice();
-  }
-  var shuffled = phrases.sort(function(){ return Math.random()-0.5; });
+  var fallback = isEs ? TYPING_TEST_PHRASES_ES : TYPING_TEST_PHRASES;
+  var pool = (bank && Array.isArray(bank) && bank.length) ? bank.slice() : fallback.slice();
+  var phrases = pool.filter(function(p){
+    var s = String(p || '').trim();
+    return s.indexOf(' ') >= 0 && /[.,;:!?']/.test(s);
+  });
+  if(phrases.length < 3) phrases = fallback.slice();
+
+  // Priorizar frases con apóstrofe / dos puntos / comillas (práctica real de precisión).
+  phrases.sort(function(a, b){
+    function score(s){
+      var n = 0;
+      if(/'/.test(s)) n += 3;
+      if(/:/.test(s)) n += 2;
+      if(/,/.test(s)) n += 1;
+      if(/[;!?]/.test(s)) n += 1;
+      if(/"/.test(s) || /'[^']+'/.test(s)) n += 1;
+      return n + Math.random();
+    }
+    return score(b) - score(a);
+  });
+
   var result = '';
   var i = 0;
-  while(result.length < 220 && i < shuffled.length){
-    result += (result ? ' ' : '') + shuffled[i];
+  var targetLen = 260;
+  while(i < phrases.length && result.length < targetLen){
+    var next = String(phrases[i]).trim();
+    if(!next){ i++; continue; }
+    // Unir oraciones con espacio; no cortar puntuación final.
+    if(result && !/[.!?…]$/.test(result)) result += '.';
+    result += (result ? ' ' : '') + next;
     i++;
   }
-  return result.slice(0, 320);
+  if(!result) result = String(fallback[0] || '');
+  // Si quedó corto, agregar otra frase completa (sin slice a mitad de palabra).
+  if(result.length < 180 && i < phrases.length){
+    result += (result ? ' ' : '') + String(phrases[i]).trim();
+  }
+  return result.trim();
 }
 
 function stopTypingAudio(){
@@ -1739,8 +1763,8 @@ function renderTypingTestWidget(containerId, onComplete, wordBank, opts){
       if(typed[j]!==targetText[j]){
         var expected = targetText[j]||'';
         if(expected===expected.toUpperCase() && expected!==expected.toLowerCase()) capsErrors++;
-        else if(expected==="'") apostropheErrors++;
-        else if('.,;:!?-()"\u2019'.indexOf(expected)>=0) punctErrors++;
+        else if(expected==="'" || expected==="\u2019") apostropheErrors++;
+        else if('.,;:!?-()"\u2014\u2013\u2019%#@'.indexOf(expected)>=0) punctErrors++;
         else if(expected===' ') spaceErrors++;
         else letterErrors++;
       }
@@ -2691,72 +2715,72 @@ var TYPING_PERSONAS = {
     label:'Call Center Agent', icon:'ti-headset', targetWpm:40, speechRate:0.95,
     desc:'Textos de soporte al cliente. Meta: 40 WPM. Ritmo normal.',
     phrases:[
-      "Thank you for calling support. How may I assist you with your account today?",
-      "I understand your frustration. Let me verify your account number and look into this.",
-      "Please don't hang up — I'm transferring you to the billing department right away.",
-      "I've updated your contact information. You'll receive a confirmation by email shortly.",
-      "We apologize for the inconvenience. A refund will be processed within three to five business days.",
-      "Could you please repeat your order number? I want to make sure I have the correct details.",
-      "Your case has been escalated to a senior agent. Someone will call you back within 24 hours.",
-      "On hold, you'll hear a short message. Your call is important to us — thanks for waiting."
+      "Thank you for calling support. How may I assist you with your account today? Please don't hang up.",
+      "I understand your frustration; let me verify your account number, then I'll look into this.",
+      "Please don't hang up — I'm transferring you to billing at 9:15 a.m. Stay on the line, okay?",
+      "I've updated your contact info. You'll get a confirmation at customer@example.com shortly.",
+      "We apologize for the inconvenience. A refund'll be processed in 3–5 business days; ref: RF-442.",
+      "Could you please repeat your order number? I need the digits, commas aside: 7781-A.",
+      "Your case has been escalated to a senior agent. Someone'll call you back within 24 hours.",
+      "On hold, you'll hear a short message. Your call's important to us — thanks for waiting!"
     ],
     phrasesEs:[
-      "Gracias por llamar a soporte. ¿En qué puedo ayudarle con su cuenta hoy?",
-      "Entiendo su frustración. Déjeme verificar el número de cuenta y revisar el caso.",
-      "Por favor no cuelgue: lo transfiero al departamento de facturación de inmediato.",
-      "Actualicé su información de contacto. Recibirá una confirmación por correo en breve.",
-      "Disculpe las molestias. El reembolso se procesará en tres a cinco días hábiles.",
-      "¿Podría repetir el número de pedido? Quiero asegurarme de tener los datos correctos.",
+      "Gracias por llamar a soporte. ¿En qué puedo ayudarle con su cuenta hoy? Por favor, no cuelgue.",
+      "Entiendo su frustración; déjeme verificar el número de cuenta, luego reviso el caso.",
+      "Por favor no cuelgue: lo transfiero a facturación a las 9:15 a.m. Quédese en la línea, ¿sí?",
+      "Actualicé su información de contacto. Recibirá confirmación en cliente@ejemplo.com en breve.",
+      "Disculpe las molestias. El reembolso se procesará en 3–5 días hábiles; ref.: RF-442.",
+      "¿Podría repetir el número de pedido? Necesito los dígitos: 7781-A.",
       "Su caso se escaló a un agente senior. Alguien le devolverá la llamada en 24 horas.",
-      "En espera escuchará un mensaje breve. Su llamada es importante — gracias por esperar."
+      "En espera escuchará un mensaje breve. Su llamada es importante — ¡gracias por esperar!"
     ]
   },
   emergency: {
     label:'911 Operator', icon:'ti-phone-call', targetWpm:50, speechRate:1.15,
     desc:'Textos de emergencia bajo presión. Meta: 50 WPM. Ritmo más rápido.',
     phrases:[
-      "Nine-one-one, what's your emergency? Stay on the line and give me your exact location.",
+      "Nine-one-one, what's your emergency? Stay on the line and give me your exact location, please.",
       "Is anyone injured? Are they conscious and breathing? Don't hang up until units arrive.",
-      "I'm dispatching police and an ambulance now. Keep the door unlocked if it's safe.",
-      "Repeat the street address slowly. Confirm the building number and nearest intersection.",
-      "Stay calm. Help is on the way. Tell me if the situation changes while we wait.",
-      "Do not move the victim unless there's immediate danger. Keep them warm and still.",
-      "Units are two minutes out. Step outside and wave if you can do so safely.",
-      "I need a clear description: clothing, vehicle, and direction of travel. Speak clearly."
+      "I'm dispatching police and an ambulance now. Keep the door unlocked if it's safe, okay?",
+      "Repeat the street address slowly: building number, apartment, and nearest intersection.",
+      "Stay calm. Help's on the way. Tell me if the situation changes while we wait — don't move.",
+      "Do not move the victim unless there's immediate danger. Keep them warm, still, and awake.",
+      "Units are two minutes out. Step outside and wave if you can do so safely; don't approach the hazard.",
+      "I need a clear description: clothing, vehicle, and direction of travel. Speak clearly, please."
     ],
     phrasesEs:[
-      "Nueve-uno-uno, ¿cuál es su emergencia? Quédese en la línea y dígame su ubicación exacta.",
+      "Nueve-uno-uno, ¿cuál es su emergencia? Quédese en la línea y dígame su ubicación exacta, por favor.",
       "¿Hay alguien herido? ¿Está consciente y respira? No cuelgue hasta que lleguen las unidades.",
-      "Despacho policía y ambulancia ahora. Deje la puerta abierta si es seguro hacerlo.",
-      "Repita la dirección despacio. Confirme el número del edificio y la intersección más cercana.",
-      "Mantenga la calma. La ayuda va en camino. Avíseme si la situación cambia mientras esperamos.",
-      "No mueva a la víctima salvo peligro inmediato. Manténgala abrigada y quieta.",
-      "Las unidades llegan en dos minutos. Salga y haga señas si puede hacerlo con seguridad.",
-      "Necesito una descripción clara: ropa, vehículo y dirección. Hable con claridad."
+      "Despacho policía y ambulancia ahora. Deje la puerta abierta si es seguro, ¿sí?",
+      "Repita la dirección despacio: número del edificio, apartamento e intersección más cercana.",
+      "Mantenga la calma. La ayuda va en camino. Avíseme si la situación cambia — no se mueva.",
+      "No mueva a la víctima salvo peligro inmediato. Manténgala abrigada, quieta y despierta.",
+      "Las unidades llegan en dos minutos. Salga y haga señas si puede; no se acerque al peligro.",
+      "Necesito una descripción clara: ropa, vehículo y dirección. Hable con claridad, por favor."
     ]
   },
   grandma: {
     label:'My Grandma', icon:'ti-heart', targetWpm:30, speechRate:0.78,
     desc:'Textos familiares, ritmo relajado. Meta: 30 WPM. Audio más lento.',
     phrases:[
-      "Oh sweetheart, I baked your favorite cookies this morning. Don't forget to visit this weekend.",
-      "The garden looks lovely in the sunshine. I sat on the porch with a cup of tea.",
-      "I miss hearing your voice. Call me when you have a quiet afternoon, okay?",
-      "Remember the old radio in the living room? Your grandfather used to listen every night.",
-      "I found a recipe for the holiday pie. We'll make it together if you come for dinner.",
-      "The neighbors brought flowers for my birthday. It made me smile all afternoon.",
+      "Oh, sweetheart, I baked your favorite cookies this morning. Don't forget to visit this weekend, okay?",
+      "The garden looks lovely in the sunshine; I sat on the porch with a cup of tea at 3:00 p.m.",
+      "I miss hearing your voice. Call me when you've got a quiet afternoon — I'd love that.",
+      "Remember the old radio in the living room? Your grandfather used to listen every night, didn't he?",
+      "I found a recipe for the holiday pie: flour, butter, and apples. We'll make it if you come for dinner.",
+      "The neighbors brought flowers for my birthday; it made me smile all afternoon. Isn't that kind?",
       "Please write a short letter to your cousins. Family stories keep us close, you know.",
-      "Wear a warm sweater if you go for a walk. The weather turns chilly after church."
+      "Wear a warm sweater if you go for a walk. The weather turns chilly after church, doesn't it?"
     ],
     phrasesEs:[
-      "Ay, mi amor, horneé tus galletas favoritas esta mañana. No olvides visitarme este fin de semana.",
-      "El jardín se ve hermoso con el sol. Me senté en el porche con una taza de té.",
-      "Extraño oír tu voz. Llámame cuando tengas una tarde tranquila, ¿sí?",
-      "¿Recuerdas el radio viejo de la sala? Tu abuelo lo escuchaba todas las noches.",
-      "Encontré la receta del pay de las fiestas. Lo preparamos juntos si vienes a cenar.",
-      "Los vecinos trajeron flores por mi cumpleaños. Me hicieron sonreír toda la tarde.",
-      "Por favor escríbele una cartita a tus primos. Las historias de familia nos mantienen unidos.",
-      "Ponte un suéter abrigado si sales a caminar. El clima se pone fresco después de la iglesia."
+      "Ay, mi amor, horneé tus galletas favoritas esta mañana. No olvides visitarme este fin de semana, ¿sí?",
+      "El jardín se ve hermoso con el sol; me senté en el porche con una taza de té a las 3:00 p.m.",
+      "Extraño oír tu voz. Llámame cuando tengas una tarde tranquila — me encantaría.",
+      "¿Recuerdas el radio viejo de la sala? Tu abuelo lo escuchaba todas las noches, ¿verdad?",
+      "Encontré la receta del pay de las fiestas: harina, mantequilla y manzanas. Lo hacemos si vienes a cenar.",
+      "Los vecinos trajeron flores por mi cumpleaños; me hicieron sonreír toda la tarde. ¡Qué amables!",
+      "Por favor escríbele una cartita a tus primos. Las historias de familia nos mantienen unidos, ¿sabes?",
+      "Ponte un suéter abrigado si sales a caminar. El clima se pone fresco después de la iglesia, ¿no?"
     ]
   }
 };
