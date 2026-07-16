@@ -158,28 +158,51 @@
   --page-bg:#F6F0FF;--page-warm:#FFF9F0;
   --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;--gray-light:#E2E8F0;
   --r:8px;--rl:16px;--rxl:24px;
-  --companion-ribbon-h:56px;
-  --heritage-ribbon-h:40px;
+  --companion-ribbon-h:72px;
+  --heritage-ribbon-h:36px;
   --top-ribbons-h:calc(var(--companion-ribbon-h) + var(--heritage-ribbon-h));
 }
 html{scroll-behavior:smooth;}
 body{font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden;background:var(--page-bg);background-image:radial-gradient(ellipse 90% 55% at 0% 0%,rgba(91,33,182,0.09),transparent 58%),radial-gradient(ellipse 75% 50% at 100% 8%,rgba(245,166,35,0.08),transparent 52%),linear-gradient(180deg,#F5EEFF 0%,#FFF8F0 38%,#F3EBFF 100%);background-attachment:fixed;}
 
-.companion-ribbon{position:fixed;top:0;left:0;right:0;z-index:110;min-height:var(--companion-ribbon-h);display:flex;align-items:center;background:linear-gradient(90deg,#4C1D95 0%,#6D28D9 38%,#7C3AED 62%,#D97706 100%);color:#fff;text-decoration:none;border-bottom:2px solid rgba(251,191,36,0.45);box-shadow:0 6px 24px rgba(91,33,182,0.28);transition:filter .2s;}
-.companion-ribbon:hover{filter:brightness(1.06);color:#fff;}
-.companion-ribbon-inner{width:100%;max-width:1240px;margin:0 auto;padding:8px 1.25rem;display:flex;align-items:center;justify-content:center;gap:10px 14px;flex-wrap:wrap;text-align:center;}
-.companion-ribbon-badge{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);padding:4px 10px;border-radius:20px;}
-.companion-ribbon-text{font-size:13px;line-height:1.45;font-weight:500;max-width:52rem;}
-.companion-ribbon-text strong{font-weight:800;}
-.companion-ribbon-text .ribbon-detail{display:inline;}
-.companion-ribbon-cta{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#FBBF24,#F5A623);color:#1E1E2E;padding:8px 16px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:nowrap;}
-.companion-ribbon-cta i{font-size:16px;}
+@keyframes companionRibbonShine{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes companionCtaPulse{0%,100%{box-shadow:0 4px 18px rgba(245,166,35,0.45),0 0 0 0 rgba(251,191,36,0.5)}50%{box-shadow:0 6px 28px rgba(245,166,35,0.65),0 0 0 8px rgba(251,191,36,0)}}
 
-.heritage-ribbon{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:109;min-height:var(--heritage-ribbon-h);display:flex;align-items:center;background:linear-gradient(90deg,#1E1B4B 0%,#312E81 42%,#4C1D95 100%);color:#fff;text-decoration:none;border-bottom:1px solid rgba(251,191,36,0.35);box-shadow:0 4px 16px rgba(30,27,75,0.22);transition:filter .2s;}
-.heritage-ribbon:hover{filter:brightness(1.08);color:#fff;}
-.heritage-ribbon .companion-ribbon-inner{padding:6px 1.25rem;}
-.heritage-ribbon .companion-ribbon-text{font-size:12px;max-width:none;}
-.heritage-ribbon .companion-ribbon-badge{background:rgba(251,191,36,0.22);border-color:rgba(251,191,36,0.45);color:#FDE68A;}
+.companion-ribbon{position:fixed;top:0;left:0;right:0;z-index:110;min-height:var(--companion-ribbon-h);display:flex;align-items:center;background:linear-gradient(105deg,#3B0E8C 0%,#5B21B6 28%,#7C3AED 52%,#D97706 78%,#F5A623 100%);background-size:200% 100%;animation:companionRibbonShine 8s ease-in-out infinite;color:#fff;text-decoration:none;border-bottom:3px solid #FBBF24;box-shadow:0 10px 36px rgba(91,33,182,0.42),0 0 40px rgba(245,166,35,0.18);transition:filter .2s;}
+.companion-ribbon:hover{filter:brightness(1.08);color:#fff;}
+.companion-ribbon-inner{width:100%;max-width:1240px;margin:0 auto;padding:10px 1.25rem;display:flex;align-items:center;justify-content:center;gap:12px 16px;flex-wrap:wrap;text-align:center;}
+.companion-ribbon-badge{flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(135deg,#FBBF24,#F5A623);color:#1a1200;border:none;padding:6px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
+.companion-ribbon-free{flex-shrink:0;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.45);color:#fff;padding:6px 12px;border-radius:20px;}
+.companion-ribbon-text{font-size:14px;line-height:1.4;font-weight:600;max-width:48rem;}
+.companion-ribbon-text strong{font-weight:900;font-size:1.05em;}
+.companion-ribbon-text .ribbon-detail{display:inline;font-weight:500;opacity:.95;}
+.companion-ribbon-cta{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:900;background:linear-gradient(135deg,#FFD700,#F5A623);color:#1a1200;padding:12px 20px;border-radius:999px;box-shadow:0 4px 18px rgba(245,166,35,0.45);white-space:nowrap;animation:companionCtaPulse 2.4s ease-in-out infinite;}
+.companion-ribbon-cta i{font-size:17px;}
+
+.heritage-ribbon{position:fixed;top:var(--companion-ribbon-h);left:0;right:0;z-index:109;min-height:var(--heritage-ribbon-h);display:flex;align-items:center;background:rgba(15,12,40,0.96);color:#fff;text-decoration:none;border-bottom:1px solid rgba(251,191,36,0.22);box-shadow:none;transition:filter .2s;opacity:0.92;}
+.heritage-ribbon:hover{filter:brightness(1.1);color:#fff;opacity:1;}
+.heritage-ribbon .companion-ribbon-inner{padding:5px 1.25rem;}
+.heritage-ribbon .companion-ribbon-text{font-size:11px;max-width:none;font-weight:500;}
+.heritage-ribbon .companion-ribbon-badge{background:rgba(251,191,36,0.18);border:1px solid rgba(251,191,36,0.35);color:#FDE68A;font-size:9px;padding:3px 8px;box-shadow:none;}
+
+.jill-academia{background:linear-gradient(180deg,#F8F5FF 0%,#FFF9F0 55%,#F3EBFF 100%);padding:88px 2rem;border-top:1px solid rgba(91,33,182,0.1);border-bottom:1px solid rgba(91,33,182,0.1);}
+.jill-academia-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.15fr 0.85fr;gap:2.5rem;align-items:center;}
+.jill-academia-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-dark);background:rgba(91,33,182,0.1);border:1px solid rgba(91,33,182,0.22);padding:8px 14px;border-radius:999px;margin-bottom:1rem;}
+.jill-academia h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.55rem,3.2vw,2.35rem);font-weight:800;color:var(--text);line-height:1.15;letter-spacing:-0.02em;margin:0 0 1rem;}
+.jill-academia h2 em{font-style:normal;color:var(--purple);}
+.jill-academia-lead{font-size:17px;line-height:1.65;color:var(--t2);margin:0 0 1rem;max-width:38rem;}
+.jill-academia-lead strong{color:var(--text);}
+.jill-academia-note{font-size:14px;line-height:1.6;color:var(--t3);margin:0 0 1.5rem;max-width:38rem;}
+.jill-academia-points{list-style:none;margin:0 0 1.75rem;padding:0;display:grid;gap:10px;}
+.jill-academia-points li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;color:var(--t2);background:#fff;border:1px solid rgba(91,33,182,0.12);border-radius:14px;padding:12px 14px;box-shadow:0 6px 20px rgba(91,33,182,0.06);}
+.jill-academia-points li i{color:var(--gold-dark);font-size:18px;flex-shrink:0;margin-top:1px;}
+.jill-academia-ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.jill-academia-card{background:linear-gradient(165deg,#3B0E8C,#5B21B6 48%,#1e1b4b);border-radius:24px;padding:1.75rem 1.5rem;color:#fff;border:1px solid rgba(245,166,35,0.35);box-shadow:0 20px 48px rgba(59,14,140,0.28);}
+.jill-academia-card .label{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#FBBF24;margin-bottom:10px;}
+.jill-academia-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;margin:0 0 10px;line-height:1.25;}
+.jill-academia-card p{font-size:14px;line-height:1.6;color:rgba(255,255,255,0.82);margin:0 0 1rem;}
+.jill-academia-card .stat{font-size:13px;font-weight:700;color:#E9D5FF;padding-top:12px;border-top:1px solid rgba(255,255,255,0.15);line-height:1.5;}
+@media(max-width:800px){.jill-academia-inner{grid-template-columns:1fr;}}
 
 nav{position:fixed;top:var(--top-ribbons-h);left:0;right:0;z-index:100;background:rgba(255,251,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(91,33,182,0.12);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
 .nav-logo{height:52px;width:52px;object-fit:contain;border-radius:12px;display:block;image-rendering:auto;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
@@ -693,9 +716,10 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 
 @media(max-width:768px){
   .para-mi-checkgrid{grid-template-columns:1fr;}
-  :root{--companion-ribbon-h:72px;--heritage-ribbon-h:48px;}
-  .companion-ribbon-text{font-size:12px;}
+  :root{--companion-ribbon-h:88px;--heritage-ribbon-h:40px;}
+  .companion-ribbon-text{font-size:13px;}
   .companion-ribbon-text .ribbon-detail{display:none;}
+  .companion-ribbon-cta{width:100%;justify-content:center;max-width:20rem;}
   .heritage-ribbon .companion-ribbon-text{font-size:11px;}
   .hero-inner,.problem-grid,.alice-inner,.jill-inner,.about-inner,.contact-inner,.comparison-grid{grid-template-columns:1fr;}
   .hero-headline{max-width:none;font-size:clamp(1.85rem,7vw,2.35rem);}
@@ -711,21 +735,22 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
 </head>
 <body>
 
-<a href="try-alice.html" class="companion-ribbon" id="companion-ribbon" aria-label="Probar Alice Modo Libre gratis">
+<a href="try-alice.html" class="companion-ribbon" id="companion-ribbon" aria-label="Probar Alice Modo Libre gratis — sin tarjeta">
   <div class="companion-ribbon-inner">
     <span class="companion-ribbon-badge"><i class="ti ti-sparkles"></i> Nuevo</span>
+    <span class="companion-ribbon-free">Gratis · sin tarjeta</span>
     <p class="companion-ribbon-text">
-      <strong>Alice Modo Libre</strong> — tu asistente de práctica personal en inglés: habla, escucha, cuenta historias, muestra interés.
-      <span class="ribbon-detail"> Moda, vida, trabajo — lo que quieras, sin cortes.</span>
+      <strong>Alice Modo Libre</strong> — practicá inglés hablando ya: sin compromiso, sin pagar para empezar.
+      <span class="ribbon-detail"> Demo gratis en la web. Moda, vida, trabajo — lo que quieras.</span>
     </p>
-    <span class="companion-ribbon-cta">Probar Alice Modo Libre <i class="ti ti-arrow-right"></i></span>
+    <span class="companion-ribbon-cta">Probar gratis ahora <i class="ti ti-arrow-right"></i></span>
   </div>
 </a>
 
-<a href="#comparar" class="heritage-ribbon" id="heritage-ribbon" aria-label="26 años complementando lo que las academias no pueden hacer">
+<a href="#jill-academia" class="heritage-ribbon" id="heritage-ribbon" aria-label="26 años complementando academias — Jill cierra el hueco">
   <div class="companion-ribbon-inner">
     <span class="companion-ribbon-badge"><i class="ti ti-award"></i> 26 años</span>
-    <p class="companion-ribbon-text"><strong>26 años complementando lo que las academias no pueden hacer.</strong></p>
+    <p class="companion-ribbon-text"><strong>26 años complementando academias</strong> — tu curso es bueno; Jill cierra lo que falta entre clases.</p>
   </div>
 </a>
 
@@ -734,13 +759,14 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="nav-links">
     <a href="#para-mi">¿Es para mí?</a>
     <a href="#vs-ia">Nuestras IAs</a>
+    <a href="#jill-academia">Jill + academia</a>
     <a href="#comparar">Comparar</a>
     <a href="hablemos.html?solicitar=claire#consulta">TOEIC</a>
     <a href="#pricing">Precios</a>
     <a href="try-alice.html">Alice Modo Libre</a>
     <a href="#contact">Contacto</a>
   </div>
-  <a href="#contact" class="nav-cta">Hablá con nosotros</a>
+  <a href="try-alice.html" class="nav-cta">Probar Alice gratis</a>
 </nav>
 
 <section class="hero">
@@ -763,10 +789,11 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
       </div>
       <div class="hero-ctas">
         <div class="hero-cta-row">
-          <a href="try-alice.html" class="btn-primary"><i class="ti ti-messages"></i>Probar gratis</a>
+          <a href="try-alice.html" class="btn-primary"><i class="ti ti-messages"></i>Probar Alice gratis</a>
           <a href="#contact" class="btn-secondary"><i class="ti ti-brand-whatsapp"></i>Charla de diagnóstico</a>
           <a href="portal-access.html" class="hero-portal-lock" title="Portal estudiantes y trainers" aria-label="Portal estudiantes y trainers"><i class="ti ti-lock"></i></a>
         </div>
+        <p class="hero-cta-note" style="display:block;text-align:left;margin-top:10px;">Alice Modo Libre: <strong>gratis · sin tarjeta · sin compromiso</strong>. <a href="#jill-academia">¿Ya estás en una academia?</a></p>
         <a href="#comparar" class="hero-cta-tertiary">Ver la diferencia con un cursito →</a>
       </div>
     </div>
@@ -1582,6 +1609,33 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   </div>
 </section>
 
+<section class="jill-academia" id="jill-academia" aria-labelledby="jill-academia-title">
+  <div class="jill-academia-inner">
+    <div>
+      <div class="jill-academia-kicker"><i class="ti ti-building-community"></i> Complemento de academia</div>
+      <h2 id="jill-academia-title">Tu curso de inglés puede ser bueno. <em>Jill lo completa.</em></h2>
+      <p class="jill-academia-lead">Si ya pagás <strong>Open English</strong>, otra academia online, o tenés <strong>licencia institucional / de gobierno</strong>: el acceso al contenido no es el problema. El problema es lo que pasa <strong>entre clase y clase</strong> — cuando nadie te corrige la estructura al hablar.</p>
+      <p class="jill-academia-note">Jill no reemplaza tu academia. Cierra el hueco: oraciones, tiempos y conectores en práctica diaria, para que lo que ya estás pagando <strong>se convierta en hablar</strong>.</p>
+      <ul class="jill-academia-points">
+        <li><i class="ti ti-check"></i><span>Tu academia te da el temario. Jill te hace armar la oración cuando estás solo.</span></li>
+        <li><i class="ti ti-check"></i><span>Ideal si ya entendés / leés, pero te trabás al improvisar.</span></li>
+        <li><i class="ti ti-check"></i><span>Funciona en paralelo: no cancelás tu curso — lo potenciás.</span></li>
+      </ul>
+      <div class="jill-academia-ctas">
+        <a href="hablemos.html?solicitar=jill#consulta" class="btn-primary"><i class="ti ti-message-circle"></i>Hablar de Jill + mi academia</a>
+        <a href="try-jill.html" class="btn-secondary"><i class="ti ti-player-play"></i>Probar demo Jill</a>
+        <a href="#jill" class="hero-cta-tertiary">También sirve desde cero →</a>
+      </div>
+    </div>
+    <aside class="jill-academia-card" aria-label="Por qué importa el complemento">
+      <div class="label">Por qué esta narrativa importa</div>
+      <h3>Cientos de miles de licencias. El mismo hueco.</h3>
+      <p>Programas masivos de gobierno y suscripciones a academias online (como Open English) ya metieron a miles de personas en un curso. Acceso ≠ fluidez. Jill entra exactamente ahí: práctica estructural entre clases, sin pelearte con lo que ya pagás.</p>
+      <div class="stat">26 años complementando lo que el salón y la plataforma no pueden hacer solos — ahora con Jill IA + trainer cuando lo necesitás.</div>
+    </aside>
+  </div>
+</section>
+
 <section class="alice-wrap" id="alice-companion">
   <div class="section-inner">
     <div class="alice-inner">
@@ -1852,7 +1906,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
         </button>
         <div class="faq-a" id="faq-a-6" role="region" aria-labelledby="faq-q-6">
           <div class="faq-a-inner">
-            <p>Sí. Infinity funciona en paralelo con cualquier otro estudio. De hecho, muchos estudiantes lo usan exactamente así — llevan un curso académico en paralelo y usan Infinity para convertir ese conocimiento en ejecución real. La diferencia es que en Infinity no repites lo que ya sabes. Trabajamos directamente en el gap entre lo que aprendiste y lo que puedes hacer bajo presión.</p>
+            <p>Sí. Infinity funciona en paralelo con cualquier otro estudio — Open English, academia presencial o licencia institucional. <strong>Jill</strong> complementa tu curso: no repite el temario; cierra estructura (oraciones, tiempos, conectores) entre clases. Muchos usan exactamente ese combo: academia + Jill, y Alice Modo Libre para hablar sin cortes.</p>
           </div>
         </div>
       </div>
@@ -1966,7 +2020,7 @@ footer{background:var(--dark);padding:3rem 2rem;text-align:center;}
   <div class="footer-links">
     <a href="#para-mi">¿Es para mí?</a><a href="#vs-ia">Nuestras IAs</a><a href="#comparar">Comparar</a><a href="#pricing">Precios</a><a href="#contact">Contacto</a>
     <a href="#programs">Programas</a>
-    <a href="#jill">Jill</a><a href="#alice-companion">Alice</a><a href="#pricing">Precios</a><a href="#about">Nosotros</a>
+    <a href="#jill">Jill</a><a href="#jill-academia">Jill + academia</a><a href="#alice-companion">Alice</a><a href="#pricing">Precios</a><a href="#about">Nosotros</a>
     <a href="#success-stories">Casos de éxito</a><a href="para-quien.html">Para quién</a><a href="ingles-operacional-latinoamerica.html">LATAM</a><a href="casos-de-exito.html">Casos documentados</a><a href="#contact">Contacto</a>
   </div>
   <div style="display:flex;justify-content:center;gap:16px;margin-bottom:1.5rem;">
