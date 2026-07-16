@@ -3052,9 +3052,76 @@ function applyLatAmSeseoForTts(text) {
   return String(text || '');
 }
 
-/** Strip Brazil / Rioplatense / Spain / internal labels — Tico CR only. */
-function scrubNonCrSpanish(text) {
+/**
+ * Cero fonética / enunciación externa a español tico + inglés americano.
+ * Borra IPA, deletreo gringo, pistas de FR/PT/IT/DE y fugas de otras lenguas.
+ * No tocar léxico inglés válido (non-, agree, etc.).
+ */
+function scrubForeignSpeechArtifacts(text) {
   return String(text || '')
+    // IPA / brackets fonéticos / schwa
+    .replace(/\/[^/\n]{1,48}\//g, ' ')
+    .replace(/\[[^\]\n]{1,48}\]/g, ' ')
+    .replace(/[əɪʊæɑɒɔɛɜθðŋʃʒˈˌː]/g, '')
+    // Deletreo inglés de ING (ai·en·yi) → CR
+    .replace(/\bai\s*[·•.\-–]?\s*en\s*[·•.\-–]?\s*yi\b/gi, 'í ene je')
+    .replace(/\bay\s+en\s+yi\b/gi, 'í ene je')
+    .replace(/\beye\s+en\s+jee\b/gi, 'í ene je')
+    .replace(/\b(?:letter\s+|letra\s+|la\s+|el\s+)?gee\b/gi, 'je')
+    .replace(/\b(?:letter\s+|letra\s+|la\s+|el\s+)?jay\b/gi, 'jota')
+    .replace(/\b(?:letter\s+|letra\s+|la\s+|el\s+)?tee\b/gi, 'te')
+    .replace(/\b(?:letter\s+|letra\s+)(?:ar|eye|el)\b/gi, (m) => {
+      const low = m.toLowerCase();
+      if (low.includes('ar')) return 'erre';
+      if (low.includes('eye')) return 'i';
+      return 'ele';
+    })
+    // Mentions de otras lenguas / acentos
+    .replace(/\b(?:como|as|like)\s+(?:en|in)\s+(?:franc[eé]s|fran[cç]ais|portugu[eé]s|brasile[nñ]o|italiano|alem[aá]n|castellano(?:\s+de\s+espa[nñ]a)?|brit[aá]nico|cockney|quebecois|qu[eé]b[eé]cois)\b/gi, '')
+    .replace(/\b(?:acento|pronunciaci[oó]n|fon[eé]tica)\s+(?:francesa|portuguesa|brasile[nñ]a|italiana|alemana|espa[nñ]ola|castellana|brit[aá]nica|rioplatense|porte[nñ]a)\b/gi, '')
+    .replace(/\b(?:en|in)\s+(?:franc[eé]s|portugu[eé]s|brasile[nñ]o|italiano|alem[aá]n|castellano|rioplatense|porte[nñ]o|madrile[nñ]o)\b/gi, '')
+    // Francés / italiano / alemán frecuentes (muletillas — no léxico EN)
+    .replace(/\bmerci\b/gi, '')
+    .replace(/\bbonjour\b/gi, '')
+    .replace(/\bau\s+revoir\b/gi, '')
+    .replace(/\boui\b/gi, 'sí')
+    .replace(/\bciao\b/gi, '')
+    .replace(/\bgrazie\b/gi, 'gracias')
+    .replace(/\bprego\b/gi, '')
+    .replace(/\bdanke\b/gi, 'gracias')
+    .replace(/\bbitte\b/gi, '')
+    .replace(/\bnein\b/gi, 'no')
+    // Más portugués / Brasil
+    .replace(/\bobrigad[oa]\b/gi, 'gracias')
+    .replace(/\bfala\b/gi, 'hablá')
+    .replace(/\bfalar\b/gi, 'hablar')
+    .replace(/\btreinar\b/gi, 'entrenar')
+    .replace(/\btreino\b/gi, 'entrenamiento')
+    .replace(/\bcerto\b/gi, 'cierto')
+    .replace(/\berrado\b/gi, 'incorrecto')
+    .replace(/\bblz\b/gi, 'ok')
+    .replace(/\btmj\b/gi, '')
+    // España extra
+    .replace(/\bmola\s+mogoll[oó]n\b/gi, 'está muy bueno')
+    .replace(/\bmogoll[oó]n\b/gi, 'montón')
+    .replace(/\bt[ií]o\b(?!\s+[A-ZÁÉÍÓÚ])/gi, '')
+    .replace(/\bt[ií]a\b(?!\s+[A-ZÁÉÍÓÚ])/gi, '')
+    .replace(/\bvale\s+ya\b/gi, 'ya')
+    .replace(/\bhostia\b/gi, '')
+    .replace(/\bjoder\b/gi, '')
+    // México / Chile (slang — no tico)
+    .replace(/\b(?:órale|orale)\b/gi, '')
+    .replace(/\bchido\b/gi, 'tuanis')
+    .replace(/\best[aá]\s+padre\b/gi, 'está tuanis')
+    .replace(/\bwe[oó]n\b/gi, '')
+    .replace(/\bcachai\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/** Strip Brazil / Rioplatense / Spain / foreign phonetics — Tico CR + American English only. */
+function scrubNonCrSpanish(text) {
+  return scrubForeignSpeechArtifacts(String(text || '')
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
     .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
@@ -3152,7 +3219,7 @@ function scrubNonCrSpanish(text) {
     .replace(/\bclaro\s*,\s*[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s*[—–\.]\s*(?=ac[aá]\s+te\s+va)/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/\s+([,.!?])/g, '$1')
-    .trim();
+    .trim());
 }
 
 /** Fixed demo script lines → voiceId (ElevenLabs only once per line, then cache forever). */
@@ -3209,7 +3276,7 @@ function tutorTtsIsEnglish(lang) {
 }
 
 function tutorElevenLanguageCode(lang) {
-  // ElevenLabs: 'es' = Spanish (LatAm with our settings); 'en' = American English
+  // HARD LOCK: only 'es' (LatAm/CR Spanish) or 'en' (American English). Never pt/fr/it/de/es-ES.
   return tutorTtsIsEnglish(lang) ? 'en' : 'es';
 }
 
@@ -3233,8 +3300,10 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
       clean = applyCrHavePhonetics(clean);
       clean = hardenCrClassroomLetters(clean);
     }
+    clean = scrubForeignSpeechArtifacts(clean);
   } else {
-    // English path: classroom letters / ING still use CR names; HAVE → jota if present
+    // English path: American only — strip IPA / foreign phonetics; classroom letters stay CR
+    clean = scrubForeignSpeechArtifacts(clean);
     if (/\b(jáf|jás|jád|jaf|jas|jad|jjáf|yaf|yas|yad|ING|í ene|letra)\b/i.test(clean)
         || /\b([RrGgJjIiLlTt])(?:\s*[.·,]\s*|\s+)([RrGgJjIiLlTt])\b/.test(clean)) {
       clean = applyCrIngPhonetics(clean);
@@ -3258,9 +3327,9 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     : (process.env.ELEVEN_TTS_MODEL_EN || process.env.ELEVEN_TTS_MODEL || 'eleven_turbo_v2_5');
 
   const elevenLang = tutorElevenLanguageCode(effectiveLang);
-  // dualaccent1 + crletters1: LatAm ES + American EN; R/G/J/I/L/T = nombres CR, no ar/gee/jay/eye/el/tee
-  const brainLang = `${effectiveLang}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|crletters1|${modelId}`;
-  const cacheKey = getTTSCacheKey(clean, voiceId, effectiveLang + '|crletters1', speed, modelId);
+  // esencr1: ONLY es (LatAm/CR) + en (American). No PT/FR/IT/ES-Spain/British synthesis.
+  const brainLang = `${effectiveLang}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|esencr1|${modelId}`;
+  const cacheKey = getTTSCacheKey(clean, voiceId, effectiveLang + '|esencr1', speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
@@ -4132,8 +4201,8 @@ RITMO HABLADO — 100% HUMANA TICA:
 - NUNCA digas "no sé" / "no existe" ante una palabra o pieza de inglés (HAD, GET, HAVE, WILL…). EXPLICÁLA YA.
 
 IDIOMA (ESTRICTO — YA ESTABLECIDO, SIN EXCUSAS):
-Hablás SOLO en ESPAÑOL (Costa Rica / Centroamérica, voseo tico) e INGLÉS (americano). PROHIBIDO cualquier otro idioma (portugués, francés, etc.).
-El estudiante puede escribir o hablar en español, inglés o mezclado (Spanglish). Entendés sin reproche — sacá la intención aunque venga desordenado.
+Hablás SOLO en ESPAÑOL (Costa Rica / Centroamérica, voseo tico) e INGLÉS (americano). PROHIBIDO cualquier otro idioma (portugués, francés, italiano, alemán, etc.) aunque suene parecido.
+PROHIBIDO ABSOLUTO inventar fonética / IPA / deletreo de otras lenguas. PROHIBIDO "ai en yi", "como en francés/portugués", ceceo de España, acento brasileño o rioplatense.
 ESPAÑOL CORRECTO (IRROMPIBLE): ortografía bien; conjugación bien; concordancia. Frases claras. Pronunciación tica, no gringa.
 INGLÉS: acento americano claro cuando das ejemplos o pedís producción oral.
 PROHIBIDO ABSOLUTO portugués/portuñol: "mais", você, pra, então, não, também — NUNCA.
@@ -4971,7 +5040,7 @@ PROHIBIDO:
 - No dar discursos de metodología.
 - No prometer puntajes.
 - HARD-LOCK DE PART: quedate en la misma part TOEIC (Listening 2 / Reading 5 / Reading 7 / Vocab) hasta que el estudiante pida cambiar con comando claro (Listening / Part 5 / Part 7 / Vocabulario / explicame). No mezcles parts por una palabra suelta o ASR.
-- IDIOMAS: hablás SOLO español e inglés. Pronunciá bien ambos. PROHIBIDO otros idiomas.
+- IDIOMAS: hablás SOLO español (CR tico) e inglés (americano). PROHIBIDO otros idiomas y PROHIBIDO fonética/IPA de otras lenguas aunque suenen parecidas.
 - Si una palabra suena parecida en ES↔EN pero no hay pedido de cambiar part, interpretá la respuesta del ejercicio actual — no abras otro tipo de drill.
 
 CONDUCTA:
@@ -5192,7 +5261,9 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
     // Alice speaks English by default — never default to es-CR (that turned every "have" into yaf/jáf)
     const languageCode = resolveTutorTtsLang(lang || 'en-US');
     const isEn = tutorTtsIsEnglish(languageCode);
-    const spoken = isEn ? String(text || '') : scrubNonCrSpanish(text);
+    const spoken = isEn
+      ? scrubForeignSpeechArtifacts(text)
+      : scrubNonCrSpanish(text);
     if (!String(spoken || '').trim()) {
       return res.status(400).json({ error: 'Empty TTS text' });
     }

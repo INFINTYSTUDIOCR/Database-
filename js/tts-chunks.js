@@ -38,7 +38,7 @@ function isCompleteSpokenLine(text, minWords) {
 /**
  * Teaching forms for TTS — cascada TODA la biblioteca MSI:
  * ranuras/siglas se LEEN (pronombre, verbo, presente perfecto…), nunca "ve"/"pe pe".
- * V+ing → "verbo más I N G" (ai · en · yi en inglés).
+ * V+ing → "verbo más í ene je" (CR jota — never English ai/en/yi or gee).
  */
 function normalizeTtsTeachingForms(text) {
   var t = String(text || '');
@@ -84,7 +84,10 @@ function normalizeTtsTeachingForms(text) {
   t = t.replace(/\bHAD\b/gi, ' had ');
   t = t.replace(/\bWILL\b/gi, ' will ');
 
-  // V+ing / VERBO+ING — CR Spanish with JOTA: í ene je (never English "gee")
+  // V+ing / VERBO+ING — CR Spanish with JOTA: í ene je (never English ai·en·yi / gee)
+  t = t.replace(/\bai\s*[·•.\-–]?\s*en\s*[·•.\-–]?\s*yi\b/gi, ' í ene je ');
+  t = t.replace(/\bay\s+en\s+yi\b/gi, ' í ene je ');
+  t = t.replace(/\beye\s+en\s+jee\b/gi, ' í ene je ');
   t = t.replace(/\bVERBO\s*[+|\/]\s*ING\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*[+|\/]\s*ing\b/gi, ' verbo más í ene je ');
   t = t.replace(/\bV\s*-\s*ing\b/gi, ' verbo más í ene je ');
