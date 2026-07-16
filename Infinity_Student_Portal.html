@@ -570,6 +570,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .inf-arcade-screen{left:19.5%;top:15.2%;width:61%;height:30%;}
   .inf-arcade-btn{font-size:10px;padding:7px 5px;}
 }
+.inf-arcade-fs{position:fixed;inset:0;z-index:2400;display:none;flex-direction:column;background:linear-gradient(165deg,#07061a 0%,#1e1b4b 42%,#312e81 100%);color:#fff;}
+.inf-arcade-fs.is-open{display:flex;}
+.inf-arcade-fs-bar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid rgba(196,181,253,.28);background:rgba(0,0,0,.28);backdrop-filter:blur(8px);}
+.inf-arcade-fs-title{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#e9d5ff;}
+.inf-arcade-fs-title span{display:block;font-size:11px;letter-spacing:0;font-weight:700;color:rgba(255,255,255,.65);text-transform:none;margin-top:2px;}
+.inf-arcade-fs-close{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
+.inf-arcade-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));width:100%;max-width:920px;margin:0 auto;box-sizing:border-box;}
+.inf-arcade-fs-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+.inf-arcade-fs-mode-btn{text-align:left;border:1px solid rgba(196,181,253,.35);background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(91,33,182,.28));color:#fff;border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);}
+.inf-arcade-fs-mode-btn strong{display:block;font-size:14px;margin-bottom:4px;}
+.inf-arcade-fs-mode-btn span{font-size:12px;color:rgba(255,255,255,.72);line-height:1.4;}
+body.inf-arcade-fs-lock{overflow:hidden;}
 
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--t3);}
 .loading i{font-size:36px;margin-bottom:0.75rem;opacity:0.3;}
@@ -1667,17 +1679,92 @@ function infinityArcadePickChallenge(){
     showToast('Challenge drill es de Alice / Modo Libre.','err');
     return;
   }
-  portalOpenRapidDrill('advanced');
+  if(typeof JillQuiz === 'undefined'){
+    showToast('Quiz no disponible','err');
+    return;
+  }
+  window._rapidDrillTier = 'advanced';
+  openInfinityArcadeFullscreen('Challenge Drill', 'Kaboom bajo presión — Alice');
+  var body = document.getElementById('inf-arcade-fs-body');
+  if(!body) return;
+  body.innerHTML = '<div style="margin-bottom:10px;">'
+    + ((typeof JillQuiz !== 'undefined' && CURRENT_STUDENT) ? JillQuiz.renderNemesisTopics(CURRENT_STUDENT) : '')
+    + '</div><div id="inf-arcade-fs-quiz"></div>';
+  var zone = document.getElementById('inf-arcade-fs-quiz');
+  if(zone) JillQuiz.mount(zone, CURRENT_STUDENT, portalQuizBundle(), null, { drillTier: 'advanced', drillOwner: 'alice' });
 }
 
 function infinityArcadeStartMode(mode){
-  var quiz = document.getElementById('portal-quiz-container');
-  if(quiz){
-    startArcadeMode(mode, 'portal-quiz-container');
-    quiz.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  } else {
-    startArcadeMode(mode, 'portal-quiz-container');
+  openInfinityArcadeFullscreen('Language Arcade', (ARCADE_MODES[mode] && ARCADE_MODES[mode].title) || mode);
+  startArcadeMode(mode, 'inf-arcade-fs-body');
+}
+
+function ensureInfinityArcadeFullscreen(){
+  if(document.getElementById('inf-arcade-fs')) return;
+  var el = document.createElement('div');
+  el.id = 'inf-arcade-fs';
+  el.className = 'inf-arcade-fs';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML =
+    '<div class="inf-arcade-fs-bar">'
+    + '<div class="inf-arcade-fs-title" id="inf-arcade-fs-title">INFINITY ARCADE<span id="inf-arcade-fs-sub">Skill Tests</span></div>'
+    + '<button type="button" class="inf-arcade-fs-close" onclick="closeInfinityArcadeFullscreen()"><i class="ti ti-x"></i> Cerrar</button>'
+    + '</div>'
+    + '<div class="inf-arcade-fs-body" id="inf-arcade-fs-body"></div>';
+  document.body.appendChild(el);
+}
+
+function openInfinityArcadeFullscreen(title, subtitle){
+  ensureInfinityArcadeFullscreen();
+  var fs = document.getElementById('inf-arcade-fs');
+  var t = document.getElementById('inf-arcade-fs-title');
+  var body = document.getElementById('inf-arcade-fs-body');
+  if(t){
+    t.innerHTML = String(title || 'INFINITY ARCADE')
+      + '<span id="inf-arcade-fs-sub">'+String(subtitle || 'Skill Tests')+'</span>';
   }
+  if(body) body.innerHTML = '';
+  if(fs) fs.classList.add('is-open');
+  document.body.classList.add('inf-arcade-fs-lock');
+  window._infArcadeFsOpen = true;
+}
+
+function closeInfinityArcadeFullscreen(){
+  var fs = document.getElementById('inf-arcade-fs');
+  if(fs) fs.classList.remove('is-open');
+  document.body.classList.remove('inf-arcade-fs-lock');
+  window._infArcadeFsOpen = false;
+  window._arcadeState = null;
+  var body = document.getElementById('inf-arcade-fs-body');
+  if(body) body.innerHTML = '';
+  if(window._activePortalTab !== 'recursos') switchPortalTab('recursos');
+  setTimeout(function(){
+    renderInfinityArcadeCabinet('portal-arcade-cabinet');
+    var stage = document.getElementById('portal-arcade-stage');
+    if(stage && stage.scrollIntoView) stage.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 80);
+}
+
+function infinityArcadeFsShowModes(){
+  ensureInfinityArcadeFullscreen();
+  openInfinityArcadeFullscreen('Language Arcade', 'Elegí un modo');
+  var body = document.getElementById('inf-arcade-fs-body');
+  if(!body) return;
+  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
+  body.innerHTML =
+    '<div class="inf-arcade-fs-modes">'
+    + Object.keys(modes).map(function(key){
+        var m = modes[key];
+        return '<button type="button" class="inf-arcade-fs-mode-btn" onclick="infinityArcadeStartMode(\''+key+'\')">'
+          + '<strong>'+(m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')+(m.title || key)+'</strong>'
+          + '<span>'+(m.desc || '')+'</span>'
+          + '</button>';
+      }).join('')
+    + '</div>'
+    + '<div style="margin-top:14px;text-align:center;">'
+    + '<button type="button" class="inf-arcade-fs-close" onclick="closeInfinityArcadeFullscreen()">← Volver a la máquina</button>'
+    + '</div>';
 }
 
 function renderPortalGamesButtons(variant){
@@ -2326,6 +2413,10 @@ function renderArcadeMenuHtml(containerId){
 }
 
 function renderArcadeMenu(containerId){
+  if(containerId === 'inf-arcade-fs-body' || window._infArcadeFsOpen){
+    infinityArcadeFsShowModes();
+    return;
+  }
   var c = document.getElementById(containerId);
   if(!c) return;
   ensureArcadePressureStyles();
@@ -2384,12 +2475,15 @@ function renderArcadeRound(st){
 
 function arcadeRoundShell(st, q, body){
   var m = ARCADE_MODES[st.mode] || ARCADE_MODES.frenzy;
+  var menuAction = (st.containerId === 'inf-arcade-fs-body')
+    ? 'infinityArcadeFsShowModes()'
+    : 'renderArcadeMenu(\''+st.containerId+'\')';
   return '<div style="background:linear-gradient(160deg,#111827,#1e1b4b,#312e81);border-radius:20px;padding:1.2rem;color:white;border:1px solid rgba(196,181,253,0.35);box-shadow:0 10px 28px rgba(30,27,75,0.25);">'
     + '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;">'
     + '<div><div style="font-size:10px;letter-spacing:.2em;color:#c4b5fd;font-weight:800;">INFINITY LANGUAGE ARCADE</div>'
     + '<div style="font-size:24px;font-weight:900;color:white;">'+arcadeEsc(st.modeTitle)+'</div>'
     + '<div style="font-size:11px;color:rgba(255,255,255,0.72);">'+arcadeEsc(arcadeCategoryLabel(q.category))+' · '+(st.idx+1)+'/'+st.quiz.length+' · racha '+st.streak+'</div></div>'
-    + '<button type="button" onclick="renderArcadeMenu(\''+st.containerId+'\')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;border-radius:10px;padding:7px 12px;cursor:pointer;font-size:12px;">Menú</button>'
+    + '<button type="button" onclick="'+menuAction+'" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;border-radius:10px;padding:7px 12px;cursor:pointer;font-size:12px;">Menú</button>'
     + '</div>'
     + arcadePressureHtml(st, q)
     + body
@@ -2572,6 +2666,7 @@ async function finishArcadeRound(containerId){
     + '<button class="btn btn-navy" onclick="startArcadeMode(\''+st.mode+'\',\''+containerId+'\')"><i class="ti ti-refresh"></i> Otra ronda</button>'
     + '<button class="btn btn-outline" onclick="renderArcadeMenu(\''+containerId+'\')"><i class="ti ti-grid-dots"></i> Cambiar modo</button>'
     + '<button class="btn btn-outline" onclick="startArcadeMode(\'frenzy\',\''+containerId+'\')"><i class="ti ti-flame"></i> Frenzy Mode</button>'
+    + (containerId === 'inf-arcade-fs-body' ? '<button class="btn btn-outline" onclick="closeInfinityArcadeFullscreen()"><i class="ti ti-x"></i> Cerrar</button>' : '')
     + '</div></div>';
 }
 
