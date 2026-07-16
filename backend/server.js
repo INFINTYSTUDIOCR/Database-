@@ -870,7 +870,7 @@ const ALICE_VOICE_ID = 'r1KmysJdVYZjJCm4mL3b';
 const SUPER_BRAIN_VOICE_ID = process.env.SUPER_BRAIN_VOICE_ID || 'Gubgw9l4dtIoQA9YZHgx';
 // Jill: por defecto misma voz que Alice. Para forzar una voz latina distinta: JILL_VOICE_ID en Render.
 const JILL_VOICE_ID = (process.env.JILL_VOICE_ID || '').trim() || ALICE_VOICE_ID;
-const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || 'FGLJyeekUzxl8M3CTG9M';
+const CLAIRE_VOICE_ID = process.env.CLAIRE_VOICE_ID || ALICE_VOICE_ID;
 
 function loadVoicesConfig() {
   const candidates = [
@@ -4906,6 +4906,7 @@ PROHIBIDO:
 - No abrir con entrevista previa ni preguntas introductorias.
 - No dar discursos de metodología.
 - No prometer puntajes.
+- HARD-LOCK DE PART: quedate en la misma part TOEIC (Listening 2 / Reading 5 / Reading 7 / Vocab) hasta que el estudiante pida cambiar. No mezcles parts en el mismo ejercicio.
 
 CONDUCTA:
 - Abrís siempre con una práctica TOEIC concreta.
@@ -4933,9 +4934,78 @@ CUANDO CORRIGE:
 - Lanza el siguiente ejercicio inmediatamente.
 `;
 
+function claireDetectPartId(text, fallback) {
+  const t = String(text || '');
+  if (/\b(listening\s*part\s*2|part\s*2|pregunta\s*de\s*escucha)\b/i.test(t)) return 'toeic_l2';
+  if (/\b(part\s*7|reading\s*part\s*7|pasaje|passage|mini\s*part\s*7)\b/i.test(t)) return 'toeic_r7';
+  if (/\b(vocabulario|vocabulary|word\s*in\s*context)\b/i.test(t)) return 'toeic_vocab';
+  if (/\b(part\s*5|reading\s*part\s*5|incomplete\s*sentence|___)\b/i.test(t)) return 'toeic_r5';
+  return fallback || null;
+}
+
+function clairePartLabel(id) {
+  if (id === 'toeic_l2') return 'Listening Part 2';
+  if (id === 'toeic_r7') return 'Reading Part 7';
+  if (id === 'toeic_vocab') return 'Vocabulario TOEIC';
+  return 'Reading Part 5';
+}
+
+function claireParseMcq(reply) {
+  const text = String(reply || '');
+  const options = [];
+  const re = /^[ \t]*([A-D])\)\s*(.+)$/gim;
+  let m;
+  while ((m = re.exec(text))) {
+    options.push({ key: m[1].toUpperCase(), text: m[2].trim() });
+  }
+  let stem = '';
+  const blank = text.match(/([^\n]{12,220}?_{2,}[^\n]{0,80})/);
+  if (blank) stem = blank[1].replace(/\s+/g, ' ').trim();
+  if (!stem) {
+    const lines = text.split(/\n/).map((l) => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length; i++) {
+      if (/^[A-D]\)/i.test(lines[i])) break;
+      if (/claire|correcto|incorrecto|trampa|siguiente|respond[ae]/i.test(lines[i])) continue;
+      if (lines[i].length > 20) stem = lines[i];
+    }
+  }
+  let passage = '';
+  const passM = text.match(/(?:Pasaje|Passage|Texto)\s*[:\-–]\s*([\s\S]{40,500}?)(?=\n\s*[A-D]\)|$)/i);
+  if (passM) passage = passM[1].replace(/\s+/g, ' ').trim();
+  return { stem, options, passage };
+}
+
+function claireBuildBoard(reply, message, lockId) {
+  const switchId = claireDetectPartId(message, null);
+  const id = switchId || (lockId && /^toeic_/i.test(String(lockId)) ? String(lockId) : null) || claireDetectPartId(reply, 'toeic_r5') || 'toeic_r5';
+  const parsed = claireParseMcq(reply);
+  return {
+    id,
+    part: clairePartLabel(id),
+    stem: parsed.stem || '',
+    options: parsed.options || [],
+    passage: parsed.passage || '',
+    prompt: id === 'toeic_l2' ? 'Escuchá la pregunta / elegí la mejor respuesta.' : ''
+  };
+}
+
+const CLAIRE_START_BOARD = {
+  id: 'toeic_r5',
+  part: 'Reading Part 5',
+  stem: 'The manager asked the team to submit the report ___ Friday.',
+  options: [
+    { key: 'A', text: 'in' },
+    { key: 'B', text: 'on' },
+    { key: 'C', text: 'by' },
+    { key: 'D', text: 'at' }
+  ],
+  passage: '',
+  prompt: ''
+};
+
 app.post('/claire', optionalAuth, async (req, res) => {
   try {
-    const { history, message, mode, sessionId } = req.body || {};
+    const { history, message, mode, sessionId, boardLock } = req.body || {};
     const ip = getClientIp(req);
     let portalClaireAccess = false;
 
@@ -4962,7 +5032,7 @@ app.post('/claire', optionalAuth, async (req, res) => {
         }
       }
       const startBuffered = 'Claire TOEIC listo. Empezamos con una práctica Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.';
-      return res.json({ reply: startBuffered, buffered: true });
+      return res.json({ reply: startBuffered, board: CLAIRE_START_BOARD, buffered: true });
     }
 
     if (!portalClaireAccess) {
@@ -4977,13 +5047,18 @@ app.post('/claire', optionalAuth, async (req, res) => {
 
     if (!message?.trim()) return res.status(400).json({ error: 'Missing message' });
 
+    const activeLock = claireDetectPartId(message, null) || (boardLock && /^toeic_/i.test(String(boardLock)) ? String(boardLock) : 'toeic_r5');
+    const lockNote = `\nPART LOCK ACTIVO: ${clairePartLabel(activeLock)} (id=${activeLock}). No cambies de part ni mezcles Listening/Reading/Vocab hasta pedido explícito del estudiante.\n`;
+
     const brain = await Brain.brainGetLLM('claire', 'toeic-direct-v1', message, 'web');
     if (brain.hit) {
-      return res.json({ reply: brain.reply, buffered: true, brainCache: true, cacheHit: true });
+      const boardHit = claireBuildBoard(brain.reply, message, activeLock);
+      return res.json({ reply: brain.reply, board: boardHit, buffered: true, brainCache: true, cacheHit: true });
     }
     const cacheKey = 'claire-toeic-direct-v1:' + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
     if (demoResponseCache.has(cacheKey)) {
-      return res.json({ reply: demoResponseCache.get(cacheKey), buffered: true, cacheHit: true });
+      const cached = demoResponseCache.get(cacheKey);
+      return res.json({ reply: cached, board: claireBuildBoard(cached, message, activeLock), buffered: true, cacheHit: true });
     }
     const brainSlice = await tutorKnowledgeSliceFast(message);
     const systemPrompt = `Eres Claire TOEIC. Ejecutas práctica TOEIC directa. No entrevistas, no vendes, no promocionas, no perfilas al estudiante.
@@ -4991,13 +5066,13 @@ app.post('/claire', optionalAuth, async (req, res) => {
 ${INSTITUTIONAL_BRAIN_RULE}
 
 ${CLAIRE_KB}
-
+${lockNote}
 MISIÓN TOEIC:
 Tu foco es práctica TOEIC concreta: Listening Part 2, Reading Part 5, mini Part 7 y vocabulario TOEIC en contexto. No sos ETS ni examen oficial.
 
 FLUJO DE CONVERSACIÓN:
 1. Si el estudiante respondió un ejercicio, corrige y explica en una frase.
-2. Lanza el siguiente ejercicio TOEIC inmediatamente.
+2. Lanza el siguiente ejercicio TOEIC inmediatamente EN LA MISMA PART del PART LOCK.
 3. Si el estudiante pide ayuda, da una regla mínima y vuelve a ejercicio.
 4. Nunca hagas preguntas de calibración, perfil, historia personal, marketing, plan comercial, meta o fecha.
 
@@ -5019,7 +5094,7 @@ COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a L
       cacheDemoResponse(cacheKey, reply);
       if (brain.hash) await Brain.brainSetLLM(brain.hash, 'claire', 'toeic-direct-v1', message, reply, 'web');
     }
-    return res.json({ reply });
+    return res.json({ reply, board: claireBuildBoard(reply, message, activeLock) });
 
   } catch(err) {
     console.error('Claire error:', err.message);
@@ -5031,7 +5106,8 @@ COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a L
 app.post('/claire-tts', optionalAuth, async (req, res) => {
   try {
     const { text } = req.body || {};
-    return await synthesizeSpeech(req, res, { text, voiceId: CLAIRE_VOICE_ID, label: 'Claire' });
+    // Claire uses Alice voice (same ElevenLabs id) unless CLAIRE_VOICE_ID overrides.
+    return await synthesizeSpeech(req, res, { text, voiceId: CLAIRE_VOICE_ID || ALICE_VOICE_ID, label: 'Claire' });
   } catch (err) {
     console.error('Claire TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });

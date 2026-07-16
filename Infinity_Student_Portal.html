@@ -38,7 +38,8 @@
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260713m07"></script>
-<script src="js/jill-visual-stage.js?v=20260715alice4"></script>
+<script src="js/jill-visual-stage.js?v=20260715sync1"></script>
+<script src="js/claire-toeic-board.js?v=20260715sync1"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260713m07"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -118,6 +119,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #claire-lesson-shell ::selection{background:rgba(192,132,252,0.42);color:#fff;}
   #claire-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
   #claire-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
+  #claire-visual-stage{display:none;flex-direction:column;gap:8px;margin-bottom:8px;min-height:0;position:relative;z-index:2;}
+  #claire-lesson-shell.claire-stage-active #claire-visual-stage{display:flex;flex:0 0 auto;min-height:0;max-height:min(42vh,300px);}
+  #claire-lesson-shell.claire-stage-active #claire-messages{max-height:min(28vh,220px)!important;}
+  #claire-stage-media{flex:1;min-height:160px;overflow:auto;border-radius:14px;border:1px solid rgba(192,132,252,0.35);background:rgba(15,10,40,0.85);}
+  .claire-toeic-board{padding:14px 16px;color:#f5f3ff;font-size:13px;line-height:1.55;}
+  .claire-toeic-part{font-size:10px;letter-spacing:0.14em;font-weight:800;color:#C084FC;margin-bottom:10px;}
+  .claire-toeic-passage{background:rgba(255,255,255,0.06);border-left:3px solid rgba(192,132,252,0.55);padding:10px 12px;border-radius:0 10px 10px 0;margin-bottom:10px;color:#e9d5ff;}
+  .claire-toeic-prompt{font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:8px;}
+  .claire-toeic-stem{font-size:15px;font-weight:700;color:#fff;margin-bottom:12px;}
+  .claire-toeic-opts{display:flex;flex-direction:column;gap:8px;}
+  .claire-toeic-opt{display:flex;gap:10px;align-items:flex-start;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.28);border-radius:10px;padding:8px 12px;}
+  .claire-toeic-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:rgba(192,132,252,0.35);font-weight:800;font-size:11px;color:#fff;}
   .claire-mode-chip{background:rgba(192,132,252,0.14);border:1px solid rgba(192,132,252,0.38);color:#e9d5ff;font-size:11px;font-weight:800;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
   .claire-mode-chip:hover{background:rgba(192,132,252,0.24);}
   .jill-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(61,220,151,0.35);color:#bbf7d0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;}
@@ -2463,7 +2476,8 @@ var _claireState = {
   sending: false,
   sessionId: null,
   speaking: false,
-  accent: 'american'
+  accent: 'american',
+  boardLock: null
 };
 var _claireTTSQueue = [];
 var _claireTTSBusy = false;
@@ -2515,6 +2529,37 @@ function claireFormatMessagesHtml(){
       +clean
       +'</div></div>';
   }).join('');
+}
+
+function claireCloseBoard(){
+  try { if(typeof ClaireToeicBoard !== 'undefined') ClaireToeicBoard.hide(); } catch(e) {}
+}
+
+function claireActivateBoard(board, reply){
+  if(typeof ClaireToeicBoard === 'undefined') return;
+  var lock = _claireState.boardLock || null;
+  var shown = ClaireToeicBoard.show(board || null, reply || '', lock);
+  if(shown && ClaireToeicBoard.getId){
+    _claireState.boardLock = ClaireToeicBoard.getId();
+  }
+}
+
+function claireResolveBoardLock(userText, boardFromApi, reply){
+  if(typeof ClaireToeicBoard === 'undefined') return _claireState.boardLock;
+  var switchId = ClaireToeicBoard.studentSwitchPart(userText || '');
+  if(switchId){
+    _claireState.boardLock = switchId;
+    return switchId;
+  }
+  if(boardFromApi && boardFromApi.id && /^toeic_/i.test(String(boardFromApi.id))){
+    if(!_claireState.boardLock) _claireState.boardLock = boardFromApi.id;
+    return _claireState.boardLock;
+  }
+  if(!_claireState.boardLock && reply){
+    var detected = ClaireToeicBoard.detectPartId(reply, 'toeic_r5');
+    _claireState.boardLock = detected;
+  }
+  return _claireState.boardLock;
 }
 
 function claireScrollMessages(){
@@ -2580,6 +2625,10 @@ function renderClaireSession(){
   return '<div id="claire-session-main">'
     + chips
     +'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">🎧 Claire TOEIC · Práctica directa</div>'
+    +'<div id="claire-visual-stage" hidden>'
+    +'<div id="claire-stage-close-wrap" style="display:flex;justify-content:flex-end;margin-bottom:6px;"><button type="button" onclick="claireCloseBoard()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(192,132,252,0.45);color:#e9d5ff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;">Cerrar tablero</button></div>'
+    +'<div id="claire-stage-media"></div>'
+    +'</div>'
     +'<div id="claire-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+claireFormatMessagesHtml()+'</div>'
     +'<div id="claire-control-dock">'
     +'<div id="claire-status" style="font-size:12px;color:'+th.accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
@@ -2597,9 +2646,11 @@ function renderClaireSession(){
 
 function endClaireSession(){
   claireStopSpeech();
+  claireCloseBoard();
   _claireState.sessionActive = false;
   _claireState.sending = false;
   _claireState.history = [];
+  _claireState.boardLock = null;
   renderClaire();
 }
 
@@ -2761,18 +2812,23 @@ async function startClaireSession(){
   _claireState.sessionActive = true;
   _claireState.sessionId = 'portal-claire-' + (s.id || Date.now());
   _claireState.history = [];
+  _claireState.boardLock = 'toeic_r5';
   renderClaire();
   var statusEl = document.getElementById('claire-status');
   if(statusEl) statusEl.textContent = 'Claire se conecta…';
   try{
-    var r = await clairePost({ mode:'start', sessionId:_claireState.sessionId });
+    var r = await clairePost({ mode:'start', sessionId:_claireState.sessionId, boardLock: _claireState.boardLock });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_start_'+r.status);
     _claireState.history = [{ role:'assistant', content: data.reply || 'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
+    claireResolveBoardLock('', data.board, _claireState.history[0].content);
+    renderClaire();
+    claireActivateBoard(data.board, _claireState.history[0].content);
   }catch(e){
     _claireState.history = [{ role:'assistant', content:'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
+    renderClaire();
+    claireActivateBoard(null, _claireState.history[0].content);
   }
-  renderClaire();
   claireSpeak(_claireState.history[0].content);
 }
 
@@ -2802,20 +2858,29 @@ async function sendClairePortalMessage(micText){
     var r = await clairePost({
       sessionId: _claireState.sessionId,
       message: text,
-      history: _claireState.history.slice(-12)
+      history: _claireState.history.slice(-12),
+      boardLock: _claireState.boardLock || null
     });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_'+r.status);
     var reply = data.reply || 'Sigamos con TOEIC.\n\nChoose the correct option: The meeting was postponed ___ the manager was unavailable.\n\nA) because\nB) although\nC) despite\nD) unless';
+    claireResolveBoardLock(text, data.board, reply);
     _claireState.history.push({ role:'assistant', content: reply });
+    renderClaire();
+    claireActivateBoard(data.board, reply);
     setTimeout(function(){ claireSpeak(reply); }, 60);
   }catch(e){
     var fallback = 'No pude responder ahora. Reintentá en unos segundos o pedí: Listening, Reading o Vocabulario.';
     _claireState.history.push({ role:'assistant', content:fallback });
+    renderClaire();
     setTimeout(function(){ claireSpeak(fallback); }, 60);
   }finally{
     _claireState.sending = false;
     renderClaire();
+    if(_claireState.boardLock){
+      var last = _claireState.history[_claireState.history.length - 1];
+      if(last && last.role === 'assistant') claireActivateBoard(null, last.content);
+    }
   }
 }
 
@@ -2835,6 +2900,7 @@ var _aliceState = {
   sessionActive: false,
   sessionType: 'practice',
   companionTopic: '',
+  nexusLockId: null,
   ambientMood: 'default',
   evaluation: null,
   quizActive: false,
@@ -3229,11 +3295,13 @@ function renderAlice(){
   var accentOptions = Object.keys(ALICE_ACCENTS).map(function(k){
     return '<option value="'+k+'"'+(k===_aliceState.accent?' selected':'')+'>'+ALICE_ACCENTS[k].label+'</option>';
   }).join('');
-  var fsBtn = (_aliceState.sessionActive && !isGold)
+  var fsBtn = _aliceState.sessionActive
     ? '<button type="button" id="alice-fs-btn" class="jill-fs-btn" title="Pantalla completa" onclick="aliceToggleFullscreen()"><i class="ti ti-arrows-maximize"></i></button>'
     : '';
   var headerRight = isGold
-    ? '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(255,215,0,0.4),rgba(234,179,8,0.25));border:2px solid rgba(255,215,0,0.65);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 24px rgba(255,215,0,0.45);">✨</div>'
+    ? '<div style="display:flex;gap:8px;align-items:center;">'
+      +fsBtn
+      +'<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(255,215,0,0.4),rgba(234,179,8,0.25));border:2px solid rgba(255,215,0,0.65);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 24px rgba(255,215,0,0.45);">✨</div></div>'
     : '<div style="display:flex;gap:8px;align-items:center;">'
       +fsBtn
       +'<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
@@ -3602,6 +3670,7 @@ function cancelAliceSession(){
   _aliceState.sessionActive = false;
   _aliceState.history = [];
   _aliceState.scenario = null;
+  _aliceState.nexusLockId = null;
   try{ sessionStorage.removeItem('portal_alice_runtime'); }catch(e){}
   renderAlice();
 }
@@ -3884,6 +3953,7 @@ async function saveKB(){
 async function endAliceSession(){
   stopAlice();
   if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide();
+  _aliceState.nexusLockId = null;
   if(document.getElementById('alice-status')) document.getElementById('alice-status').textContent='Alice está evaluando tu sesión...';
   try{
     var r = await infinityFetch('/alice', {
@@ -4320,10 +4390,11 @@ function aliceLastUserTopic(){
   return (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
 }
 
-/** Tablero Alice Tutor: al enseñar Nexus / pedir explicación. Companion nunca. */
+/** Tablero Alice (Tutor + Libre): solo nexus_* al enseñar. Nunca Foundations. */
 function aliceWantsNexusBoard(userText, replyText){
   var u = String(userText || '');
   var r = String(replyText || '');
+  if(_aliceState && _aliceState.nexusLockId) return true;
   if(/\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda|ejercicio|practice|practic)\b/i.test(u)) return true;
   if(/\[\[CTYPE:whiteboard\]\]/i.test(r)) return true;
   if(/\b(idea\s*\+\s*linker|linker|however|furthermore|as a result|star method|situation|your turn|build me a sentence|conectores?|nexus)\b/i.test(r)) return true;
@@ -4335,33 +4406,30 @@ function aliceCloseVisualStage(){
 }
 
 function aliceActivateVisualStage(text){
-  // Alice Modo Libre = charla libre: NUNCA tableros
-  if(_aliceState && _aliceState.sessionType === 'companion'){
-    try { if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch(eHide) {}
-    return;
-  }
   if(typeof JillVisualStage === 'undefined') return;
   var userTopic = aliceLastUserTopic();
   var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
   if(!aliceWantsNexusBoard(userTopic, plain)){
     return;
   }
-  var sticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
-  var blob = (userTopic + ' ' + sticky + ' ' + plain).trim();
-  var col = JillVisualStage.resolveColumn('', null, blob, 'alice');
-  // Alice tutor solo Nexus — nunca columnas Foundations de Jill
-  if(col && !/^nexus_/i.test(String(col))) {
-    col = (typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId)
-      ? (JillLessonClip.resolveNexusId(blob) || null)
-      : null;
-  }
+  var sticky = (_aliceState && _aliceState.nexusLockId) ? String(_aliceState.nexusLockId) : '';
+  var topicSticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
+  var fromUser = (typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId)
+    ? JillLessonClip.resolveNexusId(userTopic)
+    : null;
+  var col = fromUser || sticky || null;
   if(!col && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
-    col = JillLessonClip.resolveNexusId(blob);
+    col = JillLessonClip.resolveNexusId((userTopic + ' ' + topicSticky).trim());
   }
+  // Hard-lock: solo nexus_*. Nunca Foundations / TOEIC.
+  if(col && !/^nexus_/i.test(String(col))) col = null;
+  if(!col && sticky && /^nexus_/i.test(sticky)) col = sticky;
   if(!col) col = 'nexus_idea_chain';
+  if(!/^nexus_/i.test(String(col))) return;
+  _aliceState.nexusLockId = col;
   var shown = JillVisualStage.show(plain, 'whiteboard', null, {
     tutor: 'alice',
-    userTopic: blob,
+    userTopic: userTopic || topicSticky || col,
     column: col
   });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
@@ -4377,10 +4445,6 @@ function aliceSyncFullscreenBtn(){
 }
 
 function aliceToggleFullscreen(){
-  if(aliceCompanionUiActive()){
-    showToast('Pantalla completa es para Alice Modo Tutor','err');
-    return;
-  }
   var shell = document.getElementById('alice-lesson-shell');
   if(!shell){ showToast('Abrí una sesión con Alice primero','err'); return; }
   var active = document.fullscreenElement || document.webkitFullscreenElement;
@@ -5700,18 +5764,22 @@ function jillActivateVisualStage(text, contentType){
   var col = locked || null;
   if (jillStudentAskedBoard(userAsk) && typeof JillCanonRouter.resolveAskId === 'function') {
     var fromUser = JillCanonRouter.resolveAskId(userAsk || '', locked || '');
-    if (fromUser) {
+    if (fromUser && !/^nexus_/i.test(fromUser) && !/^toeic_/i.test(fromUser)) {
       _jillState.canonTrackId = fromUser;
       if (_jillState.sessionType === 'companion') _jillState.companionTopic = fromUser;
       col = fromUser;
     }
   }
-  if (!col) {
+  if (!col || /^nexus_/i.test(String(col)) || /^toeic_/i.test(String(col))) {
     try { JillVisualStage.hide(); } catch (eHide) {}
     return;
   }
-  // Defensa final: la columna mostrada ES el lock, punto.
+  // Defensa final: la columna mostrada ES el lock, punto. Hard-lock anti-mezcla.
   col = _jillState.canonTrackId || col;
+  if (/^nexus_/i.test(String(col)) || /^toeic_/i.test(String(col))) {
+    try { JillVisualStage.hide(); } catch (eHide2) {}
+    return;
+  }
   var shown = JillVisualStage.show(text, 'whiteboard', bundle, { userTopic: userAsk || '', column: col, tutor: 'jill' });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
 }
@@ -5721,11 +5789,14 @@ function jillSpeakTurn(text, contentType){
   var userAsk = jillLastUserTopic();
   var locked = _jillState && _jillState.canonTrackId ? _jillState.canonTrackId : null;
   var asked = jillStudentAskedBoard(userAsk);
+  var ct = String(contentType || 'text');
+  var whiteboard = ct === 'whiteboard' || ct === 'example' || /\[\[CTYPE:whiteboard\]\]/i.test(String(text || ''));
   var sameBoardOpen = typeof JillVisualStage !== 'undefined'
     && JillVisualStage.isActive && JillVisualStage.isActive()
     && JillVisualStage.getTrackId && JillVisualStage.getTrackId() === locked;
-  // Panel SOLO si el estudiante lo pide (o ya está abierto en EL MISMO track). Cero tablero improvisado por CTYPE.
-  if (locked && (asked || sameBoardOpen)) {
+  // Hard-lock: con track activo, tablero = ese track al enseñar (CTYPE/pedido) o si ya está abierto.
+  // Nunca re-inferir otro módulo (gerundio ≠ pasado ≠ will/would).
+  if (locked && (asked || sameBoardOpen || whiteboard)) {
     try { jillActivateVisualStage(text, 'whiteboard'); } catch(eVis) {}
   } else if (!locked && typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()) {
     try { JillVisualStage.hide(); } catch (eHide2) {}

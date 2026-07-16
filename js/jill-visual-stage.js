@@ -71,8 +71,7 @@
       && !/\b(explic|ens[eé][nñ]|explain|teach|linker|star|nexus|negaci|gerundio|f[oó]rmula|will|would|should|however)\b/i.test(user)) {
       return false;
     }
-    // Alice: tablero Nexus en Modo Tutor cuando hay pedido o lección/ejercicio en curso.
-    // Companion nunca llega aquí (el portal bloquea antes).
+    // Alice (Tutor + Libre): tablero Nexus solo — nunca Foundations.
     if (tutor === 'alice') {
       return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda|ejercicio|practice|your turn|build me a sentence|however|furthermore|as a result)\b/i.test(user + ' ' + reply);
     }
@@ -87,14 +86,27 @@
     return /\b(explic|ens[eé][nñ]|no entiendo|duda|c[oó]mo se|c[oó]mo funciona|qu[eé] es|f[oó]rmula|ranura|auxiliar|negaci|gerundio|estructura|mec[aá]nica|patr[oó]n|modelo|ejemplo|te qued[oó]|arm[aá]|whiteboard|pizarr|imagen|tablero|to be|will|would|should|could|can|there is|there are|preposici|tiempo verbal|modal|moneda|art[ií]culo|comparativ|pronombre|pregunta|pasado simple|pasado perfecto|presente perfecto|pasada perfecto|perfecto|irregular|was|were|going to|have|has|had|jaf|jas|jad|presente|futuro|overview|mapa)\b/i.test(user);
   }
 
+  function domainOk(col, tutor) {
+    var id = String(col || '');
+    if (!id) return false;
+    if (/^toeic_/i.test(id)) return false; // Claire stage only
+    if (tutor === 'alice') return /^nexus_/i.test(id);
+    // Jill Foundations: never Nexus / TOEIC
+    if (/^nexus_/i.test(id)) return false;
+    return true;
+  }
+
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    // Alice Tutor: si el portal fuerza columna Nexus, abrir tablero (Companion no llama show).
+    if (forcedColumn && !domainOk(forcedColumn, tutor)) return false;
+    // Alice: forced nexus lock always wins (Tutor + Libre).
     if (tutor === 'alice') {
       if (forcedColumn && /^nexus_/i.test(String(forcedColumn))) return true;
       if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
-      return !!resolveColumn(text, bundle, userTopic, tutor);
+      var resolved = resolveColumn(text, bundle, userTopic, tutor);
+      return !!(resolved && domainOk(resolved, tutor));
     }
-    if (forcedColumn) return true;
+    // Jill: forced lock column always wins — never re-pick from reply.
+    if (forcedColumn && domainOk(forcedColumn, tutor)) return true;
     if (resolveColumn(text, bundle, userTopic, tutor)) return true;
     return false;
   }
@@ -280,12 +292,23 @@
     // Forced column from portal lock always wins — never re-pick a mismatched board mid-lesson
     var col = opts.column || null;
     if (!col) col = resolveColumn(text, bundle, userTopic, tutor);
+    // Hard-lock domain: Jill≠Nexus/TOEIC, Alice≠Foundations/TOEIC
+    if (col && !domainOk(col, tutor)) {
+      return false;
+    }
     // Jill: sin columna forzada del lock → no improvisar tablero
     if (tutor === 'jill' && !opts.column) {
       return false;
     }
     if (!col || !shouldShow(contentType, text, bundle, userTopic, col, tutor)) {
       return false;
+    }
+    // While locked, never swap to a different Foundations track mid-turn
+    if (tutor === 'jill' && opts.column && col !== opts.column) {
+      col = opts.column;
+    }
+    if (tutor === 'alice' && opts.column && /^nexus_/i.test(String(opts.column))) {
+      col = opts.column;
     }
     var sh = shell();
     var stage = stageEl();
