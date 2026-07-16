@@ -71,9 +71,10 @@
       && !/\b(explic|ens[eé][nñ]|explain|teach|linker|star|nexus|negaci|gerundio|f[oó]rmula|will|would|should|however)\b/i.test(user)) {
       return false;
     }
-    // Alice: tablero solo si EL ESTUDIANTE pide explicación / Nexus — no por correcciones con "however"
+    // Alice: tablero Nexus en Modo Tutor cuando hay pedido o lección/ejercicio en curso.
+    // Companion nunca llega aquí (el portal bloquea antes).
     if (tutor === 'alice') {
-      return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda)\b/i.test(user);
+      return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda|ejercicio|practice|your turn|build me a sentence|however|furthermore|as a result)\b/i.test(user + ' ' + reply);
     }
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.resolveNexusId) {
       if (global.JillLessonClip.resolveNexusId(user)) return true;
@@ -87,10 +88,10 @@
   }
 
   function shouldShow(contentType, text, bundle, userTopic, forcedColumn, tutor) {
-    // Alice: nunca bastar con columna forzada si el estudiante no pidió tablero
+    // Alice Tutor: si el portal fuerza columna Nexus, abrir tablero (Companion no llama show).
     if (tutor === 'alice') {
-      if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
       if (forcedColumn && /^nexus_/i.test(String(forcedColumn))) return true;
+      if (!isExplainTurn(contentType, text, userTopic, tutor)) return false;
       return !!resolveColumn(text, bundle, userTopic, tutor);
     }
     if (forcedColumn) return true;

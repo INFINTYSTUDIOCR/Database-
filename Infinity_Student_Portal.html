@@ -38,7 +38,7 @@
 <script src="js/jill-canon-visual.js?v=20260711ops"></script>
 <script src="js/jill-canon-drill.js?v=20260711ops"></script>
 <script src="js/jill-lesson-clip.js?v=20260713m07"></script>
-<script src="js/jill-visual-stage.js?v=20260714alice3"></script>
+<script src="js/jill-visual-stage.js?v=20260715alice4"></script>
 <script src="js/jill-calibration.js?v=20260707a"></script>
 <script src="js/jill-foundations.js?v=20260713m07"></script>
 <script src="js/trainer-drill-engine.js?v=20260707k"></script>
@@ -3229,12 +3229,18 @@ function renderAlice(){
   var accentOptions = Object.keys(ALICE_ACCENTS).map(function(k){
     return '<option value="'+k+'"'+(k===_aliceState.accent?' selected':'')+'>'+ALICE_ACCENTS[k].label+'</option>';
   }).join('');
+  var fsBtn = (_aliceState.sessionActive && !isGold)
+    ? '<button type="button" id="alice-fs-btn" class="jill-fs-btn" title="Pantalla completa" onclick="aliceToggleFullscreen()"><i class="ti ti-arrows-maximize"></i></button>'
+    : '';
   var headerRight = isGold
     ? '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(255,215,0,0.4),rgba(234,179,8,0.25));border:2px solid rgba(255,215,0,0.65);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 24px rgba(255,215,0,0.45);">✨</div>'
-    : '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
-      +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select></div>';
+    : '<div style="display:flex;gap:8px;align-items:center;">'
+      +fsBtn
+      +'<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
+      +'<select onchange="_aliceState.accent=this.value" style="background:rgba(255,255,255,0.1);border:1px solid rgba('+th.rgb+',0.35);color:white;border-radius:8px;padding:4px 8px;font-size:11px;">'+accentOptions+'</select></div>'
+      +'</div>';
   var cardBorderW = isGold ? '2px' : '1px';
-  var cardId = isGold ? ' id="alice-companion-card"' : '';
+  var cardId = isGold ? ' id="alice-companion-card"' : (_aliceState.sessionActive ? ' id="alice-lesson-shell"' : '');
   var ambientAttr = (isGold && _aliceState.sessionActive)
     ? ' data-ambient="'+(_aliceState.ambientMood || aliceResolveAmbientMood())+'"'
     : '';
@@ -3258,6 +3264,7 @@ function renderAlice(){
     scrollAliceMessages();
     try { bindAlicePttMic(); } catch(e) { console.warn('Alice PTT bind:', e); }
     if(aliceCompanionUiActive()) aliceApplyCompanionAmbient();
+    else aliceSyncFullscreenBtn();
   }
 }
 
@@ -3333,8 +3340,10 @@ function renderAliceSession(){
       +'<button type="button" class="jill-chip" onclick="portalOpenPracticeQuiz()">🎮 Arcade</button>'
       +'</div>'
     : '';
-  return '<div id="alice-lesson-shell">'
-    +'<div id="alice-session-main">'
+  // Companion keep nested shell id only if outer card is companion-card; Tutor shell is the outer card.
+  var sessionShellOpen = aliceCompanionUiActive() ? '<div id="alice-lesson-shell"><div id="alice-session-main">' : '<div id="alice-session-main">';
+  var sessionShellClose = aliceCompanionUiActive() ? '</div></div>' : '</div>';
+  return sessionShellOpen
     + gameChips
     +(scn
       ?'<div style="background:rgba('+th.rgb+',0.08);border:1px solid rgba('+th.rgb+',0.18);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.55);display:flex;gap:16px;flex-wrap:wrap;">'
@@ -3363,7 +3372,7 @@ function renderAliceSession(){
     +'<button style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="cancelAliceSession()"><i class="ti ti-x"></i>Cancelar</button>'
     +'</div>'
     +'</div>'
-    +'</div></div>';
+    + sessionShellClose;
 }
 
 function renderAliceEvaluation(){
@@ -4311,11 +4320,14 @@ function aliceLastUserTopic(){
   return (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
 }
 
-/** Tablero Alice solo si el estudiante pide explicación / Nexus — no por tips con "however". */
-function aliceWantsNexusBoard(userText){
-  var t = String(userText || '');
-  if(!t.trim()) return false;
-  return /\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa)\b/i.test(t);
+/** Tablero Alice Tutor: al enseñar Nexus / pedir explicación. Companion nunca. */
+function aliceWantsNexusBoard(userText, replyText){
+  var u = String(userText || '');
+  var r = String(replyText || '');
+  if(/\b(explic|ens[eé][nñ]|explain|teach|show me|mostr[aá]|tablero|board|linker|conectores?|star(\s*method)?|nexus(\s*method)?|idea\s*\+?\s*linker|how (do|does|to) (i )?(use|say)|qu[eé] es|c[oó]mo (se )?usa|no entiendo|don'?t understand|duda|ejercicio|practice|practic)\b/i.test(u)) return true;
+  if(/\[\[CTYPE:whiteboard\]\]/i.test(r)) return true;
+  if(/\b(idea\s*\+\s*linker|linker|however|furthermore|as a result|star method|situation|your turn|build me a sentence|conectores?|nexus)\b/i.test(r)) return true;
+  return false;
 }
 
 function aliceCloseVisualStage(){
@@ -4323,21 +4335,19 @@ function aliceCloseVisualStage(){
 }
 
 function aliceActivateVisualStage(text){
-  // Alice Modo Libre = charla libre: NUNCA tableros Foundations (Clase 010 WILL/WOULD, MSI, etc.)
+  // Alice Modo Libre = charla libre: NUNCA tableros
   if(_aliceState && _aliceState.sessionType === 'companion'){
     try { if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide(); } catch(eHide) {}
     return;
   }
   if(typeof JillVisualStage === 'undefined') return;
   var userTopic = aliceLastUserTopic();
-  // Si el estudiante no pidió explicación/tablero, cerrar y no tapar el chat
-  if(!aliceWantsNexusBoard(userTopic)){
-    try { JillVisualStage.hide(); } catch(e2) {}
+  var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+  if(!aliceWantsNexusBoard(userTopic, plain)){
     return;
   }
-  var plain = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
   var sticky = (_aliceState && _aliceState.companionTopic) ? String(_aliceState.companionTopic) : '';
-  var blob = (userTopic + ' ' + sticky).trim();
+  var blob = (userTopic + ' ' + sticky + ' ' + plain).trim();
   var col = JillVisualStage.resolveColumn('', null, blob, 'alice');
   // Alice tutor solo Nexus — nunca columnas Foundations de Jill
   if(col && !/^nexus_/i.test(String(col))) {
@@ -4348,16 +4358,44 @@ function aliceActivateVisualStage(text){
   if(!col && typeof JillLessonClip !== 'undefined' && JillLessonClip.resolveNexusId){
     col = JillLessonClip.resolveNexusId(blob);
   }
-  if(!col) {
-    try { JillVisualStage.hide(); } catch(e2) {}
-    return;
-  }
+  if(!col) col = 'nexus_idea_chain';
   var shown = JillVisualStage.show(plain, 'whiteboard', null, {
     tutor: 'alice',
     userTopic: blob,
     column: col
   });
   if(!shown && !JillVisualStage.isActive()) JillVisualStage.hide();
+}
+
+function aliceSyncFullscreenBtn(){
+  var btn = document.getElementById('alice-fs-btn');
+  var shell = document.getElementById('alice-lesson-shell');
+  if(!btn) return;
+  var on = shell && (document.fullscreenElement === shell || document.webkitFullscreenElement === shell);
+  btn.title = on ? 'Salir de pantalla completa' : 'Pantalla completa';
+  btn.innerHTML = on ? '<i class="ti ti-arrows-minimize"></i>' : '<i class="ti ti-arrows-maximize"></i>';
+}
+
+function aliceToggleFullscreen(){
+  if(aliceCompanionUiActive()){
+    showToast('Pantalla completa es para Alice Modo Tutor','err');
+    return;
+  }
+  var shell = document.getElementById('alice-lesson-shell');
+  if(!shell){ showToast('Abrí una sesión con Alice primero','err'); return; }
+  var active = document.fullscreenElement || document.webkitFullscreenElement;
+  if(active === shell){
+    var exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+    if(exitFs) exitFs.call(document);
+    return;
+  }
+  var req = shell.requestFullscreen || shell.webkitRequestFullscreen;
+  if(!req){ showToast('Pantalla completa no disponible en este navegador','err'); return; }
+  req.call(shell).catch(function(){ showToast('No se pudo activar pantalla completa','err'); });
+}
+if(typeof document !== 'undefined'){
+  document.addEventListener('fullscreenchange', aliceSyncFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', aliceSyncFullscreenBtn);
 }
 
 function aliceQueueFullReply(text){
