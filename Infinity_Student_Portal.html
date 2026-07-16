@@ -571,38 +571,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inf-arcade-hotspot.is-on{animation:infArcadeRingPulse 1.15s ease-out forwards;}
 .inf-arcade-marquee-glow{position:absolute;z-index:2;pointer-events:none;border-radius:8px;opacity:0;}
 .inf-arcade-marquee-glow.is-on{opacity:1;animation:infArcadeMarqueeFlash 1.2s ease-out;}
-.inf-arcade-screen{position:absolute;left:0;top:0;width:0;height:0;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(8,60,95,.55),rgba(6,40,70,.72));box-shadow:inset 0 0 18px rgba(255,255,255,.22),0 0 0 2px rgba(255,255,255,.18);z-index:4;box-sizing:border-box;opacity:0;}
+.inf-arcade-cabinet-wrap{cursor:pointer;}
+.inf-arcade-cabinet-wrap.is-zooming{animation:infArcadeZoomOut .42s ease-in forwards;pointer-events:none;}
+@keyframes infArcadeZoomOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.32)}}
+@keyframes infArcadeMonitorIn{0%{opacity:0;transform:scale(.72)}100%{opacity:1;transform:none}}
+.inf-arcade-screen{position:absolute;left:0;top:0;width:0;height:0;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0a3a4a,#062028);box-shadow:inset 0 0 14px rgba(255,255,255,.18),0 0 0 2px rgba(125,211,252,.35);z-index:4;box-sizing:border-box;opacity:0;pointer-events:none;}
 .inf-arcade-screen.is-ready{opacity:1;animation:infArcadeScreenPop .45s cubic-bezier(.2,.8,.2,1) both;}
-.inf-arcade-screen:before{content:"";position:absolute;left:0;right:0;height:34%;background:linear-gradient(180deg,rgba(255,255,255,.28),transparent);opacity:.45;pointer-events:none;animation:infArcadeScan 2.8s linear infinite;}
-.inf-arcade-screen-inner{position:relative;z-index:1;width:100%;height:100%;padding:8px;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:5px;text-align:center;overflow:auto;-webkit-overflow-scrolling:touch;}
-.inf-arcade-boot{font-size:11px;font-weight:900;letter-spacing:.16em;color:#e0f2fe;text-transform:uppercase;animation:infArcadeBootBlink 1s ease-in-out infinite;text-shadow:0 0 12px rgba(56,189,248,.8);}
-.inf-arcade-title{font-size:9px;font-weight:900;letter-spacing:.14em;color:#e0f2fe;opacity:.95;margin-bottom:2px;flex:0 0 auto;text-shadow:0 1px 2px rgba(0,0,0,.35);}
-.inf-arcade-game-list{display:flex;flex-direction:column;gap:5px;width:100%;flex:1 1 auto;justify-content:center;}
-.inf-arcade-btn{width:100%;border:none;border-radius:9px;padding:8px 6px;font-size:11px;font-weight:900;cursor:pointer;line-height:1.1;box-shadow:0 2px 0 rgba(0,0,0,.22);transition:transform .12s ease;opacity:0;animation:infArcadeBtnIn .38s ease forwards;}
-.inf-arcade-btn:nth-child(1){animation-delay:.05s;}
-.inf-arcade-btn:nth-child(2){animation-delay:.12s;}
-.inf-arcade-btn:nth-child(3){animation-delay:.19s;}
-.inf-arcade-btn:nth-child(4){animation-delay:.26s;}
-.inf-arcade-btn:nth-child(5){animation-delay:.33s;}
-.inf-arcade-btn:nth-child(6){animation-delay:.4s;}
+.inf-arcade-screen:before{content:"";position:absolute;left:0;right:0;height:30%;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);opacity:.4;pointer-events:none;animation:infArcadeScan 2.8s linear infinite;}
+.inf-arcade-screen-inner{position:relative;z-index:1;width:100%;height:100%;padding:4% 5%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:3%;text-align:center;overflow:hidden;}
+.inf-arcade-boot{font-size:clamp(7px,1.8vw,11px);font-weight:900;letter-spacing:.14em;color:#e0f2fe;text-transform:uppercase;animation:infArcadeBootBlink 1s ease-in-out infinite;text-shadow:0 0 12px rgba(56,189,248,.8);}
+.inf-arcade-title{font-size:clamp(6px,1.5vw,9px);font-weight:900;letter-spacing:.12em;color:#7dd3fc;opacity:.95;flex:0 0 auto;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+.inf-arcade-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:3%;flex:1 1 auto;align-content:center;min-height:0;}
+.inf-arcade-preview-grid span{display:flex;align-items:center;gap:3px;padding:5% 4%;border-radius:7px;background:rgba(8,12,24,.92);color:#f8fafc;font-size:clamp(5px,1.3vw,8px);font-weight:800;line-height:1.05;border:1px solid rgba(255,255,255,.16);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;}
+.inf-arcade-tap-hint{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:12px;font-weight:800;color:#a5f3fc;z-index:6;pointer-events:none;animation:infArcadeBootBlink 1.4s ease-in-out infinite;text-shadow:0 0 10px rgba(34,211,238,.55);}
+.inf-arcade-btn{width:100%;border:none;border-radius:7px;padding:6px 4px;font-size:9px;font-weight:900;cursor:pointer;line-height:1.1;box-shadow:0 2px 0 rgba(0,0,0,.22);transition:transform .12s ease;opacity:0;animation:infArcadeBtnIn .38s ease forwards;}
 .inf-arcade-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18);}
-.inf-arcade-btn-rapid{background:linear-gradient(135deg,#34d399,#059669);color:#042f1e;}
-.inf-arcade-btn-challenge{background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1200;}
-.inf-arcade-btn-modes{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;}
-.inf-arcade-btn-mode{background:rgba(15,23,42,.88);color:#e0f2fe;border:1px solid rgba(255,255,255,.28);font-size:10px;padding:7px 5px;}
-.inf-arcade-btn-back{background:rgba(255,255,255,.78);color:#1e1b4b;font-size:10px;padding:6px;animation-delay:.45s;}
 .inf-arcade-modes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-.inf-arcade-modes .inf-arcade-btn{animation-delay:0s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(1){animation-delay:.06s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(2){animation-delay:.1s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(3){animation-delay:.14s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(4){animation-delay:.18s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(5){animation-delay:.22s;}
-.inf-arcade-modes .inf-arcade-btn:nth-child(6){animation-delay:.26s;}
 @media(max-width:480px){
   .inf-arcade-cabinet-img{max-height:min(88vh,820px);max-width:98vw;}
-  .inf-arcade-btn{font-size:10px;padding:7px 5px;}
 }
+/* Pantalla 2: monitor fullscreen (solo menú) */
+.inf-arcade-monitor{position:fixed;inset:0;z-index:2395;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:max(12px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));background:radial-gradient(ellipse at center,#1e1b4b 0%,#07061a 75%);box-sizing:border-box;}
+.inf-arcade-monitor.is-open{display:flex;}
+.inf-arcade-monitor.is-enter .inf-arcade-monitor-frame{animation:infArcadeMonitorIn .5s cubic-bezier(.2,.8,.2,1) both;}
+.inf-arcade-monitor-bar{position:absolute;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:2;}
+.inf-arcade-monitor-bar span{font-size:11px;letter-spacing:.16em;font-weight:800;color:#c4b5fd;}
+.inf-arcade-monitor-bar button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
+.inf-arcade-monitor-frame{width:min(420px,92vw);height:min(560px,74vh);border-radius:28px;padding:14px;background:linear-gradient(160deg,#67e8f9 0%,#a78bfa 45%,#c084fc 100%);box-shadow:0 0 0 3px rgba(103,232,249,.35),0 0 40px rgba(103,232,249,.35),0 20px 50px rgba(0,0,0,.45);box-sizing:border-box;}
+.inf-arcade-monitor-panel{width:100%;height:100%;border-radius:18px;background:linear-gradient(180deg,#0c3d4a,#061820 55%,#041018);box-shadow:inset 0 0 30px rgba(0,0,0,.35);padding:16px 12px;display:flex;flex-direction:column;gap:10px;overflow:hidden;box-sizing:border-box;}
+.inf-arcade-monitor-panel h2{margin:0;text-align:center;font-size:13px;letter-spacing:.18em;color:#7dd3fc;font-weight:900;}
+.inf-arcade-monitor-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:center;min-height:0;}
+.inf-arcade-monitor-grid button{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(8,12,24,.94);color:#fff;font-weight:800;font-size:12px;padding:12px 10px;cursor:pointer;opacity:0;animation:infArcadeBtnIn .35s ease forwards;box-shadow:0 3px 0 rgba(0,0,0,.25);}
+.inf-arcade-monitor-grid button:nth-child(1){animation-delay:.05s}.inf-arcade-monitor-grid button:nth-child(2){animation-delay:.1s}
+.inf-arcade-monitor-grid button:nth-child(3){animation-delay:.15s}.inf-arcade-monitor-grid button:nth-child(4){animation-delay:.2s}
+.inf-arcade-monitor-grid button:nth-child(5){animation-delay:.25s}.inf-arcade-monitor-grid button:nth-child(6){animation-delay:.3s}
+.inf-arcade-monitor-grid button:active{transform:translateY(2px);}
+.inf-arcade-monitor-extras{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.inf-arcade-monitor-extras button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#e9d5ff;border-radius:12px;padding:10px 12px;font-weight:800;font-size:12px;cursor:pointer;}
 .inf-arcade-fs{position:fixed;inset:0;z-index:2400;display:none;flex-direction:column;background:linear-gradient(165deg,#07061a 0%,#1e1b4b 42%,#312e81 100%);color:#fff;}
 .inf-arcade-fs.is-open{display:flex;}
 .inf-arcade-fs-bar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid rgba(196,181,253,.28);background:rgba(0,0,0,.28);backdrop-filter:blur(8px);}
@@ -1648,7 +1653,8 @@ function ensureInfinityArcadeLobby(){
     + '<div class="inf-arcade-lobby-label">INFINITY ARCADE</div>'
     + '<button type="button" onclick="closeInfinityArcadeLobby()"><i class="ti ti-x"></i> Cerrar</button>'
     + '</div>'
-    + '<div id="portal-arcade-cabinet" style="width:100%;display:flex;justify-content:center;"></div>';
+    + '<div id="portal-arcade-cabinet" style="width:100%;display:flex;justify-content:center;"></div>'
+    + '<div class="inf-arcade-tap-hint" id="inf-arcade-tap-hint" hidden>👆 Tocá la máquina → menú pantalla completa</div>';
   document.body.appendChild(el);
 }
 
@@ -1666,11 +1672,15 @@ function openInfinityArcadeLobby(){
 }
 
 function closeInfinityArcadeLobby(){
+  closeInfinityArcadeMonitor(true);
   var lobby = document.getElementById('inf-arcade-lobby');
   if(lobby) lobby.classList.remove('is-open');
   document.body.classList.remove('inf-arcade-lobby-lock');
   window._infArcadeLobbyOpen = false;
   clearTimeout(window._infArcadeBootTimer);
+  clearTimeout(window._infArcadeIntroT1);
+  clearTimeout(window._infArcadeIntroT2);
+  clearTimeout(window._infArcadeIntroT3);
 }
 
 function layoutInfinityArcadeScreen(){
@@ -1681,22 +1691,49 @@ function layoutInfinityArcadeScreen(){
   var iw = img.clientWidth || 0;
   var ih = img.clientHeight || 0;
   if(iw < 40 || ih < 40) return false;
-  // Fracción del PNG donde está el monitor cyan (anclado a la imagen, no al viewport)
-  var L = 0.208, T = 0.152, W = 0.584, H = 0.288;
   var ol = img.offsetLeft || 0;
   var ot = img.offsetTop || 0;
-  screen.style.left = Math.round(ol + L * iw) + 'px';
-  screen.style.top = Math.round(ot + T * ih) + 'px';
-  screen.style.width = Math.round(W * iw) + 'px';
-  screen.style.height = Math.round(H * ih) + 'px';
-  screen.classList.add('is-ready');
+  // Monitor cyan real (medido en assets/infinity-arcade-cabinet.png)
+  var SCR = { l: 0.220, t: 0.320, w: 0.480, h: 0.210 };
+  // Marquee Skill Tests (guía amarilla)
+  var MAR = { l: 0.220, t: 0.082, w: 0.560, h: 0.080 };
+  screen.style.left = Math.round(ol + SCR.l * iw) + 'px';
+  screen.style.top = Math.round(ot + SCR.t * ih) + 'px';
+  screen.style.width = Math.round(SCR.w * iw) + 'px';
+  screen.style.height = Math.round(SCR.h * ih) + 'px';
+
+  var marquee = document.getElementById('inf-arcade-marquee-glow');
+  if(marquee){
+    marquee.style.left = Math.round(ol + MAR.l * iw) + 'px';
+    marquee.style.top = Math.round(ot + MAR.t * ih) + 'px';
+    marquee.style.width = Math.round(MAR.w * iw) + 'px';
+    marquee.style.height = Math.round(MAR.h * ih) + 'px';
+  }
+  var ringM = document.getElementById('inf-arcade-ring-marquee');
+  if(ringM){
+    var mx = ol + (MAR.l + MAR.w / 2) * iw;
+    var my = ot + (MAR.t + MAR.h / 2) * ih;
+    var ms = Math.max(MAR.w * iw, MAR.h * ih) * 1.55;
+    ringM.style.left = Math.round(mx - ms / 2) + 'px';
+    ringM.style.top = Math.round(my - ms / 2) + 'px';
+    ringM.style.width = Math.round(ms) + 'px';
+    ringM.style.height = Math.round(ms) + 'px';
+  }
+  var ringS = document.getElementById('inf-arcade-ring-screen');
+  if(ringS){
+    var sx = ol + (SCR.l + SCR.w / 2) * iw;
+    var sy = ot + (SCR.t + SCR.h / 2) * ih;
+    var ss = Math.max(SCR.w * iw, SCR.h * ih) * 1.15;
+    ringS.style.left = Math.round(sx - ss / 2) + 'px';
+    ringS.style.top = Math.round(sy - ss / 2) + 'px';
+    ringS.style.width = Math.round(ss) + 'px';
+    ringS.style.height = Math.round(ss) + 'px';
+  }
   return true;
 }
 
 function bindInfinityArcadeScreenLayout(img){
-  function run(){
-    layoutInfinityArcadeScreen();
-  }
+  function run(){ layoutInfinityArcadeScreen(); }
   if(img){
     if(img.complete && img.naturalWidth) run();
     else img.addEventListener('load', run, { once: true });
@@ -1707,10 +1744,55 @@ function bindInfinityArcadeScreenLayout(img){
       if(window._infArcadeLobbyOpen) layoutInfinityArcadeScreen();
     });
   }
-  // Reintento por si el layout flex tarda un frame
   setTimeout(run, 30);
   setTimeout(run, 120);
   setTimeout(run, 320);
+}
+
+function playInfinityArcadeIntro(){
+  clearTimeout(window._infArcadeBootTimer);
+  clearTimeout(window._infArcadeIntroT1);
+  clearTimeout(window._infArcadeIntroT2);
+  clearTimeout(window._infArcadeIntroT3);
+  var wrap = document.getElementById('inf-arcade-wrap');
+  var screen = document.getElementById('inf-arcade-screen');
+  var inner = document.getElementById('inf-arcade-screen-inner');
+  var marquee = document.getElementById('inf-arcade-marquee-glow');
+  var ringM = document.getElementById('inf-arcade-ring-marquee');
+  var ringS = document.getElementById('inf-arcade-ring-screen');
+  if(wrap){
+    wrap.classList.remove('is-entering');
+    void wrap.offsetWidth;
+    wrap.classList.add('is-entering');
+  }
+  if(screen) screen.classList.remove('is-ready');
+  if(inner) inner.innerHTML = '<div class="inf-arcade-boot">INSERT COIN…</div>';
+  if(marquee) marquee.classList.remove('is-on');
+  if(ringM) ringM.classList.remove('is-on');
+  if(ringS) ringS.classList.remove('is-on');
+  layoutInfinityArcadeScreen();
+
+  // Guía amarilla → Skill Tests
+  window._infArcadeIntroT1 = setTimeout(function(){
+    layoutInfinityArcadeScreen();
+    if(marquee){ marquee.classList.remove('is-on'); void marquee.offsetWidth; marquee.classList.add('is-on'); }
+    if(ringM){ ringM.classList.remove('is-on'); void ringM.offsetWidth; ringM.classList.add('is-on'); }
+  }, 480);
+
+  // Guía verde → monitor
+  window._infArcadeIntroT2 = setTimeout(function(){
+    layoutInfinityArcadeScreen();
+    if(ringS){ ringS.classList.remove('is-on'); void ringS.offsetWidth; ringS.classList.add('is-on'); }
+    if(screen) screen.classList.add('is-ready');
+  }, 1100);
+
+  // Menú preview en el monitor → luego click abre pantalla 2
+  window._infArcadeIntroT3 = setTimeout(function(){
+    showInfinityArcadeHome();
+    layoutInfinityArcadeScreen();
+    var hint = document.getElementById('inf-arcade-tap-hint');
+    if(hint) hint.hidden = false;
+  }, 1650);
 }
 
 function renderInfinityArcadeCabinet(containerId){
@@ -1720,9 +1802,14 @@ function renderInfinityArcadeCabinet(containerId){
     c.innerHTML = '<div style="font-size:13px;color:#c4b5fd;padding:12px;text-align:center;">Activá Jill, Modo Libre o Alice para el Arcade.</div>';
     return;
   }
+  var hint = document.getElementById('inf-arcade-tap-hint');
+  if(hint) hint.hidden = true;
   c.innerHTML =
-    '<div class="inf-arcade-cabinet-wrap" id="inf-arcade-wrap">'
+    '<div class="inf-arcade-cabinet-wrap" id="inf-arcade-wrap" role="button" tabindex="0" aria-label="Abrir menú de juegos" onclick="zoomInfinityArcadeToMonitor()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();zoomInfinityArcadeToMonitor();}">'
     + '<img class="inf-arcade-cabinet-img" src="assets/infinity-arcade-cabinet.png" alt="Infinity Arcade" draggable="false">'
+    + '<div class="inf-arcade-marquee-glow" id="inf-arcade-marquee-glow" aria-hidden="true"></div>'
+    + '<div class="inf-arcade-hotspot inf-arcade-hotspot-marquee" id="inf-arcade-ring-marquee" aria-hidden="true"></div>'
+    + '<div class="inf-arcade-hotspot inf-arcade-hotspot-screen" id="inf-arcade-ring-screen" aria-hidden="true"></div>'
     + '<div class="inf-arcade-screen" id="inf-arcade-screen" aria-live="polite">'
     +   '<div class="inf-arcade-screen-inner" id="inf-arcade-screen-inner">'
     +     '<div class="inf-arcade-boot">INSERT COIN…</div>'
@@ -1731,28 +1818,99 @@ function renderInfinityArcadeCabinet(containerId){
     + '</div>';
   var img = c.querySelector('.inf-arcade-cabinet-img');
   bindInfinityArcadeScreenLayout(img);
-  clearTimeout(window._infArcadeBootTimer);
-  window._infArcadeBootTimer = setTimeout(function(){
-    showInfinityArcadeHome();
-    layoutInfinityArcadeScreen();
-  }, 900);
+  playInfinityArcadeIntro();
 }
 
 function showInfinityArcadeHome(){
   var inner = document.getElementById('inf-arcade-screen-inner');
   if(!inner) return;
-  var games = INFINITY_ARCADE_GAMES || [];
+  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
+  var keys = Object.keys(modes).filter(function(k){ return k !== 'challenge'; });
   inner.innerHTML =
-    '<div class="inf-arcade-title">SKILL TESTS</div>'
-    + '<div class="inf-arcade-game-list">'
-    + games.map(function(g){
-        return '<button type="button" class="inf-arcade-btn '+(g.btnClass || '')+'" onclick="infinityArcadeRunGame(\''+g.id+'\')">'
-          + (g.icon ? '<i class="ti '+g.icon+'"></i> ' : '')
-          + (g.title || g.id)
-          + '</button>';
+    '<div class="inf-arcade-title">LANGUAGE ARCADE</div>'
+    + '<div class="inf-arcade-preview-grid">'
+    + keys.map(function(key){
+        var m = modes[key];
+        return '<span>'+(m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')+(m.title || key)+'</span>';
       }).join('')
     + '</div>';
   layoutInfinityArcadeScreen();
+}
+
+function ensureInfinityArcadeMonitor(){
+  if(document.getElementById('inf-arcade-monitor')) return;
+  var el = document.createElement('div');
+  el.id = 'inf-arcade-monitor';
+  el.className = 'inf-arcade-monitor';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML =
+    '<div class="inf-arcade-monitor-bar">'
+    + '<span>LANGUAGE ARCADE</span>'
+    + '<button type="button" onclick="closeInfinityArcadeMonitor()"><i class="ti ti-arrow-left"></i> Máquina</button>'
+    + '</div>'
+    + '<div class="inf-arcade-monitor-frame">'
+    +   '<div class="inf-arcade-monitor-panel">'
+    +     '<h2>LANGUAGE ARCADE</h2>'
+    +     '<div class="inf-arcade-monitor-grid" id="inf-arcade-monitor-grid"></div>'
+    +     '<div class="inf-arcade-monitor-extras">'
+    +       '<button type="button" onclick="infinityArcadePickRapid()"><i class="ti ti-flame"></i> Rapid Drill</button>'
+    +       '<button type="button" onclick="infinityArcadePickChallenge()"><i class="ti ti-bolt"></i> Challenge Drill</button>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+  document.body.appendChild(el);
+}
+
+function zoomInfinityArcadeToMonitor(){
+  if(!studentGamesOn(CURRENT_STUDENT)) return;
+  var wrap = document.getElementById('inf-arcade-wrap');
+  if(wrap){
+    wrap.classList.remove('is-zooming');
+    void wrap.offsetWidth;
+    wrap.classList.add('is-zooming');
+  }
+  var hint = document.getElementById('inf-arcade-tap-hint');
+  if(hint) hint.hidden = true;
+  clearTimeout(window._infArcadeZoomT);
+  window._infArcadeZoomT = setTimeout(function(){
+    openInfinityArcadeMonitor();
+    if(wrap) wrap.classList.remove('is-zooming');
+  }, 400);
+}
+
+function openInfinityArcadeMonitor(){
+  ensureInfinityArcadeMonitor();
+  var mon = document.getElementById('inf-arcade-monitor');
+  var grid = document.getElementById('inf-arcade-monitor-grid');
+  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
+  var keys = Object.keys(modes).filter(function(k){ return k !== 'challenge'; });
+  if(grid){
+    grid.innerHTML = keys.map(function(key){
+      var m = modes[key];
+      return '<button type="button" onclick="infinityArcadeStartMode(\''+key+'\')">'
+        + (m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')
+        + (m.title || key)
+        + '</button>';
+    }).join('');
+  }
+  if(mon){
+    mon.classList.remove('is-enter');
+    void mon.offsetWidth;
+    mon.classList.add('is-open', 'is-enter');
+  }
+  window._infArcadeMonitorOpen = true;
+}
+
+function closeInfinityArcadeMonitor(silent){
+  var mon = document.getElementById('inf-arcade-monitor');
+  if(mon) mon.classList.remove('is-open', 'is-enter');
+  window._infArcadeMonitorOpen = false;
+  if(!silent && window._infArcadeLobbyOpen){
+    var hint = document.getElementById('inf-arcade-tap-hint');
+    if(hint) hint.hidden = false;
+    playInfinityArcadeIntro();
+  }
 }
 
 function infinityArcadeRunGame(gameId){
@@ -1764,36 +1922,14 @@ function infinityArcadeRunGame(gameId){
   if(!g) return;
   if(g.run === 'rapid') return infinityArcadePickRapid();
   if(g.run === 'challenge') return infinityArcadePickChallenge();
-  if(g.run === 'modes') return showInfinityArcadeModes();
+  if(g.run === 'modes') return openInfinityArcadeMonitor();
   if(g.run && String(g.run).indexOf('arcade:') === 0){
     return infinityArcadeStartMode(String(g.run).slice(7));
   }
 }
 
 function showInfinityArcadeModes(){
-  var inner = document.getElementById('inf-arcade-screen-inner');
-  if(!inner) return;
-  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
-  var keys = Object.keys(modes).filter(function(k){ return k !== 'challenge'; });
-  if(!keys.length){
-    inner.innerHTML = '<div class="inf-arcade-boot">Sin modos</div>'
-      + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">Volver</button>';
-    layoutInfinityArcadeScreen();
-    return;
-  }
-  inner.innerHTML =
-    '<div class="inf-arcade-title">LANGUAGE ARCADE</div>'
-    + '<div class="inf-arcade-modes">'
-    + keys.map(function(key){
-        var m = modes[key];
-        return '<button type="button" class="inf-arcade-btn inf-arcade-btn-mode" onclick="infinityArcadeStartMode(\''+key+'\')">'
-          + (m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')
-          + (m.title || key)
-          + '</button>';
-      }).join('')
-    + '</div>'
-    + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">← Menú</button>';
-  layoutInfinityArcadeScreen();
+  openInfinityArcadeMonitor();
 }
 
 function infinityArcadePickRapid(){
@@ -1801,6 +1937,7 @@ function infinityArcadePickRapid(){
     showToast('Quiz no disponible','err');
     return;
   }
+  closeInfinityArcadeMonitor(true);
   window._rapidDrillTier = 'foundations';
   openInfinityArcadeFullscreen('Rapid Drill', 'Kaboom · Foundations');
   var body = document.getElementById('inf-arcade-fs-body');
@@ -1817,6 +1954,7 @@ function infinityArcadePickChallenge(){
 }
 
 function infinityArcadeStartMode(mode){
+  closeInfinityArcadeMonitor(true);
   var m = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES[mode]) ? ARCADE_MODES[mode] : null;
   openInfinityArcadeFullscreen(m && m.title ? m.title : 'Language Arcade', 'Infinity Arcade');
   startArcadeMode(mode, 'inf-arcade-fs-body');
@@ -1862,7 +2000,7 @@ function closeInfinityArcadeFullscreen(){
   var body = document.getElementById('inf-arcade-fs-body');
   if(body) body.innerHTML = '';
   if(window._infArcadeLobbyOpen){
-    showInfinityArcadeHome();
+    openInfinityArcadeMonitor();
   } else {
     openInfinityArcadeLobby();
   }
