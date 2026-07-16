@@ -37,6 +37,7 @@ function recordEvent(student, event) {
   }
   if (row.source === 'nexora' && row.score != null) sl.lastNexoraScore = row.score;
   if (row.source === 'jill' && row.score != null) sl.lastJillScore = row.score;
+  if (row.source === 'alice' && row.score != null) sl.lastAliceScore = row.score;
   if (row.source === 'alice' && row.summary) sl.lastAliceNote = row.summary;
   sl.updatedAt = row.at;
   return true;
@@ -63,9 +64,14 @@ function buildSharedLearnerNote(student) {
   if (lp.prefersVisual) parts.push('Prefers visual / board support');
   if (cal?.initialDone && cal.route?.summary) parts.push(`Jill calibration route: ${cal.route.summary}`);
   if (sl.lastJillScore != null) parts.push(`Last Jill session score: ${sl.lastJillScore}`);
+  if (sl.lastAliceScore != null) parts.push(`Last Alice session score: ${sl.lastAliceScore}`);
   if (sl.lastNexoraScore != null) parts.push(`Last Nexora score: ${sl.lastNexoraScore}`);
+  if (sl.lastAliceNote) parts.push(`Last Alice note: ${sl.lastAliceNote}`);
   if (student.aliceVictory?.level) parts.push(`Alice victory level: ${student.aliceVictory.level}`);
   if (student.jillPulse?.streak != null) parts.push(`Jill pulse streak: ${student.jillPulse.streak}`);
+  if (student.autonomy?.nextAction) {
+    parts.push(`Autonomy next: ${student.autonomy.nextAction} — ${student.autonomy.reason || ''}`);
+  }
 
   const recent = (sl.events || []).slice(-4);
   if (recent.length) {

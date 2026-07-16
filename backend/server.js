@@ -237,6 +237,7 @@ const JillDrillBrain = require('./jill-drill-brain');
 const InfinityVictory = require('./infinity-victory');
 const JohnDoctrine = require('./john-teaching-doctrine');
 const SharedLearner = require('./shared-learner');
+const Autonomy = require('./autonomy-orchestrator');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
 
@@ -3588,13 +3589,27 @@ async function persistStudentLearningState(student) {
     if (student.jillCalibration) data.jillCalibration = student.jillCalibration;
     if (student.sharedLearner) data.sharedLearner = student.sharedLearner;
     if (student.quizWeakKpis) data.quizWeakKpis = student.quizWeakKpis;
+    if (student.autonomy) data.autonomy = student.autonomy;
+    if (student.nemesisState) data.nemesisState = student.nemesisState;
     await sbSet('infinity_students', student.id, data);
   } catch (e) {
     console.warn('persistStudentLearningState:', e.message);
   }
 }
 
-function buildStudyAdaptationNote(student, message) {
+/** Record score/event → decide next action → persist autonomy loop. */
+function wireAutonomySignal(student, event) {
+  if (!student) return null;
+  SharedLearner.recordEvent(student, event);
+  Autonomy.decide(student, { trigger: event });
+  persistStudentLearningState(student).catch(() => {});
+  return student.autonomy || null;
+}
+
+function buildStudyAdaptationNote(student, message, tutor) {
+  if (student && !student.autonomy?.nextAction) {
+    try { Autonomy.decide(student, { trigger: { source: 'bootstrap', kind: 'note' } }); } catch (_) { /* ignore */ }
+  }
   const lp = student?.aiProfile?.learningPrefs || {};
   const live = detectStudySignals(message);
   const parts = [];
@@ -3613,8 +3628,10 @@ function buildStudyAdaptationNote(student, message) {
   }
   const shared = SharedLearner.buildSharedLearnerNote(student);
   if (shared) parts.push(shared.trim());
+  const enforce = Autonomy.buildEnforceNote(student, tutor || 'any');
+  if (enforce) parts.push(enforce);
   if (!parts.length) return '';
-  return `\nADAPTATION (same brain, different delivery — prefs + calibration + shared learner):\n${parts.map((p) => `- ${p}`).join('\n')}`;
+  return `\nADAPTATION (same brain — prefs + shared learner + AUTONOMY ENFORCE):\n${parts.map((p) => (String(p).startsWith('AUTONOMY') || String(p).startsWith('SHARED') || String(p).startsWith('-') ? p : `- ${p}`)).join('\n')}`;
 }
 
 function loadJsonFromConfig(name) {
@@ -3761,20 +3778,20 @@ async function finalizeJillEvaluation(student, evaluation, hist) {
     }
   }
   if (student && evaluation) {
-    SharedLearner.recordEvent(student, {
+    wireAutonomySignal(student, {
       source: 'jill',
       kind: 'session_eval',
       score: evaluation.overall_score != null ? evaluation.overall_score : null,
       topics: evaluation.weak_areas || evaluation.improvements || [],
       summary: String(evaluation.main_improvement || evaluation.jill_message || '').slice(0, 200)
     });
-    persistStudentLearningState(student).catch(() => {});
   }
   const payload = { evaluation };
   if (trainerInsight) {
     payload.trainerInsight = trainerInsight;
     payload.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 } } : null;
   }
+  if (student?.autonomy) payload.autonomy = Autonomy.snapshot(student);
   return payload;
 }
 
@@ -3917,14 +3934,25 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       const overall_score = scoreAliceSessionFromMetrics(metrics);
 
       if (!hist || hist.length < 20) {
-        return res.json({ evaluation: {
+        const shortEv = {
           overall_score: Math.max(54, overall_score),
           connectors_used,
           connectors_missed,
           best_moment: 'You started the session — that takes courage.',
           main_improvement: 'Practice a bit longer next time for a full evaluation.',
           alice_message: `Good start, ${student?.name || ''}! Every session counts.\nALICE: ¡Buen comienzo! Cada sesión te hace más fuerte.`
-        }});
+        };
+        if (student?.id) {
+          wireAutonomySignal(student, {
+            source: 'alice',
+            kind: 'session_eval',
+            score: shortEv.overall_score,
+            topics: connectors_missed.slice(0, 6),
+            summary: shortEv.main_improvement
+          });
+          shortEv.autonomy = Autonomy.snapshot(student);
+        }
+        return res.json({ evaluation: shortEv });
       }
 
       const statsNote = `Session stats: ${metrics.turns} student turns, ${metrics.wordCount} words, connectors used: ${connectors_used.join(', ') || 'none'}. Computed score: ${overall_score}/100 — your feedback must match this performance level.`;
@@ -3936,26 +3964,46 @@ app.post('/alice', requireProductAuth, async (req, res) => {
       });
 
       const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+      let evaluation;
       try {
         const qual = JSON.parse(text.replace(/```json|```/g, '').trim());
-        return res.json({ evaluation: {
+        evaluation = {
           overall_score,
           connectors_used,
           connectors_missed,
           best_moment: qual.best_moment || 'You showed up and practiced — that matters.',
           main_improvement: qual.main_improvement || 'Keep using Idea + Linker + Idea in every answer.',
           alice_message: qual.alice_message || `Great work, ${student?.name || ''}!\nALICE: ¡Muy bien! Seguí practicando.`
-        }});
+        };
       } catch (e) {
-        return res.json({ evaluation: {
+        evaluation = {
           overall_score,
           connectors_used,
           connectors_missed,
           best_moment: 'Good effort today',
           main_improvement: 'Keep practicing connectors in full sentences',
           alice_message: `Great work, ${student?.name || ''}!\nALICE: ¡Muy bien! Seguí practicando.`
-        }});
+        };
       }
+      if (student?.id) {
+        if (!student.aliceSessions) student.aliceSessions = [];
+        student.aliceSessions.push({
+          date: new Date().toISOString(),
+          score: overall_score,
+          connectors: connectors_used
+        });
+        if (student.aliceSessions.length > 40) student.aliceSessions = student.aliceSessions.slice(-40);
+        InfinityVictory.applyAliceVictoryToStudent(student);
+        wireAutonomySignal(student, {
+          source: 'alice',
+          kind: 'session_eval',
+          score: overall_score,
+          topics: [].concat(connectors_missed, evaluation.main_improvement ? [evaluation.main_improvement] : []).slice(0, 8),
+          summary: String(evaluation.main_improvement || '').slice(0, 200)
+        });
+        evaluation.autonomy = Autonomy.snapshot(student);
+      }
+      return res.json({ evaluation });
     }
 
     // CHAT
@@ -3987,7 +4035,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
       persistStudentLearningState(student).catch(() => {});
     }
-    const adaptNote = buildStudyAdaptationNote(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message, 'alice');
     const teachInstr = companion
       ? (function () {
           try { return Companion.buildCompanionStreamTeachInstruction(topicHint, message, history); }
@@ -4556,7 +4604,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
       persistStudentLearningState(student).catch(() => {});
     }
-    const adaptNote = buildStudyAdaptationNote(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message, 'jill');
     const bundleCtxChat = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
@@ -4771,7 +4819,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     }
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'jill');
-    const adaptNote = buildStudyAdaptationNote(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message, 'jill');
     const msgs = buildTutorChatMessages(history, message, 20);
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
@@ -4835,6 +4883,7 @@ async function tutorKnowledgeSlice(message, student, tutor, opts) {
   const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
   const options = opts && typeof opts === 'object' ? opts : {};
   const learner = SharedLearner.buildSharedLearnerNote(student);
+  const autonomy = Autonomy.buildEnforceNote(student, who);
   const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(600).catch(() => '');
   const drillStudent = student && who === 'jill' ? JillDrillBrain.getStudentDrillNote(student) : '';
   let trackVoice = '';
@@ -4849,7 +4898,7 @@ async function tutorKnowledgeSlice(message, student, tutor, opts) {
     } catch (_) { /* ignore */ }
   }
   if (!SuperBrain.isSuperBrainEnabled()) {
-    const merged = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    const merged = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
     return JohnDoctrine.wrapKnowledgeSlice(
       merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
       who,
@@ -4862,11 +4911,11 @@ async function tutorKnowledgeSlice(message, student, tutor, opts) {
       ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks. Si hay TRACK LOCK: SOLO ese tema — no panorama F0.\n${ctx}`
       : '';
     if (who === 'jill' && body) body = filterJillSuperBrainContext(body, lockedId);
-    const extras = [trackVoice, drillStudent, drillGlobal, learner].filter(Boolean).join('\n');
+    const extras = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
     return JohnDoctrine.wrapKnowledgeSlice(body, who, lockedId);
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner].filter(Boolean).join('\n') || '', who, lockedId);
+    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner, autonomy].filter(Boolean).join('\n') || '', who, lockedId);
   }
 }
 
@@ -4932,7 +4981,7 @@ app.post('/alice/stream', requireProductAuth, async (req, res) => {
     }
     const displayName = getStudentDisplayName(student);
     const profileNote = buildAiProfileNote(student, 'alice');
-    const adaptNote = buildStudyAdaptationNote(student, message);
+    const adaptNote = buildStudyAdaptationNote(student, message, 'alice');
     const topicHint = companion ? Companion.resolveSessionTopic(history, companionTopic, message) : '';
     const companionPhase = companion ? Companion.resolveCompanionPhase(message, history) : null;
     const companionFast = companion && (companionPhase === 'free_chat' || companionPhase === 'live_evaluate');
@@ -5365,10 +5414,31 @@ app.post('/jill/drill/complete', requireProductAuth, async (req, res) => {
       wonRound: !!result.wonRound,
       winStreak: result.winStreak || 0
     });
-    return res.json({ ok: true, ...outcome, source: 'brain' });
+    wireAutonomySignal(student, {
+      source: 'jill',
+      kind: 'drill_complete',
+      score: result.score || 0,
+      topics: (student.nemesisState?.reinforcement || student.quizWeakKpis || []).slice(0, 8),
+      summary: `Rapid drill ${result.score || 0}%`
+    });
+    return res.json({ ok: true, ...outcome, autonomy: Autonomy.snapshot(student), source: 'brain' });
   } catch (err) {
     console.error('jill/drill/complete:', err.message);
     return res.status(500).json({ error: 'Drill complete failed' });
+  }
+});
+
+/** Autonomy next-action — measure → decide snapshot for the logged-in student. */
+app.get('/learner/autonomy', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    Autonomy.decide(student, { trigger: { source: 'api', kind: 'read' } });
+    persistStudentLearningState(student).catch(() => {});
+    return res.json({ ok: true, autonomy: Autonomy.snapshot(student), measured: student.autonomy?.lastMeasured || null });
+  } catch (err) {
+    console.error('learner/autonomy:', err.message);
+    return res.status(500).json({ error: 'Autonomy unavailable' });
   }
 });
 
@@ -6268,9 +6338,17 @@ Respond ONLY with valid JSON, no markdown:
         topics: [].concat(ev.improvements || [], ev.connectors_missed || []).slice(0, 8),
         summary: String(ev.verdict || '').slice(0, 200)
       });
+      Autonomy.decide(student, {
+        trigger: {
+          source: 'nexora',
+          kind: 'sim_eval',
+          score: ev.overall_score != null ? ev.overall_score : null
+        }
+      });
       await sbSet('infinity_students', student.id, student);
       ev.aliceVictory = student.aliceVictory;
       ev.sharedLearner = student.sharedLearner;
+      ev.autonomy = Autonomy.snapshot(student);
     }
 
     return res.json(ev);
