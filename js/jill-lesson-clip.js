@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '20260711fp';
+  var VERSION = '20260715teach1';
   var _host = null;
   var _timer = null;
   var _gen = 0;
@@ -896,7 +896,7 @@
       ]
     }),
 
-    /* ── Nexus (Alice tutor + companion) — mismo estilo visual ── */
+    /* ── Nexus (Alice) — hojas explicativas, no solo botones ── */
     nexus_idea_chain: clip({
       id: 'nexus_idea_chain',
       title: 'Nexus · Idea + Linker + Idea',
@@ -906,6 +906,26 @@
         { id: 2, label: 'Linker', hint: 'conector' },
         { id: 3, label: 'Idea 2', hint: 'expansión' }
       ],
+      board: {
+        rules: [
+          row('Idea 1', 'punto claro', 'qué pasó / qué pensás'),
+          row('Linker', 'conector', 'however · on top of that · therefore…'),
+          row('Idea 2', 'expansión', 'contraste, adición o resultado')
+        ],
+        examples: [
+          row('I was tired, however, I finished the report.', 'Cansado + however + terminé'),
+          row('She studied hard. On top of that, she practiced speaking.', 'Estudió + además + practicó'),
+          row('It was raining, even though we went out.', 'Lluvia + even though + salimos'),
+          row('I need time. In other words, I cannot rush this.', 'Necesito tiempo = no puedo apurarme'),
+          row('We tried. As a result, the client stayed.', 'Intentamos → el cliente se quedó')
+        ],
+        pattern: 'Nunca dejes una idea sola: Idea + Linker + Idea.',
+        transforms: [
+          tip('I was late. I apologized.', 'I was late. However, I apologized.', 'agregá however'),
+          tip('She is smart. She works hard.', 'She is smart. On top of that, she works hard.', 'agregá on top of that')
+        ],
+        takeaway: 'El linker es el puente. Sin puente, suena plano.'
+      },
       examples: [
         T([['I was tired', 1], [', ', 0], ['however', 2], [', ', 0], ['I finished the report.', 3]]),
         T([['She studied hard', 1], ['. ', 0], ['On top of that', 2], [', ', 0], ['she practiced speaking.', 3]]),
@@ -924,6 +944,27 @@
         { id: 2, label: 'Add', hint: 'on top of that · besides' },
         { id: 3, label: 'Result / clarify', hint: 'therefore · in other words' }
       ],
+      board: {
+        rules: [
+          row('however / even though', 'contraste', 'pero / aunque'),
+          row('on top of that / besides', 'adición', 'además'),
+          row('therefore / as a result', 'resultado', 'por eso'),
+          row('in other words', 'aclarar', 'es decir')
+        ],
+        examples: [
+          row('I liked the plan; however, I needed more time.', 'Me gustó; however, necesitaba tiempo'),
+          row('He is fast. On top of that, he is careful.', 'Rápido + además cuidadoso'),
+          row('We stayed, even though it was late.', 'Nos quedamos aunque era tarde'),
+          row('She prepared. Therefore, the call went well.', 'Preparó → por eso salió bien'),
+          row('I am stuck. In other words, I need help.', 'Estoy trabado = necesito ayuda')
+        ],
+        pattern: 'Elegí el linker por intención: contraste / sumar / resultado / aclarar.',
+        transforms: [
+          tip('but', 'however', 'más formal / fluidez'),
+          tip('also', 'on top of that', 'más natural en speech')
+        ],
+        takeaway: 'Un linker bueno cambia el ritmo de toda la frase.'
+      },
       examples: [
         T([['I liked the plan', 0], ['; ', 0], ['however', 1], [', I needed more time.', 0]]),
         T([['He is fast', 0], ['. ', 0], ['On top of that', 2], [', he is careful.', 0]]),
@@ -943,6 +984,26 @@
         { id: 3, label: 'Action', hint: 'qué hice' },
         { id: 4, label: 'Result', hint: 'resultado' }
       ],
+      board: {
+        rules: [
+          row('Situation', 'contexto', 'dónde / con quién'),
+          row('Task', 'reto', 'qué tenías que lograr'),
+          row('Action', 'qué hiciste', 'pasos concretos'),
+          row('Result', 'resultado', 'qué pasó al final')
+        ],
+        examples: [
+          row('S: A client was upset.', 'Situación: cliente molesto'),
+          row('T: I had to calm them.', 'Tarea: calmarlos'),
+          row('A: I listened and offered options.', 'Acción: escuché + opciones'),
+          row('R: They stayed with us.', 'Resultado: se quedaron'),
+          row('S→T→A→R — one story, clear flow.', 'Una historia, flujo claro')
+        ],
+        pattern: 'Contá historias de trabajo en este orden. No saltes al Result sin Action.',
+        transforms: [
+          tip('We had a problem. We fixed it.', 'S: problem → T: fix → A: steps → R: fixed', 'expandí STAR')
+        ],
+        takeaway: 'STAR = historia creíble en 4 bloques.'
+      },
       examples: [
         T([['S: ', 0], ['A client was upset', 1], ['.', 0]]),
         T([['T: ', 0], ['I had to calm them', 2], ['.', 0]]),
@@ -961,6 +1022,25 @@
         { id: 2, label: 'Rephrase', hint: 'in other words' },
         { id: 3, label: 'Continue', hint: 'what I mean is' }
       ],
+      board: {
+        rules: [
+          row('Buy time', 'Let me think / That is a good question', 'no te trabés en silencio'),
+          row('Rephrase', 'In other words / So far', 'reformulá la idea'),
+          row('Continue', 'What I mean is…', 'retomá el control')
+        ],
+        examples: [
+          row('Let me think for a second.', 'Comprá un segundo'),
+          row('In other words, I need more details.', 'Reformulá: necesito detalles'),
+          row('What I mean is, we can fix this today.', 'Lo que quiero decir es…'),
+          row('That is a good question. Let me explain.', 'Buena pregunta → explico'),
+          row('So far, the main point is this.', 'Hasta ahora, el punto es…')
+        ],
+        pattern: 'Si te trabás: tiempo → reformular → continuar. Nunca “umm” vacío.',
+        transforms: [
+          tip('umm…', 'Let me think for a second.', 'recovery')
+        ],
+        takeaway: 'Recovery phrases = fluidez bajo presión.'
+      },
       examples: [
         T([['Let me think for a second', 1], ['.', 0]]),
         T([['In other words', 2], [', I need more details.', 0]]),
@@ -1069,31 +1149,46 @@
     }
   }
 
-  function buildMarkup(def) {
+  function buildMarkup(def, opts) {
+    opts = opts || {};
+    var teach = opts.mode === 'teach' || opts.teach === true;
     var board = normalizeBoard(def);
-    var slotsHtml = def.slots.map(function (s, idx) {
-      var plus = idx < def.slots.length - 1
-        ? '<span class="jill-clip-plus" aria-hidden="true">+</span>'
-        : '';
-      return '<button type="button" class="jill-clip-slot" data-slot="' + s.id + '" aria-label="' + esc(s.label) + '">'
-        + '<span class="jill-clip-slot-label">' + esc(s.label) + '</span>'
-        + '<span class="jill-clip-slot-hint">' + esc(s.hint) + '</span>'
-        + '</button>' + plus;
-    }).join('');
+    // Teach mode: examples first (what Jill is saying). No Duolingo formula HUD.
+    var sheetInner = teach
+      ? (renderBox(board.examples, 'example')
+        + renderBox(board.rules, 'rule')
+        + (board.pattern ? '<p class="jill-ex-pattern">' + esc(board.pattern) + '</p>' : '')
+        + renderBox(board.transforms, 'transform')
+        + (board.takeaway ? '<p class="jill-ex-takeaway">' + esc(board.takeaway) + '</p>' : ''))
+      : (renderBox(board.rules, 'rule')
+        + renderBox(board.examples, 'example')
+        + (board.pattern ? '<p class="jill-ex-pattern">' + esc(board.pattern) + '</p>' : '')
+        + renderBox(board.transforms, 'transform')
+        + (board.takeaway ? '<p class="jill-ex-takeaway">' + esc(board.takeaway) + '</p>' : ''));
+
+    var slotsHtml = '';
+    if (!teach && def.slots && def.slots.length) {
+      slotsHtml = '<div class="jill-clip-row" role="group" aria-label="Fórmula">' + def.slots.map(function (s, idx) {
+        var plus = idx < def.slots.length - 1
+          ? '<span class="jill-clip-plus" aria-hidden="true">+</span>'
+          : '';
+        return '<button type="button" class="jill-clip-slot" data-slot="' + s.id + '" aria-label="' + esc(s.label) + '">'
+          + '<span class="jill-clip-slot-label">' + esc(s.label) + '</span>'
+          + '<span class="jill-clip-slot-hint">' + esc(s.hint) + '</span>'
+          + '</button>' + plus;
+      }).join('') + '</div>';
+    }
 
     return ''
-      + '<div class="jill-clip jill-clip-exercises" data-clip="' + esc(def.id) + '" data-ver="' + VERSION + '">'
+      + '<div class="jill-clip jill-clip-exercises' + (teach ? ' jill-clip-teach' : '') + '" data-clip="' + esc(def.id) + '" data-ver="' + VERSION + '">'
       + '  <p class="jill-clip-title">' + esc(def.title) + '</p>'
+      + (def.bridge ? '  <p class="jill-clip-bridge-line">' + esc(def.bridge) + '</p>' : '')
       + '  <div class="jill-ex-sheet">'
-      +      renderBox(board.rules, 'rule')
-      +      renderBox(board.examples, 'example')
-      +      (board.pattern ? '<p class="jill-ex-pattern">' + esc(board.pattern) + '</p>' : '')
-      +      renderBox(board.transforms, 'transform')
-      +      (board.takeaway ? '<p class="jill-ex-takeaway">' + esc(board.takeaway) + '</p>' : '')
+      +      sheetInner
       + '  </div>'
-      + '  <div class="jill-clip-row" role="group" aria-label="Fórmula">' + slotsHtml + '</div>'
+      + slotsHtml
       + '  <div class="jill-clip-footer">'
-      + '    <span class="jill-clip-progress">Ejercicios · practicá con el mic</span>'
+      + '    <span class="jill-clip-progress">' + (teach ? 'Tablero de la lección · mirá mientras Jill explica' : 'Ejercicios · practicá con el mic') + '</span>'
       + '  </div>'
       + '</div>';
   }
@@ -1108,12 +1203,16 @@
     }
   }
 
-  function mount(host, columnId) {
+  function mount(host, columnId, opts) {
     unmount();
     var def = getClip(columnId);
     if (!host || !def) return false;
+    opts = opts || {};
+    if (host.getAttribute && host.getAttribute('data-mode') === 'teach') {
+      opts.mode = 'teach';
+    }
     _host = host;
-    host.innerHTML = buildMarkup(def);
+    host.innerHTML = buildMarkup(def, opts);
     var root = host.querySelector('.jill-clip');
     if (!root) return false;
     wire(root);

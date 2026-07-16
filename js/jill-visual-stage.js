@@ -317,81 +317,77 @@
 
     clearCaption();
 
-    function activate(html, clipBound) {
+    function activate(html, optsAct) {
+      optsAct = optsAct || {};
       if (typeof global.JillLessonClip !== 'undefined') {
         try { global.JillLessonClip.unmount(); } catch (e0) { /* ignore */ }
       }
-      media.innerHTML = (html || '') + interactOverlayHtml(col, { clipBound: !!clipBound });
+      // Teach mode: no hotspot/drill overlay — board must explain, not flash buttons
+      media.innerHTML = html || '';
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;
       currentColumn = col || null;
-      // NO auto-fullscreen aquí: requestFullscreen pausa/mata el TTS mid-line.
-      var host = media.querySelector('.jill-lesson-clip-host');
-      var mounted = false;
+      var host = media.querySelector('.jill-teach-sheet') || media.querySelector('.jill-lesson-clip-host');
       if (host && typeof global.JillLessonClip !== 'undefined') {
         var clipId = host.getAttribute('data-clip') || col;
-        mounted = !!global.JillLessonClip.mount(host, clipId);
-        if (!mounted) {
-          var def = global.JillLessonClip.getClip ? global.JillLessonClip.getClip(clipId) : null;
-          var labs = slotLabels(col);
-          host.innerHTML = '<div class="jill-clip jill-clip-static" data-clip="' + String(clipId || col) + '">'
-            + '<p class="jill-clip-title">' + escHtml((def && def.title) || String(clipId || col)) + '</p>'
-            + '<div class="jill-ex-sheet"><div class="jill-ex-box"><div class="jill-ex-line"><span class="jill-ex-en">'
-            + escHtml((def && def.bridge) || 'Practicá la fórmula')
-            + '</span></div></div></div>'
-            + '<div class="jill-clip-row">' + labs.map(function (s, idx) {
-              return '<button type="button" class="jill-clip-slot" data-slot="' + (s.id || (idx + 1)) + '">'
-                + '<span class="jill-clip-slot-label">' + escHtml(s.label) + '</span>'
-                + (s.hint ? '<span class="jill-clip-slot-hint">' + escHtml(s.hint) + '</span>' : '')
-                + '</button>' + (idx < labs.length - 1 ? '<span class="jill-clip-plus">+</span>' : '');
-            }).join('') + '</div>'
-            + '<div class="jill-clip-footer"><span class="jill-clip-progress">Ejercicios · practicá con el mic</span></div>'
-            + '</div>';
-          mounted = true;
-        }
-        var overlay = media.querySelector('.jill-svg-interact');
-        if (overlay && mounted) overlay.classList.add('is-clip-bound');
+        global.JillLessonClip.mount(host, clipId, { mode: 'teach' });
       }
-      wireInteract(media, col);
+      // Caption: what track is locked (coherent with voice)
+      var cap = captionEl();
+      if (cap) {
+        cap.hidden = false;
+        cap.textContent = tutor === 'alice'
+          ? ('Alice · ' + String(col))
+          : ('Jill · lección: ' + String(col));
+      }
+    }
+
+    // Prefer canon SVG + exercise sheet (JillCanonVisual). Never default to button HUD.
+    if (typeof JillCanonVisual !== 'undefined') {
+      var fallback = null;
+      if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.byColumn) {
+        fallback = JillCanonRouter.byColumn()[col] || null;
+      }
+      if (!fallback && typeof JillFoundations !== 'undefined' && JillFoundations.CANON_BY_COLUMN) {
+        fallback = JillFoundations.CANON_BY_COLUMN[col];
+      }
+      JillCanonVisual.loadConfig().then(function () {
+        var html = JillCanonVisual.renderStage(col, fallback);
+        if (!html && typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col)) {
+          html = '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:240px;border-radius:16px;overflow:auto;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
+            + '<div class="jill-lesson-clip-host" data-clip="' + col + '" data-mode="teach"></div></div>';
+        }
+        if (html) activate(html, { teach: true });
+        else if (!isActive()) hide();
+      });
+      return true;
     }
 
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col)) {
       activate(
-        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
-        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>',
-        true
+        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:240px;border-radius:16px;overflow:auto;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
+        + '<div class="jill-lesson-clip-host" data-clip="' + col + '" data-mode="teach"></div></div>',
+        { teach: true }
       );
       return true;
     }
 
-    if (typeof JillCanonVisual === 'undefined') {
-      activate(
-        '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#f3ebff;">'
-        + '<div class="jill-lesson-clip-host" data-clip="' + col + '"></div></div>',
-        false
-      );
-      return true;
-    }
-
-    var fallback = null;
-    if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.byColumn) {
-      fallback = JillCanonRouter.byColumn()[col] || null;
-    }
-    if (!fallback && typeof JillFoundations !== 'undefined' && JillFoundations.CANON_BY_COLUMN) {
-      fallback = JillFoundations.CANON_BY_COLUMN[col];
-    }
-
-    JillCanonVisual.loadConfig().then(function () {
-      var useClip = typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col);
-      activate(JillCanonVisual.renderStage(col, fallback), useClip);
-    });
-
-    return true;
+    return false;
   }
 
-  function updateCaption() {
-    clearCaption();
+  function updateCaption(text) {
+    var cap = captionEl();
+    if (!cap) return;
+    var t = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+    if (!t) {
+      clearCaption();
+      return;
+    }
+    // Short line under the board — sync hint with what is being taught
+    if (t.length > 140) t = t.slice(0, 137) + '…';
+    cap.hidden = false;
+    cap.textContent = t;
   }
 
   /** Score spoken line against active track; update ring. */

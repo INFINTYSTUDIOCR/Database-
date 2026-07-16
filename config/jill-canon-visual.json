@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "background": "#f3ebff",
   "backgroundImage": "assets/canon/frame-bg.png",
   "frame": {
@@ -31,15 +31,25 @@
       "title": "Pronombre + To Be + Verbo (ING)"
     },
     {
+      "id": "gerundio-clase009",
+      "columns": [
+        "gerundio"
+      ],
+      "svg": "assets/canon/gerundio.svg",
+      "gif": null,
+      "title": "Clase 009 · TO vs ING",
+      "engine": "svg",
+      "clipId": "gerundio"
+    },
+    {
       "id": "gerundio-prep",
       "columns": [
-        "gerund_prep",
-        "gerundio"
+        "gerund_prep"
       ],
       "svg": "assets/canon/gerundio-prep.svg",
       "gif": null,
       "title": "Gerundio despues de preposicion",
-      "engine": "lessonClip",
+      "engine": "svg",
       "clipId": "gerund_prep"
     },
     {

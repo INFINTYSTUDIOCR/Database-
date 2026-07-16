@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260711all';
+  var CACHE_VER = '20260715teach1';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {
@@ -111,14 +111,7 @@
     var alt = clip.title || (fallbackRef && fallbackRef.title) || 'Canon Jill';
     var fullBleed = mode === 'stage';
 
-    if (clip.engine === 'lessonClip' && fullBleed) {
-      var clipKey = clip.clipId || (clip.columns && clip.columns[0]) || clip.id || '';
-      return {
-        type: 'lessonClip',
-        html: '<div class="jill-lesson-clip-host" data-clip="' + esc(clipKey) + '"></div>'
-      };
-    }
-
+    // Teach stage: SVG/GIF first. LessonClip HUD only if there is no canon image.
     if (clip.gif) {
       var gifSrc = assetUrl(clip.gif) + '?v=' + CACHE_VER;
       var imgStyle = fullBleed
@@ -137,18 +130,29 @@
     }
 
     var svgPath = clip.svg || (fallbackRef && fallbackRef.path);
-    var rel = assetUrl(svgPath);
-    var cached = _svgCache[rel] || _svgCache['/' + rel.replace(/^\//, '')];
-    if (cached) {
-      return { type: 'svg', html: inlineSvgMarkup(cached, alt, fullBleed) };
+    if (svgPath) {
+      var rel = assetUrl(svgPath);
+      var cached = _svgCache[rel] || _svgCache['/' + rel.replace(/^\//, '')];
+      if (cached) {
+        return { type: 'svg', html: inlineSvgMarkup(cached, alt, fullBleed) };
+      }
+      var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
+      var pad = fullBleed ? '0' : '6px 8px';
+      return {
+        type: 'img',
+        html: '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:' + pad + ';box-sizing:border-box;" loading="eager" decoding="async">'
+      };
     }
 
-    var media = (rel.charAt(0) === '/' ? rel : '/' + rel) + '?v=' + CACHE_VER;
-    var pad = fullBleed ? '0' : '6px 8px';
-    return {
-      type: 'img',
-      html: '<img src="' + media + '" alt="' + esc(alt) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:' + pad + ';box-sizing:border-box;" loading="eager" decoding="async">'
-    };
+    if (clip.engine === 'lessonClip' || (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(clip.clipId || (clip.columns && clip.columns[0])))) {
+      var clipKey = clip.clipId || (clip.columns && clip.columns[0]) || clip.id || '';
+      return {
+        type: 'lessonClip',
+        html: '<div class="jill-lesson-clip-host" data-clip="' + esc(clipKey) + '" data-mode="teach"></div>'
+      };
+    }
+
+    return { type: 'empty', html: '' };
   }
 
   function render(columnId, fallbackRef) {
@@ -163,21 +167,28 @@
 
   function renderStage(columnId, fallbackRef) {
     var clip = clipForColumn(columnId, fallbackRef);
-    if (!clip) return '';
-    if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(columnId)) {
-      clip = {
-        id: clip.id,
-        columns: clip.columns,
-        title: clip.title,
-        svg: clip.svg,
-        gif: null,
-        engine: 'lessonClip',
-        clipId: columnId
-      };
+    if (!clip) {
+      // No visual config — still allow exercise sheet for known tracks
+      if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(columnId)) {
+        return '<div class="jill-canon-stage-frame jill-teach-split" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
+          + '<div class="jill-lesson-clip-host" data-clip="' + esc(columnId) + '" data-mode="teach"></div></div>';
+      }
+      return '';
     }
+    // Prefer canon SVG; attach exercise sheet under it when clip data exists
     var media = mediaForClip(clip, fallbackRef, 'stage');
+    var sheet = '';
+    if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(columnId)) {
+      sheet = '<div class="jill-lesson-clip-host jill-teach-sheet" data-clip="' + esc(columnId) + '" data-mode="teach"></div>';
+    }
+    if (media.type === 'svg' || media.type === 'gif' || media.type === 'img') {
+      return '<div class="jill-canon-stage-frame jill-teach-split" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:auto;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
+        + '<div class="jill-teach-svg-wrap">' + media.html + '</div>'
+        + sheet
+        + '</div>';
+    }
     return '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:280px;border-radius:16px;overflow:hidden;border:2px solid rgba(167,139,250,0.35);' + frameStyle() + '">'
-      + media.html
+      + (media.html || sheet)
       + '</div>';
   }
 
