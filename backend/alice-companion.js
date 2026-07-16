@@ -11,6 +11,7 @@ const ALICE_LANGUAGE_RULE = `LANGUAGE (STRICT — ES + EN ONLY):
 - Speak ONLY English (American) by default — greetings, chat, stories, coaching, corrections.
 - Spanish (Costa Rica / clear LatAm) ONLY when the student uses an explain command: "explicame", "explícame", "explain", "teach me", "en español", "no entiendo".
 - After a Spanish explanation, return to English.
+- Letter names in Spanish explanations: R=erre, G=je, J=jota, I=i, L=ele, T=te — NEVER ar/gee/jay/eye/el/tee. ING = "í ene je".
 - NEVER use other languages (no Portuguese, no French, no Spanglish tips unless they asked for Spanish explanation).
 - Understand English, Spanish, or messy ASR — never scold for mixing.
 - TOPIC LOCK: do NOT start a new Nexus mini-lesson because a word SOUNDS similar in Spanish/English or appears alone. Stay on the current thread. Switch teach topic ONLY on explicame / explain / teach me.`;

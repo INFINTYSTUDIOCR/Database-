@@ -2916,15 +2916,22 @@ const CR_LETTER_NAME = {
   x: 'equis', y: 'ye', z: 'zeta'
 };
 
-/** CR letter names + kill English gee on ING. Do NOT deform Spanish words (trabajo, etc.). */
-function applyCrIngPhonetics(text) {
+/**
+ * Anti-americanización de letras de clase (R G J I L T) aunque vayan pegadas a inglés.
+ * Solo letras sueltas / deletreo — NUNCA reescribe palabras (trabajo, gerundio, will…).
+ */
+function hardenCrClassroomLetters(text) {
   let t = String(text || '');
-  t = t.replace(/\b(la|el|letra)\s+L\b/gi, '$1 ele');
-  t = t.replace(/\b(la|el|letra)\s+G\b/gi, '$1 je');
+  // Prefijos explícitos
   t = t.replace(/\b(la|el|letra)\s+R\b/gi, '$1 erre');
+  t = t.replace(/\b(la|el|letra)\s+G\b/gi, '$1 je');
   t = t.replace(/\b(la|el|letra)\s+J\b/gi, '$1 jota');
-  t = t.replace(/\b([A-Za-zÁÉÍÓÚÑáéíóúñ])(?:\s+([A-Za-zÁÉÍÓÚÑáéíóúñ])){1,6}\b/g, (m) => {
-    const parts = m.trim().split(/\s+/);
+  t = t.replace(/\b(la|el|letra)\s+I\b/gi, '$1 i');
+  t = t.replace(/\b(la|el|letra)\s+L\b/gi, '$1 ele');
+  t = t.replace(/\b(la|el|letra)\s+T\b/gi, '$1 te');
+  // Deletreo espaciado / con puntos: "R G J" · "I. N. G." · "R, G, J"
+  t = t.replace(/\b([A-Za-zÁÉÍÓÚÑáéíóúñ])(?:\s*[.·,]\s*|\s+)([A-Za-zÁÉÍÓÚÑáéíóúñ])(?:(?:\s*[.·,]\s*|\s+)([A-Za-zÁÉÍÓÚÑáéíóúñ])){0,8}\b/g, (m) => {
+    const parts = m.trim().split(/[\s.·,]+/).filter(Boolean);
     if (parts.length < 2 || !parts.every((p) => p.length === 1)) return m;
     return parts.map((p) => {
       if (p.toLowerCase() === 'ñ') return 'eñe';
@@ -2932,8 +2939,57 @@ function applyCrIngPhonetics(text) {
       return CR_LETTER_NAME[k] || p;
     }).join(' ');
   });
+  // Letras sueltas entre espacios/puntuación (R G J I L T) — inglés las lee ar/gee/jay/eye/el/tee
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Rr])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1erre');
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Gg])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1je');
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Jj])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1jota');
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Ii])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1i');
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Ll])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1ele');
+  t = t.replace(/(^|[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ])([Tt])(?=[^A-Za-zÁÉÍÓÚáéíóúÜüñÑ]|$)/g, '$1te');
+  // Inglés residual de letras (solo en contexto de deletreo)
+  t = t.replace(/\bletter\s+ar\b/gi, 'letra erre');
+  t = t.replace(/\bletter\s+gee\b/gi, 'letra je');
+  t = t.replace(/\bletter\s+jay\b/gi, 'letra jota');
+  t = t.replace(/\bletter\s+eye\b/gi, 'letra i');
+  t = t.replace(/\bletter\s+el\b/gi, 'letra ele');
+  t = t.replace(/\bletter\s+tee\b/gi, 'letra te');
+  t = t.replace(/\bgee\b/gi, 'je');
+  t = t.replace(/\bjay\b/gi, 'jota');
+  t = t.replace(/\btee\b/gi, 'te');
+  // ING / ge gringo
   t = t.replace(/\bí\s+ene\s+ge\b/gi, 'í ene je');
   t = t.replace(/\bene\s+ge\b/gi, 'ene je');
+  t = t.replace(/\bai\s+en\s+yi\b/gi, 'í ene je');
+  t = t.replace(/\bI\s+N\s+G\b/g, 'í ene je');
+  return t.replace(/\s{2,}/g, ' ').trim();
+}
+
+/**
+ * Pausas entre español e inglés seguido — evita que ElevenLabs americanice R/G/J/I/L/T
+ * del español porque el siguiente token es inglés.
+ */
+function separateAdjacentEsEnForTts(text) {
+  let t = String(text || '');
+  // Palabra (3+) → token inglés de clase
+  t = t.replace(
+    /\b([A-Za-zÁÉÍÓÚÑáéíóúñü]{3,})(\s+)(\b(?:will|would|should|could|can|must|have|has|had|been|being|going|to|be|am|is|are|was|were|do|does|did|the|a|an|in|on|at|for|with|and|but|however|therefore|ing)\b)/gi,
+    (m, a, sp, en) => {
+      if (/^(the|and|for|with|this|that|from|into|your|our|will|would|have|has|had|been|going|ing)$/i.test(a)) return m;
+      return `${a}. ${en}`;
+    }
+  );
+  // Token inglés → palabra con tilde / español claro
+  t = t.replace(
+    /(\b(?:will|would|should|could|can|must|have|has|had|been|going|ing|however|therefore)\b)(\s+)([ÁÉÍÓÚÑáéíóúñ][A-Za-záéíóúñü]*)/gi,
+    '$1. $3'
+  );
+  return t.replace(/\s{2,}/g, ' ').trim();
+}
+
+/** CR letter names + kill English gee on ING. Do NOT deform Spanish words (trabajo, etc.). */
+function applyCrIngPhonetics(text) {
+  let t = hardenCrClassroomLetters(text);
+  t = separateAdjacentEsEnForTts(t);
   return t.replace(/\s{2,}/g, ' ').trim();
 }
 
@@ -3170,14 +3226,19 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
-    // Fonética MSI solo donde hay inglés de clase — NO romper español ("¿Has entendido?" ≠ jás)
-    // NO aplicar en Alice English chat: have debe sonar "have", no "yaf/jáf"
-    if (/\b(have|has|had|HAVE|HAS|HAD|jáf|jás|jád|jjáf|jjás|jjád|yaf|ing|ING)\b/.test(clean)) {
+    // Siempre: letras CR + pausas ES↔EN (anti-americanización R G J I L T)
+    clean = applyCrIngPhonetics(clean);
+    // Fonética MSI HAVE solo donde hay inglés de clase — NO romper "¿Has entendido?"
+    if (/\b(have|has|had|HAVE|HAS|HAD|jáf|jás|jád|jjáf|jjás|jjád|yaf)\b/.test(clean)) {
       clean = applyCrHavePhonetics(clean);
-      clean = applyCrIngPhonetics(clean);
+      clean = hardenCrClassroomLetters(clean);
     }
   } else {
-    // English path: if model already wrote jáf/yaf, still force jota (never English J)
+    // English path: classroom letters / ING still use CR names; HAVE → jota if present
+    if (/\b(jáf|jás|jád|jaf|jas|jad|jjáf|yaf|yas|yad|ING|í ene|letra)\b/i.test(clean)
+        || /\b([RrGgJjIiLlTt])(?:\s*[.·,]\s*|\s+)([RrGgJjIiLlTt])\b/.test(clean)) {
+      clean = applyCrIngPhonetics(clean);
+    }
     if (/\b(jáf|jás|jád|jaf|jas|jad|jjáf|yaf|yas|yad)\b/i.test(clean)) {
       clean = forceSpanishJotaHave(clean);
     }
@@ -3197,9 +3258,9 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
     : (process.env.ELEVEN_TTS_MODEL_EN || process.env.ELEVEN_TTS_MODEL || 'eleven_turbo_v2_5');
 
   const elevenLang = tutorElevenLanguageCode(effectiveLang);
-  // dualaccent1 + jota3: LatAm ES + American EN; HAVE = Spanish jota not English J
-  const brainLang = `${effectiveLang}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|jota3|${modelId}`;
-  const cacheKey = getTTSCacheKey(clean, voiceId, effectiveLang + '|jota3', speed, modelId);
+  // dualaccent1 + crletters1: LatAm ES + American EN; R/G/J/I/L/T = nombres CR, no ar/gee/jay/eye/el/tee
+  const brainLang = `${effectiveLang}|${elevenLang}|s${Number(speed).toFixed(2)}|dualaccent1|crletters1|${modelId}`;
+  const cacheKey = getTTSCacheKey(clean, voiceId, effectiveLang + '|crletters1', speed, modelId);
   if (ttsCache.has(cacheKey)) {
     return { buffer: ttsCache.get(cacheKey), cache: 'RAM', clean };
   }
@@ -4078,6 +4139,7 @@ INGLÉS: acento americano claro cuando das ejemplos o pedís producción oral.
 PROHIBIDO ABSOLUTO portugués/portuñol: "mais", você, pra, então, não, também — NUNCA.
 PROHIBIDO: español de España (vosotros, vale muletilla, tío, ceceo), rioplatense (che, boludo).
 REGLA IRROMPIBLE: español = acento latino/tico CR; inglés = acento americano. NADA MÁS.
+LETRAS EN VOZ (anti-americanización): si deletreás o nombrás letras, usá nombres CR — R=erre, G=je (jota), J=jota, I=i, L=ele, T=te. PROHIBIDO ar/gee/jay/eye/el/tee. ING = "í ene je". Aunque una palabra inglesa venga seguida, no americanices el español.
 COMANDO EXPLICAME: solo "explicame / explícame / explain / teach me / enséñame" abre o CAMBIA de lección. Si el micrófono trae una palabra que SUENA parecida en ES↔EN pero NO hay ese comando, interpretá dentro del TRACK LOCK — NO salgas de la explicación.
 Inglés de producción cuando el ejercicio pide oración en inglés (ejemplo modelo + práctica oral).
 Cuando das un ejemplo en inglés, contextualizá en español primero — en una frase.

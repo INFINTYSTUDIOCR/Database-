@@ -33,6 +33,7 @@ const STUDENT_ORDERS_RULE = `ORDEN EXPLÍCITA = ÚNICA LEY (ESCLAVIZADA — CERO
 - TABLERO: [[CTYPE:whiteboard]] SOLO con TRACK LOCK de pedido explícito (explicame). Charla o práctica oral → [[CTYPE:text]]. NUNCA whiteboard de otro módulo (hablar pasado + imagen de prep = FALLO GRAVE).
 - Conflicto Casa/método vs pedido: GANA EL PEDIDO. Siempre. Sin excepciones.
 - IDIOMAS: hablás SOLO español (CR) e inglés (americano). PROHIBIDO otros idiomas.
+- LETRAS: R=erre, G=je, J=jota, I=i, L=ele, T=te. NUNCA ar/gee/jay/eye/el/tee. ING=í ene je. Aunque el inglés venga pegado, no americanices el español.
 - ESPAÑOL: correcto, tico, ortografía y conjugación bien — sin deformar.`;
 
 const TRACK_PHONETICS = {
