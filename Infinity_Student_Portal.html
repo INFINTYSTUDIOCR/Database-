@@ -546,6 +546,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .toast.show{display:flex;}
 .toast.err{background:var(--rm);}
 
+/* Infinity Arcade cabinet (Recursos) */
+@keyframes infArcadeIn{0%{opacity:0;transform:translateY(28px) scale(.86)}60%{opacity:1;transform:translateY(-4px) scale(1.02)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes infArcadeGlow{0%,100%{filter:drop-shadow(0 0 10px rgba(167,139,250,.35))}50%{filter:drop-shadow(0 0 26px rgba(34,211,238,.55))}}
+@keyframes infArcadeBootBlink{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes infArcadeScan{0%{transform:translateY(-120%)}100%{transform:translateY(220%)}}
+.inf-arcade-stage{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#12082a,#1a0a3a 40%,#0b1220);padding:10px 8px 14px;border:1px solid rgba(196,181,253,.28);box-shadow:0 14px 36px rgba(76,29,149,.35);}
+.inf-arcade-cabinet-wrap{position:relative;width:min(100%,420px);margin:0 auto;animation:infArcadeIn .95s cubic-bezier(.2,.8,.2,1) both,infArcadeGlow 3.2s ease-in-out infinite;}
+.inf-arcade-cabinet-img{display:block;width:100%;height:auto;user-select:none;pointer-events:none;}
+.inf-arcade-screen{position:absolute;left:20.5%;top:15.8%;width:59%;height:29.5%;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(8,47,73,.25);box-shadow:inset 0 0 18px rgba(255,255,255,.18);z-index:2;}
+.inf-arcade-screen:before{content:"";position:absolute;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);opacity:.55;pointer-events:none;animation:infArcadeScan 2.8s linear infinite;}
+.inf-arcade-screen-inner{position:relative;z-index:1;width:100%;height:100%;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;}
+.inf-arcade-boot{font-size:11px;font-weight:900;letter-spacing:.18em;color:#0f172a;text-transform:uppercase;animation:infArcadeBootBlink 1s ease-in-out infinite;}
+.inf-arcade-title{font-size:10px;font-weight:900;letter-spacing:.14em;color:#0f172a;opacity:.85;margin-bottom:2px;}
+.inf-arcade-btn{width:100%;border:none;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:900;cursor:pointer;line-height:1.15;box-shadow:0 3px 0 rgba(0,0,0,.18);transition:transform .12s ease,filter .12s ease;}
+.inf-arcade-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18);}
+.inf-arcade-btn-challenge{background:linear-gradient(135deg,#FFD700,#F59E0B);color:#1a1200;}
+.inf-arcade-btn-modes{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;}
+.inf-arcade-btn-mode{background:rgba(15,23,42,.78);color:#e0f2fe;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:6px 5px;}
+.inf-arcade-btn-back{background:rgba(255,255,255,.55);color:#1e1b4b;font-size:10px;padding:5px;}
+.inf-arcade-modes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:100%;overflow:auto;}
+@media(max-width:420px){
+  .inf-arcade-screen{left:19.5%;top:15.2%;width:61%;height:30%;}
+  .inf-arcade-btn{font-size:10px;padding:7px 5px;}
+}
+
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--t3);}
 .loading i{font-size:36px;margin-bottom:0.75rem;opacity:0.3;}
 .spin{animation:spin 1s linear infinite;display:inline-block;}
@@ -1157,9 +1182,19 @@ function showPortal(s){
   if(studentJillOn(s) || studentAliceOn(s) || studentJillProOn(s)){
     drillRecursosBtns += '<button class="btn" style="background:var(--ad);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'foundations\')"><i class="ti ti-bolt"></i> Rapid drill (Foundations)</button>';
   }
+  if(studentCompanionOn(s) || studentAliceOn(s)){
+    drillRecursosBtns += '<button class="btn" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;margin-bottom:8px;width:100%;" onclick="portalOpenRapidDrill(\'advanced\')"><i class="ti ti-bolt"></i> Challenge drill (Alice)</button>';
+  }
   if(!drillRecursosBtns){
     drillRecursosBtns = '<div style="font-size:13px;color:var(--t3);">Activá Jill o Alice con tu trainer.</div>';
   }
+  var arcadeGate = studentGamesOn(s)
+    ? '<div class="inf-arcade-stage" id="portal-arcade-stage">'
+      + '<div style="font-size:11px;letter-spacing:.16em;font-weight:800;color:#c4b5fd;text-align:center;margin-bottom:8px;">INSERT COIN · SKILL TESTS</div>'
+      + '<div id="portal-arcade-cabinet"></div>'
+      + '<div id="portal-quiz-container" style="margin-top:12px;"></div>'
+      + '</div>'
+    : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
   var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
     +'<div style="font-size:12px;color:var(--t2);line-height:1.65;margin-bottom:10px;">Después de practicar con Jill, leé <strong>5–10 min</strong> en voz baja o alta. Anotá palabras nuevas en tu cuaderno — entran a tu vocab activo.</div>'
     +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">'
@@ -1179,6 +1214,10 @@ function showPortal(s){
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Typing por escenario</div>'
     +'<div id="portal-persona-container"></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-device-gamepad-2"></i>Infinity Arcade</div>'
+    +'<div style="font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;">Challenge drill y Language Arcade viven aquí. Tocá la pantalla de la máquina para elegir.</div>'
+    + arcadeGate
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-bolt"></i>Drills</div>'
     +'<div id="portal-nemesis-container">'+drillRecursosBtns+'</div>'
@@ -1224,6 +1263,9 @@ function showPortal(s){
   document.getElementById('portal-content').innerHTML = html;
   switchPortalTab(opts.tab || 'progreso');
   renderTypingPersonaPicker('portal-persona-container');
+  if(studentGamesOn(s)){
+    setTimeout(function(){ renderInfinityArcadeCabinet('portal-arcade-cabinet'); }, 40);
+  }
 
   // Verificar si el trainer habilitó Nexora
   loadNexoraConfig(s);
@@ -1553,14 +1595,97 @@ function portalOpenPracticeQuiz(){
     return;
   }
   switchPortalTab('recursos');
-  setTimeout(function(){ renderQuizWidget('portal-quiz-container'); }, 150);
+  setTimeout(function(){
+    renderInfinityArcadeCabinet('portal-arcade-cabinet');
+    var stage = document.getElementById('portal-arcade-stage');
+    if(stage && stage.scrollIntoView) stage.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 150);
 }
+
+function renderInfinityArcadeCabinet(containerId){
+  var c = document.getElementById(containerId || 'portal-arcade-cabinet');
+  if(!c) return;
+  if(!studentGamesOn(CURRENT_STUDENT)){
+    c.innerHTML = '<div style="font-size:13px;color:var(--t3);padding:12px;text-align:center;">Activá Jill, Modo Libre o Alice para el Arcade.</div>';
+    return;
+  }
+  var canChallenge = !!(studentCompanionOn(CURRENT_STUDENT) || studentAliceOn(CURRENT_STUDENT));
+  c.innerHTML =
+    '<div class="inf-arcade-cabinet-wrap" id="inf-arcade-wrap">'
+    + '<img class="inf-arcade-cabinet-img" src="assets/infinity-arcade-cabinet.png" alt="Infinity Arcade">'
+    + '<div class="inf-arcade-screen" id="inf-arcade-screen" aria-live="polite">'
+    +   '<div class="inf-arcade-screen-inner" id="inf-arcade-screen-inner">'
+    +     '<div class="inf-arcade-boot">INSERT COIN…</div>'
+    +   '</div>'
+    + '</div>'
+    + '</div>';
+  clearTimeout(window._infArcadeBootTimer);
+  window._infArcadeBootTimer = setTimeout(function(){
+    showInfinityArcadeHome(canChallenge);
+  }, 1100);
+}
+
+function showInfinityArcadeHome(canChallenge){
+  var inner = document.getElementById('inf-arcade-screen-inner');
+  if(!inner) return;
+  if(canChallenge == null) canChallenge = !!(studentCompanionOn(CURRENT_STUDENT) || studentAliceOn(CURRENT_STUDENT));
+  var challengeBtn = canChallenge
+    ? '<button type="button" class="inf-arcade-btn inf-arcade-btn-challenge" onclick="infinityArcadePickChallenge()"><i class="ti ti-bolt"></i> Challenge Drill</button>'
+    : '';
+  inner.innerHTML =
+    '<div class="inf-arcade-title">SKILL TESTS</div>'
+    + challengeBtn
+    + '<button type="button" class="inf-arcade-btn inf-arcade-btn-modes" onclick="showInfinityArcadeModes()"><i class="ti ti-device-gamepad-2"></i> Language Arcade</button>';
+}
+
+function showInfinityArcadeModes(){
+  var inner = document.getElementById('inf-arcade-screen-inner');
+  if(!inner) return;
+  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
+  var keys = Object.keys(modes);
+  if(!keys.length){
+    inner.innerHTML = '<div class="inf-arcade-boot">Sin modos</div>'
+      + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">Volver</button>';
+    return;
+  }
+  inner.innerHTML =
+    '<div class="inf-arcade-title">ELEGÍ MODO</div>'
+    + '<div class="inf-arcade-modes">'
+    + keys.map(function(key){
+        var m = modes[key];
+        return '<button type="button" class="inf-arcade-btn inf-arcade-btn-mode" onclick="infinityArcadeStartMode(\''+key+'\')">'
+          + (m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')
+          + (m.title || key)
+          + '</button>';
+      }).join('')
+    + '</div>'
+    + '<button type="button" class="inf-arcade-btn inf-arcade-btn-back" onclick="showInfinityArcadeHome()">← Menú</button>';
+}
+
+function infinityArcadePickChallenge(){
+  if(!(studentCompanionOn(CURRENT_STUDENT) || studentAliceOn(CURRENT_STUDENT))){
+    showToast('Challenge drill es de Alice / Modo Libre.','err');
+    return;
+  }
+  portalOpenRapidDrill('advanced');
+}
+
+function infinityArcadeStartMode(mode){
+  var quiz = document.getElementById('portal-quiz-container');
+  if(quiz){
+    startArcadeMode(mode, 'portal-quiz-container');
+    quiz.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  } else {
+    startArcadeMode(mode, 'portal-quiz-container');
+  }
+}
+
 function renderPortalGamesButtons(variant){
   if(!studentGamesOn(CURRENT_STUDENT)) return '';
   var s = CURRENT_STUDENT;
   var accent = variant === 'alice' ? '#C084FC' : '#e9d5ff';
   var border = variant === 'alice' ? 'rgba(192,132,252,0.45)' : 'rgba(167,139,250,0.45)';
-  // Challenge drill + Language Arcade removed from all portal versions.
+  // Challenge drill + Language Arcade: only in Recursos (Infinity Arcade cabinet).
   var html = '';
   if(variant === 'alice'){
     if(studentAliceOn(s) && !aliceCompanionUiActive())
