@@ -253,7 +253,6 @@ textarea.form-input{min-height:96px;resize:vertical;}
 .kamuk-pilot summary .kamuk-pilot-chevron{transition:transform .2s;color:var(--purple);font-size:20px;flex-shrink:0;}
 .kamuk-pilot details[open] summary .kamuk-pilot-chevron{transform:rotate(180deg);}
 .kamuk-pilot-body{padding:0 1.35rem 1.45rem;}
-.kamuk-pilot-note{font-size:13px;color:var(--t2);line-height:1.6;margin:0 0 1.1rem;}
 .kamuk-pilot-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 @media(max-width:640px){.kamuk-pilot-grid{grid-template-columns:1fr;}}
 .kamuk-pilot-gate{
