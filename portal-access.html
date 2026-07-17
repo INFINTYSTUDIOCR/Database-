@@ -7,7 +7,7 @@
 <title>Portal Access — Infinity Studio CR</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link rel="stylesheet" href="css/pages.css?v=20260717kamuk">
+<link rel="stylesheet" href="css/pages.css?v=20260717portal">
 <link rel="stylesheet" href="css/lang-toggle.css">
 </head>
 <body>
@@ -29,27 +29,34 @@
 
 <p class="portal-private-note">This page is not linked from the public site navigation. If you are not a student or trainer, use <a href="index.html#contact" style="color:var(--purple);font-weight:600;">Contact</a> to request access.</p>
 
-<div class="portal-access-grid">
-  <a href="https://studioinfinitycr.com/Infinity_Student_Portal.html" class="portal-gate student">
-    <div class="portal-gate-art">
-      <img src="assets/portal-student.png" alt="Student Portal" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-      <i class="ti ti-school" style="display:none;"></i>
+<section class="infinity-access" aria-label="Infinity Studio access">
+  <div class="infinity-access-head">
+    <img class="infinity-access-logo" src="assets/logos/infinity-studio-cr.png?v=20260703" alt="Infinity Studio CR" width="40" height="40">
+    <div>
+      <h2 class="infinity-access-title">Infinity Studio</h2>
+      <p class="infinity-access-sub">Portal estudiantil y Engine — acceso autorizado</p>
     </div>
-    <h2>Student Portal</h2>
-    <p>Training Book, progress, Alice coaching and your assigned exercises.</p>
-    <span class="portal-gate-cta"><i class="ti ti-arrow-right"></i> Enter as student</span>
-  </a>
+  </div>
+  <div class="portal-access-grid">
+    <a href="https://studioinfinitycr.com/Infinity_Student_Portal.html" class="portal-gate student">
+      <div class="portal-gate-art">
+        <img src="assets/logos/training-book.png" alt="Student Portal">
+      </div>
+      <h2>Student Portal</h2>
+      <p>Training Book, progress, Alice coaching and your assigned exercises.</p>
+      <span class="portal-gate-btn portal-gate-btn--gold"><i class="ti ti-arrow-right"></i> Enter as student</span>
+    </a>
 
-  <a href="https://studioinfinitycr.com/Infinity_Nexus_Engine.html" class="portal-gate trainer">
-    <div class="portal-gate-art">
-      <img src="assets/portal-trainer.png" alt="Trainer Platform" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-      <i class="ti ti-dashboard" style="display:none;"></i>
-    </div>
-    <h2>Infinity Engine</h2>
-    <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting.</p>
-    <span class="portal-gate-cta"><i class="ti ti-arrow-right"></i> Enter as trainer</span>
-  </a>
-</div>
+    <a href="https://studioinfinitycr.com/Infinity_Nexus_Engine.html" class="portal-gate trainer">
+      <div class="portal-gate-art">
+        <img src="assets/logos/infinity-engine.png" alt="Infinity Engine">
+      </div>
+      <h2>Infinity Engine</h2>
+      <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting.</p>
+      <span class="portal-gate-btn"><i class="ti ti-arrow-right"></i> Enter as trainer</span>
+    </a>
+  </div>
+</section>
 
 <section class="kamuk-pilot" id="kamuk-pilot" aria-label="Kamuk School Pilot">
   <details open>

@@ -181,21 +181,54 @@ textarea.form-input{min-height:96px;resize:vertical;}
 .page-footer{background:var(--dark);color:rgba(255,255,255,0.5);text-align:center;padding:2rem;font-size:13px;margin-top:48px;}
 .page-footer a{color:var(--gold);font-weight:600;}
 
-.portal-access-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:900px;margin:0 auto;padding:48px 2rem 80px;}
+.portal-private-note{font-size:12px;color:var(--t3);text-align:center;max-width:520px;margin:0 auto;padding:0 2rem 24px;line-height:1.6;}
+
+/* Infinity Portal + Engine access (same language as Kamuk pilot cards) */
+.infinity-access{
+  max-width:900px;margin:0 auto 28px;padding:0 2rem 8px;
+}
+.infinity-access-head{
+  display:flex;align-items:center;gap:14px;margin-bottom:1rem;
+  padding:1.1rem 1.25rem;border-radius:var(--rxl);
+  background:linear-gradient(135deg,rgba(91,33,182,0.12) 0%,rgba(245,166,35,0.10) 55%,rgba(91,33,182,0.06) 100%);
+  border:1px solid rgba(91,33,182,0.22);box-shadow:0 12px 32px rgba(91,33,182,0.08);
+}
+.infinity-access-logo{
+  width:44px;height:44px;object-fit:contain;border-radius:12px;background:#fff;
+  border:1px solid rgba(91,33,182,0.18);box-shadow:0 4px 12px rgba(91,33,182,0.12);flex-shrink:0;
+}
+.infinity-access-title{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:800;color:var(--purple-dark);margin:0 0 2px;}
+.infinity-access-sub{font-size:13px;color:var(--t2);margin:0;line-height:1.4;}
+.portal-access-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;max-width:900px;margin:0 auto;padding:0 0 48px;}
 @media(max-width:768px){.portal-access-grid{grid-template-columns:1fr;}}
-.portal-gate{background:var(--white);border:1px solid var(--line);border-radius:var(--rxl);padding:2rem;text-align:center;transition:transform .25s,box-shadow .25s,border-color .25s;text-decoration:none;color:inherit;display:block;}
-.portal-gate:hover{transform:translateY(-4px);box-shadow:0 24px 60px rgba(91,33,182,0.14);border-color:rgba(91,33,182,0.35);}
+.portal-gate{
+  background:var(--white);border:1px solid rgba(91,33,182,0.16);border-radius:var(--rl);
+  padding:1.35rem 1.2rem;text-align:left;transition:transform .25s,box-shadow .25s,border-color .25s;
+  text-decoration:none;color:inherit;display:flex;flex-direction:column;
+  box-shadow:0 8px 24px rgba(91,33,182,0.06);
+}
+.portal-gate:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(91,33,182,0.16);border-color:rgba(91,33,182,0.4);}
 .portal-gate.student{border-top:4px solid var(--gold);}
 .portal-gate.trainer{border-top:4px solid var(--purple);}
-.portal-gate-art{height:160px;border-radius:var(--rl);margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--off-white);}
-.portal-gate-art img{width:100%;height:100%;object-fit:contain;padding:12px;}
-.portal-gate-art i{font-size:64px;color:var(--purple);}
+.portal-gate-art{
+  height:100px;border-radius:var(--r);margin-bottom:1rem;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:linear-gradient(135deg,var(--lavender),#FFF8F0);border:1px solid rgba(91,33,182,0.10);
+}
+.portal-gate-art img{width:80px;height:80px;object-fit:contain;border-radius:16px;padding:0;}
+.portal-gate-art i{font-size:48px;color:var(--purple);}
 .portal-gate.student .portal-gate-art i{color:var(--gold-dark);}
-.portal-gate h2{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:800;margin-bottom:8px;}
-.portal-gate p{font-size:14px;color:var(--t2);line-height:1.65;margin-bottom:1rem;}
+.portal-gate h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:800;margin:0 0 6px;color:var(--purple-dark);}
+.portal-gate p{font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 1rem;flex:1;}
+.portal-gate-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;
+  border-radius:var(--r);font-size:14px;font-weight:800;color:#fff;background:var(--purple);
+  box-shadow:0 4px 16px rgba(91,33,182,0.28);transition:background .2s,transform .2s;
+}
+.portal-gate:hover .portal-gate-btn{background:var(--purple-light);transform:translateY(-1px);}
+.portal-gate-btn--gold{background:var(--gold-dark);box-shadow:0 4px 16px rgba(245,166,35,0.35);}
+.portal-gate:hover .portal-gate-btn--gold{background:var(--gold);}
 .portal-gate-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--purple);}
 .portal-gate.student .portal-gate-cta{color:var(--gold-dark);}
-.portal-private-note{font-size:12px;color:var(--t3);text-align:center;max-width:520px;margin:0 auto;padding:0 2rem 32px;line-height:1.6;}
 
 /* Kamuk School Pilot (client track — Infinity palette + app buttons) */
 .kamuk-pilot{max-width:900px;margin:0 auto 64px;padding:0 2rem;}
