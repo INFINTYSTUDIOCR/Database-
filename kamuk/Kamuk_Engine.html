@@ -817,7 +817,7 @@ async function loadUsers(){
     rows.forEach(function(r){ if(r.data) TRAINERS[r.data.email]=r.data; });
     // Seed master if empty
     if(!Object.keys(TRAINERS).length){
-      var master = {id:'USR-MASTER-001',email:'trainer@kamuk.cr',pass:'kamuk2025',name:'Kamuk Master Trainer',role:'superadmin',department:'admin',status:'active'};
+      var master = {id:'USR-MASTER-001',email:'trainer@kamuk.cr',pass:'KmOrt#7a2f9c',name:'Kamuk Master Trainer',role:'superadmin',department:'admin',status:'active'};
       await dbSet('kamuk_users','USR-MASTER-001',master);
       TRAINERS['trainer@kamuk.cr']=master;
     }
@@ -1047,9 +1047,9 @@ async function doLogin(){
 
   // Fallback master hardcodeado — siempre funciona
   var MASTER_FALLBACKS = [
-    {email:'trainer@kamuk.cr', pass:'kamuk2025',  name:'Kamuk Master Trainer', role:'superadmin'},
-    {email:'master@kamuk.cr',  pass:'master2025', name:'Master General',        role:'master'},
-    {email:'admin@kamuk.cr',   pass:'admin2025',  name:'Kamuk Admin',           role:'admin'},
+    {email:'trainer@kamuk.cr', pass:'KmOrt#7a2f9c',  name:'Kamuk Master Trainer', role:'superadmin'},
+    {email:'master@kamuk.cr',  pass:'KmMst#4e8b1d', name:'Master General',        role:'master'},
+    {email:'admin@kamuk.cr',   pass:'KmAdm#9c3e2a',  name:'Kamuk Admin',           role:'admin'},
   ];
   var MASTER_FALLBACK = MASTER_FALLBACKS.find(function(f){ return f.email===user && f.pass===pass; });
   if(MASTER_FALLBACK){
