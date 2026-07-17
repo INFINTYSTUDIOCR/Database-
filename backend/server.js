@@ -108,6 +108,16 @@ const { ANTHROPIC_API_KEY, WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, VERIFY_TOKE
 // Same Supabase project as Student Portal / Engine (Render env overrides when set)
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rxruvpfdpgowmpvydacd.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
+// Dedicated Kamuk project (separate from Infinity — never mix tables)
+const KAMUK_SUPABASE_URL = process.env.KAMUK_SUPABASE_URL || 'https://lbspgbeqtcnjrbhiuucu.supabase.co';
+const KAMUK_SUPABASE_KEY = process.env.KAMUK_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM';
+
+function sbCreds(table) {
+  if (table && String(table).startsWith('kamuk_')) {
+    return { url: KAMUK_SUPABASE_URL, key: KAMUK_SUPABASE_KEY };
+  }
+  return { url: SUPABASE_URL, key: SUPABASE_KEY };
+}
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
@@ -130,6 +140,7 @@ async function claudeCall({ model, max_tokens, system, messages }) {
 }
 
 async function sbGet(table) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('sbGet: SUPABASE_URL or SUPABASE_KEY not configured');
     return [];
@@ -152,6 +163,7 @@ async function sbGet(table) {
 }
 
 async function sbSet(table, id, data) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('sbSet: SUPABASE not configured');
     return false;
@@ -176,6 +188,7 @@ async function sbSet(table, id, data) {
 }
 
 async function sbGetOne(table, id) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY || !id) return null;
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=id,data&limit=1`, {
@@ -191,6 +204,7 @@ async function sbGetOne(table, id) {
 }
 
 async function sbQuery(table, queryString) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY) return [];
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${queryString}`, {
@@ -206,6 +220,7 @@ async function sbQuery(table, queryString) {
 }
 
 async function sbDelete(table, id) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY || !id) return false;
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
