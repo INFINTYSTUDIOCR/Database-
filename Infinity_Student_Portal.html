@@ -6447,21 +6447,12 @@ async function nexoraSavePracticeMinutes(mins){
     var student = window._currentStudent || window._portalStudent;
     if(!student||!student.id) return;
     var table = student.id.startsWith('KAM-') ? 'kamuk_students' : 'infinity_students';
-    // KAMUK INF PORTAL STORE — fallback KV in infinity_sessions if kamuk_* tables absent
-    var _kamukKv = false;
-    if (table === 'kamuk_students') {
-      try {
-        var _probe = await fetch(SUPA_URL+'/rest/v1/kamuk_students?select=id&limit=1',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});
-        if (!_probe.ok) { table = 'infinity_sessions'; _kamukKv = true; }
-      } catch (_e) { table = 'infinity_sessions'; _kamukKv = true; }
-    }
-    var _rowId = _kamukKv ? ('KMSTU_'+student.id) : student.id;
-    var rows = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(typeof _rowId!=='undefined'?_rowId:student.id),{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}}).then(function(r){return r.ok?r.json():[];});
+    var rows = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+student.id,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}}).then(function(r){return r.json();});
     if(rows&&rows[0]){
       var d = rows[0].data||{};
       d.nexoraPracticeMinutes = (d.nexoraPracticeMinutes||0) + mins;
       d.nexoraSessionCount = (d.nexoraSessionCount||0) + 1;
-      await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:(typeof _rowId!=='undefined'?_rowId:student.id),data:d,updated_at:new Date().toISOString()})});
+      await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:student.id,data:d,updated_at:new Date().toISOString()})});
     }
   }catch(e){}
 }

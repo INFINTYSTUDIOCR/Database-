@@ -155,25 +155,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 const SUPA_URL = 'https://rxruvpfdpgowmpvydacd.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
+async function dbGet(table){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); return await r.json(); }
+async function dbSet(table,id,data){ await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})}); }
 
-// ── KAMUK STORAGE ADAPTER (Infinity Supabase) ─────────────────
-// Prefer real kamuk_* tables; if missing, store as KV rows in infinity_sessions.
-var KAMUK_STORAGE = { mode: 'probe', phys: 'infinity_sessions', ready: null };
-var KAMUK_KV = { kamuk_students:'KMSTU_', kamuk_users:'KMUSR_', kamuk_sessions:'KMSES_', kamuk_resources:'KMRES_' };
-function kamukPhysId(table,id){ return (KAMUK_KV[table]||('KM_'+table+'_'))+id; }
-function kamukLogicId(table,physId){ var p=KAMUK_KV[table]||('KM_'+table+'_'); return (physId&&physId.indexOf(p)===0)?physId.slice(p.length):physId; }
-async function kamukResolveStorage(){
-  if(KAMUK_STORAGE.ready) return KAMUK_STORAGE.ready;
-  KAMUK_STORAGE.ready = (async function(){
-    try{
-      var r=await fetch(SUPA_URL+'/rest/v1/kamuk_students?select=id&limit=1',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
-      if(r.ok){ KAMUK_STORAGE.mode='tables'; return KAMUK_STORAGE.mode; }
-    }catch(e){}
-    KAMUK_STORAGE.mode='kv';
-    return KAMUK_STORAGE.mode;
-  })();
-  return KAMUK_STORAGE.ready;
-}
 
 var KPI_NAMES = { IG:'Idea Generation', ST:'Structural Thinking', RA:'Recovery Ability', PS:'Problem Solving', R:'Responsiveness' };
 var KPI_COLORS = { 1:'#A32D2D', 2:'#C0542A', 3:'#BA7517', 4:'#5A9E6F', 5:'#0F6E56' };
@@ -193,65 +177,7 @@ var EXERCISES = {
   R_developing:{ title:'Natural Pace Training', kpi:'R', priority:'HIGH', nexus:'Phase 2', objective:'Entrenar al estudiante a igualar la velocidad natural del inglés sin pedir acomodaciones.', script:'Trainer habla a velocidad NATURAL completa. Estudiante no puede pedir que hablen más despacio.', steps:['Enseñar técnicas de stalling:','"Just to make sure I understood..." (gana 3 segundos)','"That is a great point. Let me address that..." (gana 5 segundos)','Conversación de 5 minutos a velocidad natural'], good:'Estudiante usa técnica de stalling y continúa sin romper el flujo.', freq:'2x por semana — 5 a 10 minutos.' },
 };
 
-async function dbGet(table){ await kamukResolveStorage(); if(KAMUK_STORAGE.mode==='tables'){ const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
-async function dbSet(table,id,data){ await kamukResolveStorage(); var rowId=(KAMUK_STORAGE.mode==='tables')?id:kamukPhysId(table,id); var target=(KAMUK_STORAGE.mode==='tables')?table:KAMUK_STORAGE.phys; await fetch(SUPA_URL+'/rest/v1/'+target,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:rowId,data:data,updated_at:new Date().toISOString()})}); }}); return await r.json(); } var pref=KAMUK_KV[table]||('KM_'+table+'_'); const r=await fetch(SUPA_URL+'/rest/v1/'+KAMUK_STORAGE.phys+'?id=like.'+encodeURIComponent(pref)+'*&select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}); var rows=await r.json(); return (rows||[]).map(function(row){ return {id:kamukLogicId(table,row.id), data:row.data}; }); }
 
-
-var CURRENT_STUDENT = null;
-var ALL_STUDENTS = {};
-var CALENDAR_EVENTS = {};
-
-async function doLogin(){
-  var user = document.getElementById('l-user').value.trim().toLowerCase();
-  var pass = document.getElementById('l-pass').value;
-  var err = document.getElementById('login-err');
-  if(!user || !pass){ err.textContent='Ingresá tu usuario y contraseña.'; err.style.display='block'; return; }
-
-  err.style.display='none';
-  document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-loader spin"></i>Verificando...';
-
-  try{
-    var rows = await dbGet('kamuk_students');
-    var student = null;
-    rows.forEach(function(r){
-      if(r.data){ ALL_STUDENTS[r.id]=r.data; if(r.data.portalUser===user && r.data.portalPass===pass) student=r.data; }
-    });
-
-    if(!student){
-      err.textContent='Usuario o contraseña incorrectos.';
-      err.style.display='block';
-      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
-      return;
-    }
-    if(student.status==='suspended'){
-      err.textContent='Tu acceso ha sido suspendido. Contactá a tu trainer o al administrador.';
-      err.style.display='block';
-      document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
-      return;
-    }
-
-    CURRENT_STUDENT = student;
-
-    // cargar calendario
-    var cRows = await dbGet('kamuk_sessions');
-    cRows.forEach(function(r){ if(r.id&&r.id.indexOf('EVT-')===0&&r.data) CALENDAR_EVENTS[r.id]=r.data; });
-
-    // log de acceso
-    var logId = 'LOG-'+Date.now()+'-'+Math.floor(Math.random()*1000);
-    await dbSet('kamuk_sessions', logId, { id:logId, ts:new Date().toISOString(), user:(student.info&&student.info.name)||student.portalUser, role:'student', action:'Acceso al Portal del Estudiante', details:student.portalUser });
-
-    // log de asistencia (acceso al portal hoy)
-    var today = new Date().toISOString().split('T')[0];
-    var paId = 'PORTALACCESS-'+student.id+'_'+today;
-    await dbSet('kamuk_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
-
-    showPortal(student);
-  }catch(e){
-    err.textContent='Error de conexión. Intentá de nuevo.';
-    err.style.display='block';
-    document.getElementById('login-screen').querySelector('.btn-navy').innerHTML = '<i class="ti ti-login"></i>Ingresar';
-  }
-}
 
 function switchPortalTab(tab){
   // Detener Alice si se cambia de tab

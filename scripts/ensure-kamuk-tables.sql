@@ -1,6 +1,5 @@
--- Kamuk tables on Infinity Supabase (rxruvpfdpgowmpvydacd)
--- Run in Supabase SQL Editor when ready for dedicated tables.
--- Until then, Kamuk apps use KV rows in infinity_sessions (KMSTU_/KMUSR_/KMSES_).
+-- Dedicated Kamuk tables (separate from infinity_* — no shared rows).
+-- Data lives ONLY in kamuk_*. Never write Kamuk into infinity_sessions.
 
 create table if not exists public.kamuk_students (
   id text primary key,
@@ -31,7 +30,6 @@ alter table public.kamuk_users enable row level security;
 alter table public.kamuk_sessions enable row level security;
 alter table public.kamuk_resources enable row level security;
 
--- Mirror Infinity anon access pattern (open policies for training ops tools)
 do $$ begin
   create policy kamuk_students_anon_all on public.kamuk_students for all to anon using (true) with check (true);
 exception when duplicate_object then null; end $$;
@@ -45,7 +43,7 @@ do $$ begin
   create policy kamuk_resources_anon_all on public.kamuk_resources for all to anon using (true) with check (true);
 exception when duplicate_object then null; end $$;
 
-grant select, insert, update, delete on public.kamuk_students to anon, authenticated;
-grant select, insert, update, delete on public.kamuk_users to anon, authenticated;
-grant select, insert, update, delete on public.kamuk_sessions to anon, authenticated;
-grant select, insert, update, delete on public.kamuk_resources to anon, authenticated;
+grant select, insert, update, delete on public.kamuk_students to anon, authenticated, service_role;
+grant select, insert, update, delete on public.kamuk_users to anon, authenticated, service_role;
+grant select, insert, update, delete on public.kamuk_sessions to anon, authenticated, service_role;
+grant select, insert, update, delete on public.kamuk_resources to anon, authenticated, service_role;
