@@ -629,9 +629,17 @@ function isTutorEnabledForStudent(student, tutor, opts = {}) {
 async function loadStudentRecordForAuth(req, bodyStudent) {
   if (req.auth.role === 'student' && req.auth.studentId) {
     try {
-      const row = await sbGetOne('infinity_students', req.auth.studentId);
+      const sid = req.auth.studentId;
+      let row = await sbGetOne('infinity_students', sid);
+      if (!row?.data && sid.startsWith('KAM-')) {
+        row = await sbGetOne('kamuk_students', sid);
+        if (!row?.data) {
+          const kv = await sbGetOne('infinity_sessions', 'KMSTU_' + sid);
+          if (kv?.data) row = { id: sid, data: kv.data };
+        }
+      }
       if (row?.data) {
-        const merged = { ...row.data, id: req.auth.studentId };
+        const merged = { ...row.data, id: sid };
         // Client is source of truth for live calibration + study prefs until synced
         if (bodyStudent?.jillCalibration) merged.jillCalibration = bodyStudent.jillCalibration;
         if (bodyStudent?.aiProfile?.learningPrefs) {
@@ -3849,9 +3857,10 @@ app.post('/alice', requireProductAuth, async (req, res) => {
     const effectiveSessionType = companionCtx.sessionType;
     const companionCfg = companionCtx.config;
 
-    const isKamuk = student?.id && student.id.startsWith('KAM-');
     const tutorName = 'Alice';
-    const sessionTable = isKamuk ? 'kamuk_sessions' : 'infinity_sessions';
+    // Kamuk legacy Supabase project is gone; session rows live in infinity_sessions
+    // (dedicated kamuk_sessions table optional — used only if present later).
+    const sessionTable = 'infinity_sessions';
 
     // START / RETURN SESSION
     if (mode === 'start_session' || mode === 'return_session') {
