@@ -64,7 +64,11 @@
       + '.jill-rapid-tier-gold .jill-pressure-track,.jill-rapid-tier-legend .jill-pressure-track{border-color:rgba(251,191,36,0.75);box-shadow:0 0 20px rgba(251,191,36,0.25)}'
       + '.jill-rapid-tier-gold .jill-tier-badge,.jill-rapid-tier-legend .jill-tier-badge{background:linear-gradient(135deg,#b45309,#fbbf24,#f59e0b);color:#1c1917;box-shadow:0 0 18px rgba(251,191,36,0.45)}'
       + '.jill-rapid-tier-legend #jill-kaboom-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
-      + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}';
+      + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}'
+      + '#jill-kaboom-inner{padding-bottom:12px}'
+      + '#jill-kaboom-next-wrap{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:8;margin-top:14px;padding:10px 0 6px;background:linear-gradient(180deg,rgba(30,27,75,0),rgba(30,27,75,.92) 28%,rgba(30,27,75,.98));}'
+      + '#jill-kaboom-next{display:block;width:100%;max-width:360px;margin:0 auto;box-shadow:0 8px 24px rgba(91,33,182,.45)}'
+      + '@media(min-width:641px){#jill-kaboom-next-wrap{bottom:12px}}';
     document.head.appendChild(st);
   }
 
@@ -921,7 +925,7 @@
         + '<div style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:16px 18px;font-size:16px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;">'
         + esc(q.q)
         + '</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+        + '<div id="jill-kaboom-opts" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + q.options.map(function (opt, i) {
           return '<button type="button" class="jill-kaboom-opt" data-idx="' + i + '" style="'
             + 'background:' + KABOOM[i].bg + ';color:white;border:none;border-radius:14px;padding:16px 12px;'
@@ -932,7 +936,7 @@
             + '</button>';
         }).join('')
         + '</div>'
-        + '<div style="margin-top:12px;text-align:center;">'
+        + '<div id="jill-kaboom-exit-row" style="margin-top:12px;text-align:center;">'
         + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
         + '</div></div>';
     }
@@ -940,15 +944,77 @@
     function renderFeedback(wasCorrect) {
       var q = state.quiz[state.idx];
       var celebrate = wasCorrect ? renderMiniTrophy(state.streak) : '<div style="font-size:40px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">La llama avanzó — corregí y seguí</div>';
-      return '<div style="text-align:center;padding:8px 0;">'
+      var nextLabel = state.idx + 1 < state.quiz.length ? 'Seguir →' : (isMini ? 'Ver resultado' : 'Ver trofeos');
+      return '<div style="text-align:center;padding:8px 0 4px;">'
         + celebrate
         + '<div style="font-size:18px;font-weight:900;color:' + (wasCorrect ? '#86EFAC' : '#FCD34D') + ';margin-bottom:8px;">'
         + (wasCorrect ? '¡Acertaste bajo presión!' : 'Casi — correcta: ' + esc(q.options[q.answer]))
         + '</div>'
-        + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain || '') + '</div>'
-        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
-        + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : (isMini ? 'Ver resultado' : 'Ver trofeos'))
-        + '</button></div>';
+        + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:8px;">' + esc(q.explain || '') + '</div>'
+        + '<div id="jill-kaboom-next-wrap">'
+        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;cursor:pointer;">'
+        + nextLabel
+        + '</button></div></div>';
+    }
+
+    function bindNextButton() {
+      var nextBtn = document.getElementById('jill-kaboom-next');
+      if (!nextBtn) return;
+      nextBtn.addEventListener('click', function () {
+        state.idx++;
+        state.answered = false;
+        if (state.idx >= state.quiz.length) renderResults();
+        else showQuestion();
+      });
+      try {
+        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } catch (e) {
+        try { nextBtn.scrollIntoView(true); } catch (e2) { /* ignore */ }
+      }
+    }
+
+    function showAnswerFeedback(wasCorrect, picked) {
+      clearTimer();
+      var q = state.quiz[state.idx];
+      state.kpiResults.push({ kpi: q.kpi || 'k10', correct: !!wasCorrect, category: q.category || 'tense' });
+      if (wasCorrect) {
+        state.correct++;
+        state.streak++;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        if (typeof CelebrationSfx !== 'undefined') {
+          CelebrationSfx.correct();
+          if (state.streak >= 3) CelebrationSfx.streak(state.streak);
+        }
+      } else {
+        state.streak = 0;
+        if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
+      }
+      var opts = rootEl.querySelectorAll('.jill-kaboom-opt');
+      opts.forEach(function (b, i) {
+        b.disabled = true;
+        b.style.opacity = i === q.answer ? '1' : (picked != null && i === picked && !wasCorrect ? '0.55' : '0.35');
+        b.style.transform = i === q.answer ? 'scale(1.03)' : 'none';
+        b.style.boxShadow = i === q.answer ? '0 0 0 3px #fff' : 'none';
+      });
+      // Collapse tall option grid so Seguir fits above the bottom nav
+      var grid = rootEl.querySelector('#jill-kaboom-opts');
+      if (grid) {
+        grid.style.maxHeight = '120px';
+        grid.style.overflow = 'hidden';
+        grid.style.opacity = '0.85';
+      }
+      var exitRow = rootEl.querySelector('#jill-kaboom-exit-row');
+      if (exitRow) exitRow.style.display = 'none';
+      var fb = document.createElement('div');
+      fb.id = 'jill-kaboom-feedback';
+      fb.innerHTML = renderFeedback(wasCorrect);
+      var inner = rootEl.querySelector('#jill-kaboom-inner');
+      if (inner) {
+        var old = document.getElementById('jill-kaboom-feedback');
+        if (old) old.remove();
+        inner.appendChild(fb);
+      }
+      bindNextButton();
     }
 
     function renderResults() {
@@ -1071,39 +1137,7 @@
     }
 
     function afterAnswer(wasCorrect, picked) {
-      var q = state.quiz[state.idx];
-      state.kpiResults.push({ kpi: q.kpi || 'k10', correct: wasCorrect, category: q.category || 'tense' });
-      if (wasCorrect) {
-        state.correct++;
-        state.streak++;
-        state.bestStreak = Math.max(state.bestStreak, state.streak);
-        if (typeof CelebrationSfx !== 'undefined') {
-          CelebrationSfx.correct();
-          if (state.streak >= 3) CelebrationSfx.streak(state.streak);
-        }
-      } else {
-        state.streak = 0;
-        if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
-      }
-      rootEl.querySelectorAll('.jill-kaboom-opt').forEach(function (b, i) {
-        b.disabled = true;
-        b.style.opacity = i === q.answer ? '1' : (i === picked && !wasCorrect ? '0.55' : '0.35');
-        b.style.transform = i === q.answer ? 'scale(1.03)' : 'none';
-        b.style.boxShadow = i === q.answer ? '0 0 0 3px #fff' : 'none';
-      });
-      var fb = document.createElement('div');
-      fb.style.marginTop = '14px';
-      fb.innerHTML = renderFeedback(wasCorrect);
-      rootEl.querySelector('#jill-kaboom-inner').appendChild(fb);
-      var nextBtn = document.getElementById('jill-kaboom-next');
-      if (nextBtn) {
-        nextBtn.addEventListener('click', function () {
-          state.idx++;
-          state.answered = false;
-          if (state.idx >= state.quiz.length) renderResults();
-          else showQuestion();
-        });
-      }
+      showAnswerFeedback(wasCorrect, picked);
     }
 
     function bindOptions() {
@@ -1134,29 +1168,18 @@
         updatePressureDom(state);
         if (state.timeLeft <= 0 && !state.answered) {
           state.answered = true;
-          clearTimer();
-          state.streak = 0;
-          if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
+          showAnswerFeedback(false, null);
           var q = state.quiz[state.idx];
-          rootEl.querySelectorAll('.jill-kaboom-opt').forEach(function (b, i) {
-            b.disabled = true;
-            b.style.opacity = i === q.answer ? '1' : '0.35';
-          });
-          state.kpiResults.push({ kpi: q.kpi || 'k10', correct: false, category: q.category || 'tense' });
-          var fb = document.createElement('div');
-          fb.style.marginTop = '14px';
-          fb.innerHTML = '<div style="text-align:center;"><div style="font-size:32px;">⏱️</div>'
-            + '<div style="color:#FCD34D;font-weight:800;margin:8px 0 12px;">Tiempo — seguí practicando este tema</div>'
-            + '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:14px;">Correcta: <strong>' + esc(q.options[q.answer]) + '</strong></div>'
-            + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;">'
-            + (state.idx + 1 < state.quiz.length ? 'Siguiente →' : 'Ver resultado') + '</button></div>';
-          rootEl.querySelector('#jill-kaboom-inner').appendChild(fb);
-          document.getElementById('jill-kaboom-next').addEventListener('click', function () {
-            state.idx++;
-            state.answered = false;
-            if (state.idx >= state.quiz.length) renderResults();
-            else showQuestion();
-          });
+          var fb = document.getElementById('jill-kaboom-feedback');
+          if (fb) {
+            fb.innerHTML = '<div style="text-align:center;padding:8px 0 4px;"><div style="font-size:32px;">⏱️</div>'
+              + '<div style="color:#FCD34D;font-weight:800;margin:8px 0 12px;">Tiempo — seguí practicando este tema</div>'
+              + '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:8px;">Correcta: <strong>' + esc(q.options[q.answer]) + '</strong></div>'
+              + '<div id="jill-kaboom-next-wrap">'
+              + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
+              + (state.idx + 1 < state.quiz.length ? 'Seguir →' : 'Ver resultado') + '</button></div></div>';
+            bindNextButton();
+          }
         }
       }, 1000);
     }
