@@ -4,42 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kamuk School — Operational Engine</title>
-<meta name="theme-color" content="#1E2761">
+<meta name="theme-color" content="#2B7EC1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Nexus Engine">
+<meta name="apple-mobile-web-app-title" content="Kamuk Engine">
 
-<link rel="apple-touch-icon" href="https://infintystudiocr.github.io/Database-/icon-192.png">
+<link rel="apple-touch-icon" href="../icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#2B7EC1;
-  --navy-d:#1F6AA8;
+  /* Kamuk brand — same token layout as Infinity Engine, never Infinity purple */
+  --navy:#2B7EC1;--nl:#E8F4FC;--nm:#1F6AA8;--nd:#1A5A8F;
+  --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
+  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
+  --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
+  --purple:#2B7EC1;--pb:#E8F4FC;--pm:#1F6AA8;
+  --gold:#F7941D;--accent:#F7941D;--gray:#F4F8FC;--border:#C5DDEF;
+  --text:#1E2D3D;--t2:#4A6080;--t3:#8FA4B8;
+  --r:8px;--rl:12px;
   --navy-rgb:43,126,193;
-  --accent:#F7941D;
-  --accent-d:#E07810;
-  --green:#5BA85A;
-  --green-d:#4A8F49;
-  --red:#D94F4F;
-  --text:#1E2D3D;
-  --t2:#4A6080;
-  --t3:#8FA4B8;
-  --bg:#F4F8FC;
-  --card:#FFFFFF;
-  --gl:#D6E8F5;
-  --gray:#EBF4FB;
-  --rb:#FFF0F0;
-  --rm:#C0392B;
-  --border:#C5DDEF;
-  --r:10px;
   --shadow:0 2px 12px rgba(43,126,193,0.09);
   --shadow-lg:0 8px 32px rgba(43,126,193,0.14);
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;color:var(--text);min-height:100vh;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F4F8FC;color:var(--text);min-height:100vh;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade{animation:fadeIn 0.2s ease;}
@@ -53,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .tb-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
 .role-master{background:rgba(245,166,35,0.2);color:var(--gold);border:1px solid rgba(245,166,35,0.3);}
-.role-trainer{background:rgba(24,95,165,0.3);color:#7EC8F7;border:1px solid rgba(126,200,247,0.3);}
+.role-trainer{background:rgba(43,126,193,0.3);color:#A8D4F5;border:1px solid rgba(168,212,245,0.35);}
 .role-student{background:rgba(15,110,86,0.3);color:#6EE7C0;border:1px solid rgba(110,231,192,0.3);}
 .tb-user{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
 
@@ -269,7 +260,7 @@ textarea.inp{resize:vertical;min-height:80px;}
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <div style="padding:1rem;border-bottom:1px solid var(--border);">
-      <div style="font-size:11px;color:var(--t3);margin-bottom:2px;">Infinity Studio CR</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:2px;">Kamuk School</div>
       <div style="font-size:13px;font-weight:700;color:var(--navy);" id="sb-name">—</div>
     </div>
     <div id="trainer-nav">
@@ -277,40 +268,23 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item active" onclick="showView('dashboard',this)"><i class="ti ti-dashboard"></i>Overview</div>
       <div class="sb-item" id="nav-students" onclick="showView('students',this)"><i class="ti ti-users"></i>Estudiantes<span class="sb-badge blue" id="sb-count">0</span></div>
       <div class="sb-section">Mi clase</div>
-      <div class="sb-item" onclick="showView('kpitracker',this)"><i class="ti ti-refresh"></i>Weekly KPI Tracker</div>
+      <div class="sb-item" onclick="showView('student-journey',this)"><i class="ti ti-route"></i>Viaje estudiantes</div>
+      <div class="sb-item" onclick="showView('weekly-pulse',this)"><i class="ti ti-heartbeat"></i>Weekly Pulse</div>
+      <div class="sb-item" onclick="showView('kpi-rulebook',this)"><i class="ti ti-book-2"></i>Q&A KPIs Rule Book</div>
       <div class="sb-item" id="nav-assign-ex" onclick="showView('assign-exercises',this)"><i class="ti ti-dumbbell"></i>Asignar ejercicios</div>
       <div class="sb-item" onclick="showView('exercises',this)"><i class="ti ti-books"></i>Catálogo Nexus</div>
       <div class="sb-item" onclick="showView('calendar',this)"><i class="ti ti-calendar"></i>Calendario</div>
       <div class="sb-item" onclick="showView('attendance',this)"><i class="ti ti-clipboard-check"></i>Asistencia</div>
-      <div class="sb-item" id="nav-my-profile" onclick="showView('my-profile',this)"><i class="ti ti-id-badge"></i>Mi perfil</div>
-      <div class="sb-item" onclick="showView('availability',this)"><i class="ti ti-clock"></i>Mi disponibilidad</div>
       <div class="sb-section">Analytics</div>
       <div class="sb-item" onclick="showView('analytics',this)"><i class="ti ti-chart-bar"></i>Estadísticas</div>
       <div class="sb-item" onclick="showView('reports',this)"><i class="ti ti-file-text"></i>Reportes</div>
       <div class="sb-section" id="nav-master-section">Master</div>
-      
-      <div class="sb-section-title">DATA</div>
-      <div class="sb-item" id="nav-kb-upload" onclick="showView('kb-upload',this)"><i class="ti ti-books"></i>KB — Alice</div>
-      <div class="sb-item" id="nav-excel-import" onclick="showView('excel-import',this)"><i class="ti ti-table-import"></i>Excel Import/Export</div>
       <div class="sb-item" id="nav-resources" onclick="showView('resources',this)"><i class="ti ti-package"></i>Resource Manager</div>
       <div class="sb-item" id="nav-users" onclick="showView('users',this)"><i class="ti ti-shield"></i>Gestión de usuarios</div>
-      <div class="sb-item" id="nav-roster" onclick="showView('roster',this)"><i class="ti ti-id-badge-2"></i>Trainer Roster</div>
-      <div class="sb-item" id="nav-crm" onclick="showView('crm',this)"><i class="ti ti-target-arrow"></i>CRM · Leads</div>
-      <div class="sb-item" id="nav-diagnostic" onclick="showView('diagnostic',this)"><i class="ti ti-clipboard-check"></i>Diagnóstico</div>
-      <div class="sb-item" id="nav-finance" onclick="showView('finance',this)"><i class="ti ti-report-money"></i>Reporte financiero</div>
       <div class="sb-item" id="nav-auditlog" onclick="showView('auditlog',this)"><i class="ti ti-history"></i>Log de auditoría</div>
-      <div class="sb-item" id="nav-avail-overview" onclick="showView('avail-overview',this)"><i class="ti ti-users-group"></i>Disponibilidad equipo</div>
       <div class="sb-item" id="nav-broadcast" onclick="openBroadcastModal()"><i class="ti ti-brand-whatsapp"></i>Comunicado general</div>
-      <div class="sb-item" id="nav-nexus-kb" onclick="showView('nexus-kb',this)"><i class="ti ti-bulb"></i>Nexus AI · Base de conocimiento</div>
-      <div class="sb-item" id="nav-ops" onclick="showView('ops',this)"><i class="ti ti-activity"></i>Operación en vivo</div>
-      <div class="sb-item" onclick="showView('staffchat',this)"><i class="ti ti-messages"></i>Chat de Staff</div>
-      <div class="sb-item" id="nav-dashboard" style="display:none;" onclick="showView('dashboard',this)"><i class="ti ti-chart-dots"></i>Dashboard</div>
-      <div class="sb-item" id="nav-transcripts" onclick="showView('chattranscripts',this)"><i class="ti ti-shield-lock"></i>Transcripciones (Super Admin)</div>
       <div class="sb-item" id="nav-new-student" onclick="showModal('modal-new-student')"><i class="ti ti-user-plus"></i>Nuevo estudiante</div>
       <div class="sb-section">Departamentos</div>
-      <div class="sb-item" id="nav-dept-admin" onclick="showView('dept-admin',this)"><i class="ti ti-building"></i>Administration</div>
-      <div class="sb-item" id="nav-dept-training" onclick="showView('dept-training',this)"><i class="ti ti-school"></i>Training Team</div>
-      <div class="sb-item" id="nav-dept-marketing" onclick="showView('dept-marketing',this)"><i class="ti ti-speakerphone"></i>Marketing</div>
       <div class="sb-item" id="nav-dept-misc" onclick="showView('dept-misc',this)"><i class="ti ti-news"></i>Misceláneos</div>
     </div>
   </div>
@@ -655,6 +629,46 @@ textarea.inp{resize:vertical;min-height:80px;}
   </div>
 </div>
 
+<div class="modal-bg" id="modal-companion-config">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title"><i class="ti ti-messages" style="color:#86EFAC;"></i>Configurar Companion (Alice Libre)</div>
+    <input type="hidden" id="companion-sid">
+    <div class="ib ib-navy">Modo companion: el estudiante elige el tema; Alice practica KPIs de forma invisible. Activá o desactivá desde el perfil.</div>
+    <div class="form-group">
+      <label class="form-label">KPIs foco (máx. 5)</label>
+      <div id="companion-focus-kpis" style="max-height:140px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;"></div>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px;">Si no marcás ninguno, se usan los KPIs débiles del archivo del estudiante.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Modo de evaluación</label>
+      <select class="inp" id="companion-eval-mode">
+        <option value="soft">Suave — prioriza confianza</option>
+        <option value="standard" selected>Estándar — equilibrio</option>
+        <option value="rigorous">Riguroso — feedback honesto</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sesión por defecto en portal</label>
+      <select class="inp" id="companion-default-session">
+        <option value="companion">Companion (conversación libre)</option>
+        <option value="practice">Práctica Nexus</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Semillas de tema (opcional)</label>
+      <input class="inp" id="companion-topic-seeds" placeholder="Ej: historia, ciencia, trabajo en call center...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Justificación (opcional)</label>
+      <textarea class="inp" id="companion-justify" placeholder="Por qué este estudiante está listo para companion..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-companion-config')">Cancelar</button>
+      <button class="btn btn-navy" style="background:#059669;" onclick="confirmStudentCompanion()"><i class="ti ti-messages"></i>Activar Companion</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ROSTER TRAINER -->
 <div class="modal-bg" id="modal-roster">
   <div class="modal" style="max-width:600px;">
@@ -932,7 +946,7 @@ async function saveKBKamuk(){
     document.getElementById('kb-kamuk-title').value='';
     document.getElementById('kb-kamuk-content').value='';
     document.getElementById('kb-kamuk-file').value='';
-    setTimeout(function(){ closeModal('modal-kb-kamuk'); showView('kb-upload',document.getElementById('nav-kb-upload')); },1200);
+    setTimeout(function(){ closeModal('modal-kb-kamuk'); showToast('KB guardado'); },1200);
   }catch(e){ st.style.color='var(--red)'; st.textContent='Error guardando.'; }
 }
 
@@ -941,7 +955,6 @@ async function deleteKBKamuk(id){
   try{
     await dbDel('kamuk_sessions',id);
     showToast('Eliminado');
-    showView('kb-upload',document.getElementById('nav-kb-upload'));
   }catch(e){showToast('Error','err');}
 }
 
@@ -980,7 +993,7 @@ async function importCSV(){
     var total=(parseInt(row['ig'])||0)+(parseInt(row['st'])||0)+(parseInt(row['ra'])||0)+(parseInt(row['ps'])||0)+(parseInt(row['r'])||0);
     var sd={id:code,info:{name:name,code:code,phase:parseInt(row['phase'])||1,trainer:row['trainer']||SESSION.name,email:row['email']||'',phone:row['phone']||'',status:row['status']||'active',group:'Kamuk Cohort 2025'},
       kpis:{diagnostic:{date:new Date().toISOString(),trainer:SESSION.name,session:'CSV Import',ratings:{IG:parseInt(row['ig'])||0,ST:parseInt(row['st'])||0,RA:parseInt(row['ra'])||0,PS:parseInt(row['ps'])||0,R:parseInt(row['r'])||0},total:total,level:total<=10?'Survival':total<=15?'Emerging':total<=20?'Functional':'Advanced',notes:row['notes']||''}},
-      kpiHistory:[],notes:[],sessions:[],nexoraEnabled:false};
+      kpiHistory:[],notes:[],sessions:[],nexoraEnabled:true,companionEnabled:true,aliceEnabled:true,jillEnabled:false,claireEnabled:false,_kamukAccessV1:true};
     try{await dbSet('kamuk_students',code,sd);DB[code]=sd;imported++;preview.push(name+' ('+code+')');}catch(e){}
   }
   st.style.color='var(--green)';st.textContent=imported+' importados';
@@ -1023,7 +1036,31 @@ async function loadData(){
   RESOURCES = {};
   vrows.forEach(function(r){ if(r.data && r.id && r.id.startsWith('RES-')) RESOURCES[r.id]=r.data; });
   await seedKamukStudents();
+  await ensureKamukDefaultAccess();
   document.getElementById('sb-count').textContent = allStudents().length;
+}
+
+/** One-time: Companion + Nexora ON for all Kamuk students (toggleable after). */
+async function ensureKamukDefaultAccess(){
+  var ids = Object.keys(DB);
+  var n = 0;
+  for(var i=0;i<ids.length;i++){
+    var id = ids[i];
+    var s = DB[id];
+    if(!s || s._kamukAccessV1) continue;
+    s.companionEnabled = true;
+    s.nexoraEnabled = true;
+    s.aliceEnabled = true;
+    s.jillEnabled = false;
+    s.claireEnabled = false;
+    s._kamukAccessV1 = true;
+    try{
+      await dbSet('kamuk_students', id, s);
+      DB[id] = s;
+      n++;
+    }catch(e){}
+  }
+  if(n) console.log('[Kamuk] default Companion+Nexora applied to', n, 'students');
 }
 
 // ── LOGIN ─────────────────────────────────────────────────
@@ -1076,29 +1113,13 @@ function startApp(){
   document.getElementById('tb-role-badge').className = 'tb-role '+(hasMasterAccess()?'role-master':'role-trainer');
   document.getElementById('sb-name').textContent = SESSION.name;
   if(!hasMasterAccess()){
-    // Trainer: ocultar sección Master y sus items
-    document.getElementById('nav-users').style.display='none';
-    document.getElementById('nav-master-section').style.display='none';
-    document.getElementById('nav-crm').style.display='none';
-    document.getElementById('nav-finance').style.display='none';
-    document.getElementById('nav-auditlog').style.display='none';
-    document.getElementById('nav-avail-overview').style.display='none';
-    document.getElementById('nav-broadcast').style.display='none';
-    document.getElementById('nav-nexus-kb').style.display='none';
-    document.getElementById('nav-ops').style.display='none';
-    document.getElementById('nav-new-student').style.display='none';
-    // Trainer: solo ve sus propios estudiantes
+    var hideIds = ['nav-users','nav-master-section','nav-auditlog','nav-broadcast','nav-new-student','nav-resources'];
+    hideIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.style.display='none';
+    });
     document.getElementById('nav-students').onclick = function(){ showView('my-students', this); };
   }
-  if(SESSION.role!=='superadmin'){
-    document.getElementById('nav-transcripts').style.display='none';
-    if(hasMasterAccess()) document.getElementById('nav-dashboard').style.display='flex';
-  }
-  // Departamentos: visibilidad según rol/depto del usuario
-  var myDept = SESSION.department || (hasMasterAccess()?'admin':'training');
-  if(!hasMasterAccess() && myDept!=='admin') document.getElementById('nav-dept-admin').style.display='none';
-  if(!hasMasterAccess() && myDept!=='training') document.getElementById('nav-dept-training').style.display='none';
-  if(!hasMasterAccess() && myDept!=='marketing') document.getElementById('nav-dept-marketing').style.display='none';
   showView('dashboard', document.querySelector('.sb-item'));
 }
 
@@ -1120,8 +1141,8 @@ async function refreshData(){
     await loadData();
     var cv = currentView;
     var m = document.getElementById('main-content');
-    if(cv && cv.indexOf('student-')===0) openStudent(cv.substring(8));
-    else if(cv && cv.indexOf('weekly-')===0) renderWeeklyAssessment(m, cv.substring(7));
+    if(cv && cv.indexOf('student-')===0 && cv !== 'student-journey') openStudent(cv.substring(8));
+    else if(cv && cv.indexOf('weekly-')===0 && cv !== 'weekly-pulse') renderWeeklyAssessment(m, cv.substring(7));
     else if(cv && cv.indexOf('kpitracker-')===0) renderKPITracker(m, cv.substring(11));
     else if(cv && cv.indexOf('pricing-')===0) renderPricingSchedule(m, cv.substring(8));
     else showView(cv, document.querySelector('.sb-item.active'));
@@ -1144,7 +1165,9 @@ function showView(view, btn){
   if(view==='dashboard') renderDashboard(m);
   else if(view==='students') renderStudents(m);
   else if(view==='calibrate') renderCalibrateSelect(m);
-  else if(view==='kpitracker') renderKPITrackerSelect(m);
+  else if(view==='kpitracker' || view==='weekly-pulse') renderKPITrackerSelect(m);
+  else if(view==='student-journey') renderStudentJourney(m);
+  else if(view==='kpi-rulebook') renderKpiRulebook(m);
   else if(view==='exercises') renderExercises(m);
   else if(view==='analytics') renderAnalytics(m);
   else if(view==='reports') renderReports(m);
@@ -1169,7 +1192,6 @@ function showView(view, btn){
   else if(view==='excel-import') renderExcelImport(m);
   else if(view==='ops') renderOpsOverview(m);
   else if(view==='staffchat') renderStaffChat(m);
-  else if(view==='dashboard') renderDashboard_Admin(m);
   else if(view==='chattranscripts') renderChatTranscripts(m);
   else if(view==='crm') renderCRM(m);
   else if(view==='finance') renderFinance(m);
@@ -1182,7 +1204,7 @@ function getScore(s){ var kpis=(s.kpis||{}).phase1||{}; var t=0; Object.keys(KPI
 function getLevel(score){ return score>=21?'Advanced':score>=16?'Functional':score>=11?'Emerging':'Survival'; }
 function getWeakKPI(s){ var kpis=(s.kpis||{}).phase1||{}; var min=6,kpi=''; Object.keys(KPI_NAMES).forEach(function(k){ var v=parseInt(kpis[k])||0; if(v>0&&v<min){min=v;kpi=k;} }); return kpi; }
 function getExercises(s){ var kpis=(s.kpis||{}).phase1||{}; var ex=[]; var sorted=Object.keys(KPI_NAMES).sort(function(a,b){return (parseInt(kpis[a])||0)-(parseInt(kpis[b])||0);}); sorted.forEach(function(k){ var v=parseInt(kpis[k])||0; var key=v<=2?k+'_critical':v<=3?k+'_developing':null; if(key&&EXERCISES[key]) ex.push(EXERCISES[key]); }); return ex.slice(0,5); }
-function genCode(fname,lname){ var n=(fname||'').substring(0,2).toUpperCase(); var l=(lname||'').substring(0,3).toUpperCase(); var num=Math.floor(1000+Math.random()*8999); return n+l+'-INF-'+num; }
+function genCode(fname,lname){ var n=(fname||'').substring(0,2).toUpperCase(); var l=(lname||'').substring(0,3).toUpperCase(); var num=Math.floor(1000+Math.random()*8999); return n+l+'-KAM-'+num; }
 function fmtDate(d){ if(!d) return '—'; var dt=new Date(d); return dt.toLocaleDateString('es-CR'); }
 
 // ── DASHBOARD ─────────────────────────────────────────────
@@ -1198,7 +1220,7 @@ function renderDashboard(m){
 
   m.innerHTML = '<div class="fade">'
     +'<div class="grid4" style="margin-bottom:1rem;">'
-    +'<div class="stat"><div class="stat-label">Total estudiantes</div><div class="stat-val">'+total+'</div><div class="stat-sub">Infinity ecosystem</div></div>'
+    +'<div class="stat"><div class="stat-label">Total estudiantes</div><div class="stat-val">'+total+'</div><div class="stat-sub">Kamuk School</div></div>'
     +'<div class="stat"><div class="stat-label">Advanced</div><div class="stat-val" style="color:var(--gm);">'+adv+'</div><div class="stat-sub">'+(total?Math.round(adv/total*100):0)+'% del total</div></div>'
     +'<div class="stat"><div class="stat-label">Functional</div><div class="stat-val" style="color:var(--amber);">'+func+'</div><div class="stat-sub">'+(total?Math.round(func/total*100):0)+'% del total</div></div>'
     +'<div class="stat"><div class="stat-label">Emerging / Survival</div><div class="stat-val" style="color:var(--rm);">'+(emerg+surv)+'</div><div class="stat-sub">Requieren atención</div></div>'
@@ -1383,6 +1405,7 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(192,132,252,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'
+    +'<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.companionEnabled?'rgba(134,239,172,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.companionEnabled?'#86EFAC':'rgba(255,255,255,0.3)')+';color:'+(s.companionEnabled?'#86EFAC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentCompanion(this.dataset.sid)"><i class="ti ti-messages"></i> Companion '+(s.companionEnabled?'✓ ON':'OFF')+'</button>'
 
     +'<div class="profile-header">'
     +'<div><div class="ph-name">'+((s.info&&s.info.name)||'—')+'</div>'
@@ -1502,12 +1525,12 @@ function switchTab(id, btn){
   if(pane) pane.classList.add('active');
 }
 
-var STUDENT_PORTAL_URL = 'https://infintystudiocr.github.io/Database-/Infinity_Student_Portal.html';
+var STUDENT_PORTAL_URL = 'https://studioinfinitycr.com/kamuk/Kamuk_Student_Portal.html';
 
 function copyStudentLink(id){
   var s=DB[id]; if(!s) return;
   if(!s.portalUser||!s.portalPass){ showToast('Generá las credenciales del portal primero (tab Información)','err'); return; }
-  var text = 'Portal del Estudiante — Studio Infinity CR\n'+STUDENT_PORTAL_URL+'\n\nUsuario: '+s.portalUser+'\nContraseña: '+s.portalPass;
+  var text = 'Portal del Estudiante — Kamuk School\n'+STUDENT_PORTAL_URL+'\n\nUsuario: '+s.portalUser+'\nContraseña: '+s.portalPass;
   showShareModal('Link y credenciales del portal', text, ((s.info&&s.info.phone)||''));
 }
 
@@ -1823,12 +1846,14 @@ async function createStudent(){
   var lname=document.getElementById('ns-lname').value.trim();
   if(!fname||!lname){ showToast('Ingresá nombre y apellido','err'); return; }
   var code=genCode(fname,lname);
-  var id='IS-'+fname.substring(0,2).toUpperCase()+lname.substring(0,2).toUpperCase()+'-'+Date.now();
+  var id='KAM-'+fname.substring(0,2).toUpperCase()+lname.substring(0,2).toUpperCase()+'-'+Date.now();
   var student={
     id, code,
     info:{ name:fname+' '+lname, email:document.getElementById('ns-email').value, phone:document.getElementById('ns-phone').value, program:document.getElementById('ns-program').value, fee:document.getElementById('ns-fee').value, trainer:SESSION.name, start:new Date().toISOString().split('T')[0], phase:'1', level:'Emerging', score:0, current_score:0, obs:document.getElementById('ns-obs').value },
     skills:{}, kpis:{ phase1:{IG:'',ST:'',RA:'',PS:'',R:''}, phase2:{}, phase3:{}, phase4:{} },
-    calibrations:[], notes:[], compliance:{ scheduled:32, attended:0 }, path_custom:''
+    calibrations:[], notes:[], compliance:{ scheduled:32, attended:0 }, path_custom:'',
+    companionEnabled:true, nexoraEnabled:true, aliceEnabled:true, jillEnabled:false, claireEnabled:false,
+    _kamukAccessV1:true
   };
   await dbSet('kamuk_students',id,student);
   DB[id]=student;
@@ -3289,7 +3314,7 @@ var PRICING = { Individual:75000, Corporate:120000, Institutional:150000 };
 var PAYMENT_FREQ = { 'Mensual':1, 'Trimestral':0.95, 'Pago único':0.9 };
 
 function startDiagnosticForLead(leadId){
-  showView('diagnostic', document.getElementById('nav-diagnostic'));
+  showView('diagnostic', document.getElementById('nav-diagnostic') || null);
   renderDiagnostic(document.getElementById('main-content'), leadId);
 }
 
@@ -3458,7 +3483,7 @@ async function putOnStandby(){
   DB[sid]=s;
   await logAction('Puso en Stand By (espera de horario)', (s.info.name||sid)+' — '+s.standbyRequest.day1+'/'+s.standbyRequest.day2+' '+s.standbyRequest.time);
   showToast('Agregado a la lista de espera con prioridad #'+s.standbyRequest.priority);
-  showView('crm', document.getElementById('nav-crm'));
+  showView('crm', document.getElementById('nav-crm') || null);
 }
 
 function getStandbyList(){
@@ -3725,7 +3750,7 @@ function renderDiagnosticReportCard(rep, id){
 
 
 function retryStandbySchedule(sid){
-  showView('crm', document.getElementById('nav-crm'));
+  showView('crm', document.getElementById('nav-crm') || null);
   renderPricingSchedule(document.getElementById('main-content'), sid);
   var s = DB[sid]; var req = (s&&s.standbyRequest)||{};
   setTimeout(function(){
@@ -4016,10 +4041,57 @@ var KPI_TRACKER_MAX_TOTAL = (function(){ var t=0; KPI_TRACKER_AREAS.forEach(func
 
 function getKPITrackerHistory(s){ return s.kpiTracker||[]; }
 
+function renderStudentJourney(m){
+  var students = hasMasterAccess() ? allStudents() : getMyStudents();
+  students = students.sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
+  var phases = [1,2,3,4];
+  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-route"></i> Viaje estudiantes</h2>'
+    +'<div class="ib ib-navy">Vista rápida del progreso por fase · Kamuk School (Método Nexus).</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Cohorte</div>'
+    +(students.length ? '<table class="tbl"><thead><tr><th>Estudiante</th><th>Fase</th><th>Nivel</th><th>Score</th><th>Pulse</th><th></th></tr></thead><tbody>'
+      +students.map(function(s){
+        var phase = parseInt((s.info&&s.info.phase)||1)||1;
+        var score = getScore(s);
+        var hist = getKPITrackerHistory(s);
+        var last = hist.length ? hist[hist.length-1] : null;
+        var dots = phases.map(function(p){
+          var on = p <= phase;
+          return '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:'+(on?'var(--navy)':'var(--border)')+';" title="Fase '+p+'"></span>';
+        }).join('');
+        return '<tr><td style="font-weight:600;">'+((s.info&&s.info.name)||'—')+'</td>'
+          +'<td>'+dots+' '+getPhaseBadge(phase)+'</td>'
+          +'<td>'+getLevelBadge(getLevel(score))+'</td>'
+          +'<td>'+score+'/25</td>'
+          +'<td style="font-size:12px;color:var(--t2);">'+(last?(last.overall+'/100 · '+fmtDate(last.date)):'—')+'</td>'
+          +'<td><button class="btn btn-outline btn-sm" data-sid="'+s.id+'" onclick="openStudent(this.dataset.sid)">Abrir</button></td></tr>';
+      }).join('')
+      +'</tbody></table>'
+      : '<div class="ib ib-amber">No hay estudiantes.</div>')
+    +'</div></div>';
+}
+
+function renderKpiRulebook(m){
+  var html = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-book-2"></i> Q&A KPIs Rule Book</h2>'
+    +'<div class="ib ib-navy">Reglas de evaluación · 7 áreas · 26 KPIs · STAR + Storytelling (Método Nexus).</div>';
+  KPI_TRACKER_AREAS.forEach(function(area){
+    html += '<div class="card"><div class="card-title"><i class="ti ti-folder"></i>'+area.id+' — '+area.name+'</div>';
+    area.kpis.forEach(function(k){
+      html += '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+k.id+' · '+k.name+' <span style="font-weight:500;color:var(--t3);">/ '+k.max+'</span></div>'
+        +'<div style="font-size:12px;color:var(--t2);margin-bottom:4px;"><strong>Evalúa:</strong> '+(k.evaluates||[]).join(' · ')+'</div>'
+        +(k.note?'<div style="font-size:12px;color:var(--ad);background:var(--ab);padding:6px 10px;border-radius:var(--r);">'+k.note+'</div>':'')
+        +'</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  m.innerHTML = html;
+}
+
 function renderKPITrackerSelect(m){
   var students = hasMasterAccess() ? allStudents() : getMyStudents();
   students = students.sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
-  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-refresh"></i> Weekly KPI Tracker</h2>'
+  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-heartbeat"></i> Weekly Pulse</h2>'
     +'<div class="ib ib-navy">7 áreas · 26 KPIs operacionales. Evaluá cada dimensión desde la perspectiva de estructuración oral, elección de palabras y uso natural de conectores (STAR + Storytelling).</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Seleccioná el estudiante</div>'
     +(students.length ? students.map(function(s){
@@ -4028,7 +4100,7 @@ function renderKPITrackerSelect(m){
           +'<div style="width:36px;height:36px;border-radius:50%;background:var(--nl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--nm);flex-shrink:0;">'+(s.info&&s.info.name?s.info.name.charAt(0):'?')+'</div>'
           +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;">'+((s.info&&s.info.name)||'—')+'</div>'
           +'<div style="font-size:11px;color:var(--t2);">'+(last?('Última evaluación: '+fmtDate(last.date)+' · '+last.overall+'/100'):'Sin evaluaciones todavía')+'</div></div>'
-          +'<button data-sid="'+s.id+'" class="btn btn-navy btn-sm" onclick="renderKPITracker(document.getElementById(\'main-content\'),this.dataset.sid)"><i class="ti ti-refresh"></i>Evaluar</button>'
+          +'<button data-sid="'+s.id+'" class="btn btn-navy btn-sm" onclick="renderKPITracker(document.getElementById(\'main-content\'),this.dataset.sid)"><i class="ti ti-heartbeat"></i>Evaluar</button>'
           +'</div>';
       }).join('')
       : '<div class="ib ib-amber">No tenés estudiantes asignados.</div>')
@@ -4276,6 +4348,7 @@ async function confirmStudentNexora(){
   var indLabels = {corporate:'Corporate/Business',tech:'Technology',healthcare:'Healthcare',education:'Education',finance:'Finance/Banking',hospitality:'Hospitality/Tourism',retail:'Retail/Sales'};
 
   s.nexoraEnabled = true;
+  s.aliceEnabled = true;
   s.nexoraJustification = justification;
   s.nexoraConfig = {
     type, typeLabel: typeLabels[type]||type,
@@ -4291,6 +4364,89 @@ async function confirmStudentNexora(){
   await logAction('Activó Nexora individual', ((s.info&&s.info.name)||sid)+' — '+(typeLabels[type]||type));
   closeModal('modal-nexora-justify');
   showToast('Nexora activado — '+(typeLabels[type]||type)+' para '+((s.info&&s.info.name)||'el estudiante'));
+  openStudent(sid);
+}
+
+function populateCompanionKpiOptions(selected){
+  var box = document.getElementById('companion-focus-kpis');
+  if(!box || typeof KPI_TRACKER_AREAS==='undefined') return;
+  var sel = (selected||[]).map(String);
+  var html = '';
+  KPI_TRACKER_AREAS.forEach(function(area){
+    area.kpis.forEach(function(k){
+      var checked = sel.indexOf(k.id)>=0 ? ' checked' : '';
+      html += '<label style="display:block;font-size:12px;margin:4px 0;cursor:pointer;"><input type="checkbox" value="'+k.id+'"'+checked+'> '+k.id+' — '+k.name+'</label>';
+    });
+  });
+  box.innerHTML = html;
+  box.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var n = box.querySelectorAll('input[type=checkbox]:checked').length;
+      if(n>5){ this.checked=false; showToast('Máximo 5 KPIs foco'); }
+    });
+  });
+}
+
+function getCompanionSelectedKpis(){
+  var box = document.getElementById('companion-focus-kpis');
+  if(!box) return [];
+  var out = [];
+  box.querySelectorAll('input[type=checkbox]:checked').forEach(function(cb){
+    if(out.length<5) out.push(cb.value);
+  });
+  return out;
+}
+
+function toggleStudentCompanion(sid){
+  var s = DB[sid]; if(!s) return;
+  if(s.companionEnabled){
+    confirmAction('Desactivar Companion', '¿Desactivar Companion (Alice Libre) para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
+      s.companionEnabled = false;
+      await dbSet('kamuk_students', sid, s); DB[sid]=s;
+      showToast('Companion desactivado'); openStudent(sid);
+    }, 'Sí, desactivar');
+  } else {
+    document.getElementById('companion-sid').value = sid;
+    document.getElementById('companion-justify').value = '';
+    document.getElementById('companion-eval-mode').value = 'standard';
+    document.getElementById('companion-default-session').value = 'companion';
+    document.getElementById('companion-topic-seeds').value = '';
+    var pre = (s.companionConfig&&s.companionConfig.focusKpis) ? s.companionConfig.focusKpis : [];
+    if(!pre.length && s.kpiFile){
+      pre = [].concat(s.kpiFile.weakMicro||[], s.kpiFile.weakMacro||[]).slice(0,5);
+    }
+    populateCompanionKpiOptions(pre);
+    showModal('modal-companion-config');
+  }
+}
+
+async function confirmStudentCompanion(){
+  var sid = document.getElementById('companion-sid').value;
+  var justification = document.getElementById('companion-justify').value.trim();
+  var evalMode = document.getElementById('companion-eval-mode').value;
+  var defaultSessionType = document.getElementById('companion-default-session').value;
+  var topicSeeds = document.getElementById('companion-topic-seeds').value.trim();
+  var focusKpis = getCompanionSelectedKpis();
+  var s = DB[sid]; if(!s) return;
+
+  s.companionEnabled = true;
+  s.aliceEnabled = true;
+  s.companionConfig = {
+    focusKpis: focusKpis,
+    evalMode: evalMode,
+    defaultSessionType: defaultSessionType === 'practice' ? 'practice' : 'companion',
+    topicSeeds: topicSeeds,
+    setAt: new Date().toISOString(),
+    setBy: SESSION.name,
+    justification: justification
+  };
+
+  if(!s.notes) s.notes=[];
+  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Companion activado — conversación libre · Eval: '+evalMode+(focusKpis.length?' · KPIs: '+focusKpis.join(', '):'')+(topicSeeds?' · Temas: '+topicSeeds:'')+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
+  await dbSet('kamuk_students', sid, s); DB[sid]=s;
+  await logAction('Activó Companion', ((s.info&&s.info.name)||sid));
+  closeModal('modal-companion-config');
+  showToast('Companion activado para '+((s.info&&s.info.name)||'el estudiante'));
   openStudent(sid);
 }
 

@@ -112,6 +112,34 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ik
 const KAMUK_SUPABASE_URL = process.env.KAMUK_SUPABASE_URL || 'https://lbspgbeqtcnjrbhiuucu.supabase.co';
 const KAMUK_SUPABASE_KEY = process.env.KAMUK_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM';
 
+function studentsTableForId(id) {
+  if (id && String(id).startsWith('KAM-')) return 'kamuk_students';
+  return 'infinity_students';
+}
+
+async function sbGetStudentRow(id) {
+  if (!id) return null;
+  if (String(id).startsWith('KAM-')) {
+    return sbGetOne('kamuk_students', id);
+  }
+  const inf = await sbGetOne('infinity_students', id);
+  if (inf?.data) return inf;
+  // Legacy Kamuk rows without KAM- prefix
+  return sbGetOne('kamuk_students', id);
+}
+
+async function sbSetStudent(id, data) {
+  if (!id) return;
+  if (String(id).startsWith('KAM-')) {
+    return sbSet('kamuk_students', id, data);
+  }
+  const inf = await sbGetOne('infinity_students', id);
+  if (inf?.data) return sbSet('infinity_students', id, data);
+  const kam = await sbGetOne('kamuk_students', id);
+  if (kam?.data) return sbSet('kamuk_students', id, data);
+  return sbSet('infinity_students', id, data);
+}
+
 function sbCreds(table) {
   if (table && String(table).startsWith('kamuk_')) {
     return { url: KAMUK_SUPABASE_URL, key: KAMUK_SUPABASE_KEY };
@@ -237,11 +265,12 @@ async function sbDelete(table, id) {
 async function sbFindStudentByPortalLogin(portalUser, password) {
   const loginUser = String(portalUser || '').trim().toLowerCase();
   if (!loginUser) return null;
-  const rows = await sbQuery(
-    'infinity_students',
-    `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`
-  );
-  return rows.find(r => r.data && r.data.portalPass === password) || null;
+  const q = `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`;
+  const infRows = await sbQuery('infinity_students', q);
+  const infHit = infRows.find(r => r.data && r.data.portalPass === password);
+  if (infHit) return infHit;
+  const kamRows = await sbQuery('kamuk_students', q);
+  return kamRows.find(r => r.data && r.data.portalPass === password) || null;
 }
 
 const Brain = require('./nexus-brain');
@@ -596,6 +625,10 @@ function studentAccessFlags(student) {
 function isNexoraEnabledForStudent(student) {
   if (!student) return false;
   if (!student.nexoraEnabled) return false;
+  // Kamuk: Companion + Nexora product — Alice tutor flag OR Companion unlocks Nexora
+  if (student.id && String(student.id).startsWith('KAM-')) {
+    if (normalizeCompanionEnabled(student)) return true;
+  }
   if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
   return (student.system_mode || 'jill') === 'alice';
 }
@@ -645,12 +678,7 @@ async function loadStudentRecordForAuth(req, bodyStudent) {
   if (req.auth.role === 'student' && req.auth.studentId) {
     try {
       const sid = req.auth.studentId;
-      let row = null;
-      if (sid.startsWith('KAM-')) {
-        row = await sbGetOne('kamuk_students', sid);
-      } else {
-        row = await sbGetOne('infinity_students', sid);
-      }
+      const row = await sbGetStudentRow(sid);
       if (row?.data) {
         const merged = { ...row.data, id: sid };
         // Client is source of truth for live calibration + study prefs until synced
@@ -799,7 +827,7 @@ app.get('/auth/verify', requireProductAuth, async (req, res) => {
   };
   if (req.auth.role === 'student' && req.auth.studentId) {
     try {
-      const row = await sbGetOne('infinity_students', req.auth.studentId);
+      const row = await sbGetStudentRow(req.auth.studentId);
       const student = row?.data;
       if (!student || isStudentSuspended(student)) {
         return res.status(403).json({ ok: false, error: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
@@ -3601,7 +3629,7 @@ function mergeStudyPrefs(student, message) {
 async function persistStudentLearningState(student) {
   if (!student?.id) return;
   try {
-    const row = await sbGetOne('infinity_students', student.id);
+    const row = await sbGetStudentRow(student.id);
     const data = { ...(row?.data || {}), id: student.id };
     if (student.aiProfile?.learningPrefs) {
       data.aiProfile = { ...(data.aiProfile || {}), ...(student.aiProfile || {}) };
@@ -3612,7 +3640,7 @@ async function persistStudentLearningState(student) {
     if (student.quizWeakKpis) data.quizWeakKpis = student.quizWeakKpis;
     if (student.autonomy) data.autonomy = student.autonomy;
     if (student.nemesisState) data.nemesisState = student.nemesisState;
-    await sbSet('infinity_students', student.id, data);
+    await sbSetStudent(student.id, data);
   } catch (e) {
     console.warn('persistStudentLearningState:', e.message);
   }
@@ -5215,7 +5243,7 @@ app.post('/claire', optionalAuth, async (req, res) => {
     let portalClaireAccess = false;
 
     if (req.auth?.role === 'student' && req.auth.studentId) {
-      const row = await sbGetOne('infinity_students', req.auth.studentId);
+      const row = await sbGetStudentRow(req.auth.studentId);
       const student = row?.data;
       if (!student || isStudentSuspended(student)) {
         return res.status(403).json({ error: 'Cuenta suspendida o no disponible.' });
@@ -5736,7 +5764,7 @@ app.get('/jill/victory-metric', requireProductAuth, async (req, res) => {
     if (!student) return;
     const metric = InfinityVictory.applyJillVictoryToStudent(student);
     const aliceMetric = InfinityVictory.applyAliceVictoryToStudent(student);
-    await sbSet('infinity_students', student.id, student);
+    await sbSetStudent(student.id, student);
     return res.json({ metric, aliceMetric, source: 'brain' });
   } catch (err) {
     console.error('jill/victory-metric:', err.message);
@@ -6366,7 +6394,7 @@ Respond ONLY with valid JSON, no markdown:
           score: ev.overall_score != null ? ev.overall_score : null
         }
       });
-      await sbSet('infinity_students', student.id, student);
+      await sbSetStudent(student.id, student);
       ev.aliceVictory = student.aliceVictory;
       ev.sharedLearner = student.sharedLearner;
       ev.autonomy = Autonomy.snapshot(student);
