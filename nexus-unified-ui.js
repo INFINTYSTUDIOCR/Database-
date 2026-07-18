@@ -102,6 +102,17 @@
     return ev.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
   }
 
+  function journeyChartColors() {
+    var navy = '';
+    try { navy = (getComputedStyle(document.documentElement).getPropertyValue('--navy') || '').trim(); } catch (e) {}
+    if (!navy) navy = '#5B21B6';
+    var kamuk = /#2[Bb]7[Ee][Cc]1|#1[Ff]6[Aa][Aa]8/.test(navy);
+    return {
+      border: navy,
+      fill: kamuk ? 'rgba(43,126,193,0.12)' : 'rgba(91,33,182,0.12)'
+    };
+  }
+
   function renderStudentJourneyGrid(m) {
     var students = typeof allStudents === 'function' ? allStudents() : [];
     m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px;"><i class="ti ti-route"></i> Viaje del estudiante</h2>'
@@ -123,6 +134,7 @@
       + '</div></div>';
 
     setTimeout(function () {
+      var colors = journeyChartColors();
       students.forEach(function (s, idx) {
         var canvas = document.getElementById('journey-radar-' + idx);
         if (!canvas || typeof Chart === 'undefined') return;
@@ -133,12 +145,33 @@
           type: 'radar',
           data: {
             labels: labels.map(function (l) { return l.split(' ')[0]; }),
-            datasets: [{ data: keys.map(function (k) { return parseInt(kpis[k]) || 0; }), borderColor: '#5B21B6', backgroundColor: 'rgba(91,33,182,0.12)', pointRadius: 2 }]
+            datasets: [{ data: keys.map(function (k) { return parseInt(kpis[k]) || 0; }), borderColor: colors.border, backgroundColor: colors.fill, pointRadius: 2 }]
           },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { min: 0, max: 5, ticks: { display: false } } } }
         });
       });
     }, 80);
+  }
+
+  function renderWeeklyPulsePicker(m) {
+    var students = typeof hasMasterAccess === 'function' && hasMasterAccess()
+      ? (typeof allStudents === 'function' ? allStudents() : [])
+      : (typeof getMyStudents === 'function' ? getMyStudents() : (typeof allStudents === 'function' ? allStudents() : []));
+    students = students.slice().sort(function (a, b) {
+      return ((a.info && a.info.name) || '').localeCompare((b.info && b.info.name) || '');
+    });
+    m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px;"><i class="ti ti-heartbeat"></i> Weekly Pulse</h2>'
+      + '<div class="ib ib-navy">Seleccioná un estudiante para el pulso semanal automático (sesiones, quiz y métricas).</div>'
+      + '<div class="card"><div class="card-title"><i class="ti ti-users"></i>Estudiantes</div>'
+      + (students.length ? students.map(function (s) {
+        var score = getScore(s);
+        return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--navy);">' + ((s.info && s.info.name) || s.id) + '</div>'
+          + '<div style="font-size:11px;color:var(--t2);">' + fmtScore(score, s) + ' · ' + getLevel(score, s) + '</div></div>'
+          + '<button type="button" class="btn btn-navy btn-sm" data-sid="' + s.id + '" onclick="NexusUI.openWeeklyPulse(this.dataset.sid)"><i class="ti ti-heartbeat"></i> Pulse</button>'
+          + '</div>';
+      }).join('') : '<div class="ib ib-amber">No hay estudiantes.</div>')
+      + '</div></div>';
   }
 
   function renderWeeklyPulseV2(m, sid) {
@@ -279,7 +312,8 @@
 
     if (s.compliance) s.compliance.attended = (s.compliance.attended || 0) + 1;
 
-    await dbSet('infinity_students', sid, s);
+    var studentTable = (sid && String(sid).indexOf('KAM-') === 0) ? 'kamuk_students' : 'infinity_students';
+    await dbSet(studentTable, sid, s);
     DB[sid] = s;
     if (typeof showToast === 'function') showToast('Pulso semanal guardado (auto + confirmación)');
     if (typeof openStudent === 'function') openStudent(sid);
@@ -289,11 +323,15 @@
     if (typeof showView === 'function' && !showView._nexusUiWrapped) {
       var orig = showView;
       showView = function (view, btn) {
-        if (view === 'kpitracker' || view === 'student-journey') {
-          currentView = 'student-journey';
+        if (view === 'kpitracker' || view === 'student-journey' || view === 'weekly-pulse') {
+          currentView = view === 'weekly-pulse' ? 'weekly-pulse' : 'student-journey';
           document.querySelectorAll('.sb-item').forEach(function (i) { i.classList.remove('active'); });
           if (btn) btn.classList.add('active');
-          renderStudentJourneyGrid(document.getElementById('main-content'));
+          if (view === 'weekly-pulse') {
+            renderWeeklyPulsePicker(document.getElementById('main-content'));
+          } else {
+            renderStudentJourneyGrid(document.getElementById('main-content'));
+          }
           return;
         }
         if (view === 'diagnostic') {
@@ -335,6 +373,7 @@
 
   global.NexusUI = {
     renderStudentJourneyGrid: renderStudentJourneyGrid,
+    renderWeeklyPulsePicker: renderWeeklyPulsePicker,
     renderWeeklyPulseV2: renderWeeklyPulseV2,
     confirmWeeklyPulse: confirmWeeklyPulse,
     openWeeklyPulse: openWeeklyPulse,

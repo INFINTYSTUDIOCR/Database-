@@ -1164,8 +1164,22 @@ function showView(view, btn){
   if(view==='dashboard') renderDashboard(m);
   else if(view==='students') renderStudents(m);
   else if(view==='calibrate') renderCalibrateSelect(m);
-  else if(view==='kpitracker' || view==='weekly-pulse') renderKPITrackerSelect(m);
-  else if(view==='student-journey') renderStudentJourney(m);
+  else if(view==='kpitracker' || view==='student-journey'){
+    if(typeof NexusUI!=='undefined' && NexusUI.renderStudentJourneyGrid){
+      NexusUI.renderStudentJourneyGrid(m);
+    } else {
+      renderStudentJourney(m);
+    }
+  }
+  else if(view==='weekly-pulse'){
+    if(typeof NexusUI!=='undefined' && NexusUI.renderWeeklyPulsePicker){
+      NexusUI.renderWeeklyPulsePicker(m);
+    } else if(typeof NexusUI!=='undefined' && NexusUI.renderStudentJourneyGrid){
+      NexusUI.renderStudentJourneyGrid(m);
+    } else {
+      renderKPITrackerSelect(m);
+    }
+  }
   else if(view==='kpi-rulebook') renderKpiRulebook(m);
   else if(view==='exercises') renderExercises(m);
   else if(view==='analytics') renderAnalytics(m);
@@ -1198,22 +1212,17 @@ function showView(view, btn){
 
 
 function renderStudentJourney(m){
+  if(typeof NexusUI!=='undefined' && NexusUI.renderStudentJourneyGrid){
+    NexusUI.renderStudentJourneyGrid(m);
+    return;
+  }
   var students = hasMasterAccess() ? allStudents() : getMyStudents();
   students = students.sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
-  var phases = [1,2,3,4];
-  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-route"></i> Viaje estudiantes</h2>'
-    +'<div class="ib ib-navy">Vista rápida del progreso por fase · Kamuk School (Método Nexus).</div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-users"></i>Cohorte</div>'
-    +(students.length ? '<table class="tbl"><thead><tr><th>Estudiante</th><th>Fase</th><th>Nivel</th><th>Score</th><th></th></tr></thead><tbody>'
-      +students.map(function(s){
-        var phase = parseInt((s.info&&s.info.phase)||1)||1;
-        var score = (typeof getScore==='function') ? getScore(s) : 0;
-        var dots = phases.map(function(p){
-          return '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:'+(p<=phase?'var(--navy)':'var(--border)')+';"></span>';
-        }).join('');
-        return '<tr><td style="font-weight:600;">'+((s.info&&s.info.name)||'—')+'</td><td>'+dots+' '+(typeof getPhaseBadge==='function'?getPhaseBadge(phase):phase)+'</td><td>'+(typeof getLevelBadge==='function'?getLevelBadge((typeof getLevel==='function'?getLevel(score):'—')):'—')+'</td><td>'+score+'/25</td><td><button class="btn btn-outline btn-sm" data-sid="'+s.id+'" onclick="openStudent(this.dataset.sid)">Abrir</button></td></tr>';
-      }).join('')+'</tbody></table>' : '<div class="ib ib-amber">No hay estudiantes.</div>')
-    +'</div></div>';
+  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px;"><i class="ti ti-route"></i> Viaje del estudiante</h2>'
+    +'<div class="ib ib-amber">Cargá Nexus UI para ver el grid con radares. Mientras tanto, abrí un estudiante desde la lista.</div>'
+    +'<div class="card">'+(students.map(function(s){
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openStudent(\''+s.id+'\')"><strong style="color:var(--navy);">'+((s.info&&s.info.name)||s.id)+'</strong></div>';
+    }).join('')||'Sin estudiantes')+'</div></div>';
 }
 function renderKpiRulebook(m){
   if(typeof KPI_TRACKER_AREAS==='undefined'){ m.innerHTML='<div class="ib ib-amber">Rule book no disponible.</div>'; return; }
@@ -7445,7 +7454,7 @@ runAIAnalysis = async function(){
 </script>
 <script src="../js/jill-f0-gate.js?v=20260708"></script>
 <script src="../nexus-unified.js"></script>
-<script src="../nexus-unified-ui.js"></script>
+<script src="../nexus-unified-ui.js?v=20260717journey"></script>
 <script src="../nexus-manual-calibration.js"></script>
 <script src="../nexus-unified-mockup.js"></script>
 <script>
