@@ -65,10 +65,13 @@
       + '.jill-rapid-tier-gold .jill-tier-badge,.jill-rapid-tier-legend .jill-tier-badge{background:linear-gradient(135deg,#b45309,#fbbf24,#f59e0b);color:#1c1917;box-shadow:0 0 18px rgba(251,191,36,0.45)}'
       + '.jill-rapid-tier-legend #jill-kaboom-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
       + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}'
-      + '#jill-kaboom-inner{padding-bottom:12px}'
-      + '#jill-kaboom-next-wrap{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:8;margin-top:14px;padding:10px 0 6px;background:linear-gradient(180deg,rgba(30,27,75,0),rgba(30,27,75,.92) 28%,rgba(30,27,75,.98));}'
+      + '#jill-kaboom-inner{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}'
       + '#jill-kaboom-next{display:block;width:100%;max-width:360px;margin:0 auto;box-shadow:0 8px 24px rgba(91,33,182,.45)}'
-      + '@media(min-width:641px){#jill-kaboom-next-wrap{bottom:12px}}';
+      + '@media(max-width:640px){'
+      + '#jill-kaboom-opts{grid-template-columns:1fr!important;gap:8px!important;}'
+      + '.jill-kaboom-opt{min-height:52px!important;padding:12px 14px!important;font-size:13px!important;}'
+      + '.jill-pressure-track{height:48px;margin-bottom:8px;}'
+      + '}';
     document.head.appendChild(st);
   }
 
@@ -941,20 +944,41 @@
         + '</div></div>';
     }
 
-    function renderFeedback(wasCorrect) {
+    function renderFeedback(wasCorrect, mode) {
       var q = state.quiz[state.idx];
-      var celebrate = wasCorrect ? renderMiniTrophy(state.streak) : '<div style="font-size:40px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">La llama avanzó — corregí y seguí</div>';
       var nextLabel = state.idx + 1 < state.quiz.length ? 'Seguir →' : (isMini ? 'Ver resultado' : 'Ver trofeos');
-      return '<div style="text-align:center;padding:8px 0 4px;">'
-        + celebrate
-        + '<div style="font-size:18px;font-weight:900;color:' + (wasCorrect ? '#86EFAC' : '#FCD34D') + ';margin-bottom:8px;">'
-        + (wasCorrect ? '¡Acertaste bajo presión!' : 'Casi — correcta: ' + esc(q.options[q.answer]))
+      var head = mode === 'timeout'
+        ? '<div style="font-size:40px;margin-bottom:8px;">⏱️</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">Tiempo — seguí practicando este tema</div>'
+        : (wasCorrect
+          ? renderMiniTrophy(state.streak)
+          : '<div style="font-size:40px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">La llama avanzó — corregí y seguí</div>');
+      var title = mode === 'timeout'
+        ? ('Correcta: ' + esc(q.options[q.answer]))
+        : (wasCorrect ? '¡Acertaste bajo presión!' : ('Casi — correcta: ' + esc(q.options[q.answer])));
+      var titleColor = wasCorrect && mode !== 'timeout' ? '#86EFAC' : '#FCD34D';
+      return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px;font-weight:800;color:#e9d5ff;">'
+        + '<span>⚡ ' + modeLabel + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
+        + '<span>🔥 ' + state.streak + '</span>'
+        + '<span>✓ ' + state.correct + '</span>'
         + '</div>'
-        + '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:8px;">' + esc(q.explain || '') + '</div>'
-        + '<div id="jill-kaboom-next-wrap">'
-        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;cursor:pointer;">'
+        + '<div style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:14px 16px;font-size:15px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;">'
+        + esc(q.q)
+        + '</div>'
+        + '<div style="text-align:center;margin-bottom:12px;">'
+        + '<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(134,239,172,0.18);border:1px solid rgba(134,239,172,0.55);color:#bbf7d0;font-weight:800;font-size:14px;padding:10px 14px;border-radius:12px;max-width:100%;">'
+        + '<span>✓</span><span style="text-align:left;line-height:1.35;">' + esc(q.options[q.answer]) + '</span>'
+        + '</div></div>'
+        + '<div style="text-align:center;padding:4px 0 8px;">'
+        + head
+        + '<div style="font-size:18px;font-weight:900;color:' + titleColor + ';margin-bottom:8px;">' + title + '</div>'
+        + (q.explain ? '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain) + '</div>' : '')
+        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:16px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
         + nextLabel
-        + '</button></div></div>';
+        + '</button>'
+        + '<div style="margin-top:12px;">'
+        + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
+        + '</div></div></div>';
     }
 
     function bindNextButton() {
@@ -967,13 +991,11 @@
         else showQuestion();
       });
       try {
-        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } catch (e) {
-        try { nextBtn.scrollIntoView(true); } catch (e2) { /* ignore */ }
-      }
+        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } catch (e) { /* ignore */ }
     }
 
-    function showAnswerFeedback(wasCorrect, picked) {
+    function showAnswerFeedback(wasCorrect, picked, mode) {
       clearTimer();
       var q = state.quiz[state.idx];
       state.kpiResults.push({ kpi: q.kpi || 'k10', correct: !!wasCorrect, category: q.category || 'tense' });
@@ -989,32 +1011,13 @@
         state.streak = 0;
         if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.fail();
       }
-      var opts = rootEl.querySelectorAll('.jill-kaboom-opt');
-      opts.forEach(function (b, i) {
-        b.disabled = true;
-        b.style.opacity = i === q.answer ? '1' : (picked != null && i === picked && !wasCorrect ? '0.55' : '0.35');
-        b.style.transform = i === q.answer ? 'scale(1.03)' : 'none';
-        b.style.boxShadow = i === q.answer ? '0 0 0 3px #fff' : 'none';
-      });
-      // Collapse tall option grid so Seguir fits above the bottom nav
-      var grid = rootEl.querySelector('#jill-kaboom-opts');
-      if (grid) {
-        grid.style.maxHeight = '120px';
-        grid.style.overflow = 'hidden';
-        grid.style.opacity = '0.85';
-      }
-      var exitRow = rootEl.querySelector('#jill-kaboom-exit-row');
-      if (exitRow) exitRow.style.display = 'none';
-      var fb = document.createElement('div');
-      fb.id = 'jill-kaboom-feedback';
-      fb.innerHTML = renderFeedback(wasCorrect);
-      var inner = rootEl.querySelector('#jill-kaboom-inner');
-      if (inner) {
-        var old = document.getElementById('jill-kaboom-feedback');
-        if (old) old.remove();
-        inner.appendChild(fb);
-      }
+      // Full replace: no option grid + sticky overlay fighting for space
+      rootEl.innerHTML = renderFeedback(wasCorrect, mode || (wasCorrect ? 'ok' : 'miss'));
       bindNextButton();
+      try {
+        var top = rootEl.querySelector('#jill-kaboom-inner');
+        if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) { /* ignore */ }
     }
 
     function renderResults() {
@@ -1168,18 +1171,7 @@
         updatePressureDom(state);
         if (state.timeLeft <= 0 && !state.answered) {
           state.answered = true;
-          showAnswerFeedback(false, null);
-          var q = state.quiz[state.idx];
-          var fb = document.getElementById('jill-kaboom-feedback');
-          if (fb) {
-            fb.innerHTML = '<div style="text-align:center;padding:8px 0 4px;"><div style="font-size:32px;">⏱️</div>'
-              + '<div style="color:#FCD34D;font-weight:800;margin:8px 0 12px;">Tiempo — seguí practicando este tema</div>'
-              + '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:8px;">Correcta: <strong>' + esc(q.options[q.answer]) + '</strong></div>'
-              + '<div id="jill-kaboom-next-wrap">'
-              + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
-              + (state.idx + 1 < state.quiz.length ? 'Seguir →' : 'Ver resultado') + '</button></div></div>';
-            bindNextButton();
-          }
+          showAnswerFeedback(false, null, 'timeout');
         }
       }, 1000);
     }
