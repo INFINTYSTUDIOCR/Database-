@@ -1237,14 +1237,38 @@ function renderKpiRulebook(m){
   m.innerHTML = html+'</div>';
 }
 async function ensureKamukDefaultAccess(){
-  var ids = Object.keys(DB); var n=0;
+  var ids = Object.keys(DB); var n=0; var creds=0;
+  var used = {};
+  ids.forEach(function(id){
+    var s=DB[id];
+    if(s&&s.portalUser) used[String(s.portalUser).toLowerCase()]=true;
+  });
   for(var i=0;i<ids.length;i++){
     var id=ids[i]; var s=DB[id];
-    if(!s || s._kamukAccessV1) continue;
-    s.companionEnabled=true; s.nexoraEnabled=true; s.aliceEnabled=true; s.jillEnabled=false; s.claireEnabled=false; s._kamukAccessV1=true;
-    try{ await dbSet('kamuk_students', id, s); DB[id]=s; n++; }catch(e){}
+    if(!s) continue;
+    var dirty=false;
+    if(!s._kamukAccessV1){
+      s.companionEnabled=true; s.nexoraEnabled=true; s.aliceEnabled=true; s.jillEnabled=false; s.claireEnabled=false; s._kamukAccessV1=true;
+      dirty=true; n++;
+    }
+    if(!s.portalUser || !s.portalPass){
+      var name=(s.info&&s.info.name)||id;
+      var parts=String(name).trim().split(/\s+/);
+      var base=((parts[0]||'')+(parts[1]?'.'+parts[1]:'')).toLowerCase().replace(/[^a-z.]/g,'')||('estudiante');
+      var user=base; var k=2;
+      while(used[user]){ user=base+k; k++; }
+      used[user]=true;
+      var chars='abcdefghjkmnpqrstuvwxyz23456789';
+      var pass=''; for(var j=0;j<8;j++) pass+=chars[Math.floor(Math.random()*chars.length)];
+      s.portalUser=user; s.portalPass=pass; s.portalCredsCreatedAt=new Date().toISOString();
+      if(!s.status) s.status='active';
+      dirty=true; creds++;
+    }
+    if(dirty){
+      try{ await dbSet('kamuk_students', id, s); DB[id]=s; }catch(e){}
+    }
   }
-  if(n) console.log('[Kamuk] Companion+Nexora defaults applied to', n);
+  if(n||creds) console.log('[Kamuk] defaults', n, 'access ·', creds, 'portal creds');
 }
 
 // ── HELPERS ───────────────────────────────────────────────
