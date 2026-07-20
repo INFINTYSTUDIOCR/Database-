@@ -111,10 +111,24 @@ html = html.replace(
   "switchPortalTab('progreso');"
 );
 
+// Kamuk portal must authenticate against kamuk_students (same portalUser may exist in Infinity)
+html = html.replace(
+  /infinityLogin\(user, pass, 'student', \{ silent: true \}\)/g,
+  "infinityLogin(user, pass, 'student', { silent: true, product: 'kamuk' })"
+);
+html = html.replace(
+  /infinityEnsureAuth\(\{ user: user, password: pass, role: 'student', attempts: 3, force: true \}\)/g,
+  "infinityEnsureAuth({ user: user, password: pass, role: 'student', product: 'kamuk', attempts: 3, force: true })"
+);
+html = html.replace(
+  /var pass = document\.getElementById\('l-pass'\)\.value;/,
+  "var pass = document.getElementById('l-pass').value.trim();"
+);
+
 // Inject marker so we know build version
 html = html.replace(
   '<html lang="es">',
-  '<html lang="es"><!-- kamuk-portal-build 2026-07-17: infinity-parity colors-only no-news companion+nexora -->'
+  '<html lang="es"><!-- kamuk-portal-build 2026-07-20: product-kamuk-login -->'
 );
 
 fs.writeFileSync(DEST, html, 'utf8');

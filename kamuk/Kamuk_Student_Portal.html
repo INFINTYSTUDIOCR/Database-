@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es"><!-- kamuk-portal-build 2026-07-17: infinity-parity colors-only no-news companion+nexora -->
+<html lang="es"><!-- kamuk-portal-build 2026-07-20: product-kamuk-login -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
@@ -976,7 +976,7 @@ function setLoginLoading(on){
 
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
-  var pass = document.getElementById('l-pass').value;
+  var pass = document.getElementById('l-pass').value.trim();
   var err = document.getElementById('login-err');
   if(!user || !pass){ err.textContent='Ingresá tu usuario y contraseña.'; err.style.display='block'; return; }
 
@@ -1002,9 +1002,9 @@ async function doLogin(){
     // JWT is mandatory — without it Jill/Alice/Nexora all return 401 "sesión expirada"
     var loginData = null;
     try {
-      loginData = await infinityLogin(user, pass, 'student', { silent: true });
+      loginData = await infinityLogin(user, pass, 'student', { silent: true, product: 'kamuk' });
       if(!getAuthToken() && typeof infinityEnsureAuth === 'function'){
-        await infinityEnsureAuth({ user: user, password: pass, role: 'student', attempts: 3, force: true });
+        await infinityEnsureAuth({ user: user, password: pass, role: 'student', product: 'kamuk', attempts: 3, force: true });
       }
     } catch(e) { /* handled below */ }
     if(!getAuthToken()){

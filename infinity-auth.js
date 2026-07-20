@@ -10,6 +10,7 @@ var AUTH_EXP_KEY = 'infinity_auth_exp';
 var AUTH_USER_KEY = 'infinity_auth_user';
 var AUTH_PASS_KEY = 'infinity_auth_pass';
 var AUTH_ROLE_KEY = 'infinity_auth_role';
+var AUTH_PRODUCT_KEY = 'infinity_auth_product';
 var _infinityReloginPromise = null;
 
 function getAuthToken() {
@@ -31,11 +32,13 @@ function setAuthToken(token, expiresInSec) {
   localStorage.setItem(AUTH_EXP_KEY, String(exp));
 }
 
-function setAuthCredentials(user, password, role) {
+function setAuthCredentials(user, password, role, product) {
   try {
     if (user) sessionStorage.setItem(AUTH_USER_KEY, String(user));
     if (password != null) sessionStorage.setItem(AUTH_PASS_KEY, String(password));
     if (role) sessionStorage.setItem(AUTH_ROLE_KEY, String(role));
+    if (product) sessionStorage.setItem(AUTH_PRODUCT_KEY, String(product));
+    else sessionStorage.removeItem(AUTH_PRODUCT_KEY);
   } catch (e) { /* private mode */ }
 }
 
@@ -44,6 +47,7 @@ function clearAuthCredentials() {
     sessionStorage.removeItem(AUTH_USER_KEY);
     sessionStorage.removeItem(AUTH_PASS_KEY);
     sessionStorage.removeItem(AUTH_ROLE_KEY);
+    sessionStorage.removeItem(AUTH_PRODUCT_KEY);
   } catch (e) { /* ignore */ }
 }
 
@@ -63,10 +67,13 @@ function authHeaders(extra) {
 
 async function infinityLogin(user, password, role, opts) {
   opts = opts || {};
+  var product = opts.product || sessionStorage.getItem(AUTH_PRODUCT_KEY) || '';
+  var payload = { user: user, password: password, role: role };
+  if (product) payload.product = product;
   var r = await fetch(INFINITY_API + '/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user: user, password: password, role: role })
+    body: JSON.stringify(payload)
   });
   var text = await r.text();
   var d;
@@ -84,7 +91,7 @@ async function infinityLogin(user, password, role, opts) {
     throw err;
   }
   setAuthToken(d.token, d.expiresIn);
-  setAuthCredentials(user, password, role || 'student');
+  setAuthCredentials(user, password, role || 'student', product || null);
   return d;
 }
 
@@ -96,8 +103,9 @@ async function infinityReloginSilent() {
       var user = sessionStorage.getItem(AUTH_USER_KEY);
       var pass = sessionStorage.getItem(AUTH_PASS_KEY);
       var role = sessionStorage.getItem(AUTH_ROLE_KEY) || 'student';
+      var product = sessionStorage.getItem(AUTH_PRODUCT_KEY) || '';
       if (!user || !pass) return null;
-      return await infinityLogin(user, pass, role, { silent: true });
+      return await infinityLogin(user, pass, role, { silent: true, product: product || undefined });
     } catch (e) {
       return null;
     } finally {
@@ -119,11 +127,12 @@ async function infinityEnsureAuth(opts) {
   var user = opts.user || sessionStorage.getItem(AUTH_USER_KEY);
   var pass = opts.password || sessionStorage.getItem(AUTH_PASS_KEY);
   var role = opts.role || sessionStorage.getItem(AUTH_ROLE_KEY) || 'student';
+  var product = opts.product || sessionStorage.getItem(AUTH_PRODUCT_KEY) || '';
   if (!user || !pass) return !!getAuthToken();
 
   var attempts = Math.max(1, opts.attempts || 3);
   for (var i = 0; i < attempts; i++) {
-    var d = await infinityLogin(user, pass, role, { silent: true });
+    var d = await infinityLogin(user, pass, role, { silent: true, product: product || undefined });
     if (d && getAuthToken()) return true;
     await new Promise(function (resolve) { setTimeout(resolve, 700 * (i + 1)); });
   }

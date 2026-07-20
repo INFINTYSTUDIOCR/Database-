@@ -262,15 +262,27 @@ async function sbDelete(table, id) {
   }
 }
 
-async function sbFindStudentByPortalLogin(portalUser, password) {
+async function sbFindStudentByPortalLogin(portalUser, password, product) {
   const loginUser = String(portalUser || '').trim().toLowerCase();
   if (!loginUser) return null;
   const q = `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`;
-  const infRows = await sbQuery('infinity_students', q);
-  const infHit = infRows.find(r => r.data && r.data.portalPass === password);
+  const preferKamuk = String(product || '').toLowerCase() === 'kamuk';
+  const kamFirst = async () => {
+    const kamRows = await sbQuery('kamuk_students', q);
+    return kamRows.find(r => r.data && r.data.portalPass === password) || null;
+  };
+  const infFirst = async () => {
+    const infRows = await sbQuery('infinity_students', q);
+    return infRows.find(r => r.data && r.data.portalPass === password) || null;
+  };
+  if (preferKamuk) {
+    const kamHit = await kamFirst();
+    if (kamHit) return kamHit;
+    return infFirst();
+  }
+  const infHit = await infFirst();
   if (infHit) return infHit;
-  const kamRows = await sbQuery('kamuk_students', q);
-  return kamRows.find(r => r.data && r.data.portalPass === password) || null;
+  return kamFirst();
 }
 
 const Brain = require('./nexus-brain');
@@ -626,7 +638,9 @@ function isNexoraEnabledForStudent(student) {
   if (!student) return false;
   if (!student.nexoraEnabled) return false;
   // Kamuk: Companion + Nexora product — Alice tutor flag OR Companion unlocks Nexora
-  if (student.id && String(student.id).startsWith('KAM-')) {
+  // Legacy Kamuk rows may keep STU- ids (not only KAM-)
+  const sid = student.id ? String(student.id) : '';
+  if (sid.startsWith('KAM-') || sid.startsWith('STU-')) {
     if (normalizeCompanionEnabled(student)) return true;
   }
   if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
@@ -736,7 +750,8 @@ app.post('/auth/login', async (req, res) => {
     const loginUser = String(user).trim().toLowerCase();
 
     if (role === 'student') {
-      const match = await sbFindStudentByPortalLogin(user, password);
+      const product = String(req.body?.product || '').trim().toLowerCase();
+      const match = await sbFindStudentByPortalLogin(user, password, product);
       if (!match) {
         recordLoginFailure(ip);
         return res.status(401).json({ error: 'Invalid credentials' });
