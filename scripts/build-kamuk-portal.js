@@ -128,7 +128,7 @@ html = html.replace(
 // Inject marker so we know build version
 html = html.replace(
   '<html lang="es">',
-  '<html lang="es"><!-- kamuk-portal-build 2026-07-20: product-kamuk-login -->'
+  '<html lang="es"><!-- kamuk-portal-build 2026-07-20: api-first-login -->'
 );
 
 fs.writeFileSync(DEST, html, 'utf8');

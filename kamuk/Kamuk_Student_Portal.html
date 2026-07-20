@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es"><!-- kamuk-portal-build 2026-07-20: product-kamuk-login -->
+<html lang="es"><!-- kamuk-portal-build 2026-07-20: api-first-login -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
@@ -903,12 +903,18 @@ async function dbFindStudentByPortalLogin(user, pass){
   var rows = await dbQuery('kamuk_students?select=id,data&data->>portalUser=eq.'+encodeURIComponent(user)+'&limit=5');
   for(var i=0;i<rows.length;i++){
     var r = rows[i];
-    if(r.data && r.data.portalPass === pass){
+    if(r.data && String(r.data.portalPass||'') === String(pass||'')){
       r.data.id = r.id;
       return r.data;
     }
   }
   return null;
+}
+async function dbLoadStudentById(sid){
+  var row = await dbGetStudentRow(sid);
+  if(!row || !row.data) return null;
+  row.data.id = row.id;
+  return row.data;
 }
 async function dbSet(table,id,data){
   const r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id,data,updated_at:new Date().toISOString()})});
@@ -984,7 +990,19 @@ async function doLogin(){
   setLoginLoading(true);
 
   try{
-    var student = await dbFindStudentByPortalLogin(user, pass);
+    // Auth first via API (Kamuk product) — source of truth when portalUser exists in both DBs
+    var loginData = null;
+    try {
+      loginData = await infinityLogin(user, pass, 'student', { silent: true, product: 'kamuk' });
+    } catch(e) { loginData = null; }
+
+    var student = null;
+    if(loginData && loginData.studentId){
+      student = await dbLoadStudentById(loginData.studentId);
+    }
+    if(!student){
+      student = await dbFindStudentByPortalLogin(user, pass);
+    }
 
     if(!student){
       err.textContent='Usuario o contraseña incorrectos.';
@@ -1000,13 +1018,11 @@ async function doLogin(){
     }
 
     // JWT is mandatory — without it Jill/Alice/Nexora all return 401 "sesión expirada"
-    var loginData = null;
-    try {
-      loginData = await infinityLogin(user, pass, 'student', { silent: true, product: 'kamuk' });
-      if(!getAuthToken() && typeof infinityEnsureAuth === 'function'){
+    if(!getAuthToken() && typeof infinityEnsureAuth === 'function'){
+      try {
         await infinityEnsureAuth({ user: user, password: pass, role: 'student', product: 'kamuk', attempts: 3, force: true });
-      }
-    } catch(e) { /* handled below */ }
+      } catch(e) { /* handled below */ }
+    }
     if(!getAuthToken()){
       err.textContent = 'No se pudo activar la voz con el servidor. Esperá unos segundos e intentá de nuevo.';
       err.style.display = 'block';
