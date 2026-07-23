@@ -429,6 +429,7 @@ function isEnglishWordAsk(message) {
   const t = String(message || '').trim();
   if (!t) return false;
   if (/^(ok|okay|sí|si|no|nop|hola|hi|hey|gracias|dale|listo|ya)\??$/i.test(t)) return false;
+  // Require an explicit ask — bare words like "will" / "have" are practice, not a lesson request.
   const asks = /\b(qu[eé]\s+es|what\s+is|what\s+does|significa|c[oó]mo\s+se\s+(usa|dice|forma)|para\s+qu[eé]\s+sirve|explic[aá](?:me)?|ens?[eé][nñ][aá](?:me)?)\b/i.test(t);
   const stripped = t
     .replace(/\b(qu[eé]|que|es|what|is|does|significa|c[oó]mo|como|se|usa|dice|forma|para|sirve|explicame|expl[ií]came|explica|ense[nñ]ame|el|la|un|una|eso|de|del|me|por|favor)\b/gi, ' ')
@@ -436,9 +437,7 @@ function isEnglishWordAsk(message) {
     .replace(/\s+/g, ' ')
     .trim();
   const enToken = /\b[a-zA-Z]{2,}\b/.test(stripped);
-  if (asks && enToken) return true;
-  if (/^[a-zA-Z]{2,14}\??$/.test(t) && !/^(ok|yes|no|hi|hey)$/i.test(t)) return true;
-  return false;
+  return !!(asks && enToken);
 }
 
 function extractEnglishPiece(message) {
@@ -469,13 +468,10 @@ function resolveCompanionPhase(message, history, stickyTopic) {
   if (lastAssistantAskedForEnglish(history) && /\b[a-zA-Z]{2,}\b/.test(message) && !/[áéíóúñ¿¡]/.test(message)) {
     return 'live_evaluate';
   }
-  // Jill DJ: misma fuente que el tablero (pedido + sticky + shell visual)
-  const track = resolveAskTrack(message, stickyTopic);
-  if (track && !isClarityReply(message)) {
-    const enProd = /\b(i|you|he|she|we|they|it)\s+(am|is|are|was|were|have|has|had|will|would|can|could|should|must|do|does|did)\b/i.test(message);
-    if (!enProd || isEnglishDoubtRequest(message) || wantsVisualBoard(message)) return 'doubt_explain';
+  // Full lesson ONLY on explicit teach / visual / doubt ask — never from casual English keywords.
+  if (isEnglishDoubtRequest(message) || wantsVisualBoard(message) || (JillCanonRouter.isTeachCommand && JillCanonRouter.isTeachCommand(message))) {
+    return 'doubt_explain';
   }
-  if (isEnglishDoubtRequest(message) || wantsVisualBoard(message)) return 'doubt_explain';
   const topic = resolveSessionTopic(history, stickyTopic || '', message);
   if (String(topic).startsWith('doubt:')) return 'doubt_practice';
   return 'free_chat';
@@ -546,7 +542,8 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   if (activeLock && explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
     track = fromThisMsg;
   } else if (!activeLock) {
-    track = piece || fromThisMsg || forced || null;
+    const mayTeach = explicitNew || wordAsk || wantsVisualBoard(msg) || isEnglishDoubtRequest(msg);
+    track = mayTeach ? (piece || fromThisMsg || forced || null) : null;
   }
   const relevanceLock = track
     ? `\nRELEVANCIA IRROMPIBLE — lección activa: ${track.title} (${track.id}).
@@ -601,13 +598,13 @@ Si el tema es linkers avanzados / STAR / Nexora: mini-respuesta + 1 frase → Al
 
   if (phase === 'live_correct') {
     const guionLive = track ? trackTeachHint(track) : '';
-    return `${heard}${ordersBlock}${guionLive}${lockBlock}${moduleBlock}${boardSync}\n${FULL_TEACH_ALL}\nMODO COACH EN VIVO — ESTRUCTURA ROTA.
-DETENÉ. EN ESPAÑOL, con calma (estilo de clase John — GUION, no lista de tablero):
+    return `${heard}${ordersBlock}${guionLive}${lockBlock}
+MODO COACH EN VIVO — ESTRUCTURA ROTA (micro-turno).
+DETENÉ. EN ESPAÑOL, 2-4 oraciones MAX:
 1) Feedback 1 frase.
-2) Patrón correcto${track ? ` (track: ${track.title})` : ''} — HABLA el guion oral.
-3) 1 ejemplo oral con pausas si hay paradigm.
-4) Pedí que lo digan mirando el tablero (mic).
-Última línea: [[CTYPE:whiteboard]]`;
+2) Modelo correcto oral (1 frase) — sin lección completa, sin tablero, sin guion largo.
+3) Pedí que lo digan 1 vez.
+PROHIBIDO FULL_TEACH / whiteboard / re-enseñar módulo. [[CTYPE:text]]`;
   }
 
   if (phase === 'live_evaluate') {
@@ -638,8 +635,8 @@ NO re-expliques. NO abras Rapid drill completo.
 No abras otra lección distinta. Quedate en este patrón hasta que aterrice 1 oración limpia. [[CTYPE:text]]`;
   }
 
-  if (track && /\b(explic|ense[nñ]|duda|c[oó]mo|ayud|teach|explain|imagen|pizarr|visual|pasado|perfecto|presente|futuro|modal|gerund|will|would|had|have|get)\b/i.test(msg)) {
-    return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}MODO DUDA (track detectado — biblioteca completa).
+  if (track && (JillCanonRouter.isTeachCommand && JillCanonRouter.isTeachCommand(msg) || wantsVisualBoard(msg) || isEnglishDoubtRequest(msg))) {
+    return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}MODO DUDA (pedido explícito — biblioteca completa).
 ${trackTeachHint(track)}
 ${JILL_PRO_TEACH_CANON}
 Terminá la explicación completa. NUNCA cortes a mitad de frase. Luego pedí práctica oral.
@@ -648,9 +645,9 @@ Terminá la explicación completa. NUNCA cortes a mitad de frase. Luego pedí pr
 
   return `${heard}${pieceNote}${lockBlock}TURNO COMPANION — interpretá qué quiere y respondé EN ESPAÑOL con sentido (tema hint: "${topic || 'lo que sea'}").
 ${JILL_NEVER_MUTE}
-Si trae duda gramatical o pregunta por una palabra en inglés: EXPLICÁLA YA (paciencia, analogía, ejemplo). Cero mezclar tiempos. Cero "no sé".
+Si trae duda gramatical EXPLÍCITA: explicá corto (paciencia, analogía, 1 ejemplo). Cero mezclar tiempos. Cero "no sé".
 Si es charla: reaccioná + UNA pregunta.
-Si inglés mal armado: DETENÉ → feedback → ejemplo oral → que lo digan.
+Si inglés mal armado: DETENÉ → feedback 1 frase → modelo → que lo digan. SIN lección completa no pedida.
 [[CTYPE:text]]`;
 }
 

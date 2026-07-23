@@ -222,9 +222,9 @@ function djMove(studentId, structureOk) {
 }
 
 const DJ_DIRECTIVE = {
-  down: 'RITMO ? (baj el tempo): el alumno viene fallando. Repet el MISMO patrn con otra frase simple y corta, ms lento, UNA sola idea. No metas estructura nueva hasta que lo clave.',
-  hold: 'RITMO = (manten): una correccin puntual + una prctica del mismo tipo. Ritmo normal.',
-  up: 'RITMO ? (sub el tempo): viene limpio. Felicit corto, sub la dificultad: UNA estructura nueva o una idea ms larga, ritmo gil.'
+  down: 'RITMO ? (bajá el tempo): el alumno viene fallando. UNA sola micro-corrección + 1 frase modelo corta. PROHIBIDO re-ense?ar el guion completo, abrir tablero o inventar lección nueva.',
+  hold: 'RITMO = (mantené): una corrección puntual + una práctica del mismo tipo. Ritmo normal. Sin relleno.',
+  up: 'RITMO ? (subí el tempo): viene limpio. Felicitá corto, subí la dificultad: UNA estructura nueva o una idea más larga, ritmo ágil.'
 };
 
 /**
@@ -233,12 +233,13 @@ const DJ_DIRECTIVE = {
 function formatCoachNote(analysis, dj) {
   const lines = [
     '\nESCUCHA ESTRUCTURAL (Jill DJ de aprendizaje):',
-    '- Escuch el turno y detect fallos SOLO en: tiempos verbales, preposiciones, expresiones, vocabulario y orden de palabras.',
-    '- Si hay un fallo, d UNA micro-correccin hablada y natural ("you went ? casi; dec I go conmigo"), model la forma correcta en voz alta (el acento se contagia de tu pronunciacin) y segu.',
-    '- Mximo 1 correccin por turno. NO corrijas acento, tildes ni ortografa. Correccin con afecto firme, no chatbot motivacional.'
+    '- Escuchá el turno y detectá fallos SOLO en: tiempos verbales, preposiciones, expresiones, vocabulario y orden de palabras.',
+    '- Si hay un fallo, dá UNA micro-corrección hablada y natural ("you went ? casi; decí I go conmigo"), modelá la forma correcta en voz alta y seguí.',
+    '- Máximo 1 corrección por turno. NO corrijas acento, tildes ni ortografía. Corrección con afecto firme, no chatbot motivacional.',
+    '- PROHIBIDO llenar la pantalla con lecciones, paradigmas o tableros que el estudiante no pidió.'
   ];
   if (analysis?.findings?.length) {
-    lines.push('- PISTAS (posibles fallos detectados por el odo): '
+    lines.push('- PISTAS (posibles fallos detectados por el oído): '
       + analysis.findings.map((f) => f.issue).join(' | '));
   }
   if (dj?.tempo && DJ_DIRECTIVE[dj.tempo]) {
