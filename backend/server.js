@@ -2252,6 +2252,15 @@ function jillIsExplicitTeachTurn(message) {
   } catch (_) { /* ignore */ }
   return false;
 }
+/** Jill Pro may fully explain on doubt / word ask / explicame — not limited to Tutor curriculum. */
+function jillProWantsExplain(message) {
+  if (jillIsExplicitTeachTurn(message)) return true;
+  try {
+    if (JillPro.isEnglishDoubtRequest && JillPro.isEnglishDoubtRequest(message)) return true;
+    if (JillPro.isEnglishWordAsk && JillPro.isEnglishWordAsk(message)) return true;
+  } catch (_) { /* ignore */ }
+  return false;
+}
 /**
  * Portal canonTrackId is sticky across practice turns.
  * Inventing a track from casual English (will/have/go) floods the chat with unsolicited lessons.
@@ -4707,43 +4716,51 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const bundleCtxChat = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
-    // Portal canonTrackId is source of truth — never invent a lock from casual English.
-    // Jill Pro (companion): ZERO classroom locks / teach packages.
-    const explicitTeachChat = !isJillCompanion && jillIsExplicitTeachTurn(message);
+    // Jill Pro: can explain everything when asked. Jill Tutor: limited to class locks.
+    const proExplainChat = isJillCompanion && jillProWantsExplain(message);
+    const explicitTeachChat = isJillCompanion
+      ? proExplainChat
+      : jillIsExplicitTeachTurn(message);
     const lockedTrackIdChat = isJillCompanion
-      ? null
+      ? (canonTrackId
+        || (proExplainChat
+          ? (JillCanonRouter.resolveAskId
+            ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '')
+            : null)
+          : null)
+        || null)
       : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '');
     const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackIdChat)
       : null;
-    const hardLockChat = isJillCompanion ? '' : buildJillHardTrackLock(lockedTrackChat, explicitTeachChat);
+    const hardLockChat = buildJillHardTrackLock(lockedTrackChat, explicitTeachChat);
     const teachInstrChat = isJillCompanion
       ? (function () {
-          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, null); }
-          catch (e) { return 'JILL PRO — charlá libre. Sin clases. NUNCA cortes. [[CTYPE:text]]'; }
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, lockedTrackIdChat || null); }
+          catch (e) { return 'JILL PRO — charlá o explicá completo si piden duda. NUNCA cortes. [[CTYPE:text]]'; }
         })()
       : (JillPro.studentWantsEnglishPractice(message)
         ? 'MODO PRÁCTICA EN INGLÉS — el estudiante pidió practicar en inglés este turno.'
         : (explicitTeachChat
-          ? ''
-          : 'TURNO CORTO: 2-3 oraciones. UNA micro-corrección si hace falta. PROHIBIDO lección completa no pedida. NUNCA cortes a mitad de frase.'));
+          ? 'JILL TUTOR — limitate a la clase/track del bundle o al pedido explícito.'
+          : 'JILL TUTOR — turno corto dentro de la clase activa. UNA micro-corrección. PROHIBIDO inventar lección fuera del currículo. NUNCA cortes.'));
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
     const doctrineChat = await tutorKnowledgeSliceForJill(message, student, {
       canonTrackId: lockedTrackIdChat,
       allowPickTrack: explicitTeachChat
     });
-    const teachCompleteChat = (!isJillCompanion && explicitTeachChat && lockedTrackChat) || (!isJillCompanion && /doubt_explain|MODO DUDA|TRACK LOCK/i.test(teachInstrChat))
+    const teachCompleteChat = (explicitTeachChat && (lockedTrackChat || isJillCompanion)) || /doubt_explain|MODO DUDA|EXPLICACIÓN COMPLETA|TRACK LOCK/i.test(teachInstrChat)
       ? TUTOR_TEACH_COMPLETE_RULE
       : '';
     const neverCut = '\nNUNCA cortes a mitad de frase. Terminá siempre la idea completa.';
     const systemWithContext = isJillCompanion
-      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${neverCut}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text"} — Jill Pro: NUNCA whiteboard/clase. NEVER cut off mid-sentence.`
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}${neverCut}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
+      ? `${JillPro.buildJillProCompanionSystem(displayChat, level, profileNoteChat, adaptNote, topicHint, calibrationNote)}${doctrineChat}${hardLockChat}${teachCompleteChat}${neverCut}\n\n${teachInstrChat}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|whiteboard"} — Jill Pro puede explicar TODO. whiteboard si explicás. NEVER cut off mid-sentence.`
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nMODO: Jill Tutor (normal) — LIMITADA a clases/bundles/currículo. No inventes módulos fuera de la clase.\nESTUDIANTE: ${displayChat} | Nivel: ${level}${profileNoteChat}${adaptNote}\nEJERCICIOS ASIGNADOS:\n${exercises || '(ninguno aún)'}${bundleCtxChat}${doctrineChat}${hardLockChat}${teachCompleteChat}${teachInstrChat ? '\n\n' + teachInstrChat : ''}${neverCut}\n\nRESPONDE ÚNICAMENTE con JSON: {"reply":"...","contentType":"text|exercise|example|whiteboard"} — sin texto fuera del JSON. NEVER cut off mid-sentence.`;
 
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: isJillCompanion ? 1600 : ((explicitTeachChat && lockedTrackChat) ? 2000 : 1400),
+      max_tokens: explicitTeachChat ? 2000 : (isJillCompanion ? 1600 : 1400),
       system: systemWithContext,
       messages: msgs
     });
@@ -4854,18 +4871,24 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const topicHint = isJillCompanion
       ? JillPro.resolveSessionTopic(history, companionTopic, message)
       : '';
-    // Board/voz: portal canonTrackId wins; invent lock ONLY on explicit teach/visual ask.
-    // Jill Pro (companion): ZERO classroom locks.
-    const explicitTeach = !isJillCompanion && jillIsExplicitTeachTurn(message);
+    // Jill Pro: explain everything when asked. Jill Tutor: class/bundle locks only.
+    const proExplain = isJillCompanion && jillProWantsExplain(message);
+    const explicitTeach = isJillCompanion ? proExplain : jillIsExplicitTeachTurn(message);
     const lockedTrackId = isJillCompanion
-      ? null
+      ? (canonTrackId
+        || (proExplain
+          ? (JillCanonRouter.resolveAskId
+            ? JillCanonRouter.resolveAskId(message, companionTopic || topicHint || '')
+            : null)
+          : null)
+        || null)
       : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '');
     const lockedTrack = lockedTrackId && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackId)
       : null;
-    const hardTrackLock = isJillCompanion ? '' : buildJillHardTrackLock(lockedTrack, explicitTeach);
+    const hardTrackLock = buildJillHardTrackLock(lockedTrack, explicitTeach);
     const companionBlock = isJillCompanion
-      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint)
+      ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
       : hardTrackLock;
     const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
     if (!limit.ok) {
@@ -4931,14 +4954,14 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       : '';
     const teachInstr = isJillCompanion
       ? (function () {
-          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, null); }
-          catch (e) { return 'JILL PRO — charlá libre. Sin clases. NUNCA cortes. [[CTYPE:text]]'; }
+          try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, lockedTrackId); }
+          catch (e) { return 'JILL PRO — charlá o explicá completo si piden duda. NUNCA cortes. [[CTYPE:text]]'; }
         })()
       : (jillLangTurn + (calTeach || (convPhase
-        ? 'FASE CONVERSACIÓN: Jill escucha; el estudiante habla. UNA pregunta de seguimiento + corrección breve de ranura si aplica. NO drills de una sola oración. NO re-enseñes guion completo. NUNCA cortes.'
+        ? 'FASE CONVERSACIÓN (Jill Tutor): escucha + UNA pregunta + corrección breve. Limitada a la clase/bundle. NUNCA cortes.'
         : (explicitTeach
-          ? 'Enseñá SOLO el módulo del TRACK LOCK si hay uno; HABLA el GUION ORAL de clase (no leas el tablero). NUNCA cortes.'
-          : 'TURNO CORTO: 2-3 oraciones. UNA micro-corrección si hace falta. PROHIBIDO lección completa, tablero o guion no pedido. NUNCA cortes.')))
+          ? 'JILL TUTOR — enseñá SOLO el módulo/track de la clase activa; HABLA el GUION ORAL. NUNCA cortes.'
+          : 'JILL TUTOR — turno corto dentro del currículo/clase. UNA micro-corrección. PROHIBIDO inventar lección fuera de la clase. NUNCA cortes.')))
         + (explicitTeach ? hardTrackLock : (lockedTrack ? hardTrackLock : ''))
         + (explicitTeach && lockedTrack
         ? ('\n' + (function () {
@@ -4956,18 +4979,18 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
       canonTrackId: lockedTrackId,
       allowPickTrack: explicitTeach
     });
-    const teachLatency = (!isJillCompanion && explicitTeach && lockedTrack) || (!isJillCompanion && /doubt_explain|MODO DUDA|MINI-LECCIÓN|LECCIÓN COMPLETA/i.test(teachInstr))
+    const teachLatency = (explicitTeach && (lockedTrack || isJillCompanion)) || /doubt_explain|MODO DUDA|EXPLICACIÓN COMPLETA|MINI-LECCIÓN|LECCIÓN COMPLETA/i.test(teachInstr)
       ? TUTOR_TEACH_COMPLETE_RULE
       : TUTOR_LATENCY_RULE;
     const neverCutStream = '\nNUNCA cortes a mitad de frase. Terminá siempre la idea completa.';
     const jillCompanionSystem = isJillCompanion
-      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + neverCutStream
-      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}${neverCutStream}`;
+      ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + (explicitTeach ? TUTOR_TEACH_COMPLETE_RULE : '') + neverCutStream
+      : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nMODO: Jill Tutor (normal) — LIMITADA a clases/bundles.\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}${neverCutStream}`;
     await streamAnthropicSSE(res, {
-      max_tokens: isJillCompanion ? 1600 : ((explicitTeach && lockedTrack) ? 2000 : 1400),
+      max_tokens: explicitTeach ? 2000 : (isJillCompanion ? 1600 : 1400),
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: [[CTYPE:text]]. Jill Pro = companion, cero clases/tableros. NEVER cut off mid-sentence.`
-        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${explicitTeach && lockedTrack ? '[[CTYPE:whiteboard]] (track ' + lockedTrack.id + ' únicamente)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off mid-sentence. Si no hay pedido de lección: respuesta completa sin cortar — cero guion completo no pedido.`,
+        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: ${explicitTeach ? '[[CTYPE:whiteboard]]' : '[[CTYPE:text]]'}. Jill Pro puede explicar TODO. NEVER cut off mid-sentence.`
+        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${explicitTeach && lockedTrack ? '[[CTYPE:whiteboard]] (track ' + lockedTrack.id + ' únicamente)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

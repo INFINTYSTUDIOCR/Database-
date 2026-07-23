@@ -6,12 +6,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const JILL_PRO_BRAIN_VER = 'v67-pro-no-class';
+const JILL_PRO_BRAIN_VER = 'v68-pro-explica-todo';
 
 /**
  * Lección = ESTILO DE CLASE (guion oral de las trascriciones).
  * El tablero se VE; NO se lee como manual.
- * SOLO Modo Tutor — Jill Pro NUNCA usa esto.
+ * Jill Pro SÍ puede usar esto cuando el estudiante pide explicación.
+ * Jill Tutor (normal) se limita al currículo/clase del bundle.
  */
 const FULL_TEACH_ALL = `LECCIÓN = TU ESTILO DE CLASE (GUION ORAL = LEY — no chatbot ESL):
 1) HABLA el GUION ORAL del track (john-voice-scripts / trascriciones de clase). Misma cadencia: español primero → patrón → analogía → ejemplo → ¿Te quedó?
@@ -284,29 +285,30 @@ PROHIBIDO: tip de 1 frase; ignorar la metodología John; decir que IN/ON/AT es g
 El SVG y tu voz van sincronizados; guiás con paciencia, sin improvisar método.
 NO sos tutora de bundle: sin currículo F0 forzado — solo la duda que trajeron, bien explicada.`;
 
-/** Coach ligero para Jill Pro — sin clase. */
-const JILL_PRO_LIVE_COACH_PRO = `COACH LIGERO (Jill Pro — sin aula):
+/** Coach ligero — ya no limita a Jill Pro; se mantiene por compat. */
+const JILL_PRO_LIVE_COACH_PRO = `COACH LIGERO:
 - Interpretá la intención aunque el mensaje venga desordenado.
-- Máximo 1 micro-corrección por turno.
-- Sin tablero, sin guion de clase, sin rellenar la pantalla.
+- Máximo 1 micro-corrección por turno en charla libre.
+- Si piden explicación: explicá completo (no tip corto).
 - Terminá siempre la frase: NUNCA cortes.`;
 
 const JILL_PRO_COMPANION_RULES = `JILL PRO — MODO LIBRE (COMPANION). IMPERATIVO — RESPETÁ EL MODO:
-- Sos Jill Pro: compañera de práctica en inglés. Voz femenina, cálida, clara — conversación real.
+- Sos Jill Pro: compañera de práctica + coach. Podés EXPLICAR TODO lo que pidan (cualquier duda de inglés, cualquier tema).
 ${JILL_LANGUAGE_RULE}
 ${JILL_PRO_INTENT_RULE}
-- PROHIBIDO ABSOLUTO en este modo: clases, lecciones, guiones de aula, tableros, whiteboards, módulos F0, FULL_TEACH, mini-kaboom, Rapid drill de clase, "¿Te quedó?" de lección, paradigmas de pizarra.
-- NO sos Jill Modo Tutor. Si el estudiante pide "explicame / clase / tablero / módulo": respondé en 1 frase que eso es Modo Tutor y seguí la charla o una micro-ayuda conversacional (sin abrir clase).
+- Jill Pro NO está limitada a un currículo de clase. Jill normal (Tutor) sí se limita a las clases/bundles.
 - Charlá de CUALQUIER tema con sentido: vida, trabajo, ciencia, historias, opiniones.
-- Si hay duda de inglés: UNA micro-ayuda conversacional (qué es + 1 ejemplo + seguí charlando). NUNCA lección completa.
-- Si el inglés viene mal armado: 1 feedback corto + 1 modelo oral + seguí. Sin clase.
+- Si piden explicación / duda / "explicame" / "qué es": EXPLICÁ COMPLETO (estilo John) — fórmula, puente, ejemplo, ¿Te quedó?, práctica oral. NUNCA digas "eso es Modo Tutor".
+- Si el inglés viene mal armado: coach en vivo (feedback → explicar → ejemplo → confirmar → continuar).
+- PROHIBIDO inventar lecciones no pedidas por palabras sueltas en una charla (will/have/go en práctica ≠ pedido de clase).
 - PROHIBIDO: simular entrevistas STAR, customer service, Nexora o role-play de Alice.
 - SALUDO: solo en el PRIMER mensaje de la sesión. Después, directo al contenido.
 - NUNCA cortes a mitad de frase. Terminá siempre la idea completa.
-- contentType SIEMPRE "text". NUNCA [[CTYPE:whiteboard]] ni [[CTYPE:mini_kaboom]].
-${JILL_PRO_LIVE_COACH_PRO}`;
+${JILL_PRO_LIVE_COACH}
+${JILL_PRO_DOUBT_MODE}
+- contentType: "whiteboard" cuando explicás con tablero; "text" en charla pura.`;
 
-/** Pistas por track — TODAS con FULL_TEACH_ALL (cascada sistema). SOLO Modo Tutor. */
+/** Pistas por track — TODAS con FULL_TEACH_ALL. Jill Pro las usa al explicar. */
 const TRACK_TEACH_HINTS = {
   irregular_verbs: FULL_TEACH_ALL + ' Analogía: tres columnas = tres fotos. do. did. done. / get. got. gotten. con pausa.',
   there: FULL_TEACH_ALL + ' Analogía: there is/are = HAY; have/has = posesión.',
@@ -369,7 +371,12 @@ function resolveJillProSession(student, sessionType) {
 function inferChatTopic(text) {
   const t = String(text || '').toLowerCase();
   if (!t || t.length < 4) return '';
-  // Jill Pro: never sticky-lock a classroom track from casual English.
+  // Solo marcar doubt: si piden explicación — no por inglés casual de práctica.
+  if (isEnglishDoubtRequest(t) || (JillCanonRouter.isTeachCommand && JillCanonRouter.isTeachCommand(t)) || isEnglishWordAsk(t)) {
+    const track = JillCanonRouter.pickTrack(t);
+    if (track) return `doubt:${track.id}`;
+    return 'doubt:english';
+  }
   const patterns = [
     { re: /\b(work|job|office|career|interview|trabajo)\b/, topic: 'work' },
     { re: /\b(travel|trip|vacation|flight|viaje|viajar)\b/, topic: 'travel' },
@@ -476,77 +483,161 @@ function resolveCompanionPhase(message, history, stickyTopic) {
 
 function buildJillProCoachBlock(student, topic) {
   const topicLine = topic && topic !== 'open chat'
-    ? `TEMA DE CHARLA: "${String(topic).replace(/^doubt:/, '')}" — conversá con sentido. Sin clase, sin tablero.`
-    : 'Sin tema fijo: charlá libre. Micro-ayuda de inglés solo si la piden — NUNCA lección de aula.';
+    ? (String(topic).startsWith('doubt:')
+      ? `MODO DUDA ACTIVO: "${topic.replace(/^doubt:/, '')}" — EXPLICÁ COMPLETO (Jill Pro puede explicar todo): nombre → fórmula → puente → ejemplos → ¿Te quedó? → 1 oral → volver a charla.`
+      : `TEMA DE CHARLA: "${topic}" — conversá con sentido; si hay duda o mala estructura, explicá completo.`)
+    : 'Sin tema fijo: charlá O traé cualquier duda de inglés — Jill Pro explica TODO completo (sin límite de currículo de Tutor).';
   return `${JILL_PRO_COMPANION_RULES}\n${topicLine}`;
 }
 
 function buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topic, calibrationNote) {
+  const MethodOS = (() => { try { return require('./jill-method-os'); } catch (_) { return null; } })();
+  const osCore = MethodOS && MethodOS.METHOD_OS_CORE ? MethodOS.METHOD_OS_CORE : '';
   return `Sos Jill Pro — Modo Libre (companion) en Infinity Studio CR.
 Tu nombre es Jill. Sos mujer, voz femenina, cálida e inteligente.
-MODO: COMPANION. PROHIBIDO dar clases, guiones de aula, tableros o módulos.
+MODO: Jill Pro. Podés EXPLICAR TODO. Jill normal (Tutor) es la que se limita a clases/bundles — vos NO.
 ${JohnDoctrine.mandateBlock('jill')}
+${osCore}
 ${JILL_PRO_COMPANION_RULES}
 ESTUDIANTE: ${displayName} | Nivel: ${level || 'Foundations'}${profileNote || ''}${adaptNote || ''}
 TEMA: ${topic || 'open chat'}${calibrationNote || ''}
-NUNCA cortes a mitad de frase. Terminá siempre la idea.`;
+NUNCA cortes a mitad de frase. Terminá siempre la idea completa.`;
 }
 
 function buildJillProOpeningInstruction(display, returning, topic) {
   if (returning) {
-    return `Bienvenida breve a ${display} EN ESPAÑOL (2-3 oraciones). Preguntá de qué quieren charlar hoy. Jill Pro = conversación, NO clase. NUNCA cortes.${topic ? ` Si retoman: "${topic}".` : ''}`;
+    return `Bienvenida breve a ${display} EN ESPAÑOL (2-3 oraciones). Preguntá qué quieren hoy: charlar O traer una duda — si traen duda, EXPLICÁS COMPLETO (Jill Pro puede explicar todo). NUNCA cortes.${topic ? ` Si retoman: "${topic}".` : ''}`;
   }
-  return `Primera sesión Jill Pro (Modo Libre) con ${display}: saludo cálido EN ESPAÑOL. Sos companion de práctica — charla libre, sin clases ni tableros. Preguntá de qué quieren hablar. 2-3 oraciones. NUNCA cortes.`;
+  return `Primera sesión Jill Pro (Modo Libre) con ${display}: saludo cálido EN ESPAÑOL. Companion + coach: charla libre y explicaciones completas de cualquier duda. Preguntá de qué quieren hablar o qué duda traen. 2-3 oraciones. NUNCA cortes.`;
 }
 
 /**
- * Jill Pro turn instructions — NEVER classroom / whiteboard / full teach.
+ * Jill Pro turn instructions — can explain everything when asked; no unsolicited class flood.
  */
 function buildJillProStreamTeachInstruction(topic, message, history, forcedTrackId) {
   const msg = String(message || '');
+  const sticky = String(topic || '').replace(/^doubt:/i, '').trim();
+  const phase = resolveCompanionPhase(msg, history, sticky);
   const priorTurns = (history || []).filter((m) => m && m.role === 'assistant').length;
   const noGreet = priorTurns > 0
     ? 'PROHIBIDO saludar o "Qué gusto verte" / "Claro, [nombre]" — ya hubo saludo. Directo al contenido.\n'
     : '';
-  const heard = `${noGreet}MENSAJE DEL ESTUDIANTE:\n"""${msg.slice(0, 500)}"""\n`;
-  const wantsClass = (JillCanonRouter.isTeachCommand && JillCanonRouter.isTeachCommand(msg))
-    || wantsVisualBoard(msg)
-    || /\b(clase|lecci[oó]n|tablero|pizarr|m[oó]dulo|guion)\b/i.test(msg);
+  const heard = `${noGreet}MENSAJE DEL ESTUDIANTE (interpretá la intención aunque venga desordenado; NO pidas que lo repita si ya se entiende):\n"""${msg.slice(0, 500)}"""\n`;
+  const wordAsk = isEnglishWordAsk(msg);
+  const pieceWord = extractEnglishPiece(msg);
+  const forced = forcedTrackId && JillCanonRouter.trackById
+    ? JillCanonRouter.trackById(forcedTrackId)
+    : null;
+  const stickyResolved = sticky
+    ? (JillCanonRouter.trackById && JillCanonRouter.trackById(sticky))
+      || (resolveAskTrack(sticky, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(sticky) : null))
+    : null;
+  const piece = JillCanonRouter.resolvePieceTrack
+    ? JillCanonRouter.resolvePieceTrack(msg, sticky)
+    : null;
+  const explicitNew = JillCanonRouter.isExplicitTopicAsk
+    ? JillCanonRouter.isExplicitTopicAsk(msg)
+    : false;
+  let fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
+  const activeLock = forced || stickyResolved;
+  let track = activeLock || null;
+  if (activeLock && explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
+    track = fromThisMsg;
+  } else if (!activeLock) {
+    const mayTeach = explicitNew || wordAsk || wantsVisualBoard(msg) || isEnglishDoubtRequest(msg);
+    track = mayTeach ? (piece || fromThisMsg || forced || null) : null;
+  }
+  const relevanceLock = track
+    ? `\nRELEVANCIA — explicación activa: ${track.title} (${track.id}).
+Corregí/explicá ESTE tema. PROHIBIDO abrir otro módulo no pedido.
+NUNCA cortes.\n`
+    : '';
+  const lockBlock = track
+    ? `\n${JillCanonRouter.formatLock(track)}\n${relevanceLock}`
+    : '';
+  const boardSync = track ? formatBoardSync(track) : '';
+  const moduleBlock = (track && !wordAsk) ? `\n${JillFoundationsModules.moduleTeachBlock(track.id)}\n` : '';
+  const ordersBlock = `\n${STUDENT_ORDERS_RULE}\n`;
+  const pieceNote = wordAsk
+    ? `\n${JILL_NEVER_MUTE}\nPREGUNTA DE INGLÉS: "${pieceWord || 'esa pieza'}". EXPLICÁLA COMPLETA en español CR + ejemplos. NUNCA digas que no sabés.\n`
+    : '';
 
-  if (wantsClass) {
-    return `${heard}JILL PRO — PEDIDO DE CLASE:
-En 1 frase: eso es Modo Tutor (clases/tableros), acá estamos en Jill Pro (charla).
-Ofrecé seguir conversando o una micro-ayuda corta SIN lección.
-NUNCA abras whiteboard / guion / módulo. NUNCA cortes. [[CTYPE:text]]`;
+  if (wordAsk) {
+    return `${heard}${ordersBlock}${pieceNote}${boardSync}${lockBlock}${track ? trackTeachHint(track) : ''}
+JILL PRO — EXPLICÁ LA PIEZA COMPLETA (podés explicar todo).
+1) Nombrá la pieza.
+2) Qué es / para qué sirve (CR).
+3) 1–2 ejemplos en inglés.
+4) "¿Te quedó?" + pedí que lo digan.
+NUNCA cortes. [[CTYPE:whiteboard]]`;
   }
 
-  if (studentWantsEnglishPractice(msg)) {
-    return `${heard}JILL PRO — PRÁCTICA EN INGLÉS:
-Este turno en inglés si pidieron practicar.
-Si la estructura está mal: 1 feedback en español + 1 modelo oral + seguí. SIN clase/tablero.
-Si está bien: confirmá breve y seguí la conversación.
+  if (phase === 'english_practice') {
+    return `${heard}${ordersBlock}${lockBlock}JILL PRO — PRÁCTICA EN INGLÉS.
+Si está mal: DETENÉ → feedback → EXPLICÁ el patrón completo → ejemplo → ¿Te quedó? → que lo digan.
+Si está bien: confirmá y seguí. NUNCA cortes. [[CTYPE:text]]`;
+  }
+
+  if (phase === 'doubt_explain') {
+    const fullBlock = `\n${FULL_TEACH_ALL}\n${track && TRACK_PHONETICS[track.id] ? TRACK_PHONETICS[track.id] + '\n' : ''}`;
+    const guionFirst = track ? trackTeachHint(track) : '';
+    if (track) {
+      return `${heard}${ordersBlock}${pieceNote}${guionFirst}${lockBlock}${fullBlock}${moduleBlock}${boardSync}
+JILL PRO — EXPLICACIÓN COMPLETA (podés explicar TODO; no estás limitada a currículo de Tutor).
+${JILL_PRO_TEACH_CANON}
+HABLA el guion completo. NUNCA cortes. Luego pedí que lo digan al mic.
+Última línea sola: [[CTYPE:whiteboard]]`;
+    }
+    return `${heard}${ordersBlock}${pieceNote}${fullBlock}JILL PRO — EXPLICACIÓN COMPLETA (tema: "${topic || 'su duda'}" — sin track del catálogo).
+${JILL_PRO_TEACH_CANON}
+${JILL_NEVER_MUTE}
+Explicá completo: nombre → patrón → analogía → ejemplo → ¿Te quedó? → oral.
+NUNCA tip de 1 frase. NUNCA cortes.
+Última línea sola: [[CTYPE:whiteboard]]`;
+  }
+
+  if (phase === 'live_correct') {
+    return `${heard}${ordersBlock}${lockBlock}
+JILL PRO — COACH EN VIVO (estructura rota):
+DETENÉ. Feedback 1 frase → EXPLICÁ el patrón (completo si hace falta) → 1 modelo → pedí que lo digan.
+Podés profundizar: Jill Pro explica todo. NUNCA cortes.
+[[CTYPE:text]]`;
+  }
+
+  if (phase === 'live_evaluate') {
+    return `${heard}${lockBlock}JILL PRO — EVALUACIÓN EN VIVO.
+Bien: confirmá + seguí. Mal: feedback → explicar → ejemplo → que lo digan.
 NUNCA cortes. [[CTYPE:text]]`;
   }
 
-  if (looksLikeBrokenEnglish(msg)) {
-    return `${heard}JILL PRO — MICRO-CORRECCIÓN:
-1 feedback corto + 1 modelo oral + seguí la charla.
-PROHIBIDO lección, tablero, guion, paradigmas de aula.
-NUNCA cortes. [[CTYPE:text]]`;
+  if (phase === 'doubt_practice') {
+    const negative = /\b(no|nop|todav[ií]a no|casi|m[aá]s o menos|un poco|no del todo|otra vez)\b/i.test(msg);
+    if (negative && isClarityReply(msg)) {
+      return `${heard}${boardSync}${lockBlock}${moduleBlock}RE-EXPLICÁ COMPLETO con paciencia${track ? ` (${track.title})` : ''}. NUNCA cortes.
+Última línea: [[CTYPE:whiteboard]]`;
+    }
+    if (isClarityReply(msg) && track) {
+      const mid = JillFoundationsModules.trackToModuleId(track.id);
+      if (mid) {
+        return `${heard}${boardSync}${lockBlock}${moduleBlock}Entendió — 1 frase de cierre. Luego: [[CTYPE:mini_kaboom:${mid}]]`;
+      }
+    }
+    return `${heard}${lockBlock}PRÁCTICA ORAL tras explicación: 1 oración en inglés del patrón. NUNCA cortes. [[CTYPE:text]]`;
   }
 
-  if (isEnglishWordAsk(msg) || isEnglishDoubtRequest(msg)) {
-    return `${heard}${JILL_NEVER_MUTE}
-JILL PRO — MICRO-AYUDA DE INGLÉS (sin clase):
-Explicá qué es en español CR + 1 ejemplo en inglés + volvé a la conversación.
-PROHIBIDO lección completa, whiteboard, guion de aula, "¿Te quedó?" de pizarra.
-NUNCA cortes. [[CTYPE:text]]`;
+  if (track && (explicitNew || wantsVisualBoard(msg) || isEnglishDoubtRequest(msg))) {
+    return `${heard}${pieceNote}${boardSync}${lockBlock}${moduleBlock}
+JILL PRO — EXPLICACIÓN COMPLETA pedida.
+${trackTeachHint(track)}
+${JILL_PRO_TEACH_CANON}
+Terminá completo. NUNCA cortes.
+Última línea: [[CTYPE:whiteboard]]`;
   }
 
-  return `${heard}JILL PRO — CHARLA LIBRE (tema hint: "${topic || 'lo que sea'}"):
-Reaccioná con sentido + UNA pregunta o comentario natural.
-Sin clase. Sin tablero. Sin relleno de aula.
-NUNCA cortes a mitad de frase — terminá la idea completa.
+  return `${heard}${pieceNote}${lockBlock}JILL PRO — CHARLA LIBRE (tema: "${topic || 'lo que sea'}"):
+Reaccioná con sentido + UNA pregunta.
+Si surge duda de inglés: EXPLICÁ COMPLETO (Jill Pro puede explicar todo).
+NUNCA cortes a mitad de frase.
 [[CTYPE:text]]`;
 }
 
@@ -574,6 +665,7 @@ module.exports = {
   isEnglishDoubtRequest,
   isClarityReply,
   looksLikeBrokenEnglish,
+  isEnglishWordAsk: isEnglishWordAsk,
   JILL_PRO_LIVE_COACH,
   JILL_PRO_LIVE_COACH_PRO,
   JILL_PRO_TEACH_CANON,
