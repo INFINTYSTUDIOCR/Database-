@@ -41,3 +41,12 @@ document.getElementById('btn-trainer').addEventListener('click', () => {
 });
 
 fillStudents();
+
+try {
+  const openTrainer = location.hash === '#trainer' || sessionStorage.getItem('gospanol-open-trainer') === '1';
+  if (openTrainer) {
+    sessionStorage.removeItem('gospanol-open-trainer');
+    modeStudent.hidden = true;
+    modeTrainer.hidden = false;
+  }
+} catch (_) {}

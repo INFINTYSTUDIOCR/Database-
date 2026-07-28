@@ -7,7 +7,7 @@
 <title>Portal Access — Infinity Studio CR</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link rel="stylesheet" href="css/pages.css?v=20260717portal">
+<link rel="stylesheet" href="css/pages.css?v=20260728nokamuk">
 <link rel="stylesheet" href="css/lang-toggle.css">
 </head>
 <body>
@@ -52,8 +52,36 @@
         <img src="assets/logos/infinity-engine.png" alt="Infinity Engine">
       </div>
       <h2>Infinity Engine</h2>
-      <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting.</p>
+      <p>Trainer &amp; master platform — KPIs, diagnostics, Nexora config and reporting. Tab GOSpanol on login for Spanish track.</p>
       <span class="portal-gate-btn"><i class="ti ti-arrow-right"></i> Enter as trainer</span>
+    </a>
+  </div>
+</section>
+
+<section class="infinity-access" aria-label="GOSpanol access" style="margin-top:2.5rem;">
+  <div class="infinity-access-head">
+    <img class="infinity-access-logo" src="assets/logos/gospanol.png" alt="GOSpanol" width="40" height="40" style="border-radius:10px;background:#111;">
+    <div>
+      <h2 class="infinity-access-title">GOSpanol</h2>
+      <p class="infinity-access-sub">Spanish for foreigners — Training Book + Vale · authorized access</p>
+    </div>
+  </div>
+  <div class="portal-access-grid">
+    <a href="gospanol/index.html" class="portal-gate student">
+      <div class="portal-gate-art">
+        <img src="assets/logos/gospanol.png" alt="GOSpanol student" style="border-radius:12px;background:#111;">
+      </div>
+      <h2>GOSpanol Training Book</h2>
+      <p>Student book, drills and Vale (when enabled by trainer). Sister Spanish track.</p>
+      <span class="portal-gate-btn portal-gate-btn--gold"><i class="ti ti-arrow-right"></i> Student login</span>
+    </a>
+    <a href="gospanol/index.html#trainer" class="portal-gate trainer" onclick="try{sessionStorage.setItem('gospanol-open-trainer','1')}catch(e){}">
+      <div class="portal-gate-art">
+        <img src="assets/logos/gospanol.png" alt="GOSpanol trainer" style="border-radius:12px;background:#111;">
+      </div>
+      <h2>GOSpanol trainer</h2>
+      <p>Subengine — PIN access, student books, Vale ON/OFF per profile.</p>
+      <span class="portal-gate-btn"><i class="ti ti-arrow-right"></i> Trainer access</span>
     </a>
   </div>
 </section>

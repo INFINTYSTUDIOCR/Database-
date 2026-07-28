@@ -1071,6 +1071,26 @@ function setLoginLoading(on){
   if(p) p.disabled = !!on;
 }
 
+function setEngineLoginTrack(track){
+  var en = track !== 'es';
+  var tabEn = document.getElementById('tab-en');
+  var tabEs = document.getElementById('tab-es');
+  var loginTrainer = document.getElementById('login-trainer');
+  var loginGo = document.getElementById('login-gospanol');
+  var hint = document.getElementById('login-student-hint');
+  var err = document.getElementById('login-err');
+  if(tabEn) tabEn.classList.toggle('active', en);
+  if(tabEs) tabEs.classList.toggle('active', !en);
+  if(loginTrainer) loginTrainer.style.display = en ? '' : 'none';
+  if(loginGo) loginGo.classList.toggle('show', !en);
+  if(hint) hint.style.display = en ? '' : 'none';
+  if(err){ err.style.display = 'none'; err.textContent = ''; }
+}
+try{
+  var _q = new URLSearchParams(location.search);
+  if(_q.get('track') === 'es' || location.hash === '#gospanol') setEngineLoginTrack('es');
+}catch(e){}
+
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
   var pass = document.getElementById('l-pass').value;
