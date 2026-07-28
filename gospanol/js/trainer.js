@@ -60,6 +60,14 @@ function renderDetail() {
       <input id="f-name" value="${s.name.replace(/"/g, '&quot;')}" />
     </div>
     <div class="field">
+      <label>Student login user</label>
+      <input id="f-user" value="${String(s.portalUser || '').replace(/"/g, '&quot;')}" placeholder="e.g. student.maria" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Student password</label>
+      <input id="f-pass" type="text" value="${String(s.portalPass || '').replace(/"/g, '&quot;')}" placeholder="Assign a password" autocomplete="off" />
+    </div>
+    <div class="field">
       <label>Phase</label>
       <select id="f-phase">
         <option value="1" ${s.phase === 1 ? 'selected' : ''}>1 — Structure</option>
@@ -121,6 +129,8 @@ function renderDetail() {
   document.getElementById('btn-save').addEventListener('click', () => {
     const next = getStudent(s.id);
     next.name = document.getElementById('f-name').value.trim() || next.name;
+    next.portalUser = document.getElementById('f-user').value.trim().toLowerCase();
+    next.portalPass = document.getElementById('f-pass').value;
     next.phase = Number(document.getElementById('f-phase').value);
     next.phaseLabel = document.getElementById('f-phase-label').value.trim();
     next.valeEnabled = valeOn;
@@ -131,13 +141,21 @@ function renderDetail() {
       ps: Number(document.getElementById('kpi-ps').value) || 0,
       rs: Number(document.getElementById('kpi-rs').value) || 0
     };
+    if (!next.portalUser || !next.portalPass) {
+      toast('Set student user + password before they can log in.');
+    }
     const note = document.getElementById('f-note').value.trim();
     if (note) {
       next.notes = next.notes || [];
       next.notes.unshift({ ts: new Date().toISOString(), text: note });
     }
-    upsertStudent(next);
-    toast('Saved.');
+    try {
+      upsertStudent(next);
+      toast('Saved.');
+    } catch (e) {
+      toast(e.message || 'Could not save.');
+      return;
+    }
     renderList();
     renderDetail();
   });
@@ -155,8 +173,27 @@ function renderDetail() {
 document.getElementById('btn-add').addEventListener('click', () => {
   const name = prompt('Student name');
   if (!name) return;
-  const s = blankStudent(name.trim());
-  upsertStudent(s);
+  const clean = name.trim();
+  const low = clean.toLowerCase();
+  if (low.includes('rivera') || low === 'alex rivera' || low === 'juan rivera') {
+    toast('That name is blocked.');
+    return;
+  }
+  const user = prompt('Student login user (required)') || '';
+  const pass = prompt('Student password (required)') || '';
+  if (!user.trim() || !pass) {
+    toast('User + password required. Student not created.');
+    return;
+  }
+  const s = blankStudent(clean);
+  s.portalUser = user.trim().toLowerCase();
+  s.portalPass = pass;
+  try {
+    upsertStudent(s);
+  } catch (e) {
+    toast(e.message || 'Blocked.');
+    return;
+  }
   selectedId = s.id;
   toast('Student added.');
   renderList();
@@ -164,9 +201,3 @@ document.getElementById('btn-add').addEventListener('click', () => {
 });
 
 renderList();
-const first = loadStore().students[0];
-if (first) {
-  selectedId = first.id;
-  renderList();
-  renderDetail();
-}

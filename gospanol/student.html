@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GOSpanol — Training Book</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Instrument+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <title>GOSpanol · Training Book Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/tb-engine.css" />
 </head>
 <body>
   <div class="topbar">
     <img class="brand-mark" src="../assets/logos/gospanol.png" alt="GOSpanol" />
-    <div class="tb-brand">GOSpanol · Training Book<small>Stop studying. Start speaking.</small></div>
+    <div class="tb-brand">GOSpanol · Training Book Engine<small>Stop studying. Start speaking.</small></div>
     <div class="tb-right">
       <span class="tb-student" id="tb-student-name">—</span>
+      <a class="btn btn-outline" href="../portal-access.html" title="Exit to portal"><i class="ti ti-home"></i> Portal</a>
+      <a class="btn btn-outline" href="vale.html" title="Open Vale"><i class="ti ti-robot"></i> Vale</a>
+      <a class="btn btn-outline" href="../hablemos.html" title="Open Sim"><i class="ti ti-device-desktop"></i> Sim</a>
       <a class="btn btn-outline" href="index.html"><i class="ti ti-logout"></i> Exit</a>
     </div>
   </div>
@@ -32,8 +35,10 @@
       <button type="button" class="nav-item" data-view="plan"><i class="ti ti-calendar"></i> Session plan</button>
       <button type="button" class="nav-item" data-view="drills"><i class="ti ti-bolt"></i> Speed Drills</button>
 
-      <div class="nav-section">Platform</div>
+      <div class="nav-section">Platform exits</div>
       <button type="button" class="nav-item" data-view="vale" id="nav-vale"><i class="ti ti-robot"></i> Vale <span class="nav-demo" id="nav-vale-demo">Open →</span></button>
+      <a class="nav-item" href="../hablemos.html"><i class="ti ti-device-desktop"></i> Sim <span class="nav-demo">Exit →</span></a>
+      <a class="nav-item" href="../hablemos.html"><i class="ti ti-abacus"></i> Structure drills <span class="nav-demo">Exit →</span></a>
 
       <div class="nav-section">Reference</div>
       <button type="button" class="nav-item" data-view="measurement"><i class="ti ti-chart-radar"></i> How we measure</button>

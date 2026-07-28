@@ -1,15 +1,14 @@
-import { loadStore, setSession, verifyTrainerPin } from './tb-store.js';
+import {
+  findStudentByCredentials,
+  setSession,
+  verifyTrainerPin,
+  clearSession
+} from './tb-store.js';
 
-const studentSelect = document.getElementById('student-select');
+clearSession();
+
 const modeStudent = document.getElementById('mode-student');
 const modeTrainer = document.getElementById('mode-trainer');
-
-function fillStudents() {
-  const { students } = loadStore();
-  studentSelect.innerHTML = students.map((s) =>
-    `<option value="${s.id}">${s.name} · Phase ${s.phase}</option>`
-  ).join('');
-}
 
 document.getElementById('show-trainer').addEventListener('click', () => {
   modeStudent.hidden = true;
@@ -21,13 +20,21 @@ document.getElementById('show-student').addEventListener('click', () => {
 });
 
 document.getElementById('btn-student').addEventListener('click', () => {
-  const id = studentSelect.value;
-  if (!id) {
-    document.getElementById('err-student').textContent = 'Pick a student.';
+  const user = document.getElementById('student-user').value;
+  const pass = document.getElementById('student-pass').value;
+  const err = document.getElementById('err-student');
+  const student = findStudentByCredentials(user, pass);
+  if (!student) {
+    err.textContent = 'Access denied. Wrong credentials or no account assigned.';
     return;
   }
-  setSession({ role: 'student', studentId: id });
+  err.textContent = '';
+  setSession({ role: 'student', studentId: student.id });
   location.href = 'student.html';
+});
+
+document.getElementById('student-pass').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-student').click();
 });
 
 document.getElementById('btn-trainer').addEventListener('click', () => {
@@ -40,7 +47,9 @@ document.getElementById('btn-trainer').addEventListener('click', () => {
   location.href = 'trainer.html';
 });
 
-fillStudents();
+document.getElementById('trainer-pin').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-trainer').click();
+});
 
 try {
   const openTrainer = location.hash === '#trainer' || sessionStorage.getItem('gospanol-open-trainer') === '1';

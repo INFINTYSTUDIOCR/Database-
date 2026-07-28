@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GOSpanol — Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Instrument+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <title>GOSpanol · Training Book Engine — Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/tb-engine.css" />
 </head>
@@ -13,15 +13,17 @@
     <div class="login-card">
       <img class="login-logo" src="../assets/logos/gospanol.png" alt="GOSpanol" />
       <h1 class="login-title"><span class="go">GO</span>Spanol</h1>
-      <p class="login-tag">Stop studying. Start speaking.</p>
-      <p class="login-sub">Training Book Engine for anglophones learning Spanish. Sister practice system — not the English track.</p>
+      <p class="login-tag">Training Book Engine</p>
+      <p class="login-sub">Authorized access only. No public demo profiles. Use the credentials your trainer assigned — or open the trainer subengine with PIN.</p>
 
       <div id="mode-student">
-        <label for="student-select">Student</label>
-        <select id="student-select"></select>
+        <label for="student-user">Student user</label>
+        <input id="student-user" type="text" autocomplete="username" placeholder="Assigned by your trainer" />
+        <label for="student-pass">Password</label>
+        <input id="student-pass" type="password" autocomplete="current-password" placeholder="Assigned password" />
         <p class="login-err" id="err-student"></p>
         <div class="login-actions">
-          <button type="button" class="btn btn-metal" id="btn-student"><i class="ti ti-book-2"></i> Open Training Book</button>
+          <button type="button" class="btn btn-navy" id="btn-student"><i class="ti ti-book-2"></i> Open Training Book</button>
           <button type="button" class="btn btn-ghost" id="show-trainer">Trainer access</button>
         </div>
       </div>
@@ -32,7 +34,7 @@
         <p class="login-err" id="err-trainer"></p>
         <div class="login-actions">
           <button type="button" class="btn btn-hi" id="btn-trainer"><i class="ti ti-lock"></i> Enter subengine</button>
-          <button type="button" class="btn btn-ghost" id="show-student">Back to student</button>
+          <button type="button" class="btn btn-ghost" id="show-student">Back</button>
         </div>
       </div>
     </div>
