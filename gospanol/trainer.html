@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GOSpanol — Trainer subengine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Instrument+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="css/tb-engine.css" />
+</head>
+<body>
+  <div class="topbar">
+    <img class="brand-mark" src="../assets/logos/gospanol.png" alt="GOSpanol" />
+    <div class="tb-brand">GOSpanol · Trainer subengine<small>You control each student book</small></div>
+    <div class="tb-right">
+      <a class="btn btn-outline" href="index.html"><i class="ti ti-logout"></i> Exit</a>
+    </div>
+  </div>
+
+  <div class="content" style="max-width:1100px;margin:0 auto;">
+    <div class="portal-section" style="margin-top:14px;">
+      <h2 class="section-title">Students</h2>
+      <p class="section-sub">Assign exercises, phase, KPIs. Vale ON/OFF lives here — same pattern as the English coach toggle. The student Training Book has no toggles.</p>
+      <div class="trainer-grid">
+        <div class="list-card">
+          <button type="button" class="btn btn-metal" id="btn-add" style="width:100%;justify-content:center;margin-bottom:10px;"><i class="ti ti-plus"></i> Add student</button>
+          <div id="student-list"></div>
+        </div>
+        <div class="detail-card" id="detail">
+          <p class="section-sub">Select a student.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="js/trainer.js"></script>
+</body>
+</html>

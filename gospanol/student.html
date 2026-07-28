@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GOSpanol — Training Book</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Instrument+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="css/tb-engine.css" />
+</head>
+<body>
+  <div class="topbar">
+    <img class="brand-mark" src="../assets/logos/gospanol.png" alt="GOSpanol" />
+    <div class="tb-brand">GOSpanol · Training Book<small>Stop studying. Start speaking.</small></div>
+    <div class="tb-right">
+      <span class="tb-student" id="tb-student-name">—</span>
+      <a class="btn btn-outline" href="index.html"><i class="ti ti-logout"></i> Exit</a>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <aside class="sidebar">
+      <div class="student-card">
+        <div class="sc-name" id="sc-name">—</div>
+        <div class="sc-meta" id="sc-meta">—</div>
+        <div class="sc-kpi-row" id="sc-kpis"></div>
+      </div>
+
+      <div class="nav-section">Training Book</div>
+      <button type="button" class="nav-item active" data-view="overview"><i class="ti ti-layout-dashboard"></i> My profile</button>
+      <button type="button" class="nav-item" data-view="exercises"><i class="ti ti-list-check"></i> My exercises <span class="nav-badge nb-red" id="nb-exercises">—</span></button>
+      <button type="button" class="nav-item" data-view="plan"><i class="ti ti-calendar"></i> Session plan</button>
+      <button type="button" class="nav-item" data-view="drills"><i class="ti ti-bolt"></i> Speed Drills</button>
+
+      <div class="nav-section">Platform</div>
+      <button type="button" class="nav-item" data-view="vale" id="nav-vale"><i class="ti ti-robot"></i> Vale <span class="nav-demo" id="nav-vale-demo">Open →</span></button>
+
+      <div class="nav-section">Reference</div>
+      <button type="button" class="nav-item" data-view="measurement"><i class="ti ti-chart-radar"></i> How we measure</button>
+      <button type="button" class="nav-item" data-view="phase1"><i class="ti ti-building"></i> Phase 1 — Structure</button>
+      <button type="button" class="nav-item" data-view="phase2"><i class="ti ti-network"></i> Phase 2 — Expansion</button>
+      <button type="button" class="nav-item" data-view="phase3"><i class="ti ti-flame"></i> Phase 3 — Naturalness</button>
+
+      <div class="nav-section">Library</div>
+      <button type="button" class="nav-item" data-view="videos"><i class="ti ti-player-play"></i> Videos & games <span class="nav-badge nb-blue" id="nb-videos">—</span></button>
+
+      <div class="nav-section">History</div>
+      <button type="button" class="nav-item" data-view="sessions"><i class="ti ti-notes"></i> Session notes</button>
+    </aside>
+
+    <main class="content" id="content">
+      <section class="view active" id="view-overview"></section>
+      <section class="view" id="view-exercises"></section>
+      <section class="view" id="view-plan"></section>
+      <section class="view" id="view-drills"></section>
+      <section class="view" id="view-vale"></section>
+      <section class="view" id="view-measurement"></section>
+      <section class="view" id="view-phase1"></section>
+      <section class="view" id="view-phase2"></section>
+      <section class="view" id="view-phase3"></section>
+      <section class="view" id="view-videos"></section>
+      <section class="view" id="view-sessions"></section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="js/student.js"></script>
+</body>
+</html>

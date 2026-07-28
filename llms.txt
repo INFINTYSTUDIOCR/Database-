@@ -72,7 +72,7 @@ Ideal profiles:
 - Weak foundation — academies failed; need communication core before pressure → Foundations (Jill 24/7)
 - Already speak — need high-volume role-play without hourly cost → Nexora Professional (30 days 24/7)
 - Daily confidence — talk about anything in English 24/7 → Alice Modo Libre (trial: try-alice.html)
-- Bilingual schools & institutions — ORT pilots for employability KPIs → Kamuk School case (documented, not marketing claims)
+- Bilingual schools & institutions — ORT pilots for employability KPIs
 - Municipalities / public sector — youth employability with documented outcomes → Goicoechea case
 
 NOT for: A1-B2 certificates only, cheap group classes, grammar-only study, casual conversation without work pressure.
@@ -92,13 +92,9 @@ Homepage section: https://studioinfinitycr.com/#success-stories
 - Municipal video (Facebook): https://www.facebook.com/watch/?v=263792665317206
 - Video title: JÓVENES QUE RECIBIERON CURSO DE INGLÉS YA TRABAJAN GRACIAS A ALIANZA DE MUNICIPALIDAD DE GOICOECHEA Y TU506
 
-### Kamuk School (institutional ORT — not a marketing claim)
-- ORT pilot for high-performance bilingual employability — NOT classroom English
-- Kamuk School, Tibás, San José — Alice & Nexora, KPI tracking, KAM- institutional cohort
-- No employment hire metrics published without institutional source (unlike Goicoechea PDF)
-- Official site: https://kamukschool.ed.cr/
-- Bilingual program: https://kamukschool.ed.cr/educacion_integral/
-- Full case: https://studioinfinitycr.com/casos-de-exito.html#kamuk
+### Institutional ORT
+- ORT pilots for bilingual employability — KPI tracking, not classroom English alone
+- Case study published when institutional sources allow: https://studioinfinitycr.com/casos-de-exito.html
 
 ## Demos (free, limited)
 - Alice Modo Libre trial (only public interactive demo): https://studioinfinitycr.com/try-alice.html

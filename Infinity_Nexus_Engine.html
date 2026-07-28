@@ -67,6 +67,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-tabs{display:flex;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem;}
 .ltab{flex:1;padding:10px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;border:none;background:white;font-family:inherit;transition:all 0.15s;}
 .ltab.active{background:var(--navy);color:white;}
+.login-track-es{display:none;text-align:left;margin-top:0.25rem;}
+.login-track-es.show{display:block;}
+.login-es-card{border:1.5px solid #2F5D75;border-radius:var(--rl);padding:1rem;background:linear-gradient(135deg,#F4F7F9,#E8F1F5);margin-bottom:0.75rem;}
+.login-es-card img{height:48px;width:48px;border-radius:12px;object-fit:contain;background:#111;margin-bottom:0.5rem;}
+.login-es-card h3{font-size:15px;font-weight:800;color:#1B3A4B;margin-bottom:4px;}
+.login-es-card p{font-size:12px;color:#5A6F7C;line-height:1.5;margin-bottom:0.75rem;}
+.btn-metal{background:#2F5D75;color:white;}
 .inp{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--text);margin-bottom:10px;}
 .inp:focus{outline:none;border-color:var(--nm);}
 .btn{padding:10px 16px;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:opacity 0.15s;}
@@ -259,13 +266,27 @@ textarea.inp{resize:vertical;min-height:80px;}
       <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260703" alt="Infinity Studio CR">
       <div class="login-title">Infinity Nexus Engine</div>
       <div class="login-sub">Sistema integrado de calibración, análisis y entrega · Powered by Nexus Method</div>
+      <div class="login-tabs" role="tablist" aria-label="Track">
+        <button type="button" class="ltab active" id="tab-en" onclick="setEngineLoginTrack('en')">English · Infinity</button>
+        <button type="button" class="ltab" id="tab-es" onclick="setEngineLoginTrack('es')">Español · GOSpanol</button>
+      </div>
       <div id="login-trainer">
         <input class="inp" id="l-user" placeholder="Usuario (trainer@infinity.cr)" type="email">
         <input class="inp" id="l-pass" placeholder="Contraseña" type="password" onkeydown="if(event.key==='Enter')doLogin()">
         <button type="button" class="btn btn-navy btn-block btn-login" id="btn-login" onclick="doLogin()"><i class="ti ti-login"></i>Ingresar</button>
       </div>
+      <div id="login-gospanol" class="login-track-es">
+        <div class="login-es-card">
+          <img src="assets/logos/gospanol.png" alt="GOSpanol">
+          <h3>GOSpanol — Spanish for foreigners</h3>
+          <p>Stop studying. Start speaking. Training Book Engine + Vale for anglophones. Sister track — not English ORT translated.</p>
+          <a class="btn btn-metal btn-block" href="gospanol/index.html" style="text-decoration:none;"><i class="ti ti-login"></i> Open GOSpanol login</a>
+          <a class="btn btn-outline btn-block" href="gospanol/index.html#trainer" style="text-decoration:none;margin-top:8px;" onclick="try{sessionStorage.setItem('gospanol-open-trainer','1')}catch(e){}"><i class="ti ti-lock"></i> Trainer subengine</a>
+        </div>
+        <div style="font-size:11px;color:var(--t3);text-align:center;">Student &amp; trainer PIN access · metallic-blue Training Book</div>
+      </div>
       <div id="login-err" style="font-size:12px;color:var(--rm);margin-top:0.75rem;display:none;"></div>
-      <div style="font-size:11px;color:var(--t3);margin-top:1rem;text-align:center;">¿Eres estudiante? Accedé desde el <strong>Portal del Estudiante</strong> con tu usuario y contraseña.</div>
+      <div id="login-student-hint" style="font-size:11px;color:var(--t3);margin-top:1rem;text-align:center;">¿Eres estudiante EN? Accedé desde el <strong>Portal del Estudiante</strong> con tu usuario y contraseña.</div>
     </div>
   </div>
 </div>

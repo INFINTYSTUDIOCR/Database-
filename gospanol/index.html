@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GOSpanol — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Instrument+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="css/tb-engine.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <img class="login-logo" src="../assets/logos/gospanol.png" alt="GOSpanol" />
+      <h1 class="login-title"><span class="go">GO</span>Spanol</h1>
+      <p class="login-tag">Stop studying. Start speaking.</p>
+      <p class="login-sub">Training Book Engine for anglophones learning Spanish. Sister practice system — not the English track.</p>
+
+      <div id="mode-student">
+        <label for="student-select">Student</label>
+        <select id="student-select"></select>
+        <p class="login-err" id="err-student"></p>
+        <div class="login-actions">
+          <button type="button" class="btn btn-metal" id="btn-student"><i class="ti ti-book-2"></i> Open Training Book</button>
+          <button type="button" class="btn btn-ghost" id="show-trainer">Trainer access</button>
+        </div>
+      </div>
+
+      <div id="mode-trainer" hidden>
+        <label for="trainer-pin">Trainer PIN</label>
+        <input id="trainer-pin" type="password" placeholder="PIN" autocomplete="current-password" />
+        <p class="login-err" id="err-trainer"></p>
+        <div class="login-actions">
+          <button type="button" class="btn btn-hi" id="btn-trainer"><i class="ti ti-lock"></i> Enter subengine</button>
+          <button type="button" class="btn btn-ghost" id="show-student">Back to student</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>
