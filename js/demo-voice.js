@@ -290,6 +290,7 @@ var DemoVoice = (function () {
       PttMic.bind({
         btn: btn,
         lang: opts.lang || profileLang(opts.profile || _activeProfile),
+        settleMs: opts.settleMs || 220,
         canStart: function () { return !_micOn; },
         onBeforeStart: function () {
           stopAudio();
@@ -297,6 +298,12 @@ var DemoVoice = (function () {
           _micTranscript = '';
           if (input) input.value = '';
           _micOn = true;
+        },
+        normalizeTranscript: function (raw) {
+          var t = String(raw || '').replace(/\s+/g, ' ').trim();
+          t = t.replace(/\b([\w']+)(?:\s+\1\b){2,}/gi, '$1');
+          t = t.replace(/\b((?:[\w']+\s+){0,5}[\w']+)(?:\s+\1\b){2,}/gi, '$1');
+          return t.replace(/\s+/g, ' ').trim();
         },
         onUi: function (listening) {
           setMicUi(listening, btn, statusEl, opts.profile || _activeProfile);

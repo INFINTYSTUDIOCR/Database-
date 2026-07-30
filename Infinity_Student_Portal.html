@@ -56,7 +56,7 @@
 <script src="js/jill-quiz.js?v=20260717visible"></script>
 <script src="js/tts-chunks.js?v=20260711jota"></script>
 <script src="js/nexora-stream-voice.js"></script>
-<script src="js/ptt-mic.js?v=20260711speak"></script>
+<script src="js/ptt-mic.js?v=20260730echo"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -4081,6 +4081,8 @@ function aliceCancelSpeech(){
   _aliceTtsPrefetch = {};
   _aliceTtsRetry = {};
   _aliceLastSpokenKey = '';
+  // Keep _aliceLastSpokenText for echo detection after interrupt
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
 }
 
@@ -5152,6 +5154,35 @@ async function endAliceSession(){
 var _aliceSpeakEnabled = false;
 var _aliceLastSpokenKey = '';
 var _aliceLastSpokenAt = 0;
+var _aliceLastSpokenText = '';
+
+/** Collapse STT echo/repeats so Alice does not scold the student for her own voice. */
+function aliceNormalizeMicTranscript(raw){
+  var text = String(raw || '').replace(/\s+/g, ' ').trim();
+  if(!text) return '';
+  // Collapse 3+ identical words in a row: "hello hello hello" → "hello"
+  text = text.replace(/\b([\w']+)(?:\s+\1\b){2,}/gi, '$1');
+  // Collapse 3+ identical short phrases (1–6 words)
+  text = text.replace(/\b((?:[\w']+\s+){0,5}[\w']+)(?:\s+\1\b){2,}/gi, '$1');
+  text = text.replace(/\s+/g, ' ').trim();
+  var last = String(_aliceLastSpokenText || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  var now = text.toLowerCase();
+  var recent = (Date.now() - (_aliceLastSpokenAt || 0)) < 12000;
+  if(recent && last && now){
+    if(now === last) return '';
+    if(last.indexOf(now) >= 0 && now.length >= 4) return '';
+    if(now.indexOf(last) >= 0 && last.length >= 12 && now.length < last.length * 1.35) return '';
+    // Heavy overlap with last Alice line → treat as echo
+    var a = now.split(/\s+/).filter(Boolean);
+    var b = last.split(/\s+/).filter(Boolean);
+    if(a.length >= 2 && b.length >= 2){
+      var hit = 0;
+      a.forEach(function(w){ if(b.indexOf(w) >= 0) hit++; });
+      if(hit / a.length >= 0.85) return '';
+    }
+  }
+  return text;
+}
 
 function aliceTtsRequestBody(text){
   return JSON.stringify({
@@ -5239,6 +5270,7 @@ function aliceSpeak(text){
   if(key && key === _aliceLastSpokenKey && (Date.now() - _aliceLastSpokenAt) < 8000) return;
   _aliceLastSpokenKey = key;
   _aliceLastSpokenAt = Date.now();
+  _aliceLastSpokenText = String(text || '').replace(/\s+/g, ' ').trim();
   if(_aliceState.recognition){ try{_aliceState.recognition.stop();}catch(e){} _aliceState.recognition=null; }
   _aliceState.listening = false;
   aliceQueueFullReply(spoken);
@@ -5252,12 +5284,14 @@ function bindAlicePttMic(){
   var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   PttMic.bind({
     btn: btn,
-    lang: (ALICE_ACCENTS[_aliceState.accent] && ALICE_ACCENTS[_aliceState.accent].lang) || 'en-US',
+    // Accent selector affects TTS only — STT must stay English or Chrome mangles speech
+    lang: 'en-US',
+    settleMs: 280,
     canStart: function(){
       if(!_aliceState.sessionActive) return false;
       if(_aliceSending){
         var st = document.getElementById('alice-status');
-        if(st && !st.textContent) st.textContent = 'Esperá a que Alice termine de responder…';
+        if(st) st.textContent = 'Esperá a que Alice termine de responder…';
         return false;
       }
       return true;
@@ -5267,6 +5301,14 @@ function bindAlicePttMic(){
       aliceInterruptSpeaking();
       aliceStopMic();
       btn.classList.remove('ptt-busy');
+    },
+    normalizeTranscript: function(raw){
+      var cleaned = aliceNormalizeMicTranscript(raw);
+      if(!cleaned && String(raw || '').trim()){
+        var st = document.getElementById('alice-status');
+        if(st) st.textContent = 'Eso sonó como eco de Alice — hablá de nuevo cuando ella termine.';
+      }
+      return cleaned;
     },
     onUi: function(listening){
       var b = document.getElementById('alice-mic-btn');

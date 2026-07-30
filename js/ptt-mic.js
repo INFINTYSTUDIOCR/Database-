@@ -122,10 +122,56 @@ var PttMic = (function () {
       for (var i = lastFinalCount; i < ev.results.length; i++) {
         if (ev.results[i].isFinal) {
           var part = String(ev.results[i][0].transcript || '').trim();
-          if (part) committed.push(part);
+          if (part) commitPart(part);
           lastFinalCount = i + 1;
         }
       }
+    }
+
+    function normPart(s) {
+      return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function commitPart(part) {
+      var a = normPart(part);
+      if (!a) return;
+      var last = committed[committed.length - 1] || '';
+      var b = normPart(last);
+      if (!b) {
+        committed.push(part);
+        return;
+      }
+      // Exact duplicate across Chrome restart
+      if (a === b) return;
+      // New final already contained in previous final
+      if (b.indexOf(a) >= 0 && a.length >= 2) return;
+      // New final extends previous — keep the longer one
+      if (a.indexOf(b) >= 0 && b.length >= 2) {
+        committed[committed.length - 1] = part;
+        return;
+      }
+      // Overlapping tail/head (common after continuous restart)
+      var wordsA = a.split(' ');
+      var wordsB = b.split(' ');
+      var maxOverlap = Math.min(wordsA.length, wordsB.length, 6);
+      for (var o = maxOverlap; o >= 2; o--) {
+        var tail = wordsB.slice(-o).join(' ');
+        var head = wordsA.slice(0, o).join(' ');
+        if (tail === head) {
+          var rest = wordsA.slice(o).join(' ');
+          if (rest) committed.push(rest);
+          return;
+        }
+      }
+      committed.push(part);
+    }
+
+    function collapseCommittedText(text) {
+      var t = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!t) return '';
+      t = t.replace(/\b([\w']+)(?:\s+\1\b){2,}/gi, '$1');
+      t = t.replace(/\b((?:[\w']+\s+){0,5}[\w']+)(?:\s+\1\b){2,}/gi, '$1');
+      return t.replace(/\s+/g, ' ').trim();
     }
 
     function rebuildTranscript(ev) {
@@ -160,7 +206,7 @@ var PttMic = (function () {
         unlockStop();
         return;
       }
-      var text = syncTranscript().trim();
+      var text = collapseCommittedText(syncTranscript().trim());
       transcript = '';
       committed = [];
       lastFinalCount = 0;
@@ -173,7 +219,9 @@ var PttMic = (function () {
       if (text && typeof opts.normalizeTranscript === 'function') {
         try {
           var normed = opts.normalizeTranscript(text);
-          if (normed && String(normed).trim()) text = String(normed).trim();
+          if (normed == null) text = '';
+          else if (String(normed).trim()) text = String(normed).trim();
+          else text = '';
         } catch (eNorm) { /* keep raw */ }
       }
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
@@ -376,7 +424,15 @@ var PttMic = (function () {
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
       var sid = sessionId;
-      if (!spawnRec(sid) && !shouldKeepListening()) holding = false;
+      var settle = Number(opts.settleMs) || 0;
+      if (settle > 0) {
+        setTimeout(function () {
+          if (sid !== sessionId || !shouldKeepListening()) return;
+          if (!spawnRec(sid) && !shouldKeepListening()) holding = false;
+        }, settle);
+      } else if (!spawnRec(sid) && !shouldKeepListening()) {
+        holding = false;
+      }
     }
 
     function onPointerDown(e) {
