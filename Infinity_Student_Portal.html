@@ -56,7 +56,7 @@
 <script src="js/jill-quiz.js?v=20260717visible"></script>
 <script src="js/tts-chunks.js?v=20260711jota"></script>
 <script src="js/nexora-stream-voice.js"></script>
-<script src="js/ptt-mic.js?v=20260730echo"></script>
+<script src="js/ptt-mic.js?v=20260730echo2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -5326,7 +5326,11 @@ function bindAlicePttMic(){
       btn.classList.remove('ptt-active','ptt-busy');
       var st = document.getElementById('alice-status');
       if(!st) return;
-      if(code === 'no-sr' || code === 'start-failed'){
+      if(code === 'not-allowed' || code === 'service-not-allowed'){
+        st.textContent = 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.';
+      } else if(code === 'audio-capture'){
+        st.textContent = 'No se encontró micrófono (o está ocupado) — revisá el dispositivo o escribí tu respuesta.';
+      } else if(code === 'no-sr' || code === 'start-failed'){
         st.textContent = isMobile
           ? 'Voz no disponible en este navegador — escribí tu respuesta abajo.'
           : 'Usá Chrome o Edge para voz, o escribí tu respuesta.';

@@ -9,10 +9,11 @@ var PttMic = (function () {
   var instances = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
   var fallbackInstances = {};
   var RESTART_MS = 80;
-  var SEND_WAIT_MS = 280;
-  var STOP_LOCK_MS = 1200;
+  var SEND_WAIT_MS = 320;
+  var STOP_LOCK_MS = 2800;
   var MAX_RESTART_FAILS = 4;
-  var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, 'audio-capture': 1, 'service-not-allowed': 1, aborted: 1 };
+  var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, aborted: 1 };
+  var FATAL_ERRORS = { 'not-allowed': 1, 'service-not-allowed': 1, 'audio-capture': 1 };
 
   function getInst(btn) {
     if (!btn) return null;
@@ -328,6 +329,10 @@ var PttMic = (function () {
       r.onerror = function (ev) {
         if (sid !== sessionId) return;
         if (ev && ev.error === 'aborted') return;
+        if (ev && FATAL_ERRORS[ev.error]) {
+          failStartPermanent(ev.error);
+          return;
+        }
         if (ev && RECOVERABLE_ERRORS[ev.error]) {
           handleRecFinished(sid);
           return;
