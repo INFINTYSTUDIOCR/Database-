@@ -636,15 +636,7 @@ function studentAccessFlags(student) {
 
 function isNexoraEnabledForStudent(student) {
   if (!student) return false;
-  if (!student.nexoraEnabled) return false;
-  // Kamuk: Companion + Nexora product — Alice tutor flag OR Companion unlocks Nexora
-  // Legacy Kamuk rows may keep STU- ids (not only KAM-)
-  const sid = student.id ? String(student.id) : '';
-  if (sid.startsWith('KAM-') || sid.startsWith('STU-')) {
-    if (normalizeCompanionEnabled(student)) return true;
-  }
-  if (typeof student.aliceEnabled === 'boolean') return student.aliceEnabled;
-  return (student.system_mode || 'jill') === 'alice';
+  return !!student.nexoraEnabled;
 }
 
 async function assertNexoraStudentAccess(req, res, bodyStudent) {
