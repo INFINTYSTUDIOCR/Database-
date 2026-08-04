@@ -772,7 +772,7 @@
 
   var MAP = EMBEDDED_MAP;
   var LOAD = null;
-  var CACHE_VER = '20260713m07';
+  var CACHE_VER = '20260804canon1';
   var VOICE_PACK = {
     tracks: {
       gerundio: {

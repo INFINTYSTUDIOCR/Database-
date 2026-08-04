@@ -7,7 +7,7 @@
   var _cfg = null;
   var _load = null;
   var _svgCache = {};
-  var CACHE_VER = '20260715teach1';
+  var CACHE_VER = '20260804canon1';
   var DEFAULT_BG = '#f3ebff';
 
   function assetUrl(path) {

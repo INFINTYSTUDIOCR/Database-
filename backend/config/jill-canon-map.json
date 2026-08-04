@@ -273,8 +273,8 @@
     },
     {
       "id": "gerund_prep",
-      "svg": "assets/canon/gerundio.svg",
-      "title": "Clase 009 · Preposición + ING — siempre",
+      "svg": "assets/canon/gerundio-prep.svg",
+      "title": "Preposición + ING — siempre",
       "formula": "preposición + VERBO-ING — in/at/of/about/for + ING, siempre",
       "example": "I am interested in learning. / She is good at speaking English.",
       "never": [
@@ -295,19 +295,14 @@
         "afraid of",
         "instead of",
         "despues de preposicion",
-        "modulo 5",
-        "módulo 5",
-        "clase 009",
-        "clase 9",
-        "el gerundio",
-        "to be + ing",
-        "to vs ing"
+        "preposition gerund",
+        "prep gerund"
       ],
-      "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
+      "bridge": "Después de preposición → siempre ING (not TO). No es presente continuo (TO BE + ING)."
     },
     {
       "id": "prepositions_time",
-      "svg": "assets/canon/preposiciones.svg",
+      "svg": "assets/canon/preposiciones-tiempo.svg",
       "title": "Clase 011 — Preposiciones de tiempo (IN / ON / AT)",
       "formula": "IN = períodos largos | ON = días y fechas | AT = horas exactas | SINCE/FOR/DURING/BY",
       "example": "We meet on Monday in March at 5 pm. / I have worked here since 2020.",
@@ -447,16 +442,17 @@
     },
     {
       "id": "progressive",
-      "svg": "assets/canon/gerundio.svg",
-      "title": "Clase 009 · TO BE + ING — la llave y la puerta",
-      "formula": "TO BE (am/is/are/was/were/been) + VERBO-ING — TO BE es la llave; ING es la puerta",
-      "example": "I am working. / They were eating. / She has been studying.",
+      "svg": "assets/canon/presente-continuo.svg",
+      "title": "Presente continuo · TO BE + ING",
+      "formula": "TO BE (am/is/are/was/were) + VERBO-ING — acción en progreso",
+      "example": "I am working. / They were eating. / She is studying now.",
       "never": [
         "gerundio-prep",
         "have been + ing",
         "pasado simple",
         "IN ON AT",
         "gerundio sin to be",
+        "TO vs ING (eso es gerundio)",
         "cortar o reescribir el guion canon module-05"
       ],
       "aliases": [
@@ -477,12 +473,10 @@
         "ando endo continuo",
         "modulo 5",
         "módulo 5",
-        "clase 009",
-        "clase 9",
-        "el gerundio",
-        "to vs ing"
+        "presente progresivo",
+        "progressive tense"
       ],
-      "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
+      "bridge": "Puente Presente continuo: TO BE (am/is/are) + VERBO-ING para acción en progreso. NO confundir con gerundio (TO vs ING / prep + ING)."
     },
     {
       "id": "perfect",
