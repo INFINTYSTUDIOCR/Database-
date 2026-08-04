@@ -105,10 +105,11 @@ if (!JWT_SECRET) {
 
 const { ANTHROPIC_API_KEY, WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, VERIFY_TOKEN,
         ANALYZE_SECRET, PORT = 3000 } = process.env;
-// Same Supabase project as Student Portal / Engine (Render env overrides when set)
+// Infinity Supabase only (Render env overrides when set)
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rxruvpfdpgowmpvydacd.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
-// Dedicated Kamuk project (separate from Infinity — never mix tables)
+// Kamuk ONLY — separate project. Never fall back to Infinity credentials/tables.
+// Set KAMUK_SUPABASE_URL / KAMUK_SUPABASE_KEY on Render for the real Kamuk project.
 const KAMUK_SUPABASE_URL = process.env.KAMUK_SUPABASE_URL || 'https://lbspgbeqtcnjrbhiuucu.supabase.co';
 const KAMUK_SUPABASE_KEY = process.env.KAMUK_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM';
 
@@ -119,13 +120,11 @@ function studentsTableForId(id) {
 
 async function sbGetStudentRow(id) {
   if (!id) return null;
+  // Never cross products: KAM- only kamuk_*, everything else only infinity_*
   if (String(id).startsWith('KAM-')) {
     return sbGetOne('kamuk_students', id);
   }
-  const inf = await sbGetOne('infinity_students', id);
-  if (inf?.data) return inf;
-  // Legacy Kamuk rows without KAM- prefix
-  return sbGetOne('kamuk_students', id);
+  return sbGetOne('infinity_students', id);
 }
 
 async function sbSetStudent(id, data) {
@@ -133,10 +132,6 @@ async function sbSetStudent(id, data) {
   if (String(id).startsWith('KAM-')) {
     return sbSet('kamuk_students', id, data);
   }
-  const inf = await sbGetOne('infinity_students', id);
-  if (inf?.data) return sbSet('infinity_students', id, data);
-  const kam = await sbGetOne('kamuk_students', id);
-  if (kam?.data) return sbSet('kamuk_students', id, data);
   return sbSet('infinity_students', id, data);
 }
 
@@ -267,22 +262,13 @@ async function sbFindStudentByPortalLogin(portalUser, password, product) {
   if (!loginUser) return null;
   const q = `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`;
   const preferKamuk = String(product || '').toLowerCase() === 'kamuk';
-  const kamFirst = async () => {
+  // STRICT product isolation — never search Infinity when product=kamuk and never kamuk for Infinity.
+  if (preferKamuk) {
     const kamRows = await sbQuery('kamuk_students', q);
     return kamRows.find(r => r.data && r.data.portalPass === password) || null;
-  };
-  const infFirst = async () => {
-    const infRows = await sbQuery('infinity_students', q);
-    return infRows.find(r => r.data && r.data.portalPass === password) || null;
-  };
-  if (preferKamuk) {
-    const kamHit = await kamFirst();
-    if (kamHit) return kamHit;
-    return infFirst();
   }
-  const infHit = await infFirst();
-  if (infHit) return infHit;
-  return kamFirst();
+  const infRows = await sbQuery('infinity_students', q);
+  return infRows.find(r => r.data && r.data.portalPass === password) || null;
 }
 
 const Brain = require('./nexus-brain');
