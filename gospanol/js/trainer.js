@@ -141,6 +141,17 @@ function renderDetail() {
       ps: Number(document.getElementById('kpi-ps').value) || 0,
       rs: Number(document.getElementById('kpi-rs').value) || 0
     };
+    next.kpiHistory = Array.isArray(next.kpiHistory) ? next.kpiHistory : [];
+    next.kpiHistory.push({
+      at: new Date().toISOString(),
+      source: 'trainer',
+      ig: next.kpis.ig,
+      st: next.kpis.st,
+      rc: next.kpis.rc,
+      ps: next.kpis.ps,
+      rs: next.kpis.rs
+    });
+    if (next.kpiHistory.length > 40) next.kpiHistory = next.kpiHistory.slice(-40);
     if (!next.portalUser || !next.portalPass) {
       toast('Set student user + password before they can log in.');
     }

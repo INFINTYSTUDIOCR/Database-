@@ -89,6 +89,36 @@ function renderShell() {
   }
 }
 
+function appendGospanolHistory(student, source) {
+  if (!student) return;
+  student.kpiHistory = Array.isArray(student.kpiHistory) ? student.kpiHistory : [];
+  const k = student.kpis || {};
+  const last = student.kpiHistory[student.kpiHistory.length - 1];
+  const snap = {
+    at: new Date().toISOString(),
+    source: source || 'trainer',
+    ig: Number(k.ig) || 0,
+    st: Number(k.st) || 0,
+    rc: Number(k.rc) || 0,
+    ps: Number(k.ps) || 0,
+    rs: Number(k.rs) || 0
+  };
+  if (
+    last &&
+    last.ig === snap.ig &&
+    last.st === snap.st &&
+    last.rc === snap.rc &&
+    last.ps === snap.ps &&
+    last.rs === snap.rs &&
+    Date.now() - Date.parse(last.at || 0) < 60000
+  ) {
+    last.at = snap.at;
+    return;
+  }
+  student.kpiHistory.push(snap);
+  if (student.kpiHistory.length > 40) student.kpiHistory = student.kpiHistory.slice(-40);
+}
+
 function renderOverview() {
   const score = avgKpi(student.kpis);
   const k = student.kpis || {};
@@ -105,34 +135,17 @@ function renderOverview() {
       </div>
     </div>
     <div class="portal-section">
-      <h2 class="section-title">Operational KPI radar</h2>
-      <p class="section-sub">Same 5 performance axes — Spanish as the target</p>
-      <div class="radar-wrap">
-        <div>
-          <svg class="radar-svg" viewBox="0 0 200 200" aria-label="KPI radar">
-            <polygon points="100,28 168,72 142,148 58,148 32,72" fill="none" stroke="#D5DEE5" stroke-width="1"/>
-            <polygon points="100,50 145,78 128,128 72,128 55,78" fill="none" stroke="#D5DEE5" stroke-width="1"/>
-            <polygon points="100,72 122,88 114,118 86,118 78,88" fill="none" stroke="#D5DEE5" stroke-width="1"/>
-            <line x1="100" y1="100" x2="100" y2="28" stroke="#D5DEE5"/>
-            <line x1="100" y1="100" x2="168" y2="72" stroke="#D5DEE5"/>
-            <line x1="100" y1="100" x2="142" y2="148" stroke="#D5DEE5"/>
-            <line x1="100" y1="100" x2="58" y2="148" stroke="#D5DEE5"/>
-            <line x1="100" y1="100" x2="32" y2="72" stroke="#D5DEE5"/>
-            <polygon id="radar-poly" points="${radarPoints(k)}" fill="rgba(91,33,182,0.28)" stroke="#5B21B6" stroke-width="2"/>
-            <text x="100" y="18" text-anchor="middle" font-size="9" fill="#5A6F7C">Ideas</text>
-            <text x="178" y="72" text-anchor="start" font-size="9" fill="#5A6F7C">Structure</text>
-            <text x="150" y="162" text-anchor="middle" font-size="9" fill="#5A6F7C">Recovery</text>
-            <text x="50" y="162" text-anchor="middle" font-size="9" fill="#5A6F7C">Problem</text>
-            <text x="18" y="72" text-anchor="end" font-size="9" fill="#5A6F7C">Response</text>
-          </svg>
-          <div class="radar-score-pill">Score ${score}</div>
-        </div>
-        <div>
-          ${KPI_LABELS.map(([id, name]) => {
-            const v = k[id] ?? 0;
-            return `<div class="kpi-bar-row"><div class="kbar-name">${name}</div><div class="kbar-bg"><div class="kbar-fill" style="width:${v}%"></div></div><div class="kbar-val">${v}</div></div>`;
-          }).join('')}
-        </div>
+      <h2 class="section-title">Operational KPIs · live</h2>
+      <p class="section-sub">Tap a chart · animates when your trainer updates progress</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">
+        <div class="chart-wrap" style="position:relative;height:200px;"><canvas id="go-macro-radar"></canvas></div>
+        <div class="chart-wrap" style="position:relative;height:200px;"><canvas id="go-macro-bar"></canvas></div>
+      </div>
+      <div id="go-kpi-detail" style="font-size:12px;padding:10px 12px;border-radius:10px;background:#EEF3F6;margin-bottom:12px;min-height:2.2em;">Tocá un KPI o punto del timeline para ver el detalle.</div>
+      <div class="chart-wrap" style="position:relative;height:220px;"><canvas id="go-line"></canvas></div>
+      <div style="display:none">
+        <!-- legacy SVG fallback if Chart.js fails -->
+        <svg class="radar-svg" viewBox="0 0 200 200" aria-hidden="true"><polygon id="radar-poly" points="${radarPoints(k)}"></polygon></svg>
       </div>
     </div>
     <div class="portal-section">
@@ -172,6 +185,74 @@ function renderOverview() {
       </div>` : ''}
     </div>
   `;
+  requestAnimationFrame(() => mountGospanolCharts());
+}
+
+function mountGospanolCharts() {
+  const Live = window.LiveKpiCharts;
+  if (!Live || !window.Chart) {
+    // Soft fallback: animate bars only via CSS in legacy layout if charts unavailable
+    return;
+  }
+  Live.setTheme('gospanol');
+  if (!window._goKpiBound) {
+    Live.bindPortalDetail('go-kpi-detail');
+    window._goKpiBound = true;
+  }
+  // Map GOSpanol keys → macro labels Chart expects
+  window.KPI_NAMES = window.KPI_NAMES || {
+    IG: 'Ideas',
+    ST: 'Structure',
+    RA: 'Recovery',
+    PS: 'Problem solve',
+    R: 'Response'
+  };
+  const k = student.kpis || {};
+  const macro = {
+    IG: Number(k.ig) || 0,
+    ST: Number(k.st) || 0,
+    RA: Number(k.rc) || 0,
+    PS: Number(k.ps) || 0,
+    R: Number(k.rs) || 0
+  };
+  Live.mountWhenReady(['go-macro-radar', 'go-macro-bar', 'go-line'], () => {
+    Live.destroyPrefix('go-');
+    Live.updateMacro('go-macro', 'go-macro-radar', 'go-macro-bar', macro, 100);
+    const hist = Array.isArray(student.kpiHistory) ? student.kpiHistory.slice(-12) : [];
+    const asPortal = {
+      kpis: {
+        phase1: macro,
+        history: hist.map((h) => ({
+          at: h.at,
+          source: h.source || 'trainer',
+          phase1: { IG: h.ig, ST: h.st, RA: h.rc, PS: h.ps, R: h.rs },
+          score: Math.round(
+            ((Number(h.ig) || 0) +
+              (Number(h.st) || 0) +
+              (Number(h.rc) || 0) +
+              (Number(h.ps) || 0) +
+              (Number(h.rs) || 0)) /
+              5
+          )
+        }))
+      },
+      calibrations: [],
+      aliceSessions: []
+    };
+    // Seed current as last point if history empty
+    if (!asPortal.kpis.history.length) {
+      asPortal.kpis.history.push({
+        at: new Date().toISOString(),
+        source: 'now',
+        phase1: macro,
+        score: avgKpi(student.kpis)
+      });
+    }
+    const series = Live.collectPortalTimeline(asPortal);
+    if (series.hasSeries) {
+      Live.updateLine('go-line', 'go-line', series.labels, series.datasets, 100);
+    }
+  });
 }
 
 function renderExercises() {

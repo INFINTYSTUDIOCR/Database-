@@ -1,6 +1,7 @@
 /**
- * Jill ? KPI charts + justificaciÛn master trainer + resumen trainers asignados.
+ * Jill ? KPI charts + justificaciùn master trainer + resumen trainers asignados.
  */
+const KpiHistory = require('./kpi-history');
 const MACRO_KEYS = ['IG', 'ST', 'RA', 'PS', 'R'];
 
 function clamp(n, lo, hi) {
@@ -71,32 +72,32 @@ function buildInsightPrompt(student, ctx) {
   const phase1 = snapshotPhase1(student);
   const m = student?.jillMatrix || {};
   const lines = [
-    'Sos Jill analista de Infinity Studio CR. Con TODO el contexto del estudiante, proponÈ ajustes de KPI macro (gr·ficos) y reportes para trainers.',
+    'Sos Jill analista de Infinity Studio CR. Con TODO el contexto del estudiante, proponù ajustes de KPI macro (grùficos) y reportes para trainers.',
     '',
     `Estudiante: ${ctx.displayName}`,
     `Nivel: ${student?.level || 'Foundations'}`,
     `Trainers asignados: ${trainers.join(', ') || 'sin asignar'}`,
     `KPI macro actual (0-100): IG=${phase1.IG} ST=${phase1.ST} RA=${phase1.RA} PS=${phase1.PS} R=${phase1.R}`,
-    `SesiÛn Jill score: ${ctx.evaluation?.overall_score ?? 'ó'}/100 ∑ turnos: ${ctx.evaluation?.student_turns ?? 'ó'}`,
-    `Fase conversaciÛn: ${ctx.evaluation?.conversation_phase ? 'sÌ' : 'no'}`,
-    `Graduation request: ${ctx.evaluation?.graduation_request ? 'sÌ' : 'no'}`,
-    ctx.evaluation?.graduation_reason ? `RazÛn graduaciÛn: ${ctx.evaluation.graduation_reason}` : '',
-    ctx.evaluation?.conversation_kpis ? `KPIs conversaciÛn: ${JSON.stringify(ctx.evaluation.conversation_kpis)}` : '',
+    `Sesiùn Jill score: ${ctx.evaluation?.overall_score ?? 'ù'}/100 ù turnos: ${ctx.evaluation?.student_turns ?? 'ù'}`,
+    `Fase conversaciùn: ${ctx.evaluation?.conversation_phase ? 'sù' : 'no'}`,
+    `Graduation request: ${ctx.evaluation?.graduation_request ? 'sù' : 'no'}`,
+    ctx.evaluation?.graduation_reason ? `Razùn graduaciùn: ${ctx.evaluation.graduation_reason}` : '',
+    ctx.evaluation?.conversation_kpis ? `KPIs conversaciùn: ${JSON.stringify(ctx.evaluation.conversation_kpis)}` : '',
     m.columnIndex != null ? `Matriz F0 columna activa idx: ${m.columnIndex}` : '',
     m.avgResponseMs != null ? `Tiempo respuesta promedio: ${m.avgResponseMs}ms` : '',
-    student?.jillPulse?.lastScore != null ? `Pulse ˙ltimo: ${student.jillPulse.lastScore}%` : '',
+    student?.jillPulse?.lastScore != null ? `Pulse ùltimo: ${student.jillPulse.lastScore}%` : '',
     '',
-    'TRANSCRIPT (˙ltima sesiÛn Jill):',
+    'TRANSCRIPT (ùltima sesiùn Jill):',
     ctx.hist || '(corto)',
     '',
     'REGLAS:',
-    '- Ajust· phase1 solo donde la evidencia del transcript lo justifique (cambios tÌpicos ±3 a ±8 puntos).',
-    '- IG=idea/generaciÛn ∑ ST=coordinaciÛn/linkers ∑ RA=recuperabilidad/esfuerzo ∑ PS=estructura oral ∑ R=tiempo verbal.',
-    '- masterJustification: texto para MASTER TRAINER explicando criterio, ranuras P|M|V|C, y por quÈ moviste cada gr·fico.',
-    '- trainerSummaries: un resumen accionable por cada trainer en la lista (mismo orden si est·n en la lista).',
+    '- Ajustù phase1 solo donde la evidencia del transcript lo justifique (cambios tùpicos ù3 a ù8 puntos).',
+    '- IG=idea/generaciùn ù ST=coordinaciùn/linkers ù RA=recuperabilidad/esfuerzo ù PS=estructura oral ù R=tiempo verbal.',
+    '- masterJustification: texto para MASTER TRAINER explicando criterio, ranuras P|M|V|C, y por quù moviste cada grùfico.',
+    '- trainerSummaries: un resumen accionable por cada trainer en la lista (mismo orden si estùn en la lista).',
     '- chartRationale: objeto con clave IG/ST/RA/PS/R y una frase por KPI modificado.',
     '',
-    'RespondÈ SOLO JSON v·lido:',
+    'Respondù SOLO JSON vùlido:',
     '{"phase1":{"IG":0,"ST":0,"RA":0,"PS":0,"R":0},"chartRationale":{"IG":"...","ST":"..."},"masterJustification":"...","trainerSummaries":[{"trainer":"Nombre","summary":"..."}]}'
   ];
   return lines.filter(Boolean).join('\n');
@@ -138,8 +139,8 @@ async function generateTrainerInsights(claudeCall, SuperBrain, opts) {
   trainers.forEach((name) => {
     if (!byTrainer[name]) {
       byTrainer[name] = parsed.masterJustification
-        ? String(parsed.masterJustification).slice(0, 280) + 'Ö'
-        : 'Revis· la sesiÛn Jill del alumno en el portal.';
+        ? String(parsed.masterJustification).slice(0, 280) + 'ù'
+        : 'Revisù la sesiùn Jill del alumno en el portal.';
     }
   });
 
@@ -173,6 +174,15 @@ async function generateTrainerInsights(claudeCall, SuperBrain, opts) {
   }
 
   student.jillTrainerInsight = insight;
+  try {
+    KpiHistory.appendKpiHistory(student, {
+      source: 'jill',
+      score: evaluation.overall_score != null ? evaluation.overall_score : null,
+      phase1: chartApplied.next,
+      note: String(parsed.masterJustification || '').slice(0, 120),
+      force: true
+    });
+  } catch (_) { /* non-fatal */ }
   return insight;
 }
 

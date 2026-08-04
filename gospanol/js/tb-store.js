@@ -45,6 +45,7 @@ function blankStudent(name) {
     phaseLabel: 'Structure foundations',
     valeEnabled: false,
     kpis: { ig: 40, st: 40, rc: 40, ps: 40, rs: 40 },
+    kpiHistory: [],
     exercises: [],
     plan: [],
     notes: [],

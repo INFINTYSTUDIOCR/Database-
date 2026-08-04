@@ -314,27 +314,29 @@ function calcXp(result) {
   return xp;
 }
 
-async function loadBrainAggregate() {
+async function loadBrainAggregate(studentId) {
   if (!_sbGetOne) return { patterns: [], studentSnapshots: {} };
   try {
-    const row = await _sbGetOne('infinity_sessions', DRILL_BRAIN_ID);
+    const table = studentId && String(studentId).startsWith('KAM-') ? 'kamuk_sessions' : 'infinity_sessions';
+    const row = await _sbGetOne(table, DRILL_BRAIN_ID);
     return row?.data || { patterns: [], studentSnapshots: {} };
   } catch {
     return { patterns: [], studentSnapshots: {} };
   }
 }
 
-async function saveBrainAggregate(data) {
+async function saveBrainAggregate(data, studentId) {
   if (!_sbSet) return false;
   data.updatedAt = new Date().toISOString();
-  return _sbSet('infinity_sessions', DRILL_BRAIN_ID, data);
+  const table = studentId && String(studentId).startsWith('KAM-') ? 'kamuk_sessions' : 'infinity_sessions';
+  return _sbSet(table, DRILL_BRAIN_ID, data);
 }
 
 async function cascadeFailuresToBrain(student, kpiResults) {
   const failures = (kpiResults || []).filter((r) => !r.correct && r.category);
   if (!failures.length) return;
 
-  const agg = await loadBrainAggregate();
+  const agg = await loadBrainAggregate(student?.id);
   agg.patterns = agg.patterns || [];
   const name = student?.name || student?.info?.name || student?.id || 'estudiante';
 
@@ -366,9 +368,10 @@ async function cascadeFailuresToBrain(student, kpiResults) {
     at: new Date().toISOString()
   };
 
-  await saveBrainAggregate(agg);
+  await saveBrainAggregate(agg, student?.id);
 
-  if (_superBrain?.ingestFromDrillFailure) {
+  // Super Brain is Infinity institutional KB — never feed Kamuk student drills into it.
+  if (_superBrain?.ingestFromDrillFailure && student?.id && !String(student.id).startsWith('KAM-')) {
     for (const f of failures.slice(0, 3)) {
       await _superBrain.ingestFromDrillFailure({
         studentName: name,
@@ -382,7 +385,8 @@ async function cascadeFailuresToBrain(student, kpiResults) {
 
 async function persistStudent(student) {
   if (!_sbSet || !student?.id) return false;
-  return _sbSet('infinity_students', student.id, student);
+  const table = String(student.id).startsWith('KAM-') ? 'kamuk_students' : 'infinity_students';
+  return _sbSet(table, student.id, student);
 }
 
 /**

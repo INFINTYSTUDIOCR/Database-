@@ -118,6 +118,11 @@ function studentsTableForId(id) {
   return 'infinity_students';
 }
 
+function sessionsTableForId(id) {
+  if (id && String(id).startsWith('KAM-')) return 'kamuk_sessions';
+  return 'infinity_sessions';
+}
+
 async function sbGetStudentRow(id) {
   if (!id) return null;
   // Never cross products: KAM- only kamuk_*, everything else only infinity_*
@@ -279,6 +284,8 @@ const JillDrillBrain = require('./jill-drill-brain');
 const InfinityVictory = require('./infinity-victory');
 const JohnDoctrine = require('./john-teaching-doctrine');
 const SharedLearner = require('./shared-learner');
+const KpiHistory = require('./kpi-history');
+const ProductUsage = require('./product-usage-store');
 const Autonomy = require('./autonomy-orchestrator');
 SuperBrain.initSuperBrain({ sbGetOne, sbSet, sbGet: sbGet, brain: Brain });
 JillDrillBrain.initJillDrillBrain({ sbSet, sbGetOne, superBrain: SuperBrain });
@@ -333,7 +340,8 @@ function openingLogId(actorKey, product) {
 async function getRecentOpenings(actorKey, product) {
   if (!actorKey) return [];
   try {
-    const row = await sbGetOne('infinity_sessions', openingLogId(actorKey, product));
+    const table = String(actorKey).startsWith('KAM-') || product === 'kamuk' ? 'kamuk_sessions' : 'infinity_sessions';
+    const row = await sbGetOne(table, openingLogId(actorKey, product));
     return (row?.data?.openings || []).slice(-OPENING_LOG_MAX);
   } catch (e) {
     return [];
@@ -346,10 +354,11 @@ async function recordOpening(actorKey, product, text, meta = {}) {
   if (snippet.length < 8) return;
   try {
     const id = openingLogId(actorKey, product);
-    const row = await sbGetOne('infinity_sessions', id);
+    const table = String(actorKey).startsWith('KAM-') || product === 'kamuk' ? 'kamuk_sessions' : 'infinity_sessions';
+    const row = await sbGetOne(table, id);
     const data = row?.data || { product, actorKey, openings: [] };
     data.openings = [...(data.openings || []), { text: snippet, ts: new Date().toISOString(), ...meta }].slice(-OPENING_LOG_MAX);
-    await sbSet('infinity_sessions', id, data);
+    await sbSet(table, id, data);
   } catch (e) {
     console.error('recordOpening:', e.message);
   }
@@ -3677,6 +3686,11 @@ async function persistStudentLearningState(student) {
     if (student.quizWeakKpis) data.quizWeakKpis = student.quizWeakKpis;
     if (student.autonomy) data.autonomy = student.autonomy;
     if (student.nemesisState) data.nemesisState = student.nemesisState;
+    if (student.aliceSessions) data.aliceSessions = student.aliceSessions;
+    if (student.kpis) data.kpis = student.kpis;
+    if (student.jillTrainerInsight) data.jillTrainerInsight = student.jillTrainerInsight;
+    if (student.trainerInsightLog) data.trainerInsightLog = student.trainerInsightLog;
+    if (student.usageArchive) data.usageArchive = student.usageArchive;
     await sbSetStudent(student.id, data);
   } catch (e) {
     console.warn('persistStudentLearningState:', e.message);
@@ -3864,6 +3878,16 @@ async function finalizeJillEvaluation(student, evaluation, hist) {
     }
   }
   if (student && evaluation) {
+    // If trainer insight didn't write a history snap, still track session progress for charts.
+    if (!trainerInsight) {
+      try {
+        KpiHistory.appendKpiHistory(student, {
+          source: 'jill',
+          score: evaluation.overall_score != null ? evaluation.overall_score : null,
+          note: String(evaluation.main_improvement || evaluation.jill_message || '').slice(0, 120)
+        });
+      } catch (_) { /* non-fatal */ }
+    }
     wireAutonomySignal(student, {
       source: 'jill',
       kind: 'session_eval',
@@ -3871,11 +3895,25 @@ async function finalizeJillEvaluation(student, evaluation, hist) {
       topics: evaluation.weak_areas || evaluation.improvements || [],
       summary: String(evaluation.main_improvement || evaluation.jill_message || '').slice(0, 200)
     });
+    try {
+      await ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
+        surface: evaluation.sessionType === 'companion' ? 'jill-companion' : 'jill',
+        mode: evaluation.conversation_phase ? 'conversation' : 'foundations',
+        score: evaluation.overall_score != null ? evaluation.overall_score : null,
+        transcript: hist,
+        evaluation,
+        topics: evaluation.weak_areas || evaluation.improvements || [],
+        summary: String(evaluation.main_improvement || evaluation.jill_message || '').slice(0, 200)
+      });
+      await persistStudentLearningState(student);
+    } catch (e) {
+      console.warn('usage archive jill:', e.message);
+    }
   }
   const payload = { evaluation };
   if (trainerInsight) {
     payload.trainerInsight = trainerInsight;
-    payload.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 } } : null;
+    payload.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 }, history: (student.kpis.history || []).slice(-8) } : null;
   }
   if (student?.autonomy) payload.autonomy = Autonomy.snapshot(student);
   return payload;
@@ -4080,6 +4118,13 @@ app.post('/alice', requireProductAuth, async (req, res) => {
         });
         if (student.aliceSessions.length > 40) student.aliceSessions = student.aliceSessions.slice(-40);
         InfinityVictory.applyAliceVictoryToStudent(student);
+        try {
+          KpiHistory.appendKpiHistory(student, {
+            source: 'alice',
+            score: overall_score,
+            note: String(evaluation.main_improvement || '').slice(0, 120)
+          });
+        } catch (_) { /* non-fatal */ }
         wireAutonomySignal(student, {
           source: 'alice',
           kind: 'session_eval',
@@ -4087,7 +4132,18 @@ app.post('/alice', requireProductAuth, async (req, res) => {
           topics: [].concat(connectors_missed, evaluation.main_improvement ? [evaluation.main_improvement] : []).slice(0, 8),
           summary: String(evaluation.main_improvement || '').slice(0, 200)
         });
+        // Archive session for cohort reuse (Kamuk → kamuk_sessions). No third-party API.
+        ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
+          surface: 'alice',
+          mode: effectiveSessionType || 'tutor',
+          score: overall_score,
+          transcript: hist,
+          evaluation,
+          topics: connectors_missed,
+          summary: String(evaluation.main_improvement || '').slice(0, 200)
+        }).then(() => persistStudentLearningState(student)).catch((e) => console.warn('usage archive alice:', e.message));
         evaluation.autonomy = Autonomy.snapshot(student);
+        evaluation.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 }, history: (student.kpis.history || []).slice(-8) } : null;
       }
       return res.json({ evaluation });
     }
@@ -4661,7 +4717,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 
     if (!message) return res.status(400).json({ error: 'Missing message' });
 
-    const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
+    const limit = await checkTutorLimit(student?.id, 'jill', sessionsTableForId(student?.id));
     if (!limit.ok) {
       return res.json({
         reply: `Alcanzaste el límite de práctica con Jill por hoy. Descansá ${limit.wait} y volvé con energía.`,
@@ -4868,7 +4924,7 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const companionBlock = isJillCompanion
       ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
       : hardTrackLock;
-    const limit = await checkTutorLimit(student?.id, 'jill', 'infinity_sessions');
+    const limit = await checkTutorLimit(student?.id, 'jill', sessionsTableForId(student?.id));
     if (!limit.ok) {
       return res.status(429).json({ error: 'limit', message: `Jill practice limit reached. Wait ${limit.wait}.`, wait: limit.wait });
     }
@@ -5526,6 +5582,24 @@ app.post('/jill/drill/complete', requireProductAuth, async (req, res) => {
       topics: (student.nemesisState?.reinforcement || student.quizWeakKpis || []).slice(0, 8),
       summary: `Rapid drill ${result.score || 0}%`
     });
+    try {
+      await ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
+        surface: 'jill-drill',
+        mode: 'rapid',
+        score: result.score || 0,
+        evaluation: {
+          correct: result.correct,
+          total: result.total,
+          kpiResults: result.kpiResults,
+          bundleId: result.bundleId
+        },
+        summary: `Rapid drill ${result.score || 0}%`,
+        topics: (result.kpiResults || []).filter((r) => !r.correct).map((r) => r.kpi || r.category).slice(0, 8)
+      });
+      await persistStudentLearningState(student);
+    } catch (e) {
+      console.warn('usage archive drill:', e.message);
+    }
     return res.json({ ok: true, ...outcome, autonomy: Autonomy.snapshot(student), source: 'brain' });
   } catch (err) {
     console.error('jill/drill/complete:', err.message);
@@ -5845,23 +5919,64 @@ app.post('/demo/jill/drill/complete', async (req, res) => {
 });
 
 
-// ── TRACKING ─────────────────────────────────────────────────
+// ── TRACKING (product-aware: Kamuk never writes infinity_sessions) ──
 app.post('/track', async (req, res) => {
   try {
-    const { event, label, ts } = req.body || {};
+    const { event, label, ts, product, studentId } = req.body || {};
     if(!event) return res.status(400).json({error:'Missing event'});
-    
+
+    const pid = studentId || req.auth?.sid || req.auth?.studentId || '';
+    const prod = String(product || (String(pid).startsWith('KAM-') ? 'kamuk' : 'infinity')).toLowerCase();
+    const table = prod === 'kamuk' || String(pid).startsWith('KAM-') ? 'kamuk_sessions' : 'infinity_sessions';
     const trackKey = 'TRACK-' + new Date().toISOString().slice(0,10);
-    const row = await sbGetOne('infinity_sessions', trackKey);
-    const data = row?.data || { events: [] };
-    
-    data.events.push({ event, label, ts: ts || new Date().toISOString() });
+    const row = await sbGetOne(table, trackKey);
+    const data = row?.data || { product: prod, events: [] };
+
+    data.events.push({ event, label, ts: ts || new Date().toISOString(), studentId: pid || undefined });
     if(data.events.length > 1000) data.events = data.events.slice(-1000);
-    
-    await sbSet('infinity_sessions', trackKey, data);
-    return res.json({ ok: true });
+
+    await sbSet(table, trackKey, data);
+    return res.json({ ok: true, product: prod });
   } catch(err) {
     return res.status(500).json({ error: 'Track failed' });
+  }
+});
+
+// ── KAMUK / product usage export (scores + session index — for trainers) ──
+app.get('/usage/cohort', async (req, res) => {
+  try {
+    const secret = req.query.secret;
+    if (ANALYZE_SECRET && secret !== ANALYZE_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+    const product = String(req.query.product || 'kamuk').toLowerCase() === 'infinity' ? 'infinity' : 'kamuk';
+    const day = String(req.query.day || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const table = product === 'kamuk' ? 'kamuk_sessions' : 'infinity_sessions';
+    const studentsTable = product === 'kamuk' ? 'kamuk_students' : 'infinity_students';
+    const indexId = `USAGE-IDX-${product}-${day}`;
+    const idx = await sbGetOne(table, indexId);
+    let students = [];
+    try {
+      students = await sbGet(studentsTable);
+    } catch (_) { students = []; }
+    const roster = (students || []).map((r) => {
+      const d = r.data || {};
+      return {
+        id: r.id,
+        name: d.info?.name || d.name || d.portalUser || r.id,
+        usageArchive: (d.usageArchive || []).slice(-12),
+        aliceSessions: (d.aliceSessions || []).length,
+        kpisHistory: (d.kpis?.history || []).length,
+        nexoraSessionCount: d.nexoraSessionCount || (d.nexoraSessions || []).length || 0
+      };
+    });
+    return res.json({
+      product,
+      day,
+      sessionIndex: idx?.data || { events: [] },
+      rosterCount: roster.length,
+      roster
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Usage export failed' });
   }
 });
 
@@ -6089,7 +6204,7 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
     const scopedStudent = student || resolveNexoraStudent(studentRaw, req);
     const agentName = resolveNexoraAgentName(scopedStudent, agentNameRaw, req);
 
-    const limit = await checkTutorLimit(scopedStudent?.id, 'nexora', 'infinity_sessions');
+    const limit = await checkTutorLimit(scopedStudent?.id, 'nexora', sessionsTableForId(scopedStudent?.id));
     if (!limit.ok && !/^START_/.test(String(message || ''))) {
       return res.json({
         reply: 'The line went quiet — try again in a few minutes.',
@@ -6443,6 +6558,31 @@ Respond ONLY with valid JSON, no markdown:
         topics: [].concat(ev.improvements || [], ev.connectors_missed || []).slice(0, 8),
         summary: String(ev.verdict || '').slice(0, 200)
       });
+      try {
+        KpiHistory.appendKpiHistory(student, {
+          source: 'nexora',
+          score: ev.overall_score != null ? ev.overall_score : null,
+          note: String(ev.verdict || '').slice(0, 120)
+        });
+      } catch (_) { /* non-fatal */ }
+      try {
+        await ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
+          surface: 'nexora',
+          mode: 'sim',
+          score: ev.overall_score != null ? ev.overall_score : null,
+          transcript: req.body?.transcript || req.body?.history || '',
+          evaluation: ev,
+          topics: [].concat(ev.improvements || [], ev.connectors_missed || []).slice(0, 8),
+          summary: String(ev.verdict || '').slice(0, 200),
+          meta: {
+            scenarioTitle: scenario?.title || '',
+            talkTime: talkTime || 0,
+            transferred: !!transferred
+          }
+        });
+      } catch (e) {
+        console.warn('usage archive nexora:', e.message);
+      }
       Autonomy.decide(student, {
         trigger: {
           source: 'nexora',
