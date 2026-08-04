@@ -1,0 +1,36 @@
+---
+description: Infinity and Kamuk are twin products that must never mix data or auth
+alwaysApply: true
+---
+
+# Infinity vs Kamuk — no mix
+
+Kamuk and Infinity are **twins in product experience** (same Portal/Engine features: AI, games, KPIs, evaluation) but **separate projects**. Never merge them.
+
+## Separation rules
+
+| Concern | Infinity | Kamuk |
+|---------|----------|-------|
+| Repo / site | INFINTYSTUDIOCR/Database- · studioinfinitycr.com | KamukSchool/Operarive-Training-Database · GitHub Pages |
+| Supabase | `rxruvpfd…` · tables `infinity_*` | `lbspgbeq…` · tables `kamuk_*` |
+| Student IDs | `IS-…` | `KAM-…` |
+| Student login | no product / infinity · `infinity_students` | `product: 'kamuk'` · `kamuk_students` only |
+| Users/trainers | `infinity_users` | `kamuk_users` |
+| Brand colors | Infinity purple | Kamuk blue (`#2B7EC1`) |
+
+## Hard bans
+
+- Never log a student into the other product’s tables as a “fallback”.
+- Never write Infinity student rows into Kamuk Supabase, or Kamuk rows into Infinity.
+- Never point Kamuk Portal/Engine `SUPA_URL` at Infinity Supabase (or vice versa).
+- Never reuse Infinity portal credentials to gate Kamuk data (same name ≠ same account).
+- When rebuilding twins: clone **behavior** from Infinity, rebind **data** + **colors** + **URLs** + **IDs** only.
+
+## Allowed shared pieces (not data mix)
+
+- Static JS/CSS CDN for feature parity (libs).
+- Shared AI API host for voice/LLM **when** auth JWT scopes the correct student id and product.
+
+## Rebuild
+
+`node scripts/_archive_kamuk/build-kamuk-twin.mjs` (from Infinity checkout) writes twins into the Kamuk repo without sharing databases.
