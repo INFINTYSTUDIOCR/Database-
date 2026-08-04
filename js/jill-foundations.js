@@ -125,6 +125,8 @@
     }
     if (typeof TutorReply !== 'undefined') text = TutorReply.extract(text);
     text = text.replace(/▋/g, '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+    // Keep [[BOARD…]] in reply for the portal stage; only upgrade type when tag present
+    if (/\[\[\s*BOARD/i.test(text)) contentType = 'whiteboard';
     if (!contentType || contentType === 'text') contentType = guessContentType(text);
     return { reply: text, contentType: contentType };
   }
@@ -248,9 +250,18 @@
   }
 
   function formatBody(text, contentType, bundle, userTopic) {
-    var body = esc(text).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    var clean = String(text || '');
+    if (typeof global.AiBoardDirective !== 'undefined' && global.AiBoardDirective.strip) {
+      clean = global.AiBoardDirective.strip(clean);
+    } else {
+      clean = clean
+        .replace(/\[\[\s*BOARD\s*:[^\]]*\]\]/gi, '')
+        .replace(/\[\[\s*BOARD_DESIGN\s*:[^\]]*\]\]/gi, '')
+        .trim();
+    }
+    var body = esc(clean).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     if (contentType === 'whiteboard') {
-      body = formatWhiteboardLines(text, bundle, userTopic) || body;
+      body = formatWhiteboardLines(clean, bundle, userTopic) || body;
     }
     return body;
   }

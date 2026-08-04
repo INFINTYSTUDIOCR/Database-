@@ -2221,10 +2221,20 @@ app.post('/demo/tts', async (req, res) => {
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
+const AI_BOARD_JILL_RULE = `
+TABLERO VISUAL (el portal lo dibuja — NUNCA leas las etiquetas [[...]] en voz):
+Cuando ENSEÑES estructura, ELEGÍ el tablero que coincide con ESTA explicación y al final en líneas nuevas:
+[[CTYPE:whiteboard]]
+[[BOARD:track_id]]
+Tracks válidos: present, past, progressive, perfect, combined, future, future_perfect, modal, modales, modal_have_been, modal_have_pp, there, if_was_were, irregular_verbs, prepositions, prepositions_time, gerundio, gerund_prep, negations, comparatives, articles, have_had, pronouns, overview.
+Si el track no encaja, DISEÑÁ el pizarrón:
+[[BOARD_DESIGN:Título corto|Fórmula clara|Ejemplo bueno|Error típico ✗|Tu turno]]
+Podés cambiar de tablero cuando cambie el tema del turno. NO leás el pizarrón fila por fila en voz.`;
 const TUTOR_TEACH_COMPLETE_RULE = `\nTEACH TURN (OBLIGATORIO — anula "corto" — ESTILO DE CLASE / GUION ORAL):
 HABLA el GUION ORAL del track (john-voice-scripts / trascriciones de clase). Esa es TU voz — no ESL de internet.
-El TABLERO ya está en pantalla: NO lo leás fila por fila (prohibido rules→examples→transforms→takeaway como lista).
+El portal monta el TABLERO con tus etiquetas [[BOARD:...]] o el lock activo: NO leás el pizarrón fila por fila (prohibido rules→examples→transforms→takeaway como lista).
 Completá: guion oral + 1–2 ejemplos señalados + práctica oral + "¿Te quedó?".
+Al final del teach (obligatorio si explicás estructura): ${AI_BOARD_JILL_RULE}
 PROHIBIDO tip corto. PROHIBIDO chatbot ESL. PROHIBIDO imponer otro módulo si pidieron X → enseñá X YA.
 Si perfecto / have-has-had: en VOZ decí "jáf. jás. jád." con JOTA española (nunca "yaf" de J inglesa, nunca "ave").
 Si futuro perfecto: will + have + participio.
@@ -4298,7 +4308,11 @@ const ALICE_COACHING_RULES = `COACHING — JOHN STYLE + NEXUS INTERMEDIATE+ (Ali
 - If you invent an example, it MUST fit John's style: clear analogy, patience, normal classroom flow (not rushed express, not dragging).
 - You are a warm coach, not a rigid script. Explain linkers, recovery, tone, STAR, grammar — always anchored to Nexus Method and Super Brain doctrine.
 - Pattern every time: (1) answer clearly → (2) ONE concrete example with linkers/chunks for THIS practice → (3) invite them to try it now.
-- When teaching Nexus (Idea+Linker+Idea, linkers, STAR, recovery): keep oral short; the portal shows an animated board — end with [[CTYPE:whiteboard]] on its own last line.
+- When teaching Nexus (Idea+Linker+Idea, linkers, STAR, recovery): keep oral short; the portal shows an animated board — end with:
+  [[CTYPE:whiteboard]]
+  [[BOARD:nexus_linkers]]  (or nexus_idea_chain | nexus_star | nexus_recovery — pick the one that matches THIS explanation)
+  If none fit, design: [[BOARD_DESIGN:Title|Pattern|Good example|✗ Bad pattern|Your turn]]
+  Never read the [[...]] tags out loud — the portal strips them.
 - NEVER scold. Celebrate curiosity; steer back gently.
 - If they want full Nexora roleplay: point to Nexora Lab, keep coaching here.`;
 
@@ -4451,6 +4465,9 @@ Cuando querés mostrar algo visual o estructurado, usás el campo contentType en
 - "exercise" — ejercicio estructurado que el estudiante debe hacer
 - "example" — demostración de una técnica con ejemplo concreto
 - "whiteboard" — explicación estructurada como si fuera un pizarrón (listas, pasos, tabla)
+Además, cuando contentType sea whiteboard o estés enseñando, incluí en "reply" las etiquetas de tablero:
+[[BOARD:track_id]] o [[BOARD_DESIGN:Título|línea|...]] (el portal las quita del chat y de la voz).
+${AI_BOARD_JILL_RULE}
 
 RESPUESTA:
 Respondé siempre en JSON válido con este formato:
@@ -5020,11 +5037,14 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const jillCompanionSystem = isJillCompanion
       ? JillPro.buildJillProCompanionSystem(displayName, level, profileNote, adaptNote, topicHint, calibrationNote) + jillDoctrineSlice + (explicitTeach ? TUTOR_TEACH_COMPLETE_RULE : '') + neverCutStream
       : JILL_SYSTEM_PROMPT + calibrationNote + companionBlock + `\n\nMODO: Jill Tutor (normal) — LIMITADA a clases/bundles.\nESTUDIANTE: ${displayName} | Nivel: ${level}${profileNote}${adaptNote}${trainerNote}\nEJERCICIOS:\n${exercises || '(ninguno)'}${bundleCtxStream}${jillDoctrineSlice}${teachLatency}${neverCutStream}`;
+    const boardTail = explicitTeach
+      ? (`\n${AI_BOARD_JILL_RULE}\nSi hay TRACK LOCK, preferí [[BOARD:${lockedTrack ? lockedTrack.id : 'track_id'}]] del mismo tema; si el estudiante cambió de tema con "explicame", usá el track del nuevo pedido.`)
+      : '';
     await streamAnthropicSSE(res, {
       max_tokens: explicitTeach ? 2000 : (isJillCompanion ? 1600 : 1400),
       system: isJillCompanion
-        ? `${jillCompanionSystem}\n\n${teachInstr}\nAl final, línea nueva: ${explicitTeach ? '[[CTYPE:whiteboard]]' : '[[CTYPE:text]]'}. Jill Pro puede explicar TODO. NEVER cut off mid-sentence.`
-        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}\nAl final de tu respuesta, en una línea nueva: ${explicitTeach && lockedTrack ? '[[CTYPE:whiteboard]] (track ' + lockedTrack.id + ' únicamente)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off mid-sentence.`,
+        ? `${jillCompanionSystem}\n\n${teachInstr}${boardTail}\nAl final, línea nueva: ${explicitTeach ? '[[CTYPE:whiteboard]] y [[BOARD:…]] o [[BOARD_DESIGN:…]]' : '[[CTYPE:text]]'}. Jill Pro puede explicar TODO. NEVER cut off mid-sentence.`
+        : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}${boardTail}\nAl final de tu respuesta, en una línea nueva: ${explicitTeach && lockedTrack ? '[[CTYPE:whiteboard]] + [[BOARD:' + lockedTrack.id + ']] (o BOARD_DESIGN si el SVG no aplica)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off mid-sentence.`,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
     });

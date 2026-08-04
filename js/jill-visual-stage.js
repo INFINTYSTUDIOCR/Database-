@@ -289,27 +289,15 @@
     var tutor = opts.tutor === 'alice' ? 'alice' : 'jill';
     activeTutor = tutor;
     var userTopic = opts.userTopic || '';
-    // Forced column from portal lock always wins — never re-pick a mismatched board mid-lesson
+    var design = opts.design || null;
+    // Forced column (lock or AI BOARD tag)
     var col = opts.column || null;
-    if (!col) col = resolveColumn(text, bundle, userTopic, tutor);
+    if (!col && !design) col = resolveColumn(text, bundle, userTopic, tutor);
     // Hard-lock domain: Jill≠Nexus/TOEIC, Alice≠Foundations/TOEIC
     if (col && !domainOk(col, tutor)) {
-      return false;
+      col = null;
     }
-    // Jill: sin columna forzada del lock → no improvisar tablero
-    if (tutor === 'jill' && !opts.column) {
-      return false;
-    }
-    if (!col || !shouldShow(contentType, text, bundle, userTopic, col, tutor)) {
-      return false;
-    }
-    // While locked, never swap to a different Foundations track mid-turn
-    if (tutor === 'jill' && opts.column && col !== opts.column) {
-      col = opts.column;
-    }
-    if (tutor === 'alice' && opts.column && /^nexus_/i.test(String(opts.column))) {
-      col = opts.column;
-    }
+
     var sh = shell();
     var stage = stageEl();
     var media = mediaEl();
@@ -317,33 +305,57 @@
 
     clearCaption();
 
-    function activate(html, optsAct) {
-      optsAct = optsAct || {};
+    function activate(html, capLine) {
       if (typeof global.JillLessonClip !== 'undefined') {
         try { global.JillLessonClip.unmount(); } catch (e0) { /* ignore */ }
       }
-      // Teach mode: no hotspot/drill overlay — board must explain, not flash buttons
       media.innerHTML = html || '';
       sh.classList.add('jill-stage-active');
       stage.hidden = false;
       active = true;
-      currentColumn = col || null;
+      currentColumn = col || (design ? 'ai_design' : null);
       var host = media.querySelector('.jill-teach-sheet') || media.querySelector('.jill-lesson-clip-host');
-      if (host && typeof global.JillLessonClip !== 'undefined') {
+      if (host && typeof global.JillLessonClip !== 'undefined' && col) {
         var clipId = host.getAttribute('data-clip') || col;
         global.JillLessonClip.mount(host, clipId, { mode: 'teach' });
       }
-      // Caption: what track is locked (coherent with voice)
       var cap = captionEl();
       if (cap) {
         cap.hidden = false;
-        cap.textContent = tutor === 'alice'
-          ? ('Alice · ' + String(col))
-          : ('Jill · lección: ' + String(col));
+        cap.textContent = capLine || (tutor === 'alice'
+          ? ('Alice · ' + String(col || 'tablero'))
+          : ('Jill · lección: ' + String(col || 'tablero')));
       }
     }
 
-    // Prefer canon SVG + exercise sheet (JillCanonVisual). Never default to button HUD.
+    // ── AI-designed board (no SVG track) ──
+    if (design && design.title && typeof global.AiBoardDirective !== 'undefined') {
+      var dHtml = global.AiBoardDirective.designHtml(design);
+      if (dHtml) {
+        activate(
+          '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:240px;border-radius:16px;overflow:auto;border:2px solid rgba(43,126,193,0.28);background:linear-gradient(180deg,#FBFDFF,#F0F6FA);padding:12px;box-sizing:border-box;">'
+          + dHtml + '</div>',
+          (tutor === 'alice' ? 'Alice' : 'Jill') + ' · tablero diseñado: ' + design.title
+        );
+        return true;
+      }
+    }
+
+    // Jill: without a column (AI or lock), no improvisation
+    if (tutor === 'jill' && !col) {
+      return false;
+    }
+    if (tutor === 'alice' && !col) {
+      return false;
+    }
+    // AI-selected track always mounts; else legacy shouldShow
+    var openOk = !!opts.aiSelected
+      || shouldShow(contentType, text, bundle, userTopic, col, tutor)
+      || contentType === 'whiteboard'
+      || contentType === 'example';
+    if (!openOk) return false;
+
+    // Prefer canon SVG + exercise sheet (JillCanonVisual)
     if (typeof JillCanonVisual !== 'undefined') {
       var fallback = null;
       if (typeof JillCanonRouter !== 'undefined' && JillCanonRouter.byColumn) {
@@ -358,7 +370,7 @@
           html = '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:240px;border-radius:16px;overflow:auto;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
             + '<div class="jill-lesson-clip-host" data-clip="' + col + '" data-mode="teach"></div></div>';
         }
-        if (html) activate(html, { teach: true });
+        if (html) activate(html);
         else if (!isActive()) hide();
       });
       return true;
@@ -367,8 +379,7 @@
     if (typeof global.JillLessonClip !== 'undefined' && global.JillLessonClip.supports(col)) {
       activate(
         '<div class="jill-canon-stage-frame" style="position:relative;width:100%;height:100%;min-height:240px;border-radius:16px;overflow:auto;border:2px solid rgba(167,139,250,0.35);background:#f3ebff;">'
-        + '<div class="jill-lesson-clip-host" data-clip="' + col + '" data-mode="teach"></div></div>',
-        { teach: true }
+        + '<div class="jill-lesson-clip-host" data-clip="' + col + '" data-mode="teach"></div></div>'
       );
       return true;
     }
@@ -380,6 +391,9 @@
     var cap = captionEl();
     if (!cap) return;
     var t = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+    if (typeof global.AiBoardDirective !== 'undefined' && global.AiBoardDirective.strip) {
+      t = global.AiBoardDirective.strip(t);
+    }
     if (!t) {
       clearCaption();
       return;
