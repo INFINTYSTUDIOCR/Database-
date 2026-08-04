@@ -75,7 +75,7 @@ html{overflow-x:hidden;-webkit-text-size-adjust:100%;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade{animation:fadeIn 0.2s ease;}
 
-.topbar{background:var(--navy);padding:0 1.5rem;padding-top:env(safe-area-inset-top);padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right));display:flex;align-items:center;gap:12px;height:calc(54px + env(safe-area-inset-top));min-height:calc(54px + env(safe-area-inset-top));position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.topbar{background:var(--navy);padding:0 1.5rem;padding-top:env(safe-area-inset-top);padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right));display:flex;align-items:center;gap:12px;height:calc(54px + env(safe-area-inset-top));min-height:calc(54px + env(safe-area-inset-top));position:sticky;top:0;z-index:200;box-shadow:0 1px 8px rgba(30,20,60,0.12);}
 .tb-logo{height:36px;width:36px;object-fit:contain;border-radius:8px;image-rendering:auto;flex-shrink:0;}
 .tb-div{width:1px;height:26px;background:rgba(255,255,255,0.2);flex-shrink:0;}
 .tb-title{font-size:13px;font-weight:700;color:white;}
@@ -108,9 +108,9 @@ html{overflow-x:hidden;-webkit-text-size-adjust:100%;}
 @keyframes alicePulse{0%,100%{opacity:1}50%{opacity:0.55}}
 #alice-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
 #alice-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
-#nav-alice.companion-nav{color:#FFD700;font-weight:800;}
-#nav-alice.companion-nav.active{background:linear-gradient(135deg,rgba(255,215,0,0.28),rgba(245,158,11,0.18))!important;color:#FFEB3B!important;box-shadow:inset 0 0 0 1px rgba(255,215,0,0.35);}
-#nav-alice.companion-nav i{color:#FFD700;}
+#nav-alice.companion-nav{color:#F5E6B8;font-weight:700;}
+#nav-alice.companion-nav.active{background:linear-gradient(135deg,rgba(91,33,182,0.18),rgba(245,166,35,0.12))!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(91,33,182,0.22);}
+#nav-alice.companion-nav i{color:#E8D49A;}
 #jill-mic-btn.ptt-active{background:rgba(255,92,92,0.35)!important;border-color:#FF5C5C!important;color:white!important;}
 #jill-mic-btn.ptt-busy{opacity:0.45;pointer-events:none;}
 #alice-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;contain:layout style;}
