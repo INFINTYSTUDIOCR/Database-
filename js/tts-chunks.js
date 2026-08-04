@@ -153,6 +153,11 @@ var _TTS_EN_GRAMMAR = /^(am|is|are|was|were|be|been|being|do|does|did|have|has|h
 function prepareTtsLine(text) {
   var cleaned = normalizeTtsTeachingForms(
     String(text || '')
+      // Portal/machine tags FIRST — later we strip [ ] chars, which would leave "BOARD:present" spoken
+      .replace(/\[\[\s*BOARD_DESIGN\s*:[^\]]*\]\]/gi, ' ')
+      .replace(/\[\[\s*BOARD\s*:[^\]]*\]\]/gi, ' ')
+      .replace(/\[\[\s*CTYPE\s*:[^\]]*\]\]/gi, ' ')
+      .replace(/JILL_META:\s*\{[\s\S]*$/i, ' ')
       .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
       // Internal labels — NEVER reach student ears
       .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')

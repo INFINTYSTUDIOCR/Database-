@@ -34,12 +34,18 @@
   function streamPlainText(raw) {
     var t = extractTutorReply(raw);
     if (t && t.indexOf('{') !== 0) {
-      return String(t).replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+      return String(t)
+        .replace(/\[\[\s*BOARD_DESIGN\s*:[^\]]*\]\]/gi, '')
+        .replace(/\[\[\s*BOARD\s*:[^\]]*\]\]/gi, '')
+        .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
+        .trim();
     }
     return String(raw || '')
       .replace(JSON_PREFIX, '')
       .replace(/\\n/g, '\n')
       .replace(/"\s*,\s*"contentType"[\s\S]*$/,'')
+      .replace(/\[\[\s*BOARD_DESIGN\s*:[^\]]*\]\]/gi, '')
+      .replace(/\[\[\s*BOARD\s*:[^\]]*\]\]/gi, '')
       .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
       .trim();
   }

@@ -4143,15 +4143,20 @@ app.post('/alice', requireProductAuth, async (req, res) => {
           summary: String(evaluation.main_improvement || '').slice(0, 200)
         });
         // Archive session for cohort reuse (Kamuk → kamuk_sessions). No third-party API.
-        ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
-          surface: 'alice',
-          mode: effectiveSessionType || 'tutor',
-          score: overall_score,
-          transcript: hist,
-          evaluation,
-          topics: connectors_missed,
-          summary: String(evaluation.main_improvement || '').slice(0, 200)
-        }).then(() => persistStudentLearningState(student)).catch((e) => console.warn('usage archive alice:', e.message));
+        try {
+          await ProductUsage.recordAndTagStudent({ sbSet, sbGetOne }, student, {
+            surface: 'alice',
+            mode: effectiveSessionType || 'tutor',
+            score: overall_score,
+            transcript: hist,
+            evaluation,
+            topics: connectors_missed,
+            summary: String(evaluation.main_improvement || '').slice(0, 200)
+          });
+          await persistStudentLearningState(student);
+        } catch (e) {
+          console.warn('usage archive alice:', e.message);
+        }
         evaluation.autonomy = Autonomy.snapshot(student);
         evaluation.kpis = student.kpis ? { phase1: { ...student.kpis.phase1 }, history: (student.kpis.history || []).slice(-8) } : null;
       }
