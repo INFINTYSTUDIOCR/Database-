@@ -416,12 +416,12 @@ app.get('/keycheck', async (req, res) => {
 const TUTOR_LIMIT = 200;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
-/** Per-student Companion caps (preguntas = user turns). Matched by name/id. */
-const COMPANION_QUOTA_OVERRIDES = [
+/** Per-student question caps (user turns). Matched by name/id. Companion + Nexora use separate counters. */
+const STUDENT_QUESTION_QUOTA_OVERRIDES = [
   {
     nameRe: /\beddy[\s._-]*flores\b/i,
     maxQuestions: 5,
-    /** Calendar day in Costa Rica (not a rolling 5h window). */
+    /** Calendar day in Costa Rica (not a rolling window). */
     period: 'day'
   }
 ];
@@ -469,10 +469,10 @@ function msUntilNextCostaRicaMidnight() {
   }
 }
 
-function resolveCompanionQuota(student) {
+function resolveStudentQuestionQuota(student) {
   if (!student) return null;
   const blob = studentDisplayBlob(student);
-  for (const rule of COMPANION_QUOTA_OVERRIDES) {
+  for (const rule of STUDENT_QUESTION_QUOTA_OVERRIDES) {
     if (Array.isArray(rule.ids) && rule.ids.some((id) => String(id) === String(student.id))) {
       return {
         maxQuestions: rule.maxQuestions,
@@ -504,6 +504,11 @@ function resolveCompanionQuota(student) {
   return null;
 }
 
+/** @deprecated alias */
+function resolveCompanionQuota(student) {
+  return resolveStudentQuestionQuota(student);
+}
+
 function formatCooldownWait(msLeft) {
   const mins = Math.max(1, Math.ceil(msLeft / 60000));
   if (mins < 60) return `${mins} minuto${mins === 1 ? '' : 's'}`;
@@ -533,12 +538,18 @@ async function checkTutorLimit(sid, tutor, table) {
   } catch (e) { return { ok: true }; }
 }
 
-/** Alice Modo Libre only: question quota for matched students (e.g. Eddy Flores = 5 / day CR). */
-async function checkCompanionQuestionLimit(student, table) {
-  const quota = resolveCompanionQuota(student);
+/**
+ * Per-student daily (or window) question quota.
+ * @param {'companion'|'nexora'} service — separate counters per product
+ */
+async function checkStudentQuestionQuota(student, table, service = 'companion') {
+  const quota = resolveStudentQuestionQuota(student);
   if (!quota || !student?.id) return { ok: true };
+  const svc = service === 'nexora' ? 'nexora' : 'companion';
   const t = table || 'infinity_sessions';
-  const key = `COMPANION-Q-${student.id}`;
+  const key = (svc === 'nexora' ? 'NEXORA-Q-' : 'COMPANION-Q-') + student.id;
+  const brand = svc === 'nexora' ? 'NEXORA' : 'ALICE';
+  const product = svc === 'nexora' ? 'Nexora' : 'Companion';
   try {
     const rows = await sbGet(t);
     const row = rows.find((r) => r.id === key);
@@ -568,8 +579,8 @@ async function checkCompanionQuestionLimit(student, table) {
         wait,
         maxQuestions: quota.maxQuestions,
         reply:
-          `You've used all ${quota.maxQuestions} Companion questions for today. Come back in ${wait}.\n` +
-          `ALICE: Llegaste a ${quota.maxQuestions} preguntas de Companion ${scope}. Descansá ${wait} y volvé mañana.`
+          `You've used all ${quota.maxQuestions} ${product} questions for today. Come back in ${wait}.\n` +
+          `${brand}: Llegaste a ${quota.maxQuestions} preguntas de ${product} ${scope}. Descansá ${wait} y volvé mañana.`
       };
     }
     d.count++;
@@ -579,6 +590,16 @@ async function checkCompanionQuestionLimit(student, table) {
   } catch (e) {
     return { ok: true };
   }
+}
+
+/** Alice Modo Libre — Eddy etc. */
+async function checkCompanionQuestionLimit(student, table) {
+  return checkStudentQuestionQuota(student, table, 'companion');
+}
+
+/** Nexora turns — same override rules as Companion, separate counter. */
+async function checkNexoraQuestionLimit(student, table) {
+  return checkStudentQuestionQuota(student, table, 'nexora');
 }
 
 async function checkLimit(sid, table) {
@@ -6294,6 +6315,19 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
       });
     }
 
+    const msgCheck = String(message || '');
+    if (!/^START_/.test(msgCheck)) {
+      const nq = await checkNexoraQuestionLimit(scopedStudent, sessionsTableForId(scopedStudent?.id));
+      if (!nq.ok) {
+        return res.json({
+          reply: nq.reply || `You've used all your Nexora practice for today. Come back in ${nq.wait}.`,
+          limitReached: true,
+          wait: nq.wait,
+          nexoraQuota: true
+        });
+      }
+    }
+
     const p = profile || {};
     const sc = scenario || {};
 
@@ -6557,6 +6591,14 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
   try {
     const studentOk = await assertNexoraStudentAccess(req, res, req.body?.student);
     if (req.auth.role === 'student' && !studentOk) return;
+    const scoped = studentOk || resolveNexoraStudent(req.body?.student, req);
+    const msgCheck = String(req.body?.message || '');
+    if (scoped?.id && !/^START_/.test(msgCheck)) {
+      const nq = await checkNexoraQuestionLimit(scoped, sessionsTableForId(scoped.id));
+      if (!nq.ok) {
+        return Brain.writeBrainSSE(res, nq.reply || `You've used all your Nexora practice for today. Come back in ${nq.wait}.`);
+      }
+    }
     const ctx = await prepareNexoraRequest(req.body, req);
     const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
