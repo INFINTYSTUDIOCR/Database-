@@ -3,9 +3,9 @@
 
   var BLOCK = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','dog','slut','whore','marica','maricon'];
 
-  /** Staff / demo names — never address a student this way (Brain cache bleed). */
+  /** Role / bot labels only — not real student first names (e.g. Johnny Ramirez). */
   var STAFF_NAMES = {
-    johnny:1, john:1, trainer:1, admin:1, guest:1, student:1, teacher:1, infinity:1, alice:1, jill:1, nexora:1
+    trainer:1, admin:1, guest:1, student:1, teacher:1, infinity:1, alice:1, jill:1, nexora:1, claire:1, adam:1
   };
 
   var NON_NAME = {
@@ -110,7 +110,7 @@
     return true;
   }
 
-  /** Login repair — PTT poisoned names (Planning, Johnny, etc.) must not persist. */
+  /** Login repair — wipe poisoned preferred names (Planning, Going, wrong nicknames). */
   async function repairPoisonedProfile(dbSetFn, studentRef){
     var s = resolveStudent(studentRef);
     if(!s || !s.id) return false;

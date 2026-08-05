@@ -857,8 +857,8 @@ const DEMO_LIMITS = {
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
 const APP1_BUILD = '20260711-relevance';
-const JILL_BRAIN_VER = 'v42-es-tts-fix';
-const ALICE_BRAIN_VER = 'v26-get-it-straight-ing';
+const JILL_BRAIN_VER = 'v43-student-name-fix';
+const ALICE_BRAIN_VER = 'v27-student-name-fix';
 
 function isCompanionDemoSession(session) {
   return !!(session && (session.demoMode === 'companion' || session.scenario === 'companion'));
@@ -2513,7 +2513,7 @@ CRITICAL RULES:
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
   }
   const agentLabel = String(agentName || 'Agent').trim() || 'Agent';
-  const agentIdentity = `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Never call them Byron, Johnny, or any other name.`;
+  const agentIdentity = `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Address them as ${agentLabel}. Never invent a different name for them.`;
   return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + TUTOR_PACE_RULE + agentIdentity, p, sc, scType };
 }
 
@@ -2901,8 +2901,8 @@ function cleanTtsText(text) {
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
     .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
-    .replace(/\bJohn\s+Ram[ií]rez\b/gi, '')
-    .replace(/\bJohnny(?:\s+Ram[ií]rez)?\b/gi, '')
+    // Do NOT strip "Johnny" / student first names — Johnny Ramirez is a real learner.
+    // Only strip old demo branding that confuses methods with the person.
     .replace(/\bPuente\s+JOHN\b[:\s—–\-]*/gi, 'Puente: ')
     .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
     .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
@@ -3231,8 +3231,7 @@ function scrubNonCrSpanish(text) {
     .replace(/\[\[CTYPE:[^\]]*\]\]/gi, '')
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
     .replace(/\b(?:John\s+)?Off the Clock\b[:\s—–\-]*/gi, '')
-    .replace(/\bJohn\s+Ram[ií]rez\b/gi, '')
-    .replace(/\bJohnny(?:\s+Ram[ií]rez)?\b/gi, '')
+    // Never strip student name Johnny — only legacy method labels
     .replace(/\bPuente\s+JOHN\b[:\s—–\-]*/gi, 'Puente: ')
     .replace(/\blecci[oó]n\s+(?:can[oó]nica\s+)?John\b[:\s—–\-]*/gi, '')
     .replace(/\bM[oó]dulo\s*0*\d+[A-Z-]*/gi, '')
@@ -3545,7 +3544,7 @@ function sanitizeStudentAiProfile(student) {
 }
 
 const PREFERRED_NAME_BLOCKLIST = ['idiota','tonto','stupid','idiot','puto','puta','mierda','shit','fuck','asshole','pendejo','cabron','cabrón','imbecil','imbécil','moron','retard','bitch','perra','slut','whore'];
-const STAFF_NAME_BLOCKLIST = new Set(['johnny','john','trainer','admin','guest','student','teacher','infinity','alice','jill','nexora','claire','adam']);
+const STAFF_NAME_BLOCKLIST = new Set(['trainer', 'admin', 'guest', 'student', 'teacher', 'infinity', 'alice', 'jill', 'nexora', 'claire', 'adam']);
 const PREFERRED_NAME_NON_WORDS = new Set([
   'planning','planing','planned','going','doing','trying','thinking','learning','studying','practicing','working',
   'looking','speaking','talking','writing','reading','watching','listening','feeling','having','being',
@@ -3589,7 +3588,7 @@ function buildAiProfileNote(student, tutor) {
       ? ` FIRST meeting: warm intro + ONE practice question. Do NOT ask how they prefer to be called — use "${display}" only.`
       : ` FIRST meeting: brief intro + ONE practice question. Do NOT ask preferred name — use "${display}" only.`;
   }
-  note += ` NEVER use Johnny, Planning, Going, Trying, or any -ing verb as a name. NEVER use trainer/staff/demo names.`;
+  note += ` NEVER invent a different first name (no Planning, Going, Trying, Ashley, Sarah, demo names). Address them ONLY as "${display}". NEVER use trainer/staff names that are not "${display}".`;
   note += ` Never use humiliating, sexual, or offensive nicknames. Professional warmth always.`;
   return note + buildKpiFileNote(student);
 }
@@ -4005,7 +4004,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
           : `First companion session: greet ${display} warmly like a personal practice assistant ready to chat — friendly, ready to talk about ANYTHING. Ask what they want to talk about today (stories, fashion, daily life, work, food — no limits).`)
         : (returning
           ? `Welcome back ${display} briefly (max 2 sentences). Continue practice with ONE engaging question — NOT a first-meeting intro.`
-          : `First session: greet warmly using ONLY the name "${display}" from the student record. ONE engaging practice question. Do NOT ask how they prefer to be called. Never say Johnny, Planning, or any name not in the student record.`);
+          : `First session: greet warmly using ONLY the name "${display}" from the student record. ONE engaging practice question. Do NOT ask how they prefer to be called. Do NOT invent another name (Ashley/Sarah/Planning/etc). Use "${display}" only.`);
 
       const openExtra = brainScopeExtra(student, req, `${mode}:${companion ? 'companion' : 'practice'}:${student?.level || 'Functional'}:${returning ? 'return' : 'new'}:${ALICE_BRAIN_VER}:${Companion.COMPANION_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('alice', 'opening', `START_${mode}`, openExtra);
@@ -4571,7 +4570,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
         ? JillPro.buildJillProOpeningInstruction(display, returning, topicHint)
         : (returning
           ? `Saludo breve a ${display} y retomá el bundle/ejercicio activo — natural, sin preámbulos largos.`
-          : `Bienvenida corta usando SOLO el nombre "${display}" del registro. Decile qué chunk/tema de hoy y UNA pregunta de práctica. Nunca digas Johnny, Planning, ni otro nombre.`);
+          : `Bienvenida corta usando SOLO el nombre "${display}" del registro. Decile qué chunk/tema de hoy y UNA pregunta de práctica. NO inventes otro nombre (Ashley/Planning/etc). Solo "${display}".`);
 
       const openExtra = brainScopeExtra(student, req, `${mode}:${isJillCompanion ? 'companion' : 'tutor'}:${level}:${returning ? 'return' : 'new'}:${JILL_BRAIN_VER}:${JillPro.JILL_PRO_BRAIN_VER}`);
       const openBrain = await Brain.brainGetLLM('jill', 'opening', `START_${mode}_${effectiveSessionType}`, openExtra);
@@ -6428,7 +6427,7 @@ YOUR ROLE:
 
     const msgStr = String(message || '');
     const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
-    systemPrompt += `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Never call them Byron, Johnny, or any other name.`;
+    systemPrompt += `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`;
     systemPrompt += TUTOR_PACE_RULE;
 
     const actorKey = resolveActorKey({ student, req, profile: p });
