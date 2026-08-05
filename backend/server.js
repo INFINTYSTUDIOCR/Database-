@@ -420,8 +420,9 @@ const COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const COMPANION_QUOTA_OVERRIDES = [
   {
     nameRe: /\beddy[\s._-]*flores\b/i,
-    maxQuestions: 25,
-    cooldownMs: 5 * 60 * 60 * 1000
+    maxQuestions: 5,
+    /** Calendar day in Costa Rica (not a rolling 5h window). */
+    period: 'day'
   }
 ];
 
@@ -435,15 +436,56 @@ function studentDisplayBlob(student) {
   ].filter(Boolean).join(' ');
 }
 
+function costaRicaDayKey(date = new Date()) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Costa_Rica',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  } catch (_) {
+    return date.toISOString().slice(0, 10);
+  }
+}
+
+/** ms until next midnight America/Costa_Rica (no DST). */
+function msUntilNextCostaRicaMidnight() {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Costa_Rica',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false
+    }).formatToParts(new Date());
+    const n = (type) => Number(parts.find((p) => p.type === type)?.value || 0);
+    let h = n('hour');
+    if (h === 24) h = 0;
+    const elapsed = ((h * 60 + n('minute')) * 60 + n('second')) * 1000;
+    return Math.max(60 * 1000, 24 * 60 * 60 * 1000 - elapsed);
+  } catch (_) {
+    return 24 * 60 * 60 * 1000;
+  }
+}
+
 function resolveCompanionQuota(student) {
   if (!student) return null;
   const blob = studentDisplayBlob(student);
   for (const rule of COMPANION_QUOTA_OVERRIDES) {
     if (Array.isArray(rule.ids) && rule.ids.some((id) => String(id) === String(student.id))) {
-      return { maxQuestions: rule.maxQuestions, cooldownMs: rule.cooldownMs };
+      return {
+        maxQuestions: rule.maxQuestions,
+        cooldownMs: rule.cooldownMs || 24 * 60 * 60 * 1000,
+        period: rule.period || null
+      };
     }
     if (rule.nameRe && rule.nameRe.test(blob)) {
-      return { maxQuestions: rule.maxQuestions, cooldownMs: rule.cooldownMs };
+      return {
+        maxQuestions: rule.maxQuestions,
+        cooldownMs: rule.cooldownMs || 24 * 60 * 60 * 1000,
+        period: rule.period || null
+      };
     }
   }
   const cfg = student.companionConfig && typeof student.companionConfig === 'object'
@@ -452,9 +494,11 @@ function resolveCompanionQuota(student) {
   const maxQ = cfg && Number(cfg.maxQuestions);
   if (maxQ > 0) {
     const hours = Number(cfg.cooldownHours);
+    const period = cfg.period === 'day' ? 'day' : null;
     return {
       maxQuestions: maxQ,
-      cooldownMs: (hours > 0 ? hours : 5) * 60 * 60 * 1000
+      cooldownMs: (hours > 0 ? hours : (period === 'day' ? 24 : 5)) * 60 * 60 * 1000,
+      period
     };
   }
   return null;
@@ -464,7 +508,9 @@ function formatCooldownWait(msLeft) {
   const mins = Math.max(1, Math.ceil(msLeft / 60000));
   if (mins < 60) return `${mins} minuto${mins === 1 ? '' : 's'}`;
   const hours = Math.ceil(mins / 60);
-  return `${hours} hora${hours === 1 ? '' : 's'}`;
+  if (hours < 24) return `${hours} hora${hours === 1 ? '' : 's'}`;
+  const days = Math.ceil(hours / 24);
+  return `${days} día${days === 1 ? '' : 's'}`;
 }
 
 async function checkTutorLimit(sid, tutor, table) {
@@ -487,7 +533,7 @@ async function checkTutorLimit(sid, tutor, table) {
   } catch (e) { return { ok: true }; }
 }
 
-/** Alice Modo Libre only: question quota for matched students (e.g. Eddy Flores = 25 / 5h). */
+/** Alice Modo Libre only: question quota for matched students (e.g. Eddy Flores = 5 / day CR). */
 async function checkCompanionQuestionLimit(student, table) {
   const quota = resolveCompanionQuota(student);
   if (!quota || !student?.id) return { ok: true };
@@ -496,27 +542,38 @@ async function checkCompanionQuestionLimit(student, table) {
   try {
     const rows = await sbGet(t);
     const row = rows.find((r) => r.id === key);
-    let d = row?.data || { count: 0, resetAt: null };
-    if (d.resetAt && Date.now() > new Date(d.resetAt).getTime()) {
+    let d = row?.data || { count: 0, resetAt: null, day: null };
+    const daily = quota.period === 'day';
+    if (daily) {
+      const today = costaRicaDayKey();
+      if (d.day !== today) {
+        d.count = 0;
+        d.day = today;
+        d.resetAt = null;
+      }
+    } else if (d.resetAt && Date.now() > new Date(d.resetAt).getTime()) {
       d.count = 0;
       d.resetAt = null;
     }
     if (d.count >= quota.maxQuestions) {
       if (!d.resetAt) {
-        d.resetAt = new Date(Date.now() + quota.cooldownMs).toISOString();
+        const waitMs = daily ? msUntilNextCostaRicaMidnight() : quota.cooldownMs;
+        d.resetAt = new Date(Date.now() + waitMs).toISOString();
         await sbSet(t, key, d);
       }
       const wait = formatCooldownWait(new Date(d.resetAt).getTime() - Date.now());
+      const scope = daily ? 'hoy' : 'por ahora';
       return {
         ok: false,
         wait,
         maxQuestions: quota.maxQuestions,
         reply:
-          `You've used all ${quota.maxQuestions} Companion questions for now. Come back in ${wait}.\n` +
-          `ALICE: Llegaste a ${quota.maxQuestions} preguntas en Companion. Descansá ${wait} y volvé.`
+          `You've used all ${quota.maxQuestions} Companion questions for today. Come back in ${wait}.\n` +
+          `ALICE: Llegaste a ${quota.maxQuestions} preguntas de Companion ${scope}. Descansá ${wait} y volvé mañana.`
       };
     }
     d.count++;
+    if (daily) d.day = costaRicaDayKey();
     await sbSet(t, key, d);
     return { ok: true, remaining: Math.max(0, quota.maxQuestions - d.count) };
   } catch (e) {
