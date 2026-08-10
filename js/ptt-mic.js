@@ -107,6 +107,7 @@ var PttMic = (function () {
     function failStartPermanent(code) {
       clearRestartTimer();
       clearSendTimer();
+      clearMaxHold();
       killRec(true);
       holding = false;
       active = false;
@@ -115,6 +116,7 @@ var PttMic = (function () {
       restartFails = 0;
       clearStopLockTimer();
       ui(false);
+      try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (e) {}
       if (typeof opts.onError === 'function') opts.onError(code || 'start-failed');
     }
 
@@ -205,6 +207,9 @@ var PttMic = (function () {
       clearStopLockTimer();
       if (sent || !wantSend) {
         unlockStop();
+        holding = false;
+        active = false;
+        ui(false);
         return;
       }
       var text = collapseCommittedText(syncTranscript().trim());
@@ -226,6 +231,7 @@ var PttMic = (function () {
         } catch (eNorm) { /* keep raw */ }
       }
       if (text && typeof opts.onSend === 'function') opts.onSend(text);
+      else if (!text && typeof opts.onEmpty === 'function') opts.onEmpty();
       setTimeout(function () { sent = false; }, 120);
     }
 
@@ -256,6 +262,7 @@ var PttMic = (function () {
       clearRestartTimer();
       clearSendTimer();
       clearStopLockTimer();
+      clearMaxHold();
       killRec(true);
       active = false;
       holding = false;
@@ -367,11 +374,27 @@ var PttMic = (function () {
       }
     }
 
+    var maxHoldTimer = null;
+    var MAX_HOLD_MS = Number(opts.maxHoldMs) || 45000;
+
+    function clearMaxHold() {
+      clearTimeout(maxHoldTimer);
+      maxHoldTimer = null;
+    }
+
     function stop(send) {
       if (!holding && !active && !rec && !wantSend && !sendTimer && !restartTimer && !stopLock) return;
-      if (send && stopLock) return;
+      // Second release while finishing STT: force complete instead of ignoring (fixes frozen mic)
+      if (send && stopLock) {
+        clearRestartTimer();
+        killRec(false);
+        syncTranscript();
+        flushSend();
+        return;
+      }
 
       holding = false;
+      clearMaxHold();
 
       if (send) {
         stopLock = true;
@@ -396,7 +419,10 @@ var PttMic = (function () {
         };
         r.onerror = function (ev) {
           if (sid !== sessionId) return;
-          if (ev && ev.error === 'aborted') return;
+          if (ev && ev.error === 'aborted') {
+            if (wantSend) scheduleSend();
+            return;
+          }
           handleRecFinished(sid);
         };
         try { r.stop(); } catch (e) {
@@ -419,6 +445,7 @@ var PttMic = (function () {
       }
 
       sessionId++;
+      clearMaxHold();
       resetSession(true);
       clearSendTimer();
       unlockStop();
@@ -429,6 +456,11 @@ var PttMic = (function () {
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
       var sid = sessionId;
+      maxHoldTimer = setTimeout(function () {
+        if (sid !== sessionId) return;
+        if (holding || active || rec) stop(true);
+      }, MAX_HOLD_MS);
+
       var settle = Number(opts.settleMs) || 0;
       if (settle > 0) {
         setTimeout(function () {
@@ -452,7 +484,11 @@ var PttMic = (function () {
     }
 
     function onPointerCancel() {
-      stop(false);
+      stop(true);
+    }
+
+    function onLostPointerCapture() {
+      if (holding || active || rec) stop(true);
     }
 
     function onPointerLeave(e) {
@@ -464,21 +500,32 @@ var PttMic = (function () {
     btn.addEventListener('pointerdown', onPointerDown);
     btn.addEventListener('pointerup', onPointerUp);
     btn.addEventListener('pointercancel', onPointerCancel);
+    btn.addEventListener('lostpointercapture', onLostPointerCapture);
     btn.addEventListener('pointerleave', onPointerLeave);
     btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     var inst = {
       stop: function (send) { stop(!!send); },
-      reset: function () { sessionId++; resetSession(true); unlockStop(); sent = false; },
+      reset: function () {
+        sessionId++;
+        clearMaxHold();
+        resetSession(true);
+        unlockStop();
+        sent = false;
+        try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (eCls) {}
+      },
       destroy: function () {
         sessionId++;
+        clearMaxHold();
         resetSession(true);
         btn.removeEventListener('pointerdown', onPointerDown);
         btn.removeEventListener('pointerup', onPointerUp);
         btn.removeEventListener('pointercancel', onPointerCancel);
+        btn.removeEventListener('lostpointercapture', onLostPointerCapture);
         btn.removeEventListener('pointerleave', onPointerLeave);
         delInst(btn);
         btn._pttBound = false;
+        try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (eCls2) {}
       }
     };
     setInst(btn, inst);
@@ -498,6 +545,16 @@ var PttMic = (function () {
     if (inst && inst.reset) inst.reset();
   }
 
+  function destroy(btn) {
+    var b = typeof btn === 'string' ? document.getElementById(btn) : btn;
+    var inst = b && getInst(b);
+    if (inst && inst.destroy) inst.destroy();
+    else if (b) {
+      try { b.classList.remove('ptt-busy', 'ptt-active'); } catch (e) {}
+      b._pttBound = false;
+    }
+  }
+
   function stopAll() {
     document.querySelectorAll('[data-ptt-mic], [id$="-mic-btn"]').forEach(function (b) {
       var inst = getInst(b);
@@ -512,5 +569,11 @@ var PttMic = (function () {
     });
   }
 
-  return { bind: bind, stop: stop, reset: reset, stopAll: stopAll, resetAll: resetAll };
+  function destroyAll() {
+    document.querySelectorAll('[data-ptt-mic], [id$="-mic-btn"]').forEach(function (b) {
+      destroy(b);
+    });
+  }
+
+  return { bind: bind, stop: stop, reset: reset, destroy: destroy, stopAll: stopAll, resetAll: resetAll, destroyAll: destroyAll };
 })();
