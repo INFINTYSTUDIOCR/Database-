@@ -6901,29 +6901,68 @@ var _jillTtsWatchdog = null;
 function jillArmTtsWatchdog(textLen){
   clearTimeout(_jillTtsWatchdog);
   var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
-  // Si el audio queda pausado (fullscreen/DOM), no esperar 2 min: reanudar o seguir.
+  // Same rule as Alice: never cut speech at 12s while loading/playing.
   var stallChecks = 0;
-  _jillTtsWatchdog = setTimeout(function tick(){
+  var t0 = Date.now();
+  function tick(){
     if(!_jillTTSBusy) return;
     var a = _jillState.audio;
-    if(a && !a.ended && a.paused && a.currentTime > 0.05 && stallChecks < 8){
+    var elapsed = Date.now() - t0;
+    if(!a){
+      if(elapsed < ms){
+        _jillTtsWatchdog = setTimeout(tick, 1000);
+        return;
+      }
+      _jillTTSBusy = false;
+      _jillState.speaking = _jillTTSQueue.length > 0;
+      _jillTTSFlush();
+      return;
+    }
+    if(!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 16){
       stallChecks += 1;
-      var p = a.play();
-      if(p && typeof p.catch === 'function') p.catch(function(){});
+      try{
+        var p = a.play();
+        if(p && typeof p.catch === 'function') p.catch(function(){});
+      }catch(ePlay){}
       _jillTtsWatchdog = setTimeout(tick, 900);
       return;
     }
-    if(a && !a.ended && !a.paused){
-      // aún hablando — rearmar timeout restante
-      var left = Math.max(4000, ms - Math.floor((a.currentTime || 0) * 1000));
-      _jillTtsWatchdog = setTimeout(tick, Math.min(left, 20000));
+    if(!a.ended && a.paused && a.currentTime < 0.02){
+      try{
+        var p0 = a.play();
+        if(p0 && typeof p0.catch === 'function') p0.catch(function(){});
+      }catch(e0){}
+      if(elapsed < ms){
+        _jillTtsWatchdog = setTimeout(tick, 800);
+        return;
+      }
+    }
+    if(!a.ended && !a.paused){
+      var dur = Number(a.duration) || 0;
+      var cur = Number(a.currentTime) || 0;
+      var leftMs = dur > 0 && isFinite(dur)
+        ? Math.max(4000, Math.ceil((dur - cur) * 1000) + 5000)
+        : Math.max(8000, ms - elapsed);
+      _jillTtsWatchdog = setTimeout(tick, Math.min(leftMs, 25000));
       return;
     }
-    _jillTTSBusy = false;
-    if(_jillState.audio){ try{ _jillState.audio.pause(); }catch(e){} _jillState.audio = null; }
-    _jillState.speaking = _jillTTSQueue.length > 0;
-    _jillTTSFlush();
-  }, Math.min(ms, 12000));
+    if(a.ended){
+      _jillTTSBusy = false;
+      _jillState.audio = null;
+      _jillState.speaking = _jillTTSQueue.length > 0;
+      _jillTTSFlush();
+      return;
+    }
+    if(elapsed >= ms){
+      _jillTTSBusy = false;
+      if(_jillState.audio){ try{ _jillState.audio.pause(); }catch(e){} _jillState.audio = null; }
+      _jillState.speaking = _jillTTSQueue.length > 0;
+      _jillTTSFlush();
+      return;
+    }
+    _jillTtsWatchdog = setTimeout(tick, 1000);
+  }
+  _jillTtsWatchdog = setTimeout(tick, 3000);
 }
 
 function jillLastUserTopic(){
@@ -7374,27 +7413,71 @@ function alicePrunePrefetchCache(){
 function aliceArmTtsWatchdog(textLen){
   clearTimeout(_aliceTtsWatchdog);
   var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
-  // Si el audio queda pausado (fullscreen/DOM), reanudar — no cortar explicaciones John.
+  // Never force-kill at 12s while fetching/playing — that was cutting Alice mid-sentence for students.
   var stallChecks = 0;
-  _aliceTtsWatchdog = setTimeout(function tick(){
+  var t0 = Date.now();
+  function tick(){
     if(!_aliceTTSBusy) return;
     var a = window._aliceAudio;
-    if(a && !a.ended && a.paused && a.currentTime > 0.05 && stallChecks < 8){
+    var elapsed = Date.now() - t0;
+    // Still waiting for ElevenLabs audio — keep polling (do NOT pause the queue)
+    if(!a){
+      if(elapsed < ms){
+        _aliceTtsWatchdog = setTimeout(tick, 1000);
+        return;
+      }
+      _aliceTTSBusy = false;
+      _aliceTTSFlush();
+      return;
+    }
+    // Paused mid-play (fullscreen / OS) — try resume, don't skip the rest of the line
+    if(!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 16){
       stallChecks += 1;
-      var p = a.play();
-      if(p && typeof p.catch === 'function') p.catch(function(){});
+      try{
+        var p = a.play();
+        if(p && typeof p.catch === 'function') p.catch(function(){});
+      }catch(ePlay){}
       _aliceTtsWatchdog = setTimeout(tick, 900);
       return;
     }
-    if(a && !a.ended && !a.paused){
-      var left = Math.max(4000, ms - Math.floor((a.currentTime || 0) * 1000));
-      _aliceTtsWatchdog = setTimeout(tick, Math.min(left, 20000));
+    // Not started yet — nudge play
+    if(!a.ended && a.paused && a.currentTime < 0.02){
+      try{
+        var p0 = a.play();
+        if(p0 && typeof p0.catch === 'function') p0.catch(function(){});
+      }catch(e0){}
+      if(elapsed < ms){
+        _aliceTtsWatchdog = setTimeout(tick, 800);
+        return;
+      }
+    }
+    // Still speaking — rearm from remaining duration when known
+    if(!a.ended && !a.paused){
+      var dur = Number(a.duration) || 0;
+      var cur = Number(a.currentTime) || 0;
+      var leftMs = dur > 0 && isFinite(dur)
+        ? Math.max(4000, Math.ceil((dur - cur) * 1000) + 5000)
+        : Math.max(8000, ms - elapsed);
+      _aliceTtsWatchdog = setTimeout(tick, Math.min(leftMs, 25000));
       return;
     }
-    _aliceTTSBusy = false;
-    if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} window._aliceAudio = null; }
-    _aliceTTSFlush();
-  }, Math.min(ms, 12000));
+    // Natural end — onEnded usually handles; only force-advance if hung after ended
+    if(a.ended){
+      _aliceTTSBusy = false;
+      window._aliceAudio = null;
+      _aliceTTSFlush();
+      return;
+    }
+    // Hard budget only
+    if(elapsed >= ms){
+      _aliceTTSBusy = false;
+      if(window._aliceAudio){ try{ window._aliceAudio.pause(); }catch(e){} window._aliceAudio = null; }
+      _aliceTTSFlush();
+      return;
+    }
+    _aliceTtsWatchdog = setTimeout(tick, 1000);
+  }
+  _aliceTtsWatchdog = setTimeout(tick, 3000);
 }
 
 function aliceCleanTtsText(text){

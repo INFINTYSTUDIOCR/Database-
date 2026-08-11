@@ -4297,7 +4297,7 @@ React, one follow-up. Mini-lesson only if they ask or structure breaks.`
         : await tutorKnowledgeSlice(message, student, 'alice'));
 
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
-    const companionFastTokens = storyMood ? 900 : 550;
+    const companionFastTokens = storyMood ? 1400 : 1000;
 
     const systemPrompt = companionFast
       ? `You are Alice Modo Libre — English voice companion. Name: ALICE.
@@ -4369,7 +4369,7 @@ EXERCISES:\n${tb||'(none yet)'}${knowledgeSlice}`;
     }
 
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: companionFast ? companionFastTokens : (companion ? 900 : 1000),
+      model: 'claude-haiku-4-5-20251001', max_tokens: companionFast ? companionFastTokens : (companion ? 1200 : 1000),
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -5280,7 +5280,8 @@ React, one follow-up. Mini-lesson only if they ask or structure breaks.`
       ? ''
       : await tutorKnowledgeSliceFast(message, student, 'alice', companion ? { timeoutMs: 800 } : undefined);
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
-    const companionFastTokens = storyMood ? 900 : 550;
+    // Enough headroom so Companion never mid-sentence truncation in free chat or stories
+    const companionFastTokens = storyMood ? 1400 : 1000;
     const system = companionFast
       ? `You are Alice Modo Libre — English voice companion. Name: ALICE.
 PERSONALITY: Cool, warm, curious friend in their ear — expressive spoken English, not a robotic tutor.
@@ -5288,7 +5289,7 @@ ${Companion.ALICE_COMPANION_INTENT_RULE}
 ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
-Complete every sentence. NEVER cut off. If they want a story, tell it fully.
+Complete every sentence. NEVER cut off mid-word or mid-thought. If they want a story, tell it fully to a natural beat.
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${sceneNote}`
       : companion
       ? `You are Alice Modo Libre — always-on English voice companion (personal practice assistant). Name: ALICE.
@@ -5322,7 +5323,7 @@ EXERCISES:\n${tb || '(none yet)'}${sceneNote}${knowledgeSlice}`;
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: companionFast ? companionFastTokens : (companion ? 900 : 1000),
+      max_tokens: companionFast ? companionFastTokens : (companion ? 1200 : 1000),
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
