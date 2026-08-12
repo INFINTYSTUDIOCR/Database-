@@ -1,189 +1,320 @@
 /**
- * Infinity Casino Floor — virtual casino lobby + per-game title splash screens.
- * Replaces the physical arcade-cabinet UX. Pedagogy: LINK · IDEA · LINK.
+ * Infinity Practice Hub — stylized gaming lobby + character title screens.
+ * Based on games_complete.html concept, adapted to Infinity palette (navy/gold).
+ * Warm, character-led — not cold SaaS.
  */
 (function (global) {
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var CACHE_BUST = '20260812casino';
+  var VER = '20260812hub3';
 
-  var FLOOR_GAMES = [
+  /** Characters + table meta */
+  var GAMES = [
     {
       id: 'bosscall',
       mode: 'bosscall',
       title: 'BOSS CALL',
-      sub: 'Cliente enojado · respondé con estructura',
-      badge: 'NUEVO',
-      accent: '#fb7185',
-      glow: '#be123c',
-      icon: '📞',
-      stars: '★★★'
+      sub: 'Cliente enojado. Respondé con estructura.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+45 XP',
+      diff: 3,
+      art: 'boss',
+      featured: true,
+      char: {
+        name: 'Irina',
+        role: 'Cliente furioso',
+        mood: '🔥 Enojada',
+        line: '"This is the SECOND charge. Fix it NOW."',
+        face: '😠',
+        color: '#FB7185'
+      }
     },
     {
       id: 'star',
       mode: 'star',
       title: 'STAR ARENA',
-      sub: 'Entrevista · Situation → Result',
-      badge: 'NUEVO',
-      accent: '#fbbf24',
-      glow: '#ca8a04',
-      icon: '⭐',
-      stars: '★★'
+      sub: 'Entrevista. Situation → Result con linkers.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+40 XP',
+      diff: 2,
+      art: 'star',
+      char: {
+        name: 'Coach Lex',
+        role: 'Entrevistador',
+        mood: '⭐ En arena',
+        line: '"Tell me about a time you handled conflict."',
+        face: '🧑‍💼',
+        color: '#F5A623'
+      }
     },
     {
       id: 'listen',
       mode: 'listen',
       title: 'SPEED LISTEN',
-      sub: 'Oí la cadena · respondé YA',
-      badge: 'NUEVO',
-      accent: '#22d3ee',
-      glow: '#0891b2',
-      icon: '🎧',
-      stars: '★★'
+      sub: 'Oí la cadena L+I+L. Una chance.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+35 XP',
+      diff: 2,
+      art: 'listen',
+      char: {
+        name: 'DJ Nova',
+        role: 'Audio coach',
+        mood: '🎧 En vivo',
+        line: '"Don\'t read — listen for the linker."',
+        face: '🎧',
+        color: '#22D3EE'
+      }
     },
     {
       id: 'tone',
       mode: 'tone',
       title: 'TONE POLICE',
-      sub: 'Misma idea · tono que eleva',
-      badge: 'NUEVO',
-      accent: '#4ade80',
-      glow: '#059669',
-      icon: '🕊️',
-      stars: '★'
+      sub: 'Misma idea. Tono que eleva.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+30 XP',
+      diff: 1,
+      art: 'tone',
+      char: {
+        name: 'Mira Soft',
+        role: 'Tone guardian',
+        mood: '🕊️ Calm power',
+        line: '"Professional ≠ cold. Elevate the pueblo."',
+        face: '🕊️',
+        color: '#4ADE80'
+      }
     },
     {
       id: 'nemesis',
       mode: 'nemesis',
       title: 'NEMESIS DUEL',
-      sub: 'Solo tus fallos · venganza útil',
-      badge: 'NUEVO',
-      accent: '#fb923c',
-      glow: '#c2410c',
-      icon: '⚔️',
-      stars: '★★★'
+      sub: 'Vs tus propios fallos. Timer agresivo.',
+      badge: 'hot',
+      badgeLabel: 'HOT',
+      xp: '+50 XP',
+      diff: 3,
+      art: 'nemesis',
+      char: {
+        name: 'Shadow You',
+        role: 'Tu error del pasado',
+        mood: '⚔️ Duelo',
+        line: '"You failed this before. Not today."',
+        face: '⚔️',
+        color: '#F87171'
+      }
     },
     {
       id: 'snake',
       mode: 'snake',
       title: 'LINKER SNAKE',
-      sub: 'Encadená linker → idea → linker',
-      badge: 'NUEVO',
-      accent: '#a78bfa',
-      glow: '#6d28d9',
-      icon: '🐍',
-      stars: '★★'
+      sub: 'Encadená linker → idea → linker.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+35 XP',
+      diff: 2,
+      art: 'snake',
+      char: {
+        name: 'Captain Link',
+        role: 'Chain master',
+        mood: '🔗 En cadena',
+        line: '"Connect thought. Don\'t dump words."',
+        face: '🐍',
+        color: '#34D399'
+      }
     },
     {
       id: 'phrasalswap',
       mode: 'phrasalswap',
       title: 'PHRASAL SWAP',
-      sub: 'Phrasal correcto dentro del L+I+L',
-      badge: 'NUEVO',
-      accent: '#60a5fa',
-      glow: '#1d4ed8',
-      icon: '🔀',
-      stars: '★★'
+      sub: 'El phrasal correcto dentro del L+I+L.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+30 XP',
+      diff: 2,
+      art: 'phrasal',
+      char: {
+        name: 'Rex Swap',
+        role: 'Phrasal dealer',
+        mood: '🔀 Swap time',
+        line: '"Pick the phrasal that carries the idea."',
+        face: '🧩',
+        color: '#60A5FA'
+      }
     },
     {
       id: 'dailyboss',
       mode: 'dailyboss',
       title: 'DAILY BOSS',
-      sub: 'Un jefe del día · trophy rotativo',
-      badge: 'HOY',
-      accent: '#fde047',
-      glow: '#a16207',
-      icon: '👑',
-      stars: '★★★'
+      sub: 'Un jefe del día. Trophy rotativo.',
+      badge: 'today',
+      badgeLabel: 'HOY',
+      xp: '+60 XP',
+      diff: 3,
+      art: 'daily',
+      char: {
+        name: 'Queen Day',
+        role: 'Boss del día',
+        mood: '👑 Daily crown',
+        line: '"One boss. One chance to shine today."',
+        face: '👑',
+        color: '#FDE047'
+      }
     },
     {
       id: 'frenzy',
       mode: 'frenzy',
       title: 'FRENZY',
-      sub: 'Todo mezclado · timer · fallos primero',
+      sub: 'Todo mezclado. Timer. Fallos primero.',
       badge: '',
-      accent: '#f472b6',
-      glow: '#be123c',
-      icon: '🔥',
-      stars: '★★★'
+      badgeLabel: '',
+      xp: '+40 XP',
+      diff: 3,
+      art: 'frenzy',
+      char: {
+        name: 'Blaze',
+        role: 'Frenzy runner',
+        mood: '🔥 On fire',
+        line: '"No mercy. Structure under pressure."',
+        face: '🔥',
+        color: '#FB923C'
+      }
     },
     {
       id: 'challenge',
       mode: 'challenge',
       title: 'CHALLENGE',
-      sub: 'Presión · linkers + estructura',
+      sub: 'Presión: linkers + estructura.',
       badge: '',
-      accent: '#f59e0b',
-      glow: '#b45309',
-      icon: '⚡',
-      stars: '★★'
+      badgeLabel: '',
+      xp: '+35 XP',
+      diff: 2,
+      art: 'challenge',
+      char: {
+        name: 'Bolt',
+        role: 'Drill captain',
+        mood: '⚡ Pressure',
+        line: '"Linkers first. Then the idea."',
+        face: '⚡',
+        color: '#FBBF24'
+      }
     },
     {
       id: 'verb',
       mode: 'verb',
       title: 'VERB HUNT',
-      sub: 'Word reveal operacional',
+      sub: 'Word reveal operacional.',
       badge: '',
-      accent: '#2dd4bf',
-      glow: '#0f766e',
-      icon: '🎯',
-      stars: '★'
+      badgeLabel: '',
+      xp: '+20 XP',
+      diff: 1,
+      art: 'verb',
+      char: {
+        name: 'Hunter V',
+        role: 'Verb scout',
+        mood: '🎯 Locked',
+        line: '"Find the verb. Own the tense."',
+        face: '🎯',
+        color: '#2DD4BF'
+      }
     },
     {
       id: 'structure',
       mode: 'structure',
       title: 'STRUCTURE',
-      sub: 'Armá oraciones de trabajo real',
+      sub: 'Armá oraciones de trabajo real.',
       badge: '',
-      accent: '#c4b5fd',
-      glow: '#5b21b6',
-      icon: '🧱',
-      stars: '★'
+      badgeLabel: '',
+      xp: '+25 XP',
+      diff: 1,
+      art: 'structure',
+      char: {
+        name: 'Brick',
+        role: 'Builder',
+        mood: '🧱 Building',
+        line: '"Order the blocks. Build the thought."',
+        face: '🧱',
+        color: '#C4B5FD'
+      }
     },
     {
       id: 'linker',
       mode: 'linker',
       title: 'LINKER QUEST',
-      sub: 'Conectores de entrevista y meetings',
+      sub: 'Conectores de entrevista y meetings.',
       badge: '',
-      accent: '#ddd6fe',
-      glow: '#6d28d9',
-      icon: '🔗',
-      stars: '★★'
+      badgeLabel: '',
+      xp: '+25 XP',
+      diff: 2,
+      art: 'linker',
+      char: {
+        name: 'Quest L',
+        role: 'Connector',
+        mood: '🔗 Quest',
+        line: MANTRA,
+        face: '🔗',
+        color: '#A78BFA'
+      }
     },
     {
       id: 'phrasal',
       mode: 'phrasal',
       title: 'PHRASAL MASTER',
-      sub: 'Phrasals de call / follow-up',
+      sub: 'Phrasals de call / follow-up.',
       badge: '',
-      accent: '#93c5fd',
-      glow: '#1d4ed8',
-      icon: '🧩',
-      stars: '★★'
+      badgeLabel: '',
+      xp: '+25 XP',
+      diff: 2,
+      art: 'phrasal',
+      char: {
+        name: 'Master P',
+        role: 'Phrasal guide',
+        mood: '🧩 Mastery',
+        line: '"Bring up · sort out · follow up."',
+        face: '🧩',
+        color: '#93C5FD'
+      }
     },
     {
       id: 'preposition',
       mode: 'preposition',
       title: 'PREPOSITIONS',
-      sub: 'in / on / at / by bajo contexto',
+      sub: 'in / on / at / by bajo contexto.',
       badge: '',
-      accent: '#fdba74',
-      glow: '#b45309',
-      icon: '📍',
-      stars: '★'
+      badgeLabel: '',
+      xp: '+20 XP',
+      diff: 1,
+      art: 'prep',
+      char: {
+        name: 'Pin',
+        role: 'Map guide',
+        mood: '📍 Locating',
+        line: '"By Friday. On Monday. At 5."',
+        face: '📍',
+        color: '#FDBA74'
+      }
     },
     {
       id: 'rapid',
       kind: 'rapid',
       title: 'RAPID DRILL',
-      sub: 'Kaboom · Foundations',
+      sub: 'Kaboom · Foundations.',
       badge: '',
-      accent: '#fda4af',
-      glow: '#e11d48',
-      icon: '💥',
-      stars: '★★'
+      badgeLabel: '',
+      xp: '+30 XP',
+      diff: 2,
+      art: 'rapid',
+      char: {
+        name: 'Kaboom',
+        role: 'Rapid Jill',
+        mood: '💥 Drill',
+        line: '"Foundations fast. No fluff."',
+        face: '💥',
+        color: '#FDA4AF'
+      }
     }
   ];
 
@@ -193,164 +324,260 @@
     });
   }
 
+  function findGame(id) {
+    for (var i = 0; i < GAMES.length; i++) if (GAMES[i].id === id) return GAMES[i];
+    return null;
+  }
+
+  function diffPips(n) {
+    var h = '<div class="hub-card-diff">';
+    for (var i = 1; i <= 3; i++) {
+      var cls = 'diff-pip';
+      if (i <= n) cls += n >= 3 ? ' r' : n === 2 ? ' a' : ' g';
+      h += '<i class="' + cls + '"></i>';
+    }
+    return h + '</div>';
+  }
+
+  function hudPills() {
+    var meta =
+      typeof arcadeGetMeta === 'function' ? arcadeGetMeta(global.CURRENT_STUDENT || {}) : null;
+    if (!meta) {
+      return (
+        '<div class="pill pill-xp">⭐ XP —</div>' +
+        '<div class="pill pill-streak">🔥 STREAK —</div>' +
+        '<div class="pill pill-day">🪙 —</div>'
+      );
+    }
+    return (
+      '<div class="pill pill-xp">⭐ XP ' +
+      esc(meta.lifetimeXp || 0) +
+      '</div>' +
+      '<div class="pill pill-streak">🔥 DAY ' +
+      esc(meta.dayStreak || 0) +
+      '</div>' +
+      '<div class="pill pill-day">🪙 ' +
+      esc(meta.coins || 0) +
+      '</div>'
+    );
+  }
+
   function ensureStyles() {
-    if (document.getElementById('infinity-casino-floor-styles')) return;
-    if (!document.getElementById('casino-display-font')) {
+    if (document.getElementById('infinity-practice-hub-styles')) return;
+    if (!document.getElementById('infinity-hub-fonts')) {
       var link = document.createElement('link');
-      link.id = 'casino-display-font';
+      link.id = 'infinity-hub-fonts';
       link.rel = 'stylesheet';
       link.href =
-        'https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&display=swap';
+        'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@500;600;700;800&display=swap';
       document.head.appendChild(link);
     }
     var st = document.createElement('style');
-    st.id = 'infinity-casino-floor-styles';
+    st.id = 'infinity-practice-hub-styles';
     st.textContent =
-      '@keyframes casinoNeonPulse{0%,100%{filter:brightness(1);text-shadow:0 0 12px currentColor}50%{filter:brightness(1.25);text-shadow:0 0 28px currentColor,0 0 48px currentColor}}' +
-      '@keyframes casinoChipSpin{0%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(180deg) translateY(-6px)}100%{transform:rotateY(360deg) translateY(0)}}' +
-      '@keyframes casinoMarquee{0%{background-position:0 0}100%{background-position:120px 0}}' +
-      '@keyframes casinoCardIn{0%{opacity:0;transform:translateY(28px) scale(.92)}100%{opacity:1;transform:none}}' +
-      '@keyframes casinoTitleBoom{0%{opacity:0;transform:scale(.6) rotate(-4deg)}60%{opacity:1;transform:scale(1.08) rotate(1deg)}100%{transform:scale(1) rotate(0)}}' +
-      '@keyframes casinoLightSweep{0%{transform:translateX(-120%) rotate(12deg)}100%{transform:translateX(220%) rotate(12deg)}}' +
-      '@keyframes casinoFloorDrift{0%{background-position:0 0,0 0}100%{background-position:80px 40px,40px 80px}}' +
-      '@keyframes casinoSpark{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}' +
-      '@keyframes casinoCtaPulse{0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,.0),4px 4px 0 #000}50%{box-shadow:0 0 0 10px rgba(250,204,21,.18),4px 4px 0 #000}}' +
-      '.inf-casino{position:fixed;inset:0;z-index:2398;display:none;flex-direction:column;background:#07040f;color:#fff;font-family:system-ui,Segoe UI,sans-serif;overflow:hidden}' +
-      '.inf-casino.is-open{display:flex}' +
-      '.inf-casino-bg{position:absolute;inset:0;background:' +
-      'radial-gradient(ellipse at 20% 10%,rgba(250,204,21,.18),transparent 45%),' +
-      'radial-gradient(ellipse at 80% 20%,rgba(244,114,182,.16),transparent 40%),' +
-      'radial-gradient(ellipse at 50% 100%,rgba(34,211,238,.12),transparent 50%),' +
-      'linear-gradient(180deg,#1a0a14 0%,#0a0612 40%,#050308 100%);' +
-      'background-size:auto,auto,auto,auto}' +
-      '.inf-casino-bg:before{content:"";position:absolute;inset:0;opacity:.35;background-image:linear-gradient(rgba(250,204,21,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(244,114,182,.05) 1px,transparent 1px);background-size:28px 28px;animation:casinoFloorDrift 18s linear infinite}' +
-      '.inf-casino-bg:after{content:"";position:absolute;top:-20%;left:0;width:40%;height:140%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:casinoLightSweep 4.5s ease-in-out infinite}' +
-      '.inf-casino-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:max(10px,env(safe-area-inset-top)) 14px 8px;gap:10px}' +
-      '.inf-casino-brand{font-family:Bungee,cursive;font-size:clamp(16px,4.5vw,28px);letter-spacing:.04em;color:#fde047;animation:casinoNeonPulse 2.4s ease-in-out infinite}' +
-      '.inf-casino-mantra{font-family:"Press Start 2P",monospace;font-size:7px;color:#67e8f9;letter-spacing:.08em;opacity:.95}' +
-      '.inf-casino-close{border:2px solid #fde047;background:#111;color:#fde047;border-radius:10px;padding:8px 12px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:3px 3px 0 #000}' +
-      '.inf-casino-scroll{position:relative;z-index:2;flex:1;overflow:auto;padding:8px 14px max(18px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}' +
-      '.inf-casino-lead{text-align:center;margin:4px 0 14px}' +
-      '.inf-casino-lead h2{margin:0 0 6px;font-family:Bungee,cursive;font-size:clamp(18px,5vw,32px);color:#fff;text-shadow:0 0 18px rgba(250,204,21,.45)}' +
-      '.inf-casino-lead p{margin:0;font-size:13px;color:#e2e8f0;line-height:1.45;max-width:34rem;margin-inline:auto}' +
-      '.inf-casino-marquee{height:28px;margin:0 0 14px;border-radius:999px;border:2px solid rgba(250,204,21,.55);background:repeating-linear-gradient(90deg,#111 0 12px,#1f2937 12px 24px);background-size:120px 100%;animation:casinoMarquee 1.2s linear infinite;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
-      '.inf-casino-marquee span{font-family:"Press Start 2P",monospace;font-size:8px;color:#fde68a;white-space:nowrap}' +
-      '.inf-casino-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-width:920px;margin:0 auto}' +
-      '.inf-casino-card{position:relative;border:3px solid var(--c-accent,#fde047);border-radius:18px;padding:14px 12px 12px;background:linear-gradient(165deg,rgba(15,10,20,.95),rgba(8,6,14,.98));box-shadow:4px 4px 0 #000,0 0 22px color-mix(in srgb, var(--c-glow,#fde047) 35%, transparent);cursor:pointer;text-align:center;animation:casinoCardIn .5s cubic-bezier(.2,.8,.2,1) both;min-height:168px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .15s ease}' +
-      '.inf-casino-card:nth-child(1){animation-delay:.02s}.inf-casino-card:nth-child(2){animation-delay:.05s}' +
-      '.inf-casino-card:nth-child(3){animation-delay:.08s}.inf-casino-card:nth-child(4){animation-delay:.11s}' +
-      '.inf-casino-card:nth-child(5){animation-delay:.14s}.inf-casino-card:nth-child(6){animation-delay:.17s}' +
-      '.inf-casino-card:nth-child(7){animation-delay:.2s}.inf-casino-card:nth-child(8){animation-delay:.23s}' +
-      '.inf-casino-card:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}' +
-      '.inf-casino-card .ico{font-size:28px;filter:drop-shadow(0 0 8px var(--c-accent));animation:casinoChipSpin 3.2s ease-in-out infinite}' +
-      '.inf-casino-card .ttl{font-family:Bungee,cursive;font-size:14px;line-height:1.15;color:var(--c-accent);letter-spacing:.02em}' +
-      '.inf-casino-card .sub{font-size:11px;color:#cbd5e1;line-height:1.35}' +
-      '.inf-casino-card .stars{font-size:10px;color:#fde68a;font-weight:900}' +
-      '.inf-casino-card .badge{position:absolute;top:-8px;right:-6px;background:#f43f5e;color:#fff;font-size:9px;font-weight:900;padding:4px 8px;border-radius:999px;border:2px solid #fff;box-shadow:2px 2px 0 #000;letter-spacing:.06em}' +
-      '.inf-casino-hud{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 12px}' +
-      '.inf-casino-hud span{font-family:"Press Start 2P",monospace;font-size:7px;padding:8px 10px;border-radius:999px;background:#111;color:#fde68a;border:2px solid #fbbf24;box-shadow:2px 2px 0 #000}' +
-      '.inf-casino-title{position:fixed;inset:0;z-index:2405;display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}' +
-      '.inf-casino-title.is-open{display:flex}' +
-      '.inf-casino-title-bg{position:absolute;inset:0;background:radial-gradient(ellipse at center,var(--t-glow,#be123c) 0%,#050308 70%)}' +
-      '.inf-casino-title-bg:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 6px);opacity:.5}' +
-      '.inf-casino-title-panel{position:relative;z-index:1;width:min(420px,94vw);text-align:center;padding:28px 18px;border:4px solid var(--t-accent,#fde047);border-radius:22px;background:linear-gradient(180deg,rgba(10,8,16,.92),rgba(5,3,10,.96));box-shadow:0 0 40px color-mix(in srgb, var(--t-glow,#fde047) 45%, transparent),8px 8px 0 #000;animation:casinoTitleBoom .55s cubic-bezier(.2,.9,.2,1)}' +
-      '.inf-casino-title-panel .spark{position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;animation:casinoSpark 1s ease-in-out infinite}' +
-      '.inf-casino-title-panel .ico{font-size:52px;margin-bottom:8px;filter:drop-shadow(0 0 16px var(--t-accent));animation:casinoChipSpin 2.4s ease-in-out infinite}' +
-      '.inf-casino-title-panel h1{margin:0 0 8px;font-family:Bungee,cursive;font-size:clamp(26px,8vw,42px);line-height:1.05;color:var(--t-accent);animation:casinoNeonPulse 1.8s ease-in-out infinite}' +
-      '.inf-casino-title-panel .tag{font-family:"Press Start 2P",monospace;font-size:8px;color:#e2e8f0;line-height:1.6;margin-bottom:10px}' +
-      '.inf-casino-title-panel .lil{font-family:"Press Start 2P",monospace;font-size:7px;color:#67e8f9;margin-bottom:16px;letter-spacing:.06em}' +
-      '.inf-casino-title-panel .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:180px;padding:14px 18px;border:3px solid #111;border-radius:12px;background:linear-gradient(135deg,#fde047,#f59e0b);color:#111;font-family:Bungee,cursive;font-size:16px;cursor:pointer;box-shadow:4px 4px 0 #000;animation:casinoCtaPulse 1.6s ease-in-out infinite}' +
-      '.inf-casino-title-panel .back{display:block;margin:14px auto 0;background:transparent;border:none;color:#94a3b8;font-weight:800;font-size:12px;cursor:pointer;text-decoration:underline}' +
-      'body.inf-casino-lock{overflow:hidden;touch-action:none}';
+      ':root{--inf-navy:#5B21B6;--inf-deep:#3B0E8C;--inf-gold:#F5A623;--inf-gold2:#FFD700;--inf-ink:#0B0618;--inf-surface:#140B28;--inf-text:#F8F5FF;--inf-mute:#B8A9D9;}' +
+      '@keyframes hubFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}' +
+      '@keyframes hubPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.35)}50%{box-shadow:0 0 0 12px rgba(245,166,35,0)}}' +
+      '@keyframes hubCardIn{0%{opacity:0;transform:translateY(18px) scale(.96)}100%{opacity:1;transform:none}}' +
+      '@keyframes hubShine{0%{transform:translateX(-130%) skewX(-12deg)}100%{transform:translateX(230%) skewX(-12deg)}}' +
+      '@keyframes hubTitleIn{0%{opacity:0;transform:scale(.85) translateY(20px)}100%{opacity:1;transform:none}}' +
+      '@keyframes hubCharBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}' +
+      '@keyframes hubAura{0%,100%{filter:drop-shadow(0 0 12px var(--char-c))}50%{filter:drop-shadow(0 0 28px var(--char-c))}}' +
+      '.inf-hub{position:fixed;inset:0;z-index:2398;display:none;flex-direction:column;background:var(--inf-ink);color:var(--inf-text);font-family:Outfit,system-ui,sans-serif;overflow:hidden}' +
+      '.inf-hub.is-open{display:flex}' +
+      '.inf-hub-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 0%,rgba(91,33,182,.45),transparent 50%),radial-gradient(ellipse at 85% 10%,rgba(245,166,35,.2),transparent 45%),linear-gradient(180deg,#1a0a3a 0%,#0B0618 55%,#070412 100%)}' +
+      '.inf-hub-bg:before{content:"";position:absolute;inset:0;opacity:.4;background-image:radial-gradient(1.5px 1.5px at 10% 20%,#fff,transparent),radial-gradient(1px 1px at 30% 8%,#F5A623,transparent),radial-gradient(1px 1px at 70% 15%,#C084FC,transparent),radial-gradient(1.5px 1.5px at 88% 28%,#fff,transparent);animation:hubFloat 8s ease-in-out infinite}' +
+      '.inf-hub-top{position:relative;z-index:2;display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid rgba(245,166,35,.22);background:rgba(11,6,24,.88);backdrop-filter:blur(12px)}' +
+      '.inf-hub-logo{font-family:"Bebas Neue",sans-serif;font-size:clamp(22px,5vw,30px);letter-spacing:.06em;color:#fff}' +
+      '.inf-hub-logo span{color:var(--inf-gold)}' +
+      '.inf-hub-pills{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}' +
+      '.inf-hub .pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800}' +
+      '.pill-xp{background:rgba(91,33,182,.35);border:1px solid rgba(192,132,252,.45);color:#E9D5FF}' +
+      '.pill-streak{background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:#FBBF24}' +
+      '.pill-day{background:rgba(34,197,94,.12);border:1px solid rgba(74,222,128,.35);color:#86EFAC}' +
+      '.inf-hub-close{border:2px solid var(--inf-gold);background:#1a0a3a;color:var(--inf-gold);border-radius:10px;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer}' +
+      '.inf-hub-scroll{position:relative;z-index:2;flex:1;overflow:auto;padding:16px 16px max(20px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}' +
+      '.inf-hub-mantra{text-align:center;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--inf-gold);margin:0 0 12px;opacity:.95}' +
+      '.hub-featured{position:relative;border-radius:18px;overflow:hidden;margin-bottom:18px;height:min(200px,32vh);cursor:pointer;border:2px solid rgba(245,166,35,.45);box-shadow:0 12px 36px rgba(59,14,140,.45),0 0 0 1px rgba(255,255,255,.06);background:linear-gradient(125deg,#3B0E8C 0%,#5B21B6 40%,#7C3AED 70%,#B45309 100%);animation:hubPulse 2.8s ease-in-out infinite}' +
+      '.hub-featured:active{transform:scale(.99)}' +
+      '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none}' +
+      '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);animation:hubShine 3.2s ease-in-out infinite}' +
+      '.hub-featured-char{position:absolute;right:8%;top:50%;transform:translateY(-55%);font-size:clamp(56px,14vw,84px);animation:hubCharBob 2.6s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(0,0,0,.45))}' +
+      '.hub-featured-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.92) 0%,rgba(11,6,24,.2) 55%,transparent 100%)}' +
+      '.hub-featured-content{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;z-index:2}' +
+      '.hub-featured-badge{display:inline-block;background:var(--inf-gold);color:#1a1200;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}' +
+      '.hub-featured-title{font-family:"Bebas Neue",sans-serif;font-size:clamp(32px,8vw,46px);letter-spacing:.04em;line-height:1;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.5)}' +
+      '.hub-featured-sub{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px;font-weight:600}' +
+      '.hub-featured-char-name{font-size:12px;font-weight:800;color:var(--inf-gold);margin-top:6px}' +
+      '.hub-grid-title{font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:.08em;color:var(--inf-mute);margin:4px 0 12px}' +
+      '.hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;max-width:960px;margin:0 auto}' +
+      '.hub-card{border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:3/4;position:relative;border:2px solid rgba(255,255,255,.08);animation:hubCardIn .45s cubic-bezier(.2,.8,.2,1) both;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:transform .15s,border-color .15s}' +
+      '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
+      '.hub-card:active{transform:translateY(2px) scale(.98)}' +
+      '.hub-card-art{position:absolute;inset:0}' +
+      '.hub-card-art .char-face{position:absolute;top:18%;left:50%;transform:translateX(-50%);font-size:52px;animation:hubAura 2.4s ease-in-out infinite;--char-c:#F5A623}' +
+      '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
+      '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
+      '.hub-card-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;margin-bottom:3px}' +
+      '.hub-card-sub{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px;line-height:1.35;font-weight:600}' +
+      '.hub-card-footer{display:flex;align-items:center;justify-content:space-between}' +
+      '.hub-card-diff{display:flex;gap:3px}' +
+      '.diff-pip{width:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.15);display:block}' +
+      '.diff-pip.g{background:#22C55E}.diff-pip.a{background:#F5A623}.diff-pip.r{background:#EF4444}' +
+      '.hub-card-xp{font-size:10px;font-weight:800;color:rgba(255,255,255,.85)}' +
+      '.hub-card-badge{position:absolute;top:8px;left:8px;z-index:3;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:4px}' +
+      '.b-new{background:var(--inf-navy);color:#fff;border:1px solid rgba(245,166,35,.5)}' +
+      '.b-hot{background:#EF4444;color:#fff}' +
+      '.b-today{background:var(--inf-gold);color:#1a1200}' +
+      '.art-boss{background:linear-gradient(170deg,#2a0a18,#5B21B6 55%,#9f1239)}' +
+      '.art-star{background:linear-gradient(180deg,#1a0a3a,#3B0E8C,#B45309)}' +
+      '.art-listen{background:linear-gradient(160deg,#0c1a3a,#1e3a5f,#0891b2)}' +
+      '.art-tone{background:linear-gradient(160deg,#0a2418,#14532d,#3B0E8C)}' +
+      '.art-nemesis{background:linear-gradient(180deg,#1a0508,#3B0E8C,#7f1d1d)}' +
+      '.art-snake{background:linear-gradient(160deg,#052016,#0f3d2e,#5B21B6)}' +
+      '.art-phrasal{background:linear-gradient(160deg,#0b1430,#1e3a8a,#5B21B6)}' +
+      '.art-daily{background:linear-gradient(160deg,#2a1800,#5B21B6,#B45309)}' +
+      '.art-frenzy{background:linear-gradient(160deg,#2a0a00,#7c2d12,#5B21B6)}' +
+      '.art-challenge{background:linear-gradient(160deg,#2a1808,#5B21B6,#F5A623)}' +
+      '.art-verb{background:linear-gradient(160deg,#042f2e,#0f766e,#5B21B6)}' +
+      '.art-structure{background:linear-gradient(160deg,#1e1b4b,#5B21B6,#7C3AED)}' +
+      '.art-linker{background:linear-gradient(160deg,#1e103a,#5B21B6,#6d28d9)}' +
+      '.art-prep{background:linear-gradient(160deg,#2a1508,#9a3412,#5B21B6)}' +
+      '.art-rapid{background:linear-gradient(160deg,#3B0E8C,#9f1239,#F5A623)}' +
+      /* Title / character splash */
+      '.inf-hub-title{position:fixed;inset:0;z-index:2406;display:none;align-items:stretch;justify-content:center;padding:0;box-sizing:border-box}' +
+      '.inf-hub-title.is-open{display:flex}' +
+      '.inf-hub-title-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--t-c,#F5A623) 35%,#3B0E8C),#0B0618 70%)}' +
+      '.inf-hub-title-panel{position:relative;z-index:1;width:min(440px,100%);margin:auto;padding:max(16px,env(safe-area-inset-top)) 18px max(20px,env(safe-area-inset-bottom));text-align:center;animation:hubTitleIn .5s cubic-bezier(.2,.85,.2,1)}' +
+      '.hub-char-stage{position:relative;margin:0 auto 14px;width:min(280px,80vw);height:200px;border-radius:24px;border:3px solid var(--inf-gold);background:linear-gradient(165deg,rgba(91,33,182,.55),rgba(11,6,24,.9));box-shadow:0 0 40px rgba(245,166,35,.25),0 16px 40px rgba(0,0,0,.45);overflow:hidden}' +
+      '.hub-char-stage:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 55%)}' +
+      '.hub-char-face{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-size:88px;animation:hubCharBob 2.2s ease-in-out infinite;filter:drop-shadow(0 10px 20px rgba(0,0,0,.4));--char-c:var(--t-c,#F5A623)}' +
+      '.hub-char-plate{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(11,6,24,.88);border:1px solid rgba(245,166,35,.35);border-radius:12px;padding:8px 10px;text-align:left}' +
+      '.hub-char-plate .nm{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:.04em;color:var(--inf-gold);line-height:1}' +
+      '.hub-char-plate .rl{font-size:11px;font-weight:700;color:rgba(255,255,255,.7)}' +
+      '.hub-title-h{font-family:"Bebas Neue",sans-serif;font-size:clamp(36px,10vw,52px);letter-spacing:.04em;line-height:1;margin:0 0 6px;color:#fff;text-shadow:0 0 24px rgba(245,166,35,.35)}' +
+      '.hub-title-mood{font-size:13px;font-weight:800;color:var(--t-c,#F5A623);margin-bottom:8px}' +
+      '.hub-title-line{font-size:14px;font-weight:600;line-height:1.45;color:rgba(255,255,255,.85);font-style:italic;background:rgba(91,33,182,.35);border-left:3px solid var(--inf-gold);padding:10px 12px;border-radius:0 12px 12px 0;text-align:left;margin:0 0 12px}' +
+      '.hub-title-lil{font-size:11px;font-weight:800;letter-spacing:.12em;color:#C4B5FD;margin-bottom:16px}' +
+      '.hub-title-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:200px;padding:14px 22px;border:none;border-radius:14px;background:linear-gradient(135deg,#FFD700,#F5A623);color:#1a1200;font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.06em;cursor:pointer;box-shadow:0 8px 28px rgba(245,166,35,.4);animation:hubPulse 1.8s ease-in-out infinite}' +
+      '.hub-title-back{display:block;margin:14px auto 0;background:transparent;border:none;color:var(--inf-mute);font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline}' +
+      'body.inf-hub-lock{overflow:hidden;touch-action:none}';
     document.head.appendChild(st);
   }
 
-  function hudHtml() {
-    if (typeof arcadeHudHtml === 'function') return arcadeHudHtml(global.CURRENT_STUDENT || {});
-    return '';
+  function cardHtml(g) {
+    var badge = g.badge
+      ? '<span class="hub-card-badge b-' + g.badge + '">' + esc(g.badgeLabel) + '</span>'
+      : '';
+    return (
+      '<button type="button" class="hub-card" onclick="openInfinityCasinoTitle(\'' +
+      g.id +
+      '\')">' +
+      badge +
+      '<div class="hub-card-art art-' +
+      g.art +
+      '"><span class="char-face" style="--char-c:' +
+      (g.char && g.char.color) +
+      '">' +
+      (g.char ? g.char.face : '🎮') +
+      '</span></div>' +
+      '<div class="hub-card-overlay"></div>' +
+      '<div class="hub-card-body">' +
+      '<div class="hub-card-title">' +
+      esc(g.title) +
+      '</div>' +
+      '<div class="hub-card-sub">' +
+      esc(g.sub) +
+      '</div>' +
+      '<div class="hub-card-footer">' +
+      diffPips(g.diff || 1) +
+      '<span class="hub-card-xp">' +
+      esc(g.xp || '') +
+      '</span>' +
+      '</div></div></button>'
+    );
+  }
+
+  function renderHub() {
+    var scroll = document.getElementById('inf-hub-scroll');
+    if (!scroll) return;
+    var featured = null;
+    for (var i = 0; i < GAMES.length; i++) {
+      if (GAMES[i].featured) {
+        featured = GAMES[i];
+        break;
+      }
+    }
+    if (!featured) featured = GAMES[0];
+
+    var html =
+      '<div class="inf-hub-mantra">' +
+      MANTRA +
+      ' · PARA EL PUEBLO</div>' +
+      '<div class="hub-featured" onclick="openInfinityCasinoTitle(\'' +
+      featured.id +
+      '\')">' +
+      '<div class="hub-featured-shine"></div>' +
+      '<div class="hub-featured-char">' +
+      (featured.char ? featured.char.face : '🎮') +
+      '</div>' +
+      '<div class="hub-featured-overlay"></div>' +
+      '<div class="hub-featured-content">' +
+      '<div class="hub-featured-badge">DESTACADO · PERFORMANCE</div>' +
+      '<div class="hub-featured-title">' +
+      esc(featured.title) +
+      '</div>' +
+      '<div class="hub-featured-sub">' +
+      esc(featured.sub) +
+      '</div>' +
+      '<div class="hub-featured-char-name">' +
+      esc(featured.char ? featured.char.name + ' — ' + featured.char.role : '') +
+      '</div>' +
+      '</div></div>' +
+      '<div class="hub-grid-title">ELEGÍ TU PARTIDA</div>' +
+      '<div class="hub-grid">';
+
+    GAMES.forEach(function (g) {
+      html += cardHtml(g);
+    });
+    html += '</div>';
+    scroll.innerHTML = html;
   }
 
   function ensureShell() {
     ensureStyles();
     var el = document.getElementById('inf-casino-floor');
-    if (el) return el;
-    el = document.createElement('div');
-    el.id = 'inf-casino-floor';
-    el.className = 'inf-casino';
-    el.setAttribute('role', 'dialog');
-    el.setAttribute('aria-modal', 'true');
-    el.innerHTML =
-      '<div class="inf-casino-bg" aria-hidden="true"></div>' +
-      '<div class="inf-casino-top">' +
-      '<div><div class="inf-casino-brand">INFINITY CASINO</div>' +
-      '<div class="inf-casino-mantra">' +
-      MANTRA +
-      '</div></div>' +
-      '<button type="button" class="inf-casino-close" onclick="closeInfinityCasinoFloor()">Cerrar</button>' +
-      '</div>' +
-      '<div class="inf-casino-scroll" id="inf-casino-scroll"></div>';
-    document.body.appendChild(el);
-
-    var title = document.createElement('div');
-    title.id = 'inf-casino-title';
-    title.className = 'inf-casino-title';
-    title.innerHTML =
-      '<div class="inf-casino-title-bg" id="inf-casino-title-bg"></div>' +
-      '<div class="inf-casino-title-panel" id="inf-casino-title-panel"></div>';
-    document.body.appendChild(title);
-    return el;
-  }
-
-  function findGame(id) {
-    for (var i = 0; i < FLOOR_GAMES.length; i++) {
-      if (FLOOR_GAMES[i].id === id) return FLOOR_GAMES[i];
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'inf-casino-floor';
+      el.className = 'inf-hub';
+      el.setAttribute('role', 'dialog');
+      el.setAttribute('aria-modal', 'true');
+      el.innerHTML =
+        '<div class="inf-hub-bg" aria-hidden="true"></div>' +
+        '<div class="inf-hub-top">' +
+        '<div class="inf-hub-logo">INFINITY <span>HUB</span></div>' +
+        '<div class="inf-hub-pills" id="inf-hub-pills"></div>' +
+        '<button type="button" class="inf-hub-close" onclick="closeInfinityCasinoFloor()">Cerrar</button>' +
+        '</div>' +
+        '<div class="inf-hub-scroll" id="inf-hub-scroll"></div>';
+      document.body.appendChild(el);
+    } else {
+      el.className = 'inf-hub' + (el.classList.contains('is-open') ? ' is-open' : '');
     }
-    return null;
-  }
 
-  function renderFloor() {
-    var scroll = document.getElementById('inf-casino-scroll');
-    if (!scroll) return;
-    // Prefer NEW performance games first
-    var html =
-      '<div class="inf-casino-lead">' +
-      '<h2>ELEGÍ TU MESA</h2>' +
-      '<p>Casino virtual Infinity — cada juego abre con su pantalla de inicio. En todos corre la idea: <strong>' +
-      MANTRA +
-      '</strong>.</p>' +
-      '</div>' +
-      '<div class="inf-casino-marquee"><span>★ NUEVOS · BOSS CALL · STAR · LISTEN · TONE · NEMESIS · SNAKE · DAILY BOSS ★</span></div>' +
-      '<div class="inf-casino-hud">' +
-      hudHtml() +
-      '</div>' +
-      '<div class="inf-casino-grid">';
-
-    FLOOR_GAMES.forEach(function (g) {
-      html +=
-        '<button type="button" class="inf-casino-card" style="--c-accent:' +
-        g.accent +
-        ';--c-glow:' +
-        g.glow +
-        '" onclick="openInfinityCasinoTitle(\'' +
-        g.id +
-        '\')">' +
-        (g.badge ? '<span class="badge">' + esc(g.badge) + '</span>' : '') +
-        '<div class="ico">' +
-        g.icon +
-        '</div>' +
-        '<div class="ttl">' +
-        esc(g.title) +
-        '</div>' +
-        '<div class="stars">' +
-        esc(g.stars) +
-        '</div>' +
-        '<div class="sub">' +
-        esc(g.sub) +
-        '</div>' +
-        '</button>';
-    });
-    html += '</div>';
-    scroll.innerHTML = html;
+    if (!document.getElementById('inf-casino-title')) {
+      var title = document.createElement('div');
+      title.id = 'inf-casino-title';
+      title.className = 'inf-hub-title';
+      title.innerHTML =
+        '<div class="inf-hub-title-bg" id="inf-casino-title-bg"></div>' +
+        '<div class="inf-hub-title-panel" id="inf-casino-title-panel"></div>';
+      document.body.appendChild(title);
+    } else {
+      document.getElementById('inf-casino-title').className = 'inf-hub-title';
+    }
+    return el;
   }
 
   function openFloor() {
@@ -359,7 +586,6 @@
         showToast('Activá Jill, Modo Libre o Alice con tu trainer.', 'err');
       return;
     }
-    // Close machine UX if open
     if (typeof closeInfinityArcadeMonitor === 'function') closeInfinityArcadeMonitor(true);
     var oldLobby = document.getElementById('inf-arcade-lobby');
     if (oldLobby) oldLobby.classList.remove('is-open');
@@ -367,10 +593,14 @@
     global._infArcadeLobbyOpen = false;
 
     ensureShell();
-    renderFloor();
+    var pills = document.getElementById('inf-hub-pills');
+    if (pills) pills.innerHTML = hudPills();
+    renderHub();
     var el = document.getElementById('inf-casino-floor');
-    if (el) el.classList.add('is-open');
-    document.body.classList.add('inf-casino-lock');
+    if (el) {
+      el.className = 'inf-hub is-open';
+    }
+    document.body.classList.add('inf-hub-lock');
     global._infCasinoOpen = true;
   }
 
@@ -378,13 +608,10 @@
     closeTitle();
     var el = document.getElementById('inf-casino-floor');
     if (el) el.classList.remove('is-open');
+    document.body.classList.remove('inf-hub-lock');
     document.body.classList.remove('inf-casino-lock');
     global._infCasinoOpen = false;
-    if (typeof closeInfinityArcadeLobby === 'function') {
-      // also clear arcade lobby lock if any
-      document.body.classList.remove('inf-arcade-lobby-lock');
-      global._infArcadeLobbyOpen = false;
-    }
+    global._infArcadeLobbyOpen = false;
   }
 
   function openTitle(gameId) {
@@ -395,33 +622,40 @@
     var bg = document.getElementById('inf-casino-title-bg');
     var panel = document.getElementById('inf-casino-title-panel');
     if (!wrap || !panel) return;
-    if (bg) {
-      bg.style.setProperty('--t-glow', g.glow);
-      bg.style.setProperty('--t-accent', g.accent);
-    }
-    panel.style.setProperty('--t-accent', g.accent);
-    panel.style.setProperty('--t-glow', g.glow);
+    var c = g.char || { name: g.title, role: 'Coach', mood: '', line: MANTRA, face: '🎮', color: '#F5A623' };
+    if (bg) bg.style.setProperty('--t-c', c.color);
+    panel.style.setProperty('--t-c', c.color);
+    panel.className = 'inf-hub-title-panel';
     panel.innerHTML =
-      '<span class="spark" style="left:12%;top:18%"></span>' +
-      '<span class="spark" style="right:14%;top:22%;animation-delay:.2s"></span>' +
-      '<span class="spark" style="left:20%;bottom:16%;animation-delay:.4s"></span>' +
-      '<div class="ico">' +
-      g.icon +
+      '<div class="hub-char-stage">' +
+      '<div class="hub-char-face" style="--char-c:' +
+      c.color +
+      '">' +
+      c.face +
       '</div>' +
-      '<h1>' +
+      '<div class="hub-char-plate"><div class="nm">' +
+      esc(c.name) +
+      '</div><div class="rl">' +
+      esc(c.role) +
+      '</div></div>' +
+      '</div>' +
+      '<h1 class="hub-title-h">' +
       esc(g.title) +
       '</h1>' +
-      '<div class="tag">' +
-      esc(g.sub) +
+      '<div class="hub-title-mood">' +
+      esc(c.mood) +
       '</div>' +
-      '<div class="lil">' +
+      '<div class="hub-title-line">' +
+      esc(c.line) +
+      '</div>' +
+      '<div class="hub-title-lil">' +
       MANTRA +
-      ' · para el pueblo</div>' +
-      '<button type="button" class="cta" onclick="launchInfinityCasinoGame(\'' +
+      '</div>' +
+      '<button type="button" class="hub-title-cta" onclick="launchInfinityCasinoGame(\'' +
       g.id +
       '\')">JUGAR</button>' +
-      '<button type="button" class="back" onclick="closeInfinityCasinoTitle()">← Volver al casino</button>';
-    wrap.classList.add('is-open');
+      '<button type="button" class="hub-title-back" onclick="closeInfinityCasinoTitle()">← Volver al hub</button>';
+    wrap.className = 'inf-hub-title is-open';
     global._infCasinoTitleGame = g.id;
   }
 
@@ -435,7 +669,6 @@
     var g = findGame(gameId) || findGame(global._infCasinoTitleGame);
     if (!g) return;
     closeTitle();
-    // Keep casino behind; open fullscreen play surface
     if (g.kind === 'rapid') {
       if (typeof infinityArcadePickRapid === 'function') infinityArcadePickRapid();
       else if (typeof portalOpenRapidDrill === 'function') portalOpenRapidDrill('foundations');
@@ -454,28 +687,19 @@
     }
   }
 
-  // Public API
   global.openInfinityCasinoFloor = openFloor;
   global.closeInfinityCasinoFloor = closeFloor;
   global.openInfinityCasinoTitle = openTitle;
   global.closeInfinityCasinoTitle = closeTitle;
   global.launchInfinityCasinoGame = launchGame;
-  global.INFINITY_CASINO_GAMES = FLOOR_GAMES;
+  global.INFINITY_CASINO_GAMES = GAMES;
 
-  // Replace machine lobby entry point
   global.openInfinityArcadeLobby = function () {
     openFloor();
   };
-
   global.closeInfinityArcadeLobby = function () {
     closeFloor();
-    try {
-      var lobby = document.getElementById('inf-arcade-lobby');
-      if (lobby) lobby.classList.remove('is-open');
-      document.body.classList.remove('inf-arcade-lobby-lock');
-      global._infArcadeLobbyOpen = false;
-    } catch (e) {}
   };
 
-  console.log('[Infinity Casino] floor ready', CACHE_BUST, FLOOR_GAMES.length, 'tables');
+  console.log('[Infinity Hub]', VER, GAMES.length, 'games characters ready');
 })(typeof window !== 'undefined' ? window : globalThis);
