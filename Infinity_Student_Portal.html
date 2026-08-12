@@ -2144,9 +2144,8 @@ function portalOpenPracticeQuiz(){
 
 /** Hub de juegos — agregá entradas aquí para que salgan en la máquina. */
 var INFINITY_ARCADE_GAMES = [
-  { id: 'rapid', title: 'Rapid Drill', icon: 'ti-flame', btnClass: 'inf-arcade-btn-rapid', run: 'rapid' },
-  { id: 'challenge', title: 'Challenge Drill', icon: 'ti-bolt', btnClass: 'inf-arcade-btn-challenge', run: 'challenge' },
-  { id: 'language', title: 'Language Arcade', icon: 'ti-device-gamepad-2', btnClass: 'inf-arcade-btn-modes', run: 'modes' }
+  { id: 'knight', title: "Knight's Quest", icon: 'ti-sword', btnClass: 'inf-arcade-btn-modes', run: 'knight' },
+  { id: 'rapid', title: 'Rapid Drill', icon: 'ti-flame', btnClass: 'inf-arcade-btn-rapid', run: 'rapid' }
 ];
 
 function ensureInfinityArcadeLobby(){
@@ -2359,11 +2358,11 @@ function ensureInfinityArcadeMonitor(){
     + '</div>'
     + '<div class="inf-arcade-monitor-frame">'
     +   '<div class="inf-arcade-monitor-panel">'
-    +     '<h2>LANGUAGE ARCADE</h2>'
+    +     '<h2>PERFORMANCE HUB</h2>'
     +     '<div class="inf-arcade-monitor-grid" id="inf-arcade-monitor-grid"></div>'
     +     '<div class="inf-arcade-monitor-extras">'
+    +       '<button type="button" onclick="launchInfinityCasinoGame(\'knight\')"><i class="ti ti-sword"></i> Knight\'s Quest</button>'
     +       '<button type="button" onclick="infinityArcadePickRapid()"><i class="ti ti-flame"></i> Rapid Drill</button>'
-    +       '<button type="button" onclick="infinityArcadePickChallenge()"><i class="ti ti-bolt"></i> Challenge Drill</button>'
     +     '</div>'
     +   '</div>'
     + '</div>';
@@ -2391,16 +2390,10 @@ function openInfinityArcadeMonitor(){
   ensureInfinityArcadeMonitor();
   var mon = document.getElementById('inf-arcade-monitor');
   var grid = document.getElementById('inf-arcade-monitor-grid');
-  var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
-  var keys = Object.keys(modes).filter(function(k){ return k !== 'challenge'; });
   if(grid){
-    grid.innerHTML = keys.map(function(key){
-      var m = modes[key];
-      return '<button type="button" onclick="infinityArcadeStartMode(\''+key+'\')">'
-        + (m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')
-        + (m.title || key)
-        + '</button>';
-    }).join('');
+    grid.innerHTML =
+      '<button type="button" onclick="launchInfinityCasinoGame(\'knight\')"><i class="ti ti-sword"></i> Knight\'s Quest</button>'
+      + '<button type="button" onclick="infinityArcadePickRapid()"><i class="ti ti-flame"></i> Rapid Drill</button>';
   }
   if(mon){
     mon.classList.remove('is-enter');
@@ -2429,8 +2422,9 @@ function infinityArcadeRunGame(gameId){
   }
   if(!g) return;
   if(g.run === 'rapid') return infinityArcadePickRapid();
-  if(g.run === 'challenge') return infinityArcadePickChallenge();
-  if(g.run === 'modes') return openInfinityArcadeMonitor();
+  if(g.run === 'knight') return launchInfinityCasinoGame('knight');
+  if(g.run === 'challenge') return infinityArcadePickRapid();
+  if(g.run === 'modes') return openInfinityCasinoFloor();
   if(g.run && String(g.run).indexOf('arcade:') === 0){
     return infinityArcadeStartMode(String(g.run).slice(7));
   }
@@ -3631,22 +3625,16 @@ function arcadeApplyRoundMeta(st, score){
 
 function renderArcadeMenuHtml(containerId){
   var s = CURRENT_STUDENT || {};
-  var weak = arcadeWeakCategories(s);
-  var last = (s.quizzes || []).slice().reverse().find(function(q){ return q.mode === 'language-arcade'; });
   ensureArcadePressureStyles();
   return arcadeHudHtml(s)
-    + '<div class="ib ib-navy" style="margin-bottom:10px;"><strong>Infinity Language Arcade</strong> — rachas, combos y premios. No afecta KPI oficial; sí alimenta refuerzos Jill/Alice.</div>'
-    + (weak.length ? '<div class="ib ib-amber" style="margin-bottom:10px;">Frenzy priorizará: '+weak.map(arcadeCategoryLabel).join(' · ')+'</div>' : '')
-    + (last ? '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Última ronda: '+arcadeEsc(last.arcadeMode || 'Arcade')+' · '+last.correct+'/'+last.total+' · '+last.score+'%</div>' : '')
+    + '<div class="ib ib-navy" style="margin-bottom:10px;"><strong>Performance Hub</strong> — solo Rapid Drill y Knight\'s Quest.</div>'
     + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">'
-    + Object.keys(ARCADE_MODES).map(function(key){
-      var m = ARCADE_MODES[key];
-      return '<button type="button" onclick="startArcadeMode(\''+key+'\',\''+containerId+'\')" style="text-align:left;border:1px solid rgba(91,33,182,0.18);background:linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,248,255,0.95));border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(91,33,182,0.08);">'
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;color:'+m.color+';font-weight:900;"><i class="ti '+m.icon+'" style="font-size:20px;"></i>'+m.title+'</div>'
-        + '<div class="arcade-diff" style="color:'+m.color+';">'+(m.stars || '')+'</div>'
-        + '<div style="font-size:12px;color:var(--t2);line-height:1.45;margin-top:6px;">'+m.desc+'</div>'
-        + '</button>';
-    }).join('')
+    + '<button type="button" onclick="launchInfinityCasinoGame(\'knight\')" style="text-align:left;border:1px solid rgba(232,197,71,0.35);background:linear-gradient(135deg,#1a1208,#0B0618);border-radius:16px;padding:14px;cursor:pointer;color:#fff;">'
+    + '<div style="font-weight:900;color:#E8C547;margin-bottom:6px;">Knight\'s Quest</div>'
+    + '<div style="font-size:12px;opacity:.8;line-height:1.45;">Caballero teutónico · linkers bajo fuego</div></button>'
+    + '<button type="button" onclick="infinityArcadePickRapid()" style="text-align:left;border:1px solid rgba(251,113,133,0.35);background:linear-gradient(135deg,#1a0a12,#0B0618);border-radius:16px;padding:14px;cursor:pointer;color:#fff;">'
+    + '<div style="font-weight:900;color:#FDA4AF;margin-bottom:6px;">Rapid Drill</div>'
+    + '<div style="font-size:12px;opacity:.8;line-height:1.45;">Kaboom · Foundations</div></button>'
     + '</div>';
 }
 
@@ -9173,7 +9161,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
-<script src="js/infinity-casino-floor.js?v=20260812hub6"></script>
+<script src="js/infinity-casino-floor.js?v=20260812hub7"></script>
 <script src="js/infinity-modern-games.js?v=20260812mod6"></script>
 <script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>

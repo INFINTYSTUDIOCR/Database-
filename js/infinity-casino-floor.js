@@ -7,339 +7,29 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub6';
+  var VER = '20260812hub7';
 
   /** Characters + table meta — CSS portraits via charKey (no emoji) */
+  /** Solo Rapid Drill + Knight's Quest */
   var GAMES = [
     {
-      id: 'linkerflight',
-      mode: 'linkerflight',
-      title: 'LINKER FLIGHT',
-      sub: 'El avión dispara al linker correcto y arma la idea.',
+      id: 'knight',
+      kind: 'knight',
+      title: "KNIGHT'S QUEST",
+      sub: 'Caballero teutónico. Linkers bajo fuego. Fever mount.',
       badge: 'hot',
       badgeLabel: 'NUEVO',
-      xp: '+50 XP',
-      diff: 2,
-      art: 'listen',
+      xp: '+60 XP',
+      diff: 3,
+      art: 'knight',
       featured: true,
       charKey: 'plane',
       char: {
-        name: 'Aviator Link',
-        role: 'Linker Flight',
-        mood: 'En el aire',
-        line: '"Shoot the linker. Build the idea. Keep flying."',
-        color: '#0ea5e9'
-      }
-    },
-    {
-      id: 'snake',
-      mode: 'snake',
-      title: 'LINKER SNAKE',
-      sub: 'Serpiente del Nilo. Crece con cada linker correcto.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+40 XP',
-      diff: 2,
-      art: 'snake',
-      charKey: 'asp',
-      char: {
-        name: 'Aspira',
-        role: 'Serpiente del Nilo',
-        mood: 'En la tumba',
-        line: '"Touch the tablet. Grow the chain. Seal the idea."',
-        color: '#D4AF37'
-      }
-    },
-    {
-      id: 'tenserdrop',
-      mode: 'tenserdrop',
-      title: 'STRUCTURE DROP',
-      sub: 'Chunks de tiempo verbal caen. Armá la torre o colapsa.',
-      badge: 'hot',
-      badgeLabel: 'NUEVO',
-      xp: '+45 XP',
-      diff: 2,
-      art: 'drop',
-      charKey: 'pup',
-      char: {
-        name: 'Pip',
-        role: 'Torre pup',
-        mood: 'Nervioso',
-        line: '"Catch the right chunk. Save the tower. Save me."',
-        color: '#d97706'
-      }
-    },
-    {
-      id: 'bosscall',
-      mode: 'bosscall',
-      title: 'BOSS CALL',
-      sub: 'Cliente enojado. Respondé con estructura.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+45 XP',
-      diff: 3,
-      art: 'boss',
-      charKey: 'irina',
-      char: {
-        name: 'Irina',
-        role: 'Cliente furioso',
-        mood: 'Bajo fuego',
-        line: '"This is the SECOND charge. Fix it NOW."',
-        color: '#FB7185'
-      }
-    },
-    {
-      id: 'star',
-      mode: 'star',
-      title: 'STAR ARENA',
-      sub: 'Entrevista. Situation → Result con linkers.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+40 XP',
-      diff: 2,
-      art: 'star',
-      charKey: 'lex',
-      char: {
-        name: 'Coach Lex',
-        role: 'Entrevistador',
-        mood: 'En arena',
-        line: '"Tell me about a time you handled conflict."',
-        color: '#F5A623'
-      }
-    },
-    {
-      id: 'listen',
-      mode: 'listen',
-      title: 'SPEED LISTEN',
-      sub: 'Oí la cadena L+I+L. Una chance.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+35 XP',
-      diff: 2,
-      art: 'listen',
-      charKey: 'nova',
-      char: {
-        name: 'DJ Nova',
-        role: 'Audio coach',
-        mood: 'En vivo',
-        line: '"Don\'t read — listen for the linker."',
-        color: '#22D3EE'
-      }
-    },
-    {
-      id: 'tone',
-      mode: 'tone',
-      title: 'TONE POLICE',
-      sub: 'Misma idea. Tono que eleva.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+30 XP',
-      diff: 1,
-      art: 'tone',
-      charKey: 'mira',
-      char: {
-        name: 'Mira Soft',
-        role: 'Tone guardian',
-        mood: 'Calm power',
-        line: '"Professional ≠ cold. Elevate the pueblo."',
-        color: '#4ADE80'
-      }
-    },
-    {
-      id: 'nemesis',
-      mode: 'nemesis',
-      title: 'NEMESIS DUEL',
-      sub: 'Vs tus propios fallos. Timer agresivo.',
-      badge: 'hot',
-      badgeLabel: 'HOT',
-      xp: '+50 XP',
-      diff: 3,
-      art: 'nemesis',
-      charKey: 'shadow',
-      char: {
-        name: 'Shadow You',
-        role: 'Tu error del pasado',
-        mood: 'Duelo',
-        line: '"You failed this before. Not today."',
-        color: '#F87171'
-      }
-    },
-    {
-      id: 'phrasalswap',
-      mode: 'phrasalswap',
-      title: 'PHRASAL SWAP',
-      sub: 'El phrasal correcto dentro del L+I+L.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+30 XP',
-      diff: 2,
-      art: 'phrasal',
-      charKey: 'lex',
-      char: {
-        name: 'Rex Swap',
-        role: 'Phrasal dealer',
-        mood: 'Swap time',
-        line: '"Pick the phrasal that carries the idea."',
-        color: '#60A5FA'
-      }
-    },
-    {
-      id: 'dailyboss',
-      mode: 'dailyboss',
-      title: 'DAILY BOSS',
-      sub: 'Un jefe del día. Trophy rotativo.',
-      badge: 'today',
-      badgeLabel: 'HOY',
-      xp: '+60 XP',
-      diff: 3,
-      art: 'daily',
-      charKey: 'queen',
-      char: {
-        name: 'Queen Day',
-        role: 'Boss del día',
-        mood: 'Daily crown',
-        line: '"One boss. One chance to shine today."',
-        color: '#FDE047'
-      }
-    },
-    {
-      id: 'frenzy',
-      mode: 'frenzy',
-      title: 'FRENZY',
-      sub: 'Todo mezclado. Timer. Fallos primero.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+40 XP',
-      diff: 3,
-      art: 'frenzy',
-      charKey: 'shadow',
-      legacy: true,
-      char: {
-        name: 'Blaze',
-        role: 'Frenzy runner',
-        mood: 'On fire',
-        line: '"No mercy. Structure under pressure."',
-        color: '#FB923C'
-      }
-    },
-    {
-      id: 'challenge',
-      mode: 'challenge',
-      title: 'CHALLENGE',
-      sub: 'Presión: linkers + estructura.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+35 XP',
-      diff: 2,
-      art: 'challenge',
-      charKey: 'lex',
-      legacy: true,
-      char: {
-        name: 'Bolt',
-        role: 'Drill captain',
-        mood: 'Pressure',
-        line: '"Linkers first. Then the idea."',
-        color: '#FBBF24'
-      }
-    },
-    {
-      id: 'verb',
-      mode: 'verb',
-      title: 'VERB HUNT',
-      sub: 'Word reveal operacional.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+20 XP',
-      diff: 1,
-      art: 'verb',
-      charKey: 'lex',
-      legacy: true,
-      char: {
-        name: 'Hunter V',
-        role: 'Verb scout',
-        mood: 'Locked',
-        line: '"Find the verb. Own the tense."',
-        color: '#2DD4BF'
-      }
-    },
-    {
-      id: 'structure',
-      mode: 'structure',
-      title: 'STRUCTURE',
-      sub: 'Armá oraciones de trabajo real.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+25 XP',
-      diff: 1,
-      art: 'structure',
-      charKey: 'lex',
-      legacy: true,
-      char: {
-        name: 'Brick',
-        role: 'Builder',
-        mood: 'Building',
-        line: '"Order the blocks. Build the thought."',
-        color: '#C4B5FD'
-      }
-    },
-    {
-      id: 'linker',
-      mode: 'linker',
-      title: 'LINKER QUEST',
-      sub: 'Conectores de entrevista y meetings.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+25 XP',
-      diff: 2,
-      art: 'linker',
-      charKey: 'plane',
-      legacy: true,
-      char: {
-        name: 'Quest L',
-        role: 'Connector',
-        mood: 'Quest',
-        line: MANTRA,
-        color: '#A78BFA'
-      }
-    },
-    {
-      id: 'phrasal',
-      mode: 'phrasal',
-      title: 'PHRASAL MASTER',
-      sub: 'Phrasals de call / follow-up.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+25 XP',
-      diff: 2,
-      art: 'phrasal',
-      charKey: 'lex',
-      legacy: true,
-      char: {
-        name: 'Master P',
-        role: 'Phrasal guide',
-        mood: 'Mastery',
-        line: '"Bring up · sort out · follow up."',
-        color: '#93C5FD'
-      }
-    },
-    {
-      id: 'preposition',
-      mode: 'preposition',
-      title: 'PREPOSITIONS',
-      sub: 'in / on / at / by bajo contexto.',
-      badge: '',
-      badgeLabel: '',
-      xp: '+20 XP',
-      diff: 1,
-      art: 'prep',
-      charKey: 'mira',
-      legacy: true,
-      char: {
-        name: 'Pin',
-        role: 'Map guide',
-        mood: 'Locating',
-        line: '"By Friday. On Monday. At 5."',
-        color: '#FDBA74'
+        name: 'Teutonic Knight',
+        role: 'Linker crusader',
+        mood: 'En batalla',
+        line: '"Slash the wrong word. Build the chain. Claim the XP."',
+        color: '#E8C547'
       }
     },
     {
@@ -353,7 +43,6 @@
       diff: 2,
       art: 'rapid',
       charKey: 'shadow',
-      legacy: true,
       char: {
         name: 'Kaboom',
         role: 'Rapid Jill',
@@ -734,6 +423,19 @@
     if (g.kind === 'rapid') {
       if (typeof infinityArcadePickRapid === 'function') infinityArcadePickRapid();
       else if (typeof portalOpenRapidDrill === 'function') portalOpenRapidDrill('foundations');
+      return;
+    }
+    if (g.kind === 'knight') {
+      if (typeof openInfinityArcadeFullscreen === 'function') {
+        openInfinityArcadeFullscreen("Knight's Quest", 'Teutonic · Linkers');
+      }
+      var body = document.getElementById('inf-arcade-fs-body');
+      if (body) {
+        body.innerHTML =
+          '<iframe src="games/knights-quest/index.html?v=' +
+          VER +
+          '" title="Knight\'s Quest" style="width:100%;height:min(78vh,720px);border:0;border-radius:16px;background:#050508;display:block" allow="autoplay"></iframe>';
+      }
       return;
     }
     var mode = g.mode || g.id;
