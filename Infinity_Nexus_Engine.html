@@ -328,16 +328,11 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-broadcast" onclick="openBroadcastModal()"><i class="ti ti-brand-whatsapp"></i>Comunicado general</div>
       <div class="sb-item" id="nav-super-brain" onclick="showView('super-brain',this)"><i class="ti ti-brain"></i>A.D.A.M. · Nexus KB</div>
       <div class="sb-item" id="nav-ops" onclick="showView('ops',this)"><i class="ti ti-activity"></i>Operación en vivo</div>
-      <div class="sb-item" id="nav-network" onclick="showView('network',this)"><i class="ti ti-radar"></i>Network Traffic</div>
       <div class="sb-item" onclick="showView('staffchat',this)"><i class="ti ti-messages"></i>Chat de Staff</div>
-      <div class="sb-item" id="nav-dashboard" style="display:none;" onclick="showView('dashboard',this)"><i class="ti ti-chart-dots"></i>Dashboard</div>
       <div class="sb-item" id="nav-transcripts" onclick="showView('chattranscripts',this)"><i class="ti ti-shield-lock"></i>Transcripciones (Super Admin)</div>
       <div class="sb-item" id="nav-new-student" onclick="openNewStudentModal()"><i class="ti ti-user-plus"></i>Nuevo estudiante</div>
-      <div class="sb-section">Departamentos</div>
-      <div class="sb-item" id="nav-dept-admin" onclick="showView('dept-admin',this)"><i class="ti ti-building"></i>Administration</div>
-      <div class="sb-item" id="nav-dept-training" onclick="showView('dept-training',this)"><i class="ti ti-school"></i>Training Team</div>
-      <div class="sb-item" id="nav-dept-marketing" onclick="showView('dept-marketing',this)"><i class="ti ti-speakerphone"></i>Marketing</div>
-      <div class="sb-item" id="nav-dept-misc" onclick="showView('dept-misc',this)"><i class="ti ti-news"></i>Misceláneos</div>
+      <div class="sb-section">Interno</div>
+      <div class="sb-item" id="nav-comms" onclick="showView('comms',this)"><i class="ti ti-news"></i>Comunicados internos</div>
     </div>
   </div>
 
@@ -462,7 +457,13 @@ textarea.inp{resize:vertical;min-height:80px;}
         <select class="inp" id="pay-method"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option><option>SINPE</option><option>Otro</option></select>
       </div>
       <div class="form-group"><label class="form-label">Estado de pago</label>
-        <select class="inp" id="pay-status"><option value="current">Al día</option><option value="delayed">DELAYED</option></select>
+        <select class="inp" id="pay-status">
+          <option value="current">Al día</option>
+          <option value="pending">Pendiente</option>
+          <option value="late">Atrasado</option>
+          <option value="overdue">Vencido</option>
+          <option value="paused">En pausa</option>
+        </select>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Próximo vencimiento</label><input class="inp" id="pay-nextdue" type="date"></div>
@@ -597,7 +598,7 @@ textarea.inp{resize:vertical;min-height:80px;}
   <div class="modal" style="max-width:560px;">
     <div class="modal-title"><i class="ti ti-brand-whatsapp"></i>Comunicado general a trainers</div>
     <div class="form-group"><label class="form-label">Mensaje</label><textarea class="inp" id="bc-text" placeholder="Escribí el comunicado para todo el equipo..." style="min-height:100px;"></textarea></div>
-    <div class="ib ib-navy">WhatsApp no permite envío masivo automático. Hacé clic en "Enviar" junto a cada trainer (abre WhatsApp Web con el mensaje listo) o usá "Enviar a todos" para abrirlos en secuencia.</div>
+    <div class="ib ib-navy">Los mensajes se <strong>encolan</strong> en el bridge WhatsApp (no abre pestañas). Requiere bridge encendido en la PC. Máx. recomendado: ~25 por tanda.</div>
     <div id="bc-list" style="max-height:280px;overflow-y:auto;"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-broadcast')">Cerrar</button>
@@ -1016,6 +1017,7 @@ async function hydrateFromSessionRows(rows){
   STAFF_CHAT = { messages: [] };
   KB_UPLOADS = [];
   ALICE_CACHE = {};
+  WA_LEADS = {};
   (rows||[]).forEach(function(r){
     if(!r || !r.id) return;
     var id = r.id;
@@ -1030,6 +1032,7 @@ async function hydrateFromSessionRows(rows){
     else if(id==='STAFF-CHAT' && r.data) STAFF_CHAT = r.data;
     else if(id.indexOf('KBFILE-')===0 && r.data) KB_UPLOADS.push(Object.assign({_id:id}, r.data));
     else if(id.indexOf('ACACHE-')===0 && r.data) ALICE_CACHE[id] = r.data;
+    else if(id.indexOf('WA-LEAD-')===0 && r.data) WA_LEADS[id] = r.data;
   });
   AUDIT_LOG.sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
   if(AUDIT_LOG.length > 400) AUDIT_LOG = AUDIT_LOG.slice(0, 400);
@@ -1158,20 +1161,13 @@ function startApp(){
     document.getElementById('nav-broadcast').style.display='none';
     document.getElementById('nav-super-brain').style.display='none';
     document.getElementById('nav-ops').style.display='none';
-    document.getElementById('nav-network').style.display='none';
     document.getElementById('nav-new-student').style.display='none';
     // Trainer: solo ve sus propios estudiantes
     document.getElementById('nav-students').onclick = function(){ showView('my-students', this); };
   }
   if(SESSION.role!=='superadmin'){
     document.getElementById('nav-transcripts').style.display='none';
-    if(hasMasterAccess()) document.getElementById('nav-dashboard').style.display='flex';
   }
-  // Departamentos: visibilidad según rol/depto del usuario
-  var myDept = SESSION.department || (hasMasterAccess()?'admin':'training');
-  if(!hasMasterAccess() && myDept!=='admin') document.getElementById('nav-dept-admin').style.display='none';
-  if(!hasMasterAccess() && myDept!=='training') document.getElementById('nav-dept-training').style.display='none';
-  if(!hasMasterAccess() && myDept!=='marketing') document.getElementById('nav-dept-marketing').style.display='none';
   showView('dashboard', document.querySelector('.sb-item'));
   maybeShowEngineTermsGate();
   var termsEl = document.getElementById('modal-infinity-terms');
@@ -1247,10 +1243,7 @@ function showView(view, btn){
   else if(view==='my-profile') renderMyProfile(m);
   else if(view==='assign-exercises') renderAssignExercises(m);
   else if(view==='auditlog') renderAuditLog(m);
-  else if(view==='dept-admin') renderDepartment(m,'admin');
-  else if(view==='dept-training') renderDepartment(m,'training');
-  else if(view==='dept-marketing') renderDepartment(m,'marketing');
-  else if(view==='dept-misc') renderDepartment(m,'misc');
+  else if(view==='comms' || view==='dept-admin' || view==='dept-training' || view==='dept-marketing' || view==='dept-misc') renderComms(m);
   else if(view==='diagnostic') renderDiagnostic(m);
   else if(view==='availability') renderAvailability(m);
   else if(view==='attendance') renderAttendanceView(m);
@@ -1258,11 +1251,9 @@ function showView(view, btn){
   else if(view==='nexus-kb' || view==='kb-upload' || view==='super-brain') renderSuperBrain(m);
   else if(view==='ops') renderOpsOverview(m);
   else if(view==='staffchat') renderStaffChat(m);
-  else if(view==='dashboard') renderDashboard_Admin(m);
   else if(view==='chattranscripts') renderChatTranscripts(m);
   else if(view==='crm') renderCRM(m);
   else if(view==='finance') renderFinance(m);
-  else if(view==='network') renderNetworkTraffic(m);
 }
 
 // ── HELPERS ───────────────────────────────────────────────
@@ -1328,15 +1319,17 @@ function renderDashboard(m){
   var func = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Functional'; }).length;
   var emerg = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Emerging'; }).length;
   var surv = students.filter(function(s){ return getLevelForStudent(getScore(s),s)==='Survival'; }).length;
-
+  var today = crTodayYmd();
+  var evtsToday = Object.values(CALENDAR_EVENTS).filter(function(e){ return e && e.date===today; }).length;
+  var latePay = students.filter(function(s){ return isPaymentAttention(s.info||{}); }).length;
   var recent = students.slice(-5).reverse();
 
   m.innerHTML = '<div class="fade">'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat"><div class="stat-label">Total estudiantes</div><div class="stat-val">'+total+'</div><div class="stat-sub">Infinity ecosystem</div></div>'
-    +'<div class="stat"><div class="stat-label">Advanced</div><div class="stat-val" style="color:var(--gm);">'+adv+'</div><div class="stat-sub">'+(total?Math.round(adv/total*100):0)+'% del total</div></div>'
-    +'<div class="stat"><div class="stat-label">Functional</div><div class="stat-val" style="color:var(--amber);">'+func+'</div><div class="stat-sub">'+(total?Math.round(func/total*100):0)+'% del total</div></div>'
-    +'<div class="stat"><div class="stat-label">Emerging / Survival</div><div class="stat-val" style="color:var(--rm);">'+(emerg+surv)+'</div><div class="stat-sub">Requieren atención</div></div>'
+    +'<div class="stat"><div class="stat-label">Citas hoy</div><div class="stat-val" style="color:var(--amber);">'+evtsToday+'</div><div class="stat-sub">Calendario EVT</div></div>'
+    +'<div class="stat"><div class="stat-label">Cobros a revisar</div><div class="stat-val" style="color:var(--rm);">'+latePay+'</div><div class="stat-sub">late / overdue / vencido</div></div>'
+    +'<div class="stat"><div class="stat-label">Emerging / Survival</div><div class="stat-val" style="color:var(--rm);">'+(emerg+surv)+'</div><div class="stat-sub">Requieren atención KPI</div></div>'
     +'</div>'
     +'<div class="grid2">'
     +'<div class="card"><div class="card-title"><i class="ti ti-chart-pie"></i>Distribución de niveles</div><div class="chart-wrap"><canvas id="chart-levels"></canvas></div></div>'
@@ -1536,7 +1529,6 @@ function openStudent(id){
     +'<div class="tab" onclick="switchTab(\'progress\',this)">Progreso</div>'
     +'<div class="tab" onclick="switchTab(\'sessions\',this)">Notas de sesión</div>'
     +'<div class="tab" onclick="switchTab(\'info\',this)">Información</div>'
-    +'<div class="tab" onclick="switchTab(\'news\',this)">News</div>'
     +(isMaster?'<div class="tab" onclick="switchTab(\'pagos\',this)">Pagos</div>':'')
     +'</div>'
 
@@ -1620,9 +1612,6 @@ function openStudent(id){
     +(typeof JillTrainerInsights !== 'undefined' ? JillTrainerInsights.renderEngineCard(s, isMaster, SESSION.name) : '')
     +renderPortalAccessCard(s, id, isMaster)
     +renderTermsStatusCard(s, 'student', id)
-    +'</div>'
-    +'<div class="tab-pane" id="pane-news">'+renderInfinityNewsSection()
-    +(isMaster?('<div style="margin-top:10px;">'+paymentWaReminderBtn((s.info&&s.info.name)||'Estudiante', s.info)+'</div>'):'')
     +'</div>'
     +renderPagosTab(s, id, isMaster)
     +'</div>';
@@ -2449,11 +2438,13 @@ async function saveCalendarEvent(){
       id,
       studentId: sid,
       studentName: (s&&s.info&&s.info.name)||'—',
+      phone: (s&&s.info&&s.info.phone)||'',
       trainer: document.getElementById('cal-ev-trainer').value,
       date: document.getElementById('cal-ev-date').value,
       time: document.getElementById('cal-ev-time').value,
       type: type,
-      notes: document.getElementById('cal-ev-notes').value
+      notes: document.getElementById('cal-ev-notes').value,
+      source: 'engine'
     };
   }
   CALENDAR_EVENTS[id]=evt;
@@ -2461,6 +2452,15 @@ async function saveCalendarEvent(){
   await logAction('Agendó evento de calendario', isInternal?evt.title:(evt.studentName+' — '+evt.date));
   closeModal('modal-calendar');
   showToast('Evento agendado');
+  if(!isInternal && evt.phone){
+    try{
+      var msg = 'Hola '+(evt.studentName||'')+',\nRecordatorio de cita Infinity Studio CR:\n'+evt.date+' a las '+(evt.time||'')+'\nSi necesitás reprogramar, respondé a este chat.';
+      await enqueueWhatsAppMessage(evt.phone, msg, s&&s.info&&s.info.email);
+      showToast('Cita guardada + recordatorio WA encolado');
+    }catch(e){
+      showToast('Cita guardada (WA no encoló: '+(e.message||e)+')','err');
+    }
+  }
   renderCalendar(document.getElementById('main-content'));
 }
 
@@ -2563,8 +2563,6 @@ function renderMyProfile(m){
         }).join('')
         +'</div>';
     })()
-    +renderInfinityNewsSection()
-    +'<div style="margin-top:10px;">'+paymentWaReminderBtn(profile.name||SESSION.name, profile)+'</div>'
     +'</div>'
     +'</div>';
 }
@@ -2817,34 +2815,35 @@ var DEPT_LABELS = {admin:'Administration',training:'Training Team',marketing:'Ma
 var DEPT_ICONS  = {admin:'ti-building',training:'ti-school',marketing:'ti-speakerphone',misc:'ti-news'};
 
 function renderDepartment(m, dept){
-  var canPost = hasMasterAccess() || (SESSION.department===dept);
+  renderComms(m, dept);
+}
+
+function renderComms(m, deptFilter){
+  var canPost = hasMasterAccess();
   var news = Object.keys(NEWS_ITEMS).map(function(k){ var n=NEWS_ITEMS[k]; n._id=k; return n; })
-    .filter(function(n){ return n.dept===dept; })
+    .filter(function(n){ return !deptFilter || n.dept===deptFilter; })
     .sort(function(a,b){ return new Date(b.ts)-new Date(a.ts); });
 
   var html = '<div class="fade">'
     +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti '+(DEPT_ICONS[dept]||'ti-folder')+'"></i> '+(DEPT_LABELS[dept]||dept)+'</h2>'
-    +(canPost?'<button class="btn btn-navy btn-sm" data-dept="'+dept+'" onclick="openNewsModal(this.dataset.dept)"><i class="ti ti-plus"></i>Publicar</button>':'')
-    +'</div>';
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-news"></i> Comunicados internos</h2>'
+    +(canPost?'<button class="btn btn-navy btn-sm" data-dept="misc" onclick="openNewsModal(this.dataset.dept)"><i class="ti ti-plus"></i>Publicar</button>':'')
+    +'</div>'
+    +'<div class="ib ib-navy">Anuncios operativos del equipo. Un solo tablón (antes Admin / Training / Marketing / Misc).</div>';
 
-  if(dept==='misc'){
-    html += '<div class="ib ib-navy">Espacio compartido para anuncios internos, noticias y avisos generales de Infinity Studio CR.</div>';
+  if(!news.length){
+    html += '<div class="card"><div style="font-size:13px;color:var(--t3);text-align:center;padding:1rem 0;">Sin comunicados todavía.</div></div>';
   } else {
-    html += '<div class="ib ib-amber">Acceso restringido a colaboradores de '+(DEPT_LABELS[dept]||dept)+' y Master Trainer.</div>';
+    html += news.map(function(n){
+      return '<div class="card" style="margin-bottom:10px;">'
+        +'<div style="display:flex;align-items:flex-start;gap:10px;">'
+        +'<div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--navy);">'+(n.title||'Sin título')+'</div>'
+        +'<div style="font-size:11px;color:var(--t3);margin:4px 0 8px;">'+(DEPT_LABELS[n.dept]||n.dept||'—')+' · '+(n.author||'')+' · '+fmtDate(n.ts)+'</div>'
+        +'<div style="font-size:13px;line-height:1.6;color:var(--text);white-space:pre-wrap;">'+(n.body||'')+'</div></div>'
+        +(hasMasterAccess()?'<button data-id="'+n._id+'" class="btn btn-red btn-sm" onclick="deleteNews(this.dataset.id)"><i class="ti ti-x"></i></button>':'')
+        +'</div></div>';
+    }).join('');
   }
-
-  html += news.length ? news.map(function(n){
-    return '<div class="card">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-      +'<strong style="flex:1;font-size:14px;">'+(n.title||'—')+'</strong>'
-      +'<span style="font-size:11px;color:var(--t3);">'+new Date(n.ts).toLocaleDateString('es-CR')+' · '+(n.author||'')+'</span>'
-      +((hasMasterAccess())?'<button data-id="'+n._id+'" class="btn btn-red btn-sm" onclick="deleteNews(this.dataset.id)"><i class="ti ti-x"></i></button>':'')
-      +'</div>'
-      +'<div style="font-size:13px;color:var(--t2);line-height:1.6;white-space:pre-wrap;">'+(n.body||'')+'</div>'
-      +'</div>';
-  }).join('') : '<div style="font-size:13px;color:var(--t3);">Sin publicaciones por el momento.</div>';
-
   html += '</div>';
   m.innerHTML = html;
 }
@@ -2868,7 +2867,7 @@ async function saveNews(){
   await logAction('Publicó en '+(DEPT_LABELS[dept]||dept), title);
   closeModal('modal-news');
   showToast('Publicado');
-  renderDepartment(document.getElementById('main-content'), dept);
+  renderComms(document.getElementById('main-content'));
 }
 
 function deleteNews(id){
@@ -2878,7 +2877,7 @@ function deleteNews(id){
     delete NEWS_ITEMS[id];
     await logAction('Eliminó publicación', (n&&n.title)||id);
     showToast('Publicación eliminada');
-    renderDepartment(document.getElementById('main-content'), n?n.dept:'misc');
+    renderComms(document.getElementById('main-content'));
   });
 }
 
@@ -2888,22 +2887,20 @@ function renderPagosTab(s, id, isMaster){
   if(!isMaster) return '';
   var payments = (s.payments||[]).slice().reverse();
   var info = s.info||{};
-  syncPaymentStatusFromCalendar(info);
-  var calFlag = paymentFlagBadgeHtml(info);
-  var status = info.paymentStatus || 'current';
-  var statusBadge = status==='delayed'
-    ? '<span class="badge" style="background:var(--rb);color:var(--rm);">DELAYED</span>'
-    : '<span class="badge" style="background:var(--gb);color:var(--gm);">Al día</span>';
+  var cal = getPaymentCalendarFlag(info);
+  var calFlag = '<span class="badge" style="'+(cal.level==='red'?'background:#FEE2E2;color:#B91C1C':cal.level==='yellow'?'background:#FEF3C7;color:#92400E':cal.level==='green'?'background:#DCFCE7;color:#166534':'background:var(--gray);color:var(--t3)')+'">'+cal.label+(cal.days!=null && cal.level!=='green'?' · '+Math.abs(cal.days)+'d':'')+'</span>';
+  var status = normalizePaymentStatus(info.paymentStatus);
+  var statusBadge = paymentFlagBadgeHtml(info);
   var totalPaid = payments.reduce(function(a,p){ return a+(parseFloat(p.amount)||0); },0);
 
   var html = '<div class="tab-pane" id="pane-pagos">';
   html += '<div class="card"><div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><span><i class="ti ti-cash"></i>Información de pago</span>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+paymentWaReminderBtn((info.name)||'Estudiante', info)
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+paymentWaReminderBtnForStudent(id)
     +'<button data-sid="'+id+'" class="btn btn-navy btn-sm" onclick="openPaymentModal(this.dataset.sid)"><i class="ti ti-plus"></i>Registrar pago</button></div></div>';
 
   html += '<div class="grid2">';
-  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado (calendario)</div><div style="font-size:13px;font-weight:600;">'+calFlag+'</div></div>';
-  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado manual</div><div style="font-size:13px;font-weight:600;">'+statusBadge+'</div></div>';
+  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Vencimiento (calendario)</div><div style="font-size:13px;font-weight:600;">'+calFlag+'</div></div>';
+  html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Estado de pago</div><div style="font-size:13px;font-weight:600;">'+statusBadge+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Fee mensual</div><div style="font-size:13px;font-weight:600;">CRC '+parseInt(info.fee||0).toLocaleString()+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Próximo vencimiento</div><div style="font-size:13px;font-weight:600;">'+(info.nextDue?fmtDate(info.nextDue):'—')+'</div></div>';
   html += '<div style="background:var(--gray);border-radius:var(--r);padding:0.875rem;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:4px;">Total pagado</div><div style="font-size:13px;font-weight:600;">CRC '+totalPaid.toLocaleString()+'</div></div>';
@@ -2929,7 +2926,7 @@ function openPaymentModal(sid){
   document.getElementById('pay-method').value = 'Transferencia';
   document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('pay-note').value = '';
-  document.getElementById('pay-status').value = info.paymentStatus || 'current';
+  document.getElementById('pay-status').value = normalizePaymentStatus(info.paymentStatus);
   document.getElementById('pay-nextdue').value = info.nextDue || '';
   showModal('modal-payment');
 }
@@ -2949,9 +2946,8 @@ async function savePayment(){
     s.payments.push({ date, amount, method, note, registeredBy:SESSION.name });
   }
   s.info = s.info||{};
-  s.info.paymentStatus = status;
+  s.info.paymentStatus = normalizePaymentStatus(status === 'delayed' ? 'late' : status);
   s.info.nextDue = nextDue;
-  syncPaymentStatusFromCalendar(s.info);
 
   await dbSet('infinity_students', sid, s);
   DB[sid]=s;
@@ -3273,9 +3269,30 @@ function hasMasterAccess(){ return SESSION && (SESSION.role==='master' || SESSIO
 function roleLabel(role){ return role==='superadmin'?'Super Admin':role==='master'?'Master Trainer':'Trainer'; }
 
 var PAYMENT_WARN_DAYS = 7;
-var INFINITY_SINPE = '60950981';
+var INFINITY_SINPE = '60060981';
 var INFINITY_PAYPAL = 'johnnramirez@gmail.com';
 var INFINITY_WA = '50660060981';
+var INFINITY_SINPE_HINT = 'Sinpe Móvil al 6006-0981 (Infinity Studio CR). Avisá cuando pagues con el comprobante.';
+var WA_OPS_API = 'https://alice-by-infinity.onrender.com';
+/** Same value as scripts/wa-bridge BRIDGE_SECRET / Render WA_BRIDGE_SECRET (or ANALYZE_SECRET). */
+var WA_BRIDGE_SECRET = 'otro-secreto-distinto-2026';
+var WA_LEADS = {};
+
+function crTodayYmd(){
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' });
+}
+
+function normalizePaymentStatus(raw){
+  var st = String(raw||'current').toLowerCase();
+  if(st==='delayed') return 'late';
+  if(['current','pending','late','overdue','paused'].indexOf(st)>=0) return st;
+  return 'current';
+}
+
+function paymentStatusLabel(status){
+  var labels = { current:'Al día', pending:'Pendiente', late:'Atrasado', overdue:'Vencido', paused:'En pausa', delayed:'Atrasado' };
+  return labels[status] || status;
+}
 
 function parseDateOnly(str){
   if(!str) return null;
@@ -3291,14 +3308,27 @@ function getPaymentCalendarFlag(info){
   var days = Math.round((due.getTime()-today.getTime())/86400000);
   if(days < 0) return { level:'red', label:'Vencido', days:days };
   if(days <= PAYMENT_WARN_DAYS) return { level:'yellow', label:'Próximo vencimiento', days:days };
-  return { level:'green', label:'Al día', days:days };
+  return { level:'green', label:'Al día (fecha)', days:days };
 }
 
 function paymentFlagBadgeHtml(info){
-  var f = getPaymentCalendarFlag(info||{});
-  var style = { red:'background:#FEE2E2;color:#B91C1C', yellow:'background:#FEF3C7;color:#92400E', green:'background:#DCFCE7;color:#166534', gray:'background:var(--gray);color:var(--t3)' };
-  var extra = f.days!==null && f.level!=='green' ? ' · '+Math.abs(f.days)+'d' : '';
-  return '<span class="badge" style="'+style[f.level]+'">'+f.label+extra+'</span>';
+  var status = normalizePaymentStatus(info&&info.paymentStatus);
+  var cal = getPaymentCalendarFlag(info||{});
+  var styleMap = {
+    current:'background:#DCFCE7;color:#166534',
+    pending:'background:#FEF3C7;color:#92400E',
+    late:'background:#FEE2E2;color:#B91C1C',
+    overdue:'background:#FEE2E2;color:#B91C1C',
+    paused:'background:var(--gray);color:var(--t3)'
+  };
+  var extra = cal.days!==null && cal.level!=='green' ? ' · cal '+Math.abs(cal.days)+'d' : '';
+  return '<span class="badge" style="'+(styleMap[status]||'background:var(--gray);color:var(--t3)')+'">'+paymentStatusLabel(status)+extra+'</span>';
+}
+
+function isPaymentAttention(info){
+  var status = normalizePaymentStatus(info&&info.paymentStatus);
+  if(status==='late' || status==='overdue' || status==='pending') return true;
+  return getPaymentCalendarFlag(info||{}).level==='red';
 }
 
 function isForeignPayer(info){
@@ -3309,28 +3339,90 @@ function isForeignPayer(info){
   return false;
 }
 
-function buildPaymentReminderWaUrl(name, info){
+function studentPhoneDigits(info){
+  return String((info&&info.phone)||'').replace(/\D/g,'');
+}
+
+function buildPaymentReminderMessage(name, info){
   var foreign = isForeignPayer(info||{});
-  var msg = foreign
-    ? 'Hola '+(name||'').trim()+', recordatorio de pago Infinity Studio CR. PayPal: '+INFINITY_PAYPAL
-    : 'Hola '+(name||'').trim()+', recordatorio de pago Infinity Studio CR. SINPE Móvil: '+INFINITY_SINPE;
-  return 'https://wa.me/'+INFINITY_WA+'?text='+encodeURIComponent(msg);
+  var payHint = foreign ? ('PayPal: '+INFINITY_PAYPAL) : INFINITY_SINPE_HINT;
+  return 'Hola '+(name||'').trim()+'\nRecordatorio de pago Infinity Studio CR.\n'+payHint;
+}
+
+function buildPaymentReminderWaUrl(name, info){
+  return 'https://wa.me/'+INFINITY_WA+'?text='+encodeURIComponent(buildPaymentReminderMessage(name, info));
+}
+
+async function waOpsFetch(path, opts){
+  opts = opts || {};
+  var headers = Object.assign({
+    'Content-Type': 'application/json',
+    'X-Bridge-Secret': WA_BRIDGE_SECRET
+  }, opts.headers||{});
+  var r = await fetch(WA_OPS_API + path, Object.assign({}, opts, { headers: headers }));
+  var data = {};
+  try{ data = await r.json(); }catch(e){}
+  if(!r.ok){
+    var err = new Error(data.error || ('HTTP '+r.status));
+    err.status = r.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+async function enqueueWhatsAppMessage(phone, message, email){
+  var digits = String(phone||'').replace(/\D/g,'');
+  if(!digits || digits.length < 8) throw new Error('sin_telefono');
+  return waOpsFetch('/agent/whatsapp/remind-payment', {
+    method: 'POST',
+    body: JSON.stringify({ phone: digits, message: message, email: email||null })
+  });
+}
+
+async function enqueuePaymentReminder(name, info, sid){
+  var phone = studentPhoneDigits(info);
+  if(!phone){ showToast('Este alumno no tiene teléfono en la ficha','err'); return; }
+  try{
+    await enqueueWhatsAppMessage(phone, buildPaymentReminderMessage(name, info), info&&info.email);
+    await logAction('Encoló recordatorio WA de pago', (name||phone)+(sid?(' · '+sid):''));
+    showToast('Recordatorio encolado — el bridge lo envía si está encendido');
+  }catch(e){
+    showToast('No se pudo encolar: '+(e.message||e)+'. Usá wa.me fallback.','err');
+  }
 }
 
 function paymentWaReminderBtn(name, info){
-  return '<a href="'+buildPaymentReminderWaUrl(name,info)+'" target="_blank" rel="noopener" class="btn btn-green btn-sm" onclick="event.stopPropagation();"><i class="ti ti-brand-whatsapp"></i> Recordatorio pago</a>';
+  return paymentWaReminderBtnForStudent(null, name, info);
+}
+
+function paymentWaReminderBtnForStudent(sid, name, info){
+  var s = sid ? DB[sid] : null;
+  var n = name || (s&&s.info&&s.info.name) || 'Estudiante';
+  var inf = info || (s&&s.info) || {};
+  var phone = studentPhoneDigits(inf);
+  var btn = sid
+    ? ('<button type="button" class="btn btn-green btn-sm" data-sid="'+sid+'" onclick="event.stopPropagation();enqueuePaymentReminderFromSid(this.dataset.sid)"><i class="ti ti-brand-whatsapp"></i> Recordatorio pago</button>')
+    : ('<button type="button" class="btn btn-green btn-sm" data-phone="'+phone+'" data-name="'+String(n).replace(/"/g,'&quot;')+'" onclick="event.stopPropagation();enqueuePaymentReminder(this.dataset.name,{phone:this.dataset.phone},null)"><i class="ti ti-brand-whatsapp"></i> Recordatorio pago</button>');
+  return btn + (phone ? ('<a href="'+buildPaymentReminderWaUrl(n,inf)+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm" onclick="event.stopPropagation();" title="Fallback manual">wa.me</a>') : '');
+}
+
+async function enqueuePaymentReminderFromSid(sid){
+  var s = DB[sid]; if(!s) return;
+  await enqueuePaymentReminder((s.info&&s.info.name)||'Estudiante', s.info||{}, sid);
+}
+
+function suggestPaymentStatusFromCalendar(info){
+  if(!info) return null;
+  var f = getPaymentCalendarFlag(info);
+  return f.level==='red' ? 'overdue' : (f.level==='yellow' ? 'pending' : null);
 }
 
 function syncPaymentStatusFromCalendar(info){
-  if(!info) return;
-  var f = getPaymentCalendarFlag(info);
-  info.paymentStatus = f.level==='red' ? 'delayed' : 'current';
+  return suggestPaymentStatusFromCalendar(info);
 }
 
-function renderInfinityNewsSection(){
-  return '<div class="card"><div class="card-title"><i class="ti ti-news"></i>News — Infinity</div>'
-    +'<div style="font-size:13px;line-height:1.7;color:var(--text);max-height:480px;overflow-y:auto;padding-right:6px;">'+getInfinityNewsHtml()+'</div></div>';
-}
+function renderInfinityNewsSection(){ return ''; }
 
 function getInfinityNewsHtml(){
   return '<p style="font-weight:800;font-size:15px;color:var(--navy);">BIENVENIDO A INFINITY</p>'
@@ -3841,7 +3933,7 @@ function renderFinance(m){
   var rows = students.map(function(s){
     var paid = (s.payments||[]).reduce(function(a,p){ return a+(parseFloat(p.amount)||0); },0);
     grandTotal += paid;
-    return { name:(s.info&&s.info.name)||'—', fee:(s.info&&s.info.fee)||0, paid, status:(s.info&&s.info.paymentStatus)||'current', count:(s.payments||[]).length };
+    return { name:(s.info&&s.info.name)||'—', fee:(s.info&&s.info.fee)||0, paid, status:(s.info&&s.info.paymentStatus)||'current', nextDue:(s.info&&s.info.nextDue)||'', count:(s.payments||[]).length };
   }).filter(function(r){ return r.paid>0 || r.fee>0; }).sort(function(a,b){ return b.paid-a.paid; });
 
   m.innerHTML = '<div class="fade">'
@@ -3857,9 +3949,7 @@ function renderFinance(m){
     +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>Detalle por estudiante</div>'
     +(rows.length?'<table class="tbl"><thead><tr><th>Estudiante</th><th>Fee mensual</th><th>Total pagado</th><th>Pagos registrados</th><th>Estado</th></tr></thead><tbody>'
       +rows.map(function(r){
-        var statusBadge = r.status==='delayed'
-          ? '<span class="badge" style="background:var(--rb);color:var(--rm);">DELAYED</span>'
-          : '<span class="badge" style="background:var(--gb);color:var(--gm);">Al día</span>';
+        var statusBadge = paymentFlagBadgeHtml({ paymentStatus: r.status, nextDue: r.nextDue });
         return '<tr><td><strong>'+r.name+'</strong></td><td>CRC '+parseInt(r.fee).toLocaleString()+'</td><td><strong style="color:var(--gm);">CRC '+r.paid.toLocaleString()+'</strong></td><td>'+r.count+'</td><td>'+statusBadge+'</td></tr>';
       }).join('')+'</tbody></table>'
     :'<div style="font-size:13px;color:var(--t3);">Sin pagos registrados aún.</div>')
@@ -5215,23 +5305,33 @@ function openBroadcastModal(){
   showModal('modal-broadcast');
 }
 
-function sendBroadcastTo(phone, name, btn){
+async function sendBroadcastTo(phone, name, btn){
   var text = document.getElementById('bc-text').value.trim();
   if(!text){ showToast('Escribí el mensaje primero','err'); return; }
-  var url = 'https://wa.me/'+phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(text);
-  window.open(url,'_blank');
-  if(btn){ btn.innerHTML='<i class="ti ti-check"></i>Abierto'; btn.classList.remove('btn-green'); btn.classList.add('btn-outline'); btn.disabled=true; }
+  try{
+    await enqueueWhatsAppMessage(phone, 'Hola '+(name||'')+',\n'+text);
+    if(btn){ btn.innerHTML='<i class="ti ti-check"></i>Encolado'; btn.classList.remove('btn-green'); btn.classList.add('btn-outline'); btn.disabled=true; }
+    showToast('Encolado para '+(name||phone));
+  }catch(e){
+    showToast('Error '+(name||phone)+': '+(e.message||e),'err');
+  }
 }
 
 async function sendBroadcastAll(){
   var text = document.getElementById('bc-text').value.trim();
   if(!text){ showToast('Escribí el mensaje primero','err'); return; }
   var btns = document.querySelectorAll('.bc-send-btn');
+  if(btns.length > 25 && !confirm('Vas a encolar '+btns.length+' mensajes. ¿Continuar?')) return;
+  var ok = 0, fail = 0;
   for(var i=0;i<btns.length;i++){
-    sendBroadcastTo(btns[i].dataset.phone, btns[i].dataset.name, btns[i]);
-    await new Promise(function(res){ setTimeout(res, 600); });
+    try{
+      await sendBroadcastTo(btns[i].dataset.phone, btns[i].dataset.name, btns[i]);
+      ok++;
+    }catch(e){ fail++; }
+    await new Promise(function(res){ setTimeout(res, 200); });
   }
-  await logAction('Envió comunicado general por WhatsApp', text.substring(0,80));
+  await logAction('Encoló comunicado general WA', text.substring(0,80)+' · ok='+ok+' fail='+fail);
+  showToast('Comunicado: '+ok+' encolados'+(fail?(' · '+fail+' fallidos'):''));
 }
 
 
@@ -6364,15 +6464,17 @@ function getActiveClassFor(sid){
   return Object.values(ATTENDANCE).find(function(a){ return a.studentId===sid && a.status==='in-progress'; });
 }
 
-async function startClass(sid){
+async function startClass(sid, eventId){
   var s = DB[sid]; if(!s) return;
   if(getActiveClassFor(sid)){ showToast('Ya hay una clase en curso para este estudiante','err'); return; }
   var id = 'ATT-'+Date.now();
+  var today = crTodayYmd();
   var rec = {
     id, studentId: sid, studentName:(s.info&&s.info.name)||'', trainer: SESSION.name,
-    date: new Date().toISOString().split('T')[0],
+    date: today,
     startTime: new Date().toISOString(), endTime: null, status:'in-progress',
-    studentPortalAccess: !!PORTAL_ACCESS['PORTALACCESS-'+sid+'_'+new Date().toISOString().split('T')[0]]
+    eventId: eventId || null,
+    studentPortalAccess: !!PORTAL_ACCESS['PORTALACCESS-'+sid+'_'+today]
   };
   ATTENDANCE[id]=rec;
   await dbSet('infinity_sessions', id, rec);
@@ -6410,12 +6512,33 @@ function renderAttendanceButtons(sid){
 }
 
 // ── VISTA DE ASISTENCIA / REPORTE ─────────────────────────
+function eventsForDay(ymd){
+  return Object.keys(CALENDAR_EVENTS).map(function(k){ return Object.assign({_id:k}, CALENDAR_EVENTS[k]); })
+    .filter(function(e){ return e && e.date===ymd; })
+    .sort(function(a,b){ return String(a.time||'').localeCompare(String(b.time||'')); });
+}
+
 function renderAttendanceView(m){
+  var today = crTodayYmd();
+  var todays = eventsForDay(today);
+  if(!hasMasterAccess()) todays = todays.filter(function(e){ return e.trainer===SESSION.name; });
+
   var all = Object.values(ATTENDANCE).sort(function(a,b){ return new Date(b.startTime)-new Date(a.startTime); });
   if(!hasMasterAccess()) all = all.filter(function(a){ return a.trainer===SESSION.name; });
 
-  var rows = all.map(function(a){
+  var dayRows = todays.map(function(e){
+    var sid = e.studentId || '';
+    var active = sid && getActiveClassFor(sid);
+    var attBtn = !sid ? '—'
+      : (active
+        ? '<button data-sid="'+sid+'" class="btn btn-red btn-sm" onclick="endClass(this.dataset.sid)"><i class="ti ti-player-stop"></i>Finalizar</button>'
+        : '<button data-sid="'+sid+'" data-eid="'+(e._id||e.id||'')+'" class="btn btn-green btn-sm" onclick="startClass(this.dataset.sid,this.dataset.eid)"><i class="ti ti-player-play"></i>Iniciar</button>');
+    return '<tr><td>'+(e.time||'—')+'</td><td><strong>'+(e.studentName||e.title||'—')+'</strong></td><td>'+(e.trainer||'—')+'</td><td>'+(e.type||'session')+'</td><td>'+attBtn+'</td></tr>';
+  }).join('');
+
+  var rows = all.slice(0,80).map(function(a){
     return '<tr><td>'+fmtDate(a.date)+'</td><td><strong>'+a.studentName+'</strong></td><td>'+a.trainer+'</td>'
+      +'<td>'+(a.eventId?'<span class="badge" style="background:var(--nl);color:var(--nd);">'+a.eventId+'</span>':'—')+'</td>'
       +'<td>'+(a.startTime?new Date(a.startTime).toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'
       +'<td>'+(a.endTime?new Date(a.endTime).toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'
       +'<td>'+(a.durationMin!=null?a.durationMin+' min':'<span class="badge" style="background:var(--gb);color:var(--gm);">En curso</span>')+'</td>'
@@ -6425,45 +6548,76 @@ function renderAttendanceView(m){
 
   m.innerHTML = '<div class="fade">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-clipboard-check"></i> Asistencia'+(hasMasterAccess()?'':' — Mis clases')+'</h2>'
-    +'<div class="ib ib-navy">Cada clase se marca desde el perfil del estudiante ("Iniciar clase" / "Finalizar clase"). La columna "Acceso portal" indica si el estudiante entró a su Training Book ese día.</div>'
-    +'<div class="card">'
-    +(all.length ? '<table class="tbl"><thead><tr><th>Fecha</th><th>Estudiante</th><th>Trainer</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Acceso portal</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-calendar"></i>Citas de hoy ('+today+')</div>'
+    +(todays.length ? '<table class="tbl"><thead><tr><th>Hora</th><th>Estudiante</th><th>Trainer</th><th>Tipo</th><th>Clase</th></tr></thead><tbody>'+dayRows+'</tbody></table>'
+      : '<div style="font-size:13px;color:var(--t3);padding:0.75rem 0;">Sin EVT-* para hoy.</div>')
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-history"></i>Historial ATT</div>'
+    +(all.length ? '<table class="tbl"><thead><tr><th>Fecha</th><th>Estudiante</th><th>Trainer</th><th>EVT</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Portal</th></tr></thead><tbody>'+rows+'</tbody></table>'
       : '<div style="font-size:13px;color:var(--t3);text-align:center;padding:1rem 0;">Sin registros de asistencia todavía.</div>')
     +'</div></div>';
 }
 
 // ── PANEL SUPER ADMIN — operación en vivo ─────────────────
-function renderOpsOverview(m){
+async function renderOpsOverview(m){
   if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>'; return; }
 
-  var today = new Date().toISOString().split('T')[0];
-  var trainers = Object.values(TRAINERS).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+  var today = crTodayYmd();
+  var todays = eventsForDay(today);
+  var late = allStudents().filter(function(s){ return isPaymentAttention(s.info||{}); });
+  var leads = Object.keys(WA_LEADS||{}).map(function(k){ return Object.assign({_id:k}, WA_LEADS[k]); })
+    .filter(function(l){ return l && l.status==='needs_human'; })
+    .sort(function(a,b){ return String(b.at||'').localeCompare(String(a.at||'')); });
 
-  var rows = trainers.map(function(u){
-    var myStudents = allStudents().filter(function(s){ return ((s.info&&s.info.trainer)||'').trim().toLowerCase()===(u.name||'').trim().toLowerCase(); });
-    var withTracker = myStudents.filter(function(s){ return s.kpiTracker&&s.kpiTracker.length; });
-    var avgOverall = withTracker.length ? Math.round(withTracker.reduce(function(a,s){ return a+s.kpiTracker[s.kpiTracker.length-1].overall; },0)/withTracker.length) : null;
-    var classesToday = Object.values(ATTENDANCE).filter(function(a){ return a.trainer===u.name && a.date===today; });
-    var inProgress = classesToday.filter(function(a){ return a.status==='in-progress'; }).length;
-    var completed = classesToday.filter(function(a){ return a.status==='completed'; }).length;
-
-    return '<tr>'
-      +'<td><strong>'+u.name+'</strong><div style="font-size:11px;color:var(--t3);">'+roleLabel(u.role)+'</div></td>'
-      +'<td><span class="badge" style="background:var(--nl);color:var(--nd);">'+myStudents.length+'</span></td>'
-      +'<td>'+(avgOverall!==null?(avgOverall+'/100'):'—')+'</td>'
-      +'<td>'+(inProgress?'<span class="badge" style="background:var(--gb);color:var(--gm);">'+inProgress+' en curso</span>':'')+(completed?' <span class="badge" style="background:var(--nl);color:var(--nd);">'+completed+' hoy</span>':(inProgress?'':'<span style="color:var(--t3);">—</span>'))+'</td>'
-      +'<td><button data-name="'+u.name+'" class="btn btn-outline btn-sm" onclick="toggleOpsTrainerDetail(this.dataset.name)"><i class="ti ti-eye"></i>Ver estudiantes</button></td>'
-      +'</tr>'
-      +'<tr id="ops-detail-'+u.id+'" style="display:none;"><td colspan="5">'+renderOpsTrainerDetail(myStudents)+'</td></tr>';
-  }).join('');
-
-  var activeClasses = Object.values(ATTENDANCE).filter(function(a){ return a.status==='in-progress'; });
-
+  var outboxHtml = '<div style="font-size:13px;color:var(--t3);">Cargando cola…</div>';
   m.innerHTML = '<div class="fade">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-activity"></i> Operación en vivo</h2>'
-    +(activeClasses.length ? '<div class="ib ib-navy"><strong><i class="ti ti-player-play"></i> Clases en curso ahora:</strong> '+activeClasses.map(function(a){return a.studentName+' con '+a.trainer;}).join(' · ')+'</div>' : '<div class="ib ib-navy">No hay clases en curso en este momento.</div>')
-    +'<div class="card"><table class="tbl"><thead><tr><th>Trainer</th><th>Estudiantes</th><th>Score KPI promedio</th><th>Clases hoy</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'
-    +'</div>';
+    +'<div class="grid4" style="margin-bottom:1rem;">'
+    +'<div class="stat"><div class="stat-label">Citas hoy</div><div class="stat-val">'+todays.length+'</div></div>'
+    +'<div class="stat"><div class="stat-label">Cobros a revisar</div><div class="stat-val" style="color:var(--rm);">'+late.length+'</div></div>'
+    +'<div class="stat"><div class="stat-label">WA leads humano</div><div class="stat-val" style="color:var(--amber);">'+leads.length+'</div></div>'
+    +'<div class="stat"><div class="stat-label">Clases en curso</div><div class="stat-val">'+Object.values(ATTENDANCE).filter(function(a){return a.status==='in-progress';}).length+'</div></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-calendar"></i>Agenda de hoy</div>'
+    +(todays.length ? '<table class="tbl"><thead><tr><th>Hora</th><th>Estudiante</th><th>Trainer</th><th></th></tr></thead><tbody>'
+      +todays.map(function(e){
+        return '<tr><td>'+(e.time||'—')+'</td><td>'+(e.studentName||e.title||'—')+'</td><td>'+(e.trainer||'—')+'</td>'
+          +'<td>'+(e.studentId?'<button class="btn btn-outline btn-sm" data-sid="'+e.studentId+'" onclick="openStudent(this.dataset.sid)">Abrir</button>':'')+'</td></tr>';
+      }).join('')+'</tbody></table>' : '<div style="font-size:13px;color:var(--t3);">Sin citas hoy.</div>')
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-cash"></i>Cobros — one-click remind</div>'
+    +(late.length ? '<table class="tbl"><thead><tr><th>Estudiante</th><th>Estado</th><th>Vence</th><th></th></tr></thead><tbody>'
+      +late.map(function(st){
+        return '<tr><td>'+((st.info&&st.info.name)||st.id)+'</td><td>'+paymentFlagBadgeHtml(st.info||{})+'</td><td>'+(st.info&&st.info.nextDue?fmtDate(st.info.nextDue):'—')+'</td>'
+          +'<td style="display:flex;gap:4px;">'+paymentWaReminderBtnForStudent(st.id)+'</td></tr>';
+      }).join('')+'</tbody></table>' : '<div class="ib ib-green">Nadie en late/overdue/pending por ahora.</div>')
+    +'</div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-brand-whatsapp"></i>Cola WA (outbox)</div><div id="ops-outbox">'+outboxHtml+'</div>'
+    +'<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="refreshOpsOutbox()"><i class="ti ti-refresh"></i>Actualizar cola</button></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-user-exclamation"></i>Leads WA (pidieron agente)</div>'
+    +(leads.length ? '<table class="tbl"><thead><tr><th>Tel</th><th>Nombre</th><th>Último texto</th><th>Cuándo</th></tr></thead><tbody>'
+      +leads.map(function(l){
+        return '<tr><td>'+(l.phone||'—')+'</td><td>'+(l.studentName||'—')+'</td><td style="font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;">'+(l.lastText||'—')+'</td><td>'+(l.at?fmtDate(l.at):'—')+'</td></tr>';
+      }).join('')+'</tbody></table>' : '<div style="font-size:13px;color:var(--t3);">Sin WA-LEAD-* pendientes.</div>')
+    +'</div></div>';
+
+  refreshOpsOutbox();
+}
+
+async function refreshOpsOutbox(){
+  var el = document.getElementById('ops-outbox');
+  if(!el) return;
+  try{
+    var data = await waOpsFetch('/billing/wa-outbox', { method: 'GET' });
+    var items = (data && data.items) || [];
+    if(!items.length){ el.innerHTML = '<div style="font-size:13px;color:var(--t3);">Cola vacía.</div>'; return; }
+    el.innerHTML = '<table class="tbl"><thead><tr><th>Tel</th><th>Mensaje</th><th>Estado</th></tr></thead><tbody>'
+      + items.slice(0,30).map(function(it){
+          return '<tr><td>'+(it.phone||'—')+'</td><td style="font-size:12px;max-width:320px;white-space:pre-wrap;">'+String(it.message||'').slice(0,160)+'</td><td>'+(it.status||'pending')+'</td></tr>';
+        }).join('')+'</tbody></table>';
+  }catch(e){
+    el.innerHTML = '<div class="ib ib-amber">No pude leer la cola ('+(e.message||e)+'). Revisá WA_BRIDGE_SECRET y que Render tenga el endpoint.</div>';
+  }
 }
 
 function toggleOpsTrainerDetail(name){
@@ -6888,192 +7042,9 @@ function sendVisualReportWA(sid){
   showShareModal('Reporte de Progreso', lines.join('\n'), ((s.info&&s.info.phone)||''));
 }
 
-// ── NETWORK TRAFFIC ───────────────────────────────────────
-var _netInterval = null;
-var _netData = {
-  pageviews: [], claireClicks: [], uploads: [], imports: [],
-  history: { labels:[], pv:[], cv:[], nx:[], alice:[] }
-};
-
+// ── NETWORK TRAFFIC (removed — fake metrics) ──
 async function renderNetworkTraffic(m){
-  if(!hasMasterAccess()){ m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer.</div></div>'; return; }
-  if(_netInterval) clearInterval(_netInterval);
-
-  m.innerHTML = '<div class="fade">'
-    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem;"><i class="ti ti-radar"></i> Network Traffic · Tiempo Real</h2>'
-    +'<div class="ib ib-navy">Tráfico en vivo al sitio, interacciones con Claire y actividad de importaciones. Se actualiza cada 5 segundos.</div>'
-
-    // ── KPI Cards ──
-    +'<div class="grid4" style="margin-bottom:1rem;">'
-    +'<div class="stat"><div class="stat-label"><i class="ti ti-eye"></i> Page Views (sesión)</div><div class="stat-val" id="nt-pv" style="color:var(--gold);">—</div><div class="stat-sub" id="nt-pv-sub">Cargando...</div></div>'
-    +'<div class="stat"><div class="stat-label"><i class="ti ti-message-chatbot"></i> Clicks a Claire</div><div class="stat-val" id="nt-cv" style="color:#7C3AED;">—</div><div class="stat-sub" id="nt-cv-sub">—</div></div>'
-    +'<div class="stat"><div class="stat-label"><i class="ti ti-cloud-upload"></i> KB Subidos</div><div class="stat-val" id="nt-kb" style="color:var(--gm);">—</div><div class="stat-sub" id="nt-kb-sub">—</div></div>'
-    +'<div class="stat"><div class="stat-label"><i class="ti ti-table-import"></i> Excel Imports</div><div class="stat-val" id="nt-xl" style="color:var(--amber);">—</div><div class="stat-sub" id="nt-xl-sub">—</div></div>'
-    +'</div>'
-
-    // ── Chart tráfico ──
-    +'<div class="card"><div class="card-title"><i class="ti ti-chart-line"></i>Tráfico — últimas 12 lecturas</div>'
-    +'<div class="chart-wrap"><canvas id="nt-chart"></canvas></div></div>'
-
-    // ── Log reciente ──
-    +'<div class="card"><div class="card-title"><i class="ti ti-list"></i>Actividad reciente</div>'
-    +'<div id="nt-log" style="max-height:260px;overflow-y:auto;font-size:12px;"></div></div>'
-
-    // ── Uploads ──
-    +'<div class="grid2">'
-    +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Archivos subidos (sesión)</div><div id="nt-uploads-list" style="font-size:12px;color:var(--t2);">—</div></div>'
-    +'<div class="card"><div class="card-title"><i class="ti ti-table-import"></i>Excel imports (sesión)</div><div id="nt-imports-list" style="font-size:12px;color:var(--t2);">—</div></div>'
-    +'</div>'
-    +'</div>';
-
-  // Inicializar Chart.js
-  var ctx = document.getElementById('nt-chart').getContext('2d');
-  var ntChart = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:[],
-      datasets:[
-        {label:'Page Views',data:[],borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,0.12)',tension:0.4,fill:true,pointRadius:3},
-        {label:'Clicks Claire',data:[],borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:false,pointRadius:3},
-        {label:'Nexora demo usage',data:[],borderColor:'#0F6E56',backgroundColor:'rgba(15,110,86,0.08)',tension:0.4,fill:false,pointRadius:3},
-        {label:'Alice usage',data:[],borderColor:'#A32D2D',backgroundColor:'rgba(163,45,45,0.08)',tension:0.4,fill:false,pointRadius:3}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}
-    }
-  });
-
-  async function fetchNetworkData(){
-    try{
-      // Intentar endpoint del servidor
-      var r = await fetch('https://alice-by-infinity.onrender.com/network-stats?secret='+encodeURIComponent(ANALYZE_SECRET||''));
-      if(r.ok){
-        var d = await r.json();
-        updateNetUI(d);
-        pushChartPoint(ntChart, d);
-        return;
-      }
-    }catch(e){}
-    // Fallback: audit log en memoria + solo filas TRACK (no toda infinity_sessions)
-    try{
-      var rows = await dbQuery('infinity_sessions?select=id,data&id=like.TRACK-*');
-      var ts = Date.now();
-      // Contar eventos de hoy desde audit log
-      var today = new Date().toDateString();
-      var todayRows = AUDIT_LOG.filter(function(e){ return new Date(e.ts).toDateString()===today; });
-      var claireRows = todayRows.filter(function(e){ return (e.action||'').toLowerCase().indexOf('claire')>=0; });
-      var uploadRows = todayRows.filter(function(e){ return (e.action||'').toLowerCase().indexOf('upload')>=0||(e.action||'').toLowerCase().indexOf('subió')>=0; });
-      var importRows = todayRows.filter(function(e){ return (e.action||'').toLowerCase().indexOf('import')>=0||e.action==='Excel import'; });
-
-      // Page views estimados: entradas de login de hoy
-      var loginRows = todayRows.filter(function(e){ return (e.action||'').indexOf('sesión')>=0; });
-
-      var nxDemo = 0, aliceDemo = 0;
-      rows.forEach(function(r){
-        if(!r.id || r.id.indexOf('TRACK-')!==0 || !r.data) return;
-        (r.data.events||[]).forEach(function(e){
-          var ev = String(e.event||'').toLowerCase();
-          if(ev.indexOf('nexora')>=0) nxDemo++;
-          if(ev.indexOf('alice')>=0 && ev.indexOf('claire')<0) aliceDemo++;
-        });
-      });
-
-      var d = {
-        pageviews: { today: loginRows.length * 4 + Math.floor(Math.random()*3), live: Math.floor(Math.random()*6)+1 },
-        claire: { total_opened: claireRows.length + (window._claireClickCount||0), last_click: claireRows.length?claireRows[claireRows.length-1].ts:null },
-        nexora_demo: { today: nxDemo, live: nxDemo },
-        alice_demo: { today: aliceDemo, live: aliceDemo },
-        uploads: { total_kb: uploadRows.reduce(function(a){ return a + Math.random()*200+50; },0)|0, count: uploadRows.length, items: uploadRows.slice(-5).map(function(e){ return {name:(e.details||'archivo'), kb:Math.floor(Math.random()*300+50), ts:e.ts}; }) },
-        imports: { count: importRows.length, items: importRows.slice(-5).map(function(e){ return {name:(e.details||'import.xlsx'), rows:Math.floor(Math.random()*50+5), ts:e.ts}; }) },
-        _fallback: true
-      };
-      updateNetUI(d);
-      pushChartPoint(ntChart, d);
-    }catch(err2){
-      document.getElementById('nt-pv').textContent='ERR';
-    }
-  }
-
-  function netMetricVal(block){
-    if(!block) return 0;
-    if(block.live!=null) return block.live;
-    if(block.today!=null) return block.today;
-    if(block.total_sessions!=null) return block.total_sessions;
-    if(block.total_opened!=null) return block.total_opened;
-    if(block.total!=null) return block.total;
-    return 0;
-  }
-
-  function pushChartPoint(chart, d){
-    var now = new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if(_netData.history.labels.length>=12){
-      _netData.history.labels.shift();
-      _netData.history.pv.shift();
-      _netData.history.cv.shift();
-      _netData.history.nx.shift();
-      _netData.history.alice.shift();
-    }
-    _netData.history.labels.push(now);
-    _netData.history.pv.push(netMetricVal(d.pageviews));
-    _netData.history.cv.push(netMetricVal(d.claire));
-    _netData.history.nx.push(netMetricVal(d.nexora_demo || d.nexora));
-    _netData.history.alice.push(netMetricVal(d.alice_demo || d.alice));
-    chart.data.labels = _netData.history.labels.slice();
-    chart.data.datasets[0].data = _netData.history.pv.slice();
-    chart.data.datasets[1].data = _netData.history.cv.slice();
-    chart.data.datasets[2].data = _netData.history.nx.slice();
-    chart.data.datasets[3].data = _netData.history.alice.slice();
-    chart.update('none');
-  }
-
-  function updateNetUI(d){
-    // Page views
-    var pvEl=document.getElementById('nt-pv'); if(pvEl){ pvEl.textContent=(d.pageviews&&d.pageviews.today!=null)?d.pageviews.today:'—'; }
-    var pvSub=document.getElementById('nt-pv-sub'); if(pvSub){ pvSub.textContent='En vivo ahora: '+(d.pageviews?d.pageviews.live||0:'?')+(d._fallback?' (estimado)':''); }
-    // Claire
-    var cvEl=document.getElementById('nt-cv'); if(cvEl){ cvEl.textContent=(d.claire&&d.claire.total_opened!=null)?d.claire.total_opened:'—'; }
-    var cvSub=document.getElementById('nt-cv-sub'); if(cvSub){ cvSub.textContent=d.claire&&d.claire.last_click?('Último: '+new Date(d.claire.last_click).toLocaleTimeString('es-CR')):'Sin clicks hoy'; }
-    // KB
-    var kbEl=document.getElementById('nt-kb'); if(kbEl){ var kb=d.uploads?d.uploads.total_kb||0:0; kbEl.textContent=kb>=1024?(kb/1024).toFixed(1)+' MB':kb+' KB'; }
-    var kbSub=document.getElementById('nt-kb-sub'); if(kbSub){ kbSub.textContent=(d.uploads?d.uploads.count||0:0)+' archivos subidos'; }
-    // Excel imports
-    var xlEl=document.getElementById('nt-xl'); if(xlEl){ xlEl.textContent=(d.imports?d.imports.count||0:0); }
-    var xlSub=document.getElementById('nt-xl-sub'); if(xlSub){ xlSub.textContent=d.imports&&d.imports.count?'Última importación: '+(d.imports.items&&d.imports.items.length?new Date(d.imports.items[d.imports.items.length-1].ts).toLocaleTimeString('es-CR'):'—'):'Sin imports hoy'; }
-
-    // Log
-    var logEl=document.getElementById('nt-log');
-    if(logEl){
-      var entries = [];
-      if(d.claire&&d.claire.last_click) entries.push({ts:d.claire.last_click,msg:'<i class="ti ti-message-chatbot" style="color:#7C3AED;"></i> Claire abierta por visitante'});
-      if(d.uploads&&d.uploads.items) d.uploads.items.forEach(function(u){ entries.push({ts:u.ts,msg:'<i class="ti ti-cloud-upload" style="color:var(--gm);"></i> Upload: '+u.name+' ('+u.kb+' KB)'}); });
-      if(d.imports&&d.imports.items) d.imports.items.forEach(function(i){ entries.push({ts:i.ts,msg:'<i class="ti ti-table-import" style="color:var(--amber);"></i> Excel import: '+i.name+' — '+i.rows+' filas'}); });
-      entries.sort(function(a,b){ return new Date(b.ts)-new Date(a.ts); });
-      if(!entries.length){ logEl.innerHTML='<div style="color:var(--t3);padding:8px;">Sin actividad registrada hoy.</div>'; }
-      else logEl.innerHTML = entries.map(function(e){ return '<div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;"><span style="white-space:nowrap;color:var(--t3);min-width:60px;">'+new Date(e.ts).toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'})+'</span><span>'+e.msg+'</span></div>'; }).join('');
-    }
-    // Uploads list
-    var ul=document.getElementById('nt-uploads-list');
-    if(ul){ ul.innerHTML=d.uploads&&d.uploads.items&&d.uploads.items.length ? d.uploads.items.map(function(u){ return '<div style="padding:4px 0;border-bottom:1px solid var(--border);">'+u.name+' <span style="color:var(--t3);">'+u.kb+' KB · '+new Date(u.ts).toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'})+'</span></div>'; }).join('') : '<span style="color:var(--t3);">Sin archivos.</span>'; }
-    // Imports list
-    var il=document.getElementById('nt-imports-list');
-    if(il){ il.innerHTML=d.imports&&d.imports.items&&d.imports.items.length ? d.imports.items.map(function(i){ return '<div style="padding:4px 0;border-bottom:1px solid var(--border);">'+i.name+' <span style="color:var(--t3);">'+i.rows+' filas · '+new Date(i.ts).toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'})+'</span></div>'; }).join('') : '<span style="color:var(--t3);">Sin imports.</span>'; }
-  }
-
-  fetchNetworkData();
-  _netInterval = setInterval(fetchNetworkData, 15000);
-  // Limpiar intervalo si el usuario navega a otra sección
-  var origShowView = window._origShowView;
-  if(!origShowView){
-    window._origShowView = showView;
-    var _svRef = showView;
-    window.showView = function(v,b){
-      if(v!=='network' && _netInterval){ clearInterval(_netInterval); _netInterval=null; }
-      _svRef(v,b);
-    };
-  }
+  m.innerHTML = '<div class="fade"><div class="ib ib-amber">Network Traffic fue retirado (métricas no operativas).</div></div>';
 }
 
 // ── TOAST ─────────────────────────────────────────────────
@@ -7088,66 +7059,8 @@ function showToast(msg,type){
 <script>
 // ── DASHBOARD INTERNO ─────────────────────────────────────────
 async function renderDashboard_Admin(m){
-  m.innerHTML = '<div class="fade"><h2 style="font-size:16px;font-weight:700;margin-bottom:1rem;"><i class="ti ti-chart-dots" style="color:#7C3AED;"></i> Dashboard interno</h2>'
-    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1rem;" id="dash-stats">'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#7C3AED;" id="dash-server-status">...</div><div style="font-size:11px;color:var(--t3);">Servidor</div></div>'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#F5A623;" id="dash-eleven-remaining">...</div><div style="font-size:11px;color:var(--t3);">Créditos ElevenLabs</div></div>'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#1B9BD1;" id="dash-claire-opened">...</div><div style="font-size:11px;color:var(--t3);">Claire abierta</div></div>'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#5CB85C;" id="dash-conversions">...</div><div style="font-size:11px;color:var(--t3);">Conversiones Claire</div></div>'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#1B9BD1;" id="dash-students">...</div><div style="font-size:11px;color:var(--t3);">Estudiantes activos</div></div>'
-    + '<div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#7C3AED;" id="dash-alice">...</div><div style="font-size:11px;color:var(--t3);">Sesiones Alice</div></div>'
-    + '</div>'
-    + '<div class="card"><div class="card-title"><i class="ti ti-activity" style="color:#7C3AED;"></i>Estado del sistema</div>'
-    + '<div id="dash-detail" style="font-size:13px;color:var(--t2);">Cargando...</div>'
-    + '</div>'
-    + '<div style="text-align:right;margin-top:8px;"><button class="btn btn-outline btn-sm" id="dash-refresh-btn"><i class="ti ti-refresh"></i>Actualizar</button></div>'
-    + '</div>';
-
-  document.getElementById('dash-refresh-btn').onclick = function(){ renderDashboard_Admin(document.getElementById('main-content')); };
-  try {
-    const r = await fetch('https://alice-by-infinity.onrender.com/dashboard?secret='+encodeURIComponent(ANALYZE_SECRET||''));
-    if(!r.ok){ document.getElementById('dash-detail').textContent='Error conectando al servidor.'; return; }
-    const d = await r.json();
-
-    // Server
-    const sEl = document.getElementById('dash-server-status');
-    if(sEl){ sEl.textContent='✓ Online'; sEl.style.color='#5CB85C'; }
-
-    // ElevenLabs
-    const eEl = document.getElementById('dash-eleven-remaining');
-    if(eEl && d.elevenlabs){
-      eEl.textContent = d.elevenlabs.remaining?.toLocaleString() || '?';
-      if(d.elevenlabs.remaining < 5000) eEl.style.color='#A32D2D';
-    }
-
-    // Claire
-    const cEl = document.getElementById('dash-claire-opened');
-    if(cEl) cEl.textContent = d.claire?.total_opened || 0;
-    const cvEl = document.getElementById('dash-conversions');
-    if(cvEl) cvEl.textContent = (d.claire?.total_conversions||0)+' ('+( d.claire?.conversion_rate||'0%')+')';
-
-    // Students & Alice
-    const stEl = document.getElementById('dash-students');
-    if(stEl) stEl.textContent = d.students?.total || 0;
-    const aEl = document.getElementById('dash-alice');
-    if(aEl) aEl.textContent = d.alice?.total_sessions || 0;
-
-    // Detail
-    const det = document.getElementById('dash-detail');
-    if(det) det.innerHTML = 
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'
-      +'<div><strong>Servidor</strong><br>Uptime: '+( d.server?.uptime||'?')+'<br>Node: '+(d.server?.node||'?')+'</div>'
-      +'<div><strong>ElevenLabs</strong><br>Plan: '+(d.elevenlabs?.plan||'?')+'<br>Usados: '+(d.elevenlabs?.used?.toLocaleString()||'?')+' / '+(d.elevenlabs?.limit?.toLocaleString()||'?')+'</div>'
-      +'<div><strong>Claire</strong><br>Mensajes totales: '+(d.claire?.total_messages||0)+'<br>Tasa conversión: '+(d.claire?.conversion_rate||'0%')+'</div>'
-      +'<div><strong>Última actualización</strong><br>'+(d.timestamp?new Date(d.timestamp).toLocaleString('es-CR'):'?')+'</div>'
-      +'</div>';
-
-  } catch(e){
-    const det = document.getElementById('dash-detail');
-    if(det) det.textContent = 'Error: '+e.message;
-  }
+  m.innerHTML = '<div class="fade"><div class="ib ib-navy">Usá <strong>Overview</strong> y <strong>Operación en vivo</strong> para métricas reales de ops.</div></div>';
 }
-
 
 function previewNexora(s){
   if(!s.nexoraConfig){ showToast('Configura el escenario primero','err'); return; }
