@@ -43,7 +43,24 @@
     shadow:
       '<div class="inf-char inf-char-shadow" aria-hidden="true"><div class="hood"></div><div class="face dark"><i class="eye l"></i><i class="eye r"></i><i class="mouth flat"></i></div></div>',
     plane:
-      '<div class="inf-plane" aria-hidden="true"><div class="fuselage"></div><div class="wing"></div><div class="tail"></div><div class="prop"></div><div class="trail"></div></div>',
+      '<div class="inf-plane" aria-hidden="true">' +
+      '<svg class="inf-plane-svg" viewBox="0 0 160 72" width="148" height="66" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs>' +
+      '<linearGradient id="infFus" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#991B1B"/><stop offset="40%" stop-color="#EF4444"/><stop offset="100%" stop-color="#F5A623"/></linearGradient>' +
+      '<linearGradient id="infWing" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEF08A"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>' +
+      '<linearGradient id="infSmoke" x1="1" y1="0" x2="0" y2="0"><stop offset="0%" stop-color="#cbd5e1" stop-opacity=".95"/><stop offset="100%" stop-color="#64748b" stop-opacity="0"/></linearGradient>' +
+      '</defs>' +
+      '<g opacity=".7"><ellipse cx="16" cy="34" rx="18" ry="6" fill="url(#infSmoke)"/><ellipse cx="6" cy="40" rx="11" ry="4.5" fill="#64748b" opacity=".45"/></g>' +
+      '<path d="M44 20 L27 4 L36 22 Z" fill="#DC2626"/><path d="M44 50 L27 66 L36 48 Z" fill="#B91C1C"/>' +
+      '<rect x="34" y="27" width="16" height="16" rx="3" fill="#7F1D1D"/>' +
+      '<ellipse cx="90" cy="35" rx="48" ry="12" fill="url(#infFus)"/>' +
+      '<ellipse cx="112" cy="31" rx="11" ry="7.5" fill="#7F1D1D"/><ellipse cx="114" cy="30" rx="5.5" ry="4" fill="#67E8F9" opacity=".9"/>' +
+      '<rect x="58" y="16" width="56" height="8" rx="3" fill="url(#infWing)" transform="skewX(-10)"/>' +
+      '<rect x="62" y="44" width="50" height="7" rx="3" fill="#FBBF24" transform="skewX(-10)"/>' +
+      '<circle cx="78" cy="20" r="2.4" fill="#fff" opacity=".75"/><circle cx="92" cy="20" r="2.4" fill="#fff" opacity=".75"/>' +
+      '<g class="prop"><rect x="136" y="22" width="7" height="26" rx="3.5" fill="#F8FAFC"/><rect x="131" y="32" width="20" height="6" rx="2.5" fill="#E2E8F0"/></g>' +
+      '<path d="M50 28 L40 16 L46 34 L40 52 L50 42 Z" fill="#F5A623"/><circle cx="74" cy="35" r="3.2" fill="#FDE047" stroke="#B45309" stroke-width="1"/>' +
+      '</svg><i class="flame"></i></div>',
     queen:
       '<div class="inf-char inf-char-queen" aria-hidden="true"><div class="crown"></div><div class="hair gold"></div><div class="face"><i class="eye l"></i><i class="eye r"></i><i class="mouth smile"></i></div><div class="torso gold"></div></div>',
     asp:
@@ -157,7 +174,7 @@
     return MODE_THEME[(st && st.mode) || ''] || MODE_THEME.bosscall;
   }
 
-  var STYLE_VER = '20260812mod4';
+  var STYLE_VER = '20260812mod6';
 
   function ensureStyles() {
     var existing = document.getElementById('infinity-modern-games-styles');
@@ -176,10 +193,16 @@
     st.setAttribute('data-ver', STYLE_VER);
     st.textContent =
       /* Motion */
-      '@keyframes infPlaneFly{0%{transform:translate(0,8px) rotate(-6deg)}50%{transform:translate(12px,-6px) rotate(4deg)}100%{transform:translate(0,8px) rotate(-6deg)}}' +
-      '@keyframes infPlaneDash{0%{transform:translateX(-40%) translateY(10px) rotate(-8deg)}100%{transform:translateX(110%) translateY(-20px) rotate(6deg)}}' +
-      '@keyframes infBoom{0%{transform:scale(.4);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(1.6);opacity:0}}' +
-      '@keyframes infTargetPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.4)}50%{box-shadow:0 0 0 10px rgba(34,211,238,0)}}' +
+      '@keyframes infPlaneFly{0%{transform:translate(0,10px) rotate(-8deg)}50%{transform:translate(14px,-8px) rotate(5deg)}100%{transform:translate(0,10px) rotate(-8deg)}}' +
+      '@keyframes infPlaneDash{0%{transform:translateX(-30%) translateY(12px) rotate(-10deg) scale(1)}60%{transform:translateX(55%) translateY(-18px) rotate(8deg) scale(1.05)}100%{transform:translateX(120%) translateY(-28px) rotate(12deg) scale(.95);opacity:.15}}' +
+      '@keyframes infPropSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}' +
+      '@keyframes infFlame{0%,100%{opacity:.55;transform:scaleX(1)}50%{opacity:1;transform:scaleX(1.25)}}' +
+      '@keyframes infMissile{0%{transform:translateX(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateX(90px) scale(1);opacity:0}}' +
+      '@keyframes infBoom{0%{transform:scale(.3);opacity:0}35%{transform:scale(1.15);opacity:1}100%{transform:scale(1.9);opacity:0}}' +
+      '@keyframes infTargetPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,.45),0 8px 18px rgba(0,0,0,.35)}50%{box-shadow:0 0 0 12px rgba(56,189,248,0),0 8px 18px rgba(0,0,0,.35)}}' +
+      '@keyframes infCloudDrift{0%{transform:translateX(0)}100%{transform:translateX(-48px)}}' +
+      '@keyframes infSeaWave{0%{background-position:0 0}100%{background-position:120px 0}}' +
+      '@keyframes infCarrierBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}' +
       '@keyframes infCharBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}' +
       '@keyframes infCloud{0%{transform:translateX(0)}100%{transform:translateX(-40px)}}' +
       '@keyframes infSea{0%{background-position:0 0}100%{background-position:80px 0}}' +
@@ -209,7 +232,7 @@
       '.inf-mod-top strong{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:.06em;color:#F5A623}' +
       '.inf-mod-top button{border:1px solid rgba(245,166,35,.5);background:#1a0a3a;color:#F5A623;border-radius:10px;padding:7px 10px;font-weight:800;font-size:12px;cursor:pointer}' +
       '.inf-mod-stage{position:relative;min-height:220px;padding:14px;overflow:hidden}' +
-      '.inf-mod-stage.sky-flight{background:linear-gradient(180deg,#1e3a8a 0%,#0ea5e9 45%,#0369a1 70%,#0c4a6e 100%)}' +
+      '.inf-mod-stage.sky-flight{background:linear-gradient(180deg,#0B1B3A 0%,#1D4ED8 32%,#38BDF8 58%,#0369A1 78%,#0C4A6E 100%)}' +
       '.inf-mod-stage.sky-egypt{background:linear-gradient(180deg,#1a0a2e 0%,#7c2d12 35%,#b45309 55%,#f59e0b 78%,#fde68a 100%)}' +
       '.inf-mod-stage.sky-boss{background:linear-gradient(180deg,#1a0510,#3B0E8C 40%,#9f1239)}' +
       '.inf-mod-stage.sky-arena{background:linear-gradient(180deg,#0f0a1f,#1e1b4b 40%,#5B21B6 70%,#B45309)}' +
@@ -349,24 +372,33 @@
       '.inf-asp-char .asp-body{position:absolute;left:28px;top:40px;width:14px;display:flex;flex-direction:column;gap:2px}' +
       '.inf-asp-char .asp-body i{display:block;height:12px;border-radius:8px;background:linear-gradient(90deg,#F5A623,#78350f)}' +
       '.inf-asp-char .asp-body i:nth-child(2){margin-left:4px;width:16px}.inf-asp-char .asp-body i:nth-child(3){margin-left:8px;width:18px}' +
-      /* Plane */
-      '.inf-plane{position:relative;width:90px;height:40px;animation:infPlaneFly 2s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}' +
-      '.inf-plane .fuselage{position:absolute;left:10px;top:14px;width:58px;height:14px;border-radius:10px;background:linear-gradient(90deg,#EF4444,#F5A623)}' +
-      '.inf-plane .wing{position:absolute;left:28px;top:8px;width:36px;height:8px;border-radius:4px;background:#FDE047;transform:skewX(-12deg)}' +
-      '.inf-plane .tail{position:absolute;left:4px;top:6px;width:14px;height:18px;background:#DC2626;clip-path:polygon(100% 40%,0 0,0 100%)}' +
-      '.inf-plane .prop{position:absolute;right:0;top:12px;width:10px;height:18px;border-radius:4px;background:#F8FAFC}' +
-      '.inf-plane .trail{position:absolute;left:-28px;top:16px;width:30px;height:6px;border-radius:6px;background:linear-gradient(90deg,transparent,#94a3b8);opacity:.7}' +
+      /* Plane — polished SVG biplane */
+      '.inf-plane{position:relative;width:148px;height:66px;animation:infPlaneFly 2.2s ease-in-out infinite;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45));transform-origin:center}' +
+      '.inf-plane-svg{display:block;overflow:visible}' +
+      '.inf-plane .prop{transform-origin:143px 35px;animation:infPropSpin .18s linear infinite}' +
+      '.inf-plane .flame{position:absolute;left:2px;top:30px;width:22px;height:10px;border-radius:10px;background:linear-gradient(90deg,transparent,#F97316 30%,#FDE047);animation:infFlame .35s ease-in-out infinite;filter:blur(.4px)}' +
       '.inf-plane.is-dash{animation:infPlaneDash .55s ease-in forwards}' +
+      '.inf-plane.is-dash .flame{width:36px;opacity:1}' +
       /* Flight arena */
       '.inf-play-sky{position:relative;min-height:170px;border-radius:16px;overflow:hidden;margin-bottom:12px}' +
-      '.inf-flight-plane-wrap{position:absolute;left:8%;top:42%;z-index:3}' +
-      '.inf-flight-targets,.inf-egypt-targets{position:absolute;inset:12px 12px 36px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;justify-content:flex-end;z-index:2}' +
-      '.inf-flight-target,.inf-egypt-tablet{padding:10px 12px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(11,6,24,.55);color:#fff;font-weight:900;font-size:12px;cursor:pointer;animation:infTargetPulse 1.6s ease-in-out infinite}' +
-      '.inf-egypt-tablet{border-radius:10px;border-color:#F5A623;background:linear-gradient(180deg,#78350f,#451a03);box-shadow:inset 0 0 0 1px rgba(253,224,71,.35)}' +
-      '.inf-flight-target:hover,.inf-egypt-tablet:hover{border-color:#FDE047;filter:brightness(1.1)}' +
-      '.inf-flight-boom,.inf-egypt-sandburst{position:absolute;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#FDE047,#F97316,transparent 70%);pointer-events:none;animation:infBoom .5s ease-out forwards;z-index:4}' +
-      '.inf-egypt-sandburst{background:radial-gradient(circle,#FDE047,#b45309,transparent 70%)}' +
-      '.inf-play-idea{position:relative;z-index:2;margin-top:8px;padding:10px;border-radius:12px;background:rgba(11,6,24,.7);border:1px solid rgba(245,166,35,.35);font-size:13px;font-weight:700}' +
+      '.inf-play-sky.flight-arena{min-height:220px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg,#0B1B3A 0%,#1D4ED8 34%,#38BDF8 58%,#0284C7 76%,#0C4A6E 100%);box-shadow:inset 0 -30px 40px rgba(2,8,23,.35)}' +
+      '.inf-flight-clouds{position:absolute;inset:0;pointer-events:none;opacity:.72;background:radial-gradient(48px 20px at 18% 22%,rgba(255,255,255,.85),transparent),radial-gradient(60px 24px at 62% 16%,rgba(255,255,255,.7),transparent),radial-gradient(40px 18px at 86% 28%,rgba(255,255,255,.55),transparent),radial-gradient(36px 16px at 40% 30%,rgba(255,255,255,.4),transparent);animation:infCloudDrift 14s linear infinite}' +
+      '.inf-flight-sun{position:absolute;right:12%;top:10%;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle,#FEF08A,#F59E0B 60%,transparent 72%);box-shadow:0 0 30px rgba(245,158,11,.55);animation:infSunPulse 3s ease-in-out infinite}' +
+      '.inf-flight-sea{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,rgba(14,165,233,.25),#0c4a6e 55%,#082f49);background-size:120px 100%;animation:infSeaWave 5s linear infinite}' +
+      '.inf-flight-sea:after{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(255,255,255,.18) 10px,rgba(255,255,255,.18) 14px);opacity:.5}' +
+      '.inf-flight-carrier{position:absolute;left:50%;bottom:8%;width:120px;height:28px;margin-left:-60px;animation:infCarrierBob 3.5s ease-in-out infinite;z-index:1}' +
+      '.inf-flight-carrier:before{content:"";position:absolute;left:8px;right:8px;bottom:0;height:10px;border-radius:4px;background:linear-gradient(180deg,#64748b,#334155)}' +
+      '.inf-flight-carrier:after{content:"";position:absolute;left:28px;bottom:8px;width:64px;height:14px;background:#475569;clip-path:polygon(0 100%,8% 0,92% 0,100% 100%)}' +
+      '.inf-flight-plane-wrap{position:absolute;left:6%;top:46%;z-index:5}' +
+      '.inf-flight-targets,.inf-egypt-targets{position:absolute;inset:14px 10px 56px;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;justify-content:flex-end;z-index:4}' +
+      '.inf-flight-target{padding:11px 14px;border-radius:999px;border:2px solid rgba(125,211,252,.85);background:linear-gradient(180deg,rgba(15,23,42,.82),rgba(30,58,138,.75));color:#F8FAFC;font-weight:900;font-size:13px;cursor:pointer;animation:infTargetPulse 1.7s ease-in-out infinite;backdrop-filter:blur(4px);text-shadow:0 1px 0 rgba(0,0,0,.4)}' +
+      '.inf-egypt-tablet{padding:10px 12px;border-radius:10px;border:2px solid #F5A623;background:linear-gradient(180deg,#78350f,#451a03);color:#fff;font-weight:900;font-size:12px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(253,224,71,.35);animation:infTargetPulse 1.6s ease-in-out infinite}' +
+      '.inf-flight-target:hover{border-color:#FDE047;background:linear-gradient(180deg,rgba(91,33,182,.75),rgba(30,58,138,.9));transform:translateY(-2px)}' +
+      '.inf-egypt-tablet:hover{border-color:#FDE047;filter:brightness(1.1)}' +
+      '.inf-flight-boom{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle,#FEF08A 0%,#FB923C 35%,#EF4444 55%,transparent 72%);pointer-events:none;animation:infBoom .55s ease-out forwards;z-index:6;filter:drop-shadow(0 0 10px rgba(251,146,60,.8))}' +
+      '.inf-flight-missile{position:absolute;width:28px;height:8px;border-radius:8px;background:linear-gradient(90deg,#F8FAFC,#F5A623,#EF4444);box-shadow:0 0 10px rgba(245,166,35,.8);animation:infMissile .45s ease-out forwards;z-index:6;pointer-events:none}' +
+      '.inf-egypt-sandburst{position:absolute;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#FDE047,#b45309,transparent 70%);pointer-events:none;animation:infBoom .5s ease-out forwards;z-index:4}' +
+      '.inf-play-idea{position:relative;z-index:2;margin-top:8px;padding:12px;border-radius:14px;background:rgba(11,6,24,.78);border:1px solid rgba(245,166,35,.4);font-size:13px;font-weight:700}' +
       '.inf-play-idea b{color:#F5A623}' +
       /* Live asp in egypt playfield */
       '.inf-asp-live{position:absolute;left:6%;bottom:28%;z-index:3;display:flex;align-items:center;gap:0;animation:infAspSlither 1.8s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}' +
@@ -405,7 +437,9 @@
     }
     if (sky === 'flight') {
       return (
-        '<div class="inf-fx" aria-hidden="true"><div class="inf-mod-clouds"></div><div class="inf-mod-sea"></div></div>'
+        '<div class="inf-fx" aria-hidden="true">' +
+        '<div class="inf-flight-sun"></div><div class="inf-flight-clouds"></div>' +
+        '<div class="inf-flight-sea"></div><div class="inf-flight-carrier"></div></div>'
       );
     }
     if (sky === 'boss') {
@@ -579,7 +613,7 @@
     ensureStyles();
     var p = chainProgress(st, q);
     return (
-      '<div class="inf-play-sky" style="background:linear-gradient(180deg,#1e3a8a,#0ea5e9 55%,#0c4a6e)">' +
+      '<div class="inf-play-sky flight-arena">' +
       stageFx('flight') +
       '<div class="inf-flight-plane-wrap" id="inf-flight-plane">' +
       CHARS.plane +
@@ -664,6 +698,7 @@
 
   global._infFlightShoot = function (optIdx) {
     applySnakePick(optIdx, function () {
+      var sky = document.querySelector('.inf-play-sky.flight-arena') || document.querySelector('.inf-play-sky');
       var plane = document.getElementById('inf-flight-plane');
       if (plane) {
         var p = plane.querySelector('.inf-plane');
@@ -673,16 +708,25 @@
           p.classList.add('is-dash');
         }
       }
-      var boom = document.createElement('div');
-      boom.className = 'inf-flight-boom';
-      boom.style.left = 55 + Math.random() * 30 + '%';
-      boom.style.top = 20 + Math.random() * 30 + '%';
-      var sky = document.querySelector('.inf-play-sky');
       if (sky) {
-        sky.appendChild(boom);
+        var missile = document.createElement('div');
+        missile.className = 'inf-flight-missile';
+        missile.style.left = '22%';
+        missile.style.top = '52%';
+        sky.appendChild(missile);
         setTimeout(function () {
-          if (boom.parentNode) boom.parentNode.removeChild(boom);
-        }, 500);
+          if (missile.parentNode) missile.parentNode.removeChild(missile);
+        }, 450);
+        var boom = document.createElement('div');
+        boom.className = 'inf-flight-boom';
+        boom.style.left = 55 + Math.random() * 28 + '%';
+        boom.style.top = 18 + Math.random() * 28 + '%';
+        setTimeout(function () {
+          sky.appendChild(boom);
+          setTimeout(function () {
+            if (boom.parentNode) boom.parentNode.removeChild(boom);
+          }, 550);
+        }, 180);
       }
     });
   };
