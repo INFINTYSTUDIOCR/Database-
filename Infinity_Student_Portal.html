@@ -1457,9 +1457,9 @@ function showPortal(s){
   var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
   var arcadeGate = studentGamesOn(s)
     ? '<div class="inf-arcade-stage" id="portal-arcade-stage">'
-      + '<div class="inf-arcade-kicker">INSERT COIN · SKILL TESTS</div>'
-      + '<button type="button" class="inf-arcade-enter" onclick="openInfinityArcadeLobby()"><i class="ti ti-device-gamepad-2"></i> Abrir Infinity Arcade</button>'
-      + '<div class="inf-arcade-note">Rapid Drill, Boss Call, STAR, Listen, Tone Police y más — LINK · IDEA · LINK.</div>'
+      + '<div class="inf-arcade-kicker">CASINO FLOOR · LINK · IDEA · LINK</div>'
+      + '<button type="button" class="inf-arcade-enter" onclick="openInfinityArcadeLobby()"><i class="ti ti-cards"></i> Abrir Infinity Casino</button>'
+      + '<div class="inf-arcade-note">Boss Call, STAR Arena, Speed Listen, Tone Police, Nemesis, Snake, Daily Boss y más — pantallas de inicio tipo casino.</div>'
       + '<div id="portal-quiz-container" style="display:none;"></div>'
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
@@ -1487,8 +1487,8 @@ function showPortal(s){
     +'</div>'
 
     +'<div class="inf-skill" style="background:linear-gradient(165deg,#EDE9FE,#fff);">'
-    +'<h3><i class="ti ti-device-gamepad-2"></i> Infinity Arcade</h3>'
-    +'<p class="inf-skill-lead">Hub de juegos a pantalla completa. Rapid Drill, Boss Call, STAR Arena, Speed Listen y Language Arcade — siempre con LINK · IDEA · LINK.</p>'
+    +'<h3><i class="ti ti-cards"></i> Infinity Casino</h3>'
+    +'<p class="inf-skill-lead">Casino virtual: pantallas de inicio animadas, juegos nuevos de performance y Language Arcade — siempre LINK · IDEA · LINK.</p>'
     + arcadeGate
     +'</div>';
 
@@ -2463,8 +2463,9 @@ function infinityArcadePickChallenge(){
 
 function infinityArcadeStartMode(mode){
   closeInfinityArcadeMonitor(true);
+  if(typeof closeInfinityCasinoTitle === 'function') closeInfinityCasinoTitle();
   var m = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES[mode]) ? ARCADE_MODES[mode] : null;
-  openInfinityArcadeFullscreen(m && m.title ? m.title : 'Language Arcade', 'Infinity Arcade');
+  openInfinityArcadeFullscreen(m && m.title ? m.title : 'Language Arcade', 'LINK · IDEA · LINK');
   startArcadeMode(mode, 'inf-arcade-fs-body');
 }
 
@@ -2507,7 +2508,9 @@ function closeInfinityArcadeFullscreen(){
   window._arcadeState = null;
   var body = document.getElementById('inf-arcade-fs-body');
   if(body) body.innerHTML = '';
-  if(window._infArcadeLobbyOpen){
+  if(typeof openInfinityCasinoFloor === 'function'){
+    openInfinityCasinoFloor();
+  } else if(window._infArcadeLobbyOpen){
     openInfinityArcadeMonitor();
   } else {
     openInfinityArcadeLobby();
@@ -2515,6 +2518,10 @@ function closeInfinityArcadeFullscreen(){
 }
 
 function infinityArcadeFsShowModes(){
+  if(typeof openInfinityCasinoFloor === 'function'){
+    closeInfinityArcadeFullscreen();
+    return;
+  }
   ensureInfinityArcadeFullscreen();
   openInfinityArcadeFullscreen('Language Arcade', 'Elegí un modo');
   var body = document.getElementById('inf-arcade-fs-body');
@@ -9075,6 +9082,7 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
-<script src="js/infinity-arcade-lil-games.js?v=20260812lil"></script>
+<script src="js/infinity-arcade-lil-games.js?v=20260812lil2"></script>
+<script src="js/infinity-casino-floor.js?v=20260812casino"></script>
 </body>
 </html>
