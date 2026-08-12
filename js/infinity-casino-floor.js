@@ -7,9 +7,8 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub7';
+  var VER = '20260812hub8';
 
-  /** Characters + table meta — CSS portraits via charKey (no emoji) */
   /** Solo Rapid Drill + Knight's Quest */
   var GAMES = [
     {
@@ -23,7 +22,7 @@
       diff: 3,
       art: 'knight',
       featured: true,
-      charKey: 'plane',
+      portrait: 'knight',
       char: {
         name: 'Teutonic Knight',
         role: 'Linker crusader',
@@ -42,13 +41,13 @@
       xp: '+30 XP',
       diff: 2,
       art: 'rapid',
-      charKey: 'shadow',
+      portrait: 'kaboom',
       char: {
         name: 'Kaboom',
         role: 'Rapid Jill',
         mood: 'Drill',
         line: '"Foundations fast. No fluff."',
-        color: '#FDA4AF'
+        color: '#FBBF24'
       }
     }
   ];
@@ -74,7 +73,43 @@
     return h + '</div>';
   }
 
+  function kaboomSvg() {
+    return (
+      '<svg class="hub-kaboom-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      '<defs>' +
+      '<radialGradient id="hubBoomCore" cx="50%" cy="45%" r="55%">' +
+      '<stop offset="0%" stop-color="#FEF08A"/><stop offset="55%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#B91C1C"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      '<polygon fill="#7F1D1D" points="100,8 122,48 168,28 148,72 192,92 148,112 168,158 122,138 100,182 78,138 32,158 52,112 8,92 52,72 32,28 78,48"/>' +
+      '<polygon fill="url(#hubBoomCore)" points="100,28 116,58 152,44 136,78 172,96 136,114 152,148 116,132 100,164 84,132 48,148 64,114 28,96 64,78 48,44 84,58"/>' +
+      '<circle cx="100" cy="96" r="34" fill="#111827"/>' +
+      '<ellipse cx="88" cy="84" rx="10" ry="7" fill="#fff" opacity=".35"/>' +
+      '<path d="M100 62 C108 48 118 40 128 34" fill="none" stroke="#92400E" stroke-width="6" stroke-linecap="round"/>' +
+      '<circle cx="132" cy="30" r="10" fill="#EF4444"/>' +
+      '<circle cx="132" cy="30" r="5" fill="#FDE047"/>' +
+      '<text x="100" y="188" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="28" font-weight="900" fill="#FACC15" stroke="#111" stroke-width="3" paint-order="stroke">KA-BOOM</text>' +
+      '<text x="168" y="168" font-family="Impact,Arial Black,sans-serif" font-size="36" font-weight="900" fill="#38BDF8" stroke="#111" stroke-width="3" paint-order="stroke">!</text>' +
+      '</svg>'
+    );
+  }
+
   function portraitHtml(g, wrapClass) {
+    var cls = wrapClass || 'hub-css-char';
+    var kind = (g && (g.portrait || g.kind || g.id)) || '';
+    if (kind === 'knight') {
+      return (
+        '<div class="' +
+        cls +
+        ' hub-portrait-knight">' +
+        '<img src="games/knights-quest/assets/hub-knight.png" alt="" class="hub-knight-img" ' +
+        'onerror="this.onerror=null;this.src=\'games/knights-quest/assets/icon.png\'">' +
+        '</div>'
+      );
+    }
+    if (kind === 'kaboom' || kind === 'rapid') {
+      return '<div class="' + cls + ' hub-portrait-kaboom">' + kaboomSvg() + '</div>';
+    }
     var key = (g && g.charKey) || 'lex';
     var inner =
       typeof infinityCharHtml === 'function'
@@ -82,7 +117,7 @@
         : '<div class="hub-char-fallback" style="--char-c:' +
           esc((g.char && g.char.color) || '#F5A623') +
           '"></div>';
-    return '<div class="' + (wrapClass || 'hub-css-char') + '">' + inner + '</div>';
+    return '<div class="' + cls + '">' + inner + '</div>';
   }
 
   function hudPills() {
@@ -109,7 +144,9 @@
   }
 
   function ensureStyles() {
-    if (document.getElementById('infinity-practice-hub-styles')) return;
+    var existing = document.getElementById('infinity-practice-hub-styles');
+    if (existing && existing.getAttribute('data-ver') === VER) return;
+    if (existing) existing.remove();
     if (!document.getElementById('infinity-hub-fonts')) {
       var link = document.createElement('link');
       link.id = 'infinity-hub-fonts';
@@ -120,6 +157,7 @@
     }
     var st = document.createElement('style');
     st.id = 'infinity-practice-hub-styles';
+    st.setAttribute('data-ver', VER);
     st.textContent =
       ':root{--inf-navy:#5B21B6;--inf-deep:#3B0E8C;--inf-gold:#F5A623;--inf-gold2:#FFD700;--inf-ink:#0B0618;--inf-surface:#140B28;--inf-text:#F8F5FF;--inf-mute:#B8A9D9;}' +
       '@keyframes hubFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}' +
@@ -145,6 +183,8 @@
       '.inf-hub-scroll{position:relative;z-index:2;flex:1;overflow:auto;padding:16px 16px max(20px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}' +
       '.inf-hub-mantra{text-align:center;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--inf-gold);margin:0 0 12px;opacity:.95}' +
       '.hub-featured{position:relative;border-radius:18px;overflow:hidden;margin-bottom:18px;height:min(200px,32vh);cursor:pointer;border:2px solid rgba(245,166,35,.45);box-shadow:0 12px 36px rgba(59,14,140,.45),0 0 0 1px rgba(255,255,255,.06);background:linear-gradient(125deg,#3B0E8C 0%,#5B21B6 40%,#7C3AED 70%,#B45309 100%);animation:hubPulse 2.8s ease-in-out infinite}' +
+      '.hub-featured.art-knight{background:linear-gradient(125deg,#1a0508 0%,#7f1d1d 35%,#ea580c 70%,#fbbf24 100%);border-color:rgba(251,191,36,.55)}' +
+      '.hub-featured.art-rapid{background:linear-gradient(125deg,#FFE8C8 0%,#FDBA74 40%,#9a3412 100%);border-color:rgba(251,191,36,.45)}' +
       '.hub-featured:active{transform:scale(.99)}' +
       '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none}' +
       '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);animation:hubShine 3.2s ease-in-out infinite}' +
@@ -165,6 +205,13 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
+      '.hub-portrait-knight,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}' +
+      '.hub-knight-img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));animation:hubCharBob 2.4s ease-in-out infinite}' +
+      '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:hubCharBob 2.2s ease-in-out infinite}' +
+      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-kaboom{inset:auto;right:4%;top:8%;width:42%;height:78%;transform:none}' +
+      '.hub-featured-char .hub-knight-img,.hub-featured-char .hub-kaboom-svg{width:100%;height:100%}' +
+      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:70%;height:70%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}' +
+      '.hub-title-char-css .hub-knight-img,.hub-title-char-css .hub-kaboom-svg{width:100%;height:100%;max-height:180px}' +
       '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
       '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
       '.hub-card-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;margin-bottom:3px}' +
@@ -193,7 +240,8 @@
       '.art-structure{background:linear-gradient(160deg,#1e1b4b,#5B21B6,#7C3AED)}' +
       '.art-linker{background:linear-gradient(160deg,#1e103a,#5B21B6,#6d28d9)}' +
       '.art-prep{background:linear-gradient(160deg,#2a1508,#9a3412,#5B21B6)}' +
-      '.art-rapid{background:linear-gradient(160deg,#3B0E8C,#9f1239,#F5A623)}' +
+      '.art-rapid{background:linear-gradient(165deg,#FFE8C8 0%,#FDBA74 35%,#7C2D12 78%,#1c0a08 100%)}' +
+      '.art-knight{background:linear-gradient(165deg,#1a0508 0%,#7f1d1d 40%,#ea580c 70%,#fbbf24 100%)}' +
       /* Title / character splash */
       '.inf-hub-title{position:fixed;inset:0;z-index:2406;display:none;align-items:stretch;justify-content:center;padding:0;box-sizing:border-box}' +
       '.inf-hub-title.is-open{display:flex}' +
@@ -264,7 +312,9 @@
       '<div class="inf-hub-mantra">' +
       MANTRA +
       ' · PARA EL PUEBLO</div>' +
-      '<div class="hub-featured" onclick="openInfinityCasinoTitle(\'' +
+      '<div class="hub-featured art-' +
+      (featured.art || '') +
+      '" onclick="openInfinityCasinoTitle(\'' +
       featured.id +
       '\')">' +
       '<div class="hub-featured-shine"></div>' +
