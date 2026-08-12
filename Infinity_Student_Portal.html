@@ -3921,6 +3921,14 @@ function arcadeFinishQuestion(correct, response){
   st.results.push({ kpi:q.kpi || 'k10', category:q.category, correct:!!correct, prompt:q.prompt || q.clue || '', answer:answerText, response:response || '' });
   var box = document.getElementById(st.containerId + '-result');
   if(!box) return;
+  if (arcadeModeIsModern(st.mode)) {
+    box.innerHTML = '<div style="margin-top:12px;border-radius:14px;padding:12px;border:1px solid '+(correct?'rgba(34,197,94,.4)':'rgba(239,68,68,.35)')+';background:'+(correct?'rgba(34,197,94,.15)':'rgba(239,68,68,.12)')+'">'
+      + '<div style="font-weight:900;margin-bottom:4px">'+(correct?'Impacto limpio':'Fallaste — rearmá')+'</div>'
+      + '<div style="font-size:13px;opacity:.9;margin-bottom:10px">'+arcadeEsc(q.explain || answerText || '')+'</div>'
+      + '<button type="button" onclick="arcadeNextQuestion()" style="padding:10px 16px;border:none;border-radius:12px;background:linear-gradient(135deg,#FFD700,#F5A623);color:#1a1200;font-weight:900;cursor:pointer">'+(st.idx+1<st.quiz.length?'SIGUIENTE':'RESULTADO')+'</button>'
+      + '</div>';
+    return;
+  }
   box.innerHTML = '<div class="arcade-hh-result '+(correct?'ok':'bad')+'">'
     + '<div style="font-size:18px;margin-bottom:4px;">'+(correct?'✓':'×')+'</div>'
     + '<div class="msg">'+(correct?'CORRECTO':'CORRECTA: '+arcadeEsc(answerText))+'</div>'
