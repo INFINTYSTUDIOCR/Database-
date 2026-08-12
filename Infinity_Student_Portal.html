@@ -2494,19 +2494,22 @@ function infinityArcadeFsShowModes(){
   openInfinityArcadeFullscreen('Language Arcade', 'Elegí un modo');
   var body = document.getElementById('inf-arcade-fs-body');
   if(!body) return;
+  ensureArcadePressureStyles();
   var modes = (typeof ARCADE_MODES !== 'undefined' && ARCADE_MODES) ? ARCADE_MODES : {};
   body.innerHTML =
-    '<div class="inf-arcade-fs-modes">'
+    arcadeHudHtml(CURRENT_STUDENT || {})
+    + '<div class="inf-arcade-fs-modes">'
     + Object.keys(modes).filter(function(k){ return k !== 'challenge'; }).map(function(key){
         var m = modes[key];
         return '<button type="button" class="inf-arcade-fs-mode-btn" onclick="infinityArcadeStartMode(\''+key+'\')">'
           + '<strong>'+(m.icon ? '<i class="ti '+m.icon+'"></i> ' : '')+(m.title || key)+'</strong>'
+          + '<span style="display:block;font-weight:800;margin:4px 0;opacity:.9;">'+(m.stars || '')+'</span>'
           + '<span>'+(m.desc || '')+'</span>'
           + '</button>';
       }).join('')
     + '</div>'
     + '<div style="margin-top:14px;text-align:center;">'
-    + '<button type="button" class="inf-arcade-fs-close" style="margin-right:8px;" onclick="infinityArcadeStartMode(\'challenge\')">⚡ Challenge Drill</button>'
+    + '<button type="button" class="inf-arcade-fs-close" style="margin-right:8px;" onclick="infinityArcadeStartMode(\'challenge\')">⚡ Challenge · ★★ Pressure</button>'
     + '<button type="button" class="inf-arcade-fs-close" onclick="closeInfinityArcadeFullscreen()">← Menú máquina</button>'
     + '</div>';
 }
@@ -2931,13 +2934,13 @@ function startPersonaTypingTest(personaKey, containerId){
 
 // ── INFINITY LANGUAGE ARCADE (reemplaza quiz estático) ─────
 var ARCADE_MODES = {
-  challenge: { title:'Challenge Drill', icon:'ti-bolt', desc:'Presión arcade: linkers + estructura + fallos. No es Kaboom.', category:'mixed', color:'#F59E0B' },
-  verb: { title:'Verb Hunt', icon:'ti-target-arrow', desc:'Descubrí verbos clave como word reveal.', category:'verb', color:'#0f766e' },
-  structure: { title:'Structure Creator', icon:'ti-blocks', desc:'Ordená bloques para formar la oración.', category:'structure', color:'#5b21b6' },
-  preposition: { title:'Preposition Challenge', icon:'ti-map-pin', desc:'in / on / at / by / to / for en contexto.', category:'preposition', color:'#b45309' },
-  linker: { title:'Linker Quest', icon:'ti-route', desc:'Elegí el conector lógico correcto.', category:'linker', color:'#6d28d9' },
-  phrasal: { title:'Phrasal Master', icon:'ti-puzzle', desc:'Phrasal verbs útiles para trabajo real.', category:'phrasal', color:'#1d4ed8' },
-  frenzy: { title:'Frenzy Mode', icon:'ti-flame', desc:'Mezcla todo y prioriza tus fallos.', category:'mixed', color:'#be123c' }
+  verb: { title:'Verb Hunt', icon:'ti-target-arrow', desc:'Word reveal de verbos operacionales.', category:'verb', color:'#0f766e', difficulty:1, stars:'★ Easy' },
+  structure: { title:'Structure Creator', icon:'ti-blocks', desc:'Armá oraciones reales de trabajo.', category:'structure', color:'#5b21b6', difficulty:1, stars:'★ Easy' },
+  preposition: { title:'Preposition Challenge', icon:'ti-map-pin', desc:'in / on / at / by / to / for bajo contexto.', category:'preposition', color:'#b45309', difficulty:1, stars:'★ Easy' },
+  linker: { title:'Linker Quest', icon:'ti-route', desc:'Conectores lógicos de entrevista y meetings.', category:'linker', color:'#6d28d9', difficulty:2, stars:'★★ Pressure' },
+  phrasal: { title:'Phrasal Master', icon:'ti-puzzle', desc:'Phrasals de call / follow-up / pressure.', category:'phrasal', color:'#1d4ed8', difficulty:2, stars:'★★ Pressure' },
+  challenge: { title:'Challenge Drill', icon:'ti-bolt', desc:'Presión arcade: linkers + estructura + fallos.', category:'mixed', color:'#F59E0B', difficulty:2, stars:'★★ Pressure' },
+  frenzy: { title:'Frenzy Mode', icon:'ti-flame', desc:'Todo mezclado + timer + tus fallos primero.', category:'mixed', color:'#be123c', difficulty:3, stars:'★★★ Frenzy' }
 };
 
 var ARCADE_BANK = {
@@ -2949,7 +2952,15 @@ var ARCADE_BANK = {
     { id:'verb-make-past', kpi:'k2', prompt:'Past of MAKE', clue:'Complete: We ___ a decision.', answer:'made', explain:'MAKE en pasado es MADE.' },
     { id:'verb-take-pp', kpi:'k3', prompt:'Past participle of TAKE', clue:'Complete: They have ___ the test.', answer:'taken', explain:'TAKE → TOOK → TAKEN.' },
     { id:'verb-work-ing', kpi:'k2', prompt:'-ING form of WORK', clue:'Complete: I am ___ now.', answer:'working', explain:'Presente continuo: am/is/are + verbo-ing.' },
-    { id:'verb-study-past', kpi:'k2', prompt:'Past of STUDY', clue:'Complete: He ___ last night.', answer:'studied', explain:'Study cambia Y por IED: studied.' }
+    { id:'verb-study-past', kpi:'k2', prompt:'Past of STUDY', clue:'Complete: He ___ last night.', answer:'studied', explain:'Study cambia Y por IED: studied.' },
+    { id:'verb-ops-raise', kpi:'k2', prompt:'Past of RAISE (a concern)', clue:'In the meeting I ___ a concern about the deadline.', answer:'raised', explain:'RAISE → RAISED. Raise a concern = plantear una preocupación.' },
+    { id:'verb-ops-lead', kpi:'k2', prompt:'Past of LEAD (a call)', clue:'She ___ the client call yesterday.', answer:'led', explain:'LEAD → LED (no leaded).' },
+    { id:'verb-ops-deal-pp', kpi:'k3', prompt:'Past participle of DEAL', clue:'I have ___ with angry clients before.', answer:'dealt', explain:'DEAL → DEALT → DEALT.' },
+    { id:'verb-ops-hold-pp', kpi:'k3', prompt:'Past participle of HOLD', clue:'We have ___ three interviews today.', answer:'held', explain:'HOLD → HELD → HELD.' },
+    { id:'verb-ops-bring', kpi:'k2', prompt:'Past of BRING', clue:'He ___ the report to the board.', answer:'brought', explain:'BRING → BROUGHT.' },
+    { id:'verb-ops-choose-pp', kpi:'k3', prompt:'Past participle of CHOOSE', clue:'They have ___ the final candidate.', answer:'chosen', explain:'CHOOSE → CHOSE → CHOSEN.' },
+    { id:'verb-ops-speak-pp', kpi:'k3', prompt:'Past participle of SPEAK', clue:'I have ___ with the hiring manager.', answer:'spoken', explain:'SPEAK → SPOKE → SPOKEN.' },
+    { id:'verb-ops-write-pp', kpi:'k3', prompt:'Past participle of WRITE', clue:'She has ___ the follow-up email.', answer:'written', explain:'WRITE → WROTE → WRITTEN.' }
   ],
   structure: [
     { id:'str-neg-monday', kpi:'k3', prompt:'Armá la oración negativa.', clue:'She / Mondays / work', blocks:['she',"doesn't",'work','on Mondays'], answer:['she',"doesn't",'work','on Mondays'], explain:"She + doesn't + verbo base + complemento." },
@@ -2957,7 +2968,13 @@ var ARCADE_BANK = {
     { id:'str-present-perfect', kpi:'k3', prompt:'Armá la oración en presente perfecto.', clue:'I / the report / finished', blocks:['I','have','finished','the report'], answer:['I','have','finished','the report'], explain:'Sujeto + have + participio + complemento.' },
     { id:'str-progressive', kpi:'k3', prompt:'Armá la oración en presente continuo.', clue:'she / working / now', blocks:['she','is','working','now'], answer:['she','is','working','now'], explain:'Sujeto + to be + verbo-ing.' },
     { id:'str-because', kpi:'k9', prompt:'Armá una respuesta con razón.', clue:'I like my job + because…', blocks:['I','like my job','because','I learn','every day'], answer:['I','like my job','because','I learn','every day'], explain:'Idea + because + razón concreta.' },
-    { id:'str-question-gym', kpi:'k3', prompt:'Armá la pregunta correcta.', clue:'does / he / go / to the gym', blocks:['does','he','go','to the gym'], answer:['does','he','go','to the gym'], explain:'Does + he + verbo base + complemento.' }
+    { id:'str-question-gym', kpi:'k3', prompt:'Armá la pregunta correcta.', clue:'does / he / go / to the gym', blocks:['does','he','go','to the gym'], answer:['does','he','go','to the gym'], explain:'Does + he + verbo base + complemento.' },
+    { id:'str-ops-star-s', kpi:'k20', prompt:'Armá el Situation (STAR).', clue:'Last quarter / sales / dropped', blocks:['Last quarter','our sales','dropped','unexpectedly'], answer:['Last quarter','our sales','dropped','unexpectedly'], explain:'S = contexto concreto + qué pasó.' },
+    { id:'str-ops-star-a', kpi:'k20', prompt:'Armá la Action (STAR).', clue:'I / the client / called / same day', blocks:['I','called','the client','the same day'], answer:['I','called','the client','the same day'], explain:'A = qué HICISTE vos (verbo de acción).' },
+    { id:'str-ops-pressure', kpi:'k14', prompt:'Armá una respuesta bajo presión.', clue:'I need / one minute / to check', blocks:['I need','one minute','to check','the numbers'], answer:['I need','one minute','to check','the numbers'], explain:'Comprá tiempo sin trabarte.' },
+    { id:'str-ops-cs-recover', kpi:'k15', prompt:'Armá recovery de customer service.', clue:'I understand / frustrat / let me fix', blocks:['I understand','your frustration','and','I will fix this'], answer:['I understand','your frustration','and','I will fix this'], explain:'Validate + ownership + next step.' },
+    { id:'str-ops-meeting', kpi:'k10', prompt:'Armá un update de meeting.', clue:'As of today / we / on track', blocks:['As of today','we are','on track','for Friday'], answer:['As of today','we are','on track','for Friday'], explain:'Status claro + fecha.' },
+    { id:'str-ops-because-result', kpi:'k9', prompt:'Armá causa → resultado.', clue:'Because we prepared / we / passed', blocks:['Because we prepared','we','passed','the interview'], answer:['Because we prepared','we','passed','the interview'], explain:'Because + acción → resultado.' }
   ],
   preposition: [
     { id:'prep-city', kpi:'k4', prompt:'I live ___ San José.', options:['in','on','at','by'], answer:0, explain:'IN + ciudad o país.' },
@@ -2965,7 +2982,13 @@ var ARCADE_BANK = {
     { id:'prep-hour', kpi:'k4', prompt:'The meeting starts ___ 5 pm.', options:['in','on','at','for'], answer:2, explain:'AT + hora.' },
     { id:'prep-transport', kpi:'k4', prompt:'I usually go ___ bus.', options:['in','on','at','by'], answer:3, explain:'BY + medio de transporte.' },
     { id:'prep-days', kpi:'k4', prompt:'We train ___ Mondays.', options:['in','on','at','to'], answer:1, explain:'ON + días.' },
-    { id:'prep-purpose', kpi:'k4', prompt:'This is ___ my TOEIC preparation.', options:['in','on','for','by'], answer:2, explain:'FOR expresa propósito.' }
+    { id:'prep-purpose', kpi:'k4', prompt:'This is ___ my TOEIC preparation.', options:['in','on','for','by'], answer:2, explain:'FOR expresa propósito.' },
+    { id:'prep-ops-deadline', kpi:'k4', prompt:'We need the proposal ___ Friday EOD.', options:['by','in','on','at'], answer:0, explain:'BY + deadline = no más tarde de.' },
+    { id:'prep-ops-responsible', kpi:'k4', prompt:'I am responsible ___ the onboarding flow.', options:['for','of','in','at'], answer:0, explain:'Responsible FOR.' },
+    { id:'prep-ops-focus', kpi:'k4', prompt:'Let us focus ___ the client objection.', options:['on','in','at','to'], answer:0, explain:'Focus ON.' },
+    { id:'prep-ops-depend', kpi:'k4', prompt:'The offer depends ___ budget approval.', options:['on','of','in','at'], answer:0, explain:'Depend ON.' },
+    { id:'prep-ops-good-at', kpi:'k4', prompt:'She is good ___ handling pressure.', options:['at','in','on','for'], answer:0, explain:'Good AT + -ing.' },
+    { id:'prep-ops-aware', kpi:'k4', prompt:'Are you aware ___ the new SLA?', options:['of','on','in','at'], answer:0, explain:'Aware OF.' }
   ],
   linker: [
     { id:'link-contrast-apply', kpi:'k8', prompt:'I wanted to apply, ___ I lacked experience.', options:['because','however','therefore','on top of that'], answer:1, explain:'Hay contraste entre querer aplicar y faltar experiencia.' },
@@ -2973,7 +2996,13 @@ var ARCADE_BANK = {
     { id:'link-result-prepared', kpi:'k8', prompt:'She prepared well; ___, she passed the interview.', options:['however','as a result','although','besides'], answer:1, explain:'As a result conecta causa con resultado.' },
     { id:'link-addition', kpi:'k10', prompt:'I improved my grammar. ___, I speak faster now.', options:['However','On top of that','Although','Despite'], answer:1, explain:'On top of that agrega otra idea.' },
     { id:'link-sequence', kpi:'k8', prompt:'First, we reviewed the brief. ___, we called the client.', options:['Then','Because','Despite','Although'], answer:0, explain:'Then ordena una secuencia.' },
-    { id:'link-nevertheless', kpi:'k8', prompt:'The plan failed; ___, we learned what to fix.', options:['nevertheless','therefore','because','first'], answer:0, explain:'Nevertheless marca contraste: aun así.' }
+    { id:'link-nevertheless', kpi:'k8', prompt:'The plan failed; ___, we learned what to fix.', options:['nevertheless','therefore','because','first'], answer:0, explain:'Nevertheless marca contraste: aun así.' },
+    { id:'link-ops-however-offer', kpi:'k8', prompt:'The salary was low; ___, the growth path was strong.', options:['however','because','first','despite of'], answer:0, explain:'However = contraste entre dos hechos.' },
+    { id:'link-ops-therefore-hire', kpi:'k8', prompt:'The candidate closed three deals; ___, we hired her.', options:['although','therefore','despite','whereas'], answer:1, explain:'Therefore = resultado lógico.' },
+    { id:'link-ops-on-top', kpi:'k10', prompt:'I improved fluency. ___, I handle objections better.', options:['On top of that','Although','Despite','Because'], answer:0, explain:'On top of that = suma de logro.' },
+    { id:'link-ops-even-though', kpi:'k8', prompt:'___ the call was hostile, I stayed calm.', options:['Even though','Therefore','As a result','First'], answer:0, explain:'Even though = contraste con subordinada.' },
+    { id:'link-ops-in-addition', kpi:'k10', prompt:'We fixed the bug. ___, we added monitoring.', options:['In addition','However','Although','Because'], answer:0, explain:'In addition = otra mejora.' },
+    { id:'link-ops-as-a-result-cs', kpi:'k8', prompt:'We missed the SLA; ___, the client escalated.', options:['as a result','although','despite','besides'], answer:0, explain:'As a result conecta falla → consecuencia.' }
   ],
   phrasal: [
     { id:'phr-figure-out', kpi:'k12', prompt:'We need to ___ the problem before Friday.', options:['figure out','turn down','look after','give up'], answer:0, explain:'Figure out = resolver / entender.' },
@@ -2981,7 +3010,13 @@ var ARCADE_BANK = {
     { id:'phr-follow-up', kpi:'k21', prompt:'I will ___ with the client after the call.', options:['follow up','give in','take off','run out'], answer:0, explain:'Follow up = dar seguimiento.' },
     { id:'phr-look-for', kpi:'k12', prompt:'I am ___ a better job opportunity.', options:['looking for','turning down','setting up','checking out'], answer:0, explain:'Look for = buscar.' },
     { id:'phr-turn-down', kpi:'k12', prompt:'She had to ___ the offer because of the schedule.', options:['turn down','look up','set up','come across'], answer:0, explain:'Turn down = rechazar.' },
-    { id:'phr-run-out', kpi:'k13', prompt:'We ___ time during the interview.', options:['ran out of','looked for','set up','turned down'], answer:0, explain:'Run out of = quedarse sin algo.' }
+    { id:'phr-run-out', kpi:'k13', prompt:'We ___ time during the interview.', options:['ran out of','looked for','set up','turned down'], answer:0, explain:'Run out of = quedarse sin algo.' },
+    { id:'phr-ops-bring-up', kpi:'k12', prompt:'Can I ___ the budget issue in the standup?', options:['bring up','give up','turn off','look after'], answer:0, explain:'Bring up = mencionar un tema.' },
+    { id:'phr-ops-point-out', kpi:'k12', prompt:'She ___ that the numbers did not match.', options:['pointed out','ran out','set up','looked for'], answer:0, explain:'Point out = señalar un hecho.' },
+    { id:'phr-ops-carry-on', kpi:'k14', prompt:'The line cut; please ___ with your answer.', options:['carry on','give in','turn down','check out'], answer:0, explain:'Carry on = continuar.' },
+    { id:'phr-ops-get-across', kpi:'k12', prompt:'I need to ___ my value clearly in the interview.', options:['get across','run out','look after','set off'], answer:0, explain:'Get across = comunicar / hacer entender.' },
+    { id:'phr-ops-sort-out', kpi:'k15', prompt:'Let me ___ the billing error today.', options:['sort out','give up','turn down','come across'], answer:0, explain:'Sort out = resolver un problema.' },
+    { id:'phr-ops-put-off', kpi:'k12', prompt:'We cannot ___ the launch again.', options:['put off','look for','set up','follow up'], answer:0, explain:'Put off = posponer.' }
   ]
 };
 
@@ -3047,7 +3082,9 @@ function arcadeStructureMatch(answerArr, builtArr){
 }
 
 function ensureArcadePressureStyles(){
-  if(document.getElementById('language-arcade-hh-styles-v3')) return;
+  if(document.getElementById('language-arcade-hh-styles-v4')) return;
+  var stale3 = document.getElementById('language-arcade-hh-styles-v3');
+  if(stale3) stale3.remove();
   var stale2 = document.getElementById('language-arcade-hh-styles-v2');
   if(stale2) stale2.remove();
   var stale = document.getElementById('language-arcade-hh-styles');
@@ -3062,7 +3099,7 @@ function ensureArcadePressureStyles(){
     document.head.appendChild(link);
   }
   var st = document.createElement('style');
-  st.id = 'language-arcade-hh-styles-v3';
+  st.id = 'language-arcade-hh-styles-v4';
   st.textContent = ''
     + '@keyframes arcadeScanSweep{0%{transform:translateX(-130%);opacity:.15}40%{opacity:.9}100%{transform:translateX(130%);opacity:.15}}'
     + '@keyframes arcadeFocusPulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(.86);opacity:1}}'
@@ -3130,7 +3167,31 @@ function ensureArcadePressureStyles(){
     + '.arcade-hh-result.ok{background:rgba(16,185,129,.25);}'
     + '.arcade-hh-result.bad{background:rgba(245,158,11,.25);}'
     + '.arcade-hh-result .msg{font-size:9px;color:#fff;margin:6px 0;line-height:1.5;}'
-    + '.arcade-hh-result .explain{font-family:ui-monospace,monospace;font-size:11px;color:rgba(255,255,255,.85);line-height:1.45;margin-bottom:10px;}';
+    
+    + '@keyframes arcadeHitPop{0%{transform:scale(.92);opacity:.4}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}'
+    + '@keyframes arcadeMissShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}'
+    + '@keyframes arcadeComboPop{0%{transform:scale(.5) translateY(8px);opacity:0}40%{transform:scale(1.15) translateY(0);opacity:1}100%{transform:scale(1);opacity:1}}'
+    + '@keyframes arcadeConfetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(48px) rotate(220deg);opacity:0}}'
+    + '@keyframes arcadeTimerDrain{from{width:100%}to{width:0%}}'
+    + '@keyframes arcadePrizeBurst{0%{transform:scale(.6);opacity:0}50%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}'
+    + '@keyframes arcadeHudPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.0)}50%{box-shadow:0 0 0 4px rgba(251,191,36,.25)}}'
+    + '.arcade-hh-screen.is-hit{animation:arcadeHitPop .35s ease}'
+    + '.arcade-hh-screen.is-miss{animation:arcadeMissShake .4s ease}'
+    + '.arcade-combo-chip{display:inline-block;margin:0 auto 10px;padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111;font-family:"Press Start 2P",monospace;font-size:8px;box-shadow:3px 3px 0 #000;animation:arcadeComboPop .35s cubic-bezier(.2,.8,.2,1)}'
+    + '.arcade-combo-chip.broken{background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff}'
+    + '.arcade-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}'
+    + '.arcade-confetti i{position:absolute;top:18%;width:7px;height:7px;border-radius:1px;animation:arcadeConfetti .7s ease-out forwards}'
+    + '.arcade-q-timer{height:6px;border-radius:99px;background:rgba(0,0,0,.45);overflow:hidden;margin:0 0 10px;border:1px solid rgba(255,255,255,.2)}'
+    + '.arcade-q-timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#22d3ee,#fbbf24,#f472b6);transform-origin:left center}'
+    + '.arcade-q-timer i.is-run{animation-name:arcadeTimerDrain;animation-timing-function:linear;animation-fill-mode:forwards}'
+    + '.arcade-hud{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 12px}'
+    + '.arcade-hud span{font-family:"Press Start 2P",monospace;font-size:7px;padding:8px 10px;border-radius:999px;background:#111;color:#fde68a;border:2px solid #fbbf24;box-shadow:2px 2px 0 #000;animation:arcadeHudPulse 2.4s ease-in-out infinite}'
+    + '.arcade-prize-card{margin:12px 0;padding:14px;border:3px solid #fbbf24;border-radius:8px;background:linear-gradient(160deg,#1e1b4b,#0f172a);box-shadow:4px 4px 0 #000;animation:arcadePrizeBurst .45s ease}'
+    + '.arcade-prize-card .prize-title{font-family:"Press Start 2P",monospace;font-size:9px;color:#fbbf24;margin-bottom:8px;line-height:1.5}'
+    + '.arcade-prize-card .prize-sub{font-family:ui-monospace,monospace;font-size:12px;color:#e2e8f0;line-height:1.45}'
+    + '.arcade-diff{font-size:10px;font-weight:900;letter-spacing:.04em;opacity:.9;margin-top:6px}'
+
++ '.arcade-hh-result .explain{font-family:ui-monospace,monospace;font-size:11px;color:rgba(255,255,255,.85);line-height:1.45;margin-bottom:10px;}';
   document.head.appendChild(st);
 }
 
@@ -3273,19 +3334,227 @@ function submitQuiz(containerId){
   if(window._arcadeState) finishArcadeRound(containerId || window._arcadeState.containerId);
 }
 
+
+function arcadeCrToday(){
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' });
+}
+
+function arcadeDefaultMeta(){
+  return {
+    dayStreak: 0,
+    lastPlayDate: '',
+    lifetimeBestStreak: 0,
+    lifetimeXp: 0,
+    coins: 0,
+    trophies: [],
+    lastPrizeId: '',
+    playedToday: false
+  };
+}
+
+function arcadeLoadLocalMeta(sid){
+  try{
+    var raw = localStorage.getItem('inf-arcade-meta-'+(sid || 'guest'));
+    return raw ? Object.assign(arcadeDefaultMeta(), JSON.parse(raw)) : arcadeDefaultMeta();
+  }catch(e){ return arcadeDefaultMeta(); }
+}
+
+function arcadeSaveLocalMeta(sid, meta){
+  try{ localStorage.setItem('inf-arcade-meta-'+(sid || 'guest'), JSON.stringify(meta || arcadeDefaultMeta())); }catch(e){}
+}
+
+function arcadeGetMeta(s){
+  s = s || CURRENT_STUDENT || {};
+  var base = arcadeDefaultMeta();
+  var fromStudent = (s.arcadeMeta && typeof s.arcadeMeta === 'object') ? s.arcadeMeta : null;
+  var fromLocal = arcadeLoadLocalMeta(s.id || s.portalUser || 'guest');
+  var meta = Object.assign(base, fromLocal, fromStudent || {});
+  if(!Array.isArray(meta.trophies)) meta.trophies = [];
+  // day streak integrity
+  var today = arcadeCrToday();
+  if(meta.lastPlayDate && meta.lastPlayDate !== today){
+    var last = new Date(meta.lastPlayDate + 'T12:00:00');
+    var now = new Date(today + 'T12:00:00');
+    var diff = Math.round((now - last) / 86400000);
+    if(diff > 1) meta.dayStreak = 0;
+    meta.playedToday = false;
+  } else if(meta.lastPlayDate === today){
+    meta.playedToday = true;
+  }
+  return meta;
+}
+
+function arcadePersistMeta(s, meta){
+  s = s || CURRENT_STUDENT;
+  if(!s) {
+    arcadeSaveLocalMeta('guest', meta);
+    return meta;
+  }
+  s.arcadeMeta = meta;
+  arcadeSaveLocalMeta(s.id || s.portalUser || 'guest', meta);
+  return meta;
+}
+
+function arcadeHudHtml(s){
+  var meta = arcadeGetMeta(s);
+  return '<div class="arcade-hud">'
+    + '<span>🔥 DAY '+meta.dayStreak+'</span>'
+    + '<span>⭐ XP '+meta.lifetimeXp+'</span>'
+    + '<span>🪙 '+meta.coins+'</span>'
+    + '<span>🏆 BEST '+meta.lifetimeBestStreak+'</span>'
+    + '</div>';
+}
+
+function arcadeBurstConfetti(screenEl){
+  if(!screenEl) return;
+  var layer = document.createElement('div');
+  layer.className = 'arcade-confetti';
+  var colors = ['#fbbf24','#22d3ee','#f472b6','#a78bfa','#4ade80','#fb7185'];
+  for(var i=0;i<9;i++){
+    var d = document.createElement('i');
+    d.style.left = (8 + Math.random()*84) + '%';
+    d.style.background = colors[i % colors.length];
+    d.style.animationDelay = (Math.random()*0.12) + 's';
+    layer.appendChild(d);
+  }
+  screenEl.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); }, 800);
+}
+
+function arcadePlayFx(correct, streak){
+  var st = window._arcadeState; if(!st) return;
+  var screen = document.querySelector('#'+CSS.escape(st.containerId)+' .arcade-hh-screen');
+  if(!screen) screen = document.querySelector('.arcade-hh-screen');
+  if(!screen) return;
+  screen.classList.remove('is-hit','is-miss');
+  void screen.offsetWidth;
+  screen.classList.add(correct ? 'is-hit' : 'is-miss');
+  if(correct) arcadeBurstConfetti(screen);
+  var chip = document.getElementById(st.containerId + '-combo');
+  if(chip){
+    if(correct && streak > 1){
+      chip.className = 'arcade-combo-chip';
+      chip.textContent = 'COMBO x'+streak;
+      chip.style.display = 'inline-block';
+    } else if(!correct){
+      chip.className = 'arcade-combo-chip broken';
+      chip.textContent = 'STREAK BROKEN';
+      chip.style.display = 'inline-block';
+    } else {
+      chip.className = 'arcade-combo-chip';
+      chip.textContent = 'NICE +1';
+      chip.style.display = 'inline-block';
+    }
+  }
+}
+
+function arcadeClearQuestionTimer(){
+  if(window._arcadeQTimer){
+    clearTimeout(window._arcadeQTimer);
+    window._arcadeQTimer = null;
+  }
+}
+
+function arcadeArmQuestionTimer(st){
+  arcadeClearQuestionTimer();
+  if(!(st.mode === 'frenzy' || st.mode === 'challenge')) return;
+  var meta = arcadeGetMeta(CURRENT_STUDENT);
+  var base = st.mode === 'frenzy' ? 14000 : 18000;
+  // scale faster with day streak / xp
+  var cut = Math.min(5000, (meta.dayStreak * 400) + Math.floor((meta.lifetimeXp || 0) / 40));
+  var ms = Math.max(7000, base - cut);
+  var bar = document.getElementById(st.containerId + '-qtimer-bar');
+  if(bar){
+    bar.style.animationDuration = (ms/1000)+'s';
+    bar.classList.remove('is-run');
+    void bar.offsetWidth;
+    bar.classList.add('is-run');
+  }
+  window._arcadeQTimer = setTimeout(function(){
+    var cur = window._arcadeState;
+    if(!cur || cur.answered) return;
+    arcadeFinishQuestion(false, '(time out)');
+  }, ms);
+}
+
+function arcadeComputePrizes(st, score, metaBefore, metaAfter){
+  var prizes = [];
+  var firstToday = !metaBefore.playedToday;
+  if(firstToday) prizes.push({ id:'daily-login', icon:'🎁', title:'DAILY LOGIN', coins:15, xp:10 });
+  if(score === 100) prizes.push({ id:'clean-sweep', icon:'💎', title:'CLEAN SWEEP', coins:40, xp:35 });
+  else if(score >= 90) prizes.push({ id:'gold-run', icon:'🥇', title:'GOLD RUN', coins:25, xp:25 });
+  if(st.bestStreak >= 5) prizes.push({ id:'combo-king', icon:'⚡', title:'COMBO KING', coins:20, xp:15 });
+  if(st.mode === 'frenzy' && score >= 80) prizes.push({ id:'frenzy-survivor', icon:'🔥', title:'FRENZY SURVIVOR', coins:30, xp:20 });
+  if(metaAfter.dayStreak === 3) prizes.push({ id:'on-fire', icon:'🌶️', title:'ON FIRE', coins:20, xp:20 });
+  if(metaAfter.dayStreak === 7) prizes.push({ id:'week-warrior', icon:'🛡️', title:'WEEK WARRIOR', coins:50, xp:40 });
+  if(metaAfter.dayStreak === 14) prizes.push({ id:'immortal', icon:'👑', title:'IMMORTAL', coins:100, xp:80 });
+  // rotate: max 2 prizes, prefer rarest last
+  var unique = [];
+  var seen = {};
+  prizes.forEach(function(p){
+    if(seen[p.id]) return;
+    // skip trophy already owned except daily
+    if(p.id !== 'daily-login' && (metaBefore.trophies || []).indexOf(p.id) >= 0 && p.id !== 'gold-run' && p.id !== 'combo-king') return;
+    seen[p.id] = true;
+    unique.push(p);
+  });
+  return unique.slice(-2);
+}
+
+function arcadeApplyRoundMeta(st, score){
+  var s = CURRENT_STUDENT || {};
+  var before = arcadeGetMeta(s);
+  var meta = Object.assign({}, before);
+  var today = arcadeCrToday();
+  if(meta.lastPlayDate === today){
+    // already played today — keep streak
+  } else if(meta.lastPlayDate){
+    var last = new Date(meta.lastPlayDate + 'T12:00:00');
+    var now = new Date(today + 'T12:00:00');
+    var diff = Math.round((now - last) / 86400000);
+    meta.dayStreak = (diff === 1) ? (meta.dayStreak || 0) + 1 : 1;
+  } else {
+    meta.dayStreak = 1;
+  }
+  meta.lastPlayDate = today;
+  meta.playedToday = true;
+  meta.lifetimeBestStreak = Math.max(meta.lifetimeBestStreak || 0, st.bestStreak || 0, meta.dayStreak || 0);
+  var baseXp = 8 + score;
+  var streakBonus = Math.min(40, (st.bestStreak || 0) * 4);
+  var modeBonus = st.mode === 'frenzy' ? 20 : (st.mode === 'challenge' ? 14 : 6);
+  var xpGain = baseXp + streakBonus + modeBonus;
+  var prizes = arcadeComputePrizes(st, score, before, meta);
+  var coinGain = Math.round(score / 5) + (st.bestStreak >= 3 ? 5 : 0);
+  prizes.forEach(function(p){
+    coinGain += p.coins || 0;
+    xpGain += p.xp || 0;
+    if(p.id !== 'daily-login' && meta.trophies.indexOf(p.id) < 0) meta.trophies.push(p.id);
+    meta.lastPrizeId = p.id;
+  });
+  meta.coins = (meta.coins || 0) + coinGain;
+  meta.lifetimeXp = (meta.lifetimeXp || 0) + xpGain;
+  if(meta.trophies.length > 40) meta.trophies = meta.trophies.slice(-40);
+  arcadePersistMeta(s, meta);
+  return { meta: meta, prizes: prizes, xpGain: xpGain, coinGain: coinGain };
+}
+
+
 function renderArcadeMenuHtml(containerId){
   var s = CURRENT_STUDENT || {};
   var weak = arcadeWeakCategories(s);
   var last = (s.quizzes || []).slice().reverse().find(function(q){ return q.mode === 'language-arcade'; });
-  return '<div class="ib ib-navy" style="margin-bottom:10px;"><strong>Infinity Language Arcade</strong> — 6 modos de práctica. No afecta KPI oficial, pero sí alimenta refuerzos para Jill/Alice.</div>'
+  ensureArcadePressureStyles();
+  return arcadeHudHtml(s)
+    + '<div class="ib ib-navy" style="margin-bottom:10px;"><strong>Infinity Language Arcade</strong> — rachas, combos y premios. No afecta KPI oficial; sí alimenta refuerzos Jill/Alice.</div>'
     + (weak.length ? '<div class="ib ib-amber" style="margin-bottom:10px;">Frenzy priorizará: '+weak.map(arcadeCategoryLabel).join(' · ')+'</div>' : '')
     + (last ? '<div style="font-size:12px;color:var(--t2);margin-bottom:10px;">Última ronda: '+arcadeEsc(last.arcadeMode || 'Arcade')+' · '+last.correct+'/'+last.total+' · '+last.score+'%</div>' : '')
     + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;">'
     + Object.keys(ARCADE_MODES).map(function(key){
       var m = ARCADE_MODES[key];
       return '<button type="button" onclick="startArcadeMode(\''+key+'\',\''+containerId+'\')" style="text-align:left;border:1px solid rgba(91,33,182,0.18);background:linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,248,255,0.95));border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(91,33,182,0.08);">'
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;color:'+m.color+';font-weight:900;"><i class="ti '+m.icon+'" style="font-size:20px;"></i>'+m.title+'</div>'
-        + '<div style="font-size:12px;color:var(--t2);line-height:1.45;">'+m.desc+'</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;color:'+m.color+';font-weight:900;"><i class="ti '+m.icon+'" style="font-size:20px;"></i>'+m.title+'</div>'
+        + '<div class="arcade-diff" style="color:'+m.color+';">'+(m.stars || '')+'</div>'
+        + '<div style="font-size:12px;color:var(--t2);line-height:1.45;margin-top:6px;">'+m.desc+'</div>'
         + '</button>';
     }).join('')
     + '</div>';
@@ -3308,7 +3577,12 @@ function startArcadeMode(mode, containerId){
   if(!c) return;
   var m = ARCADE_MODES[mode] || ARCADE_MODES.frenzy;
   var s = CURRENT_STUDENT || {};
+  var meta = arcadeGetMeta(s);
   var qCount = mode === 'challenge' ? 10 : (mode === 'frenzy' ? 8 : 6);
+  if(mode === 'challenge' || mode === 'frenzy'){
+    var bump = Math.min(4, Math.floor((meta.dayStreak || 0) / 3) + Math.floor((meta.lifetimeXp || 0) / 200));
+    qCount += bump;
+  }
   var quiz = pickArcadeQuestions(mode, s, qCount, false);
   window._currentQuiz = quiz;
   window._arcadeState = {
@@ -3350,7 +3624,9 @@ function renderArcadeRound(st){
   st.attemptsLeft = 6;
   st.selectedBlocks = [];
   st.answered = false;
+  arcadeClearQuestionTimer();
   c.innerHTML = arcadeRoundShell(st, q, arcadeQuestionBody(st, q));
+  arcadeArmQuestionTimer(st);
 }
 
 function arcadeRoundShell(st, q, body){
@@ -3364,6 +3640,10 @@ function arcadeRoundShell(st, q, body){
     + '<div class="arcade-hh-eyebrow">YOUR CLUB PRESENTS</div>'
     + '<div class="arcade-hh-title">'+arcadeEsc(st.modeTitle)+'</div>'
     + '<div class="arcade-hh-meta"><span>'+arcadeEsc(arcadeCategoryLabel(q.category))+' · '+(st.idx+1)+'/'+st.quiz.length+' · STREAK '+st.streak+'</span></div>'
+    + '<div id="'+st.containerId+'-combo" class="arcade-combo-chip" style="display:none;"></div>'
+    + ((st.mode === 'frenzy' || st.mode === 'challenge')
+      ? '<div class="arcade-q-timer" aria-hidden="true"><i id="'+st.containerId+'-qtimer-bar"></i></div>'
+      : '')
     + arcadePressureHtml(st, q)
     + body
     + '<div id="'+st.containerId+'-result"></div>'
@@ -3528,10 +3808,12 @@ function arcadeFinishQuestion(correct, response){
   var st = window._arcadeState; if(!st) return;
   if(st.answered) return;
   st.answered = true;
+  arcadeClearQuestionTimer();
   var q = st.quiz[st.idx];
   var answerText = q.category === 'structure' ? (q.answer || []).join(' ') : (q.category === 'verb' ? q.answer : ((q.options || [])[q.answer] || ''));
   if(correct){ st.correct++; st.streak++; st.bestStreak = Math.max(st.bestStreak, st.streak); }
   else st.streak = 0;
+  arcadePlayFx(!!correct, st.streak);
   st.results.push({ kpi:q.kpi || 'k10', category:q.category, correct:!!correct, prompt:q.prompt || q.clue || '', answer:answerText, response:response || '' });
   var box = document.getElementById(st.containerId + '-result');
   if(!box) return;
@@ -3552,11 +3834,14 @@ function arcadeNextQuestion(){
 
 async function finishArcadeRound(containerId){
   var st = window._arcadeState; if(!st) return;
+  arcadeClearQuestionTimer();
   var correct = st.correct;
   var total = st.quiz.length || 1;
   var score = Math.round((correct / total) * 100);
   var failedCats = {};
   st.results.forEach(function(r){ if(!r.correct) failedCats[r.category] = (failedCats[r.category] || 0) + 1; });
+  var reward = arcadeApplyRoundMeta(st, score);
+  st._lastReward = reward;
   try {
     await saveArcadeResult(st, score);
   } catch(e) {
@@ -3569,13 +3854,23 @@ async function finishArcadeRound(containerId){
   var menuAction = (containerId === 'inf-arcade-fs-body')
     ? 'closeInfinityArcadeFullscreen()'
     : 'renderArcadeMenu(\''+containerId+'\')';
+  var prizeHtml = (reward.prizes && reward.prizes.length)
+    ? reward.prizes.map(function(p){
+        return '<div class="arcade-prize-card">'
+          + '<div class="prize-title">'+(p.icon||'🏅')+' '+arcadeEsc(p.title)+'</div>'
+          + '<div class="prize-sub">+'+(p.coins||0)+' coins · +'+(p.xp||0)+' XP · CLAIMED</div>'
+          + '</div>';
+      }).join('')
+    : '<div class="arcade-prize-card"><div class="prize-title">KEEP GRINDING</div><div class="prize-sub">Subí score o racha para desbloquear premios.</div></div>';
   c.innerHTML = '<div class="arcade-hh">'
     + '<div class="arcade-hh-brand"><strong>INFINITY ARCADE</strong>'
-    + '<button type="button" onclick="'+menuAction+'">MENU</button></div>'
+    + '<button type="button" onclick="'+menuAction+'">LOBBY</button></div>'
     + '<div class="arcade-hh-bezel"><div class="arcade-hh-screen"><div class="arcade-hh-content" style="text-align:center;">'
     + '<div class="arcade-hh-eyebrow">ROUND CLEAR</div>'
     + '<div class="arcade-hh-title">'+medal+' '+correct+'/'+total+'</div>'
     + '<div class="arcade-hh-meta"><span>'+score+'% · BEST STREAK '+st.bestStreak+'</span></div>'
+    + '<div class="arcade-hh-meta"><span>+'+reward.xpGain+' XP · +'+reward.coinGain+' COINS · DAY '+reward.meta.dayStreak+'</span></div>'
+    + prizeHtml
     + '<div class="arcade-game-card" style="margin-bottom:12px;">'
     + '<div class="arcade-game-clue">'+(score>=80?'Buen control. Subí el nivel con Frenzy Mode.':'Detectamos refuerzos. Jill/Alice pueden usar estos fallos.')+'</div>'
     + (Object.keys(failedCats).length
@@ -3584,7 +3879,7 @@ async function finishArcadeRound(containerId){
     + '</div>'
     + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
     + '<button type="button" class="arcade-pix-btn" onclick="startArcadeMode(\''+st.mode+'\',\''+containerId+'\')">RETRY</button>'
-    + '<button type="button" class="arcade-pix-btn secondary" onclick="'+menuAction+'">MENU</button>'
+    + '<button type="button" class="arcade-pix-btn secondary" onclick="'+menuAction+'">LOBBY</button>'
     + '<button type="button" class="arcade-pix-btn" onclick="startArcadeMode(\'frenzy\',\''+containerId+'\')">FRENZY</button>'
     + '</div>'
     + '</div></div></div>'
@@ -3603,6 +3898,8 @@ async function saveArcadeResult(st, score){
     if(!r.correct) s.arcadeWeakCategories[r.category] = (s.arcadeWeakCategories[r.category] || 0) + 1;
     else if(s.arcadeWeakCategories[r.category]) s.arcadeWeakCategories[r.category] = Math.max(0, s.arcadeWeakCategories[r.category] - 1);
   });
+  if(st._lastReward && st._lastReward.meta) s.arcadeMeta = st._lastReward.meta;
+  else if(!s.arcadeMeta) s.arcadeMeta = arcadeGetMeta(s);
   s.quizzes.push({
     date:new Date().toISOString(),
     mode:'language-arcade',
@@ -3610,6 +3907,8 @@ async function saveArcadeResult(st, score){
     correct:st.correct,
     total:st.quiz.length,
     score:score,
+    bestStreak:st.bestStreak || 0,
+    prizes:(st._lastReward && st._lastReward.prizes) ? st._lastReward.prizes.map(function(p){ return p.id; }) : [],
     kpiResults:kpiResults,
     categories:st.results.map(function(r){ return r.category; }),
     kpis:st.results.map(function(r){ return r.kpi; })
