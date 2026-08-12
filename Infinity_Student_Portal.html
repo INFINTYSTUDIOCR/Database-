@@ -918,11 +918,19 @@ async function dbGetStudentRow(sid){
 }
 async function dbFindStudentByPortalLogin(user, pass){
   var login = String(user || '').trim().toLowerCase();
-  if(!login) return null;
+  var password = String(pass == null ? '' : pass);
+  var passwordTrim = password.trim();
+  if(!login || !passwordTrim) return null;
   var rows = await dbQuery('infinity_students?select=id,data&data->>portalUser=ilike.'+encodeURIComponent(login)+'&limit=5');
+  if(!rows.length){
+    // Fallback exact lowercase (older rows / filters)
+    rows = await dbQuery('infinity_students?select=id,data&data->>portalUser=eq.'+encodeURIComponent(login)+'&limit=5');
+  }
   for(var i=0;i<rows.length;i++){
     var r = rows[i];
-    if(r.data && r.data.portalPass === pass){
+    if(!r.data) continue;
+    var stored = String(r.data.portalPass == null ? '' : r.data.portalPass);
+    if(stored === password || stored === passwordTrim){
       r.data.id = r.id;
       return r.data;
     }
@@ -995,7 +1003,7 @@ function setLoginLoading(on){
 
 async function doLogin(){
   var user = document.getElementById('l-user').value.trim().toLowerCase();
-  var pass = document.getElementById('l-pass').value;
+  var pass = String(document.getElementById('l-pass').value || '').trim();
   var err = document.getElementById('login-err');
   if(!user || !pass){ err.textContent='Ingresá tu usuario y contraseña.'; err.style.display='block'; return; }
 
@@ -1003,10 +1011,26 @@ async function doLogin(){
   setLoginLoading(true);
 
   try{
-    var student = await dbFindStudentByPortalLogin(user, pass);
+    // 1) Auth server first (source of truth) — avoids false "incorrecto" if Supabase filter fails in browser
+    var loginData = null;
+    try {
+      loginData = await infinityLogin(user, pass, 'student', { silent: true });
+    } catch(e) { loginData = null; }
+
+    var student = null;
+    if(loginData && loginData.studentId){
+      var row = await dbGetStudentRow(loginData.studentId);
+      if(row && row.data){
+        student = row.data;
+        student.id = row.id;
+      }
+    }
+    if(!student){
+      student = await dbFindStudentByPortalLogin(user, pass);
+    }
 
     if(!student){
-      err.textContent='Usuario o contraseña incorrectos.';
+      err.textContent='Usuario o contraseña incorrectos. Revisá mayúsculas/minúsculas y caracteres especiales (!).';
       err.style.display='block';
       setLoginLoading(false);
       return;
@@ -1019,15 +1043,14 @@ async function doLogin(){
     }
 
     // JWT is mandatory — without it Jill/Alice/Nexora all return 401 "sesión expirada"
-    var loginData = null;
     try {
-      loginData = await infinityLogin(user, pass, 'student', { silent: true });
+      if(!loginData) loginData = await infinityLogin(user, pass, 'student', { silent: true });
       if(!getAuthToken() && typeof infinityEnsureAuth === 'function'){
         await infinityEnsureAuth({ user: user, password: pass, role: 'student', attempts: 3, force: true });
       }
     } catch(e) { /* handled below */ }
     if(!getAuthToken()){
-      err.textContent = 'No se pudo activar la voz con el servidor. Esperá unos segundos e intentá de nuevo.';
+      err.textContent = 'Credenciales OK, pero el servidor de voz no respondió. Esperá 10s e intentá de nuevo.';
       err.style.display = 'block';
       setLoginLoading(false);
       return;
