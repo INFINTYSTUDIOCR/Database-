@@ -917,7 +917,9 @@ async function dbGetStudentRow(sid){
   return rows[0] || null;
 }
 async function dbFindStudentByPortalLogin(user, pass){
-  var rows = await dbQuery('infinity_students?select=id,data&data->>portalUser=eq.'+encodeURIComponent(user)+'&limit=5');
+  var login = String(user || '').trim().toLowerCase();
+  if(!login) return null;
+  var rows = await dbQuery('infinity_students?select=id,data&data->>portalUser=ilike.'+encodeURIComponent(login)+'&limit=5');
   for(var i=0;i<rows.length;i++){
     var r = rows[i];
     if(r.data && r.data.portalPass === pass){
