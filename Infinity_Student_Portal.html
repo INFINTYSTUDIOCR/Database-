@@ -1457,9 +1457,9 @@ function showPortal(s){
   var vocabCard = (typeof JillVocab !== 'undefined') ? JillVocab.renderRecursosCard(s) : '';
   var arcadeGate = studentGamesOn(s)
     ? '<div class="inf-arcade-stage" id="portal-arcade-stage">'
-      + '<div class="inf-arcade-kicker">CASINO FLOOR · LINK · IDEA · LINK</div>'
-      + '<button type="button" class="inf-arcade-enter" onclick="openInfinityArcadeLobby()"><i class="ti ti-cards"></i> Abrir Infinity Casino</button>'
-      + '<div class="inf-arcade-note">Boss Call, STAR Arena, Speed Listen, Tone Police, Nemesis, Snake, Daily Boss y más — pantallas de inicio tipo casino.</div>'
+      + '<div class="inf-arcade-kicker">PRACTICE HUB · LINK · IDEA · LINK</div>'
+      + '<button type="button" class="inf-arcade-enter" onclick="openInfinityArcadeLobby()"><i class="ti ti-cards"></i> Abrir Infinity Hub</button>'
+      + '<div class="inf-arcade-note">Pantallas con personajes · Boss Call, STAR, Listen, Tone, Nemesis y más — gaming Infinity.</div>'
       + '<div id="portal-quiz-container" style="display:none;"></div>'
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
@@ -1487,8 +1487,8 @@ function showPortal(s){
     +'</div>'
 
     +'<div class="inf-skill" style="background:linear-gradient(165deg,#EDE9FE,#fff);">'
-    +'<h3><i class="ti ti-cards"></i> Infinity Casino</h3>'
-    +'<p class="inf-skill-lead">Casino virtual: pantallas de inicio animadas, juegos nuevos de performance y Language Arcade — siempre LINK · IDEA · LINK.</p>'
+    +'<h3><i class="ti ti-cards"></i> Infinity Hub</h3>'
+    +'<p class="inf-skill-lead">Hub gaming con personajes: Boss Call, STAR Arena, Speed Listen y más — paleta Infinity, LINK · IDEA · LINK.</p>'
     + arcadeGate
     +'</div>';
 
@@ -2975,6 +2975,64 @@ var ARCADE_MODES = {
   frenzy: { title:'Frenzy Mode', icon:'ti-flame', desc:'Todo mezclado + timer + tus fallos primero.', category:'mixed', color:'#be123c', difficulty:3, stars:'★★★ Frenzy' }
 };
 
+/** New hub games — NEVER Game Boy / arcade-hh (even if modern JS fails to load) */
+var INFINITY_MODERN_MODES = {
+  bosscall:1, star:1, listen:1, tone:1, nemesis:1, snake:1,
+  phrasalswap:1, dailyboss:1, linkerflight:1, tenserdrop:1
+};
+function arcadeModeIsModern(mode){
+  if (typeof window.arcadeIsModernMode === 'function') {
+    try { if (window.arcadeIsModernMode(mode)) return true; } catch(e) {}
+  }
+  return !!(mode && INFINITY_MODERN_MODES[mode]);
+}
+function arcadeModernFinishFallback(containerId){
+  var st = window._arcadeState; if(!st) return;
+  arcadeClearQuestionTimer();
+  var correct = st.correct || 0;
+  var total = (st.quiz && st.quiz.length) || 1;
+  var score = Math.round((correct / total) * 100);
+  var reward = arcadeApplyRoundMeta(st, score);
+  st._lastReward = reward;
+  var c = document.getElementById(containerId); if(!c) return;
+  var menuAction = (containerId === 'inf-arcade-fs-body')
+    ? 'closeInfinityArcadeFullscreen()'
+    : "openInfinityCasinoFloor()";
+  c.innerHTML = '<div style="max-width:520px;margin:0 auto;border-radius:22px;overflow:hidden;border:2px solid rgba(245,166,35,.4);background:#0B0618;color:#F8F5FF;font-family:system-ui,sans-serif">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(91,33,182,.5);border-bottom:1px solid rgba(245,166,35,.3)">'
+    + '<strong style="color:#F5A623;letter-spacing:.06em">'+(arcadeEsc(st.modeTitle)||'MISSION')+'</strong>'
+    + '<button type="button" onclick="'+menuAction+'" style="border:1px solid #F5A623;background:#1a0a3a;color:#F5A623;border-radius:10px;padding:7px 10px;font-weight:800;cursor:pointer">HUB</button></div>'
+    + '<div style="padding:22px 16px;text-align:center;background:linear-gradient(180deg,#3B0E8C,#5B21B6 55%,#0B0618)">'
+    + '<div style="font-size:28px;font-weight:900;color:#F5A623;margin-bottom:8px">MISSION CLEAR</div>'
+    + '<div style="font-weight:800;margin-bottom:10px">'+correct+'/'+total+' · '+score+'%</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px">'
+    + '<span style="padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);font-size:11px;font-weight:800">BEST '+(st.bestStreak||0)+'</span>'
+    + '<span style="padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);font-size:11px;font-weight:800">+'+(reward.xpGain||0)+' XP</span>'
+    + '<span style="padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);font-size:11px;font-weight:800">+'+(reward.coinGain||0)+' COINS</span>'
+    + '</div>'
+    + '<div style="font-size:12px;opacity:.85;margin-bottom:14px">LINK · IDEA · LINK</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'
+    + '<button type="button" onclick="startArcadeMode(\''+st.mode+'\',\''+containerId+'\')" style="padding:10px 16px;border:none;border-radius:12px;background:linear-gradient(135deg,#FFD700,#F5A623);color:#1a1200;font-weight:900;cursor:pointer">RETRY</button>'
+    + '<button type="button" onclick="'+menuAction+'" style="padding:10px 16px;border:1px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(255,255,255,.1);color:#fff;font-weight:900;cursor:pointer">HUB</button>'
+    + '</div></div></div>';
+  try { saveArcadeResult(st, score); } catch(e) {}
+}
+function arcadeModernShellFallback(st, q, body){
+  var menuAction = (st.containerId === 'inf-arcade-fs-body')
+    ? 'closeInfinityArcadeFullscreen()'
+    : "openInfinityCasinoFloor()";
+  return '<div style="max-width:520px;margin:0 auto;border-radius:22px;overflow:hidden;border:2px solid rgba(245,166,35,.35);background:#0B0618;color:#F8F5FF;font-family:system-ui,sans-serif">'
+    + '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:rgba(91,33,182,.45);border-bottom:1px solid rgba(245,166,35,.25)">'
+    + '<strong style="color:#F5A623">'+(arcadeEsc(st.modeTitle)||'GAME')+'</strong>'
+    + '<button type="button" onclick="'+menuAction+'" style="border:1px solid #F5A623;background:#1a0a3a;color:#F5A623;border-radius:10px;padding:7px 10px;font-weight:800;cursor:pointer">HUB</button></div>'
+    + '<div style="position:relative;padding:14px;background:linear-gradient(180deg,#3B0E8C,#5B21B6 60%,#0B0618)">'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">'
+    + '<span style="font-size:11px;font-weight:800;padding:6px 10px;border-radius:999px;background:rgba(11,6,24,.65)">'+(st.idx+1)+'/'+(st.quiz&&st.quiz.length||1)+'</span>'
+    + '<span style="font-size:11px;font-weight:800;padding:6px 10px;border-radius:999px;background:rgba(11,6,24,.65)">STREAK '+st.streak+'</span></div>'
+    + body
+    + '<div id="'+st.containerId+'-result"></div></div></div>';
+}
+
 var ARCADE_BANK = {
   verb: [
     { id:'verb-go-past', kpi:'k2', prompt:'Past of GO', clue:'Complete: Yesterday I ___ home.', answer:'went', explain:'GO en pasado es WENT. No es goed.' },
@@ -3657,11 +3715,20 @@ function renderArcadeRound(st){
   st.selectedBlocks = [];
   st.answered = false;
   arcadeClearQuestionTimer();
+  // Re-assert modern shell right before paint (beats any late Game Boy patches)
+  if (typeof window.infinityEnsureModernArcade === 'function') window.infinityEnsureModernArcade();
   c.innerHTML = arcadeRoundShell(st, q, arcadeQuestionBody(st, q));
   arcadeArmQuestionTimer(st);
 }
 
 function arcadeRoundShell(st, q, body){
+  // Modern games NEVER use Game Boy chrome
+  if (st && arcadeModeIsModern(st.mode)) {
+    if (typeof window.infinityModernRoundShell === 'function') {
+      return window.infinityModernRoundShell(st, q, body);
+    }
+    return arcadeModernShellFallback(st, q, body);
+  }
   var menuAction = (st.containerId === 'inf-arcade-fs-body')
     ? 'closeInfinityArcadeFullscreen()'
     : 'renderArcadeMenu(\''+st.containerId+'\')';
@@ -3705,6 +3772,11 @@ function arcadePressureHtml(st, q){
 }
 
 function arcadeQuestionBody(st, q){
+  if (st && arcadeModeIsModern(st.mode)
+      && typeof window.infinityModernQuestionBody === 'function') {
+    var modernBody = window.infinityModernQuestionBody(st, q);
+    if (modernBody != null) return modernBody;
+  }
   if(q.category === 'verb') return arcadeVerbBody(st, q);
   if(q.category === 'structure') return arcadeStructureBody(st, q);
   return arcadeChoiceBody(st, q);
@@ -3866,6 +3938,16 @@ function arcadeNextQuestion(){
 
 async function finishArcadeRound(containerId){
   var st = window._arcadeState; if(!st) return;
+  // Modern modes: NEVER Game Boy — even if external modern JS failed to load
+  if (arcadeModeIsModern(st.mode)) {
+    if (st.mode === 'tenserdrop' && typeof window.infinityTenseDropFinish === 'function') {
+      return window.infinityTenseDropFinish(containerId);
+    }
+    if (typeof window.infinityModernFinishRound === 'function') {
+      return window.infinityModernFinishRound(containerId);
+    }
+    return arcadeModernFinishFallback(containerId);
+  }
   arcadeClearQuestionTimer();
   var correct = st.correct;
   var total = st.quiz.length || 1;
@@ -9082,7 +9164,9 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
-<script src="js/infinity-arcade-lil-games.js?v=20260812lil2"></script>
-<script src="js/infinity-casino-floor.js?v=20260812hub3"></script>
+<script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
+<script src="js/infinity-casino-floor.js?v=20260812hub6"></script>
+<script src="js/infinity-modern-games.js?v=20260812mod4"></script>
+<script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>
 </html>

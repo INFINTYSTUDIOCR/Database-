@@ -7,10 +7,68 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub3';
+  var VER = '20260812hub6';
 
-  /** Characters + table meta */
+  /** Characters + table meta — CSS portraits via charKey (no emoji) */
   var GAMES = [
+    {
+      id: 'linkerflight',
+      mode: 'linkerflight',
+      title: 'LINKER FLIGHT',
+      sub: 'El avión dispara al linker correcto y arma la idea.',
+      badge: 'hot',
+      badgeLabel: 'NUEVO',
+      xp: '+50 XP',
+      diff: 2,
+      art: 'listen',
+      featured: true,
+      charKey: 'plane',
+      char: {
+        name: 'Aviator Link',
+        role: 'Linker Flight',
+        mood: 'En el aire',
+        line: '"Shoot the linker. Build the idea. Keep flying."',
+        color: '#0ea5e9'
+      }
+    },
+    {
+      id: 'snake',
+      mode: 'snake',
+      title: 'LINKER SNAKE',
+      sub: 'Serpiente del Nilo. Crece con cada linker correcto.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+40 XP',
+      diff: 2,
+      art: 'snake',
+      charKey: 'asp',
+      char: {
+        name: 'Aspira',
+        role: 'Serpiente del Nilo',
+        mood: 'En la tumba',
+        line: '"Touch the tablet. Grow the chain. Seal the idea."',
+        color: '#D4AF37'
+      }
+    },
+    {
+      id: 'tenserdrop',
+      mode: 'tenserdrop',
+      title: 'STRUCTURE DROP',
+      sub: 'Chunks de tiempo verbal caen. Armá la torre o colapsa.',
+      badge: 'hot',
+      badgeLabel: 'NUEVO',
+      xp: '+45 XP',
+      diff: 2,
+      art: 'drop',
+      charKey: 'pup',
+      char: {
+        name: 'Pip',
+        role: 'Torre pup',
+        mood: 'Nervioso',
+        line: '"Catch the right chunk. Save the tower. Save me."',
+        color: '#d97706'
+      }
+    },
     {
       id: 'bosscall',
       mode: 'bosscall',
@@ -21,13 +79,12 @@
       xp: '+45 XP',
       diff: 3,
       art: 'boss',
-      featured: true,
+      charKey: 'irina',
       char: {
         name: 'Irina',
         role: 'Cliente furioso',
-        mood: '🔥 Enojada',
+        mood: 'Bajo fuego',
         line: '"This is the SECOND charge. Fix it NOW."',
-        face: '😠',
         color: '#FB7185'
       }
     },
@@ -41,12 +98,12 @@
       xp: '+40 XP',
       diff: 2,
       art: 'star',
+      charKey: 'lex',
       char: {
         name: 'Coach Lex',
         role: 'Entrevistador',
-        mood: '⭐ En arena',
+        mood: 'En arena',
         line: '"Tell me about a time you handled conflict."',
-        face: '🧑‍💼',
         color: '#F5A623'
       }
     },
@@ -60,12 +117,12 @@
       xp: '+35 XP',
       diff: 2,
       art: 'listen',
+      charKey: 'nova',
       char: {
         name: 'DJ Nova',
         role: 'Audio coach',
-        mood: '🎧 En vivo',
+        mood: 'En vivo',
         line: '"Don\'t read — listen for the linker."',
-        face: '🎧',
         color: '#22D3EE'
       }
     },
@@ -79,12 +136,12 @@
       xp: '+30 XP',
       diff: 1,
       art: 'tone',
+      charKey: 'mira',
       char: {
         name: 'Mira Soft',
         role: 'Tone guardian',
-        mood: '🕊️ Calm power',
+        mood: 'Calm power',
         line: '"Professional ≠ cold. Elevate the pueblo."',
-        face: '🕊️',
         color: '#4ADE80'
       }
     },
@@ -98,32 +155,13 @@
       xp: '+50 XP',
       diff: 3,
       art: 'nemesis',
+      charKey: 'shadow',
       char: {
         name: 'Shadow You',
         role: 'Tu error del pasado',
-        mood: '⚔️ Duelo',
+        mood: 'Duelo',
         line: '"You failed this before. Not today."',
-        face: '⚔️',
         color: '#F87171'
-      }
-    },
-    {
-      id: 'snake',
-      mode: 'snake',
-      title: 'LINKER SNAKE',
-      sub: 'Encadená linker → idea → linker.',
-      badge: 'new',
-      badgeLabel: 'NUEVO',
-      xp: '+35 XP',
-      diff: 2,
-      art: 'snake',
-      char: {
-        name: 'Captain Link',
-        role: 'Chain master',
-        mood: '🔗 En cadena',
-        line: '"Connect thought. Don\'t dump words."',
-        face: '🐍',
-        color: '#34D399'
       }
     },
     {
@@ -136,12 +174,12 @@
       xp: '+30 XP',
       diff: 2,
       art: 'phrasal',
+      charKey: 'lex',
       char: {
         name: 'Rex Swap',
         role: 'Phrasal dealer',
-        mood: '🔀 Swap time',
+        mood: 'Swap time',
         line: '"Pick the phrasal that carries the idea."',
-        face: '🧩',
         color: '#60A5FA'
       }
     },
@@ -155,12 +193,12 @@
       xp: '+60 XP',
       diff: 3,
       art: 'daily',
+      charKey: 'queen',
       char: {
         name: 'Queen Day',
         role: 'Boss del día',
-        mood: '👑 Daily crown',
+        mood: 'Daily crown',
         line: '"One boss. One chance to shine today."',
-        face: '👑',
         color: '#FDE047'
       }
     },
@@ -174,12 +212,13 @@
       xp: '+40 XP',
       diff: 3,
       art: 'frenzy',
+      charKey: 'shadow',
+      legacy: true,
       char: {
         name: 'Blaze',
         role: 'Frenzy runner',
-        mood: '🔥 On fire',
+        mood: 'On fire',
         line: '"No mercy. Structure under pressure."',
-        face: '🔥',
         color: '#FB923C'
       }
     },
@@ -193,12 +232,13 @@
       xp: '+35 XP',
       diff: 2,
       art: 'challenge',
+      charKey: 'lex',
+      legacy: true,
       char: {
         name: 'Bolt',
         role: 'Drill captain',
-        mood: '⚡ Pressure',
+        mood: 'Pressure',
         line: '"Linkers first. Then the idea."',
-        face: '⚡',
         color: '#FBBF24'
       }
     },
@@ -212,12 +252,13 @@
       xp: '+20 XP',
       diff: 1,
       art: 'verb',
+      charKey: 'lex',
+      legacy: true,
       char: {
         name: 'Hunter V',
         role: 'Verb scout',
-        mood: '🎯 Locked',
+        mood: 'Locked',
         line: '"Find the verb. Own the tense."',
-        face: '🎯',
         color: '#2DD4BF'
       }
     },
@@ -231,12 +272,13 @@
       xp: '+25 XP',
       diff: 1,
       art: 'structure',
+      charKey: 'lex',
+      legacy: true,
       char: {
         name: 'Brick',
         role: 'Builder',
-        mood: '🧱 Building',
+        mood: 'Building',
         line: '"Order the blocks. Build the thought."',
-        face: '🧱',
         color: '#C4B5FD'
       }
     },
@@ -250,12 +292,13 @@
       xp: '+25 XP',
       diff: 2,
       art: 'linker',
+      charKey: 'plane',
+      legacy: true,
       char: {
         name: 'Quest L',
         role: 'Connector',
-        mood: '🔗 Quest',
+        mood: 'Quest',
         line: MANTRA,
-        face: '🔗',
         color: '#A78BFA'
       }
     },
@@ -269,12 +312,13 @@
       xp: '+25 XP',
       diff: 2,
       art: 'phrasal',
+      charKey: 'lex',
+      legacy: true,
       char: {
         name: 'Master P',
         role: 'Phrasal guide',
-        mood: '🧩 Mastery',
+        mood: 'Mastery',
         line: '"Bring up · sort out · follow up."',
-        face: '🧩',
         color: '#93C5FD'
       }
     },
@@ -288,12 +332,13 @@
       xp: '+20 XP',
       diff: 1,
       art: 'prep',
+      charKey: 'mira',
+      legacy: true,
       char: {
         name: 'Pin',
         role: 'Map guide',
-        mood: '📍 Locating',
+        mood: 'Locating',
         line: '"By Friday. On Monday. At 5."',
-        face: '📍',
         color: '#FDBA74'
       }
     },
@@ -307,12 +352,13 @@
       xp: '+30 XP',
       diff: 2,
       art: 'rapid',
+      charKey: 'shadow',
+      legacy: true,
       char: {
         name: 'Kaboom',
         role: 'Rapid Jill',
-        mood: '💥 Drill',
+        mood: 'Drill',
         line: '"Foundations fast. No fluff."',
-        face: '💥',
         color: '#FDA4AF'
       }
     }
@@ -339,24 +385,35 @@
     return h + '</div>';
   }
 
+  function portraitHtml(g, wrapClass) {
+    var key = (g && g.charKey) || 'lex';
+    var inner =
+      typeof infinityCharHtml === 'function'
+        ? infinityCharHtml(key)
+        : '<div class="hub-char-fallback" style="--char-c:' +
+          esc((g.char && g.char.color) || '#F5A623') +
+          '"></div>';
+    return '<div class="' + (wrapClass || 'hub-css-char') + '">' + inner + '</div>';
+  }
+
   function hudPills() {
     var meta =
       typeof arcadeGetMeta === 'function' ? arcadeGetMeta(global.CURRENT_STUDENT || {}) : null;
     if (!meta) {
       return (
-        '<div class="pill pill-xp">⭐ XP —</div>' +
-        '<div class="pill pill-streak">🔥 STREAK —</div>' +
-        '<div class="pill pill-day">🪙 —</div>'
+        '<div class="pill pill-xp">XP —</div>' +
+        '<div class="pill pill-streak">DAY —</div>' +
+        '<div class="pill pill-day">COINS —</div>'
       );
     }
     return (
-      '<div class="pill pill-xp">⭐ XP ' +
+      '<div class="pill pill-xp">XP ' +
       esc(meta.lifetimeXp || 0) +
       '</div>' +
-      '<div class="pill pill-streak">🔥 DAY ' +
+      '<div class="pill pill-streak">DAY ' +
       esc(meta.dayStreak || 0) +
       '</div>' +
-      '<div class="pill pill-day">🪙 ' +
+      '<div class="pill pill-day">COINS ' +
       esc(meta.coins || 0) +
       '</div>'
     );
@@ -402,7 +459,11 @@
       '.hub-featured:active{transform:scale(.99)}' +
       '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none}' +
       '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);animation:hubShine 3.2s ease-in-out infinite}' +
-      '.hub-featured-char{position:absolute;right:8%;top:50%;transform:translateY(-55%);font-size:clamp(56px,14vw,84px);animation:hubCharBob 2.6s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(0,0,0,.45))}' +
+      '.hub-featured-char{position:absolute;right:8%;top:50%;transform:translateY(-55%);animation:hubCharBob 2.6s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(0,0,0,.45));transform-origin:center}' +
+      '.hub-featured-char .inf-char,.hub-featured-char .inf-plane{transform:scale(1.55)}' +
+      '.hub-char-fallback{width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,var(--char-c,#F5A623),#5B21B6);border:2px solid rgba(255,255,255,.35);box-shadow:0 8px 20px rgba(0,0,0,.35)}' +
+      '.hub-card-art .hub-css-char{position:absolute;top:14%;left:50%;transform:translateX(-50%) scale(1.05);animation:hubAura 2.4s ease-in-out infinite;--char-c:#F5A623}' +
+      '.hub-title-char-css{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(1.7);animation:hubCharBob 2.2s ease-in-out infinite}' +
       '.hub-featured-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.92) 0%,rgba(11,6,24,.2) 55%,transparent 100%)}' +
       '.hub-featured-content{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;z-index:2}' +
       '.hub-featured-badge{display:inline-block;background:var(--inf-gold);color:#1a1200;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}' +
@@ -415,7 +476,6 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
-      '.hub-card-art .char-face{position:absolute;top:18%;left:50%;transform:translateX(-50%);font-size:52px;animation:hubAura 2.4s ease-in-out infinite;--char-c:#F5A623}' +
       '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
       '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
       '.hub-card-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;margin-bottom:3px}' +
@@ -434,7 +494,8 @@
       '.art-listen{background:linear-gradient(160deg,#0c1a3a,#1e3a5f,#0891b2)}' +
       '.art-tone{background:linear-gradient(160deg,#0a2418,#14532d,#3B0E8C)}' +
       '.art-nemesis{background:linear-gradient(180deg,#1a0508,#3B0E8C,#7f1d1d)}' +
-      '.art-snake{background:linear-gradient(160deg,#052016,#0f3d2e,#5B21B6)}' +
+      '.art-snake{background:linear-gradient(165deg,#1a0a2e 0%,#7c2d12 40%,#b45309 70%,#f59e0b)}' +
+      '.art-drop{background:linear-gradient(165deg,#0f172a,#1e3a8a 45%,#5B21B6,#b45309)}' +
       '.art-phrasal{background:linear-gradient(160deg,#0b1430,#1e3a8a,#5B21B6)}' +
       '.art-daily{background:linear-gradient(160deg,#2a1800,#5B21B6,#B45309)}' +
       '.art-frenzy{background:linear-gradient(160deg,#2a0a00,#7c2d12,#5B21B6)}' +
@@ -476,11 +537,11 @@
       badge +
       '<div class="hub-card-art art-' +
       g.art +
-      '"><span class="char-face" style="--char-c:' +
-      (g.char && g.char.color) +
+      '" style="--char-c:' +
+      esc((g.char && g.char.color) || '#F5A623') +
       '">' +
-      (g.char ? g.char.face : '🎮') +
-      '</span></div>' +
+      portraitHtml(g, 'hub-css-char') +
+      '</div>' +
       '<div class="hub-card-overlay"></div>' +
       '<div class="hub-card-body">' +
       '<div class="hub-card-title">' +
@@ -518,9 +579,7 @@
       featured.id +
       '\')">' +
       '<div class="hub-featured-shine"></div>' +
-      '<div class="hub-featured-char">' +
-      (featured.char ? featured.char.face : '🎮') +
-      '</div>' +
+      portraitHtml(featured, 'hub-featured-char') +
       '<div class="hub-featured-overlay"></div>' +
       '<div class="hub-featured-content">' +
       '<div class="hub-featured-badge">DESTACADO · PERFORMANCE</div>' +
@@ -593,6 +652,7 @@
     global._infArcadeLobbyOpen = false;
 
     ensureShell();
+    if (typeof infinityCharHtml === 'function') infinityCharHtml('plane');
     var pills = document.getElementById('inf-hub-pills');
     if (pills) pills.innerHTML = hudPills();
     renderHub();
@@ -622,17 +682,19 @@
     var bg = document.getElementById('inf-casino-title-bg');
     var panel = document.getElementById('inf-casino-title-panel');
     if (!wrap || !panel) return;
-    var c = g.char || { name: g.title, role: 'Coach', mood: '', line: MANTRA, face: '🎮', color: '#F5A623' };
+    var c = g.char || {
+      name: g.title,
+      role: 'Coach',
+      mood: '',
+      line: MANTRA,
+      color: '#F5A623'
+    };
     if (bg) bg.style.setProperty('--t-c', c.color);
     panel.style.setProperty('--t-c', c.color);
     panel.className = 'inf-hub-title-panel';
     panel.innerHTML =
       '<div class="hub-char-stage">' +
-      '<div class="hub-char-face" style="--char-c:' +
-      c.color +
-      '">' +
-      c.face +
-      '</div>' +
+      portraitHtml(g, 'hub-title-char-css') +
       '<div class="hub-char-plate"><div class="nm">' +
       esc(c.name) +
       '</div><div class="rl">' +

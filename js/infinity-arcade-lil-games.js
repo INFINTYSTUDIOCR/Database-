@@ -973,6 +973,10 @@
     if (typeof arcadeQuestionBody !== 'function') return;
     var prev = arcadeQuestionBody;
     global.arcadeQuestionBody = function (st, q) {
+      // Never force lil Game Boy cards on modern modes — defer to modern-games body.
+      if (st && typeof global.arcadeIsModernMode === 'function' && global.arcadeIsModernMode(st.mode)) {
+        return prev(st, q);
+      }
       ensureLilStyles();
       global._lilReplayListen = function () {
         if (q && q.audioText) speakListen(q.audioText);
@@ -984,7 +988,6 @@
       if (q.category === 'star') return starBody(st, q);
       if (q.category === 'snake') return snakeBody(st, q);
       if (q.category === 'phrasalswap') return phrasalSwapBody(st, q);
-      // Subliminal ribbon on classic choice modes when explain/linkers present
       var html = prev(st, q);
       if (q.category === 'linker' || q.category === 'structure') {
         var ribbon = lilRibbon('LINK', 'your idea', 'LINK');
@@ -1008,6 +1011,8 @@
       return prev(q);
     };
   }
+
+  function patchRenderRound() {
     if (typeof renderArcadeRound !== 'function') return;
     var prev = renderArcadeRound;
     global.renderArcadeRound = function (st) {
@@ -1102,24 +1107,8 @@
   }
 
   function patchRoundShellTimer() {
-    // Ensure timer bar HTML for new timed modes
-    if (typeof arcadeRoundShell !== 'function') return;
-    var prev = arcadeRoundShell;
-    global.arcadeRoundShell = function (st, q, body) {
-      var timed =
-        st.mode === 'bosscall' ||
-        st.mode === 'dailyboss' ||
-        st.mode === 'nemesis' ||
-        st.mode === 'listen' ||
-        st.mode === 'frenzy' ||
-        st.mode === 'challenge';
-      if (!timed) return prev(st, q, body);
-      var fake = Object.assign({}, st, { mode: st.mode === 'listen' ? 'challenge' : 'frenzy' });
-      return prev(fake, q, body).replace(
-        'STREAK ' + fake.streak,
-        'STREAK ' + st.streak
-      );
-    };
+    // IMPORTANT: never rewrite mode to frenzy/challenge — that forced Game Boy shell
+    // on bosscall/listen/etc. Modern shells own their own timer bars.
   }
 
   function patchPrizes() {
@@ -1161,7 +1150,7 @@
       if (!result || !result.meta) return result;
       var extra = 0;
       if (st.mode === 'bosscall' || st.mode === 'nemesis' || st.mode === 'dailyboss') extra = 12;
-      else if (st.mode === 'listen' || st.mode === 'snake' || st.mode === 'star') extra = 8;
+      else if (st.mode === 'listen' || st.mode === 'snake' || st.mode === 'star' || st.mode === 'linkerflight') extra = 8;
       else if (st.mode === 'tone' || st.mode === 'phrasalswap') extra = 5;
       if (extra) {
         result.meta.lifetimeXp = (result.meta.lifetimeXp || 0) + extra;
