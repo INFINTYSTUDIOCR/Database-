@@ -4098,7 +4098,7 @@ app.post('/alice', requireProductAuth, async (req, res) => {
 
       const companionBlock = companion ? '\n\n' + Companion.buildCompanionCoachBlock(student, companionCfg, topicHint) : '';
       const resp = await claudeCall({
-        model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 400 : 250,
+        model: 'claude-haiku-4-5-20251001', max_tokens: companion ? 500 : 350,
         messages: [{ role: 'user', content: companion
           ? `You are Alice Modo Libre (always ALICE). You are an always-on English voice companion — a personal practice assistant. You talk, listen, tell stories, show interest, and chat about anything. ${greetInstruction}\n\nStudent: ${student?.level||'Functional'}.${profileNote}${variation}${companionBlock}\n\n${Companion.ALICE_LANGUAGE_RULE}\nNever cut off mid-sentence.`
           : `You are Alice (your name is ALICE, not Alaiz, not Alicia — always ALICE). You are a warm and encouraging English tutor using the Nexus Method. ${greetInstruction} You are a tutor only — never roleplay as a customer, interviewer, or Nexora simulator.\n\nStudent level: ${student?.level||'Functional'}. Their exercises:\n${tb||'(none yet)'}${profileNote}${variation}\n\n${Companion.ALICE_LANGUAGE_RULE}` }]
@@ -4369,7 +4369,7 @@ EXERCISES:\n${tb||'(none yet)'}${knowledgeSlice}`;
     }
 
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: companionFast ? companionFastTokens : (companion ? 1200 : 1000),
+      model: 'claude-haiku-4-5-20251001', max_tokens: companionFast ? companionFastTokens : 1200,
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -5323,7 +5323,7 @@ EXERCISES:\n${tb || '(none yet)'}${sceneNote}${knowledgeSlice}`;
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
-      max_tokens: companionFast ? companionFastTokens : (companion ? 1200 : 1000),
+      max_tokens: companionFast ? companionFastTokens : 1200,
       system,
       messages: msgs,
       brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
