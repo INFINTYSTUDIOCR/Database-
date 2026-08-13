@@ -17,18 +17,12 @@
 <div id="wrap"><canvas id="c"></canvas></div>
 <script>
 (function () {
-  const BUILD = 'tr-orc7';
+  const BUILD = 'tr-orc8';
   const WIN = 7;
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const scene = new Image();
-  scene.src = 'assets/raid-bg.png';
-  const SPR = {};
-  ['idle', 'blink', 'breathe', 'laugh', 'cry', 'angry', 'hurt'].forEach(function (k) {
-    const im = new Image();
-    im.src = 'assets/orc-' + k + '.png';
-    SPR[k] = im;
-  });
+  scene.src = 'assets/raid-play.png';
   let dpr = Math.min(devicePixelRatio || 1, 2);
   let view = { w: 0, h: 0 };
 
@@ -217,8 +211,12 @@
     score: { x: 0.32, y: 0.008, w: 0.36, h: 0.09 },
     raid: { x: 0.03, y: 0.078, w: 0.30, h: 0.055 },
     timer: { x: 0.64, y: 0.195, w: 0.30, h: 0.045 },
-    orc: { x: 0.58, y: 0.18, w: 0.40, h: 0.72 },
-    bubble: { x: 0.48, y: 0.22, w: 0.18, h: 0.16 }
+    orc: { x: 0.56, y: 0.10, w: 0.42, h: 0.82 },
+    eyes: [
+      { x: 0.705, y: 0.355 },
+      { x: 0.768, y: 0.358 }
+    ],
+    bubble: { x: 0.46, y: 0.20, w: 0.18, h: 0.16 }
   };
 
   function hitTile(mx, my) {
@@ -229,30 +227,85 @@
     return -1;
   }
 
-  function orcImg() {
-    if (you >= WIN) return SPR.cry;
-    if (orcScore >= WIN) return SPR.laugh;
-    if (orcMood === 'laugh' || orcMood === 'mock') return SPR.laugh;
-    if (orcMood === 'angry') return SPR.angry;
-    if (orcMood === 'hurt') return SPR.hurt;
-    if (orcMood === 'cry') return SPR.cry;
-    const t = performance.now() / 1000;
-    if ((t % 3.8) < 0.14) return SPR.blink;
-    return Math.sin(t * 2.4) > 0.15 ? SPR.breathe : SPR.idle;
+  function smooth(t) {
+    return 0.5 - 0.5 * Math.cos(Math.max(0, Math.min(1, t)) * Math.PI);
   }
 
-  function drawOrc() {
+  function blinkAmt(now) {
+    const cycle = 3400;
+    const u = now % cycle;
+    if (u < 70) return smooth(u / 70);
+    if (u < 160) return 1;
+    if (u < 240) return 1 - smooth((u - 160) / 80);
+    return 0;
+  }
+
+  function drawOrc(now) {
     const o = REG.orc;
-    const img = orcImg();
-    if (!img || !img.naturalWidth) return;
-    const boxW = px(o.w);
-    const boxH = py(o.h);
-    const scale = Math.min(boxW / img.naturalWidth, boxH / img.naturalHeight);
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
-    const dx = px(o.x + o.w / 2) - dw / 2;
-    const dy = py(o.y + o.h) - dh;
-    ctx.drawImage(img, dx, dy, dw, dh);
+    const mood = you >= WIN ? 'cry' : orcScore >= WIN ? 'laugh' : orcMood;
+    const breath = Math.sin(now / 920) * 0.018;
+    let sy = 1 + breath;
+    let sx = 1 - breath * 0.35;
+    let ox = 0;
+    let rot = 0;
+    if (mood === 'laugh') {
+      const b = Math.sin(now / 160);
+      sy = 1 + breath + b * 0.035;
+      sx = 1 - b * 0.02;
+      rot = b * 0.025;
+    } else if (mood === 'angry') {
+      ox = Math.sin(now / 70) * 3;
+      sy = 1 + breath * 1.4;
+    } else if (mood === 'hurt') {
+      ox = 10;
+      sy = 0.96 + breath;
+      sx = 1.04;
+    } else if (mood === 'cry') {
+      sy = 0.97 + breath * 0.5;
+      sx = 1.03;
+    }
+    const feetX = px(o.x + o.w * 0.52) + ox;
+    const feetY = py(o.y + o.h * 0.92);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px(o.x), py(o.y), px(o.w), py(o.h));
+    ctx.clip();
+    ctx.translate(feetX, feetY);
+    ctx.rotate(rot);
+    ctx.scale(sx, sy);
+    ctx.translate(-feetX, -feetY);
+    ctx.drawImage(scene, 0, 0, view.w, view.h);
+    if (mood === 'angry') {
+      ctx.fillStyle = 'rgba(180,40,20,0.12)';
+      ctx.fillRect(px(o.x), py(o.y), px(o.w), py(o.h));
+    } else if (mood === 'hurt') {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(px(o.x), py(o.y), px(o.w), py(o.h));
+    }
+    ctx.restore();
+
+    const lids = blinkAmt(now);
+    if (lids > 0.05) {
+      REG.eyes.forEach((e) => {
+        const x = px(e.x) + ox;
+        const y = py(e.y);
+        const rx = view.w * 0.016;
+        const ry = view.h * 0.011 * lids;
+        ctx.fillStyle = '#2a1030';
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    if (mood === 'cry') {
+      const drop = (now / 900) % 1;
+      REG.eyes.forEach((e, i) => {
+        ctx.fillStyle = 'rgba(160,210,255,' + (1 - drop) + ')';
+        ctx.beginPath();
+        ctx.ellipse(px(e.x) + (i ? 4 : -4), py(e.y) + 12 + drop * 28, 3.5, 5 + drop * 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
   }
 
   function roundRect(x, y, w, h, r) {
@@ -464,7 +517,7 @@
 
     ctx.clearRect(0, 0, view.w, view.h);
     ctx.drawImage(scene, 0, 0, view.w, view.h);
-    drawOrc();
+    drawOrc(performance.now());
     drawLive();
   }
 
