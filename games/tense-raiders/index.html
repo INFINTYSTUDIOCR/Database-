@@ -19,7 +19,7 @@
 <div id="stage"><canvas id="c"></canvas></div>
 <script>
 (function () {
-  const BUILD = 'tr-orc1';
+  const BUILD = 'tr-orc2';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   let dpr = Math.min(devicePixelRatio || 1, 2);
@@ -143,8 +143,8 @@
 
     // boots
     ctx.fillStyle = '#1e1b4b';
-    round(ctx, -28, 58, 22, 18, 5);
-    round(ctx, 6, 58, 22, 18, 5);
+    fillRound(ctx, -28, 58, 22, 18, 5);
+    fillRound(ctx, 6, 58, 22, 18, 5);
 
     // robe body
     ctx.fillStyle = robe;
@@ -156,9 +156,9 @@
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = '#7c3aed';
-    round(ctx, -18, 8, 36, 44, 8);
+    fillRound(ctx, -18, 8, 36, 44, 8);
     ctx.fillStyle = '#b91c1c';
-    round(ctx, -8, 22, 16, 8, 3);
+    fillRound(ctx, -8, 22, 16, 8, 3);
 
     // arms
     ctx.fillStyle = skin;
@@ -247,7 +247,7 @@
     ctx.restore();
   }
 
-  function round(c, x, y, w, h, r) {
+  function fillRound(c, x, y, w, h, r) {
     const rr = Math.min(r, w / 2, h / 2);
     c.beginPath();
     c.moveTo(x + rr, y);

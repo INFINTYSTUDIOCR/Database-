@@ -390,10 +390,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub39 + portal query + sw v84 + game shell no-store',
-  /20260812hub39/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub39/.test(portal) &&
-    /infinity-pwa-v84/.test(sw) &&
+  'Q18 hub VER hub40 + portal query + sw v85 + game shell no-store',
+  /20260812hub40/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub40/.test(portal) &&
+    /infinity-pwa-v85/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -420,5 +420,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; Tense Raiders proto; verify: hub39'
+  'Core checks green. Knight + Thief finishable; Tense Raiders proto; verify: hub40'
 );

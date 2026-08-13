@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub39';
+  var VER = '20260812hub40';
 
   /** Knight + Dark Thief + Tense Raiders + Rapid Drill */
   var GAMES = [
