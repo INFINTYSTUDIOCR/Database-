@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub13';
+  var VER = '20260812hub14';
 
   /** Knight + Dark Thief (animated) + Rapid Drill */
   var GAMES = [
@@ -236,13 +236,13 @@
       '.hub-featured.art-thief{background:linear-gradient(125deg,#020617 0%,#1e293b 40%,#334155 70%,#64748b 100%);border-color:rgba(148,163,184,.5)}' +
       '.hub-featured.art-rapid{background:linear-gradient(125deg,#FFE8C8 0%,#FDBA74 40%,#9a3412 100%);border-color:rgba(251,191,36,.45)}' +
       '.hub-featured:active{transform:scale(.99)}' +
-      '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.35}' +
-      '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);animation:hubShine 5.5s ease-in-out infinite}' +
+      '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s}' +
+      '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}' +
       '.hub-featured-char{position:absolute;right:4%;top:8%;bottom:12%;width:auto;max-width:38%;height:auto;display:flex;align-items:flex-end;justify-content:center;transform:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));pointer-events:none;z-index:1}' +
       '.hub-featured-char .inf-char,.hub-featured-char .inf-plane{transform:scale(1.55)}' +
       '.hub-char-fallback{width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,var(--char-c,#F5A623),#5B21B6);border:2px solid rgba(255,255,255,.35);box-shadow:0 8px 20px rgba(0,0,0,.35)}' +
-      '.hub-card-art .hub-css-char{position:absolute;top:14%;left:50%;transform:translateX(-50%) scale(1.05);animation:hubAura 2.4s ease-in-out infinite;--char-c:#F5A623}' +
-      '.hub-title-char-css{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(1.7);animation:hubCharBob 2.2s ease-in-out infinite}' +
+      '.hub-card-art .hub-css-char{position:absolute;top:14%;left:50%;transform:translateX(-50%) scale(1.05);--char-c:#F5A623}' +
+      '.hub-title-char-css{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(1.7)}' +
       '.hub-featured-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.92) 0%,rgba(11,6,24,.2) 55%,transparent 100%)}' +
       '.hub-featured-content{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;z-index:2}' +
       '.hub-featured-badge{display:inline-block;background:var(--inf-gold);color:#1a1200;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}' +
@@ -255,18 +255,25 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
-      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}' +
-      '.hub-sprite{width:min(100%,150px);aspect-ratio:0.72;background-image:var(--hub-sheet);background-repeat:no-repeat;background-size:calc(var(--hub-frames) * 100%) 100%;background-position:0% 0;animation:hubSpritePlay 1.2s steps(12) infinite,hubCharBob 2.4s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));image-rendering:auto}' +
-      '.hub-sprite-thief{aspect-ratio:0.4;width:min(58%,110px);animation-duration:1.2s,2.6s}' +
-      '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:hubCharBob 2.2s ease-in-out infinite}' +
-      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom{inset:auto;right:4%;top:8%;width:42%;height:78%;transform:none}' +
-      '.hub-featured-char .hub-sprite{width:100%;height:100%;max-height:100%;aspect-ratio:auto}' +
-      '.hub-featured-char .hub-sprite-thief{width:55%;margin-left:auto}' +
-      '.hub-featured-char .hub-kaboom-svg{width:100%;height:100%}' +
-      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:70%;height:70%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}' +
-      '.hub-title-char-css .hub-sprite{width:min(100%,200px);height:auto;max-height:200px}' +
-      '.hub-title-char-css .hub-sprite-thief{width:min(46%,120px)}' +
-      '.hub-title-char-css .hub-kaboom-svg{width:100%;height:100%;max-height:180px}' +
+      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:1}' +
+      '.hub-sprite{height:100%;width:auto;max-width:100%;aspect-ratio:157/221;background-image:var(--hub-sheet);background-repeat:no-repeat;background-size:calc(var(--hub-frames) * 100%) 100%;background-position:0% 0;animation:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));image-rendering:auto}' +
+      '.hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:none}' +
+      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom{position:absolute;inset:auto 3% 10% auto;top:6%;bottom:10%;width:auto;max-width:36%;height:auto;transform:none}' +
+      '.hub-featured-char .hub-sprite{height:100%;width:auto;max-height:100%;max-width:100%;aspect-ratio:157/221}' +
+      '.hub-featured-char .hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-featured-char .hub-kaboom-svg{width:auto;height:100%;max-width:100%}' +
+      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:auto;height:70%;max-width:70%;transform:translate(-50%,-50%);display:flex;align-items:flex-end;justify-content:center}' +
+      '.hub-title-char-css .hub-sprite{height:100%;width:auto;max-height:200px;aspect-ratio:157/221}' +
+      '.hub-title-char-css .hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-title-char-css .hub-kaboom-svg{width:auto;height:100%;max-height:180px}' +
+      '@media (hover:hover){' +
+      '.hub-featured:hover .hub-featured-shine{opacity:.45}' +
+      '.hub-featured:hover .hub-featured-shine:after{animation:hubShine 1.4s ease-in-out 1}' +
+      '.hub-featured:hover .hub-sprite,.hub-card:hover .hub-sprite,.inf-hub-title.is-open .hub-title-char-css:hover .hub-sprite{animation:hubSpritePlay 1.2s steps(12) infinite}' +
+      '.hub-featured:hover .hub-kaboom-svg,.hub-card:hover .hub-kaboom-svg{animation:hubCharBob 1.6s ease-in-out infinite}' +
+      '.hub-title-cta:hover{animation:hubPulse 1.4s ease-in-out infinite}' +
+      '}' +
       '.art-thief{background:linear-gradient(165deg,#020617 0%,#1e293b 45%,#475569 100%)}' +
       '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
       '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
