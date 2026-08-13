@@ -54,7 +54,7 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260713m07"></script>
-<script src="js/jill-quiz.js?v=20260717visible"></script>
+<script src="js/jill-quiz.js?v=20260813fit1"></script>
 <script src="js/tts-chunks.js?v=20260811nocut"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260811nocut"></script>
@@ -741,6 +741,10 @@ body.tt-fs-lock{overflow:hidden;position:fixed;width:100%;height:100%;height:100
 .inf-arcade-fs-close{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
 .inf-arcade-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;min-height:0;}
 .inf-arcade-fs-body.is-knight-fit{max-width:none;width:100%;height:100%;flex:1 1 auto;min-height:0;padding:0;overflow:hidden;align-items:stretch;}
+.inf-arcade-fs-body.is-rapid-fit{max-width:none;width:100%;height:100%;flex:1 1 auto;min-height:0;padding:6px 10px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom));overflow:hidden;align-items:stretch;box-sizing:border-box;}
+.inf-arcade-fs.is-rapid-mode .inf-arcade-fs-bar{padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));}
+.inf-arcade-fs.is-rapid-mode:fullscreen .inf-arcade-fs-body,
+.inf-arcade-fs.is-rapid-mode:-webkit-full-screen .inf-arcade-fs-body{height:100%;}
 .inf-knight-frame{flex:1 1 auto;width:100%;height:100%;min-height:0;border:0;border-radius:0;background:#050508;display:block;}
 .inf-arcade-fs.is-knight-mode{background:#050508;}
 .inf-arcade-fs.is-knight-mode .inf-arcade-fs-bar{
@@ -2457,13 +2461,17 @@ function infinityArcadePickRapid(){
   closeInfinityArcadeMonitor(true);
   window._rapidDrillTier = 'foundations';
   openInfinityArcadeFullscreen('Rapid Drill', 'Kaboom · Foundations');
+  var fs = document.getElementById('inf-arcade-fs');
+  if(fs) fs.classList.add('is-rapid-mode');
   var body = document.getElementById('inf-arcade-fs-body');
   if(!body) return;
-  body.innerHTML = '<div style="margin-bottom:10px;">'
-    + ((typeof JillQuiz !== 'undefined' && CURRENT_STUDENT) ? JillQuiz.renderNemesisTopics(CURRENT_STUDENT) : '')
-    + '</div><div id="inf-arcade-fs-quiz"></div>';
+  body.classList.add('is-rapid-fit');
+  body.innerHTML = '<div id="inf-arcade-fs-quiz" class="jill-rapid-fit-root"></div>';
   var zone = document.getElementById('inf-arcade-fs-quiz');
-  if(zone) JillQuiz.mount(zone, CURRENT_STUDENT, portalQuizBundle(), null, { drillTier: 'foundations', drillOwner: 'jill' });
+  if(zone) JillQuiz.mount(zone, CURRENT_STUDENT, portalQuizBundle(), null, { drillTier: 'foundations', drillOwner: 'jill', fitScreen: true });
+  if(typeof infinityArcadeRequestBrowserFullscreen === 'function'){
+    infinityArcadeRequestBrowserFullscreen(fs);
+  }
 }
 
 function infinityArcadePickChallenge(){
@@ -2505,10 +2513,12 @@ function openInfinityArcadeFullscreen(title, subtitle){
   }
   if(body){
     body.classList.remove('is-knight-fit');
+    body.classList.remove('is-rapid-fit');
     body.innerHTML = '';
   }
   if(fs){
     fs.classList.remove('is-knight-mode');
+    fs.classList.remove('is-rapid-mode');
     fs.classList.add('is-open');
   }
   document.body.classList.add('inf-arcade-fs-lock');
@@ -2545,6 +2555,7 @@ function closeInfinityArcadeFullscreen(){
   if(fs){
     fs.classList.remove('is-open');
     fs.classList.remove('is-knight-mode');
+    fs.classList.remove('is-rapid-mode');
   }
   document.body.classList.remove('inf-arcade-fs-lock');
   window._infArcadeFsOpen = false;
@@ -2552,6 +2563,7 @@ function closeInfinityArcadeFullscreen(){
   var body = document.getElementById('inf-arcade-fs-body');
   if(body){
     body.classList.remove('is-knight-fit');
+    body.classList.remove('is-rapid-fit');
     body.innerHTML = '';
   }
   if(typeof openInfinityCasinoFloor === 'function'){

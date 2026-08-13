@@ -67,10 +67,29 @@
       + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}'
       + '#jill-kaboom-inner{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}'
       + '#jill-kaboom-next{display:block;width:100%;max-width:360px;margin:0 auto;box-shadow:0 8px 24px rgba(91,33,182,.45)}'
+      + '.jill-rapid-fit-root{flex:1 1 auto;min-height:0;width:100%;max-width:820px;margin:0 auto;display:flex;flex-direction:column;height:100%;}'
+      + '.jill-rapid-shell-fit{flex:1 1 auto;min-height:0;height:100%;display:flex;flex-direction:column;background:rgba(88,28,135,.28);border:1px solid rgba(167,139,250,.4);border-radius:14px;padding:8px 10px;overflow:hidden;box-sizing:border-box;}'
+      + '.jill-rapid-fit-hud{display:flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;font-size:11px;font-weight:800;color:#e9d5ff;margin-bottom:4px;flex-wrap:wrap;}'
+      + '.jill-rapid-fit-hud .jill-tier-badge{margin:0;padding:3px 8px;font-size:9px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-stage{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-inner{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0!important;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-pressure-track{height:34px;margin:0 0 6px;flex:0 0 auto;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-polvorin{width:36px;height:36px;font-size:8px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-flame{font-size:22px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-pressure-label{top:4px;font-size:8px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-pressure-danger{bottom:3px;font-size:9px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-timer{margin-bottom:8px!important;flex:0 0 auto;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-qbox{min-height:0!important;padding:10px 12px!important;font-size:15px!important;margin-bottom:8px!important;flex:0 1 auto;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-opts{display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr 1fr;gap:8px!important;flex:1 1 auto;min-height:120px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-kaboom-opt{min-height:0!important;height:auto;padding:10px 12px!important;font-size:13px!important;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-exit-row{display:none;}'
       + '@media(max-width:640px){'
       + '#jill-kaboom-opts{grid-template-columns:1fr!important;gap:8px!important;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-opts{grid-template-columns:1fr 1fr!important;}'
       + '.jill-kaboom-opt{min-height:52px!important;padding:12px 14px!important;font-size:13px!important;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-kaboom-opt{min-height:0!important;padding:10px 12px!important;}'
       + '.jill-pressure-track{height:48px;margin-bottom:8px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit .jill-pressure-track{height:34px;margin-bottom:6px;}'
       + '}';
     document.head.appendChild(st);
   }
@@ -816,7 +835,8 @@
     var moduleId = opts.moduleId || null;
     var tierClass = rapidDrillTier(student);
     if (rootEl.parentElement && !isMini) {
-      rootEl.parentElement.className = 'jill-rapid-tier-' + tierClass + (isAdvanced ? ' jill-rapid-tier-challenge' : '');
+      rootEl.parentElement.classList.add('jill-rapid-tier-' + tierClass);
+      if (isAdvanced) rootEl.parentElement.classList.add('jill-rapid-tier-challenge');
     }
     var nemesisKpis = isMini ? [] : collectNemesisKpis(student);
     var qCount = opts.questionCount
@@ -925,7 +945,7 @@
         + '<div id="jill-kaboom-timer" style="height:6px;background:rgba(0,0,0,0.3);border-radius:6px;margin-bottom:14px;overflow:hidden;">'
         + '<div id="jill-kaboom-timer-fill" style="height:100%;width:' + pct + '%;background:' + timerColor + ';transition:width .9s linear;border-radius:6px;"></div></div>'
         + '<div style="text-align:center;">' + tag + '</div>'
-        + '<div style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:16px 18px;font-size:16px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;">'
+        + '<div class="jill-qbox" style="background:rgba(255,255,255,0.96);color:#1e1b4b;border-radius:16px;padding:16px 18px;font-size:16px;font-weight:800;line-height:1.45;margin-bottom:14px;text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;">'
         + esc(q.q)
         + '</div>'
         + '<div id="jill-kaboom-opts" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
@@ -939,9 +959,10 @@
             + '</button>';
         }).join('')
         + '</div>'
-        + '<div id="jill-kaboom-exit-row" style="margin-top:12px;text-align:center;">'
+        + (opts.fitScreen ? '' : ('<div id="jill-kaboom-exit-row" style="margin-top:12px;text-align:center;">'
         + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
-        + '</div></div>';
+        + '</div>'))
+        + '</div>';
     }
 
     function renderFeedback(wasCorrect, mode) {
@@ -956,7 +977,7 @@
         ? ('Correcta: ' + esc(q.options[q.answer]))
         : (wasCorrect ? '¡Acertaste bajo presión!' : ('Casi — correcta: ' + esc(q.options[q.answer])));
       var titleColor = wasCorrect && mode !== 'timeout' ? '#86EFAC' : '#FCD34D';
-      return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));">'
+      return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;' + (opts.fitScreen ? '' : 'padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));') + '">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px;font-weight:800;color:#e9d5ff;">'
         + '<span>⚡ ' + modeLabel + ' · ' + (state.idx + 1) + '/' + state.quiz.length + '</span>'
         + '<span>🔥 ' + state.streak + '</span>'
@@ -976,9 +997,10 @@
         + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:16px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
         + nextLabel
         + '</button>'
-        + '<div style="margin-top:12px;">'
+        + (opts.fitScreen ? '' : ('<div style="margin-top:12px;">'
         + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
-        + '</div></div></div>';
+        + '</div>'))
+        + '</div></div>';
     }
 
     function bindNextButton() {
@@ -1182,10 +1204,21 @@
       startTimer();
     }
 
-    rootEl.innerHTML = '<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
-      + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
-      + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">🔥 La llama avanza hacia el polvorín — respondé antes de que explote la presión</div>'
-      + '<div id="jill-kaboom-stage"></div></div>';
+    var fit = !!opts.fitScreen;
+    var hud = '';
+    if (fit) {
+      var tierNow = rapidDrillTier(student);
+      hud = '<div class="jill-rapid-fit-hud">'
+        + (tierNow !== 'none' ? tierBadgeHtml(tierNow) : '')
+        + '<span>🏆 ' + (rdStats.winStreak || 0) + ' · rec ' + (rdStats.bestWinStreak || 0) + ' · 🏅 ' + (rdStats.trophies || 0) + '</span>'
+        + '</div>';
+    }
+    rootEl.innerHTML = fit
+      ? ('<div class="jill-rapid-shell jill-rapid-shell-fit">' + hud + '<div id="jill-kaboom-stage"></div></div>')
+      : ('<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
+        + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
+        + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">🔥 La llama avanza hacia el polvorín — respondé antes de que explote la presión</div>'
+        + '<div id="jill-kaboom-stage"></div></div>');
     var stage = document.getElementById('jill-kaboom-stage');
     rootEl = stage;
     showQuestion();
