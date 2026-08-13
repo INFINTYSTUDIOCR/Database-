@@ -163,11 +163,9 @@ function analyzeKnightSrc() {
   const resolvingWall = /age\s*>=\s*700|wall-700/.test(src);
   const advanceForce = /age\s*>\s*900/.test(src) && /phase === 'advance'/.test(src);
   const tickDuringHitstop = /Quiz SM tick MUST run even during hitstop/.test(src);
-  const showPrompt =
-    /PLAY: show prompt panel/.test(src) &&
-    !/PLAY: hide prompt panel/.test(src);
-  const dockedQuiz = /function quizDock\(/.test(src) && /btnY - gap - bh/.test(src);
-  const buildTag = /hub30-kq1/.test(src);
+  const hidePrompt = /PLAY: NO parchment/.test(src) && !/PLAY: show prompt panel/.test(src);
+  const dockedQuiz = /function quizDock\(/.test(src) && /Options strip only/.test(src);
+  const buildTag = /hub31-kq1/.test(src);
   const pendingKill = /pendingKill/.test(src);
   return {
     hasSM,
@@ -176,7 +174,7 @@ function analyzeKnightSrc() {
     resolvingWall,
     advanceForce,
     tickDuringHitstop,
-    showPrompt,
+    hidePrompt,
     dockedQuiz,
     buildTag,
     pendingKill
@@ -189,8 +187,8 @@ ok('Q9 knight deleted resume spaghetti (schedule/run/hardRecover)', harness.noRe
 ok('Q10 knight keeps options dimmed on answer (no blank duel)', harness.keepOptions);
 ok('Q11 resolving ends ≤700ms wall + advance force ≤900ms', harness.resolvingWall && harness.advanceForce);
 ok('Q12 tickQuiz runs during hitstop', harness.tickDuringHitstop);
-ok('Q13 knight shows PLAY prompt + docked options', harness.showPrompt && harness.dockedQuiz);
-ok('Q14 pendingKill + hub30-kq1', harness.pendingKill && harness.buildTag);
+ok('Q13 knight hides PLAY parchment + docked options', harness.hidePrompt && harness.dockedQuiz);
+ok('Q14 pendingKill + hub31-kq1', harness.pendingKill && harness.buildTag);
 
 /** Mirror hub29 PLAY SM: ready→resolving→(advance|ready); options never empty >300ms. */
 function simQuizStateMachine(opts) {
@@ -375,13 +373,13 @@ ok(
 
 const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
 ok(
-  'Q17 thief mirrors quiz SM + hub30 + shows PLAY dossier',
+  'Q17 thief mirrors quiz SM + hub31 + hides PLAY dossier',
   /function loadNextQuestion\s*\(/.test(stSrc) &&
     /function tickQuiz\s*\(/.test(stSrc) &&
     /function endResolving\s*\(/.test(stSrc) &&
-    /hub30-st1/.test(stSrc) &&
-    /PLAY: show dossier panel/.test(stSrc) &&
-    !/PLAY: hide dossier panel/.test(stSrc) &&
+    /hub31-st1/.test(stSrc) &&
+    /PLAY: NO dossier slab/.test(stSrc) &&
+    !/PLAY: show dossier panel/.test(stSrc) &&
     !/schedulePlayResume/.test(stSrc) &&
     !/runPlayResume/.test(stSrc) &&
     !/hardRecoverPlay/.test(stSrc) &&
@@ -392,10 +390,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub30 + portal query + sw v75 + game shell no-store',
-  /20260812hub30/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub30/.test(portal) &&
-    /infinity-pwa-v75/.test(sw) &&
+  'Q18 hub VER hub31 + portal query + sw v76 + game shell no-store',
+  /20260812hub31/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub31/.test(portal) &&
+    /infinity-pwa-v76/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -419,5 +417,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; PLAY prompt visible; verify: hub30'
+  'Core checks green. Knight + Thief finishable; PLAY parchment hidden; verify: hub31'
 );

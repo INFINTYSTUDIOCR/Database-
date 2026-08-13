@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub30-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub31-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub30-kq1';
+  const KQ_BUILD = 'hub31-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -1458,18 +1458,13 @@
     }
   }
 
-  /** Prompt parchment above options strip — both always on-canvas. */
+  /** Options strip only — no parchment over the duel. */
   function quizDock() {
     const w = W(),
       h = H();
-    const btnH = Math.max(26, Math.min(36, h * 0.048));
-    const btnY = Math.min(h * 0.91, h - btnH - 6);
-    const bh = Math.max(48, Math.min(h * 0.15, 92));
-    const gap = Math.max(6, h * 0.01);
-    let by = btnY - gap - bh;
-    if (by < h * 0.56) by = h * 0.56;
-    if (by + bh > btnY - 4) by = Math.max(8, btnY - bh - 4);
-    return { w, h, bx: w * 0.04, by, bw: w * 0.92, bh, btnY, btnH };
+    const btnH = Math.max(28, Math.min(40, h * 0.055));
+    const btnY = Math.min(h * 0.905, h - btnH - 8);
+    return { w, h, btnY, btnH };
   }
 
   function drawTimer() {
@@ -1506,60 +1501,28 @@
 
   function drawQuestion() {
     if (!currentQ) return;
-    // PLAY: show prompt panel (parchment + options; never skip draw).
-    const { w, h, bx, by, bw, bh } = quizDock();
-    const locked = quiz.locked || !options.length;
-    if (locked) ctx.globalAlpha = 0.72;
-    drawNine(ui.parchFancy || ui.parch, bx, by, bw, bh, 8);
-
-    const catLabel =
-      currentQ.cat === 'tense'
-        ? 'TIEMPO VERBAL'
-        : currentQ.cat === 'phrasal'
-          ? 'PHRASAL VERB'
-          : currentQ.cat === 'linker'
-            ? 'LINKER'
-            : 'COMPLETÁ LA CADENA';
-
-    const rh = Math.max(20, h * 0.036);
-    const rw = Math.min(bw * 0.52, Math.max(140, catLabel.length * h * 0.014 + rh * 2));
-    const rx = bx + (bw - rw) / 2;
-    const ry = by - rh * 0.5;
-    drawHRibbon(ui.ribbonL, ui.ribbonM, ui.ribbonR, rx, ry, rw, rh);
-
-    ctx.fillStyle = '#fff8e7';
-    ctx.font = `800 ${Math.round(rh * 0.48)}px Cinzel,serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur = 2;
-    ctx.fillText(catLabel, rx + rw / 2, ry + rh / 2 + 1);
-    ctx.shadowBlur = 0;
-
-    const padX = bw * 0.05;
-    const maxW = bw - padX * 2;
-    const maxH = bh * 0.7;
-    let fs = Math.round(h * 0.032);
-    const minFs = Math.round(h * 0.02);
-    let lines = wrapPrompt(currentQ.prompt, maxW, `700 ${fs}px Outfit,sans-serif`);
-    while (fs > minFs && (lines.length * fs * 1.2 > maxH || lines.some((l) => {
-      ctx.font = `700 ${fs}px Outfit,sans-serif`;
-      return ctx.measureText(l).width > maxW;
-    }))) {
-      fs -= 1;
-      lines = wrapPrompt(currentQ.prompt, maxW, `700 ${fs}px Outfit,sans-serif`);
-    }
-    ctx.fillStyle = '#2a1810';
+    // PLAY: NO parchment. One HUD line only — duel stays visible.
+    const h = H(),
+      w = W();
+    const line = String(currentQ.prompt || '');
+    const maxW = w * 0.62;
+    let fs = Math.round(h * 0.022);
     ctx.font = `700 ${fs}px Outfit,sans-serif`;
+    while (fs > 10 && ctx.measureText(line).width > maxW) {
+      fs -= 1;
+      ctx.font = `700 ${fs}px Outfit,sans-serif`;
+    }
+    ctx.fillStyle = 'rgba(8,6,12,0.72)';
+    const tw = Math.min(maxW, ctx.measureText(line).width) + 16;
+    const th = fs + 10;
+    const tx = (w - tw) / 2;
+    const ty = h * 0.118;
+    roundRect(ctx, tx, ty, tw, th, 6);
+    ctx.fill();
+    ctx.fillStyle = '#fff8e7';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const blockH = lines.length * fs * 1.2;
-    let yy = by + bh * 0.56 - blockH / 2 + fs * 0.3;
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], bx + bw / 2, yy);
-      yy += fs * 1.2;
-    }
-    if (locked) ctx.globalAlpha = 1;
+    ctx.fillText(line, w / 2, ty + th / 2);
   }
 
   function drawOptions() {
