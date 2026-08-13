@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub33-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub35-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub33-kq1';
+  const KQ_BUILD = 'hub35-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -274,7 +274,7 @@
   await Promise.all(
     SFX_NAMES.map(async (name) => {
       try {
-        const res = await fetch('assets/sfx/' + name + '.wav?v=3');
+        const res = await fetch('assets/sfx/' + name + '.wav?v=sfx4');
         if (res.ok) sfxRaw[name] = await res.arrayBuffer();
       } catch (_) {}
       tickLoad(name);
@@ -289,7 +289,7 @@
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let actx = null;
   let master = null;
-  let muted = localStorage.getItem('kq_mute') === '1';
+  let muted = false; // never boot silent — mute is a button, not a stuck flag
   let ambientSrc = null;
   let ambientGain = null;
   let lastTickSec = -1;
@@ -360,6 +360,104 @@
     if (looped && looped.src) {
       ambientSrc = looped.src;
       ambientGain = looped.g;
+      return;
+    }
+    // procedural bed if WAV missing (same idea as Thief)
+    if (!actx || !master) return;
+    const t0 = actx.currentTime;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 55;
+    g.gain.value = 0.04;
+    o.connect(g);
+    g.connect(master);
+    o.start(t0);
+    ambientSrc = o;
+    ambientGain = g;
+  }
+
+  function tone(freq, dur, type, gain, slideTo) {
+    if (!actx || !master || muted) return;
+    const t0 = actx.currentTime;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(40, slideTo), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain || 0.12, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g);
+    g.connect(master);
+    o.start(t0);
+    o.stop(t0 + dur + 0.02);
+  }
+
+  function noiseBurst(dur, gain, hpFreq) {
+    if (!actx || !master || muted) return;
+    const n = Math.floor(actx.sampleRate * dur);
+    const buf = actx.createBuffer(1, n, actx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    const g = actx.createGain();
+    const f = actx.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = hpFreq || 400;
+    g.gain.value = gain || 0.08;
+    src.connect(f);
+    f.connect(g);
+    g.connect(master);
+    src.start();
+  }
+
+  function sfxFallback(kind) {
+    if (kind === 'slash' || kind === 'hit') {
+      noiseBurst(0.1, 0.12, 250);
+      tone(160, 0.1, 'triangle', 0.08, 70);
+    } else if (kind === 'heavy' || kind === 'explode') {
+      noiseBurst(0.18, 0.14, 120);
+      tone(90, 0.22, 'sawtooth', 0.08, 40);
+    } else if (kind === 'fireball') {
+      noiseBurst(0.16, 0.1, 400);
+      tone(280, 0.2, 'sawtooth', 0.07, 90);
+    } else if (kind === 'ok') {
+      tone(440, 0.08, 'triangle', 0.08);
+      tone(660, 0.1, 'sine', 0.05);
+    } else if (kind === 'perfect') {
+      tone(523, 0.08, 'triangle', 0.09);
+      tone(784, 0.12, 'sine', 0.07);
+      tone(1046, 0.14, 'sine', 0.05);
+    } else if (kind === 'bad') {
+      tone(180, 0.2, 'sawtooth', 0.08, 90);
+      noiseBurst(0.15, 0.07, 200);
+    } else if (kind === 'fever') {
+      tone(220, 0.25, 'sine', 0.08, 440);
+      tone(330, 0.3, 'triangle', 0.05, 660);
+    } else if (kind === 'boss') {
+      tone(80, 0.35, 'sawtooth', 0.09);
+      tone(160, 0.25, 'square', 0.05);
+    } else if (kind === 'win') {
+      [440, 554, 659, 880].forEach((f, i) => setTimeout(() => tone(f, 0.18, 'triangle', 0.08), i * 90));
+    } else if (kind === 'lose') {
+      tone(300, 0.35, 'sawtooth', 0.07, 80);
+      setTimeout(() => tone(160, 0.4, 'triangle', 0.05, 60), 120);
+    } else if (kind === 'tick') {
+      tone(720, 0.03, 'square', 0.04);
+    } else if (kind === 'tickUrgent') {
+      tone(980, 0.04, 'square', 0.06);
+    } else if (kind === 'hoof') {
+      tone(90, 0.06, 'triangle', 0.06);
+      noiseBurst(0.05, 0.05, 80);
+    } else if (kind === 'click') {
+      tone(880, 0.04, 'square', 0.05);
+    } else if (kind === 'start') {
+      tone(200, 0.2, 'sine', 0.08, 500);
+      noiseBurst(0.2, 0.06, 500);
+    } else {
+      tone(500, 0.06, 'sine', 0.05);
     }
   }
 
@@ -403,16 +501,7 @@
         click: 0.45
       };
       if (!playBuf(file, { gain: gains[file] != null ? gains[file] : 0.8 })) {
-        // tiny fallback click if sample missing
-        if (!actx) return;
-        const o = actx.createOscillator();
-        const g = actx.createGain();
-        o.frequency.value = 440;
-        g.gain.value = muted ? 0 : 0.05;
-        o.connect(g);
-        g.connect(master);
-        o.start();
-        o.stop(actx.currentTime + 0.05);
+        sfxFallback(kind);
       }
     });
   }

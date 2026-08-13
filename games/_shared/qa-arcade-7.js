@@ -165,7 +165,7 @@ function analyzeKnightSrc() {
   const tickDuringHitstop = /Quiz SM tick MUST run even during hitstop/.test(src);
   const hidePrompt = /PLAY: NO parchment/.test(src) && !/PLAY: show prompt panel/.test(src);
   const dockedQuiz = /function quizDock\(/.test(src) && /Options strip only/.test(src);
-  const buildTag = /hub33-kq1/.test(src);
+  const buildTag = /hub35-kq1/.test(src);
   const pendingKill = /pendingKill/.test(src);
   return {
     hasSM,
@@ -188,7 +188,7 @@ ok('Q10 knight keeps options dimmed on answer (no blank duel)', harness.keepOpti
 ok('Q11 resolving ends ≤700ms wall + advance force ≤900ms', harness.resolvingWall && harness.advanceForce);
 ok('Q12 tickQuiz runs during hitstop', harness.tickDuringHitstop);
 ok('Q13 knight hides PLAY parchment + docked options', harness.hidePrompt && harness.dockedQuiz);
-ok('Q14 pendingKill + hub33-kq1', harness.pendingKill && harness.buildTag);
+ok('Q14 pendingKill + hub35-kq1', harness.pendingKill && harness.buildTag);
 
 /** Mirror hub29 PLAY SM: ready→resolving→(advance|ready); options never empty >300ms. */
 function simQuizStateMachine(opts) {
@@ -373,11 +373,11 @@ ok(
 
 const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
 ok(
-  'Q17 thief mirrors quiz SM + hub33 + hides PLAY dossier',
+  'Q17 thief mirrors quiz SM + hub35 + hides PLAY dossier',
   /function loadNextQuestion\s*\(/.test(stSrc) &&
     /function tickQuiz\s*\(/.test(stSrc) &&
     /function endResolving\s*\(/.test(stSrc) &&
-    /hub33-st1/.test(stSrc) &&
+    /hub35-st1/.test(stSrc) &&
     /PLAY: NO dossier slab/.test(stSrc) &&
     !/PLAY: show dossier panel/.test(stSrc) &&
     !/schedulePlayResume/.test(stSrc) &&
@@ -390,10 +390,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub33 + portal query + sw v78 + game shell no-store',
-  /20260812hub33/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub33/.test(portal) &&
-    /infinity-pwa-v78/.test(sw) &&
+  'Q18 hub VER hub35 + portal query + sw v80 + game shell no-store',
+  /20260812hub35/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub35/.test(portal) &&
+    /infinity-pwa-v80/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -405,6 +405,8 @@ const assetsOk =
   exists('games/knights-quest/index.html') &&
   exists('games/dark-thief/index.html') &&
   exists('games/dark-thief/assets/manifest.json') &&
+  exists('games/knights-quest/assets/sfx/slash.wav') &&
+  exists('games/knights-quest/assets/sfx/ambient.wav') &&
   exists('games/dark-thief/assets/sfx/whoosh.wav') &&
   exists('games/_shared/infinity-quiz-bank.js');
 ok('bonus assets present', assetsOk);
@@ -417,5 +419,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; PLAY parchment hidden; verify: hub33'
+  'Core checks green. Knight + Thief finishable; battle WAV pack restored; verify: hub35'
 );
