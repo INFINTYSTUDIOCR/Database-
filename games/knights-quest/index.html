@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub35-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub36-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub35-kq1';
+  const KQ_BUILD = 'hub36-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -1026,10 +1026,11 @@
       }
 
       this.particles.forEach((p) => {
-        ctx.globalAlpha = p.life * this.alpha;
+        const rad = Math.max(0.1, (p.r || 2) * Math.max(0, p.life));
+        ctx.globalAlpha = Math.max(0, p.life) * this.alpha;
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
         ctx.fill();
       });
       ctx.restore();
@@ -2023,7 +2024,7 @@
       }
       const img = vfxImgs[fx.kind]?.[fx.frame];
       if (img) {
-        const s = H() * 0.24 * fx.scale;
+        const s = Math.max(4, H() * 0.24 * Math.abs(fx.scale || 1));
         ctx.save();
         ctx.translate(fx.x, fx.y);
         ctx.rotate(fx.rot || 0);
@@ -2038,13 +2039,17 @@
       p.y += p.vy;
       p.vy += 0.12;
       p.life -= 0.025;
-      ctx.globalAlpha = p.life;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-      ctx.fill();
+      if (p.life <= 0) return false;
+      const rad = Math.max(0.1, Math.abs(p.r || 2) * p.life);
+      try {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      } catch (_) {}
       ctx.globalAlpha = 1;
-      return p.life > 0;
+      return true;
     });
 
     floatingTexts = floatingTexts.filter((t) => {
@@ -2265,11 +2270,6 @@
       ctx.restore();
     } catch (err) {
       console.error('[KQ frame]', err);
-      if (gameState === STATES.PLAY && knight.state !== 'die') {
-        try {
-          loadNextQuestion();
-        } catch (_) {}
-      }
     }
   }
   updateHUD();
