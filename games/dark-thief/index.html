@@ -89,7 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub35-st1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub38-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -109,7 +109,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const ST_BUILD = 'hub35-st1';
+  const ST_BUILD = 'hub38-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -611,7 +611,7 @@
   let hitstop = 0;
   let flash = 0;
   let mouseX = 0, mouseY = 0;
-  let timerMax = 8;
+  let timerMax = 10;
   let alert = 0;
   let veil = 0;
   let best = +localStorage.getItem('st_best') || 0;
@@ -1181,6 +1181,14 @@
     ctx.imageSmoothingEnabled = true;
   }
 
+  function questionTimer() {
+    const n = questionsAnswered || 0;
+    if (n >= 20) return 3;
+    if (n >= 15) return 6;
+    if (n >= 10) return 8;
+    return 10;
+  }
+
   function ensureCanvasAlive() {
     if (W() < 2 || H() < 2) {
       try { resize(); } catch (_) {}
@@ -1195,7 +1203,7 @@
       { word: 'idk', isCorrect: false },
       { word: 'like', isCorrect: false }
     ];
-    timerMax = 8;
+    timerMax = questionTimer();
     quiz.phase = 'ready';
     quiz.locked = false;
     quiz.born = performance.now();
@@ -1217,7 +1225,7 @@
         ...wrong.map((w) => ({ word: String(w), isCorrect: false }))
       ];
       options.sort(() => Math.random() - 0.5);
-      timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
+      timerMax = questionTimer();
       quiz.phase = 'ready';
       quiz.locked = false;
       quiz.born = performance.now();

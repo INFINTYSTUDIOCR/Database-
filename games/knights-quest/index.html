@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub37-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub38-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub37-kq1';
+  const KQ_BUILD = 'hub38-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   // Canvas forbids negative radii — a bad particle/FX must NEVER throw and kill the play loop.
@@ -709,7 +709,7 @@
   let flash = 0;
   let mouseX = 0,
     mouseY = 0;
-  let timerMax = 8;
+  let timerMax = 10;
   let fever = 0;
   let mounted = false;
   let best = +localStorage.getItem('kq_best') || 0;
@@ -1369,6 +1369,14 @@
   }
 
   // ── GAME FLOW ──
+  function questionTimer() {
+    const n = questionsAnswered || 0;
+    if (n >= 20) return 3;
+    if (n >= 15) return 6;
+    if (n >= 10) return 8;
+    return 10;
+  }
+
   function fitOptionText(text, maxW, basePx) {
     let size = basePx;
     ctx.font = `800 ${size}px monospace`;
@@ -1468,7 +1476,7 @@
       { word: 'idk', isCorrect: false },
       { word: 'like', isCorrect: false }
     ];
-    timerMax = 8;
+    timerMax = questionTimer();
     quiz.phase = 'ready';
     quiz.locked = false;
     quiz.born = performance.now();
@@ -1490,7 +1498,7 @@
         ...wrong.map((w) => ({ word: String(w), isCorrect: false }))
       ];
       options.sort(() => Math.random() - 0.5);
-      timerMax = Math.max(4.5, 8 - knight.streak * 0.25 - (enemy?.type.boss ? 1 : 0));
+      timerMax = questionTimer();
       quiz.phase = 'ready';
       quiz.locked = false;
       quiz.born = performance.now();
