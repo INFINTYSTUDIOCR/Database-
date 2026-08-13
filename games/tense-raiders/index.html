@@ -17,18 +17,20 @@
 <div id="wrap"><canvas id="c"></canvas></div>
 <script>
 (function () {
-  const BUILD = 'tr-orc9';
+  const BUILD = 'tr-orc10';
   const WIN = 7;
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const scene = new Image();
   scene.src = 'assets/raid-bg.png';
+  const SHEET_COLS = 4;
+  const SHEET_ROWS = 2;
   const SHEETS = {
-    idle: { src: 'assets/orc-idle-sheet.png', frames: 4, fps: 6, loop: true, img: null },
-    laugh: { src: 'assets/orc-laugh-sheet.png', frames: 4, fps: 8, loop: true, img: null },
-    angry: { src: 'assets/orc-angry-sheet.png', frames: 4, fps: 9, loop: true, img: null },
-    hurt: { src: 'assets/orc-hurt-sheet.png', frames: 4, fps: 10, loop: false, img: null },
-    cry: { src: 'assets/orc-cry-sheet.png', frames: 4, fps: 6, loop: true, img: null }
+    idle: { src: 'assets/orc-idle-sheet.png', frames: 8, fps: 8, loop: true, img: null },
+    laugh: { src: 'assets/orc-laugh-sheet.png', frames: 8, fps: 10, loop: true, img: null },
+    angry: { src: 'assets/orc-angry-sheet.png', frames: 8, fps: 10, loop: true, img: null },
+    hurt: { src: 'assets/orc-hurt-sheet.png', frames: 8, fps: 12, loop: false, img: null },
+    cry: { src: 'assets/orc-cry-sheet.png', frames: 8, fps: 8, loop: true, img: null }
   };
   let animKey = 'idle';
   let animBorn = 0;
@@ -311,21 +313,23 @@
     const sh = SHEETS[animKey];
     if (!sh || !sh.img) return;
     const img = sh.img;
-    const fw = img.width / sh.frames;
-    const fh = img.height;
+    const fw = img.width / SHEET_COLS;
+    const fh = img.height / SHEET_ROWS;
     const elapsed = (now - animBorn) / 1000;
     let fi = Math.floor(elapsed * sh.fps);
     if (sh.loop) fi = fi % sh.frames;
     else fi = Math.min(sh.frames - 1, fi);
+    const col = fi % SHEET_COLS;
+    const row = Math.floor(fi / SHEET_COLS);
     const o = REG.orc;
     const boxW = px(o.w);
     const boxH = py(o.h);
-    const scale = Math.min(boxW / fw, boxH / fh) * 0.95;
+    const scale = Math.min(boxW / fw, boxH / fh) * 0.92;
     const dw = fw * scale;
     const dh = fh * scale;
     const dx = px(o.x + o.w / 2) - dw / 2;
     const dy = py(o.y + o.h) - dh;
-    ctx.drawImage(img, fi * fw, 0, fw, fh, dx, dy, dw, dh);
+    ctx.drawImage(img, col * fw, row * fh, fw, fh, dx, dy, dw, dh);
   }
 
   function roundRect(x, y, w, h, r) {
