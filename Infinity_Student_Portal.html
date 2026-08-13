@@ -54,8 +54,8 @@
 <script src="js/jill-progress.js?v=20260707rd"></script>
 <script src="js/infinity-victory.js?v=20260710utf8"></script>
 <script src="js/jill-foundations-modules.js?v=20260713m07"></script>
-<script src="games/_shared/infinity-arcade-run.js?v=r1"></script>
-<script src="js/jill-quiz.js?v=20260813run1"></script>
+<script src="games/_shared/infinity-arcade-run.js?v=r2"></script>
+<script src="js/jill-quiz.js?v=20260813run2"></script>
 <script src="js/tts-chunks.js?v=20260811nocut"></script>
 <script src="js/nexora-stream-voice.js"></script>
 <script src="js/ptt-mic.js?v=20260811nocut"></script>
@@ -2133,7 +2133,7 @@ function resolveRapidDrillTier(force){
   return 'foundations';
 }
 function rapidDrillLabel(tier){
-  return tier === 'advanced' ? 'Challenge drill (Alice)' : 'Rapid drill Kaboom';
+  return tier === 'advanced' ? 'Challenge drill (Alice)' : 'Rapid drill · Foundations';
 }
 function drillMountOpts(){
   var tab = window._activePortalTab || 'progreso';
@@ -2461,7 +2461,7 @@ function infinityArcadePickRapid(){
   }
   closeInfinityArcadeMonitor(true);
   window._rapidDrillTier = 'foundations';
-  openInfinityArcadeFullscreen('Rapid Drill', 'Kaboom · Foundations');
+  openInfinityArcadeFullscreen('Rapid Drill', 'Foundations · Piso');
   var fs = document.getElementById('inf-arcade-fs');
   if(fs) fs.classList.add('is-rapid-mode');
   var body = document.getElementById('inf-arcade-fs-body');
@@ -3544,6 +3544,131 @@ function arcadePersistMeta(s, meta){
   return meta;
 }
 
+function arcadeFloorFirstName(s){
+  var n = String((s && s.info && s.info.name) || (s && s.name) || '').trim().split(/\s+/)[0];
+  return n || 'Alguien';
+}
+function arcadeFloorIsOn(s){
+  s = s || CURRENT_STUDENT;
+  if(s && typeof s.arcadeFloorOptIn === 'boolean') return !!s.arcadeFloorOptIn;
+  try{ return localStorage.getItem('inf-arcade-floor-on') === '1'; }catch(e){ return false; }
+}
+function arcadeFloorCacheEmpty(me){
+  return { on:false, rows:[], me: me || '' };
+}
+async function arcadeFloorUnpublish(){
+  var s = CURRENT_STUDENT;
+  if(!s || !s.id || typeof dbSet !== 'function') return;
+  await dbSet('infinity_sessions', 'ARCADE-FLOOR-'+s.id, {
+    id: s.id,
+    name: arcadeFloorFirstName(s),
+    optIn: false,
+    games: {},
+    updatedAt: new Date().toISOString()
+  });
+}
+async function arcadeFloorPublish(patch){
+  var s = CURRENT_STUDENT;
+  if(!s || !s.id || !arcadeFloorIsOn(s) || typeof dbSet !== 'function') return;
+  var meta = (typeof InfinityArcadeRun !== 'undefined' && InfinityArcadeRun.loadMeta) ? InfinityArcadeRun.loadMeta() : {};
+  var games = {};
+  ['knight','thief','raiders','rapid'].forEach(function(g){
+    var m = meta[g] || {};
+    games[g] = { best: m.best||0, last: m.lastScore||0, streak: m.streak||0 };
+  });
+  if(patch && patch.game){
+    var g = patch.game;
+    var prev = games[g] || { best:0, last:0, streak:0 };
+    games[g] = {
+      best: Math.max(prev.best||0, patch.best||patch.score||0),
+      last: patch.score||0,
+      streak: patch.streak||0
+    };
+  }
+  await dbSet('infinity_sessions', 'ARCADE-FLOOR-'+s.id, {
+    id: s.id,
+    name: arcadeFloorFirstName(s),
+    optIn: true,
+    games: games,
+    updatedAt: new Date().toISOString()
+  });
+}
+async function arcadeFloorLoad(){
+  var s = CURRENT_STUDENT;
+  var me = (s && s.id) || '';
+  if(!arcadeFloorIsOn(s)){
+    window._arcadeFloorCache = arcadeFloorCacheEmpty(me);
+    if(typeof InfinityArcadeRun !== 'undefined'){
+      if(InfinityArcadeRun.setFloorOn) InfinityArcadeRun.setFloorOn(false);
+      if(InfinityArcadeRun.setFloorBoard) InfinityArcadeRun.setFloorBoard([], me);
+    }
+    return window._arcadeFloorCache;
+  }
+  var rows = [];
+  try{ rows = await dbQuery('infinity_sessions?select=id,data&id=like.ARCADE-FLOOR-*'); }catch(e){ rows = []; }
+  var board = [];
+  (rows||[]).forEach(function(r){
+    var d = r && r.data;
+    if(!d || d.optIn === false) return;
+    board.push({
+      id: d.id || String(r.id||'').replace(/^ARCADE-FLOOR-/, ''),
+      name: d.name || 'Alguien',
+      games: d.games || {}
+    });
+  });
+  window._arcadeFloorCache = { on:true, rows:board, me:me };
+  if(typeof InfinityArcadeRun !== 'undefined'){
+    if(InfinityArcadeRun.setFloorOn) InfinityArcadeRun.setFloorOn(true);
+    if(InfinityArcadeRun.setFloorBoard) InfinityArcadeRun.setFloorBoard(board, me);
+  }
+  return window._arcadeFloorCache;
+}
+function arcadeFloorPushToFrames(){
+  var cache = window._arcadeFloorCache || arcadeFloorCacheEmpty(CURRENT_STUDENT && CURRENT_STUDENT.id);
+  var msg = { type:'inf-arcade-floor', on:!!cache.on, board: cache.on ? (cache.rows||[]) : [], me: cache.me||'' };
+  var frames = document.querySelectorAll('.inf-knight-frame');
+  for(var i=0;i<frames.length;i++){
+    try{ if(frames[i].contentWindow) frames[i].contentWindow.postMessage(msg, '*'); }catch(e){}
+  }
+}
+async function arcadeFloorSetOptIn(on){
+  var s = CURRENT_STUDENT;
+  on = !!on;
+  try{ localStorage.setItem('inf-arcade-floor-on', on ? '1' : '0'); }catch(e){}
+  if(s){
+    s.arcadeFloorOptIn = on;
+    if(s.id && typeof dbSet === 'function') dbSet('infinity_students', s.id, s).catch(function(){});
+  }
+  if(typeof InfinityArcadeRun !== 'undefined' && InfinityArcadeRun.setFloorOn){
+    InfinityArcadeRun.setFloorOn(on);
+  }
+  if(!on){
+    await arcadeFloorUnpublish();
+    window._arcadeFloorCache = arcadeFloorCacheEmpty(s && s.id);
+    if(typeof InfinityArcadeRun !== 'undefined' && InfinityArcadeRun.setFloorBoard){
+      InfinityArcadeRun.setFloorBoard([], s && s.id);
+    }
+    arcadeFloorPushToFrames();
+    return window._arcadeFloorCache;
+  }
+  await arcadeFloorPublish();
+  await arcadeFloorLoad();
+  arcadeFloorPushToFrames();
+  return window._arcadeFloorCache;
+}
+window.onInfinityArcadeFinish = function(payload){
+  if(!arcadeFloorIsOn() || !payload) return;
+  arcadeFloorPublish(payload).then(function(){ return arcadeFloorLoad(); }).then(function(){ arcadeFloorPushToFrames(); });
+};
+window.addEventListener('message', function(ev){
+  var d = ev && ev.data;
+  if(!d || typeof d !== 'object') return;
+  if(d.type === 'inf-arcade-hello'){ arcadeFloorPushToFrames(); return; }
+  if(d.type === 'inf-arcade-finish'){
+    if(typeof window.onInfinityArcadeFinish === 'function') window.onInfinityArcadeFinish(d);
+  }
+});
+
 function arcadeHudHtml(s){
   var meta = arcadeGetMeta(s);
   return '<div class="arcade-hud">'
@@ -3699,7 +3824,7 @@ function renderArcadeMenuHtml(containerId){
     + '<div style="font-size:12px;opacity:.8;line-height:1.45;">Caballero teutónico · linkers bajo fuego</div></button>'
     + '<button type="button" onclick="infinityArcadePickRapid()" style="text-align:left;border:1px solid rgba(251,113,133,0.35);background:linear-gradient(135deg,#1a0a12,#0B0618);border-radius:16px;padding:14px;cursor:pointer;color:#fff;">'
     + '<div style="font-weight:900;color:#FDA4AF;margin-bottom:6px;">Rapid Drill</div>'
-    + '<div style="font-size:12px;opacity:.8;line-height:1.45;">Kaboom · Foundations</div></button>'
+    + '<div style="font-size:12px;opacity:.8;line-height:1.45;">Foundations · Piso</div></button>'
     + '</div>';
 }
 
@@ -4913,7 +5038,7 @@ function renderAlice(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · KABOOM</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · PISO</div>'
       +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Foundations bajo presión — no es Infinity Arcade</div>'
       +'</div>'
       +'<button type="button" onclick="portalCloseRapidDrill(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Alice</button>'
@@ -8430,7 +8555,7 @@ function renderJill(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
       +'<div>'
       +'<div style="font-size:10px;letter-spacing:0.2em;color:#c4b5fd;font-weight:700;">STUDIO INFINITY CR</div>'
-      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · KABOOM</div>'
+      +'<div style="font-size:26px;font-weight:900;color:#e9d5ff;letter-spacing:0.04em;">RAPID DRILL · PISO</div>'
       +'<div style="font-size:11px;color:rgba(255,255,255,0.82);">Foundations bajo presión — no es Infinity Arcade</div>'
       +'</div>'
       +'<button type="button" onclick="jillCloseKaboomQuiz(true)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#e9d5ff;font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;">← Jill</button>'
@@ -9226,7 +9351,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
-<script src="js/infinity-casino-floor.js?v=20260813hub50"></script>
+<script src="js/infinity-casino-floor.js?v=20260813hub53"></script>
 <script src="js/infinity-modern-games.js?v=20260812mod6"></script>
 <script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>

@@ -10,13 +10,15 @@
                                  "attack":  8,
                                  "hurt":  8,
                                  "dead":  8,
-                                 "idle":  10
+                                 "idle":  10,
+                                 "run":  8
                              },
                   "goblin":  {
                                  "attack":  8,
                                  "hurt":  8,
                                  "dead":  8,
-                                 "idle":  10
+                                 "idle":  10,
+                                 "run":  8
                              },
                   "bat":  {
                               "attack":  8,
@@ -29,7 +31,8 @@
                                    "attack":  8,
                                    "hurt":  8,
                                    "dead":  8,
-                                   "idle":  10
+                                   "idle":  10,
+                                   "run":  8
                                }
               }
 }

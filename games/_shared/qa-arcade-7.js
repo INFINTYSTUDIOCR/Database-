@@ -412,12 +412,25 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub50 + portal query + sw v95 + game shell no-store',
-  /20260813hub50/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260813hub50/.test(portal) &&
-    /infinity-pwa-v95/.test(sw) &&
+  'Q18 hub VER hub53 + portal query + sw v98 + live stage not 4-card grid + rapid clock not kaboom',
+  /20260813hub53/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260813hub53/.test(portal) &&
+    /infinity-pwa-v98/.test(sw) &&
     /isGameShell/.test(sw) &&
-    /cache:\s*['"]no-store['"]/.test(sw)
+    /cache:\s*['"]no-store['"]/.test(sw) &&
+    /hub-live/.test(hub) &&
+    /selectInfinityHubStage/.test(hub) &&
+    /startStageLoop/.test(hub) &&
+    /hub-portrait-rapid/.test(hub) &&
+    /hub-rapid-clock/.test(hub) &&
+    /kind: 'rapid'/.test(hub) &&
+    /infinityArcadePickRapid/.test(hub) &&
+    !/ELEGÍ TU PARTIDA/.test(hub) &&
+    !/function kaboomSvg/.test(hub) &&
+    !/KA-BOOM/.test(hub) &&
+    !/portrait:\s*'kaboom'/.test(hub) &&
+    !/hub-portrait-kaboom/.test(hub) &&
+    !/hub-kaboom-svg/.test(hub)
 );
 
 const trSrc = fs.readFileSync(path.join(ROOT, 'games/tense-raiders/index.html'), 'utf8');
@@ -462,7 +475,42 @@ ok(
     /persistRapid/.test(fs.readFileSync(path.join(ROOT, 'js/jill-quiz.js'), 'utf8')) &&
     /infinity-arcade-run\.js/.test(portal)
 );
+const runSrc = fs.readFileSync(path.join(ROOT, 'games/_shared/infinity-arcade-run.js'), 'utf8');
+ok(
+  'Q21 floor competition is opt-in, default off',
+  /FLOOR_KEY/.test(runSrc) &&
+    /isFloorOn/.test(runSrc) &&
+    /localStorage\.getItem\(FLOOR_KEY\) === '1'/.test(runSrc) &&
+    /toggleInfinityArcadeFloor/.test(hub) &&
+    /arcadeFloorSetOptIn/.test(portal) &&
+    /ARCADE-FLOOR-/.test(portal) &&
+    /entrar al piso \(opcional\)/.test(hub) &&
+    /arcadeFloorOptIn/.test(portal) &&
+    !/setFloorOn\(true\)/.test(hub) &&
+    !/arcadeFloorTrainer/.test(portal) &&
+    !/d\.trainer && d\.trainer !== trainer/.test(portal)
+);
 ok('bonus assets present', assetsOk);
+
+const jillQuiz = fs.readFileSync(path.join(ROOT, 'js/jill-quiz.js'), 'utf8');
+ok(
+  'Q22 rapid drill hit/miss Mini Knight FX + run2 + no kaboom header',
+  /function playRapidDrillFx/.test(jillQuiz) &&
+    /jill-rapid-fx-lane/.test(jillQuiz) &&
+    /prefers-reduced-motion/.test(jillQuiz) &&
+    /games\/tense-raiders\/assets\/chars\//.test(jillQuiz) &&
+    /persistRapid/.test(jillQuiz) &&
+    /jill-quiz\.js\?v=20260813run2/.test(portal) &&
+    /Foundations · Piso/.test(portal) &&
+    !/Kaboom · Foundations/.test(portal) &&
+    !/openInfinityArcadeFullscreen\('Rapid Drill', 'Kaboom/.test(portal) &&
+    !/RAPID DRILL · KABOOM/.test(portal) &&
+    exists('games/tense-raiders/assets/chars/goblin/run/0.png') &&
+    exists('games/tense-raiders/assets/chars/goblin/run/7.png') &&
+    exists('games/tense-raiders/assets/chars/skeleton/run/0.png') &&
+    exists('games/tense-raiders/assets/chars/knight/run/0.png') &&
+    exists('games/tense-raiders/assets/chars/knight/run/7.png')
+);
 
 const failed = results.filter((r) => !r.pass);
 console.log('\n=== QA SUMMARY ===');
@@ -472,5 +520,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief + Raiders + Rapid floor tone; verify: hub50'
+  'Core checks green. Knight + Thief + Raiders + Rapid; live hub stage; verify: hub53'
 );
