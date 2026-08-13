@@ -89,6 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub25-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -105,9 +106,10 @@
 </div>
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
-<script src="../_shared/infinity-quiz-bank.js?v=q1"></script>
+<script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
+  const ST_BUILD = 'hub25-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -174,7 +176,7 @@
             tickLoad('skip ' + key);
             res();
           };
-          img.src = meta.file + '?v=st1';
+          img.src = meta.file + '?v=st2';
         })
     )
   );
@@ -211,7 +213,7 @@
             res();
           };
           img.onerror = () => res();
-          img.src = 'assets/ui/' + UI_MAP[key] + '?v=space2';
+          img.src = 'assets/ui/' + UI_MAP[key] + '?v=space3';
         })
     )
   );
@@ -225,13 +227,14 @@
   await Promise.all(
     SFX_NAMES.map(async (name) => {
       try {
-        const res = await fetch('assets/sfx/' + name + '.wav?v=st2');
+        const res = await fetch('assets/sfx/' + name + '.wav?v=st3');
         if (res.ok) sfxRaw[name] = await res.arrayBuffer();
       } catch (_) {}
       tickLoad(name);
     })
   );
 
+  console.info('[ST]', ST_BUILD);
   document.getElementById('load').classList.add('hide');
   setTimeout(() => document.getElementById('load')?.remove(), 500);
 
@@ -607,6 +610,8 @@
   let flowGen = 0;
   let inputLock = false;
   let emptyOptionsSince = 0;
+  let resumeAt = 0;
+  let resumeKind = ''; // 'question' | 'nextFloor'
   let rain = [];
   const pendingTimers = new Set();
   document.getElementById('bestVal').textContent = best;
@@ -615,21 +620,56 @@
     pendingTimers.forEach((id) => clearTimeout(id));
     pendingTimers.clear();
   }
+  function clearResume() {
+    resumeAt = 0;
+    resumeKind = '';
+  }
   function after(ms, fn) {
     const gen = flowGen;
     const id = setTimeout(() => {
       pendingTimers.delete(id);
       if (gen !== flowGen) return;
-      try { fn(); } catch (err) { console.error('[ST timer]', err); }
+      try {
+        fn();
+      } catch (err) {
+        console.error('[ST timer]', err);
+        if (gameState === STATES.PLAY && thief.state !== 'death') {
+          try {
+            hardRecoverPlay('timer-throw');
+          } catch (_) {}
+        }
+      }
     }, ms);
     pendingTimers.add(id);
     return id;
   }
+  function schedulePlayResume(ms, kind) {
+    const nextKind = kind === 'nextFloor' ? 'nextFloor' : 'question';
+    const delay = Math.max(0, ms || 0);
+    const due = performance.now() + delay;
+    if (resumeAt && resumeKind === nextKind) resumeAt = Math.min(resumeAt, due);
+    else {
+      resumeKind = nextKind;
+      resumeAt = due;
+    }
+    if (!emptyOptionsSince) emptyOptionsSince = performance.now();
+    after(delay + 60, () => {
+      if (gameState !== STATES.PLAY || thief.state === 'death') return;
+      if (options.length && currentQ && !inputLock) return;
+      runPlayResume('timer-backup');
+    });
+  }
   function bumpFlow() {
     flowGen++;
     clearPendingTimers();
+    clearResume();
     inputLock = false;
     emptyOptionsSince = 0;
+  }
+  function tryResumeAfterAction() {
+    if (gameState !== STATES.PLAY || thief.state === 'death') return;
+    if (options.length && currentQ && !inputLock) return;
+    runPlayResume('action-done');
   }
 
   function toast(msg, ms) {
@@ -748,6 +788,7 @@
               this.state = 'idle';
               this.setAnim(Math.random() > 0.45 ? 'idle' : 'idle_b');
             }
+            tryResumeAfterAction();
           } else if (this.state === 'death') {
             this.frame = a.frames - 1;
           } else if (this.state === 'win') {
@@ -810,6 +851,8 @@
         this.state = 'death';
         this.setAnim('death', true);
         inputLock = true;
+        clearResume();
+        options = [];
         after(2200, () => setState(STATES.ENDING));
       }
     },
@@ -832,6 +875,7 @@
       this.hp -= dmg;
       this.shaking = 14;
       burst(this.x, this.y - H() * 0.15, this.type.color, 10);
+      if (this.hp <= 0) this.dead = true;
       return this.hp <= 0;
     };
     this.draw = function () {
@@ -1170,15 +1214,62 @@
 
   function hardRecoverPlay(reason) {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
-    console.warn('[ST recover]', reason);
+    console.warn('[ST recover]', reason, {
+      lock: inputLock,
+      opts: options.length,
+      hasQ: !!currentQ,
+      resumeKind,
+      resumeIn: resumeAt ? Math.round(resumeAt - performance.now()) : null
+    });
     inputLock = false;
     hitstop = 0;
+    clearResume();
     try {
-      if (!target) nextFloor();
+      if (!target || target.dead) nextFloor();
       else loadBriefing();
     } catch (e) {
-      console.error(e);
+      console.error('[ST recover]', e);
+      forceFallbackBriefing();
     }
+    if (gameState === STATES.PLAY && thief.state !== 'death' && (!options.length || !currentQ)) {
+      forceFallbackBriefing();
+    }
+  }
+
+  function runPlayResume(reason) {
+    if (gameState !== STATES.PLAY || thief.state === 'death') {
+      clearResume();
+      return;
+    }
+    const kind = resumeKind || 'question';
+    clearResume();
+    inputLock = false;
+    hitstop = 0;
+    console.warn('[ST resume]', reason || kind);
+    try {
+      if (kind === 'nextFloor' || !target || target.dead) nextFloor();
+      else loadBriefing();
+    } catch (e) {
+      console.error('[ST resume]', e);
+      forceFallbackBriefing();
+    }
+    if (gameState === STATES.PLAY && thief.state !== 'death' && (!options.length || !currentQ)) {
+      forceFallbackBriefing();
+    }
+  }
+
+  function forceFallbackBriefing() {
+    currentQ = BRIEFINGS_FALLBACK[0];
+    options = [
+      { word: String(currentQ.correct), isCorrect: true },
+      { word: 'idk', isCorrect: false },
+      { word: 'like', isCorrect: false }
+    ];
+    qBorn = performance.now();
+    timerMax = 8;
+    inputLock = false;
+    emptyOptionsSince = 0;
+    clearResume();
   }
 
   function loadBriefing() {
@@ -1194,17 +1285,10 @@
       timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
       inputLock = false;
       emptyOptionsSince = 0;
+      clearResume();
     } catch (err) {
       console.error('[ST loadBriefing]', err);
-      currentQ = BRIEFINGS_FALLBACK[0];
-      options = [
-        { word: currentQ.correct, isCorrect: true },
-        { word: 'idk', isCorrect: false },
-        { word: 'like', isCorrect: false }
-      ];
-      inputLock = false;
-      emptyOptionsSince = 0;
-      qBorn = performance.now();
+      forceFallbackBriefing();
     }
   }
 
@@ -1232,9 +1316,7 @@
       thief.doSpotted();
       sfx('spotted');
       addText(W() * 0.35, H() * 0.4, 'TIMEOUT · SPOTTED', '#f43f5e', 1.15);
-      after(850, () => {
-        if (thief.state !== 'death') loadBriefing();
-      });
+      if (thief.state !== 'death') schedulePlayResume(450, 'question');
     }
   }
 
@@ -1443,17 +1525,15 @@
       questionsAnswered++;
       if (killed) {
         toast(target.type.boss ? 'VAULT CLEAR' : 'TARGET DOWN', 900);
-        after(1000, () => nextFloor());
-      } else after(420, () => loadBriefing());
+        schedulePlayResume(500, 'nextFloor');
+      } else schedulePlayResume(180, 'question');
     } else {
       thief.doSpotted();
       sfx('spotted');
       addText(thief.x, thief.y - H() * 0.28, 'SPOTTED', '#f43f5e', 1.2);
       addText(W() * 0.35, H() * 0.4, '"' + opt.word + '" no sirve', '#fda4af');
       updateHUD();
-      after(900, () => {
-        if (thief.state !== 'death') loadBriefing();
-      });
+      if (thief.state !== 'death') schedulePlayResume(350, 'question');
     }
   }
 
@@ -1917,20 +1997,28 @@
     requestAnimationFrame(loop);
     try {
       ensureCanvasAlive();
+      // Resume / empty-options watchdog MUST run even during hitstop.
+      if (gameState === STATES.PLAY && thief.state !== 'death') {
+        if (resumeKind && resumeAt && performance.now() >= resumeAt) {
+          runPlayResume('scheduled');
+        }
+        if (!options.length || !currentQ) {
+          if (!emptyOptionsSince) emptyOptionsSince = performance.now();
+          const waited = performance.now() - emptyOptionsSince;
+          if (!resumeKind && waited > 400) {
+            hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
+          } else if (resumeKind && waited > 900) {
+            hardRecoverPlay('empty-options-stuck ' + Math.round(waited) + 'ms kind=' + resumeKind);
+          }
+        } else emptyOptionsSince = 0;
+      }
+
       if (hitstop > 0) hitstop = Math.max(0, (hitstop | 0) - 1);
       else {
         frameCount++;
         if (shake > 0) shake--;
         if (flash > 0) flash--;
         if (gameState === STATES.PLAY && veil > 40) alert = Math.max(0, alert - 0.015);
-
-        if (gameState === STATES.PLAY && thief.state !== 'death') {
-          if (!options.length) {
-            if (!emptyOptionsSince) emptyOptionsSince = performance.now();
-            const waited = performance.now() - emptyOptionsSince;
-            if (waited > 2800) hardRecoverPlay('empty-options ' + Math.round(waited) + 'ms');
-          } else emptyOptionsSince = 0;
-        }
 
         thief.update();
       }

@@ -164,39 +164,45 @@ for (let i = 0; i < 7; i++) {
 ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
 ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
 
-// ── Q8–Q14: mid-run empty-options soft-lock (what prior QA missed) ──
+// ── Q8–Q15: mid-run empty-options soft-lock (what prior QA missed) ──
 // Models Knight PLAY flow: answer clears options + locks; resume must restore
-// choices within ~1s; hard recover if empty >1.5s without a pending resume.
+// choices within ~1s; hard recover if empty >0.4s without a pending resume.
 function simKnightSoftLockHarness() {
   const src = fs.readFileSync(path.join(ROOT, 'games/knights-quest/index.html'), 'utf8');
   const hasResume = /schedulePlayResume/.test(src) && /runPlayResume/.test(src);
+  const dualPath =
+    /timer-backup/.test(src) && /action-done/.test(src) && /tryResumeAfterAction/.test(src);
   const watchdogOutsideHitstop =
     /Quiz resume \/ empty-options watchdog MUST run even during hitstop/.test(src) &&
-    /waited > 1500/.test(src) &&
-    /waited > 2200/.test(src);
+    /waited > 400/.test(src) &&
+    /waited > 900/.test(src);
   const recoverDeadEnemy = /!enemy \|\| enemy\.dead/.test(src);
   const dockClamp = /function quizDock\(/.test(src) && /by \+ bh > h/.test(src);
   const forceFallback = /forceFallbackQuestion/.test(src) && /still empty — forcing fallback/.test(src);
   const answerUsesResume =
-    /schedulePlayResume\(\s*900,\s*'nextEnemy'\s*\)/.test(src) &&
-    /schedulePlayResume\(\s*400,\s*'question'\s*\)/.test(src);
+    /schedulePlayResume\(\s*500,\s*'nextEnemy'\s*\)/.test(src) &&
+    /schedulePlayResume\(\s*180,\s*'question'\s*\)/.test(src);
+  const buildTag = /hub25-kq1/.test(src);
   return {
     hasResume,
+    dualPath,
     watchdogOutsideHitstop,
     recoverDeadEnemy,
     dockClamp,
     forceFallback,
     answerUsesResume,
+    buildTag,
     srcLen: src.length
   };
 }
 
 const harness = simKnightSoftLockHarness();
 ok('Q8 knight has frame-driven schedulePlayResume', harness.hasResume);
-ok('Q9 empty-options watchdog ≤1.5s/2.2s outside hitstop', harness.watchdogOutsideHitstop);
+ok('Q9 empty-options watchdog ≤0.4s/0.9s outside hitstop', harness.watchdogOutsideHitstop);
 ok('Q10 hardRecover advances dead enemies + dock clamp', harness.recoverDeadEnemy && harness.dockClamp);
 ok('Q11 forceFallback if recover still empty', harness.forceFallback);
 ok('Q12 answer() schedules resume (not only after())', harness.answerUsesResume);
+ok('Q13 dual resume path (timer-backup + action-done)', harness.dualPath && harness.buildTag);
 
 function simEmptyOptionsLock() {
   // Pure state machine mirroring fixed PLAY resume rules
@@ -209,6 +215,7 @@ function simEmptyOptionsLock() {
   let recovers = 0;
   let maxEmptyMs = 0;
   let now = 0;
+  let hitstop = 0;
 
   function loadQuestion() {
     currentQ = { ok: 1 };
@@ -217,6 +224,7 @@ function simEmptyOptionsLock() {
     emptySince = 0;
     resumeAt = 0;
     resumeKind = '';
+    hitstop = 0;
     recovers++;
   }
   function schedule(ms, kind) {
@@ -227,10 +235,12 @@ function simEmptyOptionsLock() {
     options = [];
     inputLock = true;
     emptySince = now;
-    schedule(700, 'question');
+    hitstop = 8;
+    schedule(180, 'question');
   }
   function tick(dt) {
     now += dt;
+    // Watchdog runs EVEN during hitstop (critical regression).
     if (resumeKind && resumeAt && now >= resumeAt) {
       resumeKind = '';
       resumeAt = 0;
@@ -240,12 +250,13 @@ function simEmptyOptionsLock() {
       if (!emptySince) emptySince = now;
       const waited = now - emptySince;
       if (waited > maxEmptyMs) maxEmptyMs = waited;
-      if (!resumeKind && waited > 1500) loadQuestion();
-      else if (resumeKind && waited > 2200) loadQuestion();
+      if (!resumeKind && waited > 400) loadQuestion();
+      else if (resumeKind && waited > 900) loadQuestion();
     } else emptySince = 0;
+    if (hitstop > 0) hitstop--;
   }
 
-  // 40 wrong answers with hitstop-like stalls (frames advancing resume anyway)
+  // 40 wrong answers with hitstop stalls (frames advancing resume anyway)
   for (let i = 0; i < 40; i++) {
     answer();
     for (let f = 0; f < 55; f++) tick(16);
@@ -259,16 +270,81 @@ function simEmptyOptionsLock() {
   emptySince = now;
   resumeKind = '';
   resumeAt = 0;
+  hitstop = 12;
   for (let f = 0; f < 150; f++) tick(16);
   const recovered = options.length === 3 && !!currentQ;
-  return { ok: recovered && maxEmptyMs <= 1700, maxEmptyMs, recovers, stuck: !recovered };
+  return { ok: recovered && maxEmptyMs <= 500, maxEmptyMs, recovers, stuck: !recovered };
 }
 
 const lockSim = simEmptyOptionsLock();
 ok(
-  'Q13 mid-run empty-options never soft-locks (>40 answers + forced cancel)',
+  'Q14 mid-run empty-options never soft-locks (>40 answers + forced cancel)',
   lockSim.ok,
   'maxEmptyMs=' + lockSim.maxEmptyMs + ' recovers=' + lockSim.recovers
+);
+
+// Q15: explicit options=[] + inputLock + hitstop must recover without waiting for anim
+function simHitstopEmptyLock() {
+  let options = [];
+  let currentQ = null;
+  let inputLock = true;
+  let hitstop = 12;
+  let emptySince = 0;
+  let now = 0;
+  let recoveredAt = -1;
+
+  function recover() {
+    options = [{ w: 1 }, { w: 2 }, { w: 3 }];
+    currentQ = { ok: 1 };
+    inputLock = false;
+    hitstop = 0;
+    recoveredAt = now;
+  }
+
+  for (let f = 0; f < 80; f++) {
+    now += 16;
+    // watchdog outside hitstop gate
+    if (!options.length || !currentQ) {
+      if (!emptySince) emptySince = now;
+      if (now - emptySince > 400) recover();
+    }
+    if (hitstop > 0) hitstop--;
+    if (options.length && currentQ && !inputLock) break;
+  }
+  return {
+    ok: recoveredAt >= 0 && recoveredAt <= 450 && options.length === 3 && !inputLock,
+    recoveredAt,
+    hitstopLeft: hitstop
+  };
+}
+const hitSim = simHitstopEmptyLock();
+ok(
+  'Q15 options=[]+inputLock+hitstop recovers ≤450ms',
+  hitSim.ok,
+  'recoveredAt=' + hitSim.recoveredAt + ' hitstopLeft=' + hitSim.hitstopLeft
+);
+
+// Shadow Thief mirrors frame resume + dual path
+const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
+ok(
+  'Q16 thief schedulePlayResume + watchdog outside hitstop',
+  /schedulePlayResume/.test(stSrc) &&
+    /runPlayResume/.test(stSrc) &&
+    /timer-backup/.test(stSrc) &&
+    /waited > 400/.test(stSrc) &&
+    /hub25-st1/.test(stSrc)
+);
+
+// Cache bust markers
+const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf8');
+const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
+const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+ok('Q17 hub VER hub25 + portal query + sw v70 + game shell no-store', 
+  /20260812hub25/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub25/.test(portal) &&
+    /infinity-pwa-v70/.test(sw) &&
+    /isGameShell/.test(sw) &&
+    /cache:\s*['"]no-store['"]/.test(sw)
 );
 
 // Asset sanity
