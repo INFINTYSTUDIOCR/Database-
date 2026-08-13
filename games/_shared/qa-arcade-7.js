@@ -412,18 +412,18 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub49 + portal query + sw v94 + game shell no-store',
-  /20260812hub49/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub49/.test(portal) &&
-    /infinity-pwa-v94/.test(sw) &&
+  'Q18 hub VER hub50 + portal query + sw v95 + game shell no-store',
+  /20260813hub50/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260813hub50/.test(portal) &&
+    /infinity-pwa-v95/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
 
 const trSrc = fs.readFileSync(path.join(ROOT, 'games/tense-raiders/index.html'), 'utf8');
 ok(
-  'Q19 raiders Mini Knight PNG + quiz SM + hub49-tr1',
-  /hub49-tr1/.test(trSrc) &&
+  'Q19 raiders Mini Knight PNG + quiz SM + hub50-tr2',
+  /hub50-tr2/.test(trSrc) &&
     /assets\/chars\/' \+ name/.test(trSrc) &&
     /goblin/.test(trSrc) &&
     /function loadNextQuestion\s*\(/.test(trSrc) &&
@@ -451,6 +451,17 @@ const assetsOk =
   exists('games/tense-raiders/assets/chars/goblin/idle/0.png') &&
   exists('games/tense-raiders/assets/chars/knight/attack/0.png') &&
   exists('games/tense-raiders/assets/sfx/slash.wav');
+ok(
+  'Q20 arcade run save/continue + floor taunts',
+  exists('games/_shared/infinity-arcade-run.js') &&
+    /InfinityArcadeRun/.test(fs.readFileSync(path.join(ROOT, 'games/_shared/infinity-arcade-run.js'), 'utf8')) &&
+    /saveRun/.test(fs.readFileSync(path.join(ROOT, 'games/tense-raiders/index.html'), 'utf8')) &&
+    /CONTINUAR/.test(fs.readFileSync(path.join(ROOT, 'games/tense-raiders/index.html'), 'utf8')) &&
+    /persistKnight/.test(fs.readFileSync(path.join(ROOT, 'games/knights-quest/index.html'), 'utf8')) &&
+    /persistThief/.test(fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8')) &&
+    /persistRapid/.test(fs.readFileSync(path.join(ROOT, 'js/jill-quiz.js'), 'utf8')) &&
+    /infinity-arcade-run\.js/.test(portal)
+);
 ok('bonus assets present', assetsOk);
 
 const failed = results.filter((r) => !r.pass);
@@ -461,5 +472,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief + Tense Raiders; verify: hub49'
+  'Core checks green. Knight + Thief + Raiders + Rapid floor tone; verify: hub50'
 );

@@ -66,7 +66,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">TENSE RAIDERS</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Abriendo el pack Mini Knight…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub49-tr1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub50-tr2</div>
 </div>
 <div id="hud">
   <div class="pill moss">YOU <span id="youVal">0</span> · RAID <span id="raidVal">0</span></div>
@@ -80,9 +80,11 @@
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
 <script src="../_shared/infinity-quiz-bank.js?v=q5"></script>
+<script src="../_shared/infinity-arcade-run.js?v=r1"></script>
 <script>
 (async function () {
-  const TR_BUILD = 'hub49-tr1';
+  const TR_BUILD = 'hub50-tr2';
+  const Run = window.InfinityArcadeRun;
   const WIN = 7;
   const MAX_CLUES = 10;
   const canvas = document.getElementById('c');
@@ -545,7 +547,22 @@
     }
     updateHUD();
     sfx(pendingEnd === 'win' ? 'win' : 'lose');
-    toast(pendingEnd === 'win' ? 'RAID CLEARED' : 'RAID FAILED', 1600);
+    if (Run) {
+      Run.clearRun('raiders');
+      Run.recordFinish('raiders', youScore, pendingEnd === 'win');
+    }
+    toast(pendingEnd === 'win' ? (Run ? Run.win() : 'RAID CLEARED') : (Run ? Run.lose() : 'RAID FAILED'), 1600);
+  }
+
+  function persistRaid() {
+    if (!Run || gameState !== STATES.PLAY || pendingEnd) return;
+    Run.saveRun('raiders', {
+      youScore: youScore,
+      raidScore: raidScore,
+      clueNum: clueNum,
+      questionsAnswered: questionsAnswered,
+      raiderKey: raider && raider.key
+    });
   }
 
   function tickQuiz(now) {
@@ -588,21 +605,24 @@
     if (quiz.phase === 'ready' && quiz.locked) quiz.locked = false;
   }
 
-  function startPlay() {
-    youScore = 0;
-    raidScore = 0;
-    clueNum = 0;
-    questionsAnswered = 0;
+  function startPlay(resume) {
+    const save = resume && Run ? Run.loadRun('raiders') : null;
+    youScore = save ? save.youScore || 0 : 0;
+    raidScore = save ? save.raidScore || 0 : 0;
+    clueNum = save ? save.clueNum || 0 : 0;
+    questionsAnswered = save ? save.questionsAnswered || 0 : 0;
     pendingEnd = null;
     floaters = [];
     hero = actor('knight', 'left');
-    raider = actor('goblin', 'right');
+    raider = actor(save && save.raiderKey ? save.raiderKey : 'goblin', 'right');
     if (rotator) rotator.reset();
     gameState = STATES.PLAY;
     loadNextQuestion();
     updateHUD();
     sfx('start');
     startAmbient();
+    toast(save ? 'SEGUÍ. El rival no paró.' : (Run ? Run.challenge() : 'RETO'), 1100);
+    persistRaid();
   }
 
   function answer(opt) {
@@ -620,21 +640,23 @@
       setAnim(raider, 'hurt', false);
       sfx('slash');
       sfx('ok');
-      addText(W() * 0.78, H() * 0.28, '+1 YOU', '#86efac', 1.2);
-      toast(opt.word.toUpperCase(), 700);
+      addText(W() * 0.78, H() * 0.28, Run ? Run.hit() : '+1', '#86efac', 1.2);
+      toast(Run ? Run.hit() : 'LIMPIO', 700);
       updateHUD();
       maybeFinish();
+      persistRaid();
     } else {
       raidScore++;
       setAnim(raider, 'attack', false);
       setAnim(hero, 'hurt', false);
       sfx('hit');
       sfx('bad');
-      addText(W() * 0.22, H() * 0.28, 'MOCKED', '#f87171', 1.2);
-      addText(W() * 0.5, H() * 0.38, '"' + opt.word + '" no', '#fda4af');
-      toast('RAID +1', 700);
+      addText(W() * 0.22, H() * 0.28, 'BURLEO', '#f87171', 1.2);
+      addText(W() * 0.5, H() * 0.38, Run ? Run.mock() : '"' + opt.word + '" no', '#fda4af');
+      toast(Run ? Run.mock() : 'RAID +1', 900);
       updateHUD();
       maybeFinish();
+      persistRaid();
     }
   }
 
@@ -735,7 +757,8 @@
       setAnim(raider, 'attack', false);
       setAnim(hero, 'hurt', false);
       sfx('bad');
-      addText(W() * 0.5, H() * 0.4, 'TIMEOUT · RAID +1', '#f43f5e', 1.15);
+      addText(W() * 0.5, H() * 0.4, Run ? Run.timeout() : 'TIMEOUT', '#f43f5e', 1.15);
+      persistRaid();
       updateHUD();
       maybeFinish();
     }
@@ -784,15 +807,28 @@
     ctx.font = '900 ' + Math.round(h * 0.07) + 'px Cinzel,serif';
     ctx.fillText('TENSE RAIDERS', w / 2, h * 0.14);
     ctx.fillStyle = '#bbf7d0';
-    ctx.font = '700 ' + Math.round(h * 0.028) + 'px Outfit,sans-serif';
-    ctx.fillText('Jeopardy vs goblin · first to 7', w / 2, h * 0.21);
-    const bw = w * 0.36, bh = h * 0.09;
-    const bx = (w - bw) / 2, by = h * 0.84;
+    ctx.font = '700 ' + Math.round(h * 0.026) + 'px Outfit,sans-serif';
+    ctx.fillText(Run ? Run.rivalLine('raiders') : 'First to 7. El goblin se burla.', w / 2, h * 0.21);
+    const hasSave = Run && Run.hasRun('raiders');
+    const bw = w * 0.4, bh = h * 0.085;
+    const bx = (w - bw) / 2, by = h * 0.78;
     drawHBar(ui.btnL, ui.btnM, ui.btnR, bx, by, bw, bh);
     ctx.fillStyle = '#1a1208';
-    ctx.font = '900 ' + Math.round(bh * 0.42) + 'px Cinzel,serif';
-    ctx.fillText('JUGAR', w / 2, by + bh / 2 + 1);
+    ctx.font = '900 ' + Math.round(bh * 0.38) + 'px Cinzel,serif';
+    ctx.fillText(hasSave ? 'CONTINUAR' : 'RETO', w / 2, by + bh / 2 + 1);
     drawTitle._rect = { x: bx, y: by, w: bw, h: bh };
+    drawTitle._fresh = null;
+    if (hasSave) {
+      const fy = by + bh + 10;
+      const fh = bh * 0.7;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      roundRect(ctx, bx, fy, bw, fh, 8);
+      ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '800 ' + Math.round(fh * 0.38) + 'px Outfit,sans-serif';
+      ctx.fillText('NUEVO RETO', w / 2, fy + fh / 2 + 1);
+      drawTitle._fresh = { x: bx, y: fy, w: bw, h: fh };
+    }
   }
 
   function drawEnding() {
@@ -802,7 +838,7 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = pendingEnd === 'win' ? '#86efac' : '#f87171';
     ctx.font = '900 ' + Math.round(h * 0.08) + 'px Cinzel,serif';
-    ctx.fillText(pendingEnd === 'win' ? 'YOU WIN' : 'RAID WINS', w / 2, h * 0.18);
+    ctx.fillText(pendingEnd === 'win' ? (Run ? Run.win() : 'CERRADO') : (Run ? Run.lose() : 'TE COMIÓ'), w / 2, h * 0.18);
     ctx.fillStyle = '#e2e8f0';
     ctx.font = '800 ' + Math.round(h * 0.035) + 'px Outfit,sans-serif';
     ctx.fillText(youScore + '  —  ' + raidScore, w / 2, h * 0.28);
@@ -825,11 +861,17 @@
     const mx = ((ev.clientX - r.left) / r.width) * W();
     const my = ((ev.clientY - r.top) / r.height) * H();
     if (gameState === STATES.TITLE) {
-      if (hit(drawTitle._rect, mx, my) || true) startPlay();
+      if (hit(drawTitle._fresh, mx, my)) {
+        if (Run) Run.clearRun('raiders');
+        startPlay(false);
+        return;
+      }
+      startPlay(!!(Run && Run.hasRun('raiders')));
       return;
     }
     if (gameState === STATES.ENDING) {
-      if (hit(drawEnding._rect, mx, my) || true) startPlay();
+      if (Run) Run.clearRun('raiders');
+      startPlay(false);
       return;
     }
     if (gameState === STATES.PLAY && quiz.phase === 'ready' && !quiz.locked) {
@@ -895,6 +937,10 @@
     requestAnimationFrame(loop);
   }
   updateHUD();
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) persistRaid();
+  });
+  window.addEventListener('pagehide', persistRaid);
   requestAnimationFrame(loop);
 })();
 </script>

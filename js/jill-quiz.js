@@ -98,7 +98,7 @@
     var ratio = pressureRatio(state);
     var leftPct = Math.round(8 + ratio * 62);
     var critical = state.timeLeft <= 5;
-    var danger = critical ? '¡La llama casi toca el polvorín!' : (ratio > 0.55 ? 'Respondé rápido — sube la presión' : 'La llama se acerca al polvorín…');
+      var danger = critical ? 'El piso se te viene encima.' : (ratio > 0.55 ? 'Movete. El reloj no espera.' : 'Presión subiendo.');
     return '<div id="jill-pressure-track" class="jill-pressure-track' + (critical ? ' critical' : '') + '">'
       + '<div class="jill-pressure-label">Presión psicológica</div>'
       + '<div class="jill-pressure-danger" id="jill-pressure-danger">' + esc(danger) + '</div>'
@@ -117,8 +117,8 @@
     if (track) track.classList.toggle('critical', state.timeLeft <= 5);
     if (danger) {
       danger.textContent = state.timeLeft <= 5
-        ? '¡La llama casi toca el polvorín!'
-        : (ratio > 0.55 ? 'Respondé rápido — sube la presión' : 'La llama se acerca al polvorín…');
+        ? 'El piso se te viene encima.'
+        : (ratio > 0.55 ? 'Movete. El reloj no espera.' : 'Presión subiendo.');
     }
   }
 
@@ -145,7 +145,7 @@
     if (perfect || score >= GOLD_SCORE_PCT) return { icon: '🏆', title: 'TROFEO DE ORO', sub: 'Rapid drill perfecto' };
     if (score >= SILVER_SCORE_PCT) return { icon: '🥇', title: 'TROFEO DE PLATA', sub: 'Excelente bajo presión' };
     if (score >= WIN_SCORE_PCT) return { icon: '🥈', title: 'TROFEO DE BRONCE', sub: 'Ganaste la ronda' };
-    return { icon: '💀', title: 'Casi — otra ronda', sub: 'La llama sigue cerca del polvorín' };
+    return { icon: '💀', title: 'El piso te comió', sub: 'Volvé. Nadie espera.' };
   }
 
   function applyWinStreak(student, score, perfect) {
@@ -838,6 +838,35 @@
       rootEl.parentElement.classList.add('jill-rapid-tier-' + tierClass);
       if (isAdvanced) rootEl.parentElement.classList.add('jill-rapid-tier-challenge');
     }
+
+    if (!isMini && !opts.skipContinue && typeof InfinityArcadeRun !== 'undefined' && InfinityArcadeRun.hasRun('rapid')) {
+      var savedRun = InfinityArcadeRun.loadRun('rapid');
+      if (savedRun && savedRun.quiz && savedRun.idx < savedRun.quiz.length) {
+        var Run = InfinityArcadeRun;
+        rootEl.innerHTML = '<div class="jill-rapid-shell-fit" style="justify-content:center;text-align:center;gap:10px;padding:18px;">'
+          + '<div style="font-size:13px;font-weight:900;color:#fde68a;letter-spacing:.08em;">TURNO ABIERTO</div>'
+          + '<div style="font-size:22px;font-weight:900;color:#e9d5ff;">' + (savedRun.idx + 1) + '/' + savedRun.quiz.length + ' · racha ' + (savedRun.streak || 0) + '</div>'
+          + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:8px;">' + esc(Run.rivalLine('rapid')) + '</div>'
+          + '<button type="button" id="jill-rapid-continue" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:#fff;font-weight:900;font-size:16px;padding:14px 22px;border-radius:12px;cursor:pointer;width:100%;max-width:320px;">CONTINUAR</button>'
+          + '<button type="button" id="jill-rapid-fresh" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#e2e8f0;font-weight:800;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;width:100%;max-width:320px;">NUEVO RETO</button>'
+          + '</div>';
+        var cont = document.getElementById('jill-rapid-continue');
+        var fresh = document.getElementById('jill-rapid-fresh');
+        if (cont) cont.onclick = function () {
+          var resumeOpts = {};
+          Object.keys(opts).forEach(function (k) { resumeOpts[k] = opts[k]; });
+          resumeOpts.resume = savedRun;
+          startDrillRound(rootEl, student, activeBundle, onDone, resumeOpts, savedRun.quiz, collectNemesisKpis(student), MODE_LABEL, savedRun.quiz.length, MODE_LABEL);
+        };
+        if (fresh) fresh.onclick = function () {
+          InfinityArcadeRun.clearRun('rapid');
+          opts.skipContinue = true;
+          mount(rootEl, student, activeBundle, onDone, opts);
+        };
+        return;
+      }
+    }
+
     var nemesisKpis = isMini ? [] : collectNemesisKpis(student);
     var qCount = opts.questionCount
       || (isMini ? 5 : (isAdvanced ? CHALLENGE_QUESTIONS_PER_ROUND : QUESTIONS_PER_ROUND));
@@ -905,20 +934,35 @@
     var roundTimer = opts.timerSec || TIMER_SEC;
     modeLabel = modeLabel || MODE_LABEL;
 
+    var resume = opts.resume || null;
     var state = {
-      idx: 0,
-      correct: 0,
-      streak: 0,
-      bestStreak: 0,
+      idx: resume ? resume.idx || 0 : 0,
+      correct: resume ? resume.correct || 0 : 0,
+      streak: resume ? resume.streak || 0 : 0,
+      bestStreak: resume ? resume.bestStreak || 0 : 0,
       answered: false,
       timer: null,
-      timeLeft: roundTimer,
-      timerSec: roundTimer,
+      timeLeft: resume && resume.timeLeft ? resume.timeLeft : roundTimer,
+      timerSec: resume && resume.timerSec ? resume.timerSec : roundTimer,
       quiz: quiz,
       bundleId: bundleIdFromStudent(student, activeBundle),
       nemesisKpis: nemesisKpis,
-      kpiResults: []
+      kpiResults: resume && resume.kpiResults ? resume.kpiResults : []
     };
+
+    function persistRapid() {
+      if (isMini || typeof InfinityArcadeRun === 'undefined') return;
+      InfinityArcadeRun.saveRun('rapid', {
+        idx: state.idx,
+        correct: state.correct,
+        streak: state.streak,
+        bestStreak: state.bestStreak,
+        timeLeft: state.timeLeft,
+        timerSec: state.timerSec,
+        quiz: state.quiz,
+        kpiResults: state.kpiResults
+      });
+    }
 
     function clearTimer() {
       if (state.timer) { clearInterval(state.timer); state.timer = null; }
@@ -972,10 +1016,12 @@
         ? '<div style="font-size:40px;margin-bottom:8px;">⏱️</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">Tiempo — seguí practicando este tema</div>'
         : (wasCorrect
           ? renderMiniTrophy(state.streak)
-          : '<div style="font-size:40px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">La llama avanzó — corregí y seguí</div>');
+          : '<div style="font-size:28px;margin-bottom:8px;">💥</div><div style="font-size:12px;color:#fca5a5;font-weight:800;margin-bottom:8px;">' + (typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.mock() : 'Te comió la duda.') + '</div>');
       var title = mode === 'timeout'
-        ? ('Correcta: ' + esc(q.options[q.answer]))
-        : (wasCorrect ? '¡Acertaste bajo presión!' : ('Casi — correcta: ' + esc(q.options[q.answer])));
+        ? ((typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.timeout() : 'Se te fue el turno.') + ' · ' + esc(q.options[q.answer]))
+        : (wasCorrect
+          ? (typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.hit() : 'Limpio.')
+          : ((typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.mock() : 'Eso no entra.') + ' · ' + esc(q.options[q.answer])));
       var titleColor = wasCorrect && mode !== 'timeout' ? '#86EFAC' : '#FCD34D';
       return '<div id="jill-kaboom-inner" style="animation:jillKaboomIn .35s ease;' + (opts.fitScreen ? '' : 'padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));') + '">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px;font-weight:800;color:#e9d5ff;">'
@@ -1035,6 +1081,7 @@
       }
       // Full replace: no option grid + sticky overlay fighting for space
       rootEl.innerHTML = renderFeedback(wasCorrect, mode || (wasCorrect ? 'ok' : 'miss'));
+      persistRapid();
       bindNextButton();
       try {
         var top = rootEl.querySelector('#jill-kaboom-inner');
@@ -1044,6 +1091,7 @@
 
     function renderResults() {
       clearTimer();
+      if (!isMini && typeof InfinityArcadeRun !== 'undefined') InfinityArcadeRun.clearRun('rapid');
       var total = state.quiz.length;
       var score = Math.round((state.correct / total) * 100);
       var perfect = state.correct === total && total > 0;
@@ -1136,11 +1184,14 @@
         if (badgeMsg) setTimeout(function () { showToast(badgeMsg); }, 700);
       }
 
+      if (!isMini && typeof InfinityArcadeRun !== 'undefined') {
+        InfinityArcadeRun.recordFinish('rapid', score, winMeta.won);
+      }
       var reinforce = (student.nemesisState && student.nemesisState.reinforcement) || [];
       var domain = (student.nemesisState && student.nemesisState.domain) || [];
       var streakLine = winMeta.won
         ? '<div class="jill-streak-pill" style="margin:10px auto 12px;">🏆 Victoria · racha ' + winMeta.rd.winStreak + (winMeta.rd.bestWinStreak > winMeta.rd.winStreak ? ' · récord ' + winMeta.rd.bestWinStreak : '') + '</div>'
-        : '<div style="font-size:11px;color:#fca5a5;margin:8px 0;">Racha de victorias reiniciada — la llama sigue cerca</div>';
+        : '<div style="font-size:11px;color:#fca5a5;margin:8px 0;">Racha a cero. El piso no espera.</div>';
 
       rootEl.innerHTML = (winMeta.won ? renderConfettiBurst() : '')
         + '<div style="text-align:center;padding:12px 8px;">'
@@ -1178,10 +1229,12 @@
       });
     }
 
+    var armFullTimer = !resume;
     function startTimer() {
       clearTimer();
       var totalSec = state.timerSec || TIMER_SEC;
-      state.timeLeft = totalSec;
+      if (armFullTimer) state.timeLeft = totalSec;
+      armFullTimer = true;
       state.timer = setInterval(function () {
         state.timeLeft--;
         var fill = document.getElementById('jill-kaboom-timer-fill');
@@ -1202,6 +1255,7 @@
       rootEl.innerHTML = renderGrid();
       bindOptions();
       startTimer();
+      persistRapid();
     }
 
     var fit = !!opts.fitScreen;
@@ -1217,7 +1271,7 @@
       ? ('<div class="jill-rapid-shell jill-rapid-shell-fit">' + hud + '<div id="jill-kaboom-stage"></div></div>')
       : ('<div style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
         + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
-        + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">🔥 La llama avanza hacia el polvorín — respondé antes de que explote la presión</div>'
+        + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">' + (typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.challenge() : 'No es examen. Es el piso.') + '</div>'
         + '<div id="jill-kaboom-stage"></div></div>');
     var stage = document.getElementById('jill-kaboom-stage');
     rootEl = stage;

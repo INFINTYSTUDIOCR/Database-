@@ -107,9 +107,12 @@
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
+<script src="../_shared/infinity-arcade-run.js?v=r1"></script>
 <script>
 (async function () {
   const ST_BUILD = 'hub38-st1';
+  const Run = window.InfinityArcadeRun;
+  let resumeFrom = null;
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -1452,10 +1455,12 @@
     } else {
       thief.doSpotted();
       sfx('spotted');
-      addText(thief.x, thief.y - H() * 0.28, 'SPOTTED', '#f43f5e', 1.2);
-      addText(W() * 0.35, H() * 0.4, '"' + opt.word + '" no sirve', '#fda4af');
+      addText(thief.x, thief.y - H() * 0.28, 'TE VIERON', '#f43f5e', 1.2);
+      addText(W() * 0.35, H() * 0.4, Run ? Run.mock() : '"' + opt.word + '" no sirve', '#fda4af');
+      toast(Run ? Run.mock() : 'COVER', 900);
       updateHUD();
     }
+    persistThief();
   }
 
   function nextFloor() {
@@ -1504,6 +1509,20 @@
     if (vf) vf.style.width = veil + '%';
   }
 
+  function persistThief() {
+    if (!Run || gameState !== STATES.PLAY || thief.state === 'death') return;
+    Run.saveRun('thief', {
+      covers: thief.covers,
+      score: thief.score,
+      silent: thief.silent,
+      floorNum: floorNum,
+      questionsAnswered: questionsAnswered,
+      alert: alert,
+      veil: veil,
+      targetHp: target && !target.dead ? target.hp : null
+    });
+  }
+
   function setState(s) {
     bumpFlow();
     gameState = s;
@@ -1515,15 +1534,17 @@
       thief.setAnim('idle_b', true);
     }
     if (s === STATES.PLAY) {
-      thief.covers = 3;
-      thief.score = 0;
-      thief.silent = 0;
+      const save = resumeFrom;
+      resumeFrom = null;
+      thief.covers = save && save.covers != null ? save.covers : 3;
+      thief.score = save ? save.score || 0 : 0;
+      thief.silent = save ? save.silent || 0 : 0;
       thief.state = 'idle';
       thief.setAnim('idle', true);
-      floorNum = 0;
-      questionsAnswered = 0;
-      alert = 0;
-      veil = 0;
+      floorNum = save ? Math.max(0, (save.floorNum || 1) - 1) : 0;
+      questionsAnswered = save ? save.questionsAnswered || 0 : 0;
+      alert = save ? save.alert || 0 : 0;
+      veil = save ? save.veil || 0 : 0;
       floatingTexts = [];
       particles = [];
       hitstop = 0;
@@ -1538,16 +1559,24 @@
       quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();
       nextFloor();
+      if (save && target && save.targetHp != null) target.hp = Math.max(1, save.targetHp);
       updateHUD();
       sfx('start');
+      toast(save ? 'SEGUÍ. La bóveda no dormía.' : (Run ? Run.challenge() : 'RETO'), 1100);
+      persistThief();
     }
     if (s === STATES.ENDING) {
       endingPage = 0;
       quiz.locked = false;
       quiz.phase = 'ready';
       options = [];
+      if (Run) {
+        Run.clearRun('thief');
+        Run.recordFinish('thief', thief.score, thief.covers > 0);
+      }
       if (thief.covers > 0) thief.doWin();
       sfx(thief.covers > 0 ? 'win' : 'lose');
+      toast(thief.covers > 0 ? (Run ? Run.win() : 'SALIÓ LIMPIO') : (Run ? Run.lose() : 'TE PILLARON'), 1400);
       updateHUD();
     }
     if (s === STATES.RESULTS) {
@@ -1556,7 +1585,7 @@
       if (thief.score > best) {
         best = thief.score;
         localStorage.setItem('st_best', best);
-        toast('NEW BEST LOOT', 1400);
+        toast('RÉCORD DE LOOT. Nadie te vio.', 1400);
       }
       updateHUD();
     }
@@ -1590,12 +1619,20 @@
     ctx.fillText('NYX · BABEL VAULT INFILTRATION', w * 0.5, h * 0.3);
     ctx.fillStyle = '#94a3b8';
     ctx.font = `500 ${h * 0.022}px Syne,sans-serif`;
-    ctx.fillText('Robá linkers. Evitá la alerta. Sé un fantasma.', w * 0.5, h * 0.38);
+    ctx.fillText(Run ? Run.rivalLine('thief') : 'Sin muletilla. Si te ven, perdés cover.', w * 0.5, h * 0.38);
 
     const pulse = 0.55 + 0.45 * Math.sin(frameCount * 0.08);
     ctx.fillStyle = `rgba(34,211,238,${0.35 + pulse * 0.4})`;
     ctx.font = `700 ${h * 0.03}px JetBrains Mono,monospace`;
-    ctx.fillText('TOCÁ PARA COMENZAR', w * 0.5, h * 0.9);
+    const hasSave = Run && Run.hasRun('thief');
+    ctx.fillText(hasSave ? 'CONTINUAR' : 'RETO', w * 0.5, h * 0.82);
+    window._stFresh = null;
+    if (hasSave) {
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = `700 ${h * 0.022}px JetBrains Mono,monospace`;
+      ctx.fillText('NUEVO RETO', w * 0.5, h * 0.9);
+      window._stFresh = { x: w * 0.3, y: h * 0.86, w: w * 0.4, h: h * 0.08 };
+    }
   }
 
   function syncStoryPose() {
@@ -1865,6 +1902,17 @@
     sfx('click');
 
     if (gameState === STATES.MENU) {
+      if (window._stFresh && p.x > _stFresh.x && p.x < _stFresh.x + _stFresh.w && p.y > _stFresh.y && p.y < _stFresh.y + _stFresh.h) {
+        if (Run) Run.clearRun('thief');
+        resumeFrom = null;
+        setState(STATES.STORY);
+        return;
+      }
+      if (Run && Run.hasRun('thief')) {
+        resumeFrom = Run.loadRun('thief');
+        setState(STATES.PLAY);
+        return;
+      }
       setState(STATES.STORY);
       return;
     }
@@ -1980,11 +2028,13 @@
 
   updateHUD();
   document.addEventListener('visibilitychange', () => {
+    if (document.hidden) persistThief();
     if (!document.hidden) {
       ensureCanvasAlive();
       ensureAudio().catch(() => {});
     }
   });
+  window.addEventListener('pagehide', persistThief);
   window.addEventListener('focus', () => ensureCanvasAlive());
   loop();
 })().catch((err) => {

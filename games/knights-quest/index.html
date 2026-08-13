@@ -98,9 +98,12 @@
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
+<script src="../_shared/infinity-arcade-run.js?v=r1"></script>
 <script>
 (async function () {
   const KQ_BUILD = 'hub38-kq1';
+  const Run = window.InfinityArcadeRun;
+  let resumeFrom = null;
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   // Canvas forbids negative radii — a bad particle/FX must NEVER throw and kill the play loop.
@@ -1705,7 +1708,7 @@
       fever = Math.min(feverMax(), fever + (perfect ? 22 : 14));
       if (fever >= 100 && !mounted) {
         mounted = true;
-        toast('¡FEVER MOUNT!', 1200);
+        toast('MONTURA. Ahora duele.', 1200);
         sfx('fever');
         spawnFx('smoke_up', knight.x, knight.y - 30, 1.2);
         // don't setAnim here — doAttack must play first so resolving can end
@@ -1744,10 +1747,12 @@
       }
       enemy.shaking = 18;
       sfx('bad');
-      addText(knight.x, knight.y - H() * 0.28, 'FAIL', '#ef4444', 1.2);
-      addText(W() / 2, H() * 0.28, '"' + opt.word + '" no conecta', '#fca5a5');
+      addText(knight.x, knight.y - H() * 0.28, 'DUDÁ', '#ef4444', 1.2);
+      addText(W() / 2, H() * 0.28, Run ? Run.mock() : '"' + opt.word + '" no conecta', '#fca5a5');
+      toast(Run ? Run.mock() : 'NO ENTRA', 900);
       updateHUD();
     }
+    persistKnight();
   }
 
   function nextEnemy() {
@@ -1800,6 +1805,20 @@
     set('bestVal', Math.max(best, knight.score));
   }
 
+  function persistKnight() {
+    if (!Run || gameState !== STATES.PLAY || knight.state === 'die') return;
+    Run.saveRun('knight', {
+      hp: knight.hp,
+      score: knight.score,
+      streak: knight.streak,
+      roundCount: roundCount,
+      questionsAnswered: questionsAnswered,
+      fever: fever,
+      mounted: !!mounted,
+      enemyHp: enemy && !enemy.dead ? enemy.hp : null
+    });
+  }
+
   function setState(s) {
     bumpFlow();
     gameState = s;
@@ -1811,15 +1830,17 @@
       knight.setAnim('greet', true);
     }
     if (s === STATES.PLAY) {
-      knight.hp = 3;
-      knight.score = 0;
-      knight.streak = 0;
+      const save = resumeFrom;
+      resumeFrom = null;
+      knight.hp = save && save.hp != null ? save.hp : 3;
+      knight.score = save ? save.score || 0 : 0;
+      knight.streak = save ? save.streak || 0 : 0;
       knight.state = 'idle';
       knight.setAnim('idle', true);
-      roundCount = 0;
-      questionsAnswered = 0;
-      fever = 0;
-      mounted = false;
+      roundCount = save ? Math.max(0, (save.roundCount || 1) - 1) : 0;
+      questionsAnswered = save ? save.questionsAnswered || 0 : 0;
+      fever = save ? save.fever || 0 : 0;
+      mounted = !!(save && save.mounted);
       floatingTexts = [];
       fxList = [];
       particles = [];
@@ -1835,18 +1856,26 @@
       quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();
       nextEnemy();
+      if (save && enemy && save.enemyHp != null) enemy.hp = Math.max(1, save.enemyHp);
       updateHUD();
       sfx('start');
+      toast(save ? 'SEGUÍ. El turno no paró.' : (Run ? Run.challenge() : 'RETO'), 1100);
+      persistKnight();
     }
     if (s === STATES.ENDING) {
       endingPage = 0;
       quiz.locked = false;
       quiz.phase = 'ready';
       options = [];
+      if (Run) {
+        Run.clearRun('knight');
+        Run.recordFinish('knight', knight.score, knight.hp > 0);
+      }
       if (knight.hp > 0) {
         knight.doWin();
       }
       sfx(knight.hp > 0 ? 'win' : 'lose');
+      toast(knight.hp > 0 ? (Run ? Run.win() : 'CERRADO') : (Run ? Run.lose() : 'CAÍSTE'), 1400);
       updateHUD();
     }
     if (s === STATES.RESULTS) {
@@ -1855,7 +1884,7 @@
       if (knight.score > best) {
         best = knight.score;
         localStorage.setItem('kq_best', best);
-        toast('NEW BEST!', 1400);
+        toast('NUEVO RÉCORD. El piso tomó nota.', 1400);
       }
       updateHUD();
     }
@@ -1908,10 +1937,10 @@
     ctx.fillStyle = '#e2e8f0';
     ctx.font = `500 ${H() * 0.022}px Outfit,sans-serif`;
     [
-      'Respondé rápido → PERFECT ×1.75',
-      'Racha sube el multiplicador hasta ×8',
-      'Fever 100% = montura + ataques brutales',
-      '10 rondas · bosses en 5 y 10'
+      Run ? Run.rivalLine('knight') : 'A VENCER · tu último turno',
+      'Rápido = PERFECT. Filler = te cortan.',
+      '10 rondas. El piso no espera.',
+      Run && Run.hasRun('knight') ? 'Tenés un turno abierto.' : 'Tocá. Sin muletilla.'
     ].forEach((l, i) => ctx.fillText(l, W() / 2, py + ph * 0.52 + i * H() * 0.05));
 
     const pulse = 0.5 + 0.5 * Math.sin(frameCount * 0.1);
@@ -1923,10 +1952,22 @@
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#fff';
     ctx.font = `900 ${H() * 0.036}px Cinzel,serif`;
-    ctx.fillText('JUGAR', W() / 2, py + ph * 0.825);
+    ctx.fillText(Run && Run.hasRun('knight') ? 'CONTINUAR' : 'RETO', W() / 2, py + ph * 0.825);
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = `${H() * 0.02}px Outfit,sans-serif`;
-    ctx.fillText('Best: ' + best + ' XP', W() / 2, py + ph * 0.93);
+    ctx.fillText((Run ? Run.rivalLine('knight') : 'Best: ' + best + ' XP'), W() / 2, py + ph * 0.93);
+    const hasSave = Run && Run.hasRun('knight');
+    window._kqFresh = null;
+    if (hasSave) {
+      const fw = pw * 0.56, fh = H() * 0.045, fx = W() / 2 - fw / 2, fy = py + ph * 0.96;
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      roundRect(ctx, fx, fy, fw, fh, 8);
+      ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = `800 ${H() * 0.018}px Outfit,sans-serif`;
+      ctx.fillText('NUEVO RETO', W() / 2, fy + fh / 2);
+      window._kqFresh = { x: fx, y: fy, w: fw, h: fh };
+    }
   }
 
   function drawStoryPanel(page, hint) {
@@ -2190,6 +2231,17 @@
     mouseY = p.y;
     sfx('click');
     if (gameState === STATES.MENU) {
+      if (window._kqFresh && p.x > _kqFresh.x && p.x < _kqFresh.x + _kqFresh.w && p.y > _kqFresh.y && p.y < _kqFresh.y + _kqFresh.h) {
+        if (Run) Run.clearRun('knight');
+        resumeFrom = null;
+        setState(STATES.STORY);
+        return;
+      }
+      if (Run && Run.hasRun('knight')) {
+        resumeFrom = Run.loadRun('knight');
+        setState(STATES.PLAY);
+        return;
+      }
       setState(STATES.STORY);
       return;
     }
@@ -2300,11 +2352,13 @@
   }
   updateHUD();
   document.addEventListener('visibilitychange', () => {
+    if (document.hidden) persistKnight();
     if (!document.hidden) {
       ensureCanvasAlive();
       ensureAudio().catch(() => {});
     }
   });
+  window.addEventListener('pagehide', persistKnight);
   window.addEventListener('focus', () => ensureCanvasAlive());
   loop();
 })().catch((err) => {

@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub49';
+  var VER = '20260813hub50';
 
   /** Knight + Dark Thief + Tense Raiders + Rapid Drill */
   var GAMES = [
@@ -15,9 +15,9 @@
       id: 'knight',
       kind: 'knight',
       title: "KNIGHT'S QUEST",
-      sub: 'Caballero teutónico. Linkers bajo fuego. Fever mount.',
+      sub: 'Linkers bajo fuego. El filler te mata.',
       badge: 'hot',
-      badgeLabel: 'NUEVO',
+      badgeLabel: 'RETO',
       xp: '+60 XP',
       diff: 3,
       art: 'knight',
@@ -27,7 +27,7 @@
         name: 'Teutonic Knight',
         role: 'Linker crusader',
         mood: 'En batalla',
-        line: '"Slash the wrong word. Build the chain. Claim the XP."',
+        line: '"El filler te corta. Encadená o caés."',
         color: '#E8C547'
       }
     },
@@ -35,9 +35,9 @@
       id: 'thief',
       kind: 'thief',
       title: 'SHADOW THIEF',
-      sub: 'Ladrona oscura. Cadenas precisas. Golpe silencioso.',
+      sub: 'Sin muletilla. Si te ven, perdés cover.',
       badge: 'new',
-      badgeLabel: 'NUEVO',
+      badgeLabel: 'PISO',
       xp: '+60 XP',
       diff: 3,
       art: 'thief',
@@ -46,7 +46,7 @@
         name: 'Dark Thief',
         role: 'Linker shadow',
         mood: 'Al acecho',
-        line: '"Quiet links. Clean cuts. No filler words."',
+        line: '"Si dudás, te ven. Corto y limpio."',
         color: '#94A3B8'
       }
     },
@@ -54,9 +54,9 @@
       id: 'raiders',
       kind: 'raiders',
       title: 'TENSE RAIDERS',
-      sub: 'Jeopardy vs goblin. Todos los tenses. First to 7.',
+      sub: 'Tenses. First to 7. El goblin se burla.',
       badge: 'hot',
-      badgeLabel: 'NUEVO',
+      badgeLabel: 'DUELO',
       xp: '+60 XP',
       diff: 3,
       art: 'raiders',
@@ -65,7 +65,7 @@
         name: 'Goblin Raider',
         role: 'Tense duelist',
         mood: 'Burlón',
-        line: '"Buzz the tense. Mock the miss. First to seven."',
+        line: '"Fallá el tiempo y me río en tu cara."',
         color: '#86EFAC'
       }
     },
@@ -73,7 +73,7 @@
       id: 'rapid',
       kind: 'rapid',
       title: 'RAPID DRILL',
-      sub: 'Kaboom · Foundations.',
+      sub: 'Gym del piso. 60s. No es juego.',
       badge: '',
       badgeLabel: '',
       xp: '+30 XP',
@@ -84,7 +84,7 @@
         name: 'Kaboom',
         role: 'Rapid Jill',
         mood: 'Drill',
-        line: '"Foundations fast. No fluff."',
+        line: '"El reloj no perdona. Movete."',
         color: '#FBBF24'
       }
     }
