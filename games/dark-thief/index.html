@@ -179,6 +179,43 @@
     )
   );
 
+  // Kenney Space Expansion UI (CC0) — glass panels + header bars
+  const ui = {};
+  const UI_MAP = {
+    panel: 'panel_glass_screws.png',
+    panelPlain: 'panel_glass.png',
+    panelRect: 'panel_rect.png',
+    header: 'header_blue.png',
+    headerBlade: 'header_blade.png',
+    headerAlert: 'header_red.png',
+    barL: 'bar_blue_l.png',
+    barM: 'bar_blue_m.png',
+    barR: 'bar_blue_r.png',
+    barHoverL: 'bar_yellow_l.png',
+    barHoverM: 'bar_yellow_m.png',
+    barHoverR: 'bar_yellow_r.png',
+    barOkL: 'bar_green_l.png',
+    barOkM: 'bar_green_m.png',
+    barOkR: 'bar_green_r.png',
+    outline: 'bar_outline.png',
+    crosshair: 'crosshair.png'
+  };
+  loadTxt.textContent = 'Calibrando HUD espacial…';
+  await Promise.all(
+    Object.keys(UI_MAP).map(
+      (key) =>
+        new Promise((res) => {
+          const img = new Image();
+          img.onload = () => {
+            ui[key] = img;
+            res();
+          };
+          img.onerror = () => res();
+          img.src = 'assets/ui/' + UI_MAP[key] + '?v=space1';
+        })
+    )
+  );
+
   const SFX_NAMES = [
     'whoosh', 'hit', 'click', 'metal', 'ghost', 'clean', 'spotted', 'alarm',
     'veil', 'win', 'lose', 'tick', 'tickUrgent', 'start', 'ambient'
@@ -1068,6 +1105,62 @@
     return size;
   }
 
+  function uiReady(img) {
+    return img && img.complete && img.naturalWidth > 0;
+  }
+
+  function drawNine(img, x, y, w, h, slice) {
+    if (!uiReady(img)) {
+      ctx.fillStyle = 'rgba(15,23,42,0.92)';
+      roundRect(ctx, x, y, w, h, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(34,211,238,0.4)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, w, h, 10);
+      ctx.stroke();
+      return;
+    }
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const s = Math.min(slice || 12, Math.floor(iw / 3), Math.floor(ih / 3));
+    const dw = Math.max(s * 2 + 1, w);
+    const dh = Math.max(s * 2 + 1, h);
+    const mw = iw - s * 2;
+    const mh = ih - s * 2;
+    const dwm = dw - s * 2;
+    const dhm = dh - s * 2;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, 0, 0, s, s, x, y, s, s);
+    ctx.drawImage(img, iw - s, 0, s, s, x + dw - s, y, s, s);
+    ctx.drawImage(img, 0, ih - s, s, s, x, y + dh - s, s, s);
+    ctx.drawImage(img, iw - s, ih - s, s, s, x + dw - s, y + dh - s, s, s);
+    if (dwm > 0) {
+      ctx.drawImage(img, s, 0, mw, s, x + s, y, dwm, s);
+      ctx.drawImage(img, s, ih - s, mw, s, x + s, y + dh - s, dwm, s);
+    }
+    if (dhm > 0) {
+      ctx.drawImage(img, 0, s, s, mh, x, y + s, s, dhm);
+      ctx.drawImage(img, iw - s, s, s, mh, x + dw - s, y + s, s, dhm);
+    }
+    if (dwm > 0 && dhm > 0) ctx.drawImage(img, s, s, mw, mh, x + s, y + s, dwm, dhm);
+    ctx.imageSmoothingEnabled = true;
+  }
+
+  function drawHBar(L, M, R, x, y, w, h) {
+    if (!uiReady(L) || !uiReady(M) || !uiReady(R)) {
+      ctx.fillStyle = 'rgba(15,23,42,0.95)';
+      roundRect(ctx, x, y, w, h, 6);
+      ctx.fill();
+      return;
+    }
+    const endW = Math.min(Math.max(h * 0.55, 14), w * 0.22);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(L, x, y, endW, h);
+    ctx.drawImage(R, x + w - endW, y, endW, h);
+    ctx.drawImage(M, x + endW - 1, y, Math.max(1, w - endW * 2 + 2), h);
+    ctx.imageSmoothingEnabled = true;
+  }
+
   function ensureCanvasAlive() {
     if (W() < 2 || H() < 2) {
       try { resize(); } catch (_) {}
@@ -1147,31 +1240,93 @@
 
   function drawBriefing() {
     if (!currentQ) return;
-    const w = W(), h = H();
-    const bx = w * 0.02, by = h * 0.78, bw = w * 0.55, bh = h * 0.18;
-    ctx.fillStyle = 'rgba(8,12,22,0.92)';
-    roundRect(ctx, bx, by, bw, bh, 8);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(34,211,238,0.35)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, bx, by, bw, bh, 8);
-    ctx.stroke();
-    ctx.fillStyle = '#e879f9';
-    ctx.font = `700 ${h * 0.02}px JetBrains Mono,monospace`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
+    const w = W(),
+      h = H();
+    // Large sci-fi dossier panel (Space Expansion)
+    const bx = w * 0.02,
+      by = h * 0.62,
+      bw = w * 0.66,
+      bh = h * 0.34;
+    drawNine(ui.panel || ui.panelPlain || ui.panelRect, bx, by, bw, bh, 14);
+
     const dossier =
       currentQ.cat === 'tense'
-        ? 'MISSION DOSSIER // TIEMPO VERBAL'
+        ? 'DOSSIER // TIEMPO VERBAL'
         : currentQ.cat === 'phrasal'
-          ? 'MISSION DOSSIER // PHRASAL'
+          ? 'DOSSIER // PHRASAL'
           : currentQ.cat === 'linker'
-            ? 'MISSION DOSSIER // LINKER'
-            : 'MISSION DOSSIER // EXTRACT';
-    ctx.fillText(dossier, bx + 10, by + 8);
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = `600 ${h * 0.026}px Syne,sans-serif`;
-    wrapText(currentQ.prompt, bx + 10, by + h * 0.05, bw - 20, h * 0.032);
+            ? 'DOSSIER // LINKER'
+            : 'DOSSIER // EXTRACT';
+
+    const hh = Math.max(28, h * 0.055);
+    if (uiReady(ui.header)) {
+      ctx.imageSmoothingEnabled = false;
+      // top half of header plate = solid blue ribbon
+      ctx.drawImage(
+        ui.header,
+        0,
+        0,
+        ui.header.naturalWidth,
+        Math.floor(ui.header.naturalHeight / 2),
+        bx + 6,
+        by + 6,
+        bw - 12,
+        hh
+      );
+      ctx.imageSmoothingEnabled = true;
+    } else {
+      ctx.fillStyle = '#38bdf8';
+      roundRect(ctx, bx + 6, by + 6, bw - 12, hh, 6);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = `800 ${Math.round(hh * 0.38)}px JetBrains Mono,monospace`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(dossier, bx + 18, by + 6 + hh * 0.38);
+
+    const padX = 18;
+    const textTop = by + hh + h * 0.025;
+    const maxW = bw - padX * 2;
+    let fs = Math.round(h * 0.038);
+    const minFs = Math.round(h * 0.024);
+    ctx.fillStyle = '#0f172a';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    const wrap = (font) => {
+      ctx.font = font;
+      const words = String(currentQ.prompt || '').split(/\s+/);
+      const out = [];
+      let line = '';
+      for (let i = 0; i < words.length; i++) {
+        const test = line ? line + ' ' + words[i] : words[i];
+        if (ctx.measureText(test).width > maxW && line) {
+          out.push(line);
+          line = words[i];
+        } else line = test;
+      }
+      if (line) out.push(line);
+      return out;
+    };
+    let lines = wrap(`700 ${fs}px Syne,sans-serif`);
+    while (fs > minFs && lines.length * fs * 1.3 > bh - hh - h * 0.06) {
+      fs -= 1;
+      lines = wrap(`700 ${fs}px Syne,sans-serif`);
+    }
+    ctx.font = `700 ${fs}px Syne,sans-serif`;
+    let yy = textTop;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], bx + padX, yy);
+      yy += fs * 1.3;
+    }
+
+    if (uiReady(ui.crosshair)) {
+      const cs = Math.min(28, h * 0.04);
+      ctx.globalAlpha = 0.55;
+      ctx.drawImage(ui.crosshair, bx + bw - cs - 10, by + bh - cs - 10, cs, cs);
+      ctx.globalAlpha = 1;
+    }
   }
 
   function wrapText(text, x, y, maxW, lineH) {
@@ -1189,59 +1344,61 @@
     ctx.fillText(line, x, yy);
   }
 
-  // Vertical dossier options on the RIGHT
+  // Vertical dossier options on the RIGHT — Space Expansion bars
   function drawOptions() {
     if (!options.length) return;
-    const w = W(), h = H();
-    const panelX = w * 0.72;
-    const panelW = w * 0.26;
+    const w = W(),
+      h = H();
+    const panelX = w * 0.71;
+    const panelW = w * 0.27;
     const btnH = h * 0.1;
-    const gap = h * 0.025;
-    const startY = h * 0.28;
-    const titleY = h * 0.2;
+    const gap = h * 0.022;
+    const startY = h * 0.26;
+    const titleY = h * 0.175;
 
-    ctx.fillStyle = 'rgba(10,14,24,0.75)';
-    roundRect(ctx, panelX - 8, titleY - 8, panelW + 16, h * 0.52, 8);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(232,121,249,0.25)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, panelX - 8, titleY - 8, panelW + 16, h * 0.52, 8);
-    ctx.stroke();
+    drawNine(ui.panelPlain || ui.panel, panelX - 10, titleY - 10, panelW + 20, h * 0.42, 10);
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = `700 ${h * 0.018}px JetBrains Mono,monospace`;
-    ctx.textAlign = 'left';
-    ctx.fillText('OPCIONES', panelX, titleY + 4);
+    const titleH = Math.max(26, h * 0.045);
+    if (uiReady(ui.headerBlade)) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(
+        ui.headerBlade,
+        0,
+        0,
+        ui.headerBlade.naturalWidth,
+        Math.floor(ui.headerBlade.naturalHeight / 2),
+        panelX - 4,
+        titleY - 4,
+        panelW + 8,
+        titleH
+      );
+      ctx.imageSmoothingEnabled = true;
+    } else {
+      ctx.fillStyle = '#38bdf8';
+      roundRect(ctx, panelX - 4, titleY - 4, panelW + 8, titleH, 5);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#0f172a';
+    ctx.font = `800 ${Math.round(titleH * 0.4)}px JetBrains Mono,monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('OPCIONES', panelX + panelW / 2, titleY - 4 + titleH / 2);
 
     options.forEach((opt, i) => {
       const y = startY + i * (btnH + gap);
       const hover = mouseX > panelX && mouseX < panelX + panelW && mouseY > y && mouseY < y + btnH;
-      const g = ctx.createLinearGradient(panelX, y, panelX + panelW, y);
-      if (hover) {
-        g.addColorStop(0, 'rgba(34,211,238,0.35)');
-        g.addColorStop(1, 'rgba(232,121,249,0.25)');
-      } else {
-        g.addColorStop(0, 'rgba(15,23,42,0.95)');
-        g.addColorStop(1, 'rgba(8,12,22,0.95)');
-      }
-      ctx.fillStyle = g;
-      roundRect(ctx, panelX, y, panelW, btnH, 6);
-      ctx.fill();
-      ctx.strokeStyle = hover ? '#22d3ee' : 'rgba(148,163,184,0.25)';
-      ctx.lineWidth = hover ? 2 : 1;
-      roundRect(ctx, panelX, y, panelW, btnH, 6);
-      ctx.stroke();
-      ctx.fillStyle = hover ? '#67e8f9' : '#e2e8f0';
-      const fs = fitOptionText(opt.word, panelW * 0.88, Math.min(h * 0.028, 16));
+      if (hover) drawHBar(ui.barHoverL, ui.barHoverM, ui.barHoverR, panelX, y, panelW, btnH);
+      else drawHBar(ui.barL, ui.barM, ui.barR, panelX, y, panelW, btnH);
+      ctx.fillStyle = hover ? '#0f172a' : '#f8fafc';
+      const fs = fitOptionText(opt.word, panelW * 0.82, Math.min(h * 0.028, 16));
       ctx.font = `800 ${fs}px JetBrains Mono,monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(opt.word, panelX + panelW / 2, y + btnH / 2);
-      // key hint
-      ctx.fillStyle = 'rgba(148,163,184,0.5)';
+      ctx.fillStyle = hover ? 'rgba(15,23,42,0.55)' : 'rgba(248,250,252,0.55)';
       ctx.font = `600 ${h * 0.016}px JetBrains Mono,monospace`;
       ctx.textAlign = 'left';
-      ctx.fillText(String(i + 1), panelX + 8, y + 12);
+      ctx.fillText(String(i + 1), panelX + 10, y + 14);
       opt.rect = { x: panelX, y, w: panelW, h: btnH };
     });
   }

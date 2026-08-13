@@ -200,6 +200,68 @@
   const cardImg = new Image();
   cardImg.src = 'assets/card.png';
 
+  // Kenney Pixel Adventure UI (CC0) — parchment scroll + red ribbons
+  const ui = {};
+  const UI_MAP = {
+    parch: 'tile_0000.png',
+    parchFancy: 'tile_0006.png',
+    ribbonL: 'tile_0043.png',
+    ribbonM: 'tile_0044.png',
+    ribbonR: 'tile_0045.png',
+    bannerL: 'tile_0056.png',
+    bannerM: 'tile_0057.png',
+    bannerR: 'tile_0058.png',
+    btnL: 'tile_0069.png',
+    btnM: 'tile_0070.png',
+    btnR: 'tile_0071.png'
+  };
+  loadTxt.textContent = 'Desplegando pergaminos…';
+  await Promise.all(
+    Object.keys(UI_MAP).map(
+      (key) =>
+        new Promise((res) => {
+          const img = new Image();
+          img.onload = () => {
+            ui[key] = img;
+            res();
+          };
+          img.onerror = () => res();
+          img.src = 'assets/ui/' + UI_MAP[key] + '?v=ui1';
+        })
+    )
+  );
+
+  // Skeleton Chibi enemies (Segel2D) — idle / attack / hurt / dead
+  const ENEMY_SKELS = ['skel01', 'skel02', 'skel03'];
+  const ENEMY_ANIMS = ['idle', 'attack', 'hurt', 'dead'];
+  const ENEMY_FRAMES = 8;
+  const enemyImgs = {};
+  loadTxt.textContent = 'Invocando esqueletos chibi…';
+  await Promise.all(
+    ENEMY_SKELS.flatMap((skel) => {
+      enemyImgs[skel] = {};
+      return ENEMY_ANIMS.map(
+        (anim) =>
+          new Promise((res) => {
+            const frames = [];
+            let left = ENEMY_FRAMES;
+            for (let i = 0; i < ENEMY_FRAMES; i++) {
+              const img = new Image();
+              img.onload = img.onerror = () => {
+                left--;
+                if (left <= 0) {
+                  enemyImgs[skel][anim] = frames;
+                  res();
+                }
+              };
+              img.src = 'assets/enemies/' + skel + '/' + anim + '/' + i + '.png?v=skel1';
+              frames[i] = img;
+            }
+          })
+      );
+    })
+  );
+
   // Prefetch SFX WAVs
   const SFX_NAMES = [
     'slash', 'hit', 'heavy', 'fireball', 'explode', 'ok', 'perfect', 'bad',
@@ -416,12 +478,12 @@
   }
 
   const ENEMY_TYPES = [
-    { name: 'Slime of Confusion', kind: 'slime', color: '#22c55e', hp: 2, wrongWord: 'idk', xp: 100 },
-    { name: 'Ghost of Hesitation', kind: 'ghost', color: '#a78bfa', hp: 2, wrongWord: 'um...', xp: 120 },
-    { name: 'Bone of Slang', kind: 'skel', color: '#e2e8f0', hp: 3, wrongWord: 'and stuff', xp: 140 },
-    { name: 'Warlock of Muletillas', kind: 'warlock', color: '#fb923c', hp: 3, wrongWord: 'you know', xp: 160 },
-    { name: 'Wyrm of Doubt', kind: 'dragon', color: '#f87171', hp: 4, wrongWord: 'like', xp: 200 },
-    { name: 'BOSS: Babel Knight', kind: 'boss', color: '#E8C547', hp: 6, wrongWord: 'whatever', xp: 400, boss: true }
+    { name: 'Bone of Confusion', kind: 'skel', skel: 'skel03', color: '#e2e8f0', hp: 2, wrongWord: 'idk', xp: 100 },
+    { name: 'Skull of Hesitation', kind: 'skel', skel: 'skel02', color: '#cbd5e1', hp: 2, wrongWord: 'um...', xp: 120 },
+    { name: 'Bone of Slang', kind: 'skel', skel: 'skel01', color: '#f5e6a3', hp: 3, wrongWord: 'and stuff', xp: 140 },
+    { name: 'Horned Muletilla', kind: 'skel', skel: 'skel02', color: '#fb923c', hp: 3, wrongWord: 'you know', xp: 160 },
+    { name: 'Cleaver of Doubt', kind: 'skel', skel: 'skel01', color: '#f87171', hp: 4, wrongWord: 'like', xp: 200 },
+    { name: 'BOSS: Babel Bone Lord', kind: 'skel', skel: 'skel01', color: '#E8C547', hp: 6, wrongWord: 'whatever', xp: 400, boss: true }
   ];
 
   // ── STATE ──
@@ -755,16 +817,38 @@
   class Enemy {
     constructor(type) {
       this.type = type;
+      this.skel = type.skel || 'skel01';
       this.x = W() * 0.74;
-      this.y = H() * 0.38;
-      this.w = H() * (type.boss ? 0.22 : 0.17);
-      this.h = H() * (type.boss ? 0.28 : 0.22);
+      this.y = H() * 0.82;
+      this.w = H() * (type.boss ? 0.36 : 0.3);
+      this.h = H() * (type.boss ? 0.4 : 0.34);
       this.hp = type.hp;
       this.maxHp = type.hp;
       this.shaking = 0;
       this.dead = false;
       this.alpha = 1;
       this.particles = [];
+      this.anim = 'idle';
+      this.frame = 0;
+      this.animT = 0;
+      this.fps = type.boss ? 11 : 10;
+      this.animOnce = false;
+      this.fadeAfterDead = false;
+    }
+    framesFor(anim) {
+      const pack = enemyImgs[this.skel];
+      if (!pack) return null;
+      const frames = pack[anim];
+      if (!frames || !frames.length) return null;
+      const ready = frames.filter((img) => img && img.complete && img.naturalWidth > 0);
+      return ready.length ? ready : null;
+    }
+    setAnim(name, once) {
+      if (this.anim === name && !once) return;
+      this.anim = name;
+      this.frame = 0;
+      this.animT = 0;
+      this.animOnce = !!once;
     }
     draw() {
       if (this.dead && this.alpha <= 0) return;
@@ -772,42 +856,62 @@
       ctx.globalAlpha = this.alpha;
       const sk = this.shaking > 0 ? Math.sin(this.shaking * 0.9) * 7 : 0;
       const x = this.x + sk;
-      const y = this.y + Math.sin(frameCount * 0.05) * 5;
+      const bob = this.dead ? 0 : Math.sin(frameCount * 0.05) * 3;
+      const y = this.y + bob;
+
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.beginPath();
-      ctx.ellipse(x, y + this.h * 0.42, this.w * 0.42, this.h * 0.05, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + 4, this.w * 0.32, this.h * 0.035, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      const k = this.type.kind;
-      if (k === 'ghost') this.drawGhost(x, y);
-      else if (k === 'skel') this.drawSkel(x, y);
-      else if (k === 'warlock') this.drawWarlock(x, y);
-      else if (k === 'dragon') this.drawDragon(x, y);
-      else if (k === 'boss') this.drawBoss(x, y);
-      else this.drawSlime(x, y);
+      const frames = this.framesFor(this.anim) || this.framesFor('idle');
+      if (frames) {
+        const img = frames[Math.min(this.frame, frames.length - 1)];
+        const dw = this.w;
+        const dh = this.h;
+        ctx.save();
+        // Face the knight (left)
+        ctx.translate(x, y);
+        ctx.scale(-1, 1);
+        if (this.type.boss) {
+          ctx.shadowColor = '#E8C547';
+          ctx.shadowBlur = 18;
+        }
+        ctx.drawImage(img, -dw / 2, -dh * 0.92, dw, dh);
+        ctx.restore();
+      } else {
+        this.drawSkelFallback(x, y);
+      }
 
-      // label
+      // wrong-word label
       ctx.fillStyle = 'rgba(0,0,0,0.72)';
-      roundRect(ctx, x - this.w * 0.75, y - this.h * 0.72, this.w * 1.5, this.h * 0.18, 6);
+      roundRect(ctx, x - this.w * 0.7, y - this.h * 1.05, this.w * 1.4, this.h * 0.16, 6);
       ctx.fill();
       ctx.strokeStyle = this.type.color;
       ctx.lineWidth = 1.5;
-      roundRect(ctx, x - this.w * 0.75, y - this.h * 0.72, this.w * 1.5, this.h * 0.18, 6);
+      roundRect(ctx, x - this.w * 0.7, y - this.h * 1.05, this.w * 1.4, this.h * 0.16, 6);
       ctx.stroke();
       ctx.fillStyle = '#fecaca';
-      ctx.font = `bold ${H() * 0.026}px monospace`;
+      ctx.font = `bold ${H() * 0.024}px monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(this.type.wrongWord, x, y - this.h * 0.63);
+      ctx.fillText(this.type.wrongWord, x, y - this.h * 0.97);
 
-      const bw = this.w * 1.3,
+      const bw = this.w * 1.15,
         bh = 7;
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      roundRect(ctx, x - bw / 2, y - this.h * 0.82, bw, bh, 3);
+      roundRect(ctx, x - bw / 2, y - this.h * 1.14, bw, bh, 3);
       ctx.fill();
       ctx.fillStyle = this.type.boss ? '#E8C547' : '#ef4444';
-      roundRect(ctx, x - bw / 2, y - this.h * 0.82, bw * (this.hp / this.maxHp), bh, 3);
+      roundRect(ctx, x - bw / 2, y - this.h * 1.14, bw * (this.hp / this.maxHp), bh, 3);
       ctx.fill();
+
+      if (this.type.boss) {
+        ctx.fillStyle = '#E8C547';
+        ctx.font = `900 ${H() * 0.022}px Cinzel,serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('BOSS', x, y - this.h * 1.22);
+      }
 
       this.particles.forEach((p) => {
         ctx.globalAlpha = p.life * this.alpha;
@@ -818,150 +922,48 @@
       });
       ctx.restore();
     }
-    drawSlime(x, y) {
-      const g = ctx.createRadialGradient(x - 8, y - 10, 4, x, y, this.w * 0.55);
-      g.addColorStop(0, '#86efac');
-      g.addColorStop(1, '#15803d');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(x, y, this.w * 0.45, this.h * 0.4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      this.face(x, y);
-    }
-    drawGhost(x, y) {
-      ctx.fillStyle = 'rgba(167,139,250,0.85)';
-      ctx.beginPath();
-      ctx.moveTo(x - this.w * 0.35, y + this.h * 0.35);
-      ctx.quadraticCurveTo(x - this.w * 0.4, y - this.h * 0.35, x, y - this.h * 0.4);
-      ctx.quadraticCurveTo(x + this.w * 0.4, y - this.h * 0.35, x + this.w * 0.35, y + this.h * 0.35);
-      for (let i = 0; i < 4; i++) {
-        const px = x + this.w * 0.35 - (i * this.w * 0.7) / 3;
-        ctx.quadraticCurveTo(px - this.w * 0.08, y + this.h * 0.48, px - this.w * 0.17, y + this.h * 0.35);
-      }
-      ctx.fill();
-      this.face(x, y - this.h * 0.05, true);
-    }
-    drawSkel(x, y) {
+    drawSkelFallback(x, y) {
       ctx.strokeStyle = '#f1f5f9';
       ctx.fillStyle = '#e2e8f0';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(x, y - this.h * 0.15, this.w * 0.28, 0, Math.PI * 2);
+      ctx.arc(x, y - this.h * 0.35, this.w * 0.22, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
-      ctx.ellipse(x - 8, y - this.h * 0.18, 5, 7, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 8, y - this.h * 0.18, 5, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(x - 8, y - this.h * 0.38, 5, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 8, y - this.h * 0.38, 5, 7, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#cbd5e1';
       ctx.beginPath();
-      ctx.moveTo(x, y + this.h * 0.05);
-      ctx.lineTo(x, y + this.h * 0.35);
-      ctx.moveTo(x, y + this.h * 0.15);
-      ctx.lineTo(x - 16, y + this.h * 0.28);
-      ctx.moveTo(x, y + this.h * 0.15);
-      ctx.lineTo(x + 16, y + this.h * 0.28);
+      ctx.moveTo(x, y - this.h * 0.15);
+      ctx.lineTo(x, y + this.h * 0.05);
       ctx.stroke();
-    }
-    drawWarlock(x, y) {
-      ctx.fillStyle = '#7c2d12';
-      ctx.beginPath();
-      ctx.moveTo(x, y - this.h * 0.5);
-      ctx.lineTo(x + this.w * 0.35, y - this.h * 0.1);
-      ctx.lineTo(x - this.w * 0.35, y - this.h * 0.1);
-      ctx.fill();
-      const g = ctx.createRadialGradient(x, y, 2, x, y, this.w * 0.4);
-      g.addColorStop(0, '#fdba74');
-      g.addColorStop(1, '#9a3412');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(x, y + this.h * 0.05, this.w * 0.32, this.h * 0.35, 0, 0, Math.PI * 2);
-      ctx.fill();
-      this.face(x, y);
-      ctx.fillStyle = '#E8C547';
-      ctx.beginPath();
-      ctx.arc(x + this.w * 0.35, y + 10, 8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    drawDragon(x, y) {
-      ctx.fillStyle = '#991b1b';
-      ctx.beginPath();
-      ctx.ellipse(x, y, this.w * 0.48, this.h * 0.32, -0.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + this.w * 0.35, y - 10);
-      ctx.lineTo(x + this.w * 0.7, y);
-      ctx.lineTo(x + this.w * 0.35, y + 12);
-      ctx.fill();
-      ctx.fillStyle = '#fbbf24';
-      ctx.beginPath();
-      ctx.arc(x + this.w * 0.15, y - 6, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#7f1d1d';
-      ctx.beginPath();
-      ctx.moveTo(x - 10, y - this.h * 0.25);
-      ctx.lineTo(x, y - this.h * 0.45);
-      ctx.lineTo(x + 10, y - this.h * 0.25);
-      ctx.fill();
-    }
-    drawBoss(x, y) {
-      ctx.save();
-      ctx.shadowColor = '#E8C547';
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = '#1e1b4b';
-      ctx.beginPath();
-      ctx.ellipse(x, y, this.w * 0.42, this.h * 0.42, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      ctx.strokeStyle = '#E8C547';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      // horns
-      ctx.fillStyle = '#e2e8f0';
-      ctx.beginPath();
-      ctx.moveTo(x - 20, y - this.h * 0.2);
-      ctx.lineTo(x - 34, y - this.h * 0.5);
-      ctx.lineTo(x - 8, y - this.h * 0.28);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + 20, y - this.h * 0.2);
-      ctx.lineTo(x + 34, y - this.h * 0.5);
-      ctx.lineTo(x + 8, y - this.h * 0.28);
-      ctx.fill();
-      this.face(x, y);
-      ctx.fillStyle = '#E8C547';
-      ctx.font = `900 ${H() * 0.03}px Cinzel,serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('BOSS', x, y + this.h * 0.48);
-    }
-    face(x, y, soft) {
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.ellipse(x - 10, y - 6, 7, 8, 0, 0, Math.PI * 2);
-      ctx.ellipse(x + 10, y - 6, 7, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#111';
-      ctx.beginPath();
-      ctx.arc(x - 9, y - 5, 3, 0, Math.PI * 2);
-      ctx.arc(x + 11, y - 5, 3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 16, y - 16);
-      ctx.lineTo(x - 4, y - 12);
-      ctx.moveTo(x + 4, y - 12);
-      ctx.lineTo(x + 16, y - 16);
-      ctx.stroke();
-      if (!soft) {
-        ctx.beginPath();
-        ctx.arc(x, y + 10, 10, 0.15, Math.PI - 0.15);
-        ctx.stroke();
-      }
     }
     update() {
       if (this.shaking > 0) this.shaking--;
-      if (this.dead) this.alpha -= 0.03;
+      const frames = this.framesFor(this.anim);
+      const n = frames ? frames.length : ENEMY_FRAMES;
+      this.animT++;
+      if (this.animT >= Math.max(2, Math.round(60 / this.fps))) {
+        this.animT = 0;
+        if (this.animOnce) {
+          if (this.frame < n - 1) this.frame++;
+          else if (this.anim === 'dead') this.fadeAfterDead = true;
+          else if (this.anim === 'hurt' || this.anim === 'attack') {
+            if (!this.dead) this.setAnim('idle');
+          }
+        } else {
+          this.frame = (this.frame + 1) % n;
+        }
+      }
+      if (this.dead && this.fadeAfterDead) this.alpha -= 0.04;
+      else if (this.dead && !frames) this.alpha -= 0.03;
+
+      if (!this.dead && this.anim === 'idle' && Math.random() < 0.003) {
+        this.setAnim('attack', true);
+      }
+
       this.particles = this.particles.filter((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -976,7 +978,7 @@
       for (let i = 0; i < 16; i++) {
         this.particles.push({
           x: this.x,
-          y: this.y,
+          y: this.y - this.h * 0.35,
           vx: (Math.random() - 0.5) * 7,
           vy: -Math.random() * 5,
           color: this.type.color,
@@ -986,11 +988,13 @@
       }
       if (this.hp <= 0) {
         this.dead = true;
-        spawnFx('explosion', this.x, this.y, this.type.boss ? 1.5 : 1.1);
-        spawnFx('slam', this.x, this.y + 20, 1);
-        burst(this.x, this.y, this.type.color, 24);
+        this.setAnim('dead', true);
+        spawnFx('explosion', this.x, this.y - this.h * 0.3, this.type.boss ? 1.5 : 1.1);
+        spawnFx('slam', this.x, this.y + 10, 1);
+        burst(this.x, this.y - this.h * 0.3, this.type.color, 24);
         return true;
       }
+      this.setAnim('hurt', true);
       return false;
     }
   }
@@ -1244,6 +1248,79 @@
     return size;
   }
 
+  function uiReady(img) {
+    return img && img.complete && img.naturalWidth > 0;
+  }
+
+  function drawNine(img, x, y, w, h, slice) {
+    if (!uiReady(img)) {
+      ctx.fillStyle = '#f3e0b8';
+      roundRect(ctx, x, y, w, h, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#5c3a1e';
+      ctx.lineWidth = 3;
+      roundRect(ctx, x, y, w, h, 10);
+      ctx.stroke();
+      return;
+    }
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const s = Math.min(slice || 10, Math.floor(iw / 3), Math.floor(ih / 3));
+    const dw = Math.max(s * 2 + 1, w);
+    const dh = Math.max(s * 2 + 1, h);
+    const mw = iw - s * 2;
+    const mh = ih - s * 2;
+    const dwm = dw - s * 2;
+    const dhm = dh - s * 2;
+    // corners
+    ctx.drawImage(img, 0, 0, s, s, x, y, s, s);
+    ctx.drawImage(img, iw - s, 0, s, s, x + dw - s, y, s, s);
+    ctx.drawImage(img, 0, ih - s, s, s, x, y + dh - s, s, s);
+    ctx.drawImage(img, iw - s, ih - s, s, s, x + dw - s, y + dh - s, s, s);
+    // edges
+    if (dwm > 0) {
+      ctx.drawImage(img, s, 0, mw, s, x + s, y, dwm, s);
+      ctx.drawImage(img, s, ih - s, mw, s, x + s, y + dh - s, dwm, s);
+    }
+    if (dhm > 0) {
+      ctx.drawImage(img, 0, s, s, mh, x, y + s, s, dhm);
+      ctx.drawImage(img, iw - s, s, s, mh, x + dw - s, y + s, s, dhm);
+    }
+    if (dwm > 0 && dhm > 0) ctx.drawImage(img, s, s, mw, mh, x + s, y + s, dwm, dhm);
+  }
+
+  function drawHRibbon(L, M, R, x, y, w, h) {
+    if (!uiReady(L) || !uiReady(M) || !uiReady(R)) {
+      ctx.fillStyle = '#c0392b';
+      roundRect(ctx, x, y, w, h, 6);
+      ctx.fill();
+      return;
+    }
+    const endW = Math.min(Math.max(h * 0.85, 18), w * 0.28);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(L, x, y, endW, h);
+    ctx.drawImage(R, x + w - endW, y, endW, h);
+    const mid = Math.max(1, w - endW * 2 + 2);
+    ctx.drawImage(M, x + endW - 1, y, mid, h);
+    ctx.imageSmoothingEnabled = true;
+  }
+
+  function wrapPrompt(text, maxW, font) {
+    ctx.font = font;
+    const words = String(text || '').split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (let i = 0; i < words.length; i++) {
+      const test = line ? line + ' ' + words[i] : words[i];
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = words[i];
+      } else line = test;
+    }
+    if (line) lines.push(line);
+    return lines.length ? lines : [''];
+  }
+
   function ensureCanvasAlive() {
     if (W() < 2 || H() < 2) {
       try {
@@ -1328,19 +1405,14 @@
 
   function drawQuestion() {
     if (!currentQ) return;
-    const by = H() * 0.875,
-      bh = H() * 0.125;
-    ctx.fillStyle = 'rgba(8,6,12,0.88)';
-    ctx.fillRect(0, by, W(), bh);
-    ctx.strokeStyle = 'rgba(232,197,71,0.4)';
-    ctx.beginPath();
-    ctx.moveTo(0, by);
-    ctx.lineTo(W(), by);
-    ctx.stroke();
-    ctx.fillStyle = '#E8C547';
-    ctx.font = `bold ${H() * 0.024}px Cinzel,serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
+    const w = W(),
+      h = H();
+    const bx = w * 0.04,
+      by = h * 0.665,
+      bw = w * 0.92,
+      bh = h * 0.3;
+    drawNine(ui.parchFancy || ui.parch, bx, by, bw, bh, 11);
+
     const catLabel =
       currentQ.cat === 'tense'
         ? 'TIEMPO VERBAL'
@@ -1349,42 +1421,75 @@
           : currentQ.cat === 'linker'
             ? 'LINKER'
             : 'COMPLETÁ LA CADENA';
-    ctx.fillText(catLabel, W() * 0.03, by + bh * 0.28);
-    ctx.fillStyle = '#fff';
-    ctx.font = `700 ${H() * 0.03}px Outfit,sans-serif`;
-    ctx.fillText(currentQ.prompt, W() * 0.03, by + bh * 0.68);
+
+    const rh = Math.max(30, h * 0.058);
+    const rw = Math.min(bw * 0.62, Math.max(180, catLabel.length * h * 0.02 + rh * 2));
+    const rx = bx + (bw - rw) / 2;
+    const ry = by - rh * 0.42;
+    drawHRibbon(ui.ribbonL, ui.ribbonM, ui.ribbonR, rx, ry, rw, rh);
+
+    ctx.fillStyle = '#fff8e7';
+    ctx.font = `800 ${Math.round(rh * 0.42)}px Cinzel,serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 2;
+    ctx.fillText(catLabel, rx + rw / 2, ry + rh / 2 + 1);
+    ctx.shadowBlur = 0;
+
+    const padX = bw * 0.07;
+    const maxW = bw - padX * 2;
+    const maxH = bh * 0.62;
+    let fs = Math.round(h * 0.046);
+    const minFs = Math.round(h * 0.028);
+    let lines = wrapPrompt(currentQ.prompt, maxW, `700 ${fs}px Outfit,sans-serif`);
+    while (fs > minFs && (lines.length * fs * 1.28 > maxH || lines.some((l) => {
+      ctx.font = `700 ${fs}px Outfit,sans-serif`;
+      return ctx.measureText(l).width > maxW;
+    }))) {
+      fs -= 1;
+      lines = wrapPrompt(currentQ.prompt, maxW, `700 ${fs}px Outfit,sans-serif`);
+    }
+    ctx.fillStyle = '#2a1810';
+    ctx.font = `700 ${fs}px Outfit,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const blockH = lines.length * fs * 1.28;
+    let yy = by + bh * 0.52 - blockH / 2 + fs * 0.4;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], bx + bw / 2, yy);
+      yy += fs * 1.28;
+    }
   }
 
   function drawOptions() {
     if (!options.length) return;
-    const btnW = W() * 0.27,
-      btnH = H() * 0.08;
-    const startX = (W() - options.length * btnW - (options.length - 1) * 12) / 2;
-    const btnY = H() * 0.6;
+    const btnW = W() * 0.28,
+      btnH = Math.max(42, H() * 0.085);
+    const startX = (W() - options.length * btnW - (options.length - 1) * 14) / 2;
+    const btnY = H() * 0.545;
     options.forEach((opt, i) => {
-      const x = startX + i * (btnW + 12);
+      const x = startX + i * (btnW + 14);
       const hover = mouseX > x && mouseX < x + btnW && mouseY > btnY && mouseY < btnY + btnH;
-      const g = ctx.createLinearGradient(x, btnY, x, btnY + btnH);
+      drawHRibbon(ui.btnL || ui.bannerL, ui.btnM || ui.bannerM, ui.btnR || ui.bannerR, x, btnY, btnW, btnH);
       if (hover) {
-        g.addColorStop(0, 'rgba(232,197,71,0.35)');
-        g.addColorStop(1, 'rgba(120,53,15,0.7)');
-      } else {
-        g.addColorStop(0, 'rgba(30,20,12,0.85)');
-        g.addColorStop(1, 'rgba(10,8,14,0.9)');
+        ctx.fillStyle = 'rgba(255,230,150,0.22)';
+        roundRect(ctx, x + 4, btnY + 3, btnW - 8, btnH - 6, 4);
+        ctx.fill();
+        ctx.strokeStyle = '#F5E6A3';
+        ctx.lineWidth = 2;
+        roundRect(ctx, x + 2, btnY + 2, btnW - 4, btnH - 4, 5);
+        ctx.stroke();
       }
-      ctx.fillStyle = g;
-      roundRect(ctx, x, btnY, btnW, btnH, 10);
-      ctx.fill();
-      ctx.strokeStyle = hover ? '#E8C547' : 'rgba(255,255,255,0.15)';
-      ctx.lineWidth = hover ? 2 : 1;
-      roundRect(ctx, x, btnY, btnW, btnH, 10);
-      ctx.stroke();
       ctx.fillStyle = '#fff';
-      const fs = fitOptionText(opt.word, btnW * 0.9, H() * 0.034);
+      const fs = fitOptionText(opt.word, btnW * 0.82, H() * 0.032);
       ctx.font = `800 ${fs}px monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(opt.word, x + btnW / 2, btnY + btnH / 2);
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = 3;
+      ctx.fillText(opt.word, x + btnW / 2, btnY + btnH / 2 + 1);
+      ctx.shadowBlur = 0;
       opt.rect = { x, y: btnY, w: btnW, h: btnH };
     });
   }
@@ -1427,7 +1532,7 @@
       questionsAnswered++;
       if (killed) {
         toast(enemy.type.boss ? 'BOSS DOWN' : 'ENEMY DOWN', 900);
-        after(1100, () => nextEnemy());
+        after(1300, () => nextEnemy());
       } else after(450, () => loadQuestion());
     } else {
       knight.doHurt();
