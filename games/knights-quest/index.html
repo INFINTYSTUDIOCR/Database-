@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub32-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub33-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub32-kq1';
+  const KQ_BUILD = 'hub33-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -1428,28 +1428,15 @@
 
     if (quiz.phase === 'resolving') {
       const age = now - quiz.phaseAt;
-      // Mark kill but stay in resolving until anim-done OR 700ms wall — options stay dimmed.
       if (enemy && enemy.dead) quiz.pendingKill = true;
-      const idleish =
-        knight.state === 'idle' ||
-        knight.state === 'suspicious' ||
-        knight.state === 'guard' ||
-        knight.state === 'hurt_idle' ||
-        knight.anim === 'idle' ||
-        knight.anim === 'idle_b' ||
-        knight.anim === 'horse_idle' ||
-        knight.anim === 'hurt_idle';
-      if (idleish || age >= 450) {
-        endResolving(age >= 450 ? 'wall-450' : 'idle');
+      // Same as Thief: don't wait on attack/mount anim — keep the fight moving.
+      if (age >= 280) {
+        endResolving(age >= 700 ? 'wall-700' : 'wall-280');
         return;
       }
       if (age >= 700) {
         endResolving('wall-700');
         return;
-      }
-      if (age > 900) {
-        if (quiz.pendingKill || (enemy && enemy.dead)) endResolving('resolving>900');
-        else loadNextQuestion();
       }
       return;
     }
@@ -1649,13 +1636,16 @@
 
   function nextEnemy() {
     if (gameState !== STATES.PLAY) return;
-    if (quiz.advancing) return;
     if (roundCount >= 10) {
       knight.doWin();
       setState(STATES.ENDING);
       return;
     }
-    quiz.advancing = true;
+    // already spawned a living enemy for this advance
+    if (enemy && !enemy.dead && quiz.phase === 'advance') {
+      loadNextQuestion();
+      return;
+    }
     roundCount++;
     let type;
     if (roundCount === 5 || roundCount === 10) type = ENEMY_TYPES[5];
