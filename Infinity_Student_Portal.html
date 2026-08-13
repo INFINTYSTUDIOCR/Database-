@@ -739,7 +739,10 @@ body.tt-fs-lock{overflow:hidden;position:fixed;width:100%;height:100%;height:100
 .inf-arcade-fs-title{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#e9d5ff;}
 .inf-arcade-fs-title span{display:block;font-size:11px;letter-spacing:0;font-weight:700;color:rgba(255,255,255,.65);text-transform:none;margin-top:2px;}
 .inf-arcade-fs-close{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#e9d5ff;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;}
-.inf-arcade-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;}
+.inf-arcade-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;min-height:0;}
+.inf-arcade-fs-body.is-knight-fit{max-width:none;width:100%;height:100%;flex:1 1 auto;min-height:0;padding:0;overflow:hidden;align-items:stretch;}
+.inf-knight-frame{flex:1 1 auto;width:100%;height:100%;min-height:0;border:0;border-radius:0;background:#050508;display:block;}
+.inf-hub-scroll{position:relative;z-index:2;flex:1;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:16px 16px max(20px,env(safe-area-inset-bottom));}
 .inf-arcade-fs-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;width:100%;}
 .inf-arcade-fs-mode-btn{text-align:left;border:1px solid rgba(196,181,253,.35);background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(91,33,182,.28));color:#fff;border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);}
 .inf-arcade-fs-mode-btn strong{display:block;font-size:14px;margin-bottom:4px;}
@@ -2501,7 +2504,10 @@ function closeInfinityArcadeFullscreen(){
   window._infArcadeFsOpen = false;
   window._arcadeState = null;
   var body = document.getElementById('inf-arcade-fs-body');
-  if(body) body.innerHTML = '';
+  if(body){
+    body.classList.remove('is-knight-fit');
+    body.innerHTML = '';
+  }
   if(typeof openInfinityCasinoFloor === 'function'){
     openInfinityCasinoFloor();
   } else if(window._infArcadeLobbyOpen){
@@ -9161,7 +9167,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
-<script src="js/infinity-casino-floor.js?v=20260812hub8"></script>
+<script src="js/infinity-casino-floor.js?v=20260812hub9"></script>
 <script src="js/infinity-modern-games.js?v=20260812mod6"></script>
 <script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>

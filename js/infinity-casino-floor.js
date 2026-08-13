@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub8';
+  var VER = '20260812hub9';
 
   /** Solo Rapid Drill + Knight's Quest */
   var GAMES = [
@@ -180,7 +180,7 @@
       '.pill-streak{background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:#FBBF24}' +
       '.pill-day{background:rgba(34,197,94,.12);border:1px solid rgba(74,222,128,.35);color:#86EFAC}' +
       '.inf-hub-close{border:2px solid var(--inf-gold);background:#1a0a3a;color:var(--inf-gold);border-radius:10px;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer}' +
-      '.inf-hub-scroll{position:relative;z-index:2;flex:1;overflow:auto;padding:16px 16px max(20px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}' +
+      '.inf-hub-scroll{position:relative;z-index:2;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:16px 16px max(20px,env(safe-area-inset-bottom))}' +
       '.inf-hub-mantra{text-align:center;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--inf-gold);margin:0 0 12px;opacity:.95}' +
       '.hub-featured{position:relative;border-radius:18px;overflow:hidden;margin-bottom:18px;height:min(200px,32vh);cursor:pointer;border:2px solid rgba(245,166,35,.45);box-shadow:0 12px 36px rgba(59,14,140,.45),0 0 0 1px rgba(255,255,255,.06);background:linear-gradient(125deg,#3B0E8C 0%,#5B21B6 40%,#7C3AED 70%,#B45309 100%);animation:hubPulse 2.8s ease-in-out infinite}' +
       '.hub-featured.art-knight{background:linear-gradient(125deg,#1a0508 0%,#7f1d1d 35%,#ea580c 70%,#fbbf24 100%);border-color:rgba(251,191,36,.55)}' +
@@ -481,13 +481,16 @@
       }
       var body = document.getElementById('inf-arcade-fs-body');
       if (body) {
+        body.classList.add('is-knight-fit');
         body.innerHTML =
           '<iframe src="games/knights-quest/index.html?v=' +
           VER +
-          '" title="Knight\'s Quest" style="width:100%;height:min(78vh,720px);border:0;border-radius:16px;background:#050508;display:block" allow="autoplay"></iframe>';
+          '" title="Knight\'s Quest" class="inf-knight-frame" allow="autoplay"></iframe>';
       }
       return;
     }
+    var fsBodyClear = document.getElementById('inf-arcade-fs-body');
+    if (fsBodyClear) fsBodyClear.classList.remove('is-knight-fit');
     var mode = g.mode || g.id;
     if (typeof infinityArcadeStartMode === 'function') {
       infinityArcadeStartMode(mode);
