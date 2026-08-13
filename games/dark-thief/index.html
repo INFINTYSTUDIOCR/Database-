@@ -89,7 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub28-st1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub29-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -109,7 +109,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const ST_BUILD = 'hub28-st1';
+  const ST_BUILD = 'hub29-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -593,6 +593,14 @@
   let target = null;
   let currentQ = null;
   let options = [];
+  /** PLAY Q&A state machine — no after()/resume spaghetti. */
+  const quiz = {
+    phase: 'ready', // 'ready' | 'resolving' | 'advance'
+    locked: false,
+    born: 0,
+    phaseAt: 0,
+    pendingKill: false
+  };
   let frameCount = 0;
   let floorNum = 0;
   let questionsAnswered = 0;
@@ -602,18 +610,11 @@
   let hitstop = 0;
   let flash = 0;
   let mouseX = 0, mouseY = 0;
-  let qBorn = 0;
   let timerMax = 8;
   let alert = 0;
   let veil = 0;
   let best = +localStorage.getItem('st_best') || 0;
   let flowGen = 0;
-  let inputLock = false;
-  let emptyOptionsSince = 0;
-  let lockSince = 0;
-  let deadSince = 0;
-  let resumeAt = 0;
-  let resumeKind = ''; // 'question' | 'nextFloor'
   let rain = [];
   const pendingTimers = new Set();
   document.getElementById('bestVal').textContent = best;
@@ -622,71 +623,28 @@
     pendingTimers.forEach((id) => clearTimeout(id));
     pendingTimers.clear();
   }
-  function clearResume() {
-    resumeAt = 0;
-    resumeKind = '';
-  }
+  /** Cosmetics only (ending). Quiz advance is frame-driven via tickQuiz. */
   function after(ms, fn) {
     const gen = flowGen;
     const id = setTimeout(() => {
       pendingTimers.delete(id);
-      if (gen !== flowGen) {
-        // Cancelled by bumpFlow — never leave PLAY locked/empty without a replacement.
-        if (
-          gameState === STATES.PLAY &&
-          thief.state !== 'death' &&
-          (inputLock || !options.length || !currentQ || (target && target.dead))
-        ) {
-          try {
-            hardRecoverPlay('flow-cancelled');
-          } catch (_) {}
-        }
-        return;
-      }
+      if (gen !== flowGen) return;
       try {
         fn();
       } catch (err) {
         console.error('[ST timer]', err);
-        if (gameState === STATES.PLAY && thief.state !== 'death') {
-          try {
-            hardRecoverPlay('timer-throw');
-          } catch (_) {}
-        }
       }
     }, ms);
     pendingTimers.add(id);
     return id;
   }
-  function schedulePlayResume(ms, kind) {
-    const nextKind = kind === 'nextFloor' ? 'nextFloor' : 'question';
-    const delay = Math.max(0, ms || 0);
-    const due = performance.now() + delay;
-    if (resumeAt && resumeKind === nextKind) resumeAt = Math.min(resumeAt, due);
-    else {
-      resumeKind = nextKind;
-      resumeAt = due;
-    }
-    if (!lockSince) lockSince = performance.now();
-    if ((!options.length || !currentQ) && !emptyOptionsSince) emptyOptionsSince = performance.now();
-    after(delay + 60, () => {
-      if (gameState !== STATES.PLAY || thief.state === 'death') return;
-      if (options.length && currentQ && !inputLock && !(target && target.dead)) return;
-      runPlayResume('timer-backup');
-    });
-  }
   function bumpFlow() {
     flowGen++;
     clearPendingTimers();
-    clearResume();
-    inputLock = false;
-    emptyOptionsSince = 0;
-    lockSince = 0;
-    deadSince = 0;
   }
-  function tryResumeAfterAction() {
+  function quizOnActionDone() {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
-    if (options.length && currentQ && !inputLock) return;
-    runPlayResume('action-done');
+    if (quiz.phase === 'resolving') endResolving('anim-done');
   }
 
   function toast(msg, ms) {
@@ -805,7 +763,7 @@
               this.state = 'idle';
               this.setAnim(Math.random() > 0.45 ? 'idle' : 'idle_b');
             }
-            tryResumeAfterAction();
+            quizOnActionDone();
           } else if (this.state === 'death') {
             this.frame = a.frames - 1;
           } else if (this.state === 'win') {
@@ -867,8 +825,8 @@
       if (this.covers <= 0) {
         this.state = 'death';
         this.setAnim('death', true);
-        inputLock = true;
-        clearResume();
+        quiz.locked = true;
+        quiz.phase = 'ready';
         options = [];
         after(2200, () => setState(STATES.ENDING));
       }
@@ -1229,54 +1187,6 @@
     return W() >= 2 && H() >= 2;
   }
 
-  function hardRecoverPlay(reason) {
-    if (gameState !== STATES.PLAY || thief.state === 'death') return;
-    console.warn('[ST recover]', reason, {
-      lock: inputLock,
-      opts: options.length,
-      hasQ: !!currentQ,
-      resumeKind,
-      resumeIn: resumeAt ? Math.round(resumeAt - performance.now()) : null
-    });
-    inputLock = false;
-    lockSince = 0;
-    hitstop = 0;
-    clearResume();
-    try {
-      if (!target || target.dead) nextFloor();
-      else loadBriefing();
-    } catch (e) {
-      console.error('[ST recover]', e);
-      forceFallbackBriefing();
-    }
-    if (gameState === STATES.PLAY && thief.state !== 'death' && (!options.length || !currentQ)) {
-      forceFallbackBriefing();
-    }
-  }
-
-  function runPlayResume(reason) {
-    if (gameState !== STATES.PLAY || thief.state === 'death') {
-      clearResume();
-      return;
-    }
-    const kind = resumeKind || 'question';
-    clearResume();
-    inputLock = false;
-    lockSince = 0;
-    hitstop = 0;
-    console.warn('[ST resume]', reason || kind);
-    try {
-      if (kind === 'nextFloor' || !target || target.dead) nextFloor();
-      else loadBriefing();
-    } catch (e) {
-      console.error('[ST resume]', e);
-      forceFallbackBriefing();
-    }
-    if (gameState === STATES.PLAY && thief.state !== 'death' && (!options.length || !currentQ)) {
-      forceFallbackBriefing();
-    }
-  }
-
   function forceFallbackBriefing() {
     currentQ = BRIEFINGS_FALLBACK[0];
     options = [
@@ -1284,38 +1194,101 @@
       { word: 'idk', isCorrect: false },
       { word: 'like', isCorrect: false }
     ];
-    qBorn = performance.now();
     timerMax = 8;
-    inputLock = false;
-    emptyOptionsSince = 0;
-    lockSince = 0;
-    clearResume();
+    quiz.phase = 'ready';
+    quiz.locked = false;
+    quiz.born = performance.now();
+    quiz.phaseAt = quiz.born;
+    quiz.pendingKill = false;
   }
 
-  function loadBriefing() {
+  /** Sync replace q+options → phase ready. No setTimeout path. */
+  function loadNextQuestion() {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
     try {
       currentQ = nextBriefing();
       if (!currentQ || !currentQ.correct) currentQ = BRIEFINGS_FALLBACK[0];
       let wrong = (currentQ.wrong || []).filter((w) => w && w !== currentQ.correct).slice(0, 2);
       while (wrong.length < 2) wrong.push(['idk', 'like', 'um...'][wrong.length]);
-      options = [{ word: String(currentQ.correct), isCorrect: true }, ...wrong.map((w) => ({ word: String(w), isCorrect: false }))];
+      options = [
+        { word: String(currentQ.correct), isCorrect: true },
+        ...wrong.map((w) => ({ word: String(w), isCorrect: false }))
+      ];
       options.sort(() => Math.random() - 0.5);
-      qBorn = performance.now();
       timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
-      inputLock = false;
-      emptyOptionsSince = 0;
-      lockSince = 0;
-      clearResume();
+      quiz.phase = 'ready';
+      quiz.locked = false;
+      quiz.born = performance.now();
+      quiz.phaseAt = quiz.born;
+      quiz.pendingKill = false;
+      if (!options.length) forceFallbackBriefing();
     } catch (err) {
-      console.error('[ST loadBriefing]', err);
+      console.error('[ST loadNextQuestion]', err);
       forceFallbackBriefing();
     }
   }
+  const loadBriefing = loadNextQuestion;
+
+  function endResolving(reason) {
+    if (gameState !== STATES.PLAY || thief.state === 'death') return;
+    if (quiz.phase !== 'resolving' && quiz.phase !== 'advance') return;
+    if (quiz.pendingKill || (target && target.dead)) {
+      quiz.phase = 'advance';
+      quiz.locked = true;
+      quiz.phaseAt = performance.now();
+      nextFloor();
+      return;
+    }
+    loadNextQuestion();
+  }
+
+  function tickQuiz(now) {
+    if (gameState !== STATES.PLAY || thief.state === 'death') return;
+
+    if (!options.length || !currentQ) {
+      if (target && target.dead) {
+        quiz.phase = 'advance';
+        quiz.phaseAt = now;
+        quiz.locked = true;
+        nextFloor();
+      } else {
+        loadNextQuestion();
+      }
+      return;
+    }
+
+    if (quiz.phase === 'resolving') {
+      const age = now - quiz.phaseAt;
+      // Mark kill but stay in resolving until anim-done OR 700ms wall — options stay dimmed.
+      if (target && target.dead) quiz.pendingKill = true;
+      const idleish = thief.state === 'idle' || thief.state === 'crouch';
+      if (idleish || age >= 700) {
+        endResolving(age >= 700 ? 'wall-700' : 'idle');
+        return;
+      }
+      if (age > 900) {
+        if (quiz.pendingKill || (target && target.dead)) endResolving('resolving>900');
+        else loadNextQuestion();
+      }
+      return;
+    }
+
+    if (quiz.phase === 'advance') {
+      const age = now - quiz.phaseAt;
+      if (age > 900 || !options.length || !currentQ) {
+        if (!target || target.dead) nextFloor();
+        else loadNextQuestion();
+      }
+      return;
+    }
+
+    if (quiz.phase === 'ready' && quiz.locked) quiz.locked = false;
+  }
 
   function drawTimer() {
-    if (!currentQ || gameState !== STATES.PLAY || inputLock || thief.state === 'death' || resumeKind) return;
-    const left = Math.max(0, timerMax - (performance.now() - qBorn) / 1000);
+    if (!currentQ || gameState !== STATES.PLAY || quiz.phase !== 'ready' || quiz.locked || thief.state === 'death')
+      return;
+    const left = Math.max(0, timerMax - (performance.now() - quiz.born) / 1000);
     const pct = left / timerMax;
     const secLeft = Math.ceil(left);
     if (secLeft !== lastTickSec && left > 0 && left <= 3.2) {
@@ -1330,34 +1303,28 @@
     ctx.fillStyle = pct > 0.4 ? '#22d3ee' : pct > 0.2 ? '#e879f9' : '#f43f5e';
     roundRect(ctx, x, y, bw * pct, bh, 3);
     ctx.fill();
-    if (left <= 0 && options.length && !inputLock) {
-      // Keep last options dimmed — never blank the heist while waiting to resume.
-      inputLock = true;
-      lockSince = performance.now();
+    if (left <= 0 && options.length && quiz.phase === 'ready' && !quiz.locked) {
+      quiz.phase = 'resolving';
+      quiz.locked = true;
+      quiz.phaseAt = performance.now();
+      quiz.pendingKill = false;
       thief.doSpotted();
       sfx('spotted');
       addText(W() * 0.35, H() * 0.4, 'TIMEOUT · SPOTTED', '#f43f5e', 1.15);
-      if (thief.state !== 'death') schedulePlayResume(450, 'question');
     }
   }
 
   function drawBriefing() {
-    if (!currentQ) {
-      if (gameState === STATES.PLAY && thief.state !== 'death' && target && !target.dead && !resumeKind) {
-        schedulePlayResume(0, 'question');
-      }
-      return;
-    }
-    // PLAY: hide dossier panel — options stay via drawOptions (soft-lock harden intact).
+    if (!currentQ) return;
+    // PLAY: hide dossier panel — options only (bottom strip).
     if (gameState === STATES.PLAY) return;
     const w = W(),
       h = H();
-    // Compact bottom-docked dossier (~14% H) — mid-screen heist stays open
     const bx = w * 0.02,
       bh = h * 0.14,
       by = h * 0.845,
       bw = w * 0.66;
-    const locked = inputLock || !!resumeKind || !options.length;
+    const locked = quiz.locked || !options.length;
     if (locked) ctx.globalAlpha = 0.72;
     drawNine(ui.panel || ui.panelPlain || ui.panelRect, bx, by, bw, bh, 8);
 
@@ -1373,7 +1340,6 @@
     const hh = Math.max(18, h * 0.032);
     if (uiReady(ui.header)) {
       ctx.imageSmoothingEnabled = false;
-      // top half of header plate = solid blue ribbon
       ctx.drawImage(
         ui.header,
         0,
@@ -1456,92 +1422,58 @@
     ctx.fillText(line, x, yy);
   }
 
-  // Compact right-rail options — bars only (no giant opaque slab over arena)
+  /** Bottom strip ~90% H — small buttons, clear of torsos. */
   function drawOptions() {
+    if (!options.length) return;
     const w = W(),
       h = H();
-    const panelX = w * 0.72;
-    const panelW = w * 0.26;
-    const btnH = Math.max(26, h * 0.052);
-    const gap = Math.max(6, h * 0.012);
-    const titleH = Math.max(20, h * 0.036);
-    if (!options.length) {
-      if (gameState === STATES.PLAY && thief.state !== 'death' && (resumeKind || inputLock)) {
-        const titleY = Math.min(h * 0.42, h * 0.78 - (titleH + btnH + 16));
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        roundRect(ctx, panelX, titleY, panelW, titleH + btnH + 12, 6);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(248,250,252,0.9)';
-        ctx.font = `700 ${Math.round(h * 0.02)}px JetBrains Mono,monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const label = resumeKind === 'nextFloor' ? 'Siguiente piso…' : 'Nuevo briefing…';
-        ctx.fillText(label, panelX + panelW / 2, titleY + (titleH + btnH + 12) / 2);
-      }
-      return;
-    }
-    const stackH = titleH + 8 + options.length * btnH + (options.length - 1) * gap;
-    // Dock mid-right above bottom dossier — leave heist stage clear
-    const titleY = Math.min(h * 0.42, h * 0.78 - stackH);
-    const startY = titleY + titleH + 8;
-    const locked = inputLock || !!resumeKind;
-    if (locked) ctx.globalAlpha = 0.55;
-
-    const titleHDraw = titleH;
-    if (uiReady(ui.headerBlade)) {
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(
-        ui.headerBlade,
-        0,
-        0,
-        ui.headerBlade.naturalWidth,
-        Math.floor(ui.headerBlade.naturalHeight / 2),
-        panelX,
-        titleY,
-        panelW,
-        titleHDraw
-      );
-      ctx.imageSmoothingEnabled = true;
-    } else {
-      ctx.fillStyle = '#38bdf8';
-      roundRect(ctx, panelX, titleY, panelW, titleHDraw, 4);
-      ctx.fill();
-    }
-    ctx.fillStyle = '#0f172a';
-    ctx.font = `800 ${Math.round(titleHDraw * 0.42)}px JetBrains Mono,monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('OPCIONES', panelX + panelW / 2, titleY + titleHDraw / 2);
+    const btnH = Math.max(24, Math.min(34, h * 0.042));
+    const btnY = Math.min(h * 0.9, h - btnH - 6);
+    const gap = 8;
+    const btnW = Math.min(w * 0.28, (w - gap * (options.length + 1)) / options.length);
+    const startX = (w - options.length * btnW - (options.length - 1) * gap) / 2;
+    const locked = quiz.locked || quiz.phase !== 'ready';
+    if (locked) ctx.globalAlpha = 0.5;
 
     options.forEach((opt, i) => {
-      const y = startY + i * (btnH + gap);
+      const x = startX + i * (btnW + gap);
       const hover =
-        !locked && mouseX > panelX && mouseX < panelX + panelW && mouseY > y && mouseY < y + btnH;
-      if (hover) drawHBar(ui.barHoverL, ui.barHoverM, ui.barHoverR, panelX, y, panelW, btnH);
-      else drawHBar(ui.barL, ui.barM, ui.barR, panelX, y, panelW, btnH);
+        !locked && mouseX > x && mouseX < x + btnW && mouseY > btnY && mouseY < btnY + btnH;
+      if (hover) drawHBar(ui.barHoverL, ui.barHoverM, ui.barHoverR, x, btnY, btnW, btnH);
+      else drawHBar(ui.barL, ui.barM, ui.barR, x, btnY, btnW, btnH);
       ctx.fillStyle = hover ? '#0f172a' : '#f8fafc';
-      const fs = fitOptionText(opt.word, panelW * 0.84, Math.min(h * 0.022, 14));
+      const fs = fitOptionText(opt.word, btnW * 0.84, Math.min(h * 0.022, 14));
       ctx.font = `800 ${fs}px JetBrains Mono,monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(opt.word, panelX + panelW / 2, y + btnH / 2);
+      ctx.fillText(opt.word, x + btnW / 2, btnY + btnH / 2);
       ctx.fillStyle = hover ? 'rgba(15,23,42,0.55)' : 'rgba(248,250,252,0.55)';
       ctx.font = `600 ${Math.max(9, h * 0.014)}px JetBrains Mono,monospace`;
       ctx.textAlign = 'left';
-      ctx.fillText(String(i + 1), panelX + 8, y + Math.max(10, btnH * 0.32));
-      opt.rect = { x: panelX, y, w: panelW, h: btnH };
+      ctx.fillText(String(i + 1), x + 8, btnY + Math.max(10, btnH * 0.32));
+      opt.rect = { x, y: btnY, w: btnW, h: btnH };
     });
     if (locked) ctx.globalAlpha = 1;
   }
 
   function answer(opt) {
-    if (gameState !== STATES.PLAY || thief.state === 'death' || inputLock || !options.length || !target || !opt) return;
-    const elapsed = (performance.now() - qBorn) / 1000;
+    if (
+      gameState !== STATES.PLAY ||
+      thief.state === 'death' ||
+      quiz.phase !== 'ready' ||
+      quiz.locked ||
+      !options.length ||
+      !target ||
+      !opt
+    )
+      return;
+    const elapsed = (performance.now() - quiz.born) / 1000;
     const ghost = elapsed <= 2.1;
     const clean = elapsed <= 4;
-    // Keep last options dimmed until loadBriefing/nextFloor replaces them — no empty heist gap.
-    inputLock = true;
-    lockSince = performance.now();
+    quiz.phase = 'resolving';
+    quiz.locked = true;
+    quiz.phaseAt = performance.now();
+    quiz.pendingKill = false;
 
     if (opt.isCorrect) {
       const grade = ghost ? 'ghost' : clean ? 'clean' : 'ok';
@@ -1572,17 +1504,15 @@
       updateHUD();
       questionsAnswered++;
       if (killed) {
+        quiz.pendingKill = true;
         toast(target.type.boss ? 'VAULT CLEAR' : 'TARGET DOWN', 900);
-        if (!deadSince) deadSince = performance.now();
-        schedulePlayResume(500, 'nextFloor');
-      } else schedulePlayResume(180, 'question');
+      }
     } else {
       thief.doSpotted();
       sfx('spotted');
       addText(thief.x, thief.y - H() * 0.28, 'SPOTTED', '#f43f5e', 1.2);
       addText(W() * 0.35, H() * 0.4, '"' + opt.word + '" no sirve', '#fda4af');
       updateHUD();
-      if (thief.state !== 'death') schedulePlayResume(350, 'question');
     }
   }
 
@@ -1610,9 +1540,7 @@
       thief.state = 'run';
       thief.setAnim('run', true);
     }
-    loadBriefing();
-    if (gameState === STATES.PLAY && thief.state !== 'death' && !options.length) forceFallbackBriefing();
-    deadSince = 0;
+    loadNextQuestion();
   }
 
   function updateHUD() {
@@ -1635,7 +1563,8 @@
     gameState = s;
     if (s === STATES.STORY) {
       storyPage = 0;
-      inputLock = false;
+      quiz.locked = false;
+      quiz.phase = 'ready';
       thief.state = 'idle';
       thief.setAnim('idle_b', true);
     }
@@ -1655,6 +1584,11 @@
       options = [];
       currentQ = null;
       target = null;
+      quiz.phase = 'ready';
+      quiz.locked = false;
+      quiz.pendingKill = false;
+      quiz.born = 0;
+      quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();
       nextFloor();
       updateHUD();
@@ -1662,14 +1596,15 @@
     }
     if (s === STATES.ENDING) {
       endingPage = 0;
-      inputLock = false;
+      quiz.locked = false;
+      quiz.phase = 'ready';
       options = [];
       if (thief.covers > 0) thief.doWin();
       sfx(thief.covers > 0 ? 'win' : 'lose');
       updateHUD();
     }
     if (s === STATES.RESULTS) {
-      inputLock = true;
+      quiz.locked = true;
       options = [];
       if (thief.score > best) {
         best = thief.score;
@@ -1998,7 +1933,7 @@
       return;
     }
     if (gameState === STATES.PLAY) {
-      if (inputLock || !options.length) return;
+      if (quiz.locked || quiz.phase !== 'ready' || !options.length) return;
       for (const opt of options) {
         if (opt.rect && p.x > opt.rect.x && p.x < opt.rect.x + opt.rect.w && p.y > opt.rect.y && p.y < opt.rect.y + opt.rect.h) {
           answer(opt);
@@ -2016,7 +1951,8 @@
         gameState = STATES.MENU;
         thief.state = 'idle';
         thief.setAnim('idle', true);
-        inputLock = false;
+        quiz.locked = false;
+        quiz.phase = 'ready';
       }
     }
   }
@@ -2039,7 +1975,7 @@
       else setState(STATES.RESULTS);
       return;
     }
-    if (gameState !== STATES.PLAY || inputLock) return;
+    if (gameState !== STATES.PLAY || quiz.locked || quiz.phase !== 'ready') return;
     const i = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
     if (i != null && options[i]) answer(options[i]);
   });
@@ -2048,40 +1984,12 @@
     requestAnimationFrame(loop);
     try {
       ensureCanvasAlive();
-      // Resume / empty-options watchdog MUST run even during hitstop.
+      // Quiz SM tick MUST run even during hitstop.
       if (gameState === STATES.PLAY && thief.state !== 'death') {
-        const now = performance.now();
-        if (resumeKind && resumeAt && now >= resumeAt) {
-          runPlayResume('scheduled');
-        }
-        if (target && target.dead) {
-          if (!deadSince) deadSince = now;
-          const waitedDead = now - deadSince;
-          if (waitedDead > 800) {
-            deadSince = now;
-            hardRecoverPlay('dead-target-stuck ' + Math.round(waitedDead) + 'ms');
-          }
-        } else deadSince = 0;
-        if (inputLock || resumeKind) {
-          if (!lockSince) lockSince = now;
-          const due = resumeAt || lockSince + 300;
-          if (now >= due + 40) {
-            hardRecoverPlay('lock-stuck ' + Math.round(now - lockSince) + 'ms');
-          }
-        } else lockSince = 0;
-        if (!options.length || !currentQ) {
-          if (!emptyOptionsSince) emptyOptionsSince = now;
-          const waited = now - emptyOptionsSince;
-          if (!inputLock && !options.length) {
-            hardRecoverPlay('empty-unlocked');
-          } else if (waited > 300) {
-            hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
-          }
-        } else emptyOptionsSince = 0;
+        tickQuiz(performance.now());
       }
 
-      // Keep anim + tryResumeAfterAction advancing during hitstop (same as Knight).
-      // Freezing update here left strike oneshots stuck until hitstop ended.
+      // Keep anim advancing during hitstop so resolving can end on anim-done.
       if (gameState === STATES.PLAY || gameState === STATES.STORY || gameState === STATES.MENU) {
         thief.update();
       }
@@ -2115,7 +2023,11 @@
       ctx.restore();
     } catch (err) {
       console.error('[ST loop]', err);
-      hardRecoverPlay('frame-error');
+      if (gameState === STATES.PLAY && thief.state !== 'death') {
+        try {
+          loadNextQuestion();
+        } catch (_) {}
+      }
     }
   }
 

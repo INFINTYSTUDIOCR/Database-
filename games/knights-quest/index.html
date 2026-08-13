@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub28-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub29-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub28-kq1';
+  const KQ_BUILD = 'hub29-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -581,6 +581,14 @@
   let enemy = null;
   let currentQ = null;
   let options = [];
+  /** PLAY Q&A state machine — no after()/resume spaghetti. */
+  const quiz = {
+    phase: 'ready', // 'ready' | 'resolving' | 'advance'
+    locked: false,
+    born: 0,
+    phaseAt: 0,
+    pendingKill: false
+  };
   let frameCount = 0;
   let bgScroll = 0;
   let roundCount = 0;
@@ -593,19 +601,11 @@
   let flash = 0;
   let mouseX = 0,
     mouseY = 0;
-  let qBorn = 0;
   let timerMax = 8;
   let fever = 0;
   let mounted = false;
   let best = +localStorage.getItem('kq_best') || 0;
   let flowGen = 0;
-  let inputLock = false;
-  let emptyOptionsSince = 0;
-  let lockSince = 0;
-  let deadSince = 0;
-  /** Frame-driven quiz resume (survives throttled/cancelled timers). */
-  let resumeAt = 0;
-  let resumeKind = ''; // 'question' | 'nextEnemy'
   const pendingTimers = new Set();
   document.getElementById('bestVal').textContent = best;
 
@@ -613,73 +613,29 @@
     pendingTimers.forEach((id) => clearTimeout(id));
     pendingTimers.clear();
   }
-  function clearResume() {
-    resumeAt = 0;
-    resumeKind = '';
-  }
+  /** Cosmetics only (ending / pose). Quiz advance is frame-driven via tickQuiz. */
   function after(ms, fn) {
     const gen = flowGen;
     const id = setTimeout(() => {
       pendingTimers.delete(id);
-      if (gen !== flowGen) {
-        // Cancelled by bumpFlow — never leave PLAY locked/empty without a replacement.
-        if (
-          gameState === STATES.PLAY &&
-          knight.state !== 'die' &&
-          (inputLock || !options.length || !currentQ || (enemy && enemy.dead))
-        ) {
-          try {
-            hardRecoverPlay('flow-cancelled');
-          } catch (_) {}
-        }
-        return;
-      }
+      if (gen !== flowGen) return;
       try {
         fn();
       } catch (err) {
         console.error('[KQ timer]', err);
-        if (gameState === STATES.PLAY && knight.state !== 'die') {
-          try {
-            hardRecoverPlay('timer-throw');
-          } catch (_) {}
-        }
       }
     }, ms);
     pendingTimers.add(id);
     return id;
   }
-  function schedulePlayResume(ms, kind) {
-    const nextKind = kind === 'nextEnemy' ? 'nextEnemy' : 'question';
-    const delay = Math.max(0, ms || 0);
-    const due = performance.now() + delay;
-    if (resumeAt && resumeKind === nextKind) resumeAt = Math.min(resumeAt, due);
-    else {
-      resumeKind = nextKind;
-      resumeAt = due;
-    }
-    if (!lockSince) lockSince = performance.now();
-    if ((!options.length || !currentQ) && !emptyOptionsSince) emptyOptionsSince = performance.now();
-    // Dual path: frame clock + setTimeout backup (rAF throttle OR cancelled timers).
-    after(delay + 60, () => {
-      if (gameState !== STATES.PLAY || knight.state === 'die') return;
-      if (options.length && currentQ && !inputLock && !(enemy && enemy.dead)) return;
-      runPlayResume('timer-backup');
-    });
-  }
   function bumpFlow() {
     flowGen++;
     clearPendingTimers();
-    clearResume();
-    inputLock = false;
-    emptyOptionsSince = 0;
-    lockSince = 0;
-    deadSince = 0;
   }
-  /** Call when attack/hurt oneshot finishes — never wait out a soft-lock. */
-  function tryResumeAfterAction() {
+  /** Attack/hurt oneshot finished → end resolving early (wall 700ms also ends it). */
+  function quizOnActionDone() {
     if (gameState !== STATES.PLAY || knight.state === 'die') return;
-    if (options.length && currentQ && !inputLock) return;
-    runPlayResume('action-done');
+    if (quiz.phase === 'resolving') endResolving('anim-done');
   }
 
   function toast(msg, ms) {
@@ -785,11 +741,11 @@
           if (['attack', 'attack_b', 'attack_c', 'attack_d', 'attack_e', 'kick', 'air_a', 'air_b', 'fireball', 'run_attack', 'horse_atk', 'horse_atk_b', 'arrow', 'throw', 'dash', 'dash_back', 'roll', 'slide', 'jump', 'duck', 'suspicious', 'shield', 'block'].includes(this.state)) {
             this.state = 'idle';
             this.setAnim(mounted ? 'horse_idle' : Math.random() > 0.5 ? 'idle' : 'idle_b');
-            tryResumeAfterAction();
+            quizOnActionDone();
           } else if (this.state === 'hurt') {
             this.state = 'idle';
             this.setAnim(fever < 30 && Math.random() > 0.6 ? 'hurt_idle' : 'idle');
-            tryResumeAfterAction();
+            quizOnActionDone();
           } else if (this.state === 'die') {
             this.frame = a.frames - 1;
           } else if (this.state === 'win' || this.state === 'greet' || this.state === 'guard') {
@@ -860,8 +816,8 @@
       if (this.hp <= 0) {
         this.state = 'die';
         this.setAnim(Math.random() > 0.5 ? 'die' : 'die_b', true);
-        inputLock = true;
-        clearResume();
+        quiz.locked = true;
+        quiz.phase = 'ready';
         options = [];
         after(2400, () => setState(STATES.ENDING));
       }
@@ -1396,36 +1352,6 @@
     return W() >= 2 && H() >= 2;
   }
 
-  function runPlayResume(reason) {
-    if (gameState !== STATES.PLAY || knight.state === 'die') {
-      clearResume();
-      return;
-    }
-    const kind = resumeKind || 'question';
-    clearResume();
-    inputLock = false;
-    lockSince = 0;
-    hitstop = 0;
-    console.warn('[KQ resume]', reason || kind, {
-      kind,
-      hasEnemy: !!enemy,
-      enemyDead: !!(enemy && enemy.dead),
-      hasQ: !!currentQ,
-      opts: options.length
-    });
-    try {
-      if (kind === 'nextEnemy' || !enemy || enemy.dead) nextEnemy();
-      else loadQuestion();
-    } catch (e) {
-      console.error('[KQ resume]', e);
-      forceFallbackQuestion();
-    }
-    if (gameState === STATES.PLAY && knight.state !== 'die' && (!options.length || !currentQ)) {
-      console.error('[KQ resume] still empty — forcing fallback');
-      forceFallbackQuestion();
-    }
-  }
-
   function forceFallbackQuestion() {
     currentQ = QUESTIONS_FALLBACK[0];
     options = [
@@ -1433,84 +1359,121 @@
       { word: 'idk', isCorrect: false },
       { word: 'like', isCorrect: false }
     ];
-    qBorn = performance.now();
     timerMax = 8;
-    inputLock = false;
-    emptyOptionsSince = 0;
-    lockSince = 0;
-    clearResume();
+    quiz.phase = 'ready';
+    quiz.locked = false;
+    quiz.born = performance.now();
+    quiz.phaseAt = quiz.born;
+    quiz.pendingKill = false;
   }
 
-  function hardRecoverPlay(reason) {
+  /** Sync replace q+options in one shot → phase ready. No setTimeout path. */
+  function loadNextQuestion() {
     if (gameState !== STATES.PLAY || knight.state === 'die') return;
-    console.warn('[KQ recover]', reason, {
-      lock: inputLock,
-      opts: options.length,
-      hasQ: !!currentQ,
-      enemyDead: !!(enemy && enemy.dead),
-      resumeKind,
-      resumeIn: resumeAt ? Math.round(resumeAt - performance.now()) : null,
-      round: roundCount,
-      knight: knight.state
-    });
-    inputLock = false;
-    lockSince = 0;
-    hitstop = 0;
-    clearResume();
-    try {
-      if (!enemy || enemy.dead) nextEnemy();
-      else loadQuestion();
-    } catch (e) {
-      console.error('[KQ recover]', e);
-      forceFallbackQuestion();
-    }
-    if (gameState === STATES.PLAY && knight.state !== 'die' && (!options.length || !currentQ)) {
-      console.error('[KQ recover] still empty — forcing fallback');
-      forceFallbackQuestion();
-    }
-  }
-
-  function loadQuestion() {
-    if (gameState !== STATES.PLAY || knight.state === 'die') {
-      console.warn('[KQ loadQuestion skip]', { gameState, knight: knight.state });
-      return;
-    }
     try {
       currentQ = nextQuestion();
       if (!currentQ || !currentQ.correct) currentQ = QUESTIONS_FALLBACK[0];
       let wrong = (currentQ.wrong || []).filter((w) => w && w !== currentQ.correct).slice(0, 2);
       while (wrong.length < 2) wrong.push(['idk', 'like', 'um...'][wrong.length]);
-      options = [{ word: String(currentQ.correct), isCorrect: true }, ...wrong.map((w) => ({ word: String(w), isCorrect: false }))];
+      options = [
+        { word: String(currentQ.correct), isCorrect: true },
+        ...wrong.map((w) => ({ word: String(w), isCorrect: false }))
+      ];
       options.sort(() => Math.random() - 0.5);
-      qBorn = performance.now();
       timerMax = Math.max(4.5, 8 - knight.streak * 0.25 - (enemy?.type.boss ? 1 : 0));
-      inputLock = false;
-      emptyOptionsSince = 0;
-      lockSince = 0;
-      clearResume();
+      quiz.phase = 'ready';
+      quiz.locked = false;
+      quiz.born = performance.now();
+      quiz.phaseAt = quiz.born;
+      quiz.pendingKill = false;
+      if (!options.length) forceFallbackQuestion();
     } catch (err) {
-      console.error('[KQ loadQuestion]', err);
+      console.error('[KQ loadNextQuestion]', err);
       forceFallbackQuestion();
     }
   }
+  const loadQuestion = loadNextQuestion;
 
-  /** Bottom-dock quiz geometry — always clamped on-canvas (never y>H). */
+  function endResolving(reason) {
+    if (gameState !== STATES.PLAY || knight.state === 'die') return;
+    if (quiz.phase !== 'resolving' && quiz.phase !== 'advance') return;
+    if (quiz.pendingKill || (enemy && enemy.dead)) {
+      quiz.phase = 'advance';
+      quiz.locked = true;
+      quiz.phaseAt = performance.now();
+      nextEnemy();
+      return;
+    }
+    loadNextQuestion();
+  }
+
+  /** Every-frame quiz SM (runs even during hitstop). */
+  function tickQuiz(now) {
+    if (gameState !== STATES.PLAY || knight.state === 'die') return;
+
+    if (!options.length || !currentQ) {
+      if (enemy && enemy.dead) {
+        quiz.phase = 'advance';
+        quiz.phaseAt = now;
+        quiz.locked = true;
+        nextEnemy();
+      } else {
+        loadNextQuestion();
+      }
+      return;
+    }
+
+    if (quiz.phase === 'resolving') {
+      const age = now - quiz.phaseAt;
+      // Mark kill but stay in resolving until anim-done OR 700ms wall — options stay dimmed.
+      if (enemy && enemy.dead) quiz.pendingKill = true;
+      const idleish =
+        knight.state === 'idle' ||
+        knight.state === 'suspicious' ||
+        knight.state === 'guard' ||
+        knight.state === 'hurt_idle';
+      if (idleish || age >= 700) {
+        endResolving(age >= 700 ? 'wall-700' : 'idle');
+        return;
+      }
+      if (age > 900) {
+        if (quiz.pendingKill || (enemy && enemy.dead)) endResolving('resolving>900');
+        else loadNextQuestion();
+      }
+      return;
+    }
+
+    if (quiz.phase === 'advance') {
+      const age = now - quiz.phaseAt;
+      if (age > 900 || !options.length || !currentQ) {
+        if (!enemy || enemy.dead) nextEnemy();
+        else loadNextQuestion();
+      }
+      return;
+    }
+
+    // ready: must stay clickable
+    if (quiz.phase === 'ready' && quiz.locked) {
+      quiz.locked = false;
+    }
+  }
+
+  /** Bottom strip ~90% H — small buttons, clear of torsos. */
   function quizDock() {
     const w = W(),
       h = H();
-    const btnH = Math.max(28, h * 0.05);
-    const bh = Math.max(52, Math.min(h * 0.16, h * 0.22));
-    let by = h * 0.8;
+    const btnH = Math.max(24, Math.min(34, h * 0.042));
+    const btnY = Math.min(h * 0.9, h - btnH - 6);
+    const bh = Math.max(40, h * 0.12);
+    let by = h * 0.78;
     if (by + bh > h - 6) by = Math.max(10, h - 6 - bh);
-    let btnY = by - btnH - Math.max(6, h * 0.01);
-    if (btnY < h * 0.52) btnY = h * 0.52;
-    if (btnY + btnH > by - 4) btnY = Math.max(8, by - btnH - 4);
     return { w, h, bx: w * 0.04, by, bw: w * 0.92, bh, btnY, btnH };
   }
 
   function drawTimer() {
-    if (!currentQ || gameState !== STATES.PLAY || inputLock || knight.state === 'die' || resumeKind) return;
-    const left = Math.max(0, timerMax - (performance.now() - qBorn) / 1000);
+    if (!currentQ || gameState !== STATES.PLAY || quiz.phase !== 'ready' || quiz.locked || knight.state === 'die')
+      return;
+    const left = Math.max(0, timerMax - (performance.now() - quiz.born) / 1000);
     const pct = left / timerMax;
     const secLeft = Math.ceil(left);
     if (secLeft !== lastTickSec && left > 0 && left <= 3.2) {
@@ -1528,29 +1491,23 @@
     ctx.fillStyle = pct > 0.4 ? '#E8C547' : pct > 0.2 ? '#fb923c' : '#ef4444';
     roundRect(ctx, x, y, bw * pct, bh, 4);
     ctx.fill();
-    if (left <= 0 && options.length && !inputLock) {
-      // Keep last options dimmed — never blank the duel while waiting to resume.
-      inputLock = true;
-      lockSince = performance.now();
+    if (left <= 0 && options.length && quiz.phase === 'ready' && !quiz.locked) {
+      quiz.phase = 'resolving';
+      quiz.locked = true;
+      quiz.phaseAt = performance.now();
+      quiz.pendingKill = false;
       knight.doHurt();
       sfx('bad');
       addText(W() / 2, H() * 0.4, '¡TIEMPO!', '#ef4444', 1.3);
-      if (knight.state !== 'die') schedulePlayResume(450, 'question');
     }
   }
 
   function drawQuestion() {
-    if (!currentQ) {
-      if (gameState === STATES.PLAY && knight.state !== 'die' && enemy && !enemy.dead && !resumeKind) {
-        schedulePlayResume(0, 'question');
-      }
-      return;
-    }
-    // PLAY: hide the big parchment/prompt — options stay via drawOptions (soft-lock harden intact).
+    if (!currentQ) return;
+    // PLAY: hide prompt panel — options only (bottom strip).
     if (gameState === STATES.PLAY) return;
     const { w, h, bx, by, bw, bh } = quizDock();
-    // Keep last prompt visible (slightly dim) while options reload — avoids empty duel.
-    const locked = inputLock || !!resumeKind || !options.length;
+    const locked = quiz.locked || !options.length;
     if (locked) ctx.globalAlpha = 0.72;
     drawNine(ui.parchFancy || ui.parch, bx, by, bw, bh, 8);
 
@@ -1605,28 +1562,13 @@
   }
 
   function drawOptions() {
-    if (!options.length) {
-      if (gameState === STATES.PLAY && knight.state !== 'die' && (resumeKind || inputLock)) {
-        const { w, h, btnY, btnH, bx, bw } = quizDock();
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        roundRect(ctx, bx + bw * 0.18, btnY, bw * 0.64, btnH, 6);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(255,248,231,0.9)';
-        ctx.font = `700 ${Math.round(h * 0.022)}px Outfit,sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const label =
-          resumeKind === 'nextEnemy' ? 'Siguiente enemigo…' : 'Nueva pregunta…';
-        ctx.fillText(label, w / 2, btnY + btnH / 2);
-      }
-      return;
-    }
+    if (!options.length) return;
     const { w, h, btnY, btnH } = quizDock();
-    const gap = 10;
-    const btnW = Math.min(w * 0.3, (w - gap * (options.length + 1)) / options.length);
+    const gap = 8;
+    const btnW = Math.min(w * 0.28, (w - gap * (options.length + 1)) / options.length);
     const startX = (w - options.length * btnW - (options.length - 1) * gap) / 2;
-    const locked = inputLock || !!resumeKind;
-    if (locked) ctx.globalAlpha = 0.55;
+    const locked = quiz.locked || quiz.phase !== 'ready';
+    if (locked) ctx.globalAlpha = 0.5;
     options.forEach((opt, i) => {
       const x = startX + i * (btnW + gap);
       const hover =
@@ -1642,7 +1584,7 @@
         ctx.stroke();
       }
       ctx.fillStyle = '#fff';
-      const fs = fitOptionText(opt.word, btnW * 0.84, h * 0.024);
+      const fs = fitOptionText(opt.word, btnW * 0.84, h * 0.022);
       ctx.font = `800 ${fs}px monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -1656,13 +1598,24 @@
   }
 
   function answer(opt) {
-    if (gameState !== STATES.PLAY || knight.state === 'die' || inputLock || !options.length || !enemy || !opt) return;
-    const elapsed = (performance.now() - qBorn) / 1000;
+    if (
+      gameState !== STATES.PLAY ||
+      knight.state === 'die' ||
+      quiz.phase !== 'ready' ||
+      quiz.locked ||
+      !options.length ||
+      !enemy ||
+      !opt
+    )
+      return;
+    const elapsed = (performance.now() - quiz.born) / 1000;
     const perfect = elapsed <= 2.2;
     const fast = elapsed <= 4;
-    // Keep last options dimmed until loadQuestion/nextEnemy replaces them — no empty duel gap.
-    inputLock = true;
-    lockSince = performance.now();
+    // resolving: options stay visible+dim; damage/score NOW; never clear options[].
+    quiz.phase = 'resolving';
+    quiz.locked = true;
+    quiz.phaseAt = performance.now();
+    quiz.pendingKill = false;
     if (opt.isCorrect) {
       const m = mult();
       let gain = (enemy.type.xp || 100) + knight.streak * 15;
@@ -1687,15 +1640,20 @@
       sfx('hit');
       if (killed) sfx('explode');
       addText(enemy.x, enemy.y - H() * 0.18, '+' + gain, '#E8C547', perfect ? 1.35 : 1);
-      addText(knight.x, knight.y - H() * 0.3, perfect ? 'PERFECT!' : fast ? 'GREAT!' : opt.word.toUpperCase() + '!', perfect ? '#F5E6A3' : '#86efac', 1.1);
+      addText(
+        knight.x,
+        knight.y - H() * 0.3,
+        perfect ? 'PERFECT!' : fast ? 'GREAT!' : opt.word.toUpperCase() + '!',
+        perfect ? '#F5E6A3' : '#86efac',
+        1.1
+      );
       if (knight.streak >= 3) toast(knight.streak + ' STREAK ×' + m, 700);
       updateHUD();
       questionsAnswered++;
       if (killed) {
+        quiz.pendingKill = true;
         toast(enemy.type.boss ? 'BOSS DOWN' : 'ENEMY DOWN', 900);
-        if (!deadSince) deadSince = performance.now();
-        schedulePlayResume(500, 'nextEnemy');
-      } else schedulePlayResume(180, 'question');
+      }
     } else {
       knight.doHurt();
       if (Math.random() > 0.5 && knight.state !== 'die') {
@@ -1711,7 +1669,6 @@
       addText(knight.x, knight.y - H() * 0.28, 'FAIL', '#ef4444', 1.2);
       addText(W() / 2, H() * 0.28, '"' + opt.word + '" no conecta', '#fca5a5');
       updateHUD();
-      if (knight.state !== 'die') schedulePlayResume(350, 'question');
     }
   }
 
@@ -1741,9 +1698,7 @@
       console.error('[KQ nextEnemy]', err);
       enemy = new Enemy(ENEMY_TYPES[0]);
     }
-    loadQuestion();
-    if (gameState === STATES.PLAY && knight.state !== 'die' && !options.length) forceFallbackQuestion();
-    deadSince = 0;
+    loadNextQuestion();
   }
 
   function updateHUD() {
@@ -1767,7 +1722,8 @@
     gameState = s;
     if (s === STATES.STORY) {
       storyPage = 0;
-      inputLock = false;
+      quiz.locked = false;
+      quiz.phase = 'ready';
       knight.state = 'greet';
       knight.setAnim('greet', true);
     }
@@ -1788,6 +1744,11 @@
       options = [];
       currentQ = null;
       enemy = null;
+      quiz.phase = 'ready';
+      quiz.locked = false;
+      quiz.pendingKill = false;
+      quiz.born = 0;
+      quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();
       nextEnemy();
       updateHUD();
@@ -1795,7 +1756,8 @@
     }
     if (s === STATES.ENDING) {
       endingPage = 0;
-      inputLock = false;
+      quiz.locked = false;
+      quiz.phase = 'ready';
       options = [];
       if (knight.hp > 0) {
         knight.doWin();
@@ -1804,7 +1766,7 @@
       updateHUD();
     }
     if (s === STATES.RESULTS) {
-      inputLock = true;
+      quiz.locked = true;
       options = [];
       if (knight.score > best) {
         best = knight.score;
@@ -2170,7 +2132,7 @@
       return;
     }
     if (gameState === STATES.PLAY) {
-      if (inputLock || !options.length) return;
+      if (quiz.locked || quiz.phase !== 'ready' || !options.length) return;
       for (const opt of options) {
         if (opt.rect && p.x > opt.rect.x && p.x < opt.rect.x + opt.rect.w && p.y > opt.rect.y && p.y < opt.rect.y + opt.rect.h) {
           answer(opt);
@@ -2186,7 +2148,8 @@
         knight.state = 'idle';
         knight.setAnim('idle', true);
         mounted = false;
-        inputLock = false;
+        quiz.locked = false;
+        quiz.phase = 'ready';
       }
     }
   }
@@ -2195,7 +2158,7 @@
 
   // keyboard 1/2/3
   window.addEventListener('keydown', (e) => {
-    if (gameState !== STATES.PLAY || inputLock) return;
+    if (gameState !== STATES.PLAY || quiz.locked || quiz.phase !== 'ready') return;
     const i = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
     if (i != null && options[i]) answer(options[i]);
   });
@@ -2204,40 +2167,16 @@
     requestAnimationFrame(loop);
     try {
       ensureCanvasAlive();
-      // Quiz resume / empty-options watchdog MUST run even during hitstop —
-      // otherwise a cancelled timer + frozen hitstop leaves a duel with no choices.
+      // Quiz SM tick MUST run even during hitstop.
       if (gameState === STATES.PLAY && knight.state !== 'die') {
-        const now = performance.now();
-        if (resumeKind && resumeAt && now >= resumeAt) {
-          runPlayResume('scheduled');
-        }
-        if (enemy && enemy.dead) {
-          if (!deadSince) deadSince = now;
-          const waitedDead = now - deadSince;
-          if (waitedDead > 800) {
-            deadSince = now;
-            hardRecoverPlay('dead-enemy-stuck ' + Math.round(waitedDead) + 'ms');
-          }
-        } else deadSince = 0;
-        if (inputLock || resumeKind) {
-          if (!lockSince) lockSince = now;
-          const due = resumeAt || lockSince + 300;
-          if (now >= due + 40) {
-            hardRecoverPlay('lock-stuck ' + Math.round(now - lockSince) + 'ms');
-          }
-        } else lockSince = 0;
-        if (!options.length || !currentQ) {
-          if (!emptyOptionsSince) emptyOptionsSince = now;
-          const waited = now - emptyOptionsSince;
-          // Immediate if unlocked empty; else ≤300ms even with pending resume.
-          if (!inputLock && !options.length) {
-            hardRecoverPlay('empty-unlocked');
-          } else if (waited > 300) {
-            hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
-          }
-        } else emptyOptionsSince = 0;
+        tickQuiz(performance.now());
       }
 
+      // Keep anim advancing during hitstop so resolving can end on anim-done.
+      if (gameState === STATES.PLAY || gameState === STATES.STORY || gameState === STATES.MENU) {
+        knight.update();
+        if (gameState === STATES.PLAY && enemy) enemy.update();
+      }
       if (hitstop > 0) hitstop = Math.max(0, (hitstop | 0) - 1);
       else {
         frameCount++;
@@ -2271,7 +2210,11 @@
       ctx.restore();
     } catch (err) {
       console.error('[KQ frame]', err);
-      hardRecoverPlay('frame-error');
+      if (gameState === STATES.PLAY && knight.state !== 'die') {
+        try {
+          loadNextQuestion();
+        } catch (_) {}
+      }
     }
   }
   updateHUD();

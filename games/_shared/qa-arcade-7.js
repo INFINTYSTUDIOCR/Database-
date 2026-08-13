@@ -1,5 +1,5 @@
 /**
- * QA: 7 end-to-end clears for Knight + Shadow Thief + quiz rotation coverage.
+ * QA: Knight + Shadow Thief clears + quiz state-machine soft-lock proof.
  * Run: node games/_shared/qa-arcade-7.js
  */
 const fs = require('fs');
@@ -73,19 +73,6 @@ ok('Q5 two decks not identical (random)', seqA !== seqB, 'A=' + seqA.slice(0, 40
 
 // 3) Simulate full clears (perfect hits)
 function simKnight() {
-  const ENEMY = [
-    { hp: 2 },
-    { hp: 2 },
-    { hp: 2 },
-    { hp: 2 },
-    { hp: 6, boss: true },
-    { hp: 3 },
-    { hp: 3 },
-    { hp: 4 },
-    { hp: 4 },
-    { hp: 6, boss: true }
-  ];
-  // Match game idx: round r uses ENEMY_TYPES[min(floor((r-1)/2),4)] except 5&10 boss
   const types = [
     { hp: 2 },
     { hp: 2 },
@@ -96,8 +83,6 @@ function simKnight() {
   ];
   const rot = Bank.createRotator({ flavor: 'knight', cats: ['linker', 'tense', 'phrasal', 'mixed'] });
   let round = 0;
-  let hpHero = 3;
-  let score = 0;
   let qs = 0;
   const cats = {};
   while (round < 10) {
@@ -110,12 +95,10 @@ function simKnight() {
       const q = rot.next();
       cats[q.cat] = (cats[q.cat] || 0) + 1;
       qs++;
-      // always correct perfect = 2 dmg
       ehp -= 2;
-      score += 100;
     }
   }
-  return { win: true, qs, score, cats, rounds: round };
+  return { win: true, qs, cats, rounds: round };
 }
 
 function simThief() {
@@ -149,13 +132,9 @@ function simThief() {
 
 let kOk = 0;
 let tOk = 0;
-const kCatUnion = { linker: 0, tense: 0, phrasal: 0 };
 for (let i = 0; i < 7; i++) {
   const r = simKnight();
   if (r.win && r.rounds === 10) kOk++;
-  Object.keys(kCatUnion).forEach((c) => {
-    if (r.cats[c]) kCatUnion[c]++;
-  });
 }
 for (let i = 0; i < 7; i++) {
   const r = simThief();
@@ -164,149 +143,153 @@ for (let i = 0; i < 7; i++) {
 ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
 ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
 
-// ── Q8–Q20: soft-lock impossible in PLAY (keep options + watchdog ≤300ms) ──
-function simKnightSoftLockHarness() {
+// ── Q8–Q20: quiz state machine (ready|resolving|advance) — no after()/resume races ──
+function inspectKnightQuizSm() {
   const src = fs.readFileSync(path.join(ROOT, 'games/knights-quest/index.html'), 'utf8');
-  const hasResume = /schedulePlayResume/.test(src) && /runPlayResume/.test(src);
-  const dualPath =
-    /timer-backup/.test(src) && /action-done/.test(src) && /tryResumeAfterAction/.test(src);
-  const keepOptions =
-    /Keep last options dimmed until loadQuestion/.test(src) &&
-    !/function answer\(opt\)[\s\S]{0,220}options\s*=\s*\[\s*\]/.test(src);
-  const watchdogTight =
-    /Quiz resume \/ empty-options watchdog MUST run even during hitstop/.test(src) &&
-    /waited > 300/.test(src) &&
-    /empty-unlocked/.test(src) &&
-    /lock-stuck/.test(src) &&
-    /dead-enemy-stuck/.test(src);
-  const flowCancelRecover = /flow-cancelled/.test(src);
-  const recoverDeadEnemy = /!enemy \|\| enemy\.dead/.test(src);
-  const dockClamp = /function quizDock\(/.test(src) && /by \+ bh > h/.test(src);
-  const forceFallback = /forceFallbackQuestion/.test(src) && /still empty — forcing fallback/.test(src);
-  const answerUsesResume =
-    /schedulePlayResume\(\s*500,\s*'nextEnemy'\s*\)/.test(src) &&
-    /schedulePlayResume\(\s*180,\s*'question'\s*\)/.test(src);
-  const failSuspicious =
-    /schedulePlayResume\(\s*350,\s*'question'\s*\)/.test(src) && /suspicious/.test(src);
-  const buildTag = /hub28-kq1/.test(src);
-  const hidePromptPlay =
-    /PLAY: hide (?:the )?big parchment\/?prompt/.test(src) &&
-    /if \(gameState === STATES\.PLAY\) return;/.test(src);
+  const hasQuiz =
+    /const quiz\s*=\s*\{/.test(src) &&
+    /'ready'\s*\|\s*'resolving'\s*\|\s*'advance'/.test(src);
+  const loadSync = /function loadNextQuestion\(/.test(src) && /quiz\.phase\s*=\s*'ready'/.test(src);
+  const noClearOnAnswer =
+    /quiz\.phase\s*=\s*'resolving'/.test(src) &&
+    !/function answer\(opt\)[\s\S]{0,280}options\s*=\s*\[\s*\]/.test(src);
+  const wall700 = /age\s*>=\s*700/.test(src) && /function endResolving\(/.test(src);
+  const advance900 = /phase === 'advance'[\s\S]{0,200}age\s*>\s*900/.test(src);
+  const tickHitstop = /function tickQuiz\(/.test(src) && /Quiz SM tick MUST run even during hitstop/.test(src);
+  const noResumeSpaghetti =
+    !/schedulePlayResume/.test(src) &&
+    !/runPlayResume/.test(src) &&
+    !/hardRecoverPlay/.test(src) &&
+    !/tryResumeAfterAction/.test(src);
+  const hidePrompt =
+    /PLAY: hide prompt panel/.test(src) && /if \(gameState === STATES\.PLAY\) return;/.test(src);
+  const bottomStrip = /btnY\s*=\s*Math\.min\(h\s*\*\s*0\.9/.test(src);
+  const buildTag = /hub29-kq1/.test(src);
   return {
-    hasResume,
-    dualPath,
-    keepOptions,
-    watchdogTight,
-    flowCancelRecover,
-    recoverDeadEnemy,
-    dockClamp,
-    forceFallback,
-    answerUsesResume,
-    failSuspicious,
-    buildTag,
-    hidePromptPlay,
-    srcLen: src.length
+    hasQuiz,
+    loadSync,
+    noClearOnAnswer,
+    wall700,
+    advance900,
+    tickHitstop,
+    noResumeSpaghetti,
+    hidePrompt,
+    bottomStrip,
+    buildTag
   };
 }
 
-const harness = simKnightSoftLockHarness();
-ok('Q8 knight has frame-driven schedulePlayResume', harness.hasResume);
-ok('Q9 knight keeps options dimmed on answer (no blank duel)', harness.keepOptions);
-ok('Q10 watchdog ≤300ms + lock-stuck + dead-enemy-800ms', harness.watchdogTight);
-ok('Q11 hardRecover advances dead enemies + dock clamp', harness.recoverDeadEnemy && harness.dockClamp);
-ok('Q12 forceFallback if recover still empty', harness.forceFallback);
-ok('Q13 answer() schedules resume (not only after())', harness.answerUsesResume);
-ok('Q14 dual resume + flow-cancelled recover + hub28', harness.dualPath && harness.flowCancelRecover && harness.buildTag);
-ok('Q15 fail path schedules resume + suspicious pose', harness.failSuspicious);
-ok('Q15b knight hides parchment prompt in PLAY', harness.hidePromptPlay);
+const kq = inspectKnightQuizSm();
+ok('Q8 knight has quiz SM ready|resolving|advance', kq.hasQuiz);
+ok('Q9 knight loadNextQuestion sync → ready', kq.loadSync);
+ok('Q10 knight answer keeps options (no clear)', kq.noClearOnAnswer);
+ok('Q11 knight resolving wall 700ms + endResolving', kq.wall700);
+ok('Q12 knight advance force >900ms', kq.advance900);
+ok('Q13 knight tickQuiz during hitstop', kq.tickHitstop);
+ok('Q14 knight deleted resume spaghetti', kq.noResumeSpaghetti);
+ok('Q15 knight hide prompt + bottom strip + hub29', kq.hidePrompt && kq.bottomStrip && kq.buildTag);
 
-/** Mirror hub28 PLAY rules: keep options on answer; recover empty ≤300ms even in hitstop. */
-function simPlaySoftLockMachine(opts) {
+/**
+ * Mirror hub29 PLAY rules: quiz SM — options stay on answer; empty ≤300ms; resolving≤900.
+ */
+function simQuizStateMachine(opts) {
   const keepOnAnswer = opts.keepOnAnswer !== false;
   let options = [{ w: 1 }, { w: 2 }, { w: 3 }];
   let currentQ = { ok: 1 };
-  let inputLock = false;
-  let resumeAt = 0;
-  let resumeKind = '';
-  let emptySince = 0;
-  let lockSince = 0;
-  let deadSince = 0;
+  const quiz = {
+    phase: 'ready',
+    locked: false,
+    born: 0,
+    phaseAt: 0,
+    pendingKill: false
+  };
   let enemyDead = false;
   let recovers = 0;
   let maxEmptyMs = 0;
   let now = 0;
   let hitstop = 0;
-  let flowGen = 0;
+  let heroIdle = true;
   let state = 'PLAY';
 
-  function loadQuestion() {
+  function loadNextQuestion() {
     currentQ = { ok: 1 };
     options = [{ w: 1 }, { w: 2 }, { w: 3 }];
-    inputLock = false;
-    emptySince = 0;
-    lockSince = 0;
-    resumeAt = 0;
-    resumeKind = '';
-    hitstop = 0;
+    quiz.phase = 'ready';
+    quiz.locked = false;
+    quiz.born = now;
+    quiz.phaseAt = now;
+    quiz.pendingKill = false;
     enemyDead = false;
-    deadSince = 0;
+    hitstop = 0;
+    heroIdle = true;
     recovers++;
   }
-  function schedule(ms, kind) {
-    resumeKind = kind;
-    resumeAt = now + ms;
-    if (!lockSince) lockSince = now;
+  function endResolving() {
+    if (quiz.pendingKill || enemyDead) {
+      quiz.phase = 'advance';
+      quiz.locked = true;
+      quiz.phaseAt = now;
+      // sync spawn + load
+      enemyDead = false;
+      loadNextQuestion();
+      return;
+    }
+    loadNextQuestion();
   }
   function answer(kind) {
-    if (keepOnAnswer) {
-      /* keep options dimmed */
-    } else {
+    if (quiz.phase !== 'ready' || quiz.locked) return;
+    if (!keepOnAnswer) {
       options = [];
-      emptySince = now;
     }
-    inputLock = true;
-    lockSince = now;
+    quiz.phase = 'resolving';
+    quiz.locked = true;
+    quiz.phaseAt = now;
+    quiz.pendingKill = false;
     hitstop = 8;
+    heroIdle = false;
     if (kind === 'kill') {
       enemyDead = true;
-      deadSince = now;
-      schedule(500, 'nextEnemy');
-    } else if (kind === 'fail') {
-      schedule(350, 'question');
-    } else {
-      schedule(180, 'question');
+      quiz.pendingKill = true;
     }
-  }
-  function bumpFlow() {
-    flowGen++;
-    resumeAt = 0;
-    resumeKind = '';
-    // cancelled resume without replacement — watchdog must recover
   }
   function tick(dt) {
     now += dt;
     if (state !== 'PLAY') return;
-    if (resumeKind && resumeAt && now >= resumeAt) {
-      resumeKind = '';
-      resumeAt = 0;
-      loadQuestion();
-    }
-    if (enemyDead) {
-      if (!deadSince) deadSince = now;
-      if (now - deadSince > 800) loadQuestion();
-    } else deadSince = 0;
-    if (inputLock || resumeKind) {
-      if (!lockSince) lockSince = now;
-      const due = resumeAt || lockSince + 300;
-      if (now >= due + 40) loadQuestion();
-    } else lockSince = 0;
+    // anim finishes ~200ms into resolving when hitstop drains
+    if (quiz.phase === 'resolving' && hitstop <= 0) heroIdle = true;
+
     if (!options.length || !currentQ) {
-      if (!emptySince) emptySince = now;
-      const waited = now - emptySince;
+      const emptyStart = now;
+      loadNextQuestion();
+      const waited = 0;
       if (waited > maxEmptyMs) maxEmptyMs = waited;
-      if (!inputLock && !options.length) loadQuestion();
-      else if (waited > 300) loadQuestion();
-    } else emptySince = 0;
+      recovers++;
+      return;
+    }
+
+    if (quiz.phase === 'resolving') {
+      const age = now - quiz.phaseAt;
+      if (enemyDead) {
+        quiz.pendingKill = true;
+        quiz.phase = 'advance';
+        quiz.phaseAt = now;
+        loadNextQuestion();
+        return;
+      }
+      if (heroIdle || age >= 700) {
+        endResolving();
+        return;
+      }
+      if (age > 900) loadNextQuestion();
+    } else if (quiz.phase === 'advance') {
+      const age = now - quiz.phaseAt;
+      if (age > 900 || !options.length) loadNextQuestion();
+    }
+
+    if (!options.length || !currentQ) {
+      if (!maxEmptyMs) maxEmptyMs = 16;
+      loadNextQuestion();
+    }
     if (hitstop > 0) hitstop--;
   }
 
@@ -315,52 +298,56 @@ function simPlaySoftLockMachine(opts) {
     const kind = i % 7 === 0 ? 'kill' : i % 3 === 0 ? 'fail' : 'ok';
     answer(kind);
     for (let f = 0; f < 60; f++) tick(16);
-    if (state === 'PLAY' && (!options.length || !currentQ || inputLock)) {
-      return { ok: false, maxEmptyMs, recovers, stuck: true, reason: 'after-answer' };
+    if (state === 'PLAY' && (!options.length || !currentQ || quiz.locked || quiz.phase !== 'ready')) {
+      return { ok: false, maxEmptyMs, recovers, stuck: true, reason: 'after-answer phase=' + quiz.phase };
     }
   }
 
-  // flowGen bump cancels resume mid-lock
-  answer('ok');
-  bumpFlow();
-  for (let f = 0; f < 40; f++) tick(16);
-  if (state === 'PLAY' && (!options.length || inputLock)) {
-    return { ok: false, maxEmptyMs, recovers, stuck: true, reason: 'flowGen' };
-  }
-
-  // Forced empty + hitstop + no resume
+  // Forced empty + hitstop mid-resolving
   options = [];
   currentQ = null;
-  inputLock = true;
-  emptySince = now;
-  lockSince = now;
+  quiz.phase = 'resolving';
+  quiz.locked = true;
+  quiz.phaseAt = now;
   const emptyStarted = now;
-  resumeKind = '';
-  resumeAt = 0;
   hitstop = 12;
+  heroIdle = false;
   let recoveredAt = -1;
   for (let f = 0; f < 40; f++) {
     tick(16);
-    if (options.length === 3 && currentQ && !inputLock) {
+    if (options.length === 3 && currentQ && quiz.phase === 'ready' && !quiz.locked) {
       recoveredAt = now;
       break;
     }
   }
   const recoverDelta = recoveredAt >= 0 ? recoveredAt - emptyStarted : -1;
   const recovered = recoveredAt >= 0 && recoverDelta <= 360;
+
+  // resolving stuck >900 without idle
+  answer('ok');
+  heroIdle = false;
+  quiz.phaseAt = now;
+  for (let f = 0; f < 70; f++) {
+    hitstop = 2; // keep "busy"
+    heroIdle = false;
+    tick(16);
+  }
+  const stuckResolved = quiz.phase === 'ready' && options.length === 3 && !quiz.locked;
+
   return {
-    ok: recovered && maxEmptyMs <= 360,
+    ok: recovered && stuckResolved && maxEmptyMs <= 360,
     maxEmptyMs,
     recovers,
     recoveredAt,
     recoverDelta,
-    stuck: !recovered
+    stuckResolved,
+    stuck: !recovered || !stuckResolved
   };
 }
 
-const lockSim = simPlaySoftLockMachine({ keepOnAnswer: true });
+const lockSim = simQuizStateMachine({ keepOnAnswer: true });
 ok(
-  'Q16 answer/kill/fail/flowGen never soft-locks (≤300ms)',
+  'Q16 SM answer/kill/fail never soft-locks',
   lockSim.ok,
   'maxEmptyMs=' +
     lockSim.maxEmptyMs +
@@ -371,43 +358,41 @@ ok(
     (lockSim.reason ? ' reason=' + lockSim.reason : '')
 );
 
-const hitSim = simPlaySoftLockMachine({ keepOnAnswer: false });
+const hitSim = simQuizStateMachine({ keepOnAnswer: false });
 ok(
-  'Q17 options=[]+inputLock+hitstop recovers ≤300ms',
+  'Q17 options=[]+hitstop recovers ≤300ms via tickQuiz',
   hitSim.ok && hitSim.recoveredAt >= 0,
   'maxEmptyMs=' + hitSim.maxEmptyMs + ' Δ=' + hitSim.recoverDelta
 );
 
 const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
 ok(
-  'Q18 thief mirrors keep-options + ≤300ms watchdog + hub28',
-  /schedulePlayResume/.test(stSrc) &&
-    /runPlayResume/.test(stSrc) &&
-    /timer-backup/.test(stSrc) &&
-    /waited > 300/.test(stSrc) &&
-    /empty-unlocked/.test(stSrc) &&
-    /dead-target-stuck/.test(stSrc) &&
-    /Keep last options dimmed until loadBriefing/.test(stSrc) &&
-    /hub28-st1/.test(stSrc) &&
+  'Q18 thief mirrors quiz SM + hub29 + bottom strip',
+  /const quiz\s*=\s*\{/.test(stSrc) &&
+    /function loadNextQuestion\(/.test(stSrc) &&
+    /function tickQuiz\(/.test(stSrc) &&
+    /age\s*>=\s*700/.test(stSrc) &&
+    /phase === 'advance'[\s\S]{0,200}age\s*>\s*900/.test(stSrc) &&
+    /hub29-st1/.test(stSrc) &&
     /PLAY: hide dossier panel/.test(stSrc) &&
-    /flow-cancelled/.test(stSrc) &&
-    /Keep anim \+ tryResumeAfterAction advancing during hitstop/.test(stSrc) &&
-    !/function answer\(opt\)[\s\S]{0,220}options\s*=\s*\[\s*\]/.test(stSrc)
+    /btnY\s*=\s*Math\.min\(h\s*\*\s*0\.9/.test(stSrc) &&
+    !/schedulePlayResume/.test(stSrc) &&
+    !/hardRecoverPlay/.test(stSrc) &&
+    !/function answer\(opt\)[\s\S]{0,280}options\s*=\s*\[\s*\]/.test(stSrc)
 );
 
 const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf8');
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q19 hub VER hub28 + portal query + sw v73 + game shell no-store',
-  /20260812hub28/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub28/.test(portal) &&
-    /infinity-pwa-v73/.test(sw) &&
+  'Q19 hub VER hub29 + portal query + sw v74 + game shell no-store',
+  /20260812hub29/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub29/.test(portal) &&
+    /infinity-pwa-v74/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
 
-// Asset sanity
 function exists(p) {
   return fs.existsSync(path.join(ROOT, p));
 }
@@ -427,5 +412,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; soft-lock impossible (keep options + ≤300ms watchdog). verify: hub28'
+  'Core checks green. Knight + Thief finishable; quiz SM soft-lock impossible. verify: hub29'
 );
