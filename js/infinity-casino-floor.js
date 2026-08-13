@@ -7,9 +7,9 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub47';
+  var VER = '20260812hub48';
 
-  /** Knight + Dark Thief + Tense Raiders + Rapid Drill */
+  /** Knight + Dark Thief (animated) + Rapid Drill */
   var GAMES = [
     {
       id: 'knight',
@@ -48,25 +48,6 @@
         mood: 'Al acecho',
         line: '"Quiet links. Clean cuts. No filler words."',
         color: '#94A3B8'
-      }
-    },
-    {
-      id: 'raiders',
-      kind: 'raiders',
-      title: 'TENSE RAIDERS',
-      sub: 'Todos los tenses. El orco se burla si fallás.',
-      badge: 'new',
-      badgeLabel: 'PROTO',
-      xp: '+50 XP',
-      diff: 2,
-      art: 'raiders',
-      portrait: 'raiders',
-      char: {
-        name: 'Perfect Raider',
-        role: 'Tense orc',
-        mood: 'Buzzing',
-        line: '"Buzz. If you miss, I laugh."',
-        color: '#c084fc'
       }
     },
     {
@@ -126,35 +107,6 @@
     return h + '</div>';
   }
 
-  function raiderSvg() {
-    return (
-      '<svg class="hub-raider-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-      '<ellipse cx="100" cy="178" rx="42" ry="8" fill="#000" opacity=".35"/>' +
-      '<path d="M62 168 Q48 92 78 70 L122 70 Q152 92 138 168 Z" fill="#6D28D9"/>' +
-      '<rect x="86" y="98" width="28" height="48" rx="6" fill="#7C3AED"/>' +
-      '<rect x="92" y="118" width="16" height="8" rx="2" fill="#B91C1C"/>' +
-      '<ellipse cx="68" cy="108" rx="10" ry="16" fill="#C4D431" transform="rotate(-18 68 108)"/>' +
-      '<ellipse cx="136" cy="96" rx="10" ry="16" fill="#C4D431" transform="rotate(22 136 96)"/>' +
-      '<line x1="148" y1="168" x2="148" y2="42" stroke="#78350F" stroke-width="7" stroke-linecap="round"/>' +
-      '<circle cx="148" cy="36" r="14" fill="#22C55E"/>' +
-      '<circle cx="148" cy="36" r="7" fill="#BBF7D0"/>' +
-      '<ellipse cx="100" cy="58" rx="36" ry="28" fill="#4C1D95"/>' +
-      '<ellipse cx="100" cy="68" rx="26" ry="24" fill="#C4D431"/>' +
-      '<path d="M76 66 L58 46 L82 78 Z" fill="#C4D431"/>' +
-      '<path d="M124 66 L142 46 L118 78 Z" fill="#C4D431"/>' +
-      '<circle cx="90" cy="64" r="5" fill="#F9A8D4"/>' +
-      '<circle cx="110" cy="64" r="5" fill="#F9A8D4"/>' +
-      '<circle cx="92" cy="62" r="1.6" fill="#fff"/>' +
-      '<circle cx="112" cy="62" r="1.6" fill="#fff"/>' +
-      '<path d="M92 82 Q100 88 108 82" fill="none" stroke="#3F3F0A" stroke-width="2.4" stroke-linecap="round"/>' +
-      '<path d="M86 86 L82 94" stroke="#E8E4A8" stroke-width="2.5" stroke-linecap="round"/>' +
-      '<path d="M114 86 L118 94" stroke="#E8E4A8" stroke-width="2.5" stroke-linecap="round"/>' +
-      '<rect x="72" y="156" width="22" height="16" rx="4" fill="#1E1B4B"/>' +
-      '<rect x="106" y="156" width="22" height="16" rx="4" fill="#1E1B4B"/>' +
-      '</svg>'
-    );
-  }
-
   function kaboomSvg() {
     return (
       '<svg class="hub-kaboom-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
@@ -202,9 +154,6 @@
         '"></div>' +
         '</div>'
       );
-    }
-    if (kind === 'raiders') {
-      return '<div class="' + cls + ' hub-portrait-raiders">' + raiderSvg() + '</div>';
     }
     if (kind === 'kaboom' || kind === 'rapid') {
       return '<div class="' + cls + ' hub-portrait-kaboom">' + kaboomSvg() + '</div>';
@@ -286,7 +235,6 @@
       '.hub-featured.art-knight{background:linear-gradient(125deg,#1a0508 0%,#7f1d1d 35%,#ea580c 70%,#fbbf24 100%);border-color:rgba(251,191,36,.55)}' +
       '.hub-featured.art-thief{background:linear-gradient(125deg,#020617 0%,#1e293b 40%,#334155 70%,#64748b 100%);border-color:rgba(148,163,184,.5)}' +
       '.hub-featured.art-rapid{background:linear-gradient(125deg,#FFE8C8 0%,#FDBA74 40%,#9a3412 100%);border-color:rgba(251,191,36,.45)}' +
-      '.hub-featured.art-raiders{background:linear-gradient(125deg,#12081c 0%,#4c1d95 40%,#14532d 100%);border-color:rgba(192,132,252,.5)}' +
       '.hub-featured:active{transform:scale(.99)}' +
       '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s}' +
       '.hub-featured-shine:after{content:"";position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}' +
@@ -307,23 +255,23 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
-      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom,.hub-portrait-raiders{position:absolute;inset:8% 6% 28%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:1}' +
+      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:1}' +
       '.hub-sprite{height:100%;width:auto;max-width:100%;aspect-ratio:157/221;background-image:var(--hub-sheet);background-repeat:no-repeat;background-size:calc(var(--hub-frames) * 100%) 100%;background-position:0% 0;animation:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));image-rendering:auto}' +
       '.hub-sprite-thief{aspect-ratio:79/220}' +
-      '.hub-kaboom-svg,.hub-raider-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:none}' +
-      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom,.hub-featured-char.hub-portrait-raiders{position:absolute;inset:auto 3% 10% auto;top:6%;bottom:10%;width:auto;max-width:36%;height:auto;transform:none}' +
+      '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:none}' +
+      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom{position:absolute;inset:auto 3% 10% auto;top:6%;bottom:10%;width:auto;max-width:36%;height:auto;transform:none}' +
       '.hub-featured-char .hub-sprite{height:100%;width:auto;max-height:100%;max-width:100%;aspect-ratio:157/221}' +
       '.hub-featured-char .hub-sprite-thief{aspect-ratio:79/220}' +
-      '.hub-featured-char .hub-kaboom-svg,.hub-featured-char .hub-raider-svg{width:auto;height:100%;max-width:100%}' +
-      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom,.hub-title-char-css.hub-portrait-raiders{position:absolute;left:50%;top:46%;width:auto;height:70%;max-width:70%;transform:translate(-50%,-50%);display:flex;align-items:flex-end;justify-content:center}' +
+      '.hub-featured-char .hub-kaboom-svg{width:auto;height:100%;max-width:100%}' +
+      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:auto;height:70%;max-width:70%;transform:translate(-50%,-50%);display:flex;align-items:flex-end;justify-content:center}' +
       '.hub-title-char-css .hub-sprite{height:100%;width:auto;max-height:200px;aspect-ratio:157/221}' +
       '.hub-title-char-css .hub-sprite-thief{aspect-ratio:79/220}' +
-      '.hub-title-char-css .hub-kaboom-svg,.hub-title-char-css .hub-raider-svg{width:auto;height:100%;max-height:180px}' +
+      '.hub-title-char-css .hub-kaboom-svg{width:auto;height:100%;max-height:180px}' +
       '@media (hover:hover){' +
       '.hub-featured:hover .hub-featured-shine{opacity:.45}' +
       '.hub-featured:hover .hub-featured-shine:after{animation:hubShine 1.4s ease-in-out 1}' +
       '.hub-featured:hover .hub-sprite,.hub-card:hover .hub-sprite,.inf-hub-title.is-open .hub-title-char-css:hover .hub-sprite{animation:hubSpritePlay 1.2s steps(12) infinite}' +
-      '.hub-featured:hover .hub-kaboom-svg,.hub-card:hover .hub-kaboom-svg,.hub-featured:hover .hub-raider-svg,.hub-card:hover .hub-raider-svg{animation:hubCharBob 1.6s ease-in-out infinite}' +
+      '.hub-featured:hover .hub-kaboom-svg,.hub-card:hover .hub-kaboom-svg{animation:hubCharBob 1.6s ease-in-out infinite}' +
       '.hub-title-cta:hover{animation:hubPulse 1.4s ease-in-out infinite}' +
       '}' +
       '.art-thief{background:linear-gradient(165deg,#020617 0%,#1e293b 45%,#475569 100%)}' +
@@ -357,7 +305,6 @@
       '.art-prep{background:linear-gradient(160deg,#2a1508,#9a3412,#5B21B6)}' +
       '.art-rapid{background:linear-gradient(165deg,#FFE8C8 0%,#FDBA74 35%,#7C2D12 78%,#1c0a08 100%)}' +
       '.art-knight{background:linear-gradient(165deg,#1a0508 0%,#7f1d1d 40%,#ea580c 70%,#fbbf24 100%)}' +
-      '.art-raiders{background:linear-gradient(165deg,#12081c 0%,#4c1d95 40%,#14532d 78%,#0c1a12 100%)}' +
       /* Title / character splash */
       '.inf-hub-title{position:fixed;inset:0;z-index:2406;display:none;align-items:stretch;justify-content:center;padding:0;box-sizing:border-box}' +
       '.inf-hub-title.is-open{display:flex}' +
@@ -609,27 +556,6 @@
       }
       if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
         infinityArcadeRequestBrowserFullscreen(fsShell);
-      }
-      return;
-    }
-    if (g.kind === 'raiders') {
-      if (typeof openInfinityArcadeFullscreen === 'function') {
-        openInfinityArcadeFullscreen('Tense Raiders', 'Pantalla completa · Jeopardy');
-      }
-      var fsShellR = document.getElementById('inf-arcade-fs');
-      if (fsShellR) fsShellR.classList.add('is-knight-mode');
-      var bodyR = document.getElementById('inf-arcade-fs-body');
-      if (bodyR) {
-        bodyR.classList.add('is-knight-fit');
-        bodyR.innerHTML =
-          '<iframe src="games/tense-raiders/index.html?v=' +
-          VER +
-          '&t=' +
-          Date.now() +
-          '" title="Tense Raiders" class="inf-knight-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-      }
-      if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
-        infinityArcadeRequestBrowserFullscreen(fsShellR);
       }
       return;
     }
