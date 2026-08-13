@@ -7,9 +7,9 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub11';
+  var VER = '20260812hub12';
 
-  /** Solo Rapid Drill + Knight's Quest */
+  /** Knight + Dark Thief (animated) + Rapid Drill */
   var GAMES = [
     {
       id: 'knight',
@@ -32,6 +32,25 @@
       }
     },
     {
+      id: 'thief',
+      kind: 'thief',
+      title: 'SHADOW THIEF',
+      sub: 'Ladrona oscura. Cadenas precisas. Golpe silencioso.',
+      badge: 'new',
+      badgeLabel: 'NUEVO',
+      xp: '+60 XP',
+      diff: 3,
+      art: 'thief',
+      portrait: 'thief',
+      char: {
+        name: 'Dark Thief',
+        role: 'Linker shadow',
+        mood: 'Al acecho',
+        line: '"Quiet links. Clean cuts. No filler words."',
+        color: '#94A3B8'
+      }
+    },
+    {
       id: 'rapid',
       kind: 'rapid',
       title: 'RAPID DRILL',
@@ -51,6 +70,21 @@
       }
     }
   ];
+
+  var HUB_SPRITES = {
+    knight: {
+      sheet: 'games/knights-quest/assets/hub-idle.png',
+      fallback: 'games/knights-quest/assets/hub-knight.png',
+      frames: 12,
+      fps: 10
+    },
+    thief: {
+      sheet: 'games/dark-thief/assets/hub-idle.png',
+      fallback: 'games/dark-thief/assets/hub-thief.png',
+      frames: 12,
+      fps: 10
+    }
+  };
 
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, function (c) {
@@ -97,13 +131,27 @@
   function portraitHtml(g, wrapClass) {
     var cls = wrapClass || 'hub-css-char';
     var kind = (g && (g.portrait || g.kind || g.id)) || '';
-    if (kind === 'knight') {
+    if (kind === 'knight' || kind === 'thief') {
+      var sp = HUB_SPRITES[kind];
       return (
         '<div class="' +
         cls +
-        ' hub-portrait-knight">' +
-        '<img src="games/knights-quest/assets/hub-knight.png" alt="" class="hub-knight-img" ' +
-        'onerror="this.onerror=null;this.src=\'games/knights-quest/assets/icon.png\'">' +
+        ' hub-portrait-' +
+        kind +
+        '">' +
+        '<div class="hub-sprite hub-sprite-' +
+        kind +
+        '" style="--hub-frames:' +
+        sp.frames +
+        ';--hub-fps:' +
+        sp.fps +
+        ';--hub-sheet:url(\'' +
+        sp.sheet +
+        '?v=' +
+        VER +
+        '\')" role="img" aria-label="' +
+        esc((g.char && g.char.name) || kind) +
+        '"></div>' +
         '</div>'
       );
     }
@@ -167,6 +215,7 @@
       '@keyframes hubTitleIn{0%{opacity:0;transform:scale(.85) translateY(20px)}100%{opacity:1;transform:none}}' +
       '@keyframes hubCharBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}' +
       '@keyframes hubAura{0%,100%{filter:drop-shadow(0 0 12px var(--char-c))}50%{filter:drop-shadow(0 0 28px var(--char-c))}}' +
+      '@keyframes hubSpritePlay{from{background-position:0% 0}to{background-position:100% 0}}' +
       '.inf-hub{position:fixed;inset:0;z-index:2398;display:none;flex-direction:column;background:var(--inf-ink);color:var(--inf-text);font-family:Outfit,system-ui,sans-serif;overflow:hidden}' +
       '.inf-hub.is-open{display:flex}' +
       '.inf-hub-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 0%,rgba(91,33,182,.45),transparent 50%),radial-gradient(ellipse at 85% 10%,rgba(245,166,35,.2),transparent 45%),linear-gradient(180deg,#1a0a3a 0%,#0B0618 55%,#070412 100%)}' +
@@ -184,6 +233,7 @@
       '.inf-hub-mantra{text-align:center;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--inf-gold);margin:0 0 12px;opacity:.95}' +
       '.hub-featured{position:relative;border-radius:18px;overflow:hidden;margin-bottom:18px;height:min(200px,32vh);cursor:pointer;border:2px solid rgba(245,166,35,.45);box-shadow:0 12px 36px rgba(59,14,140,.45),0 0 0 1px rgba(255,255,255,.06);background:linear-gradient(125deg,#3B0E8C 0%,#5B21B6 40%,#7C3AED 70%,#B45309 100%);animation:hubPulse 2.8s ease-in-out infinite}' +
       '.hub-featured.art-knight{background:linear-gradient(125deg,#1a0508 0%,#7f1d1d 35%,#ea580c 70%,#fbbf24 100%);border-color:rgba(251,191,36,.55)}' +
+      '.hub-featured.art-thief{background:linear-gradient(125deg,#020617 0%,#1e293b 40%,#334155 70%,#64748b 100%);border-color:rgba(148,163,184,.5)}' +
       '.hub-featured.art-rapid{background:linear-gradient(125deg,#FFE8C8 0%,#FDBA74 40%,#9a3412 100%);border-color:rgba(251,191,36,.45)}' +
       '.hub-featured:active{transform:scale(.99)}' +
       '.hub-featured-shine{position:absolute;inset:0;overflow:hidden;pointer-events:none}' +
@@ -205,13 +255,19 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
-      '.hub-portrait-knight,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}' +
-      '.hub-knight-img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));animation:hubCharBob 2.4s ease-in-out infinite}' +
+      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}' +
+      '.hub-sprite{width:min(100%,150px);aspect-ratio:0.72;background-image:var(--hub-sheet);background-repeat:no-repeat;background-size:calc(var(--hub-frames) * 100%) 100%;background-position:0% 0;animation:hubSpritePlay 1.2s steps(12) infinite,hubCharBob 2.4s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));image-rendering:auto}' +
+      '.hub-sprite-thief{aspect-ratio:0.4;width:min(58%,110px);animation-duration:1.2s,2.6s}' +
       '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:hubCharBob 2.2s ease-in-out infinite}' +
-      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-kaboom{inset:auto;right:4%;top:8%;width:42%;height:78%;transform:none}' +
-      '.hub-featured-char .hub-knight-img,.hub-featured-char .hub-kaboom-svg{width:100%;height:100%}' +
-      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:70%;height:70%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}' +
-      '.hub-title-char-css .hub-knight-img,.hub-title-char-css .hub-kaboom-svg{width:100%;height:100%;max-height:180px}' +
+      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom{inset:auto;right:4%;top:8%;width:42%;height:78%;transform:none}' +
+      '.hub-featured-char .hub-sprite{width:100%;height:100%;max-height:100%;aspect-ratio:auto}' +
+      '.hub-featured-char .hub-sprite-thief{width:55%;margin-left:auto}' +
+      '.hub-featured-char .hub-kaboom-svg{width:100%;height:100%}' +
+      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:70%;height:70%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}' +
+      '.hub-title-char-css .hub-sprite{width:min(100%,200px);height:auto;max-height:200px}' +
+      '.hub-title-char-css .hub-sprite-thief{width:min(46%,120px)}' +
+      '.hub-title-char-css .hub-kaboom-svg{width:100%;height:100%;max-height:180px}' +
+      '.art-thief{background:linear-gradient(165deg,#020617 0%,#1e293b 45%,#475569 100%)}' +
       '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
       '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
       '.hub-card-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;margin-bottom:3px}' +
@@ -492,6 +548,13 @@
       if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
         infinityArcadeRequestBrowserFullscreen(fsShell);
       }
+      return;
+    }
+    if (g.kind === 'thief') {
+      if (typeof showToast === 'function') {
+        showToast('Shadow Thief: personaje listo (animado). Juego jugable en el próximo build.', 'ok');
+      }
+      openTitle('thief');
       return;
     }
     var fsBodyClear = document.getElementById('inf-arcade-fs-body');
