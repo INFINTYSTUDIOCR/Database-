@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub10';
+  var VER = '20260812hub11';
 
   /** Solo Rapid Drill + Knight's Quest */
   var GAMES = [
