@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub27-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub28-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub27-kq1';
+  const KQ_BUILD = 'hub28-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -1546,6 +1546,8 @@
       }
       return;
     }
+    // PLAY: hide the big parchment/prompt — options stay via drawOptions (soft-lock harden intact).
+    if (gameState === STATES.PLAY) return;
     const { w, h, bx, by, bw, bh } = quizDock();
     // Keep last prompt visible (slightly dim) while options reload — avoids empty duel.
     const locked = inputLock || !!resumeKind || !options.length;

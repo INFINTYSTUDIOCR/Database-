@@ -188,7 +188,10 @@ function simKnightSoftLockHarness() {
     /schedulePlayResume\(\s*180,\s*'question'\s*\)/.test(src);
   const failSuspicious =
     /schedulePlayResume\(\s*350,\s*'question'\s*\)/.test(src) && /suspicious/.test(src);
-  const buildTag = /hub27-kq1/.test(src);
+  const buildTag = /hub28-kq1/.test(src);
+  const hidePromptPlay =
+    /PLAY: hide (?:the )?big parchment\/?prompt/.test(src) &&
+    /if \(gameState === STATES\.PLAY\) return;/.test(src);
   return {
     hasResume,
     dualPath,
@@ -201,6 +204,7 @@ function simKnightSoftLockHarness() {
     answerUsesResume,
     failSuspicious,
     buildTag,
+    hidePromptPlay,
     srcLen: src.length
   };
 }
@@ -212,10 +216,11 @@ ok('Q10 watchdog ≤300ms + lock-stuck + dead-enemy-800ms', harness.watchdogTigh
 ok('Q11 hardRecover advances dead enemies + dock clamp', harness.recoverDeadEnemy && harness.dockClamp);
 ok('Q12 forceFallback if recover still empty', harness.forceFallback);
 ok('Q13 answer() schedules resume (not only after())', harness.answerUsesResume);
-ok('Q14 dual resume + flow-cancelled recover + hub27', harness.dualPath && harness.flowCancelRecover && harness.buildTag);
+ok('Q14 dual resume + flow-cancelled recover + hub28', harness.dualPath && harness.flowCancelRecover && harness.buildTag);
 ok('Q15 fail path schedules resume + suspicious pose', harness.failSuspicious);
+ok('Q15b knight hides parchment prompt in PLAY', harness.hidePromptPlay);
 
-/** Mirror hub27 PLAY rules: keep options on answer; recover empty ≤300ms even in hitstop. */
+/** Mirror hub28 PLAY rules: keep options on answer; recover empty ≤300ms even in hitstop. */
 function simPlaySoftLockMachine(opts) {
   const keepOnAnswer = opts.keepOnAnswer !== false;
   let options = [{ w: 1 }, { w: 2 }, { w: 3 }];
@@ -375,7 +380,7 @@ ok(
 
 const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
 ok(
-  'Q18 thief mirrors keep-options + ≤300ms watchdog + hub27',
+  'Q18 thief mirrors keep-options + ≤300ms watchdog + hub28',
   /schedulePlayResume/.test(stSrc) &&
     /runPlayResume/.test(stSrc) &&
     /timer-backup/.test(stSrc) &&
@@ -383,7 +388,8 @@ ok(
     /empty-unlocked/.test(stSrc) &&
     /dead-target-stuck/.test(stSrc) &&
     /Keep last options dimmed until loadBriefing/.test(stSrc) &&
-    /hub27-st1/.test(stSrc) &&
+    /hub28-st1/.test(stSrc) &&
+    /PLAY: hide dossier panel/.test(stSrc) &&
     /flow-cancelled/.test(stSrc) &&
     /Keep anim \+ tryResumeAfterAction advancing during hitstop/.test(stSrc) &&
     !/function answer\(opt\)[\s\S]{0,220}options\s*=\s*\[\s*\]/.test(stSrc)
@@ -393,10 +399,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q19 hub VER hub27 + portal query + sw v72 + game shell no-store',
-  /20260812hub27/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub27/.test(portal) &&
-    /infinity-pwa-v72/.test(sw) &&
+  'Q19 hub VER hub28 + portal query + sw v73 + game shell no-store',
+  /20260812hub28/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub28/.test(portal) &&
+    /infinity-pwa-v73/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -421,5 +427,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; soft-lock impossible (keep options + ≤300ms watchdog). verify: hub27'
+  'Core checks green. Knight + Thief finishable; soft-lock impossible (keep options + ≤300ms watchdog). verify: hub28'
 );
