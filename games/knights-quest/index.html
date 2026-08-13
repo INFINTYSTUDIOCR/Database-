@@ -427,8 +427,94 @@
   ];
 
   // ── STATE ──
-  const STATES = { MENU: 'menu', PLAY: 'play', RESULTS: 'results' };
+  const STATES = { MENU: 'menu', STORY: 'story', PLAY: 'play', ENDING: 'ending', RESULTS: 'results' };
   let gameState = STATES.MENU;
+  let storyPage = 0;
+  let endingPage = 0;
+  const STORY_PAGES = [
+    {
+      chapter: 'CAPÍTULO I',
+      title: 'La Orden del Linker',
+      lines: [
+        'Sir Albrecht no falló por falta de inglés.',
+        'Falló por presión: una llamada, un cliente,',
+        'y la cadena se rompió en silencio.'
+      ]
+    },
+    {
+      chapter: 'CAPÍTULO II',
+      title: 'Babel despierta',
+      lines: [
+        'De esa grieta nació Babel:',
+        'muletillas, dudas y palabras vacías',
+        'que envenenan cada conversación real.'
+      ]
+    },
+    {
+      chapter: 'CAPÍTULO III',
+      title: 'La espada de la precisión',
+      lines: [
+        'La Orden le entrega una misión:',
+        'reconstruir la cadena linker bajo fuego.',
+        'Cada respuesta correcta corta la niebla.'
+      ]
+    },
+    {
+      chapter: 'MISIÓN',
+      title: 'Diez asedios',
+      lines: [
+        'Bosses en la ronda 5 y 10.',
+        'Racha, fever y montura: no son adorno.',
+        'Son la voz que Albrecht debe recuperar.',
+        '',
+        'Tocá para entrar al campo.'
+      ]
+    }
+  ];
+  function endingPages(won) {
+    if (won) {
+      return [
+        {
+          chapter: 'EPÍLOGO',
+          title: 'La voz vuelve',
+          lines: [
+            'Babel cae. La niebla se abre.',
+            'Albrecht no grita victoria:',
+            'habla claro. Y el cliente escucha.'
+          ]
+        },
+        {
+          chapter: 'FIN',
+          title: 'Cadena restaurada',
+          lines: [
+            'La Orden registra su nombre.',
+            'LINK · IDEA · LINK no es un lema.',
+            'Es la prueba de que aguantó la presión.'
+          ]
+        }
+      ];
+    }
+    return [
+      {
+        chapter: 'EPÍLOGO',
+        title: 'La niebla gana… por ahora',
+        lines: [
+          'Albrecht cae. Babel se ríe.',
+          'Pero la Orden no entierra a sus caballeros:',
+          'los vuelve a levantar.'
+        ]
+      },
+      {
+        chapter: 'CONTINÚA',
+        title: 'Otra carga',
+        lines: [
+          'La cadena aún se puede forjar.',
+          'Levantate. Elegí mejor. Cortá más limpio.',
+          'Tocá para ver tu resultado.'
+        ]
+      }
+    ];
+  }
   let enemy = null;
   let currentQ = null;
   let options = [];
@@ -481,6 +567,7 @@
   }
 
   function toast(msg, ms) {
+    if (!toastEl) return;
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(toastEl._t);
@@ -496,7 +583,8 @@
 
   // ── HELPERS ──
   function roundRect(c, x, y, w, h, r) {
-    const rr = Math.min(r, w / 2, h / 2);
+    if (!(w > 0) || !(h > 0)) return;
+    const rr = Math.max(0, Math.min(r, w / 2, h / 2));
     c.beginPath();
     c.moveTo(x + rr, y);
     c.arcTo(x + w, y, x + w, y + h, rr);
@@ -655,7 +743,7 @@
         this.state = 'die';
         this.setAnim(Math.random() > 0.5 ? 'die' : 'die_b', true);
         inputLock = true;
-        after(2400, () => setState(STATES.RESULTS));
+        after(2400, () => setState(STATES.ENDING));
       }
     },
     doWin() {
@@ -1313,7 +1401,7 @@
     if (gameState !== STATES.PLAY) return;
     if (roundCount >= 10) {
       knight.doWin();
-      setState(STATES.RESULTS);
+      setState(STATES.ENDING);
       return;
     }
     roundCount++;
@@ -1350,6 +1438,12 @@
   function setState(s) {
     bumpFlow();
     gameState = s;
+    if (s === STATES.STORY) {
+      storyPage = 0;
+      inputLock = false;
+      knight.state = 'greet';
+      knight.setAnim('greet', true);
+    }
     if (s === STATES.PLAY) {
       knight.hp = 3;
       knight.score = 0;
@@ -1371,6 +1465,16 @@
       updateHUD();
       sfx('start');
     }
+    if (s === STATES.ENDING) {
+      endingPage = 0;
+      inputLock = false;
+      options = [];
+      if (knight.hp > 0) {
+        knight.doWin();
+      }
+      sfx(knight.hp > 0 ? 'win' : 'lose');
+      updateHUD();
+    }
     if (s === STATES.RESULTS) {
       inputLock = true;
       options = [];
@@ -1379,7 +1483,6 @@
         localStorage.setItem('kq_best', best);
         toast('NEW BEST!', 1400);
       }
-      sfx(knight.hp > 0 ? 'win' : 'lose');
       updateHUD();
     }
   }
@@ -1450,6 +1553,62 @@
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = `${H() * 0.02}px Outfit,sans-serif`;
     ctx.fillText('Best: ' + best + ' XP', W() / 2, py + ph * 0.93);
+  }
+
+  function drawStoryPanel(page, hint) {
+    drawBG();
+    knight.x = W() * 0.18;
+    knight.y = H() * 0.84;
+    knight.update();
+    knight.draw();
+    const pw = W() * 0.62,
+      ph = H() * 0.72;
+    const px = W() * 0.32,
+      py = (H() - ph) / 2;
+    ctx.fillStyle = 'rgba(6,4,10,0.9)';
+    roundRect(ctx, px, py, pw, ph, 16);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(232,197,71,0.55)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, px, py, pw, ph, 16);
+    ctx.stroke();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#E8C547';
+    ctx.font = `800 ${H() * 0.022}px Outfit,sans-serif`;
+    ctx.fillText(page.chapter, px + pw * 0.08, py + ph * 0.12);
+    ctx.fillStyle = '#fff';
+    ctx.font = `900 ${H() * 0.048}px Cinzel,serif`;
+    ctx.fillText(page.title, px + pw * 0.08, py + ph * 0.24);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = `600 ${H() * 0.028}px Outfit,sans-serif`;
+    page.lines.forEach((line, i) => {
+      ctx.fillText(line, px + pw * 0.08, py + ph * 0.4 + i * H() * 0.055);
+    });
+    const pulse = 0.5 + 0.5 * Math.sin(frameCount * 0.12);
+    ctx.fillStyle = `rgba(232,197,71,${0.55 + pulse * 0.35})`;
+    ctx.font = `700 ${H() * 0.024}px Outfit,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(hint || 'Tocá para continuar →', px + pw / 2, py + ph * 0.9);
+  }
+
+  function drawStory() {
+    const page = STORY_PAGES[storyPage] || STORY_PAGES[STORY_PAGES.length - 1];
+    if (storyPage === 0 && knight.state === 'idle') {
+      knight.state = 'greet';
+      knight.setAnim('greet', true);
+    }
+    if (storyPage === 2 && frameCount % 90 === 0) {
+      knight.state = 'guard';
+      knight.setAnim('guard', true);
+    }
+    drawStoryPanel(page, storyPage >= STORY_PAGES.length - 1 ? 'Tocá para comenzar la misión' : 'Tocá para continuar →');
+  }
+
+  function drawEnding() {
+    const pages = endingPages(knight.hp > 0);
+    const page = pages[Math.min(endingPage, pages.length - 1)];
+    drawStoryPanel(page, endingPage >= pages.length - 1 ? 'Tocá para ver resultado' : 'Tocá para continuar →');
   }
 
   function drawPlay() {
@@ -1608,7 +1767,31 @@
     mouseY = p.y;
     sfx('click');
     if (gameState === STATES.MENU) {
-      setState(STATES.PLAY);
+      setState(STATES.STORY);
+      return;
+    }
+    if (gameState === STATES.STORY) {
+      if (storyPage < STORY_PAGES.length - 1) {
+        storyPage++;
+        if (storyPage === 1) {
+          knight.state = 'suspicious';
+          knight.setAnim('suspicious', true);
+        }
+        if (storyPage === 2) {
+          knight.state = 'guard';
+          knight.setAnim('guard', true);
+        }
+        if (storyPage === 3) {
+          knight.state = 'idle';
+          knight.setAnim('idle', true);
+        }
+      } else setState(STATES.PLAY);
+      return;
+    }
+    if (gameState === STATES.ENDING) {
+      const pages = endingPages(knight.hp > 0);
+      if (endingPage < pages.length - 1) endingPage++;
+      else setState(STATES.RESULTS);
       return;
     }
     if (gameState === STATES.PLAY) {
@@ -1621,7 +1804,7 @@
       }
     }
     if (gameState === STATES.RESULTS) {
-      if (window._retryBtn && p.x > _retryBtn.x && p.x < _retryBtn.x + _retryBtn.w && p.y > _retryBtn.y && p.y < _retryBtn.y + _retryBtn.h) setState(STATES.PLAY);
+      if (window._retryBtn && p.x > _retryBtn.x && p.x < _retryBtn.x + _retryBtn.w && p.y > _retryBtn.y && p.y < _retryBtn.y + _retryBtn.h) setState(STATES.STORY);
       if (window._menuBtn && p.x > _menuBtn.x && p.x < _menuBtn.x + _menuBtn.w && p.y > _menuBtn.y && p.y < _menuBtn.y + _menuBtn.h) {
         bumpFlow();
         gameState = STATES.MENU;
@@ -1676,7 +1859,9 @@
       if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
       if (gameState === STATES.MENU) drawMenu();
+      else if (gameState === STATES.STORY) drawStory();
       else if (gameState === STATES.PLAY) drawPlay();
+      else if (gameState === STATES.ENDING) drawEnding();
       else drawResults();
 
       if (flash > 0) {

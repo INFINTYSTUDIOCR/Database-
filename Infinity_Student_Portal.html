@@ -2437,6 +2437,7 @@ function infinityArcadeRunGame(gameId){
   if(!g) return;
   if(g.run === 'rapid') return infinityArcadePickRapid();
   if(g.run === 'knight') return launchInfinityCasinoGame('knight');
+  if(g.run === 'thief') return launchInfinityCasinoGame('thief');
   if(g.run === 'challenge') return infinityArcadePickRapid();
   if(g.run === 'modes') return openInfinityCasinoFloor();
   if(g.run && String(g.run).indexOf('arcade:') === 0){
@@ -9212,7 +9213,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
-<script src="js/infinity-casino-floor.js?v=20260812hub11"></script>
+<script src="js/infinity-casino-floor.js?v=20260812hub13"></script>
 <script src="js/infinity-modern-games.js?v=20260812mod6"></script>
 <script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>

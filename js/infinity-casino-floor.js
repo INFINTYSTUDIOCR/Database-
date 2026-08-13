@@ -551,10 +551,22 @@
       return;
     }
     if (g.kind === 'thief') {
-      if (typeof showToast === 'function') {
-        showToast('Shadow Thief: personaje listo (animado). Juego jugable en el próximo build.', 'ok');
+      if (typeof openInfinityArcadeFullscreen === 'function') {
+        openInfinityArcadeFullscreen('Shadow Thief', 'Pantalla completa · Nyx');
       }
-      openTitle('thief');
+      var fsShellT = document.getElementById('inf-arcade-fs');
+      if (fsShellT) fsShellT.classList.add('is-knight-mode');
+      var bodyT = document.getElementById('inf-arcade-fs-body');
+      if (bodyT) {
+        bodyT.classList.add('is-knight-fit');
+        bodyT.innerHTML =
+          '<iframe src="games/dark-thief/index.html?v=' +
+          VER +
+          '" title="Shadow Thief" class="inf-knight-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+      }
+      if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
+        infinityArcadeRequestBrowserFullscreen(fsShellT);
+      }
       return;
     }
     var fsBodyClear = document.getElementById('inf-arcade-fs-body');
