@@ -664,7 +664,7 @@
       const img = imgs[key];
       if (!a || !img?.complete) return;
       const f = Math.floor(this.frame) % a.frames;
-      const scale = (H() * 0.52) / FRAME.h;
+      const scale = Math.min(0.55, (H() * 0.52) / Math.max(1, FRAME.h));
       const dw = FRAME.w * scale;
       const dh = FRAME.h * scale;
       const ox = this.lunge;
@@ -1058,17 +1058,61 @@
   }
 
   // ── FLOW ──
+  function fitOptionText(text, maxW, basePx) {
+    let size = basePx;
+    ctx.font = `800 ${size}px JetBrains Mono,monospace`;
+    while (size > 9 && ctx.measureText(text).width > maxW) {
+      size -= 1;
+      ctx.font = `800 ${size}px JetBrains Mono,monospace`;
+    }
+    return size;
+  }
+
+  function ensureCanvasAlive() {
+    if (W() < 2 || H() < 2) {
+      try { resize(); } catch (_) {}
+    }
+    return W() >= 2 && H() >= 2;
+  }
+
+  function hardRecoverPlay(reason) {
+    if (gameState !== STATES.PLAY || thief.state === 'death') return;
+    console.warn('[ST recover]', reason);
+    inputLock = false;
+    hitstop = 0;
+    try {
+      if (!target) nextFloor();
+      else loadBriefing();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function loadBriefing() {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
-    currentQ = nextBriefing();
-    if (!currentQ) currentQ = BRIEFINGS_FALLBACK[0];
-    const wrong = (currentQ.wrong || []).slice(0, 2);
-    options = [{ word: currentQ.correct, isCorrect: true }, ...wrong.map((w) => ({ word: w, isCorrect: false }))];
-    options.sort(() => Math.random() - 0.5);
-    qBorn = performance.now();
-    timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
-    inputLock = false;
-    emptyOptionsSince = 0;
+    try {
+      currentQ = nextBriefing();
+      if (!currentQ || !currentQ.correct) currentQ = BRIEFINGS_FALLBACK[0];
+      let wrong = (currentQ.wrong || []).filter((w) => w && w !== currentQ.correct).slice(0, 2);
+      while (wrong.length < 2) wrong.push(['idk', 'like', 'um...'][wrong.length]);
+      options = [{ word: String(currentQ.correct), isCorrect: true }, ...wrong.map((w) => ({ word: String(w), isCorrect: false }))];
+      options.sort(() => Math.random() - 0.5);
+      qBorn = performance.now();
+      timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
+      inputLock = false;
+      emptyOptionsSince = 0;
+    } catch (err) {
+      console.error('[ST loadBriefing]', err);
+      currentQ = BRIEFINGS_FALLBACK[0];
+      options = [
+        { word: currentQ.correct, isCorrect: true },
+        { word: 'idk', isCorrect: false },
+        { word: 'like', isCorrect: false }
+      ];
+      inputLock = false;
+      emptyOptionsSince = 0;
+      qBorn = performance.now();
+    }
   }
 
   function drawTimer() {
@@ -1188,7 +1232,8 @@
       roundRect(ctx, panelX, y, panelW, btnH, 6);
       ctx.stroke();
       ctx.fillStyle = hover ? '#67e8f9' : '#e2e8f0';
-      ctx.font = `800 ${Math.min(h * 0.028, 16)}px JetBrains Mono,monospace`;
+      const fs = fitOptionText(opt.word, panelW * 0.88, Math.min(h * 0.028, 16));
+      ctx.font = `800 ${fs}px JetBrains Mono,monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(opt.word, panelX + panelW / 2, y + btnH / 2);
@@ -1227,7 +1272,7 @@
         veil = 70;
       }
       thief.doStrike(grade);
-      hitstop = ghost ? 7 : 3;
+      hitstop = Math.min(12, ghost ? 7 : 3);
       shake = ghost ? 10 : 5;
       const killed = target.hit(ghost ? 2 : 1);
       sfx(ghost ? 'ghost' : 'clean');
@@ -1643,32 +1688,33 @@
   function loop() {
     requestAnimationFrame(loop);
     try {
-      if (hitstop > 0) {
-        hitstop--;
-        return;
-      }
-      frameCount++;
-      if (shake > 0) shake--;
-      if (flash > 0) flash--;
-      // alert slowly decays when veiled
-      if (gameState === STATES.PLAY && veil > 40) alert = Math.max(0, alert - 0.015);
+      ensureCanvasAlive();
+      if (hitstop > 0) hitstop = Math.max(0, (hitstop | 0) - 1);
+      else {
+        frameCount++;
+        if (shake > 0) shake--;
+        if (flash > 0) flash--;
+        if (gameState === STATES.PLAY && veil > 40) alert = Math.max(0, alert - 0.015);
 
-      if (gameState === STATES.PLAY && thief.state !== 'death' && !options.length) {
-        if (!emptyOptionsSince) emptyOptionsSince = performance.now();
-        else if (performance.now() - emptyOptionsSince > 2200 && !inputLock) {
-          loadBriefing();
-        } else if (performance.now() - emptyOptionsSince > 3200) {
-          inputLock = false;
-          loadBriefing();
+        if (gameState === STATES.PLAY && thief.state !== 'death') {
+          if (!options.length) {
+            if (!emptyOptionsSince) emptyOptionsSince = performance.now();
+            const waited = performance.now() - emptyOptionsSince;
+            if (waited > 2800) hardRecoverPlay('empty-options ' + Math.round(waited) + 'ms');
+          } else emptyOptionsSince = 0;
         }
+
+        thief.update();
       }
 
-      thief.update();
+      if (!ensureCanvasAlive()) return;
 
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W(), H());
+      ctx.fillStyle = '#05070c';
+      ctx.fillRect(0, 0, W(), H());
       ctx.save();
-      if (shake > 0) {
-        ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
-      }
+      if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
       if (gameState === STATES.MENU) drawMenu();
       else if (gameState === STATES.STORY) drawStory();
@@ -1676,23 +1722,33 @@
       else if (gameState === STATES.ENDING) drawEnding();
       else if (gameState === STATES.RESULTS) drawResults();
 
-      ctx.restore();
-
-      // safety: unlock if stuck
-      if (gameState === STATES.PLAY && !options.length && thief.state !== 'death') {
-        if (performance.now() - emptyOptionsSince > 4000) {
-          inputLock = false;
-          loadBriefing();
-        }
+      if (flash > 0) {
+        ctx.fillStyle = `rgba(244,63,94,${flash * 0.03})`;
+        ctx.fillRect(0, 0, W(), H());
       }
+      ctx.restore();
     } catch (err) {
       console.error('[ST loop]', err);
+      hardRecoverPlay('frame-error');
     }
   }
 
   updateHUD();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      ensureCanvasAlive();
+      ensureAudio().catch(() => {});
+    }
+  });
+  window.addEventListener('focus', () => ensureCanvasAlive());
   loop();
-})();
+})().catch((err) => {
+  console.error(err);
+  const t = document.getElementById('load-txt');
+  if (t) t.textContent = 'Error: ' + (err && err.message ? err.message : err) + ' — recargá';
+  const load = document.getElementById('load');
+  if (load) load.classList.remove('hide');
+});
 </script>
 </body>
 </html>
