@@ -696,7 +696,7 @@
       const img = imgs[key];
       if (!a || !img?.complete) return;
       const f = Math.floor(this.frame) % a.frames;
-      const scale = (H() * (mounted ? 0.62 : 0.56)) / FRAME.h;
+      const scale = (H() * (mounted ? 0.54 : 0.48)) / FRAME.h;
       const dw = FRAME.w * scale;
       const dh = FRAME.h * scale;
       const ox = this.lunge;
@@ -819,9 +819,9 @@
       this.type = type;
       this.skel = type.skel || 'skel01';
       this.x = W() * 0.74;
-      this.y = H() * 0.82;
-      this.w = H() * (type.boss ? 0.36 : 0.3);
-      this.h = H() * (type.boss ? 0.4 : 0.34);
+      this.y = H() * 0.72;
+      this.w = H() * (type.boss ? 0.34 : 0.28);
+      this.h = H() * (type.boss ? 0.38 : 0.32);
       this.hp = type.hp;
       this.maxHp = type.hp;
       this.shaking = 0;
@@ -883,34 +883,40 @@
         this.drawSkelFallback(x, y);
       }
 
-      // wrong-word label
-      ctx.fillStyle = 'rgba(0,0,0,0.72)';
-      roundRect(ctx, x - this.w * 0.7, y - this.h * 1.05, this.w * 1.4, this.h * 0.16, 6);
-      ctx.fill();
-      ctx.strokeStyle = this.type.color;
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, x - this.w * 0.7, y - this.h * 1.05, this.w * 1.4, this.h * 0.16, 6);
-      ctx.stroke();
-      ctx.fillStyle = '#fecaca';
-      ctx.font = `bold ${H() * 0.024}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(this.type.wrongWord, x, y - this.h * 0.97);
-
-      const bw = this.w * 1.15,
-        bh = 7;
+      // Compact HP + wrong-word chip glued above the head (no mid-stage float)
+      const headY = y - this.h * 0.92;
+      const bw = Math.min(this.w * 0.9, W() * 0.2),
+        bh = 5;
+      const hpY = headY - bh - 6;
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      roundRect(ctx, x - bw / 2, y - this.h * 1.14, bw, bh, 3);
+      roundRect(ctx, x - bw / 2, hpY, bw, bh, 3);
       ctx.fill();
       ctx.fillStyle = this.type.boss ? '#E8C547' : '#ef4444';
-      roundRect(ctx, x - bw / 2, y - this.h * 1.14, bw * (this.hp / this.maxHp), bh, 3);
+      roundRect(ctx, x - bw / 2, hpY, bw * (this.hp / this.maxHp), bh, 3);
       ctx.fill();
+
+      const word = this.type.wrongWord || '';
+      ctx.font = `bold ${Math.max(10, H() * 0.017)}px monospace`;
+      const labelH = Math.max(14, H() * 0.026);
+      const labelW = Math.min(this.w * 1.0, Math.max(bw, ctx.measureText(word).width + 12));
+      const labelY = hpY - labelH - 4;
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      roundRect(ctx, x - labelW / 2, labelY, labelW, labelH, 4);
+      ctx.fill();
+      ctx.strokeStyle = this.type.color;
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, x - labelW / 2, labelY, labelW, labelH, 4);
+      ctx.stroke();
+      ctx.fillStyle = '#fecaca';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(word, x, labelY + labelH / 2);
 
       if (this.type.boss) {
         ctx.fillStyle = '#E8C547';
-        ctx.font = `900 ${H() * 0.022}px Cinzel,serif`;
+        ctx.font = `900 ${H() * 0.016}px Cinzel,serif`;
         ctx.textAlign = 'center';
-        ctx.fillText('BOSS', x, y - this.h * 1.22);
+        ctx.fillText('BOSS', x, labelY - 8);
       }
 
       this.particles.forEach((p) => {
@@ -1407,11 +1413,12 @@
     if (!currentQ) return;
     const w = W(),
       h = H();
+    // Compact bottom-docked parchment (~14% H) — duel mid-screen stays open
     const bx = w * 0.04,
-      by = h * 0.665,
-      bw = w * 0.92,
-      bh = h * 0.3;
-    drawNine(ui.parchFancy || ui.parch, bx, by, bw, bh, 11);
+      bh = h * 0.14,
+      by = h * 0.845,
+      bw = w * 0.92;
+    drawNine(ui.parchFancy || ui.parch, bx, by, bw, bh, 8);
 
     const catLabel =
       currentQ.cat === 'tense'
@@ -1422,14 +1429,14 @@
             ? 'LINKER'
             : 'COMPLETÁ LA CADENA';
 
-    const rh = Math.max(30, h * 0.058);
-    const rw = Math.min(bw * 0.62, Math.max(180, catLabel.length * h * 0.02 + rh * 2));
+    const rh = Math.max(20, h * 0.036);
+    const rw = Math.min(bw * 0.52, Math.max(140, catLabel.length * h * 0.014 + rh * 2));
     const rx = bx + (bw - rw) / 2;
-    const ry = by - rh * 0.42;
+    const ry = by - rh * 0.5;
     drawHRibbon(ui.ribbonL, ui.ribbonM, ui.ribbonR, rx, ry, rw, rh);
 
     ctx.fillStyle = '#fff8e7';
-    ctx.font = `800 ${Math.round(rh * 0.42)}px Cinzel,serif`;
+    ctx.font = `800 ${Math.round(rh * 0.48)}px Cinzel,serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.45)';
@@ -1437,13 +1444,13 @@
     ctx.fillText(catLabel, rx + rw / 2, ry + rh / 2 + 1);
     ctx.shadowBlur = 0;
 
-    const padX = bw * 0.07;
+    const padX = bw * 0.05;
     const maxW = bw - padX * 2;
-    const maxH = bh * 0.62;
-    let fs = Math.round(h * 0.046);
-    const minFs = Math.round(h * 0.028);
+    const maxH = bh * 0.7;
+    let fs = Math.round(h * 0.032);
+    const minFs = Math.round(h * 0.02);
     let lines = wrapPrompt(currentQ.prompt, maxW, `700 ${fs}px Outfit,sans-serif`);
-    while (fs > minFs && (lines.length * fs * 1.28 > maxH || lines.some((l) => {
+    while (fs > minFs && (lines.length * fs * 1.2 > maxH || lines.some((l) => {
       ctx.font = `700 ${fs}px Outfit,sans-serif`;
       return ctx.measureText(l).width > maxW;
     }))) {
@@ -1454,35 +1461,37 @@
     ctx.font = `700 ${fs}px Outfit,sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const blockH = lines.length * fs * 1.28;
-    let yy = by + bh * 0.52 - blockH / 2 + fs * 0.4;
+    const blockH = lines.length * fs * 1.2;
+    let yy = by + bh * 0.56 - blockH / 2 + fs * 0.3;
     for (let i = 0; i < lines.length; i++) {
       ctx.fillText(lines[i], bx + bw / 2, yy);
-      yy += fs * 1.28;
+      yy += fs * 1.2;
     }
   }
 
   function drawOptions() {
     if (!options.length) return;
-    const btnW = W() * 0.28,
-      btnH = Math.max(42, H() * 0.085);
-    const startX = (W() - options.length * btnW - (options.length - 1) * 14) / 2;
-    const btnY = H() * 0.545;
+    const gap = 10;
+    const btnW = Math.min(W() * 0.3, (W() - gap * (options.length + 1)) / options.length);
+    const btnH = Math.max(28, H() * 0.048);
+    const startX = (W() - options.length * btnW - (options.length - 1) * gap) / 2;
+    // Slim answer strip above the bottom parchment (never mid-fight ~0.54)
+    const btnY = H() * 0.78;
     options.forEach((opt, i) => {
-      const x = startX + i * (btnW + 14);
+      const x = startX + i * (btnW + gap);
       const hover = mouseX > x && mouseX < x + btnW && mouseY > btnY && mouseY < btnY + btnH;
       drawHRibbon(ui.btnL || ui.bannerL, ui.btnM || ui.bannerM, ui.btnR || ui.bannerR, x, btnY, btnW, btnH);
       if (hover) {
         ctx.fillStyle = 'rgba(255,230,150,0.22)';
-        roundRect(ctx, x + 4, btnY + 3, btnW - 8, btnH - 6, 4);
+        roundRect(ctx, x + 3, btnY + 2, btnW - 6, btnH - 4, 3);
         ctx.fill();
         ctx.strokeStyle = '#F5E6A3';
         ctx.lineWidth = 2;
-        roundRect(ctx, x + 2, btnY + 2, btnW - 4, btnH - 4, 5);
+        roundRect(ctx, x + 1, btnY + 1, btnW - 2, btnH - 2, 4);
         ctx.stroke();
       }
       ctx.fillStyle = '#fff';
-      const fs = fitOptionText(opt.word, btnW * 0.82, H() * 0.032);
+      const fs = fitOptionText(opt.word, btnW * 0.84, H() * 0.024);
       ctx.font = `800 ${fs}px monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -1547,7 +1556,7 @@
       enemy.shaking = 18;
       sfx('bad');
       addText(knight.x, knight.y - H() * 0.28, 'FAIL', '#ef4444', 1.2);
-      addText(W() / 2, H() * 0.42, '"' + opt.word + '" no conecta', '#fca5a5');
+      addText(W() / 2, H() * 0.28, '"' + opt.word + '" no conecta', '#fca5a5');
       updateHUD();
       after(900, () => {
         if (knight.state !== 'die') loadQuestion();
@@ -1716,39 +1725,84 @@
 
   function drawStoryPanel(page, hint) {
     drawBG();
-    knight.x = W() * 0.18;
-    knight.y = H() * 0.84;
+    // Knight beside the scroll (left), parchment chapter on the right
+    knight.x = W() * 0.16;
+    knight.y = H() * 0.86;
     knight.update();
     knight.draw();
-    const pw = W() * 0.62,
-      ph = H() * 0.72;
-    const px = W() * 0.32,
+
+    const pw = W() * 0.64,
+      ph = H() * 0.74;
+    const px = W() * 0.3,
       py = (H() - ph) / 2;
-    ctx.fillStyle = 'rgba(6,4,10,0.9)';
-    roundRect(ctx, px, py, pw, ph, 16);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(232,197,71,0.55)';
-    ctx.lineWidth = 2;
-    roundRect(ctx, px, py, pw, ph, 16);
-    ctx.stroke();
+    drawNine(ui.parchFancy || ui.parch, px, py, pw, ph, 14);
+
+    const chapter = String(page.chapter || '');
+    const rh = Math.max(28, H() * 0.055);
+    const rw = Math.min(pw * 0.7, Math.max(160, chapter.length * H() * 0.018 + rh * 2.2));
+    const rx = px + (pw - rw) / 2;
+    const ry = py - rh * 0.35;
+    drawHRibbon(ui.ribbonL, ui.ribbonM, ui.ribbonR, rx, ry, rw, rh);
+    ctx.fillStyle = '#fff8e7';
+    ctx.font = `800 ${Math.round(rh * 0.42)}px Cinzel,serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 2;
+    ctx.fillText(chapter, rx + rw / 2, ry + rh / 2 + 1);
+    ctx.shadowBlur = 0;
+
+    const padX = pw * 0.1;
+    const textX = px + padX;
+    const maxW = pw - padX * 2;
+    let titleFs = Math.round(H() * 0.048);
+    const titleMin = Math.round(H() * 0.028);
+    ctx.font = `900 ${titleFs}px Cinzel,serif`;
+    while (titleFs > titleMin && ctx.measureText(page.title).width > maxW) {
+      titleFs -= 1;
+      ctx.font = `900 ${titleFs}px Cinzel,serif`;
+    }
+    ctx.fillStyle = '#2a1810';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#E8C547';
-    ctx.font = `800 ${H() * 0.022}px Outfit,sans-serif`;
-    ctx.fillText(page.chapter, px + pw * 0.08, py + ph * 0.12);
-    ctx.fillStyle = '#fff';
-    ctx.font = `900 ${H() * 0.048}px Cinzel,serif`;
-    ctx.fillText(page.title, px + pw * 0.08, py + ph * 0.24);
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = `600 ${H() * 0.028}px Outfit,sans-serif`;
-    page.lines.forEach((line, i) => {
-      ctx.fillText(line, px + pw * 0.08, py + ph * 0.4 + i * H() * 0.055);
+    ctx.fillText(page.title, textX, py + ph * 0.2);
+
+    const bodyFs = Math.round(H() * 0.026);
+    const lineGap = H() * 0.048;
+    ctx.font = `600 ${bodyFs}px Outfit,sans-serif`;
+    ctx.fillStyle = '#3b2415';
+    let bodyY = py + ph * 0.34;
+    const bodyBottom = py + ph * 0.78;
+    (page.lines || []).forEach((raw) => {
+      if (bodyY > bodyBottom) return;
+      const line = String(raw || '');
+      if (!line.trim()) {
+        bodyY += lineGap * 0.45;
+        return;
+      }
+      const wrapped = wrapPrompt(line, maxW, `600 ${bodyFs}px Outfit,sans-serif`);
+      wrapped.forEach((wl) => {
+        if (bodyY > bodyBottom) return;
+        ctx.fillText(wl, textX, bodyY);
+        bodyY += lineGap;
+      });
     });
+
+    const hintText = hint || 'Tocá para continuar →';
+    const hrH = Math.max(26, H() * 0.048);
+    const hrW = Math.min(pw * 0.82, Math.max(200, hintText.length * H() * 0.014 + hrH * 2));
+    const hrX = px + (pw - hrW) / 2;
+    const hrY = py + ph - hrH * 0.85;
     const pulse = 0.5 + 0.5 * Math.sin(frameCount * 0.12);
-    ctx.fillStyle = `rgba(232,197,71,${0.55 + pulse * 0.35})`;
-    ctx.font = `700 ${H() * 0.024}px Outfit,sans-serif`;
+    drawHRibbon(ui.ribbonL, ui.ribbonM, ui.ribbonR, hrX, hrY, hrW, hrH);
+    ctx.fillStyle = `rgba(255,248,231,${0.75 + pulse * 0.25})`;
+    ctx.font = `800 ${Math.round(hrH * 0.4)}px Outfit,sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(hint || 'Tocá para continuar →', px + pw / 2, py + ph * 0.9);
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 2;
+    ctx.fillText(hintText, hrX + hrW / 2, hrY + hrH / 2 + 1);
+    ctx.shadowBlur = 0;
   }
 
   function drawStory() {
@@ -1772,12 +1826,14 @@
 
   function drawPlay() {
     drawBG();
+    knight.x = W() * 0.24;
+    knight.y = H() * 0.72;
     if (enemy) {
+      enemy.x = W() * 0.74;
+      enemy.y = H() * 0.72;
       enemy.update();
       enemy.draw();
     }
-    knight.x = W() * 0.24;
-    knight.y = H() * 0.82;
     knight.update();
     knight.draw();
 
