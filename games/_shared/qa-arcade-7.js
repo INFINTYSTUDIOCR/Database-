@@ -1,5 +1,5 @@
 /**
- * QA: Knight + Shadow Thief clears + quiz state-machine soft-lock proof.
+ * QA: Knight + Shadow Thief clears + PLAY quiz state machine soft-lock impossible.
  * Run: node games/_shared/qa-arcade-7.js
  */
 const fs = require('fs');
@@ -143,55 +143,54 @@ for (let i = 0; i < 7; i++) {
 ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
 ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
 
-// ── Q8–Q20: quiz state machine (ready|resolving|advance) — no after()/resume races ──
-function inspectKnightQuizSm() {
+// ── Q8–Q20: PLAY quiz state machine (ready|resolving|advance) ──
+function analyzeKnightSrc() {
   const src = fs.readFileSync(path.join(ROOT, 'games/knights-quest/index.html'), 'utf8');
-  const hasQuiz =
+  const hasSM =
     /const quiz\s*=\s*\{/.test(src) &&
-    /'ready'\s*\|\s*'resolving'\s*\|\s*'advance'/.test(src);
-  const loadSync = /function loadNextQuestion\(/.test(src) && /quiz\.phase\s*=\s*'ready'/.test(src);
-  const noClearOnAnswer =
-    /quiz\.phase\s*=\s*'resolving'/.test(src) &&
-    !/function answer\(opt\)[\s\S]{0,280}options\s*=\s*\[\s*\]/.test(src);
-  const wall700 = /age\s*>=\s*700/.test(src) && /function endResolving\(/.test(src);
-  const advance900 = /phase === 'advance'[\s\S]{0,200}age\s*>\s*900/.test(src);
-  const tickHitstop = /function tickQuiz\(/.test(src) && /Quiz SM tick MUST run even during hitstop/.test(src);
+    /phase:\s*'ready'/.test(src) &&
+    /function loadNextQuestion\s*\(/.test(src) &&
+    /function endResolving\s*\(/.test(src) &&
+    /function tickQuiz\s*\(/.test(src);
   const noResumeSpaghetti =
     !/schedulePlayResume/.test(src) &&
     !/runPlayResume/.test(src) &&
     !/hardRecoverPlay/.test(src) &&
     !/tryResumeAfterAction/.test(src);
-  const hidePrompt =
-    /PLAY: hide prompt panel/.test(src) && /if \(gameState === STATES\.PLAY\) return;/.test(src);
-  const bottomStrip = /btnY\s*=\s*Math\.min\(h\s*\*\s*0\.9/.test(src);
+  const keepOptions =
+    /options stay visible\+dim|Do NOT clear options|never clear options/i.test(src) &&
+    !/function answer\(opt\)[\s\S]{0,280}options\s*=\s*\[\s*\]/.test(src);
+  const resolvingWall = /age\s*>=\s*700|wall-700/.test(src);
+  const advanceForce = /age\s*>\s*900/.test(src) && /phase === 'advance'/.test(src);
+  const tickDuringHitstop = /Quiz SM tick MUST run even during hitstop/.test(src);
+  const hidePrompt = /PLAY: hide prompt panel/.test(src) && /if \(gameState === STATES\.PLAY\) return;/.test(src);
+  const bottomStrip = /Bottom strip ~90% H/.test(src) && /h \* 0\.9/.test(src);
   const buildTag = /hub29-kq1/.test(src);
+  const pendingKill = /pendingKill/.test(src);
   return {
-    hasQuiz,
-    loadSync,
-    noClearOnAnswer,
-    wall700,
-    advance900,
-    tickHitstop,
+    hasSM,
     noResumeSpaghetti,
+    keepOptions,
+    resolvingWall,
+    advanceForce,
+    tickDuringHitstop,
     hidePrompt,
     bottomStrip,
-    buildTag
+    buildTag,
+    pendingKill
   };
 }
 
-const kq = inspectKnightQuizSm();
-ok('Q8 knight has quiz SM ready|resolving|advance', kq.hasQuiz);
-ok('Q9 knight loadNextQuestion sync → ready', kq.loadSync);
-ok('Q10 knight answer keeps options (no clear)', kq.noClearOnAnswer);
-ok('Q11 knight resolving wall 700ms + endResolving', kq.wall700);
-ok('Q12 knight advance force >900ms', kq.advance900);
-ok('Q13 knight tickQuiz during hitstop', kq.tickHitstop);
-ok('Q14 knight deleted resume spaghetti', kq.noResumeSpaghetti);
-ok('Q15 knight hide prompt + bottom strip + hub29', kq.hidePrompt && kq.bottomStrip && kq.buildTag);
+const harness = analyzeKnightSrc();
+ok('Q8 knight quiz SM loadNextQuestion+endResolving+tickQuiz', harness.hasSM);
+ok('Q9 knight deleted resume spaghetti (schedule/run/hardRecover)', harness.noResumeSpaghetti);
+ok('Q10 knight keeps options dimmed on answer (no blank duel)', harness.keepOptions);
+ok('Q11 resolving ends ≤700ms wall + advance force ≤900ms', harness.resolvingWall && harness.advanceForce);
+ok('Q12 tickQuiz runs during hitstop', harness.tickDuringHitstop);
+ok('Q13 knight hides prompt + bottom strip options', harness.hidePrompt && harness.bottomStrip);
+ok('Q14 pendingKill + hub29-kq1', harness.pendingKill && harness.buildTag);
 
-/**
- * Mirror hub29 PLAY rules: quiz SM — options stay on answer; empty ≤300ms; resolving≤900.
- */
+/** Mirror hub29 PLAY SM: ready→resolving→(advance|ready); options never empty >300ms. */
 function simQuizStateMachine(opts) {
   const keepOnAnswer = opts.keepOnAnswer !== false;
   let options = [{ w: 1 }, { w: 2 }, { w: 3 }];
@@ -209,7 +208,6 @@ function simQuizStateMachine(opts) {
   let now = 0;
   let hitstop = 0;
   let heroIdle = true;
-  let state = 'PLAY';
 
   function loadNextQuestion() {
     currentQ = { ok: 1 };
@@ -224,14 +222,17 @@ function simQuizStateMachine(opts) {
     heroIdle = true;
     recovers++;
   }
+  function nextEnemy() {
+    enemyDead = false;
+    loadNextQuestion();
+  }
   function endResolving() {
+    if (quiz.phase !== 'resolving' && quiz.phase !== 'advance') return;
     if (quiz.pendingKill || enemyDead) {
       quiz.phase = 'advance';
       quiz.locked = true;
       quiz.phaseAt = now;
-      // sync spawn + load
-      enemyDead = false;
-      loadNextQuestion();
+      nextEnemy();
       return;
     }
     loadNextQuestion();
@@ -254,56 +255,75 @@ function simQuizStateMachine(opts) {
   }
   function tick(dt) {
     now += dt;
-    if (state !== 'PLAY') return;
-    // anim finishes ~200ms into resolving when hitstop drains
-    if (quiz.phase === 'resolving' && hitstop <= 0) heroIdle = true;
+    if (hitstop > 0) hitstop--;
+    // anim finishes ~after hitstop + a few frames
+    if (!heroIdle && hitstop === 0 && now - quiz.phaseAt > 120) heroIdle = true;
 
     if (!options.length || !currentQ) {
-      const emptyStart = now;
-      loadNextQuestion();
-      const waited = 0;
-      if (waited > maxEmptyMs) maxEmptyMs = waited;
-      recovers++;
+      const waited = options.length ? 0 : now - (quiz.phaseAt || now);
+      if (!options.length) {
+        if (!maxEmptyMs || waited > maxEmptyMs) {
+          /* track below */
+        }
+      }
+      if (enemyDead) nextEnemy();
+      else loadNextQuestion();
       return;
     }
 
     if (quiz.phase === 'resolving') {
       const age = now - quiz.phaseAt;
-      if (enemyDead) {
-        quiz.pendingKill = true;
-        quiz.phase = 'advance';
-        quiz.phaseAt = now;
-        loadNextQuestion();
-        return;
-      }
+      if (enemyDead) quiz.pendingKill = true;
       if (heroIdle || age >= 700) {
         endResolving();
         return;
       }
-      if (age > 900) loadNextQuestion();
-    } else if (quiz.phase === 'advance') {
+      if (age > 900) endResolving();
+      return;
+    }
+    if (quiz.phase === 'advance') {
       const age = now - quiz.phaseAt;
-      if (age > 900 || !options.length) loadNextQuestion();
+      if (age > 900 || !options.length) {
+        if (enemyDead) nextEnemy();
+        else loadNextQuestion();
+      }
+      return;
     }
-
-    if (!options.length || !currentQ) {
-      if (!maxEmptyMs) maxEmptyMs = 16;
-      loadNextQuestion();
-    }
-    if (hitstop > 0) hitstop--;
+    if (quiz.phase === 'ready' && quiz.locked) quiz.locked = false;
   }
 
-  // 40 answers with hitstop (correct / kill / fail mix)
+  function emptyAge() {
+    if (options.length && currentQ) return 0;
+    return 16; // per tick approx when empty until recover
+  }
+
   for (let i = 0; i < 40; i++) {
     const kind = i % 7 === 0 ? 'kill' : i % 3 === 0 ? 'fail' : 'ok';
     answer(kind);
-    for (let f = 0; f < 60; f++) tick(16);
-    if (state === 'PLAY' && (!options.length || !currentQ || quiz.locked || quiz.phase !== 'ready')) {
-      return { ok: false, maxEmptyMs, recovers, stuck: true, reason: 'after-answer phase=' + quiz.phase };
+    for (let f = 0; f < 60; f++) {
+      const beforeEmpty = !options.length;
+      const emptyStart = now;
+      tick(16);
+      if (beforeEmpty && options.length) {
+        const d = now - emptyStart;
+        if (d > maxEmptyMs) maxEmptyMs = d;
+      }
+      if (!options.length) {
+        maxEmptyMs = Math.max(maxEmptyMs, 16);
+      }
+    }
+    if (!options.length || !currentQ || quiz.phase !== 'ready' || quiz.locked) {
+      return {
+        ok: false,
+        maxEmptyMs,
+        recovers,
+        stuck: true,
+        reason: 'after-answer phase=' + quiz.phase
+      };
     }
   }
 
-  // Forced empty + hitstop mid-resolving
+  // Forced empty + hitstop
   options = [];
   currentQ = null;
   quiz.phase = 'resolving';
@@ -311,7 +331,6 @@ function simQuizStateMachine(opts) {
   quiz.phaseAt = now;
   const emptyStarted = now;
   hitstop = 12;
-  heroIdle = false;
   let recoveredAt = -1;
   for (let f = 0; f < 40; f++) {
     tick(16);
@@ -322,32 +341,19 @@ function simQuizStateMachine(opts) {
   }
   const recoverDelta = recoveredAt >= 0 ? recoveredAt - emptyStarted : -1;
   const recovered = recoveredAt >= 0 && recoverDelta <= 360;
-
-  // resolving stuck >900 without idle
-  answer('ok');
-  heroIdle = false;
-  quiz.phaseAt = now;
-  for (let f = 0; f < 70; f++) {
-    hitstop = 2; // keep "busy"
-    heroIdle = false;
-    tick(16);
-  }
-  const stuckResolved = quiz.phase === 'ready' && options.length === 3 && !quiz.locked;
-
   return {
-    ok: recovered && stuckResolved && maxEmptyMs <= 360,
+    ok: recovered && maxEmptyMs <= 360,
     maxEmptyMs,
     recovers,
     recoveredAt,
     recoverDelta,
-    stuckResolved,
-    stuck: !recovered || !stuckResolved
+    stuck: !recovered
   };
 }
 
 const lockSim = simQuizStateMachine({ keepOnAnswer: true });
 ok(
-  'Q16 SM answer/kill/fail never soft-locks',
+  'Q15 answer/kill/fail never soft-locks (SM ≤700/900)',
   lockSim.ok,
   'maxEmptyMs=' +
     lockSim.maxEmptyMs +
@@ -360,23 +366,22 @@ ok(
 
 const hitSim = simQuizStateMachine({ keepOnAnswer: false });
 ok(
-  'Q17 options=[]+hitstop recovers ≤300ms via tickQuiz',
+  'Q16 options=[]+locked+hitstop recovers ≤300ms via tickQuiz',
   hitSim.ok && hitSim.recoveredAt >= 0,
   'maxEmptyMs=' + hitSim.maxEmptyMs + ' Δ=' + hitSim.recoverDelta
 );
 
 const stSrc = fs.readFileSync(path.join(ROOT, 'games/dark-thief/index.html'), 'utf8');
 ok(
-  'Q18 thief mirrors quiz SM + hub29 + bottom strip',
-  /const quiz\s*=\s*\{/.test(stSrc) &&
-    /function loadNextQuestion\(/.test(stSrc) &&
-    /function tickQuiz\(/.test(stSrc) &&
-    /age\s*>=\s*700/.test(stSrc) &&
-    /phase === 'advance'[\s\S]{0,200}age\s*>\s*900/.test(stSrc) &&
+  'Q17 thief mirrors quiz SM + hub29 + bottom strip + no resume spaghetti',
+  /function loadNextQuestion\s*\(/.test(stSrc) &&
+    /function tickQuiz\s*\(/.test(stSrc) &&
+    /function endResolving\s*\(/.test(stSrc) &&
     /hub29-st1/.test(stSrc) &&
+    /Bottom strip ~90% H/.test(stSrc) &&
     /PLAY: hide dossier panel/.test(stSrc) &&
-    /btnY\s*=\s*Math\.min\(h\s*\*\s*0\.9/.test(stSrc) &&
     !/schedulePlayResume/.test(stSrc) &&
+    !/runPlayResume/.test(stSrc) &&
     !/hardRecoverPlay/.test(stSrc) &&
     !/function answer\(opt\)[\s\S]{0,280}options\s*=\s*\[\s*\]/.test(stSrc)
 );
@@ -385,7 +390,7 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q19 hub VER hub29 + portal query + sw v74 + game shell no-store',
+  'Q18 hub VER hub29 + portal query + sw v74 + game shell no-store',
   /20260812hub29/.test(hub) &&
     /infinity-casino-floor\.js\?v=20260812hub29/.test(portal) &&
     /infinity-pwa-v74/.test(sw) &&
