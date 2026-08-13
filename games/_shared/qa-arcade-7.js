@@ -494,22 +494,30 @@ ok('bonus assets present', assetsOk);
 
 const jillQuiz = fs.readFileSync(path.join(ROOT, 'js/jill-quiz.js'), 'utf8');
 ok(
-  'Q22 rapid drill hit/miss Mini Knight FX + run2 + no kaboom header',
+  'Q22 rapid drill parked stage under Seguir + idle FX + no kaboom header',
   /function playRapidDrillFx/.test(jillQuiz) &&
-    /jill-rapid-fx-lane/.test(jillQuiz) &&
+    /id="jill-rapid-fx"/.test(jillQuiz) &&
+    /function clearRapidFx/.test(jillQuiz) &&
+    /jill-rapid-fx-actor/.test(jillQuiz) &&
+    /pointer-events:none/.test(jillQuiz) &&
     /prefers-reduced-motion/.test(jillQuiz) &&
+    /\/idle\//.test(jillQuiz) &&
+    !/jill-rapid-fx-lane/.test(jillQuiz) &&
+    !/jillRapidDashL/.test(jillQuiz) &&
+    !/jillRapidDashR/.test(jillQuiz) &&
     /games\/tense-raiders\/assets\/chars\//.test(jillQuiz) &&
     /persistRapid/.test(jillQuiz) &&
-    /jill-quiz\.js\?v=20260813run2/.test(portal) &&
+    /jill-quiz\.js\?v=20260813park2/.test(portal) &&
     /Foundations · Piso/.test(portal) &&
     !/Kaboom · Foundations/.test(portal) &&
     !/openInfinityArcadeFullscreen\('Rapid Drill', 'Kaboom/.test(portal) &&
     !/RAPID DRILL · KABOOM/.test(portal) &&
-    exists('games/tense-raiders/assets/chars/goblin/run/0.png') &&
-    exists('games/tense-raiders/assets/chars/goblin/run/7.png') &&
-    exists('games/tense-raiders/assets/chars/skeleton/run/0.png') &&
-    exists('games/tense-raiders/assets/chars/knight/run/0.png') &&
-    exists('games/tense-raiders/assets/chars/knight/run/7.png')
+    exists('games/tense-raiders/assets/chars/goblin/idle/0.png') &&
+    exists('games/tense-raiders/assets/chars/goblin/idle/9.png') &&
+    exists('games/tense-raiders/assets/chars/skeleton/idle/0.png') &&
+    exists('games/tense-raiders/assets/chars/knight/idle/0.png') &&
+    exists('games/tense-raiders/assets/chars/knight/idle/9.png') &&
+    exists('games/tense-raiders/assets/chars/knight/attack/0.png')
 );
 
 const failed = results.filter((r) => !r.pass);

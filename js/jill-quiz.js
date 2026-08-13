@@ -92,24 +92,23 @@
       + '#inf-arcade-fs-body.is-rapid-fit .jill-pressure-track{height:34px;margin-bottom:6px;}'
       + '}'
       + '.jill-rapid-shell-fit,.jill-rapid-shell{position:relative;}'
-      + '#jill-rapid-fx-lane{position:absolute;left:8px;right:8px;top:18%;height:72px;pointer-events:none;overflow:hidden;z-index:3;}'
       + '#inf-arcade-fs-body.is-rapid-fit #jill-kaboom-opts,.jill-rapid-shell-fit #jill-kaboom-opts{position:relative;z-index:5;}'
       + '#inf-arcade-fs-body.is-rapid-fit .jill-kaboom-opt{position:relative;z-index:5;}'
-      + '.jill-rapid-fx-runner{position:absolute;bottom:0;left:-90px;background-size:contain;background-repeat:no-repeat;background-position:center bottom;image-rendering:pixelated;image-rendering:crisp-edges;will-change:left,transform;filter:drop-shadow(0 4px 6px rgba(0,0,0,.45));}'
-      + '.jill-rapid-fx-runner.is-ltr{animation:jillRapidDashL 1s linear forwards;}'
-      + '.jill-rapid-fx-runner.is-rtl{animation:jillRapidDashR 1s linear forwards;}'
-      + '.jill-rapid-fx-runner.is-knight{filter:drop-shadow(0 0 12px rgba(251,191,36,.55)) drop-shadow(0 4px 6px rgba(0,0,0,.45));}'
-      + '@keyframes jillRapidDashL{from{left:-90px}to{left:calc(100% + 12px)}}'
-      + '@keyframes jillRapidDashR{from{left:calc(100% + 12px);transform:scaleX(-1)}to{left:-90px;transform:scaleX(-1)}}'
-      + '@keyframes jillRapidHitFlash{0%{opacity:.55}100%{opacity:0}}'
-      + '.jill-rapid-fx-flash{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(251,191,36,.28),transparent);animation:jillRapidHitFlash .45s ease-out forwards;}'
-      + '@media(prefers-reduced-motion:reduce){#jill-rapid-fx-lane,.jill-rapid-fx-runner,.jill-rapid-fx-flash{display:none!important;animation:none!important}}';
+      + '#jill-rapid-fx{pointer-events:none;flex:1 1 auto;min-height:140px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:18px;overflow:hidden;margin-top:4px;}'
+      + '#inf-arcade-fs-body.is-rapid-fit #jill-rapid-fx{min-height:0;}'
+      + '@keyframes jillRapidFxIn{from{opacity:0}to{opacity:1}}'
+      + '.jill-rapid-fx-actor{flex:0 0 auto;height:100%;width:auto;aspect-ratio:1/1;max-height:min(180px,100%);max-width:min(180px,46%);min-height:0;background-size:contain;background-repeat:no-repeat;background-position:center bottom;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));animation:jillRapidFxIn .35s ease-out both;}'
+      + '.jill-rapid-fx-actor.is-knight{max-height:min(188px,100%);max-width:min(188px,52%);filter:drop-shadow(0 0 14px rgba(251,191,36,.55)) drop-shadow(0 6px 10px rgba(0,0,0,.45));}'
+      + '@media(max-width:640px){#jill-rapid-fx{min-height:88px;gap:8px}#inf-arcade-fs-body.is-rapid-fit #jill-rapid-fx{min-height:0}.jill-rapid-fx-actor,.jill-rapid-fx-actor.is-knight{max-height:min(148px,100%)}}'
+      + '@media(prefers-reduced-motion:reduce){.jill-rapid-fx-actor{animation:none!important}}';
     document.head.appendChild(st);
   }
 
   var RAPID_FX_BASE = 'games/tense-raiders/assets/chars/';
-  var RAPID_FX_FRAMES = { goblin: 8, skeleton: 8, knight: 8 };
+  var RAPID_FX_IDLE = { goblin: 10, skeleton: 10, knight: 10 };
+  var RAPID_FX_ATTACK = { knight: 8 };
   var _rapidFxPreloaded = false;
+  var _rapidFxTimers = [];
 
   function prefersRapidFxOff() {
     try {
@@ -117,96 +116,101 @@
     } catch (e) { return false; }
   }
 
+  function trackRapidFxTimer(id) {
+    _rapidFxTimers.push(id);
+    return id;
+  }
+
+  function clearRapidFx() {
+    _rapidFxTimers.forEach(function (id) {
+      clearInterval(id);
+      clearTimeout(id);
+    });
+    _rapidFxTimers = [];
+    var stage = document.getElementById('jill-rapid-fx');
+    if (stage) {
+      stage.innerHTML = '';
+      stage.removeAttribute('data-fx');
+    }
+  }
+
+  function rapidFxUrl(who, folder, i) {
+    return RAPID_FX_BASE + who + '/' + folder + '/' + i + '.png?v=rd2';
+  }
+
   function preloadRapidFx() {
     if (_rapidFxPreloaded) return;
     _rapidFxPreloaded = true;
     ['goblin', 'skeleton', 'knight'].forEach(function (who) {
-      var n = RAPID_FX_FRAMES[who] || 8;
+      var n = RAPID_FX_IDLE[who] || 10;
       var i;
       for (i = 0; i < n; i++) {
         var im = new Image();
-        im.src = RAPID_FX_BASE + who + '/run/' + i + '.png?v=rd1';
+        im.src = RAPID_FX_BASE + who + '/idle/' + i + '.png?v=rd2';
       }
     });
+    var a;
+    for (a = 0; a < (RAPID_FX_ATTACK.knight || 8); a++) {
+      var at = new Image();
+      at.src = RAPID_FX_BASE + 'knight/attack/' + a + '.png?v=rd2';
+    }
   }
 
-  function ensureRapidFxLane() {
-    var host = document.querySelector('.jill-rapid-shell-fit')
-      || document.querySelector('.jill-rapid-shell')
-      || document.getElementById('jill-kaboom-stage');
-    if (!host) return null;
-    var lane = document.getElementById('jill-rapid-fx-lane');
-    if (!lane) {
-      lane = document.createElement('div');
-      lane.id = 'jill-rapid-fx-lane';
-      lane.setAttribute('aria-hidden', 'true');
+  function paintRapidActor(el, who, folder, fi) {
+    el.style.backgroundImage = 'url("' + rapidFxUrl(who, folder, fi) + '")';
+  }
+
+  function spawnRapidActor(who, startFolder) {
+    var el = document.createElement('div');
+    el.className = 'jill-rapid-fx-actor' + (who === 'knight' ? ' is-knight' : '');
+    var reduced = prefersRapidFxOff();
+    var idleN = RAPID_FX_IDLE[who] || 10;
+    paintRapidActor(el, who, 'idle', 0);
+    if (reduced) return el;
+
+    function loopIdle() {
+      var fi = 0;
+      paintRapidActor(el, who, 'idle', 0);
+      trackRapidFxTimer(setInterval(function () {
+        fi = (fi + 1) % idleN;
+        paintRapidActor(el, who, 'idle', fi);
+      }, 140));
     }
-    if (lane.parentNode !== host) host.appendChild(lane);
-    var qbox = host.querySelector('.jill-qbox') || document.querySelector('.jill-qbox');
-    if (qbox) {
-      var sr = host.getBoundingClientRect();
-      var qr = qbox.getBoundingClientRect();
-      var top = Math.max(4, Math.round(qr.top - sr.top));
-      lane.style.top = top + 'px';
-      lane.style.height = Math.min(88, Math.max(56, Math.round(qr.height))) + 'px';
+
+    if (startFolder === 'attack' && who === 'knight') {
+      var atkN = RAPID_FX_ATTACK.knight || 8;
+      var ai = 0;
+      paintRapidActor(el, who, 'attack', 0);
+      var iv = trackRapidFxTimer(setInterval(function () {
+        ai += 1;
+        if (ai >= atkN) {
+          clearInterval(iv);
+          loopIdle();
+          return;
+        }
+        paintRapidActor(el, who, 'attack', ai);
+      }, 90));
     } else {
-      lane.style.top = '18%';
-      lane.style.height = '72px';
+      loopIdle();
     }
-    return lane;
+    return el;
   }
 
   function playRapidDrillFx(kind) {
-    if (prefersRapidFxOff()) return;
     preloadRapidFx();
-    var lane = ensureRapidFxLane();
-    if (!lane) return;
-    lane.innerHTML = '';
-    var runners;
+    clearRapidFx();
+    var stage = document.getElementById('jill-rapid-fx');
+    if (!stage) return;
+    stage.setAttribute('data-fx', kind);
     if (kind === 'hit') {
-      var flash = document.createElement('div');
-      flash.className = 'jill-rapid-fx-flash';
-      lane.appendChild(flash);
-      runners = [{ who: 'knight', dir: 1, delay: 0, size: 78 }];
-    } else {
-      var n = 1 + Math.floor(Math.random() * 3);
-      runners = [];
-      var i;
-      for (i = 0; i < n; i++) {
-        runners.push({
-          who: Math.random() < 0.7 ? 'goblin' : 'skeleton',
-          dir: Math.random() < 0.5 ? 1 : -1,
-          delay: i * 110,
-          size: 62 + Math.floor(Math.random() * 16)
-        });
-      }
+      stage.appendChild(spawnRapidActor('knight', prefersRapidFxOff() ? 'idle' : 'attack'));
+      return;
     }
-    var token = String(Date.now());
-    lane.setAttribute('data-fx', token);
-    runners.forEach(function (r) {
-      var el = document.createElement('div');
-      el.className = 'jill-rapid-fx-runner ' + (r.dir < 0 ? 'is-rtl' : 'is-ltr') + (r.who === 'knight' ? ' is-knight' : '');
-      el.style.width = r.size + 'px';
-      el.style.height = r.size + 'px';
-      el.style.animationDelay = r.delay + 'ms';
-      el.style.bottom = (r.who === 'knight' ? '0' : String(Math.floor(Math.random() * 10))) + 'px';
-      var frames = RAPID_FX_FRAMES[r.who] || 8;
-      var fi = 0;
-      function paint() {
-        el.style.backgroundImage = 'url("' + RAPID_FX_BASE + r.who + '/run/' + fi + '.png?v=rd1")';
-        fi = (fi + 1) % frames;
-      }
-      paint();
-      var iv = setInterval(paint, 70);
-      setTimeout(function () {
-        clearInterval(iv);
-        if (el.parentNode) el.parentNode.removeChild(el);
-      }, 1100 + r.delay);
-      lane.appendChild(el);
-    });
-    setTimeout(function () {
-      if (lane.getAttribute('data-fx') === token) lane.innerHTML = '';
-    }, 1500);
+    var n = 1 + Math.floor(Math.random() * 2);
+    var i;
+    for (i = 0; i < n; i++) {
+      stage.appendChild(spawnRapidActor(Math.random() < 0.7 ? 'goblin' : 'skeleton', 'idle'));
+    }
   }
 
   function renderPressureScene(state) {
@@ -1151,7 +1155,7 @@
         + '<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(134,239,172,0.18);border:1px solid rgba(134,239,172,0.55);color:#bbf7d0;font-weight:800;font-size:14px;padding:10px 14px;border-radius:12px;max-width:100%;">'
         + '<span>✓</span><span style="text-align:left;line-height:1.35;">' + esc(q.options[q.answer]) + '</span>'
         + '</div></div>'
-        + '<div style="text-align:center;padding:4px 0 8px;">'
+        + '<div class="jill-rapid-feedback-copy" style="text-align:center;padding:4px 0 8px;flex:0 0 auto;">'
         + head
         + '<div style="font-size:18px;font-weight:900;color:' + titleColor + ';margin-bottom:8px;">' + title + '</div>'
         + (q.explain ? '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain) + '</div>' : '')
@@ -1161,21 +1165,26 @@
         + (opts.fitScreen ? '' : ('<div style="margin-top:12px;">'
         + '<button type="button" onclick="' + (isMini ? 'jillCloseMiniKaboom()' : 'portalCloseRapidDrill()') + '" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;">Salir</button>'
         + '</div>'))
-        + '</div></div>';
+        + '</div>'
+        + '<div id="jill-rapid-fx" aria-hidden="true"></div>'
+        + '</div>';
     }
 
     function bindNextButton() {
       var nextBtn = document.getElementById('jill-kaboom-next');
       if (!nextBtn) return;
       nextBtn.addEventListener('click', function () {
+        clearRapidFx();
         state.idx++;
         state.answered = false;
         if (state.idx >= state.quiz.length) renderResults();
         else showQuestion();
       });
-      try {
-        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-      } catch (e) { /* ignore */ }
+      if (!opts.fitScreen) {
+        try {
+          nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        } catch (e) { /* ignore */ }
+      }
     }
 
     function showAnswerFeedback(wasCorrect, picked, mode) {
@@ -1199,13 +1208,16 @@
       playRapidDrillFx(wasCorrect && mode !== 'timeout' ? 'hit' : 'miss');
       persistRapid();
       bindNextButton();
-      try {
-        var top = rootEl.querySelector('#jill-kaboom-inner');
-        if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch (e) { /* ignore */ }
+      if (!opts.fitScreen) {
+        try {
+          var top = rootEl.querySelector('#jill-kaboom-inner');
+          if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (e) { /* ignore */ }
+      }
     }
 
     function renderResults() {
+      clearRapidFx();
       clearTimer();
       if (!isMini && typeof InfinityArcadeRun !== 'undefined') InfinityArcadeRun.clearRun('rapid');
       var total = state.quiz.length;
@@ -1368,6 +1380,7 @@
     }
 
     function showQuestion() {
+      clearRapidFx();
       rootEl.innerHTML = renderGrid();
       bindOptions();
       startTimer();
@@ -1384,16 +1397,15 @@
         + '</div>';
     }
     rootEl.innerHTML = fit
-      ? ('<div class="jill-rapid-shell jill-rapid-shell-fit">' + hud + '<div id="jill-rapid-fx-lane" aria-hidden="true"></div><div id="jill-kaboom-stage"></div></div>')
+      ? ('<div class="jill-rapid-shell jill-rapid-shell-fit">' + hud + '<div id="jill-kaboom-stage"></div></div>')
       : ('<div class="jill-rapid-shell" style="background:rgba(88,28,135,0.35);border:1px solid rgba(167,139,250,0.45);border-radius:16px;padding:14px;">'
         + '<div style="text-align:center;font-size:12px;color:#e9d5ff;font-weight:700;margin-bottom:6px;">' + esc(brandLine) + '</div>'
         + '<div style="text-align:center;font-size:10px;color:#fcd34d;margin-bottom:10px;font-weight:700;">' + (typeof InfinityArcadeRun !== 'undefined' ? InfinityArcadeRun.challenge() : 'No es examen. Es el piso.') + '</div>'
-        + '<div id="jill-rapid-fx-lane" aria-hidden="true"></div><div id="jill-kaboom-stage"></div></div>');
+        + '<div id="jill-kaboom-stage"></div></div>');
     var stage = document.getElementById('jill-kaboom-stage');
     preloadRapidFx();
     rootEl = stage;
     showQuestion();
-    ensureRapidFxLane();
   }
 
   global.JillQuiz = {
