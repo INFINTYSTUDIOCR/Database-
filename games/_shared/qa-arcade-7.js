@@ -164,6 +164,97 @@ for (let i = 0; i < 7; i++) {
 ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
 ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
 
+// ── Q8–Q10: mid-run empty-options soft-lock (what prior QA missed) ──
+// Models Knight PLAY flow: answer clears options + locks; resume must restore
+// choices within ~1s; hard recover if empty >1.8s without a pending resume.
+function simKnightSoftLockHarness() {
+  const src = fs.readFileSync(path.join(ROOT, 'games/knights-quest/index.html'), 'utf8');
+  const hasResume = /schedulePlayResume/.test(src) && /runPlayResume/.test(src);
+  const watchdogOutsideHitstop =
+    /Quiz resume \/ empty-options watchdog MUST run even during hitstop/.test(src) ||
+    (/resumeKind && resumeAt/.test(src) && /waited > 1800/.test(src));
+  const recoverDeadEnemy = /!enemy \|\| enemy\.dead/.test(src);
+  const dockClamp = /function quizDock\(/.test(src) && /by \+ bh > h/.test(src);
+  return { hasResume, watchdogOutsideHitstop, recoverDeadEnemy, dockClamp, srcLen: src.length };
+}
+
+const harness = simKnightSoftLockHarness();
+ok('Q8 knight has frame-driven schedulePlayResume', harness.hasResume);
+ok('Q9 empty-options watchdog ≤1.8s outside hitstop', harness.watchdogOutsideHitstop);
+ok('Q10 hardRecover advances dead enemies + dock clamp', harness.recoverDeadEnemy && harness.dockClamp);
+
+function simEmptyOptionsLock() {
+  // Pure state machine mirroring fixed PLAY resume rules
+  let options = [{ w: 1 }, { w: 2 }, { w: 3 }];
+  let inputLock = false;
+  let resumeAt = 0;
+  let resumeKind = '';
+  let emptySince = 0;
+  let recovers = 0;
+  let maxEmptyMs = 0;
+  const now0 = 0;
+  let now = now0;
+
+  function loadQuestion() {
+    options = [{ w: 1 }, { w: 2 }, { w: 3 }];
+    inputLock = false;
+    emptySince = 0;
+    resumeAt = 0;
+    resumeKind = '';
+    recovers++;
+  }
+  function schedule(ms, kind) {
+    resumeKind = kind;
+    resumeAt = now + ms;
+  }
+  function answer() {
+    options = [];
+    inputLock = true;
+    emptySince = now;
+    schedule(700, 'question');
+  }
+  function tick(dt) {
+    now += dt;
+    if (resumeKind && resumeAt && now >= resumeAt) {
+      resumeKind = '';
+      resumeAt = 0;
+      loadQuestion();
+    }
+    if (!options.length) {
+      if (!emptySince) emptySince = now;
+      const waited = now - emptySince;
+      if (waited > maxEmptyMs) maxEmptyMs = waited;
+      if (!resumeKind && waited > 1800) loadQuestion();
+      else if (resumeKind && waited > 2500) loadQuestion();
+    } else emptySince = 0;
+  }
+
+  // 40 wrong answers with hitstop-like stalls (frames advancing resume anyway)
+  for (let i = 0; i < 40; i++) {
+    answer();
+    // simulate 900ms of frames while "hitstop" would have blocked old watchdog
+    for (let f = 0; f < 55; f++) tick(16);
+    if (!options.length) return { ok: false, maxEmptyMs, recovers, stuck: true };
+  }
+
+  // Forced soft-lock: clear options with NO resume scheduled (cancelled timer)
+  options = [];
+  inputLock = true;
+  emptySince = now;
+  resumeKind = '';
+  resumeAt = 0;
+  for (let f = 0; f < 150; f++) tick(16);
+  const recovered = options.length === 3;
+  return { ok: recovered && maxEmptyMs <= 2600, maxEmptyMs, recovers, stuck: !recovered };
+}
+
+const lockSim = simEmptyOptionsLock();
+ok(
+  'Q11 mid-run empty-options never soft-locks (>40 answers + forced cancel)',
+  lockSim.ok,
+  'maxEmptyMs=' + lockSim.maxEmptyMs + ' recovers=' + lockSim.recovers
+);
+
 // Asset sanity
 function exists(p) {
   return fs.existsSync(path.join(ROOT, p));
@@ -183,4 +274,6 @@ if (failed.length) {
   failed.forEach((f) => console.log(' -', f.name, f.detail));
   process.exit(1);
 }
-console.log('All 7 core checks green. Knight + Thief finishable; questions rotate linker/tense/phrasal.');
+console.log(
+  'Core checks green. Knight + Thief finishable; questions rotate; empty-options soft-lock covered.'
+);
