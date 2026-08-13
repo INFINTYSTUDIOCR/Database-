@@ -96,7 +96,7 @@
 </div>
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
-<script src="../_shared/infinity-quiz-bank.js?v=q1"></script>
+<script src="../_shared/infinity-quiz-bank.js?v=q2"></script>
 <script>
 (async function () {
   const canvas = document.getElementById('c');
@@ -632,12 +632,13 @@
     return id;
   }
   function schedulePlayResume(ms, kind) {
-    resumeKind = kind === 'nextEnemy' ? 'nextEnemy' : 'question';
+    const nextKind = kind === 'nextEnemy' ? 'nextEnemy' : 'question';
     const due = performance.now() + Math.max(0, ms || 0);
-    // Keep the soonest deadline if multiple resumes race
-    resumeAt = resumeAt && resumeKind === (kind === 'nextEnemy' ? 'nextEnemy' : 'question')
-      ? Math.min(resumeAt, due)
-      : due;
+    if (resumeAt && resumeKind === nextKind) resumeAt = Math.min(resumeAt, due);
+    else {
+      resumeKind = nextKind;
+      resumeAt = due;
+    }
     if (!emptyOptionsSince) emptyOptionsSince = performance.now();
   }
   function bumpFlow() {
@@ -1381,9 +1382,11 @@
       else loadQuestion();
     } catch (e) {
       console.error('[KQ resume]', e);
-      try {
-        loadQuestion();
-      } catch (_) {}
+      forceFallbackQuestion();
+    }
+    if (gameState === STATES.PLAY && knight.state !== 'die' && (!options.length || !currentQ)) {
+      console.error('[KQ resume] still empty — forcing fallback');
+      forceFallbackQuestion();
     }
   }
 
@@ -1557,7 +1560,20 @@
   }
 
   function drawOptions() {
-    if (!options.length) return;
+    if (!options.length) {
+      if (gameState === STATES.PLAY && knight.state !== 'die' && resumeKind) {
+        const { w, h, btnY, btnH, bx, bw } = quizDock();
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        roundRect(ctx, bx + bw * 0.18, btnY, bw * 0.64, btnH, 6);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,248,231,0.9)';
+        ctx.font = `700 ${Math.round(h * 0.022)}px Outfit,sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(resumeKind === 'nextEnemy' ? 'Siguiente enemigo…' : 'Nueva pregunta…', w / 2, btnY + btnH / 2);
+      }
+      return;
+    }
     const { w, h, btnY, btnH } = quizDock();
     const gap = 10;
     const btnW = Math.min(w * 0.3, (w - gap * (options.length + 1)) / options.length);
@@ -1661,12 +1677,20 @@
       const idx = Math.min(Math.floor((roundCount - 1) / 2), 4);
       type = ENEMY_TYPES[idx];
     }
-    enemy = new Enemy(type);
-    if (type.boss) {
-      toast('⚠ BOSS ROUND', 1200);
-      sfx('boss');
+    try {
+      enemy = new Enemy(type);
+      if (type.boss) {
+        toast('⚠ BOSS ROUND', 1200);
+        try {
+          sfx('boss');
+        } catch (_) {}
+      }
+    } catch (err) {
+      console.error('[KQ nextEnemy]', err);
+      enemy = new Enemy(ENEMY_TYPES[0]);
     }
     loadQuestion();
+    if (gameState === STATES.PLAY && knight.state !== 'die' && !options.length) forceFallbackQuestion();
   }
 
   function updateHUD() {
@@ -2133,12 +2157,12 @@
         if (resumeKind && resumeAt && performance.now() >= resumeAt) {
           runPlayResume('scheduled');
         }
-        if (!options.length) {
+        if (!options.length || !currentQ) {
           if (!emptyOptionsSince) emptyOptionsSince = performance.now();
           const waited = performance.now() - emptyOptionsSince;
-          if (!resumeKind && waited > 1800) {
-            hardRecoverPlay('empty-options ' + Math.round(waited) + 'ms');
-          } else if (resumeKind && waited > 2500) {
+          if (!resumeKind && waited > 1500) {
+            hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
+          } else if (resumeKind && waited > 2200) {
             hardRecoverPlay('empty-options-stuck ' + Math.round(waited) + 'ms kind=' + resumeKind);
           }
         } else emptyOptionsSince = 0;
