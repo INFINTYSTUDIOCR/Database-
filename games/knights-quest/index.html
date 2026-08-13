@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub29-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub30-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -97,10 +97,10 @@
 </div>
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
-<script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
+<script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub29-kq1';
+  const KQ_BUILD = 'hub30-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -174,7 +174,7 @@
             tickLoad('skip ' + key);
             res();
           };
-          img.src = meta.file + '?v=full2';
+          img.src = meta.file + '?v=full3';
         })
     )
   );
@@ -194,7 +194,7 @@
           tickLoad(key);
           res();
         };
-        img.src = meta.path + '/' + i + '.png?v=full2';
+        img.src = meta.path + '/' + i + '.png?v=full3';
       });
     }
   }
@@ -228,7 +228,7 @@
             res();
           };
           img.onerror = () => res();
-          img.src = 'assets/ui/' + UI_MAP[key] + '?v=ui2';
+          img.src = 'assets/ui/' + UI_MAP[key] + '?v=ui3';
         })
     )
   );
@@ -256,7 +256,7 @@
                   res();
                 }
               };
-              img.src = 'assets/enemies/' + skel + '/' + anim + '/' + i + '.png?v=skel2';
+              img.src = 'assets/enemies/' + skel + '/' + anim + '/' + i + '.png?v=skel3';
               frames[i] = img;
             }
           })
@@ -274,7 +274,7 @@
   await Promise.all(
     SFX_NAMES.map(async (name) => {
       try {
-        const res = await fetch('assets/sfx/' + name + '.wav?v=2');
+        const res = await fetch('assets/sfx/' + name + '.wav?v=3');
         if (res.ok) sfxRaw[name] = await res.arrayBuffer();
       } catch (_) {}
       tickLoad(name);
@@ -1458,15 +1458,17 @@
     }
   }
 
-  /** Bottom strip ~90% H — small buttons, clear of torsos. */
+  /** Prompt parchment above options strip — both always on-canvas. */
   function quizDock() {
     const w = W(),
       h = H();
-    const btnH = Math.max(24, Math.min(34, h * 0.042));
-    const btnY = Math.min(h * 0.9, h - btnH - 6);
-    const bh = Math.max(40, h * 0.12);
-    let by = h * 0.78;
-    if (by + bh > h - 6) by = Math.max(10, h - 6 - bh);
+    const btnH = Math.max(26, Math.min(36, h * 0.048));
+    const btnY = Math.min(h * 0.91, h - btnH - 6);
+    const bh = Math.max(48, Math.min(h * 0.15, 92));
+    const gap = Math.max(6, h * 0.01);
+    let by = btnY - gap - bh;
+    if (by < h * 0.56) by = h * 0.56;
+    if (by + bh > btnY - 4) by = Math.max(8, btnY - bh - 4);
     return { w, h, bx: w * 0.04, by, bw: w * 0.92, bh, btnY, btnH };
   }
 
@@ -1504,8 +1506,7 @@
 
   function drawQuestion() {
     if (!currentQ) return;
-    // PLAY: hide prompt panel — options only (bottom strip).
-    if (gameState === STATES.PLAY) return;
+    // PLAY: show prompt panel (parchment + options; never skip draw).
     const { w, h, bx, by, bw, bh } = quizDock();
     const locked = quiz.locked || !options.length;
     if (locked) ctx.globalAlpha = 0.72;
