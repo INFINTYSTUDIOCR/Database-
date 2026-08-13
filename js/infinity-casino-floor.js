@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub9';
+  var VER = '20260812hub10';
 
   /** Solo Rapid Drill + Knight's Quest */
   var GAMES = [
@@ -477,15 +477,20 @@
     }
     if (g.kind === 'knight') {
       if (typeof openInfinityArcadeFullscreen === 'function') {
-        openInfinityArcadeFullscreen("Knight's Quest", 'Teutonic · Linkers');
+        openInfinityArcadeFullscreen("Knight's Quest", 'Pantalla completa · Teutonic');
       }
+      var fsShell = document.getElementById('inf-arcade-fs');
+      if (fsShell) fsShell.classList.add('is-knight-mode');
       var body = document.getElementById('inf-arcade-fs-body');
       if (body) {
         body.classList.add('is-knight-fit');
         body.innerHTML =
           '<iframe src="games/knights-quest/index.html?v=' +
           VER +
-          '" title="Knight\'s Quest" class="inf-knight-frame" allow="autoplay"></iframe>';
+          '" title="Knight\'s Quest" class="inf-knight-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+      }
+      if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
+        infinityArcadeRequestBrowserFullscreen(fsShell);
       }
       return;
     }
@@ -517,6 +522,23 @@
   global.closeInfinityArcadeLobby = function () {
     closeFloor();
   };
+
+  window.addEventListener('message', function (ev) {
+    var data = ev && ev.data;
+    if (!data || data.type !== 'knight-request-fullscreen') return;
+    if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
+      infinityArcadeRequestBrowserFullscreen(document.getElementById('inf-arcade-fs'));
+    }
+  });
+  function notifyKnightFs() {
+    var frame = document.querySelector('.inf-knight-frame');
+    if (!frame || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.postMessage({ type: 'knight-fs-changed' }, '*');
+    } catch (e) {}
+  }
+  document.addEventListener('fullscreenchange', notifyKnightFs);
+  document.addEventListener('webkitfullscreenchange', notifyKnightFs);
 
   console.log('[Infinity Hub]', VER, GAMES.length, 'games characters ready');
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -742,6 +742,16 @@ body.tt-fs-lock{overflow:hidden;position:fixed;width:100%;height:100%;height:100
 .inf-arcade-fs-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;min-height:0;}
 .inf-arcade-fs-body.is-knight-fit{max-width:none;width:100%;height:100%;flex:1 1 auto;min-height:0;padding:0;overflow:hidden;align-items:stretch;}
 .inf-knight-frame{flex:1 1 auto;width:100%;height:100%;min-height:0;border:0;border-radius:0;background:#050508;display:block;}
+.inf-arcade-fs.is-knight-mode{background:#050508;}
+.inf-arcade-fs.is-knight-mode .inf-arcade-fs-bar{
+  position:absolute;top:0;left:0;right:0;z-index:5;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));
+  border:0;background:linear-gradient(180deg,rgba(0,0,0,.72),transparent);pointer-events:none;
+}
+.inf-arcade-fs.is-knight-mode .inf-arcade-fs-title{font-size:11px;opacity:.85}
+.inf-arcade-fs.is-knight-mode .inf-arcade-fs-close{pointer-events:auto;padding:7px 10px;font-size:11px;backdrop-filter:blur(8px)}
+.inf-arcade-fs:fullscreen,.inf-arcade-fs:-webkit-full-screen{width:100%;height:100%;max-height:none;}
+.inf-arcade-fs.is-knight-mode:fullscreen .inf-arcade-fs-body,
+.inf-arcade-fs.is-knight-mode:-webkit-full-screen .inf-arcade-fs-body{height:100%;}
 .inf-hub-scroll{position:relative;z-index:2;flex:1;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:16px 16px max(20px,env(safe-area-inset-bottom));}
 .inf-arcade-fs-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;width:100%;}
 .inf-arcade-fs-mode-btn{text-align:left;border:1px solid rgba(196,181,253,.35);background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(91,33,182,.28));color:#fff;border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);}
@@ -2491,15 +2501,49 @@ function openInfinityArcadeFullscreen(title, subtitle){
     t.innerHTML = String(title || 'INFINITY ARCADE')
       + '<span id="inf-arcade-fs-sub">'+String(subtitle || 'Skill Tests')+'</span>';
   }
-  if(body) body.innerHTML = '';
-  if(fs) fs.classList.add('is-open');
+  if(body){
+    body.classList.remove('is-knight-fit');
+    body.innerHTML = '';
+  }
+  if(fs){
+    fs.classList.remove('is-knight-mode');
+    fs.classList.add('is-open');
+  }
   document.body.classList.add('inf-arcade-fs-lock');
   window._infArcadeFsOpen = true;
 }
 
+function infinityArcadeRequestBrowserFullscreen(el){
+  var target = el || document.getElementById('inf-arcade-fs');
+  if(!target) return;
+  var active = document.fullscreenElement || document.webkitFullscreenElement;
+  if(active === target) return;
+  var req = target.requestFullscreen || target.webkitRequestFullscreen || target.webkitRequestFullScreen;
+  if(!req) return;
+  try{
+    var p = req.call(target);
+    if(p && typeof p.catch === 'function') p.catch(function(){});
+  }catch(e){}
+}
+
+function infinityArcadeExitBrowserFullscreen(){
+  var active = document.fullscreenElement || document.webkitFullscreenElement;
+  if(!active) return;
+  var exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if(!exit) return;
+  try{
+    var p = exit.call(document);
+    if(p && typeof p.catch === 'function') p.catch(function(){});
+  }catch(e){}
+}
+
 function closeInfinityArcadeFullscreen(){
+  infinityArcadeExitBrowserFullscreen();
   var fs = document.getElementById('inf-arcade-fs');
-  if(fs) fs.classList.remove('is-open');
+  if(fs){
+    fs.classList.remove('is-open');
+    fs.classList.remove('is-knight-mode');
+  }
   document.body.classList.remove('inf-arcade-fs-lock');
   window._infArcadeFsOpen = false;
   window._arcadeState = null;
@@ -9167,7 +9211,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/infinity-arcade-lil-games.js?v=20260812lil3"></script>
-<script src="js/infinity-casino-floor.js?v=20260812hub9"></script>
+<script src="js/infinity-casino-floor.js?v=20260812hub10"></script>
 <script src="js/infinity-modern-games.js?v=20260812mod6"></script>
 <script src="js/infinity-tense-drop.js?v=20260812drop2"></script>
 </body>
