@@ -96,6 +96,7 @@
 </div>
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
+<script src="../_shared/infinity-quiz-bank.js?v=q1"></script>
 <script>
 (async function () {
   const canvas = document.getElementById('c');
@@ -401,21 +402,18 @@
     if (ev?.data?.type === 'knight-fs-changed') syncFsBtn();
   });
 
-  // ── QUESTIONS (addictive variety) ──
-  const QUESTIONS = [
-    { prompt: 'El cliente llama molesto. ___ , quiero ayudarte.', correct: 'however', wrong: ['idk', 'like', 'um...'] },
-    { prompt: 'Entiendo la situación. ___ , tomaré acción.', correct: 'therefore', wrong: ['and stuff', 'idk', 'you know'] },
-    { prompt: 'Es difícil. ___ , podemos resolverlo.', correct: 'besides', wrong: ['like', 'um...', 'you know'] },
-    { prompt: 'Llamé al supervisor. ___ , documenté todo.', correct: 'on top of that', wrong: ['idk', 'like', 'and stuff'] },
-    { prompt: 'Es costoso ___ es muy efectivo.', correct: 'even though', wrong: ['like', 'idk', 'um...'] },
-    { prompt: 'El sistema falló. ___ , escaloné de inmediato.', correct: 'as a result', wrong: ['you know', 'and stuff', 'um...'] },
-    { prompt: 'El reporte está listo. ___ , lo envié.', correct: 'furthermore', wrong: ['like', 'idk', 'you know'] },
-    { prompt: 'Primero escuché. ___ , confirmé el ticket.', correct: 'then', wrong: ['idk', 'and stuff', 'like'] },
-    { prompt: 'No fue fácil. ___ , cerramos el caso.', correct: 'nevertheless', wrong: ['um...', 'you know', 'idk'] },
-    { prompt: 'Revisé los logs. ___ , encontré la causa.', correct: 'eventually', wrong: ['kinda', 'idk', 'whatever'] },
-    { prompt: 'El cliente insiste. ___ , mantengo la calma.', correct: 'still', wrong: ['lol', 'idk', 'bruh'] },
-    { prompt: 'Ya validé el pago. ___ , actualicé el CRM.', correct: 'afterward', wrong: ['and stuff', 'like', 'idk'] }
+  // ── QUESTIONS (shared bank: linkers / tenses / phrasals, random rotate) ──
+  const quizRotator =
+    typeof InfinityQuizBank !== 'undefined'
+      ? InfinityQuizBank.createRotator({ flavor: 'knight', cats: ['linker', 'tense', 'phrasal', 'mixed'] })
+      : null;
+  const QUESTIONS_FALLBACK = [
+    { prompt: '[LINKER] El cliente llama molesto. ___ , quiero ayudarte.', correct: 'however', wrong: ['idk', 'like', 'um...'], cat: 'linker' }
   ];
+  function nextQuestion() {
+    if (quizRotator) return quizRotator.next();
+    return QUESTIONS_FALLBACK[0];
+  }
 
   const ENEMY_TYPES = [
     { name: 'Slime of Confusion', kind: 'slime', color: '#22c55e', hp: 2, wrongWord: 'idk', xp: 100 },
@@ -1238,9 +1236,9 @@
   // ── GAME FLOW ──
   function loadQuestion() {
     if (gameState !== STATES.PLAY || knight.state === 'die') return;
-    currentQ = QUESTIONS[questionsAnswered % QUESTIONS.length];
-    if (!currentQ) currentQ = QUESTIONS[0];
-    const wrong = currentQ.wrong.slice().sort(() => Math.random() - 0.5).slice(0, 2);
+    currentQ = nextQuestion();
+    if (!currentQ) currentQ = QUESTIONS_FALLBACK[0];
+    const wrong = (currentQ.wrong || []).slice(0, 2);
     options = [{ word: currentQ.correct, isCorrect: true }, ...wrong.map((w) => ({ word: w, isCorrect: false }))];
     options.sort(() => Math.random() - 0.5);
     qBorn = performance.now();
@@ -1297,7 +1295,15 @@
     ctx.font = `bold ${H() * 0.024}px Cinzel,serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('COMPLETÁ LA CADENA', W() * 0.03, by + bh * 0.28);
+    const catLabel =
+      currentQ.cat === 'tense'
+        ? 'TIEMPO VERBAL'
+        : currentQ.cat === 'phrasal'
+          ? 'PHRASAL VERB'
+          : currentQ.cat === 'linker'
+            ? 'LINKER'
+            : 'COMPLETÁ LA CADENA';
+    ctx.fillText(catLabel, W() * 0.03, by + bh * 0.28);
     ctx.fillStyle = '#fff';
     ctx.font = `700 ${H() * 0.03}px Outfit,sans-serif`;
     ctx.fillText(currentQ.prompt, W() * 0.03, by + bh * 0.68);
@@ -1461,6 +1467,7 @@
       options = [];
       currentQ = null;
       enemy = null;
+      if (quizRotator) quizRotator.reset();
       nextEnemy();
       updateHUD();
       sfx('start');

@@ -105,6 +105,7 @@
 </div>
 <div id="toast"></div>
 <div id="stage"><canvas id="c"></canvas></div>
+<script src="../_shared/infinity-quiz-bank.js?v=q1"></script>
 <script>
 (async function () {
   const canvas = document.getElementById('c');
@@ -438,21 +439,18 @@
     if (ev?.data?.type === 'thief-fs-changed') syncFsBtn();
   });
 
-  // ── BRIEFINGS (linker pedagogy, heist wording) ──
-  const BRIEFINGS = [
-    { prompt: 'Cliente tenso. ROBÁ EL LINKER: "___ , puedo ayudarte."', correct: 'however', wrong: ['idk', 'like', 'um...'] },
-    { prompt: 'Slip the connector: "Entiendo. ___ , tomaré acción."', correct: 'therefore', wrong: ['and stuff', 'idk', 'you know'] },
-    { prompt: 'Vault doc: "Es difícil. ___ , lo resolvemos."', correct: 'besides', wrong: ['like', 'um...', 'you know'] },
-    { prompt: 'Extracción: "Avisé al lead. ___ , documenté todo."', correct: 'on top of that', wrong: ['idk', 'like', 'and stuff'] },
-    { prompt: 'Hack el guion: "Es caro ___ es efectivo."', correct: 'even though', wrong: ['like', 'idk', 'um...'] },
-    { prompt: 'Sistema caído. Insertá: "___ , escaloné ya."', correct: 'as a result', wrong: ['you know', 'and stuff', 'um...'] },
-    { prompt: 'Dossier: "Reporte listo. ___ , lo envié."', correct: 'furthermore', wrong: ['like', 'idk', 'you know'] },
-    { prompt: 'Secuencia: "Primero escuché. ___ , confirmé."', correct: 'then', wrong: ['idk', 'and stuff', 'like'] },
-    { prompt: 'Silencio operativo: "No fue fácil. ___ , cerramos."', correct: 'nevertheless', wrong: ['um...', 'you know', 'idk'] },
-    { prompt: 'Logs robados: "Revisé. ___ , hallé la causa."', correct: 'eventually', wrong: ['kinda', 'idk', 'whatever'] },
-    { prompt: 'Presión: "Insiste. ___ , mantengo la calma."', correct: 'still', wrong: ['lol', 'idk', 'bruh'] },
-    { prompt: 'CRM ghost: "Validé pago. ___ , actualicé."', correct: 'afterward', wrong: ['and stuff', 'like', 'idk'] }
+  // ── BRIEFINGS (shared bank: linkers / tenses / phrasals, random rotate) ──
+  const quizRotator =
+    typeof InfinityQuizBank !== 'undefined'
+      ? InfinityQuizBank.createRotator({ flavor: 'thief', cats: ['linker', 'tense', 'phrasal', 'mixed'] })
+      : null;
+  const BRIEFINGS_FALLBACK = [
+    { prompt: 'ROBÁ EL LINKER: "Cliente tenso. ___ , puedo ayudarte."', correct: 'however', wrong: ['idk', 'like', 'um...'], cat: 'linker' }
   ];
+  function nextBriefing() {
+    if (quizRotator) return quizRotator.next();
+    return BRIEFINGS_FALLBACK[0];
+  }
 
   const TARGETS = [
     { name: 'Guard', kind: 'guard', color: '#64748b', hp: 2, xp: 110 },
@@ -1062,9 +1060,9 @@
   // ── FLOW ──
   function loadBriefing() {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
-    currentQ = BRIEFINGS[questionsAnswered % BRIEFINGS.length];
-    if (!currentQ) currentQ = BRIEFINGS[0];
-    const wrong = currentQ.wrong.slice().sort(() => Math.random() - 0.5).slice(0, 2);
+    currentQ = nextBriefing();
+    if (!currentQ) currentQ = BRIEFINGS_FALLBACK[0];
+    const wrong = (currentQ.wrong || []).slice(0, 2);
     options = [{ word: currentQ.correct, isCorrect: true }, ...wrong.map((w) => ({ word: w, isCorrect: false }))];
     options.sort(() => Math.random() - 0.5);
     qBorn = performance.now();
@@ -1118,7 +1116,15 @@
     ctx.font = `700 ${h * 0.02}px JetBrains Mono,monospace`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('MISSION DOSSIER // ROBÁ EL LINKER', bx + 10, by + 8);
+    const dossier =
+      currentQ.cat === 'tense'
+        ? 'MISSION DOSSIER // TIEMPO VERBAL'
+        : currentQ.cat === 'phrasal'
+          ? 'MISSION DOSSIER // PHRASAL'
+          : currentQ.cat === 'linker'
+            ? 'MISSION DOSSIER // LINKER'
+            : 'MISSION DOSSIER // EXTRACT';
+    ctx.fillText(dossier, bx + 10, by + 8);
     ctx.fillStyle = '#f1f5f9';
     ctx.font = `600 ${h * 0.026}px Syne,sans-serif`;
     wrapText(currentQ.prompt, bx + 10, by + h * 0.05, bw - 20, h * 0.032);
@@ -1315,6 +1321,7 @@
       options = [];
       currentQ = null;
       target = null;
+      if (quizRotator) quizRotator.reset();
       nextFloor();
       updateHUD();
       sfx('start');

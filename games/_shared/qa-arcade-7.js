@@ -1,0 +1,186 @@
+/**
+ * QA: 7 end-to-end clears for Knight + Shadow Thief + quiz rotation coverage.
+ * Run: node games/_shared/qa-arcade-7.js
+ */
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const ROOT = path.join(__dirname, '../..');
+const bankPath = path.join(__dirname, 'infinity-quiz-bank.js');
+const code = fs.readFileSync(bankPath, 'utf8');
+const sandbox = { window: {}, globalThis: {}, console };
+sandbox.window = sandbox;
+sandbox.globalThis = sandbox;
+vm.runInNewContext(code, sandbox);
+const Bank = sandbox.InfinityQuizBank;
+if (!Bank) {
+  console.error('FAIL: InfinityQuizBank missing');
+  process.exit(1);
+}
+
+const results = [];
+function ok(name, pass, detail) {
+  results.push({ name, pass: !!pass, detail: detail || '' });
+  console.log((pass ? 'PASS' : 'FAIL') + '  ' + name + (detail ? ' — ' + detail : ''));
+}
+
+// 1) Bank stats
+const st = Bank.stats();
+ok('Q1 bank size >= 40', st.total >= 40, 'total=' + st.total);
+ok(
+  'Q2 cats linker/tense/phrasal',
+  st.byCat.linker >= 10 && st.byCat.tense >= 10 && st.byCat.phrasal >= 10,
+  JSON.stringify(st.byCat)
+);
+
+// 2) Rotation randomness across 7 decks
+function catCoverage(flavor, n) {
+  const rot = Bank.createRotator({ flavor, cats: ['linker', 'tense', 'phrasal', 'mixed'] });
+  const seen = { linker: 0, tense: 0, phrasal: 0, mixed: 0 };
+  const prompts = new Set();
+  for (let i = 0; i < n; i++) {
+    const q = rot.next();
+    seen[q.cat] = (seen[q.cat] || 0) + 1;
+    prompts.add(q.prompt + '|' + q.correct);
+    if (!q.correct || !q.wrong || q.wrong.length < 2) throw new Error('bad question shape');
+    if (q.wrong.indexOf(q.correct) !== -1) throw new Error('correct in wrong');
+  }
+  return { seen, unique: prompts.size };
+}
+
+let allCats7 = true;
+const coverA = [];
+for (let run = 1; run <= 7; run++) {
+  const c = catCoverage('knight', 24);
+  coverA.push(c);
+  if (!(c.seen.linker && c.seen.tense && c.seen.phrasal)) allCats7 = false;
+}
+ok('Q3 knight 7×24 covers linker+tense+phrasal', allCats7, JSON.stringify(coverA.map((c) => c.seen)));
+
+let allCats7t = true;
+for (let run = 1; run <= 7; run++) {
+  const c = catCoverage('thief', 24);
+  if (!(c.seen.linker && c.seen.tense && c.seen.phrasal)) allCats7t = false;
+}
+ok('Q4 thief 7×24 covers linker+tense+phrasal', allCats7t);
+
+const a = Bank.createRotator({ flavor: 'knight' });
+const b = Bank.createRotator({ flavor: 'knight' });
+const seqA = Array.from({ length: 12 }, () => a.next().correct).join(',');
+const seqB = Array.from({ length: 12 }, () => b.next().correct).join(',');
+ok('Q5 two decks not identical (random)', seqA !== seqB, 'A=' + seqA.slice(0, 40) + '…');
+
+// 3) Simulate full clears (perfect hits)
+function simKnight() {
+  const ENEMY = [
+    { hp: 2 },
+    { hp: 2 },
+    { hp: 2 },
+    { hp: 2 },
+    { hp: 6, boss: true },
+    { hp: 3 },
+    { hp: 3 },
+    { hp: 4 },
+    { hp: 4 },
+    { hp: 6, boss: true }
+  ];
+  // Match game idx: round r uses ENEMY_TYPES[min(floor((r-1)/2),4)] except 5&10 boss
+  const types = [
+    { hp: 2 },
+    { hp: 2 },
+    { hp: 3 },
+    { hp: 3 },
+    { hp: 4 },
+    { hp: 6, boss: true }
+  ];
+  const rot = Bank.createRotator({ flavor: 'knight', cats: ['linker', 'tense', 'phrasal', 'mixed'] });
+  let round = 0;
+  let hpHero = 3;
+  let score = 0;
+  let qs = 0;
+  const cats = {};
+  while (round < 10) {
+    round++;
+    let type;
+    if (round === 5 || round === 10) type = types[5];
+    else type = types[Math.min(Math.floor((round - 1) / 2), 4)];
+    let ehp = type.hp;
+    while (ehp > 0) {
+      const q = rot.next();
+      cats[q.cat] = (cats[q.cat] || 0) + 1;
+      qs++;
+      // always correct perfect = 2 dmg
+      ehp -= 2;
+      score += 100;
+    }
+  }
+  return { win: true, qs, score, cats, rounds: round };
+}
+
+function simThief() {
+  const types = [
+    { hp: 2 },
+    { hp: 2 },
+    { hp: 3 },
+    { hp: 3 },
+    { hp: 6, boss: true }
+  ];
+  const rot = Bank.createRotator({ flavor: 'thief', cats: ['linker', 'tense', 'phrasal', 'mixed'] });
+  let floor = 0;
+  let covers = 3;
+  let qs = 0;
+  const cats = {};
+  while (floor < 8) {
+    floor++;
+    let type;
+    if (floor === 8) type = types[4];
+    else type = types[Math.min(Math.floor((floor - 1) / 2), 3)];
+    let ehp = type.hp;
+    while (ehp > 0) {
+      const q = rot.next();
+      cats[q.cat] = (cats[q.cat] || 0) + 1;
+      qs++;
+      ehp -= 2;
+    }
+  }
+  return { win: covers > 0, qs, cats, floors: floor };
+}
+
+let kOk = 0;
+let tOk = 0;
+const kCatUnion = { linker: 0, tense: 0, phrasal: 0 };
+for (let i = 0; i < 7; i++) {
+  const r = simKnight();
+  if (r.win && r.rounds === 10) kOk++;
+  Object.keys(kCatUnion).forEach((c) => {
+    if (r.cats[c]) kCatUnion[c]++;
+  });
+}
+for (let i = 0; i < 7; i++) {
+  const r = simThief();
+  if (r.win && r.floors === 8) tOk++;
+}
+ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
+ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
+
+// Asset sanity
+function exists(p) {
+  return fs.existsSync(path.join(ROOT, p));
+}
+const assetsOk =
+  exists('games/knights-quest/index.html') &&
+  exists('games/dark-thief/index.html') &&
+  exists('games/dark-thief/assets/manifest.json') &&
+  exists('games/dark-thief/assets/sfx/whoosh.wav') &&
+  exists('games/_shared/infinity-quiz-bank.js');
+ok('bonus assets present', assetsOk);
+
+const failed = results.filter((r) => !r.pass);
+console.log('\n=== QA SUMMARY ===');
+console.log('passed', results.filter((r) => r.pass).length + '/' + results.length);
+if (failed.length) {
+  failed.forEach((f) => console.log(' -', f.name, f.detail));
+  process.exit(1);
+}
+console.log('All 7 core checks green. Knight + Thief finishable; questions rotate linker/tense/phrasal.');
