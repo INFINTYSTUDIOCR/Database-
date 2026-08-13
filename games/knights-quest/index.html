@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub26-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub27-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub26-kq1';
+  const KQ_BUILD = 'hub27-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -601,6 +601,8 @@
   let flowGen = 0;
   let inputLock = false;
   let emptyOptionsSince = 0;
+  let lockSince = 0;
+  let deadSince = 0;
   /** Frame-driven quiz resume (survives throttled/cancelled timers). */
   let resumeAt = 0;
   let resumeKind = ''; // 'question' | 'nextEnemy'
@@ -619,7 +621,19 @@
     const gen = flowGen;
     const id = setTimeout(() => {
       pendingTimers.delete(id);
-      if (gen !== flowGen) return;
+      if (gen !== flowGen) {
+        // Cancelled by bumpFlow — never leave PLAY locked/empty without a replacement.
+        if (
+          gameState === STATES.PLAY &&
+          knight.state !== 'die' &&
+          (inputLock || !options.length || !currentQ || (enemy && enemy.dead))
+        ) {
+          try {
+            hardRecoverPlay('flow-cancelled');
+          } catch (_) {}
+        }
+        return;
+      }
       try {
         fn();
       } catch (err) {
@@ -643,11 +657,12 @@
       resumeKind = nextKind;
       resumeAt = due;
     }
-    if (!emptyOptionsSince) emptyOptionsSince = performance.now();
+    if (!lockSince) lockSince = performance.now();
+    if ((!options.length || !currentQ) && !emptyOptionsSince) emptyOptionsSince = performance.now();
     // Dual path: frame clock + setTimeout backup (rAF throttle OR cancelled timers).
     after(delay + 60, () => {
       if (gameState !== STATES.PLAY || knight.state === 'die') return;
-      if (options.length && currentQ && !inputLock) return;
+      if (options.length && currentQ && !inputLock && !(enemy && enemy.dead)) return;
       runPlayResume('timer-backup');
     });
   }
@@ -657,6 +672,8 @@
     clearResume();
     inputLock = false;
     emptyOptionsSince = 0;
+    lockSince = 0;
+    deadSince = 0;
   }
   /** Call when attack/hurt oneshot finishes — never wait out a soft-lock. */
   function tryResumeAfterAction() {
@@ -1387,6 +1404,7 @@
     const kind = resumeKind || 'question';
     clearResume();
     inputLock = false;
+    lockSince = 0;
     hitstop = 0;
     console.warn('[KQ resume]', reason || kind, {
       kind,
@@ -1419,6 +1437,7 @@
     timerMax = 8;
     inputLock = false;
     emptyOptionsSince = 0;
+    lockSince = 0;
     clearResume();
   }
 
@@ -1435,6 +1454,7 @@
       knight: knight.state
     });
     inputLock = false;
+    lockSince = 0;
     hitstop = 0;
     clearResume();
     try {
@@ -1466,6 +1486,7 @@
       timerMax = Math.max(4.5, 8 - knight.streak * 0.25 - (enemy?.type.boss ? 1 : 0));
       inputLock = false;
       emptyOptionsSince = 0;
+      lockSince = 0;
       clearResume();
     } catch (err) {
       console.error('[KQ loadQuestion]', err);
@@ -1507,10 +1528,10 @@
     ctx.fillStyle = pct > 0.4 ? '#E8C547' : pct > 0.2 ? '#fb923c' : '#ef4444';
     roundRect(ctx, x, y, bw * pct, bh, 4);
     ctx.fill();
-    if (left <= 0 && options.length) {
-      options = [];
+    if (left <= 0 && options.length && !inputLock) {
+      // Keep last options dimmed — never blank the duel while waiting to resume.
       inputLock = true;
-      emptyOptionsSince = performance.now();
+      lockSince = performance.now();
       knight.doHurt();
       sfx('bad');
       addText(W() / 2, H() * 0.4, '¡TIEMPO!', '#ef4444', 1.3);
@@ -1602,9 +1623,12 @@
     const gap = 10;
     const btnW = Math.min(w * 0.3, (w - gap * (options.length + 1)) / options.length);
     const startX = (w - options.length * btnW - (options.length - 1) * gap) / 2;
+    const locked = inputLock || !!resumeKind;
+    if (locked) ctx.globalAlpha = 0.55;
     options.forEach((opt, i) => {
       const x = startX + i * (btnW + gap);
-      const hover = mouseX > x && mouseX < x + btnW && mouseY > btnY && mouseY < btnY + btnH;
+      const hover =
+        !locked && mouseX > x && mouseX < x + btnW && mouseY > btnY && mouseY < btnY + btnH;
       drawHRibbon(ui.btnL || ui.bannerL, ui.btnM || ui.bannerM, ui.btnR || ui.bannerR, x, btnY, btnW, btnH);
       if (hover) {
         ctx.fillStyle = 'rgba(255,230,150,0.22)';
@@ -1626,6 +1650,7 @@
       ctx.shadowBlur = 0;
       opt.rect = { x, y: btnY, w: btnW, h: btnH };
     });
+    if (locked) ctx.globalAlpha = 1;
   }
 
   function answer(opt) {
@@ -1633,9 +1658,9 @@
     const elapsed = (performance.now() - qBorn) / 1000;
     const perfect = elapsed <= 2.2;
     const fast = elapsed <= 4;
-    options = [];
+    // Keep last options dimmed until loadQuestion/nextEnemy replaces them — no empty duel gap.
     inputLock = true;
-    emptyOptionsSince = performance.now();
+    lockSince = performance.now();
     if (opt.isCorrect) {
       const m = mult();
       let gain = (enemy.type.xp || 100) + knight.streak * 15;
@@ -1666,6 +1691,7 @@
       questionsAnswered++;
       if (killed) {
         toast(enemy.type.boss ? 'BOSS DOWN' : 'ENEMY DOWN', 900);
+        if (!deadSince) deadSince = performance.now();
         schedulePlayResume(500, 'nextEnemy');
       } else schedulePlayResume(180, 'question');
     } else {
@@ -1715,6 +1741,7 @@
     }
     loadQuestion();
     if (gameState === STATES.PLAY && knight.state !== 'die' && !options.length) forceFallbackQuestion();
+    deadSince = 0;
   }
 
   function updateHUD() {
@@ -2178,17 +2205,33 @@
       // Quiz resume / empty-options watchdog MUST run even during hitstop —
       // otherwise a cancelled timer + frozen hitstop leaves a duel with no choices.
       if (gameState === STATES.PLAY && knight.state !== 'die') {
-        if (resumeKind && resumeAt && performance.now() >= resumeAt) {
+        const now = performance.now();
+        if (resumeKind && resumeAt && now >= resumeAt) {
           runPlayResume('scheduled');
         }
+        if (enemy && enemy.dead) {
+          if (!deadSince) deadSince = now;
+          const waitedDead = now - deadSince;
+          if (waitedDead > 800) {
+            deadSince = now;
+            hardRecoverPlay('dead-enemy-stuck ' + Math.round(waitedDead) + 'ms');
+          }
+        } else deadSince = 0;
+        if (inputLock || resumeKind) {
+          if (!lockSince) lockSince = now;
+          const due = resumeAt || lockSince + 300;
+          if (now >= due + 40) {
+            hardRecoverPlay('lock-stuck ' + Math.round(now - lockSince) + 'ms');
+          }
+        } else lockSince = 0;
         if (!options.length || !currentQ) {
-          if (!emptyOptionsSince) emptyOptionsSince = performance.now();
-          const waited = performance.now() - emptyOptionsSince;
-          // Aggressive: recover in same beat as a missed resume (not 1.5–2.2s).
-          if (!resumeKind && waited > 400) {
+          if (!emptyOptionsSince) emptyOptionsSince = now;
+          const waited = now - emptyOptionsSince;
+          // Immediate if unlocked empty; else ≤300ms even with pending resume.
+          if (!inputLock && !options.length) {
+            hardRecoverPlay('empty-unlocked');
+          } else if (waited > 300) {
             hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
-          } else if (resumeKind && waited > 900) {
-            hardRecoverPlay('empty-options-stuck ' + Math.round(waited) + 'ms kind=' + resumeKind);
           }
         } else emptyOptionsSince = 0;
       }

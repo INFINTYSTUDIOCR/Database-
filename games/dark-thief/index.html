@@ -89,7 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub26-st1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub27-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -109,7 +109,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const ST_BUILD = 'hub26-st1';
+  const ST_BUILD = 'hub27-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -610,6 +610,8 @@
   let flowGen = 0;
   let inputLock = false;
   let emptyOptionsSince = 0;
+  let lockSince = 0;
+  let deadSince = 0;
   let resumeAt = 0;
   let resumeKind = ''; // 'question' | 'nextFloor'
   let rain = [];
@@ -628,7 +630,19 @@
     const gen = flowGen;
     const id = setTimeout(() => {
       pendingTimers.delete(id);
-      if (gen !== flowGen) return;
+      if (gen !== flowGen) {
+        // Cancelled by bumpFlow — never leave PLAY locked/empty without a replacement.
+        if (
+          gameState === STATES.PLAY &&
+          thief.state !== 'death' &&
+          (inputLock || !options.length || !currentQ || (target && target.dead))
+        ) {
+          try {
+            hardRecoverPlay('flow-cancelled');
+          } catch (_) {}
+        }
+        return;
+      }
       try {
         fn();
       } catch (err) {
@@ -652,10 +666,11 @@
       resumeKind = nextKind;
       resumeAt = due;
     }
-    if (!emptyOptionsSince) emptyOptionsSince = performance.now();
+    if (!lockSince) lockSince = performance.now();
+    if ((!options.length || !currentQ) && !emptyOptionsSince) emptyOptionsSince = performance.now();
     after(delay + 60, () => {
       if (gameState !== STATES.PLAY || thief.state === 'death') return;
-      if (options.length && currentQ && !inputLock) return;
+      if (options.length && currentQ && !inputLock && !(target && target.dead)) return;
       runPlayResume('timer-backup');
     });
   }
@@ -665,6 +680,8 @@
     clearResume();
     inputLock = false;
     emptyOptionsSince = 0;
+    lockSince = 0;
+    deadSince = 0;
   }
   function tryResumeAfterAction() {
     if (gameState !== STATES.PLAY || thief.state === 'death') return;
@@ -1222,6 +1239,7 @@
       resumeIn: resumeAt ? Math.round(resumeAt - performance.now()) : null
     });
     inputLock = false;
+    lockSince = 0;
     hitstop = 0;
     clearResume();
     try {
@@ -1244,6 +1262,7 @@
     const kind = resumeKind || 'question';
     clearResume();
     inputLock = false;
+    lockSince = 0;
     hitstop = 0;
     console.warn('[ST resume]', reason || kind);
     try {
@@ -1269,6 +1288,7 @@
     timerMax = 8;
     inputLock = false;
     emptyOptionsSince = 0;
+    lockSince = 0;
     clearResume();
   }
 
@@ -1285,6 +1305,7 @@
       timerMax = Math.max(4.2, 7.8 - thief.silent * 0.22 - (target?.type.boss ? 0.8 : 0));
       inputLock = false;
       emptyOptionsSince = 0;
+      lockSince = 0;
       clearResume();
     } catch (err) {
       console.error('[ST loadBriefing]', err);
@@ -1293,7 +1314,7 @@
   }
 
   function drawTimer() {
-    if (!currentQ || gameState !== STATES.PLAY || inputLock || thief.state === 'death') return;
+    if (!currentQ || gameState !== STATES.PLAY || inputLock || thief.state === 'death' || resumeKind) return;
     const left = Math.max(0, timerMax - (performance.now() - qBorn) / 1000);
     const pct = left / timerMax;
     const secLeft = Math.ceil(left);
@@ -1309,10 +1330,10 @@
     ctx.fillStyle = pct > 0.4 ? '#22d3ee' : pct > 0.2 ? '#e879f9' : '#f43f5e';
     roundRect(ctx, x, y, bw * pct, bh, 3);
     ctx.fill();
-    if (left <= 0 && options.length) {
-      options = [];
+    if (left <= 0 && options.length && !inputLock) {
+      // Keep last options dimmed — never blank the heist while waiting to resume.
       inputLock = true;
-      emptyOptionsSince = performance.now();
+      lockSince = performance.now();
       thief.doSpotted();
       sfx('spotted');
       addText(W() * 0.35, H() * 0.4, 'TIMEOUT · SPOTTED', '#f43f5e', 1.15);
@@ -1321,7 +1342,12 @@
   }
 
   function drawBriefing() {
-    if (!currentQ) return;
+    if (!currentQ) {
+      if (gameState === STATES.PLAY && thief.state !== 'death' && target && !target.dead && !resumeKind) {
+        schedulePlayResume(0, 'question');
+      }
+      return;
+    }
     const w = W(),
       h = H();
     // Compact bottom-docked dossier (~14% H) — mid-screen heist stays open
@@ -1329,6 +1355,8 @@
       bh = h * 0.14,
       by = h * 0.845,
       bw = w * 0.66;
+    const locked = inputLock || !!resumeKind || !options.length;
+    if (locked) ctx.globalAlpha = 0.72;
     drawNine(ui.panel || ui.panelPlain || ui.panelRect, bx, by, bw, bh, 8);
 
     const dossier =
@@ -1405,10 +1433,10 @@
 
     if (uiReady(ui.crosshair)) {
       const cs = Math.min(18, h * 0.028);
-      ctx.globalAlpha = 0.45;
+      ctx.globalAlpha = locked ? 0.32 : 0.45;
       ctx.drawImage(ui.crosshair, bx + bw - cs - 6, by + bh - cs - 6, cs, cs);
-      ctx.globalAlpha = 1;
     }
+    ctx.globalAlpha = 1;
   }
 
   function wrapText(text, x, y, maxW, lineH) {
@@ -1428,7 +1456,6 @@
 
   // Compact right-rail options — bars only (no giant opaque slab over arena)
   function drawOptions() {
-    if (!options.length) return;
     const w = W(),
       h = H();
     const panelX = w * 0.72;
@@ -1436,10 +1463,27 @@
     const btnH = Math.max(26, h * 0.052);
     const gap = Math.max(6, h * 0.012);
     const titleH = Math.max(20, h * 0.036);
+    if (!options.length) {
+      if (gameState === STATES.PLAY && thief.state !== 'death' && (resumeKind || inputLock)) {
+        const titleY = Math.min(h * 0.42, h * 0.78 - (titleH + btnH + 16));
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        roundRect(ctx, panelX, titleY, panelW, titleH + btnH + 12, 6);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(248,250,252,0.9)';
+        ctx.font = `700 ${Math.round(h * 0.02)}px JetBrains Mono,monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = resumeKind === 'nextFloor' ? 'Siguiente piso…' : 'Nuevo briefing…';
+        ctx.fillText(label, panelX + panelW / 2, titleY + (titleH + btnH + 12) / 2);
+      }
+      return;
+    }
     const stackH = titleH + 8 + options.length * btnH + (options.length - 1) * gap;
     // Dock mid-right above bottom dossier — leave heist stage clear
     const titleY = Math.min(h * 0.42, h * 0.78 - stackH);
     const startY = titleY + titleH + 8;
+    const locked = inputLock || !!resumeKind;
+    if (locked) ctx.globalAlpha = 0.55;
 
     const titleHDraw = titleH;
     if (uiReady(ui.headerBlade)) {
@@ -1469,7 +1513,8 @@
 
     options.forEach((opt, i) => {
       const y = startY + i * (btnH + gap);
-      const hover = mouseX > panelX && mouseX < panelX + panelW && mouseY > y && mouseY < y + btnH;
+      const hover =
+        !locked && mouseX > panelX && mouseX < panelX + panelW && mouseY > y && mouseY < y + btnH;
       if (hover) drawHBar(ui.barHoverL, ui.barHoverM, ui.barHoverR, panelX, y, panelW, btnH);
       else drawHBar(ui.barL, ui.barM, ui.barR, panelX, y, panelW, btnH);
       ctx.fillStyle = hover ? '#0f172a' : '#f8fafc';
@@ -1484,6 +1529,7 @@
       ctx.fillText(String(i + 1), panelX + 8, y + Math.max(10, btnH * 0.32));
       opt.rect = { x: panelX, y, w: panelW, h: btnH };
     });
+    if (locked) ctx.globalAlpha = 1;
   }
 
   function answer(opt) {
@@ -1491,9 +1537,9 @@
     const elapsed = (performance.now() - qBorn) / 1000;
     const ghost = elapsed <= 2.1;
     const clean = elapsed <= 4;
-    options = [];
+    // Keep last options dimmed until loadBriefing/nextFloor replaces them — no empty heist gap.
     inputLock = true;
-    emptyOptionsSince = performance.now();
+    lockSince = performance.now();
 
     if (opt.isCorrect) {
       const grade = ghost ? 'ghost' : clean ? 'clean' : 'ok';
@@ -1525,6 +1571,7 @@
       questionsAnswered++;
       if (killed) {
         toast(target.type.boss ? 'VAULT CLEAR' : 'TARGET DOWN', 900);
+        if (!deadSince) deadSince = performance.now();
         schedulePlayResume(500, 'nextFloor');
       } else schedulePlayResume(180, 'question');
     } else {
@@ -1562,6 +1609,8 @@
       thief.setAnim('run', true);
     }
     loadBriefing();
+    if (gameState === STATES.PLAY && thief.state !== 'death' && !options.length) forceFallbackBriefing();
+    deadSince = 0;
   }
 
   function updateHUD() {
@@ -1999,16 +2048,32 @@
       ensureCanvasAlive();
       // Resume / empty-options watchdog MUST run even during hitstop.
       if (gameState === STATES.PLAY && thief.state !== 'death') {
-        if (resumeKind && resumeAt && performance.now() >= resumeAt) {
+        const now = performance.now();
+        if (resumeKind && resumeAt && now >= resumeAt) {
           runPlayResume('scheduled');
         }
+        if (target && target.dead) {
+          if (!deadSince) deadSince = now;
+          const waitedDead = now - deadSince;
+          if (waitedDead > 800) {
+            deadSince = now;
+            hardRecoverPlay('dead-target-stuck ' + Math.round(waitedDead) + 'ms');
+          }
+        } else deadSince = 0;
+        if (inputLock || resumeKind) {
+          if (!lockSince) lockSince = now;
+          const due = resumeAt || lockSince + 300;
+          if (now >= due + 40) {
+            hardRecoverPlay('lock-stuck ' + Math.round(now - lockSince) + 'ms');
+          }
+        } else lockSince = 0;
         if (!options.length || !currentQ) {
-          if (!emptyOptionsSince) emptyOptionsSince = performance.now();
-          const waited = performance.now() - emptyOptionsSince;
-          if (!resumeKind && waited > 400) {
+          if (!emptyOptionsSince) emptyOptionsSince = now;
+          const waited = now - emptyOptionsSince;
+          if (!inputLock && !options.length) {
+            hardRecoverPlay('empty-unlocked');
+          } else if (waited > 300) {
             hardRecoverPlay((!currentQ ? 'missing-q ' : 'empty-options ') + Math.round(waited) + 'ms');
-          } else if (resumeKind && waited > 900) {
-            hardRecoverPlay('empty-options-stuck ' + Math.round(waited) + 'ms kind=' + resumeKind);
           }
         } else emptyOptionsSince = 0;
       }
