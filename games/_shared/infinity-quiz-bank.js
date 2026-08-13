@@ -129,6 +129,9 @@
               : '[CHAIN] ';
       return tag + q.prompt;
     }
+    if (flavor === 'raiders') {
+      return 'CLUE · ' + q.prompt;
+    }
     return q.prompt;
   }
 
@@ -139,6 +142,7 @@
     opts = opts || {};
     var flavor = opts.flavor || 'plain';
     var cats = opts.cats || null;
+    var wrongCount = opts.wrongCount || 2;
     var source = BANK.filter(function (q) {
       return !cats || cats.indexOf(q.cat) !== -1;
     });
@@ -168,7 +172,7 @@
         lastCat = raw.cat;
         streakCat = 1;
       }
-      var wrong = shuffle(raw.wrong.slice()).slice(0, 2);
+      var wrong = shuffle(raw.wrong.slice()).slice(0, wrongCount);
       return {
         cat: raw.cat,
         prompt: flavorPrompt(raw, flavor),

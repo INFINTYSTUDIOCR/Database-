@@ -7,9 +7,9 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub48';
+  var VER = '20260812hub49';
 
-  /** Knight + Dark Thief (animated) + Rapid Drill */
+  /** Knight + Dark Thief + Tense Raiders + Rapid Drill */
   var GAMES = [
     {
       id: 'knight',
@@ -51,6 +51,25 @@
       }
     },
     {
+      id: 'raiders',
+      kind: 'raiders',
+      title: 'TENSE RAIDERS',
+      sub: 'Jeopardy vs goblin. Todos los tenses. First to 7.',
+      badge: 'hot',
+      badgeLabel: 'NUEVO',
+      xp: '+60 XP',
+      diff: 3,
+      art: 'raiders',
+      portrait: 'raiders',
+      char: {
+        name: 'Goblin Raider',
+        role: 'Tense duelist',
+        mood: 'Burlón',
+        line: '"Buzz the tense. Mock the miss. First to seven."',
+        color: '#86EFAC'
+      }
+    },
+    {
       id: 'rapid',
       kind: 'rapid',
       title: 'RAPID DRILL',
@@ -81,6 +100,12 @@
     thief: {
       sheet: 'games/dark-thief/assets/hub-idle.png',
       fallback: 'games/dark-thief/assets/hub-thief.png',
+      frames: 12,
+      fps: 10
+    },
+    raiders: {
+      sheet: 'games/tense-raiders/assets/hub-idle.png',
+      fallback: 'games/tense-raiders/assets/hub-goblin.png',
       frames: 12,
       fps: 10
     }
@@ -131,7 +156,7 @@
   function portraitHtml(g, wrapClass) {
     var cls = wrapClass || 'hub-css-char';
     var kind = (g && (g.portrait || g.kind || g.id)) || '';
-    if (kind === 'knight' || kind === 'thief') {
+    if (kind === 'knight' || kind === 'thief' || kind === 'raiders') {
       var sp = HUB_SPRITES[kind];
       return (
         '<div class="' +
@@ -255,17 +280,20 @@
       '.hub-card:nth-child(1){animation-delay:.03s}.hub-card:nth-child(2){animation-delay:.06s}.hub-card:nth-child(3){animation-delay:.09s}.hub-card:nth-child(4){animation-delay:.12s}' +
       '.hub-card:active{transform:translateY(2px) scale(.98)}' +
       '.hub-card-art{position:absolute;inset:0}' +
-      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:1}' +
+      '.hub-portrait-knight,.hub-portrait-thief,.hub-portrait-raiders,.hub-portrait-kaboom{position:absolute;inset:8% 6% 28%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:1}' +
       '.hub-sprite{height:100%;width:auto;max-width:100%;aspect-ratio:157/221;background-image:var(--hub-sheet);background-repeat:no-repeat;background-size:calc(var(--hub-frames) * 100%) 100%;background-position:0% 0;animation:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));image-rendering:auto}' +
       '.hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-sprite-raiders{aspect-ratio:168/140}' +
       '.hub-kaboom-svg{width:88%;height:88%;max-width:180px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4));animation:none}' +
-      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-kaboom{position:absolute;inset:auto 3% 10% auto;top:6%;bottom:10%;width:auto;max-width:36%;height:auto;transform:none}' +
+      '.hub-featured-char.hub-portrait-knight,.hub-featured-char.hub-portrait-thief,.hub-featured-char.hub-portrait-raiders,.hub-featured-char.hub-portrait-kaboom{position:absolute;inset:auto 3% 10% auto;top:6%;bottom:10%;width:auto;max-width:36%;height:auto;transform:none}' +
       '.hub-featured-char .hub-sprite{height:100%;width:auto;max-height:100%;max-width:100%;aspect-ratio:157/221}' +
       '.hub-featured-char .hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-featured-char .hub-sprite-raiders{aspect-ratio:168/140}' +
       '.hub-featured-char .hub-kaboom-svg{width:auto;height:100%;max-width:100%}' +
-      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:auto;height:70%;max-width:70%;transform:translate(-50%,-50%);display:flex;align-items:flex-end;justify-content:center}' +
+      '.hub-title-char-css.hub-portrait-knight,.hub-title-char-css.hub-portrait-thief,.hub-title-char-css.hub-portrait-raiders,.hub-title-char-css.hub-portrait-kaboom{position:absolute;left:50%;top:46%;width:auto;height:70%;max-width:70%;transform:translate(-50%,-50%);display:flex;align-items:flex-end;justify-content:center}' +
       '.hub-title-char-css .hub-sprite{height:100%;width:auto;max-height:200px;aspect-ratio:157/221}' +
       '.hub-title-char-css .hub-sprite-thief{aspect-ratio:79/220}' +
+      '.hub-title-char-css .hub-sprite-raiders{aspect-ratio:168/140;max-height:220px}' +
       '.hub-title-char-css .hub-kaboom-svg{width:auto;height:100%;max-height:180px}' +
       '@media (hover:hover){' +
       '.hub-featured:hover .hub-featured-shine{opacity:.45}' +
@@ -275,6 +303,8 @@
       '.hub-title-cta:hover{animation:hubPulse 1.4s ease-in-out infinite}' +
       '}' +
       '.art-thief{background:linear-gradient(165deg,#020617 0%,#1e293b 45%,#475569 100%)}' +
+      '.art-raiders{background:linear-gradient(165deg,#052e16 0%,#14532d 40%,#3f6212 70%,#86efac 100%)}' +
+      '.hub-featured.art-raiders{background:linear-gradient(125deg,#052e16 0%,#14532d 40%,#3f6212 70%,#bbf7d0 100%);border-color:rgba(134,239,172,.5)}' +
       '.hub-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,6,24,.95) 0%,rgba(11,6,24,.35) 50%,transparent 100%)}' +
       '.hub-card-body{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;z-index:2}' +
       '.hub-card-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;margin-bottom:3px}' +
@@ -575,6 +605,27 @@
       }
       if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
         infinityArcadeRequestBrowserFullscreen(fsShellT);
+      }
+      return;
+    }
+    if (g.kind === 'raiders') {
+      if (typeof openInfinityArcadeFullscreen === 'function') {
+        openInfinityArcadeFullscreen('Tense Raiders', 'Pantalla completa · Goblin');
+      }
+      var fsShellR = document.getElementById('inf-arcade-fs');
+      if (fsShellR) fsShellR.classList.add('is-knight-mode');
+      var bodyR = document.getElementById('inf-arcade-fs-body');
+      if (bodyR) {
+        bodyR.classList.add('is-knight-fit');
+        bodyR.innerHTML =
+          '<iframe src="games/tense-raiders/index.html?v=' +
+          VER +
+          '&t=' +
+          Date.now() +
+          '" title="Tense Raiders" class="inf-knight-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+      }
+      if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {
+        infinityArcadeRequestBrowserFullscreen(fsShellR);
       }
       return;
     }

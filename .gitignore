@@ -10,3 +10,5 @@ scripts/git-identity.jill-pro.local
 backend/.env
 *.log
 .DS_Store
+games/tense-raiders/_pack/
+games/tense-raiders/_*.ps1

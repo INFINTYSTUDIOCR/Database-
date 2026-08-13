@@ -1,5 +1,5 @@
 /**
- * QA: Knight + Shadow Thief clears + PLAY quiz state machine soft-lock impossible.
+ * QA: Knight + Shadow Thief + Tense Raiders clears + PLAY quiz state machine soft-lock impossible.
  * Run: node games/_shared/qa-arcade-7.js
  */
 const fs = require('fs');
@@ -142,6 +142,28 @@ for (let i = 0; i < 7; i++) {
 }
 ok('Q6 knight 7/7 clear to ending (10 rounds)', kOk === 7, 'cleared=' + kOk);
 ok('Q7 thief 7/7 clear to ending (8 floors)', tOk === 7, 'cleared=' + tOk);
+
+function simRaiders() {
+  const rot = Bank.createRotator({ flavor: 'raiders', cats: ['tense'], wrongCount: 3 });
+  let you = 0;
+  let clues = 0;
+  const cats = {};
+  while (you < 7 && clues < 10) {
+    const q = rot.next();
+    cats[q.cat] = (cats[q.cat] || 0) + 1;
+    if (!/^CLUE · /.test(q.prompt)) throw new Error('raiders flavor missing');
+    if (!q.wrong || q.wrong.length < 3) throw new Error('need 4 tiles');
+    clues++;
+    you++;
+  }
+  return { win: you >= 7, clues, cats };
+}
+let rOk = 0;
+for (let i = 0; i < 7; i++) {
+  const r = simRaiders();
+  if (r.win && r.clues === 7 && r.cats.tense && !r.cats.linker) rOk++;
+}
+ok('Q7b raiders 7/7 first-to-7 tense-only', rOk === 7, 'cleared=' + rOk);
 
 // ── Q8–Q20: PLAY quiz state machine (ready|resolving|advance) ──
 function analyzeKnightSrc() {
@@ -390,12 +412,27 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub48 + portal query + sw v93 + game shell no-store',
-  /20260812hub48/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub48/.test(portal) &&
-    /infinity-pwa-v93/.test(sw) &&
+  'Q18 hub VER hub49 + portal query + sw v94 + game shell no-store',
+  /20260812hub49/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub49/.test(portal) &&
+    /infinity-pwa-v94/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
+);
+
+const trSrc = fs.readFileSync(path.join(ROOT, 'games/tense-raiders/index.html'), 'utf8');
+ok(
+  'Q19 raiders Mini Knight PNG + quiz SM + hub49-tr1',
+  /hub49-tr1/.test(trSrc) &&
+    /assets\/chars\/' \+ name/.test(trSrc) &&
+    /goblin/.test(trSrc) &&
+    /function loadNextQuestion\s*\(/.test(trSrc) &&
+    /function tickQuiz\s*\(/.test(trSrc) &&
+    /function endResolving\s*\(/.test(trSrc) &&
+    /PLAY: NO parchment overlay/.test(trSrc) &&
+    /Quiz SM tick MUST run even during hitstop/.test(trSrc) &&
+    /kind === 'raiders'/.test(hub) &&
+    /games\/tense-raiders\/index\.html/.test(hub)
 );
 
 function exists(p) {
@@ -408,7 +445,12 @@ const assetsOk =
   exists('games/knights-quest/assets/sfx/slash.wav') &&
   exists('games/knights-quest/assets/sfx/ambient.wav') &&
   exists('games/dark-thief/assets/sfx/whoosh.wav') &&
-  exists('games/_shared/infinity-quiz-bank.js');
+  exists('games/_shared/infinity-quiz-bank.js') &&
+  exists('games/tense-raiders/index.html') &&
+  exists('games/tense-raiders/assets/hub-idle.png') &&
+  exists('games/tense-raiders/assets/chars/goblin/idle/0.png') &&
+  exists('games/tense-raiders/assets/chars/knight/attack/0.png') &&
+  exists('games/tense-raiders/assets/sfx/slash.wav');
 ok('bonus assets present', assetsOk);
 
 const failed = results.filter((r) => !r.pass);
@@ -419,5 +461,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; verify: hub48'
+  'Core checks green. Knight + Thief + Tense Raiders; verify: hub49'
 );
