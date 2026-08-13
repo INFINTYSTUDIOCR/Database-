@@ -89,7 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub31-st1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub32-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -109,7 +109,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const ST_BUILD = 'hub31-st1';
+  const ST_BUILD = 'hub32-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -599,7 +599,8 @@
     locked: false,
     born: 0,
     phaseAt: 0,
-    pendingKill: false
+    pendingKill: false,
+    advancing: false
   };
   let frameCount = 0;
   let floorNum = 0;
@@ -1200,6 +1201,7 @@
     quiz.born = performance.now();
     quiz.phaseAt = quiz.born;
     quiz.pendingKill = false;
+    quiz.advancing = false;
   }
 
   /** Sync replace q+options → phase ready. No setTimeout path. */
@@ -1221,6 +1223,7 @@
       quiz.born = performance.now();
       quiz.phaseAt = quiz.born;
       quiz.pendingKill = false;
+      quiz.advancing = false;
       if (!options.length) forceFallbackBriefing();
     } catch (err) {
       console.error('[ST loadNextQuestion]', err);
@@ -1261,9 +1264,17 @@
       const age = now - quiz.phaseAt;
       // Mark kill but stay in resolving until anim-done OR 700ms wall — options stay dimmed.
       if (target && target.dead) quiz.pendingKill = true;
-      const idleish = thief.state === 'idle' || thief.state === 'crouch';
-      if (idleish || age >= 700) {
-        endResolving(age >= 700 ? 'wall-700' : 'idle');
+      const idleish =
+        thief.state === 'idle' ||
+        thief.state === 'crouch' ||
+        thief.anim === 'idle' ||
+        thief.anim === 'crouch';
+      if (idleish || age >= 450) {
+        endResolving(age >= 450 ? 'wall-450' : 'idle');
+        return;
+      }
+      if (age >= 700) {
+        endResolving('wall-700');
         return;
       }
       if (age > 900) {
@@ -1451,11 +1462,13 @@
 
   function nextFloor() {
     if (gameState !== STATES.PLAY) return;
+    if (quiz.advancing) return;
     if (floorNum >= 8) {
       thief.doWin();
       setState(STATES.ENDING);
       return;
     }
+    quiz.advancing = true;
     floorNum++;
     let type;
     if (floorNum === 8) type = TARGETS[4];
@@ -1520,6 +1533,7 @@
       quiz.phase = 'ready';
       quiz.locked = false;
       quiz.pendingKill = false;
+      quiz.advancing = false;
       quiz.born = 0;
       quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();

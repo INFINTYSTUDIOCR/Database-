@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub31-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub32-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,7 +100,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub31-kq1';
+  const KQ_BUILD = 'hub32-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -587,7 +587,8 @@
     locked: false,
     born: 0,
     phaseAt: 0,
-    pendingKill: false
+    pendingKill: false,
+    advancing: false
   };
   let frameCount = 0;
   let bgScroll = 0;
@@ -1365,6 +1366,7 @@
     quiz.born = performance.now();
     quiz.phaseAt = quiz.born;
     quiz.pendingKill = false;
+    quiz.advancing = false;
   }
 
   /** Sync replace q+options in one shot → phase ready. No setTimeout path. */
@@ -1386,6 +1388,7 @@
       quiz.born = performance.now();
       quiz.phaseAt = quiz.born;
       quiz.pendingKill = false;
+      quiz.advancing = false;
       if (!options.length) forceFallbackQuestion();
     } catch (err) {
       console.error('[KQ loadNextQuestion]', err);
@@ -1431,9 +1434,17 @@
         knight.state === 'idle' ||
         knight.state === 'suspicious' ||
         knight.state === 'guard' ||
-        knight.state === 'hurt_idle';
-      if (idleish || age >= 700) {
-        endResolving(age >= 700 ? 'wall-700' : 'idle');
+        knight.state === 'hurt_idle' ||
+        knight.anim === 'idle' ||
+        knight.anim === 'idle_b' ||
+        knight.anim === 'horse_idle' ||
+        knight.anim === 'hurt_idle';
+      if (idleish || age >= 450) {
+        endResolving(age >= 450 ? 'wall-450' : 'idle');
+        return;
+      }
+      if (age >= 700) {
+        endResolving('wall-700');
         return;
       }
       if (age > 900) {
@@ -1594,7 +1605,7 @@
         toast('¡FEVER MOUNT!', 1200);
         sfx('fever');
         spawnFx('smoke_up', knight.x, knight.y - 30, 1.2);
-        knight.setAnim('horse_idle', true);
+        // don't setAnim here — doAttack must play first so resolving can end
       }
       knight.doAttack(perfect);
       hitstop = Math.min(12, perfect ? 8 : 4);
@@ -1638,11 +1649,13 @@
 
   function nextEnemy() {
     if (gameState !== STATES.PLAY) return;
+    if (quiz.advancing) return;
     if (roundCount >= 10) {
       knight.doWin();
       setState(STATES.ENDING);
       return;
     }
+    quiz.advancing = true;
     roundCount++;
     let type;
     if (roundCount === 5 || roundCount === 10) type = ENEMY_TYPES[5];
@@ -1711,6 +1724,7 @@
       quiz.phase = 'ready';
       quiz.locked = false;
       quiz.pendingKill = false;
+      quiz.advancing = false;
       quiz.born = 0;
       quiz.phaseAt = 0;
       if (quizRotator) quizRotator.reset();
