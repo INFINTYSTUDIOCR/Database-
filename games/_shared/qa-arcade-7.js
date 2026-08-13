@@ -182,7 +182,7 @@ function simKnightSoftLockHarness() {
   const answerUsesResume =
     /schedulePlayResume\(\s*500,\s*'nextEnemy'\s*\)/.test(src) &&
     /schedulePlayResume\(\s*180,\s*'question'\s*\)/.test(src);
-  const buildTag = /hub25-kq1/.test(src);
+  const buildTag = /hub26-kq1/.test(src);
   return {
     hasResume,
     dualPath,
@@ -332,17 +332,18 @@ ok(
     /runPlayResume/.test(stSrc) &&
     /timer-backup/.test(stSrc) &&
     /waited > 400/.test(stSrc) &&
-    /hub25-st1/.test(stSrc)
+    /hub26-st1/.test(stSrc) &&
+    /Keep anim \+ tryResumeAfterAction advancing during hitstop/.test(stSrc)
 );
 
 // Cache bust markers
 const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf8');
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-ok('Q17 hub VER hub25 + portal query + sw v70 + game shell no-store', 
-  /20260812hub25/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub25/.test(portal) &&
-    /infinity-pwa-v70/.test(sw) &&
+ok('Q17 hub VER hub26 + portal query + sw v71 + game shell no-store', 
+  /20260812hub26/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub26/.test(portal) &&
+    /infinity-pwa-v71/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );

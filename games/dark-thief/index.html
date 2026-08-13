@@ -89,7 +89,7 @@
   <div style="font-family:Syne,sans-serif;font-size:22px;letter-spacing:.14em;color:var(--cyan)">SHADOW THIEF</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:11px;opacity:.65">Infiltrando Babel Vault…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub25-st1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub26-st1</div>
 </div>
 <div id="hud">
   <div class="pill cyan">LOOT <span id="scoreVal">0</span> · BEST <span id="bestVal">0</span></div>
@@ -109,7 +109,7 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q3"></script>
 <script>
 (async function () {
-  const ST_BUILD = 'hub25-st1';
+  const ST_BUILD = 'hub26-st1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const loadFill = document.getElementById('load-fill');
@@ -2013,14 +2013,17 @@
         } else emptyOptionsSince = 0;
       }
 
+      // Keep anim + tryResumeAfterAction advancing during hitstop (same as Knight).
+      // Freezing update here left strike oneshots stuck until hitstop ended.
+      if (gameState === STATES.PLAY || gameState === STATES.STORY || gameState === STATES.MENU) {
+        thief.update();
+      }
       if (hitstop > 0) hitstop = Math.max(0, (hitstop | 0) - 1);
       else {
         frameCount++;
         if (shake > 0) shake--;
         if (flash > 0) flash--;
         if (gameState === STATES.PLAY && veil > 40) alert = Math.max(0, alert - 0.015);
-
-        thief.update();
       }
 
       if (!ensureCanvasAlive()) return;
