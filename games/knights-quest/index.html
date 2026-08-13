@@ -80,7 +80,7 @@
   <div style="font-family:Cinzel,serif;font-size:22px;letter-spacing:.12em;color:var(--gold)">KNIGHT'S QUEST</div>
   <div id="load-bar"><div id="load-fill"></div></div>
   <div id="load-txt" style="font-size:12px;opacity:.7">Forjando el arsenal teutónico…</div>
-  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub36-kq1</div>
+  <div id="build-tag" style="font-size:10px;opacity:.45;letter-spacing:.08em;margin-top:4px">hub37-kq1</div>
 </div>
 <div id="hud">
   <div class="pill"><span id="scoreVal">0</span> XP · BEST <span id="bestVal">0</span></div>
@@ -100,9 +100,27 @@
 <script src="../_shared/infinity-quiz-bank.js?v=q4"></script>
 <script>
 (async function () {
-  const KQ_BUILD = 'hub36-kq1';
+  const KQ_BUILD = 'hub37-kq1';
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
+  // Canvas forbids negative radii — a bad particle/FX must NEVER throw and kill the play loop.
+  const _arc = CanvasRenderingContext2D.prototype.arc;
+  CanvasRenderingContext2D.prototype.arc = function (x, y, r, ...rest) {
+    return _arc.call(this, x, y, Math.max(0.1, Math.abs(+r || 0)), ...rest);
+  };
+  const _ellipse = CanvasRenderingContext2D.prototype.ellipse;
+  if (_ellipse) {
+    CanvasRenderingContext2D.prototype.ellipse = function (x, y, rx, ry, ...rest) {
+      return _ellipse.call(
+        this,
+        x,
+        y,
+        Math.max(0.1, Math.abs(+rx || 0)),
+        Math.max(0.1, Math.abs(+ry || 0)),
+        ...rest
+      );
+    };
+  }
   const loadFill = document.getElementById('load-fill');
   const loadTxt = document.getElementById('load-txt');
   const toastEl = document.getElementById('toast');

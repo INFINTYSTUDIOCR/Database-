@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub36';
+  var VER = '20260812hub37';
 
   /** Knight + Dark Thief (animated) + Rapid Drill */
   var GAMES = [
@@ -550,6 +550,8 @@
         body.innerHTML =
           '<iframe src="games/knights-quest/index.html?v=' +
           VER +
+          '&t=' +
+          Date.now() +
           '" title="Knight\'s Quest" class="inf-knight-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>';
       }
       if (typeof infinityArcadeRequestBrowserFullscreen === 'function') {

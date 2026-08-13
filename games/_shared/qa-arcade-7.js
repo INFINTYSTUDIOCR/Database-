@@ -165,7 +165,7 @@ function analyzeKnightSrc() {
   const tickDuringHitstop = /Quiz SM tick MUST run even during hitstop/.test(src);
   const hidePrompt = /PLAY: NO parchment/.test(src) && !/PLAY: show prompt panel/.test(src);
   const dockedQuiz = /function quizDock\(/.test(src) && /Options strip only/.test(src);
-  const buildTag = /hub36-kq1/.test(src);
+  const buildTag = /hub37-kq1/.test(src);
   const pendingKill = /pendingKill/.test(src);
   return {
     hasSM,
@@ -188,7 +188,7 @@ ok('Q10 knight keeps options dimmed on answer (no blank duel)', harness.keepOpti
 ok('Q11 resolving ends ≤700ms wall + advance force ≤900ms', harness.resolvingWall && harness.advanceForce);
 ok('Q12 tickQuiz runs during hitstop', harness.tickDuringHitstop);
 ok('Q13 knight hides PLAY parchment + docked options', harness.hidePrompt && harness.dockedQuiz);
-ok('Q14 pendingKill + hub36-kq1', harness.pendingKill && harness.buildTag);
+ok('Q14 pendingKill + hub37-kq1', harness.pendingKill && harness.buildTag);
 
 /** Mirror hub29 PLAY SM: ready→resolving→(advance|ready); options never empty >300ms. */
 function simQuizStateMachine(opts) {
@@ -390,10 +390,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub36 + portal query + sw v81 + game shell no-store',
-  /20260812hub36/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub36/.test(portal) &&
-    /infinity-pwa-v81/.test(sw) &&
+  'Q18 hub VER hub37 + portal query + sw v82 + game shell no-store',
+  /20260812hub37/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub37/.test(portal) &&
+    /infinity-pwa-v82/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -419,5 +419,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; battle WAV pack restored; verify: hub36'
+  'Core checks green. Knight + Thief finishable; battle WAV pack restored; verify: hub37'
 );
