@@ -7,7 +7,7 @@
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260812hub41';
+  var VER = '20260812hub42';
 
   /** Knight + Dark Thief + Tense Raiders + Rapid Drill */
   var GAMES = [
@@ -54,7 +54,7 @@
       id: 'raiders',
       kind: 'raiders',
       title: 'TENSE RAIDERS',
-      sub: 'Jeopardy vs orco. Buzz the tense before he takes the point.',
+      sub: 'Todos los tenses. El orco se burla si fallás.',
       badge: 'new',
       badgeLabel: 'PROTO',
       xp: '+50 XP',
@@ -65,7 +65,7 @@
         name: 'Perfect Raider',
         role: 'Tense orc',
         mood: 'Buzzing',
-        line: '"Name the tense. Beat the orc."',
+        line: '"Buzz. If you miss, I laugh."',
         color: '#c084fc'
       }
     },
