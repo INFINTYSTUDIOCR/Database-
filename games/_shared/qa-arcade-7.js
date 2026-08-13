@@ -390,10 +390,10 @@ const hub = fs.readFileSync(path.join(ROOT, 'js/infinity-casino-floor.js'), 'utf
 const portal = fs.readFileSync(path.join(ROOT, 'Infinity_Student_Portal.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 ok(
-  'Q18 hub VER hub38 + portal query + sw v83 + game shell no-store',
-  /20260812hub38/.test(hub) &&
-    /infinity-casino-floor\.js\?v=20260812hub38/.test(portal) &&
-    /infinity-pwa-v83/.test(sw) &&
+  'Q18 hub VER hub39 + portal query + sw v84 + game shell no-store',
+  /20260812hub39/.test(hub) &&
+    /infinity-casino-floor\.js\?v=20260812hub39/.test(portal) &&
+    /infinity-pwa-v84/.test(sw) &&
     /isGameShell/.test(sw) &&
     /cache:\s*['"]no-store['"]/.test(sw)
 );
@@ -403,6 +403,7 @@ function exists(p) {
 }
 const assetsOk =
   exists('games/knights-quest/index.html') &&
+  exists('games/tense-raiders/index.html') &&
   exists('games/dark-thief/index.html') &&
   exists('games/dark-thief/assets/manifest.json') &&
   exists('games/knights-quest/assets/sfx/slash.wav') &&
@@ -419,5 +420,5 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(
-  'Core checks green. Knight + Thief finishable; battle WAV pack restored; verify: hub38'
+  'Core checks green. Knight + Thief finishable; Tense Raiders proto; verify: hub39'
 );

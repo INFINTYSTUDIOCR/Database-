@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tense Raiders — Infinity Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@600;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;height:100dvh;background:#0a0810;overflow:hidden;font-family:Outfit,sans-serif;color:#fff}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+  #hud{position:fixed;top:8px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;z-index:2;font:800 12px Outfit,sans-serif;letter-spacing:.08em;color:#E8C547}
+  #hud button{pointer-events:auto;appearance:none;background:rgba(10,8,16,.75);border:1px solid rgba(232,197,71,.4);color:#E8C547;border-radius:999px;padding:6px 12px;font:800 11px Outfit,sans-serif;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="hud"><span>TENSE RAIDERS · proto orco</span><button type="button" id="closeBtn">CERRAR</button></div>
+<div id="stage"><canvas id="c"></canvas></div>
+<script>
+(function () {
+  const BUILD = 'tr-orc1';
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = () => canvas.clientWidth || innerWidth;
+  const H = () => canvas.clientHeight || innerHeight;
+  function resize() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = innerWidth, h = innerHeight;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  const TENSES = [
+    { id: 'ps', label: 'PRESENT SIMPLE', orc: 'green', color: '#4ade80' },
+    { id: 'past', label: 'PAST SIMPLE', orc: 'blue', color: '#60a5fa' },
+    { id: 'pc', label: 'PRESENT CONTINUOUS', orc: 'club', color: '#fb923c' },
+    { id: 'pp', label: 'PRESENT PERFECT', orc: 'mage', color: '#c084fc' }
+  ];
+  const CLUES = [
+    { text: 'Desde 2019 ella TRABAJA aquí.', tense: 'pp' },
+    { text: 'Ayer el cliente LLAMÓ molesto.', tense: 'past' },
+    { text: 'Ahora mismo ESTOY esperando.', tense: 'pc' },
+    { text: 'Ella TRABAJA lunes a viernes.', tense: 'ps' },
+    { text: 'He HAS SENT the report already.', tense: 'pp' },
+    { text: 'They WENT to the vault last night.', tense: 'past' },
+    { text: 'We ARE CLOSING the ticket now.', tense: 'pc' },
+    { text: 'He CALLS every Monday.', tense: 'ps' }
+  ];
+
+  let you = 0, orcScore = 0, round = 0, locked = false;
+  let clue = CLUES[0];
+  let orcTimer = 10, orcBorn = 0, orcMax = 10;
+  let orcAnim = 'idle'; // idle | attack | hurt | win
+  let orcFrame = 0, orcTick = 0;
+  let toast = '', toastLife = 0;
+  let hover = -1;
+  let mouse = { x: 0, y: 0 };
+  let tiles = [];
+
+  function questionTimer() {
+    if (round >= 20) return 3;
+    if (round >= 15) return 6;
+    if (round >= 10) return 8;
+    return 10;
+  }
+
+  function loadClue() {
+    clue = CLUES[round % CLUES.length];
+    orcMax = questionTimer();
+    orcTimer = orcMax;
+    orcBorn = performance.now();
+    locked = false;
+    orcAnim = 'idle';
+    orcFrame = 0;
+  }
+
+  function layout() {
+    const w = W(), h = H();
+    const boardX = w * 0.04, boardY = h * 0.14, boardW = w * 0.58, boardH = h * 0.38;
+    const gap = 10;
+    const tw = (boardW - gap) / 2, th = h * 0.11;
+    const ty0 = boardY + boardH + 18;
+    tiles = TENSES.map((t, i) => ({
+      ...t,
+      x: boardX + (i % 2) * (tw + gap),
+      y: ty0 + Math.floor(i / 2) * (th + gap),
+      w: tw,
+      h: th
+    }));
+    return { w, h, boardX, boardY, boardW, boardH };
+  }
+
+  // ── ORC (procedural stand-in until Pasilan pack) ──
+  function drawOrc(x, y, scale, t) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    const bob = orcAnim === 'idle' ? Math.sin(t * 0.08) * 4 : 0;
+    const lunge = orcAnim === 'attack' ? -18 : orcAnim === 'hurt' ? 10 : 0;
+    ctx.translate(lunge, bob);
+
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 78, 42, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const robe = '#6d28d9';
+    const skin = '#c4d431';
+    const staffSwing = orcAnim === 'attack' ? Math.sin(orcFrame * 0.4) * 0.35 : Math.sin(t * 0.05) * 0.08;
+
+    // staff
+    ctx.save();
+    ctx.translate(48, -10);
+    ctx.rotate(staffSwing);
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(0, 70);
+    ctx.lineTo(0, -55);
+    ctx.stroke();
+    const glow = 10 + Math.sin(t * 0.15) * 4 + (orcAnim === 'attack' ? 8 : 0);
+    const g = ctx.createRadialGradient(0, -62, 2, 0, -62, glow + 8);
+    g.addColorStop(0, '#bbf7d0');
+    g.addColorStop(0.4, '#22c55e');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(0, -62, glow + 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#4ade80';
+    ctx.beginPath();
+    ctx.arc(0, -62, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // boots
+    ctx.fillStyle = '#1e1b4b';
+    round(ctx, -28, 58, 22, 18, 5);
+    round(ctx, 6, 58, 22, 18, 5);
+
+    // robe body
+    ctx.fillStyle = robe;
+    ctx.beginPath();
+    ctx.moveTo(-38, 62);
+    ctx.quadraticCurveTo(-50, 10, -22, -8);
+    ctx.lineTo(22, -8);
+    ctx.quadraticCurveTo(50, 10, 38, 62);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#7c3aed';
+    round(ctx, -18, 8, 36, 44, 8);
+    ctx.fillStyle = '#b91c1c';
+    round(ctx, -8, 22, 16, 8, 3);
+
+    // arms
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.ellipse(-32, 18, 10, 16, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(34, 8, 10, 16, 0.5 + staffSwing, 0, Math.PI * 2);
+    ctx.fill();
+
+    // hood + head
+    ctx.fillStyle = '#4c1d95';
+    ctx.beginPath();
+    ctx.ellipse(0, -28, 36, 32, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = skin;
+    ctx.beginPath();
+    ctx.ellipse(0, -18, 26, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // ears
+    ctx.beginPath();
+    ctx.moveTo(-24, -20);
+    ctx.lineTo(-42, -36);
+    ctx.lineTo(-18, -8);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(24, -20);
+    ctx.lineTo(42, -36);
+    ctx.lineTo(18, -8);
+    ctx.fill();
+    // eyes
+    const blink = Math.floor(t / 8) % 40 === 0;
+    ctx.fillStyle = orcAnim === 'hurt' ? '#fca5a5' : '#f9a8d4';
+    if (!blink) {
+      ctx.beginPath();
+      ctx.arc(-10, -20, 5, 0, Math.PI * 2);
+      ctx.arc(10, -20, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(-8, -22, 1.6, 0, Math.PI * 2);
+      ctx.arc(12, -22, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = '#3f3f0a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-15, -20);
+      ctx.lineTo(-5, -20);
+      ctx.moveTo(5, -20);
+      ctx.lineTo(15, -20);
+      ctx.stroke();
+    }
+    // tusks
+    ctx.fillStyle = '#f5f0c8';
+    ctx.beginPath();
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(-14, 10);
+    ctx.lineTo(-6, 0);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(10, -2);
+    ctx.lineTo(14, 10);
+    ctx.lineTo(6, 0);
+    ctx.fill();
+    // frown / snarl
+    ctx.strokeStyle = '#3f3f0a';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    if (orcAnim === 'attack') {
+      ctx.arc(0, -6, 8, 0.15, Math.PI - 0.15);
+    } else if (orcAnim === 'hurt') {
+      ctx.arc(0, -2, 7, Math.PI + 0.2, -0.2);
+    } else {
+      ctx.moveTo(-8, -4);
+      ctx.quadraticCurveTo(0, 2, 8, -4);
+    }
+    ctx.stroke();
+
+    if (orcAnim === 'hurt') {
+      ctx.fillStyle = 'rgba(248,113,113,0.35)';
+      ctx.beginPath();
+      ctx.arc(0, -10, 40, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function round(c, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x + rr, y);
+    c.arcTo(x + w, y, x + w, y + h, rr);
+    c.arcTo(x + w, y + h, x, y + h, rr);
+    c.arcTo(x, y + h, x, y, rr);
+    c.arcTo(x, y, x + w, y, rr);
+    c.closePath();
+    c.fill();
+  }
+
+  function drawBG(w, h, t) {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#12081c');
+    sky.addColorStop(0.5, '#1a1028');
+    sky.addColorStop(1, '#0c1a12');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.arc(w * 0.82, h * 0.12, h * 0.05, 0.2, Math.PI * 1.4);
+    ctx.fill();
+    ctx.fillStyle = '#1a1028';
+    ctx.beginPath();
+    ctx.arc(w * 0.84, h * 0.1, h * 0.04, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0b1220';
+    ctx.fillRect(0, h * 0.78, w, h * 0.22);
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(0, h * 0.76, w, 10);
+  }
+
+  function drawClue(L) {
+    ctx.fillStyle = '#f3e0b8';
+    roundRectStroke(L.boardX, L.boardY, L.boardW, L.boardH, 12, '#5c3a1e', 4);
+    ctx.fillStyle = '#b91c1c';
+    roundRectStroke(L.boardX + L.boardW * 0.28, L.boardY - 16, L.boardW * 0.44, 28, 6, '#7f1d1d', 2);
+    ctx.fillStyle = '#fff8e7';
+    ctx.font = '800 14px Cinzel,serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CLUE', L.boardX + L.boardW / 2, L.boardY - 2);
+    ctx.fillStyle = '#2a1810';
+    ctx.font = '800 ' + Math.round(L.h * 0.038) + 'px Outfit,sans-serif';
+    wrap(clue.text, L.boardX + L.boardW / 2, L.boardY + L.boardH * 0.42, L.boardW * 0.86, L.h * 0.042);
+    ctx.fillStyle = '#92400e';
+    ctx.font = '700 14px Outfit,sans-serif';
+    ctx.fillText('¿Qué tiempo es?  ·  Buzz before the orc', L.boardX + L.boardW / 2, L.boardY + L.boardH * 0.82);
+  }
+
+  function wrap(text, x, y, maxW, lh) {
+    const words = text.split(' ');
+    let line = '', lines = [];
+    ctx.textAlign = 'center';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = w;
+      } else line = test;
+    }
+    if (line) lines.push(line);
+    let yy = y - ((lines.length - 1) * lh) / 2;
+    lines.forEach((ln) => {
+      ctx.fillText(ln, x, yy);
+      yy += lh;
+    });
+  }
+
+  function roundRectStroke(x, y, w, h, r, stroke, lw) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = lw || 2;
+      ctx.stroke();
+    }
+  }
+
+  function drawTiles() {
+    hover = -1;
+    tiles.forEach((tile, i) => {
+      const over =
+        mouse.x > tile.x && mouse.x < tile.x + tile.w && mouse.y > tile.y && mouse.y < tile.y + tile.h;
+      if (over && !locked) hover = i;
+      ctx.fillStyle = over && !locked ? 'rgba(232,197,71,0.35)' : 'rgba(20,14,32,0.92)';
+      roundRectStroke(tile.x, tile.y, tile.w, tile.h, 8, over && !locked ? '#E8C547' : 'rgba(255,255,255,0.15)', over ? 2 : 1);
+      ctx.fillStyle = tile.color;
+      ctx.font = '800 11px Outfit,sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(String(i + 1), tile.x + 10, tile.y + 16);
+      ctx.fillStyle = '#fff';
+      ctx.font = '800 ' + Math.min(16, tile.h * 0.28) + 'px Outfit,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tile.label, tile.x + tile.w / 2, tile.y + tile.h / 2 + 4);
+    });
+  }
+
+  function drawHud(L) {
+    ctx.fillStyle = '#E8C547';
+    ctx.font = '900 ' + Math.round(L.h * 0.028) + 'px Cinzel,serif';
+    ctx.textAlign = 'left';
+    ctx.fillText("TENSE RAIDERS", 16, 28);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '700 12px Outfit,sans-serif';
+    ctx.fillText('RAID · PRESENT PERFECT  ·  ' + BUILD, 16, 46);
+    ctx.textAlign = 'center';
+    ctx.font = '900 ' + Math.round(L.h * 0.032) + 'px Outfit,sans-serif';
+    ctx.fillStyle = '#86efac';
+    ctx.fillText('YOU  ' + you, L.w * 0.42, 32);
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillText('ORC  ' + orcScore, L.w * 0.58, 32);
+  }
+
+  function drawOrcPanel(L, t) {
+    const px = L.w * 0.66, py = L.h * 0.16, pw = L.w * 0.3, ph = L.h * 0.62;
+    ctx.fillStyle = 'rgba(12,8,22,0.55)';
+    roundRectStroke(px, py, pw, ph, 12, 'rgba(192,132,252,0.35)', 2);
+    ctx.fillStyle = '#c084fc';
+    ctx.font = '800 13px Cinzel,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('THE PERFECT RAIDER', px + pw / 2, py + 22);
+    drawOrc(px + pw / 2, py + ph * 0.52, Math.min(pw, ph) / 220, t);
+    const barX = px + 16, barY = py + ph - 48, barW = pw - 32, barH = 12;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    roundRectStroke(barX, barY, barW, barH, 6);
+    const pct = Math.max(0, orcTimer / orcMax);
+    ctx.fillStyle = pct > 0.4 ? '#E8C547' : pct > 0.2 ? '#fb923c' : '#ef4444';
+    if (pct > 0) roundRectStroke(barX, barY, barW * pct, barH, 6);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '700 12px Outfit,sans-serif';
+    ctx.fillText('ORC BUZZ  ' + Math.ceil(Math.max(0, orcTimer)) + 's', px + pw / 2, barY - 10);
+  }
+
+  function answer(tile) {
+    if (locked || you >= 5 || orcScore >= 5) return;
+    locked = true;
+    if (tile.id === clue.tense) {
+      you++;
+      orcAnim = 'hurt';
+      orcFrame = 0;
+      toast = 'TU PUNTO';
+      toastLife = 1;
+    } else {
+      orcScore++;
+      orcAnim = 'attack';
+      orcFrame = 0;
+      toast = 'ORC TOMA EL PUNTO';
+      toastLife = 1;
+    }
+    setTimeout(next, 900);
+  }
+
+  function orcSteals() {
+    if (locked) return;
+    locked = true;
+    orcScore++;
+    orcAnim = 'attack';
+    orcFrame = 0;
+    toast = 'DEMASIADO LENTO';
+    toastLife = 1;
+    setTimeout(next, 900);
+  }
+
+  function next() {
+    if (you >= 5 || orcScore >= 5) {
+      orcAnim = you >= 5 ? 'hurt' : 'win';
+      return;
+    }
+    round++;
+    loadClue();
+  }
+
+  function loop() {
+    requestAnimationFrame(loop);
+    const t = performance.now() / 16;
+    orcTick++;
+    if (orcTick % 6 === 0) orcFrame++;
+    if (!locked && you < 5 && orcScore < 5) {
+      orcTimer = Math.max(0, orcMax - (performance.now() - orcBorn) / 1000);
+      if (orcTimer <= 0) orcSteals();
+    }
+    if (toastLife > 0) toastLife -= 0.02;
+    const L = layout();
+    drawBG(L.w, L.h, t);
+    drawHud(L);
+    drawClue(L);
+    drawTiles();
+    drawOrcPanel(L, t);
+    if (toastLife > 0) {
+      ctx.globalAlpha = Math.min(1, toastLife);
+      ctx.fillStyle = '#E8C547';
+      ctx.font = '900 28px Cinzel,serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(toast, L.w / 2, L.h * 0.08);
+      ctx.globalAlpha = 1;
+    }
+    if (you >= 5 || orcScore >= 5) {
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, 0, L.w, L.h);
+      ctx.fillStyle = you >= 5 ? '#86efac' : '#fca5a5';
+      ctx.font = '900 36px Cinzel,serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(you >= 5 ? 'RAID CLEAR' : 'ORC WINS', L.w / 2, L.h * 0.42);
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 16px Outfit,sans-serif';
+      ctx.fillText('Tocá para otro raid', L.w / 2, L.h * 0.5);
+    }
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+  });
+  canvas.addEventListener('pointerup', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+    if (you >= 5 || orcScore >= 5) {
+      you = 0;
+      orcScore = 0;
+      round = 0;
+      loadClue();
+      return;
+    }
+    layout();
+    for (const tile of tiles) {
+      if (mouse.x > tile.x && mouse.x < tile.x + tile.w && mouse.y > tile.y && mouse.y < tile.y + tile.h) {
+        answer(tile);
+        break;
+      }
+    }
+  });
+  addEventListener('keydown', (e) => {
+    const i = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[e.code];
+    if (i != null && tiles[i]) answer(tiles[i]);
+  });
+  document.getElementById('closeBtn').onclick = () => {
+    if (parent !== window) parent.postMessage({ type: 'arcade-close' }, '*');
+  };
+
+  loadClue();
+  console.info('[Tense Raiders]', BUILD);
+  loop();
+})();
+</script>
+</body>
+</html>
