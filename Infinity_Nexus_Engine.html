@@ -21,6 +21,7 @@
 <script src="js/jill-trainer-insights.js?v=20260814refresh"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/nexora-industry-map.js"></script>
+<script src="js/nexora-simulation-program.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/tts-chunks.js?v=20260814refresh"></script>
 <script src="js/ptt-mic.js?v=20260814refresh"></script>
@@ -645,15 +646,16 @@ textarea.inp{resize:vertical;min-height:80px;}
   </div>
 </div>
 
-<!-- MODAL NEXORA INDIVIDUAL -->
+<!-- MODAL NEXORA INDIVIDUAL — programador de simulación -->
 <div class="modal-bg" id="modal-nexora-justify">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-title"><i class="ti ti-sparkles" style="color:#C084FC;"></i>Configurar Nexora para este estudiante</div>
+  <div class="modal" style="max-width:640px;max-height:90vh;overflow:auto;">
+    <div class="modal-title"><i class="ti ti-sparkles" style="color:#C084FC;"></i>Programar simulación Nexora</div>
     <input type="hidden" id="nexora-sid">
-    <div class="ib ib-navy">Seleccioná el escenario de simulación. Alice asumirá ese rol cuando el estudiante entre a Nexora en su portal.</div>
+    <input type="hidden" id="nexora-simulation-id">
+    <div class="ib ib-navy">Nexora ejecuta <strong>exactamente</strong> este programa. Plantilla por tipo — editá roles, preguntas y criterios antes de guardar.</div>
     <div class="form-group">
       <label class="form-label">Tipo de simulación</label>
-      <select class="inp" id="nexora-type" onchange="syncNexoraEngineIndustryUI()">
+      <select class="inp" id="nexora-type" onchange="nexoraEngineApplyTemplate()">
         <option value="mock_interview">STAR Mock Interview — Entrevista conductual (S→T→A→R)</option>
         <option value="customer_service">Customer Service — Atención al cliente</option>
         <option value="team_meeting">Team Meeting / Team Presentation — Reunión de equipo</option>
@@ -665,7 +667,7 @@ textarea.inp{resize:vertical;min-height:80px;}
     </div>
     <div class="form-group" id="nexora-industry-group">
       <label class="form-label">Industria / Contexto</label>
-      <select class="inp" id="nexora-industry" onchange="syncNexoraEngineIndustryUI()"></select>
+      <select class="inp" id="nexora-industry" onchange="nexoraEngineApplyTemplate()"></select>
       <div id="nexora-industry-hint" style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.5;"></div>
     </div>
     <div class="form-group">
@@ -678,13 +680,43 @@ textarea.inp{resize:vertical;min-height:80px;}
         <option value="5">5 — Desafiante</option>
       </select>
     </div>
+    <div class="form-group" id="nexora-role-group">
+      <label class="form-label">Puesto a examinar / target role</label>
+      <input class="inp" id="nexora-target-role" placeholder="Customer Support Specialist" onchange="nexoraEngineRefreshQuestions()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título del escenario</label>
+      <input class="inp" id="nexora-title" placeholder="Título que verá el estudiante">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción / contexto</label>
+      <textarea class="inp" id="nexora-desc" style="min-height:56px;" placeholder="Contexto de la simulación"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Participantes (2–4 para paneles; 1 para CS) — una línea: Nombre — Rol</label>
+      <textarea class="inp" id="nexora-participants" style="min-height:72px;font-family:ui-monospace,monospace;font-size:12px;"></textarea>
+    </div>
+    <div class="form-group" id="nexora-questions-group">
+      <label class="form-label">Plan de preguntas (STAR) — una por línea</label>
+      <textarea class="inp" id="nexora-questions" style="min-height:100px;font-family:ui-monospace,monospace;font-size:12px;"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Objetivos (uno por línea)</label>
+      <textarea class="inp" id="nexora-objectives" style="min-height:64px;"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Puntaje mínimo para aprobar (0–100)</label>
+      <input class="inp" id="nexora-pass-score" type="number" min="0" max="100" value="70">
+    </div>
     <div class="form-group">
       <label class="form-label">Justificación (opcional)</label>
-      <textarea class="inp" id="nexora-justify" placeholder="Por qué este estudiante está listo para Nexora..." style="min-height:70px;"></textarea>
+      <textarea class="inp" id="nexora-justify" placeholder="Por qué este estudiante está listo para Nexora..." style="min-height:56px;"></textarea>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
       <button class="btn btn-outline" onclick="closeModal('modal-nexora-justify')">Cancelar</button>
-      <button class="btn btn-navy" style="background:#7C3AED;" onclick="confirmStudentNexora()"><i class="ti ti-sparkles"></i>Activar Nexora</button>
+      <button class="btn btn-outline" id="nexora-deactivate-btn" style="display:none;color:#EF4444;border-color:#EF4444;" onclick="deactivateStudentNexoraFromModal()"><i class="ti ti-power"></i>Desactivar</button>
+      <button class="btn btn-outline" onclick="previewNexoraFromModal()"><i class="ti ti-eye"></i>Preview</button>
+      <button class="btn btn-navy" style="background:#7C3AED;" id="nexora-save-btn" onclick="confirmStudentNexora()"><i class="ti ti-sparkles"></i>Guardar programa</button>
     </div>
   </div>
 </div>
@@ -4876,6 +4908,22 @@ function requestModeChange(sid){
   );
 }
 
+function nexoraEngineFormIds(){
+  return {
+    type:'nexora-type',
+    industry:'nexora-industry',
+    difficulty:'nexora-difficulty',
+    targetRole:'nexora-target-role',
+    title:'nexora-title',
+    desc:'nexora-desc',
+    participants:'nexora-participants',
+    questions:'nexora-questions',
+    objectives:'nexora-objectives',
+    passScore:'nexora-pass-score',
+    justify:'nexora-justify'
+  };
+}
+
 function syncNexoraEngineIndustryUI(){
   var typeEl=document.getElementById('nexora-type');
   var indEl=document.getElementById('nexora-industry');
@@ -4893,54 +4941,125 @@ function syncNexoraEngineIndustryUI(){
   if(groupEl){
     groupEl.style.opacity= NEXORA_INDUSTRY&&NEXORA_INDUSTRY.industryAffectsScenarioPool(type)?'1':'0.85';
   }
+  var isStar=type==='mock_interview';
+  var roleG=document.getElementById('nexora-role-group');
+  var qG=document.getElementById('nexora-questions-group');
+  if(roleG) roleG.style.display=isStar?'block':'none';
+  if(qG) qG.style.display=isStar?'block':'none';
+}
+
+function nexoraEngineApplyTemplate(){
+  syncNexoraEngineIndustryUI();
+  if(typeof NEXORA_SIM_PROGRAM==='undefined') return;
+  var typeEl=document.getElementById('nexora-type');
+  var indEl=document.getElementById('nexora-industry');
+  NEXORA_SIM_PROGRAM.applyTemplateToForm(
+    typeEl?typeEl.value:'customer_service',
+    indEl?indEl.value:'corporate',
+    nexoraEngineFormIds()
+  );
+  syncNexoraEngineIndustryUI();
+}
+
+function nexoraEngineRefreshQuestions(){
+  if(typeof NEXORA_SIM_PROGRAM==='undefined') return;
+  var role=(document.getElementById('nexora-target-role')||{}).value||'Customer Support Specialist';
+  var bank=NEXORA_SIM_PROGRAM.ROLE_QUESTION_BANKS[role]||NEXORA_SIM_PROGRAM.ROLE_QUESTION_BANKS['Customer Support Specialist'];
+  var qEl=document.getElementById('nexora-questions');
+  if(qEl&&bank) qEl.value=bank.join('\n');
+}
+
+function openNexoraProgramModal(sid){
+  var s=DB[sid]; if(!s) return;
+  document.getElementById('nexora-sid').value=sid;
+  var deact=document.getElementById('nexora-deactivate-btn');
+  var saveBtn=document.getElementById('nexora-save-btn');
+  if(deact) deact.style.display=s.nexoraEnabled?'inline-flex':'none';
+  if(saveBtn) saveBtn.innerHTML=s.nexoraEnabled
+    ? '<i class="ti ti-device-floppy"></i>Actualizar programa'
+    : '<i class="ti ti-sparkles"></i>Activar y guardar';
+  syncNexoraEngineIndustryUI();
+  if(s.nexoraConfig&&typeof NEXORA_SIM_PROGRAM!=='undefined'){
+    document.getElementById('nexora-simulation-id').value=s.nexoraConfig.simulationId||'';
+    NEXORA_SIM_PROGRAM.fillEngineFormFromProgram(s.nexoraConfig, nexoraEngineFormIds());
+    if(s.nexoraJustification) document.getElementById('nexora-justify').value=s.nexoraJustification;
+  } else {
+    document.getElementById('nexora-simulation-id').value='';
+    document.getElementById('nexora-justify').value='';
+    nexoraEngineApplyTemplate();
+  }
+  syncNexoraEngineIndustryUI();
+  showModal('modal-nexora-justify');
 }
 
 function toggleStudentNexora(sid){
   if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
-  if(s.nexoraEnabled){
-    confirmAction('Desactivar Nexora', '¿Desactivar el acceso a Nexora para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
-      s.nexoraEnabled = false; s.nexoraJustification = '';
-      await dbSet('infinity_students', sid, s); DB[sid]=s;
-      showToast('Nexora desactivado'); openStudent(sid);
-    }, 'Sí, desactivar');
-  } else {
-    document.getElementById('nexora-sid').value = sid;
-    document.getElementById('nexora-justify').value = '';
-    syncNexoraEngineIndustryUI();
-    showModal('modal-nexora-justify');
-  }
+  openNexoraProgramModal(sid);
+}
+
+async function deactivateStudentNexoraFromModal(){
+  var sid=document.getElementById('nexora-sid').value;
+  var s=DB[sid]; if(!s) return;
+  confirmAction('Desactivar Nexora', '¿Desactivar Nexora y limpiar el programa para '+((s.info&&s.info.name)||'este estudiante')+'?', async function(){
+    s.nexoraEnabled=false;
+    s.nexoraJustification='';
+    s.nexoraConfig=null;
+    await dbSet('infinity_students', sid, s); DB[sid]=s;
+    closeModal('modal-nexora-justify');
+    showToast('Nexora desactivado — programa eliminado');
+    openStudent(sid);
+  }, 'Sí, desactivar');
 }
 
 async function confirmStudentNexora(){
   var sid = document.getElementById('nexora-sid').value;
-  var justification = document.getElementById('nexora-justify').value.trim();
-  var type = document.getElementById('nexora-type').value;
-  var industry = document.getElementById('nexora-industry').value;
-  var difficulty = parseInt(document.getElementById('nexora-difficulty').value);
   var s = DB[sid]; if(!s) return;
-
-  var typeLabels = {mock_interview:'STAR Mock Interview',customer_service:'Customer Service',team_meeting:'Team Meeting',problem_solving:'Problem Solving',presentation:'Executive Presentation',negotiation:'Negotiation',stakeholder:'Stakeholder Discussion'};
+  if(typeof NEXORA_SIM_PROGRAM==='undefined'){
+    showToast('Falta nexora-simulation-program.js','err');
+    return;
+  }
+  var existingId=(document.getElementById('nexora-simulation-id')||{}).value||(s.nexoraConfig&&s.nexoraConfig.simulationId)||'';
+  var program=NEXORA_SIM_PROGRAM.readEngineForm(nexoraEngineFormIds(), {
+    simulationId: existingId || undefined,
+    setBy: SESSION.name
+  });
+  program.justification=(document.getElementById('nexora-justify')||{}).value||'';
+  program.setAt=new Date().toISOString();
+  program.setBy=SESSION.name;
 
   s.nexoraEnabled = true;
-  s.nexoraJustification = justification;
-  s.nexoraConfig = {
-    type, typeLabel: typeLabels[type]||type,
-    industry, industryLabel: (typeof NEXORA_INDUSTRY!=='undefined'?NEXORA_INDUSTRY.labelForEngineValue(industry):industry),
-    difficulty,
-    poolKey: (typeof NEXORA_INDUSTRY!=='undefined'?NEXORA_INDUSTRY.scenarioPoolKey({type:type,industry:industry}):null),
-    setAt: new Date().toISOString(),
-    setBy: SESSION.name
-  };
+  s.nexoraJustification = program.justification;
+  s.nexoraConfig = program;
 
   if(!s.notes) s.notes=[];
-  s.notes.push({ date:new Date().toISOString(), trainer:SESSION.name, text:'Nexora activado — Escenario: '+(typeLabels[type]||type)+' · '+(s.nexoraConfig.industryLabel||industry)+' · Dificultad '+difficulty+'/5'+(justification?' · '+justification:''), phase:parseInt((s.info&&s.info.phase))||1 });
+  s.notes.push({
+    date:new Date().toISOString(),
+    trainer:SESSION.name,
+    text:'Nexora programado — '+(program.typeLabel||program.type)+' · '+(program.targetRole||program.industryLabel||'')+' · pin '+program.simulationId+' · Dificultad '+program.difficulty+'/5'+(program.justification?' · '+program.justification:''),
+    phase:parseInt((s.info&&s.info.phase))||1
+  });
   await dbSet('infinity_students', sid, s); DB[sid]=s;
-  await logAction('Activó Nexora individual', ((s.info&&s.info.name)||sid)+' — '+(typeLabels[type]||type));
+  await logAction('Programó Nexora', ((s.info&&s.info.name)||sid)+' — '+(program.typeLabel||program.type)+' · '+program.simulationId);
   closeModal('modal-nexora-justify');
-  showToast('Nexora activado — '+(typeLabels[type]||type)+' para '+((s.info&&s.info.name)||'el estudiante'));
+  showToast('Programa Nexora guardado — '+(program.typeLabel||program.type));
   openStudent(sid);
 }
+
+function previewNexoraFromModal(){
+  if(typeof NEXORA_SIM_PROGRAM==='undefined') return;
+  var program=NEXORA_SIM_PROGRAM.readEngineForm(nexoraEngineFormIds(), {
+    simulationId:(document.getElementById('nexora-simulation-id')||{}).value||undefined,
+    setBy:SESSION.name
+  });
+  var sc=NEXORA_SIM_PROGRAM.programToScenario(program);
+  localStorage.setItem('nexora_scenario', JSON.stringify(program));
+  localStorage.setItem('nexora_force_scenario', JSON.stringify(sc));
+  localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
+  window.open('nexora.html','NexoraPreview','width=1200,height=800,resizable=yes');
+}
+
+
 
 function populateCompanionKpiOptions(selected){
   var box = document.getElementById('companion-focus-kpis');
@@ -7280,7 +7399,14 @@ async function renderDashboard_Admin(m){
 
 function previewNexora(s){
   if(!s.nexoraConfig){ showToast('Configura el escenario primero','err'); return; }
-  localStorage.setItem('nexora_scenario', JSON.stringify(s.nexoraConfig));
+  var cfg=s.nexoraConfig;
+  if(typeof NEXORA_SIM_PROGRAM!=='undefined'&&!cfg.simulationId){
+    cfg=NEXORA_SIM_PROGRAM.buildProgram(Object.assign({},cfg,{setBy:SESSION.name}));
+  }
+  localStorage.setItem('nexora_scenario', JSON.stringify(cfg));
+  if(typeof NEXORA_SIM_PROGRAM!=='undefined'){
+    localStorage.setItem('nexora_force_scenario', JSON.stringify(NEXORA_SIM_PROGRAM.programToScenario(cfg)));
+  }
   localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
   window.open('nexora.html','NexoraPreview','width=1200,height=800,resizable=yes');
 }

@@ -260,7 +260,11 @@ function buildNexora() {
   // established local paths so GitHub Pages and /kamuk/ use the same bundles.
   html = html
     .replaceAll(`${CDN}/js/tts-chunks.js`, 'js/tts-chunks.js')
-    .replaceAll(`${CDN}/js/ptt-mic.js`, 'js/ptt-mic.js');
+    .replaceAll(`${CDN}/js/ptt-mic.js`, 'js/ptt-mic.js')
+    .replaceAll(`${CDN}/js/nexora-simulation-program.js`, 'js/nexora-simulation-program.js')
+    .replaceAll(`${CDN}/js/nexora-industry-map.js`, 'js/nexora-industry-map.js')
+    .replaceAll(`${CDN}/js/nexora-scenario-bank.js`, 'js/nexora-scenario-bank.js')
+    .replaceAll(`${CDN}/js/nexora-scenario-rotate.js`, 'js/nexora-scenario-rotate.js');
   html = rebrandColors(html);
   // Keep dual write in savePracticeMinutes: KAM- → kamuk host only
   html = html.replace(/https:\/\/lbspgbeqtcnjrbhiuucu\.supabase\.co/g, KAM_URL);

@@ -23,6 +23,8 @@
 <script src="nexora-profile.js?v=20260814refresh"></script>
 <script src="js/nexora-voice-lock.js?v=20260814refresh"></script>
 <script src="nexora-characters.js"></script>
+<script src="js/nexora-industry-map.js"></script>
+<script src="js/nexora-simulation-program.js"></script>
 <script src="nexus-unified-portal.js"></script>
 <script src="js/daily-inspiration.js"></script>
 <script src="js/ai-profile.js"></script>
@@ -5695,7 +5697,21 @@ function openNexoraLab(){
     return;
   }
   var nxConfig = window._nexoraConfig;
-  if(nxConfig) localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
+  if(!nxConfig || !nxConfig.type){
+    showToast('No hay simulación programada. Pedí a tu trainer que asigne un escenario en Engine.','err');
+    return;
+  }
+  // Upgrade legacy pool-only configs into a pinned program when the helper is available.
+  if(typeof NEXORA_SIM_PROGRAM!=='undefined' && !nxConfig.simulationId){
+    nxConfig=NEXORA_SIM_PROGRAM.buildProgram(Object.assign({},nxConfig));
+  }
+  localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
+  if(typeof NEXORA_SIM_PROGRAM!=='undefined'){
+    localStorage.setItem('nexora_force_scenario', JSON.stringify(NEXORA_SIM_PROGRAM.programToScenario(nxConfig)));
+  } else if(nxConfig.simulationId || nxConfig.pinned){
+    // Lab will resolve from the program itself.
+    try{ localStorage.removeItem('nexora_force_scenario'); }catch(e){}
+  }
   localStorage.setItem('nexora_agent', nexoraAgentName(student));
   localStorage.setItem('nexora_student_id', (student&&student.id)||'');
   if(student && student.nexoraSessions && student.nexoraSessions.length){

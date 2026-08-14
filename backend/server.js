@@ -2090,13 +2090,18 @@ function applyNexoraCrmActionImpact(evaluation, crmActions) {
 }
 
 function buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime }) {
+  const pass = scenario?.passCriteria || {};
+  const minOverall = Number(pass.minOverall || scenario?.passScore || 70);
+  const objectives = Array.isArray(scenario?.objectives) ? scenario.objectives.join('; ') : '';
   return `You are a senior recruiter writing a candid post-interview hiring debrief for another hiring manager.
 
 Candidate: ${agentName || 'Candidate'}
 Position: ${scenario?.candidateRole || scenario?.title || 'Open role'}
 Company context: ${scenario?.company || 'Regional employer'}
 Interview length: ${talkTime || 0} seconds
-Expected behavioral questions: ${scenario?.questionCount || 6}
+Expected behavioral questions: ${scenario?.questionCount || (scenario?.starFocus || []).length || 6}
+Pass threshold (overall_score): ${minOverall}
+Program objectives: ${objectives || 'STAR completeness, ownership, measurable impact'}
 
 Transcript:
 ${transcript || '(no transcript)'}
@@ -2110,12 +2115,15 @@ EVALUATION STANDARD:
 - Content: impact, metrics, role relevance, credibility, specificity, and vagueness.
 - Explicitly identify failures, gaps, contradictions, blame shifting, inflated or unsupported claims, and other recruiter red flags. If none are severe, list the most material evidence gaps.
 - Hiring leaning must be exactly "HIRE", "MAYBE", or "NO HIRE". Base it on evidence for this position, not encouragement.
-- Give exactly 3 concrete practice fixes. Each must be an observable exercise the candidate can perform.
+- outcome must be "HIRE" if overall_score >= ${minOverall} AND leaning is HIRE or MAYBE with strong STAR; otherwise "NO_HIRE" when leaning is NO HIRE or score < ${minOverall}; use "MAYBE" only when borderline.
+- failure_moment: pinpoint the single turn where the candidate most clearly lost the job — include questionIndex (1-based core question), approximate turn number, a short quote from the transcript, and reason. If they passed strongly, still name the weakest moment as a coaching focus.
+- Give exactly 3 concrete practice fixes AND 2-4 coaching tips. Each must be an observable exercise the candidate can perform.
 - Scores are integers 0-10. overall_score is an integer 0-100 weighted across English, soft skills, STAR completeness, and content quality.
 
 Respond ONLY with valid JSON, no markdown or extra text:
 {
   "overall_score": 64,
+  "outcome": "NO_HIRE",
   "wins": ["specific evidence-backed strength"],
   "english": {
     "score": 6,
@@ -2161,8 +2169,89 @@ Respond ONLY with valid JSON, no markdown or extra text:
     "strongest_signal": "best evidence for hiring",
     "biggest_risk": "main reason not to advance"
   },
+  "failure_moment": {
+    "questionIndex": 2,
+    "turn": 5,
+    "quote": "short transcript quote",
+    "reason": "why this moment lost the interview"
+  },
+  "coaching": ["coaching tip 1", "coaching tip 2"],
   "practice_fixes": ["fix 1", "fix 2", "fix 3"],
   "practice_minutes": ${Math.max(1, Math.ceil((talkTime || 60) / 60))}
+}`;
+}
+
+function buildNexoraGenericEvaluationPrompt({ transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred }) {
+  const scType = scenario?.type || 'customer_service';
+  const pass = scenario?.passCriteria || {};
+  const minOverall = Number(pass.minOverall || scenario?.passScore || 70);
+  const objectives = Array.isArray(scenario?.objectives) ? scenario.objectives.join('; ') : '';
+  if (scType === 'negotiation') {
+    return `Evaluate this professional negotiation simulation.
+Agent: ${agentName || 'Negotiator'}
+Scenario: ${scenario?.title || 'Negotiation'} — ${scenario?.desc || ''}
+Talk time: ${talkTime || 0}s
+Pass threshold: ${minOverall}
+Objectives: ${objectives || 'Clear position, value trades, credible close'}
+Transcript:
+${transcript || '(none)'}
+Return ONLY JSON:
+{"overall_score":70,"outcome":"RESOLVED","wins":["..."],"improvements":["..."],"failure_moment":{"turn":3,"quote":"...","reason":"..."},"coaching":["..."],"practice_fixes":["...","...","..."],"debrief":{"what_worked":"...","ticket_risk":"...","model_phrase":"...","outcome":"deal|impasse|partial"},"verdict":"...","practice_minutes":${Math.ceil((talkTime||60)/60)}}`;
+  }
+  if (scType === 'meeting' || scType === 'corporate' || scType === 'stakeholder') {
+    return `Evaluate this professional ${scType} simulation.
+Participant: ${agentName || 'Participant'}
+Scenario: ${scenario?.title || scType} — ${scenario?.desc || ''}
+Talk time: ${talkTime || 0}s
+Pass threshold: ${minOverall}
+Objectives: ${objectives || 'Clear contribution, evidence, decision quality'}
+Transcript:
+${transcript || '(none)'}
+Return ONLY JSON:
+{"overall_score":70,"outcome":"RESOLVED","wins":["..."],"improvements":["..."],"failure_moment":{"turn":3,"quote":"...","reason":"..."},"coaching":["..."],"practice_fixes":["...","...","..."],"debrief":{"what_worked":"...","ticket_risk":"...","model_phrase":"...","outcome":"approve|reject|revise|aligned"},"verdict":"...","practice_minutes":${Math.ceil((talkTime||60)/60)}}`;
+  }
+  // customer_service / problem_solving / default
+  return `You are evaluating a customer service call simulation.
+
+Agent: ${agentName || 'Agent'}
+Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
+Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
+Talk time: ${talkTime || 0} seconds
+Hold events: ${JSON.stringify(holdEvents || [])}
+CRM actions (scoreImpact is an operational QA adjustment): ${JSON.stringify(crmActions || [])}
+Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
+Agent objective: ${scenario?.objective || 'Resolve the customer issue.'}
+Operational obstacle: ${scenario?.obstacle || 'None specified.'}
+Required disposition: ${scenario?.measurableClose || 'Resolve and document the customer issue.'}
+Pass threshold: ${minOverall}
+Program objectives: ${objectives || 'Accurate issue ID, CRM discipline, clear close'}
+
+Transcript:
+${transcript || '(no transcript)'}
+
+IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify when the client's line was incomplete. That is valid professional recovery.
+Set overall_score from communication and case handling BEFORE the numeric CRM scoreImpact adjustment; the server applies that adjustment after your evaluation.
+outcome must be "RESOLVED" if overall_score >= ${minOverall} and the case was handled to a credible close; otherwise "FAILED".
+failure_moment must pinpoint the turn where the case was most damaged (quote + reason). If they passed, still name the weakest moment.
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "overall_score": 78,
+  "outcome": "RESOLVED",
+  "client_satisfaction": 7.5,
+  "wins": ["specific win 1", "specific win 2"],
+  "improvements": ["specific improvement 1", "specific improvement 2"],
+  "metrics": {"clarity":{"score":8,"comment":"..."}, "empathy":{"score":8,"comment":"..."}, "resolution":{"score":8,"comment":"..."}, "compliance":{"score":8,"comment":"..."}, "tool_usage":{"score":8,"comment":"..."}},
+  "debrief": {"what_worked":"one concise line", "ticket_risk":"what most damaged or could damage the case", "model_phrase":"one phrase the agent should use", "outcome":"sale, retain, resolve, escalate, or chargeback disposition"},
+  "failure_moment": {"turn":4,"quote":"short quote","reason":"why this moment hurt the case"},
+  "coaching": ["tip 1", "tip 2"],
+  "connectors_used": ["however", "on top of that"],
+  "connectors_missed": ["despite", "therefore"],
+  "hold_feedback": "comment about hold usage if applicable",
+  "transferred_feedback": "comment about supervisor transfer if applicable",
+  "verdict": "Start by celebrating 1-2 specific things the agent did well. Be warm and specific. Then mention 1-2 concrete improvements. End with an encouraging line.",
+  "practice_fixes": ["fix 1", "fix 2", "fix 3"],
+  "practice_minutes": ${Math.ceil((talkTime || 60) / 60)}
 }`;
 }
 
@@ -2182,38 +2271,7 @@ app.post('/demo/nexora-lab/eval', async (req, res) => {
     const isInterview = scenario?.type === 'star_interview';
     const evalPrompt = isInterview
       ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
-      : `You are evaluating a customer service call simulation.
-
-Agent: ${agentName || 'Agent'}
-Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
-Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
-Talk time: ${talkTime || 0} seconds
-Hold events: ${JSON.stringify(holdEvents || [])}
-CRM actions (scoreImpact is an operational QA adjustment): ${JSON.stringify(crmActions || [])}
-Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
-Required disposition: ${scenario?.measurableClose || 'Resolve and document the customer issue.'}
-
-Transcript:
-${transcript || '(no transcript)'}
-
-IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
-Set overall_score from communication and case handling BEFORE the numeric CRM scoreImpact adjustment; the server applies that adjustment after your evaluation.
-
-Respond ONLY with valid JSON, no markdown:
-{
-  "overall_score": 78,
-  "client_satisfaction": 7.5,
-  "wins": ["specific win 1", "specific win 2"],
-  "improvements": ["specific improvement 1", "specific improvement 2"],
-  "metrics": {"clarity":{"score":8,"comment":"..."}, "empathy":{"score":8,"comment":"..."}, "resolution":{"score":8,"comment":"..."}, "compliance":{"score":8,"comment":"..."}, "tool_usage":{"score":8,"comment":"..."}},
-  "debrief": {"what_worked":"one concise line", "ticket_risk":"what most damaged or could damage the case", "model_phrase":"one phrase the agent should use", "outcome":"sale, retain, resolve, escalate, or chargeback disposition"},
-  "connectors_used": ["however", "on top of that"],
-  "connectors_missed": ["despite", "therefore"],
-  "hold_feedback": "comment about hold usage if applicable",
-  "transferred_feedback": "comment about supervisor transfer if applicable",
-  "verdict": "Start by celebrating 1-2 specific things the agent did well. Be warm and specific. Then mention 1-2 concrete improvements. End with an encouraging line.",
-  "practice_minutes": ${Math.ceil((talkTime || 60) / 60)}
-}`;
+      : buildNexoraGenericEvaluationPrompt({ transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred });
 
     const resp = await claudeCall({
       model: isInterview ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
@@ -2697,17 +2755,41 @@ function buildProfessionalStarInterviewPrompt(ctx, sc, agentName) {
   const questionList = questions.length
     ? questions.map((q, i) => `${i + 1}. ${q}`).join('\n')
     : '1. Tell me about a time you handled a difficult professional situation.\n2. Tell me about a time you took ownership.\n3. Describe a conflict you handled professionally.\n4. Tell me about a time you worked under pressure.\n5. Describe a measurable improvement you delivered.\n6. Tell me about a mistake and what you changed.';
-  return `You are ${ctx.interviewerName || sc.interviewer || 'a senior recruiter'}, ${ctx.recruiterRole || sc.role || 'Senior Talent Acquisition Partner'}, conducting a serious hiring interview.
+  const panel = Array.isArray(ctx.panel) && ctx.panel.length
+    ? ctx.panel
+    : (Array.isArray(ctx.panelists) ? ctx.panelists.map((line) => {
+        const parts = String(line).split(/\s+[—\-]\s+/);
+        return { name: (parts[0] || 'Panelist').trim(), role: (parts[1] || 'Interviewer').trim() };
+      }) : []);
+  const activeIdx = Math.max(0, Number(ctx.activeSpeakerIndex) || 0) % Math.max(panel.length || 1, 1);
+  const speaker = panel[activeIdx] || {
+    name: ctx.interviewerName || sc.interviewer || 'a senior recruiter',
+    role: ctx.recruiterRole || sc.role || 'Senior Talent Acquisition Partner'
+  };
+  const panelLines = panel.length
+    ? panel.map((p, i) => `- ${p.name} (${p.role || 'Panelist'})${i === activeIdx ? ' ← SPEAKING THIS TURN' : ''}`).join('\n')
+    : `- ${speaker.name} (${speaker.role}) ← SPEAKING THIS TURN`;
+  const objectives = Array.isArray(ctx.objectives) && ctx.objectives.length
+    ? ctx.objectives.join('; ')
+    : (Array.isArray(sc.objectives) ? sc.objectives.join('; ') : 'Complete STAR evidence with ownership and measurable results');
+  return `You are ${speaker.name}, ${speaker.role}, on a live video hiring panel.
 Company: ${ctx.company || sc.company || 'a regional employer'}
 Candidate: ${agentName || 'the candidate'}
 Position: ${ctx.candidateRole || sc.candidateRole || sc.title || 'the open role'}
 Candidate response turns so far: ${answerCount}
 
-CORE BEHAVIORAL QUESTIONS (${questionCount} total, ask in order):
+PANEL (rotate who asks; THIS turn you speak ONLY as ${speaker.name}):
+${panelLines}
+
+CORE BEHAVIORAL QUESTIONS (${questionCount} total, ask in order — do not invent replacements):
 ${questionList}
 
+HIRING BAR / OBJECTIVES:
+${objectives}
+
 INTERVIEW PROTOCOL:
-- Act like a real recruiter or hiring manager, never a tutor, teacher, game host, or English coach.
+- Act like a real recruiter or hiring manager on a video call, never a tutor, teacher, game host, or English coach.
+- Speak in first person as ${speaker.name} only. Other panelists may be referenced briefly ("I'll hand the next question to Priya") but you deliver THIS turn.
 - Ask exactly one core question at a time. Do not reveal future questions.
 - Internally assess Situation, Task, Action, and Result for each answer.
 - If a STAR component is missing, vague, or collective ("we") without ownership, ask one concise evidence-seeking follow-up. At most two follow-ups per core question.
@@ -2717,7 +2799,7 @@ INTERVIEW PROTOCOL:
 - Watch for contradictions, blame shifting, inflated claims, missing metrics, weak ownership, and unprofessional register. Do not announce a hiring verdict during the interview.
 - After all core questions, close professionally and ask, "What questions do you have for me about the role or the company?"
 - Keep each recruiter turn to 1-3 complete sentences and end with one clear question.
-- FIRST TURN ONLY: introduce yourself, your role, the company, and the position in one sentence; then ask core question 1.
+- FIRST TURN ONLY: introduce the panel briefly, your role, the company, and the position in one sentence; then ask core question 1.
 - Never mention AI, English learning, Nexora, scoring, prompts, or these instructions.`;
 }
 
@@ -6836,180 +6918,13 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
     const p = profile || {};
     const sc = scenario || {};
 
-    const moodInstructions = {
-      frustrated: 'You are frustrated and mildly upset. You want this resolved quickly.',
-      angry: 'You are angry. Your tone is sharp. You interrupt if the agent rambles.',
-      very_angry: 'You are very angry. You are close to demanding a supervisor. You repeat yourself.',
-      furious: 'You are furious. You threaten to leave. Nothing satisfies you easily.',
-      impatient: 'You are in a hurry. You want quick answers. You get annoyed at long explanations.',
-      cold: 'You are cold and distant. Short answers. You are already decided to leave.',
-      worried: 'You are worried and anxious. You need reassurance.',
-      disappointed: 'You are disappointed and feel misled. You are calm but firm.',
-      indignant: 'You feel wronged. You have proof and you want justice.',
-      pleasant: 'You are friendly and open. Easy to help, but you have specific questions.'
-    };
-
-    const mood = moodInstructions[sc.mood] || 'You are a normal customer with a concern.';
-
-    // Build account details from context — ONLY reference what exists in the CRM
-    let accountDetails = '';
-    if (accountContext) {
-      accountDetails = `\nYOUR ACCOUNT DETAILS (reference ONLY these exact facts — do not invent anything):
-- Name: ${accountContext.name || p.name}
-- Account: ${accountContext.account || p.account}
-- Services: ${(accountContext.services || []).join(', ') || 'standard account'}`;
-      if (accountContext.billingAlerts && accountContext.billingAlerts.length > 0) {
-        accountDetails += `\n- Billing alerts: ${accountContext.billingAlerts.map(b => b.label + (b.amount ? ' ' + b.amount : '') + ' on ' + b.date).join('; ')}`;
-      }
-      if (accountContext.disputeAmount) accountDetails += `\n- The unexpected charge you are calling about: ${accountContext.disputeAmount}`;
-      if (accountContext.lateFee) accountDetails += `\n- The late fee you are disputing: ${accountContext.lateFee}`;
-      if (accountContext.refundAmount) accountDetails += `\n- The refund amount you are requesting: $${accountContext.refundAmount}`;
-      if (accountContext.issueType) accountDetails += `\n- Issue type (ONLY discuss this): ${accountContext.issueType}`;
-      if (accountContext.issueTitle) accountDetails += `\n- Call reason title: ${accountContext.issueTitle}`;
-      if (accountContext.issueDesc) accountDetails += `\n- Call reason detail: ${accountContext.issueDesc}`;
-      if (accountContext.onlineAccessLocked) accountDetails += `\n- Online banking access: LOCKED — client cannot log in`;
-      if (accountContext.cardBlocked) accountDetails += `\n- Card status: BLOCKED by fraud hold`;
-    }
-
-    // Determine scenario type
-    const scType = sc.type || 'customer_service';
-    let systemPrompt = '';
-
-    if(scType === 'star_interview'){
-      const ctx = accountContext || {};
-      systemPrompt = buildProfessionalStarInterviewPrompt(ctx, sc, agentName);
-    } else if(scType === 'interview'){
-      const ctx = accountContext || {};
-      const panelStr = ctx.panelists && ctx.panelists.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
-      systemPrompt = `You are conducting a job interview for: ${sc.title}.
-${panelStr}
-
-INTERVIEW CONTEXT: ${sc.desc}
-CANDIDATE NAME: ${agentName || 'the candidate'}
-
-YOUR ROLE AS INTERVIEWER:
-- Ask behavioral, situational and STAR-format questions (Situation, Task, Action, Result)
-- Be professional but warm. Evaluate clarity, confidence and English fluency.
-- If the candidate's answer is vague or too short, follow up with "Can you elaborate?" or "Give me a specific example."
-- After 3-4 exchanges, transition to a new topic or question naturally.
-- React to the quality of their answers — good answers get positive acknowledgment, weak answers get probing follow-ups.
-- Keep each response to 1-3 sentences. This is a real interview — pace it naturally.
-- Your name is ${ctx.interviewerName || p.name}. NEVER introduce yourself with a different name.
-- NEVER mention English tutoring, learning or AI. YOU are the interviewer, ${agentName} is the candidate being evaluated.`;
-    } else if(scType === 'meeting'){
-      const ctx = accountContext || {};
-      systemPrompt = `You are a participant in a professional meeting: ${sc.title}.
-Meeting context: ${sc.desc}
-Participants: ${(ctx.participants||[]).join(', ')}
-You are playing the role of the first participant (not "You"): ${ctx.participants && ctx.participants[0] ? ctx.participants[0] : 'Team Lead'}
-
-YOUR ROLE:
-- Engage naturally in the meeting topic. Ask questions, share opinions, challenge ideas professionally.
-- React to what ${agentName || 'the participant'} says — agree, disagree, ask for clarification.
-- Keep the meeting moving. If there is silence, prompt the next agenda point.
-- Be professional but natural. Use meeting language: "I think we should...", "Can you walk us through...", "Let me push back on that..."
-- 1-3 sentences per turn. Realistic meeting pace.
-- NEVER mention English tutoring or AI. You are a real meeting participant.`;
-    } else if(scType === 'negotiation'){
-      const negRole = req.body.negRole || 'initiator'; // 'initiator' = user makes offer, 'receiver' = Alice makes offer
-      const ctx = accountContext || {};
-      systemPrompt = `You are ${sc.counterpart || 'a negotiation counterpart'} in a professional negotiation.
-Context: ${sc.title} — ${sc.desc}
-
-${negRole === 'receiver'
-  ? `OPENING ROLE: YOU go first. Make your opening offer or state your position clearly. ${agentName} will respond and counter-negotiate.`
-  : `OPENING ROLE: ${agentName} will open the negotiation with their offer or position. You respond to what they propose.`
-}
-
-YOUR APPROACH:
-- Be firm on your key points but open to genuine compromise.
-- Strong, logical arguments from ${agentName} move you. Weak arguments get pushback.
-- Use negotiation language: "I understand your position, however...", "We could consider that if...", "That doesn't work for us unless..."
-- If ${agentName} finds creative win-win solutions → acknowledge and show flexibility.
-- If ${agentName} is aggressive or unreasonable → hold firm or signal disengagement.
-- Track what has been agreed and what is still open.
-- 1-3 sentences per turn. Professional, direct.
-- NEVER break character or mention AI. You are evaluating ${agentName}'s negotiation skills.`;
-    } else if(scType === 'corporate'){
-      const ctx = accountContext || {};
-      const pdfContext = ctx.pdfContent ? `\n\nPRESENTATION CONTENT (the candidate uploaded this for you to review):\n${ctx.pdfContent.slice(0,2000)}` : '';
-      const stakesStr = ctx.stakes && ctx.stakes.length ? ctx.stakes.join('; ') : '';
-      systemPrompt = `You are ${sc.role || 'a Board Director'} at ${sc.company || 'the company'}.
-Meeting: ${sc.title}
-Context: ${sc.desc}
-${stakesStr ? 'Key concerns: '+stakesStr : ''}${pdfContext}
-
-YOUR ROLE:
-- YOU are the executive/director. ${agentName} is presenting TO YOU and being evaluated.
-- Be demanding. Expect precision, data and clear ROI from ${agentName}.
-- Challenge weak points: "What's the evidence for that assumption?"
-- Ask about risks, timelines, financials and strategic fit.
-- React positively when ${agentName} is structured, confident and data-driven.
-- React skeptically when ${agentName} is vague or unconfident.
-- You decide whether to approve, reject or request more information.
-- 1-3 sentences per turn. Boardroom pace.
-- Your name/role is ${sc.role || 'Board Director'}. NEVER introduce yourself with a different name.
-- NEVER break character or mention AI. You are evaluating ${agentName}.`;
-
-    } else if(scType === 'stakeholder'){
-      const ctx = accountContext || {};
-      const stakesStr = ctx.stakes && ctx.stakes.length ? '\nKey tensions:\n'+ctx.stakes.map(s=>'- '+s).join('\n') : '';
-      const pdfContext = ctx.pdfContent ? `\n\nUPLOADED DOCUMENT (review carefully):\n${String(ctx.pdfContent).slice(0, 2500)}` : '';
-      const pdfExtra = ctx.pdfPrompt ? `\nEXTRA REVIEW INSTRUCTIONS: ${ctx.pdfPrompt}` : '';
-      systemPrompt = `You are ${sc.role || 'a key stakeholder'} in a high-stakes meeting.
-Meeting: ${sc.title}
-Context: ${sc.desc}${stakesStr}
-Participants: ${(ctx.participants||[]).join(', ')}${pdfContext}${pdfExtra}
-
-YOUR ROLE:
-- YOU are the stakeholder with a specific agenda. ${agentName} must manage YOU and align you.
-- Evaluate HOW ${agentName} expresses ideas and HOW they explain ROI / financial impact of the project.
-- Push for clarity on numbers, assumptions, risks, payback and strategic fit.
-- If a document was uploaded, reference it and challenge weak ROI claims.
-- If ${agentName} is clear, structured and data-driven → gradually align.
-- If ${agentName} is vague, dismissive or unprepared → escalate resistance.
-- Before the meeting ends you MUST decide explicitly: APPROVE, REJECT, or REQUEST REVISION — and say so out loud.
-- Use stakeholder language: "From our department's perspective...", "Walk me through the ROI..."
-- 1-3 sentences. You are testing ${agentName}'s stakeholder communication and financial storytelling.
-- NEVER break character.`;
-
-    } else if(scType === 'medical'){
-      systemPrompt = `You are ${p.name || 'a patient'} speaking with a healthcare provider.
-Situation: ${sc.desc}
-Your mood: ${mood}
-
-YOUR ROLE:
-- YOU are the patient. ${agentName} is the healthcare provider being evaluated.
-- Ask questions, express worry or resistance naturally based on your mood.
-- Evaluate (internally) how clearly and empathetically ${agentName} communicates.
-- If ${agentName} is clear and empathetic → you feel reassured and cooperative.
-- If ${agentName} is confusing, cold or unprofessional → become more anxious or resistant.
-- Use natural patient language. 1-3 sentences per turn.
-- NEVER break character. You are evaluating ${agentName}'s patient communication skills.`;
-
-    } else {
-      // Default: customer service — compact prompt for speed
-      const clientFirst = p.firstName || (p.name ? p.name.split(' ')[0] : 'Client');
-      const issueType = accountContext?.issueType || sc.issueType || '';
-      const extras = [
-        p.disputeAmount ? 'Disputing ' + p.disputeAmount : '',
-        p.lateFee ? 'Disputing late fee ' + p.lateFee : '',
-        p.refundAmount ? 'Refund $' + p.refundAmount : '',
-        accountContext?.onlineAccessLocked ? 'Online banking LOCKED' : '',
-        accountContext?.cardBlocked ? 'Card BLOCKED by fraud hold' : ''
-      ].filter(Boolean).join('. ');
-      const issueGuard = issueType
-        ? ` Issue type ${issueType} ONLY — do not change topics. No lockout talk unless technical/LOCKED. No fee talk unless billing_dispute/late_fee.`
-        : '';
-      systemPrompt = `You are ${p.name} (${clientFirst}), the CUSTOMER on a live call. Issue: ${sc.title} — ${sc.desc}. Mood: ${sc.mood || 'frustrated'}. Account ${p.account || 'unknown'}.${extras ? ' ' + extras + '.' : ''}${issueGuard} Rules: 1-2 short sentences. Never break character. Never tutor. Name is ${p.name} only. React to agent ${agentName || ''}.`;
-    }
+    const negRole = (req.body && req.body.negRole) || null;
+    const built = buildNexoraSystemPrompt({ profile: p, scenario: sc, agentName, accountContext, negRole });
+    let systemPrompt = built.systemPrompt;
+    const scType = built.scType;
 
     const msgStr = String(message || '');
     const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
-    systemPrompt += scType === 'star_interview'
-      ? `\nCANDIDATE IDENTITY: The candidate is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`
-      : `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`;
-    systemPrompt += scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_PACE_RULE;
 
     const actorKey = resolveActorKey({ student, req, profile: p });
     const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
@@ -7122,40 +7037,7 @@ app.post('/nexora-eval', requireProductAuth, async (req, res) => {
     const isInterview = scenario?.type === 'star_interview';
     const evalPrompt = isInterview
       ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
-      : `You are evaluating a customer service call simulation.
-
-Agent: ${agentName || 'Agent'}
-Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
-Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
-Talk time: ${talkTime || 0} seconds
-Hold events: ${JSON.stringify(holdEvents || [])}
-CRM actions (scoreImpact is an operational QA adjustment): ${JSON.stringify(crmActions || [])}
-Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
-Agent objective: ${scenario?.objective || 'Resolve the customer issue.'}
-Operational obstacle: ${scenario?.obstacle || 'None specified.'}
-Required disposition: ${scenario?.measurableClose || 'Resolve and document the customer issue.'}
-
-Transcript:
-${transcript || '(no transcript)'}
-
-IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
-Set overall_score from communication and case handling BEFORE the numeric CRM scoreImpact adjustment; the server applies that adjustment after your evaluation.
-
-Respond ONLY with valid JSON, no markdown:
-{
-  "overall_score": 78,
-  "client_satisfaction": 7.5,
-  "wins": ["specific win 1", "specific win 2"],
-  "improvements": ["specific improvement 1", "specific improvement 2"],
-  "metrics": {"clarity":{"score":8,"comment":"..."}, "empathy":{"score":8,"comment":"..."}, "resolution":{"score":8,"comment":"..."}, "compliance":{"score":8,"comment":"..."}, "tool_usage":{"score":8,"comment":"..."}},
-  "debrief": {"what_worked":"one concise line", "ticket_risk":"what most damaged or could damage the case", "model_phrase":"one phrase the agent should use", "outcome":"sale, retain, resolve, escalate, or chargeback disposition"},
-  "connectors_used": ["however", "on top of that"],
-  "connectors_missed": ["despite", "therefore"],
-  "hold_feedback": "comment about hold usage if applicable",
-  "transferred_feedback": "comment about supervisor transfer if applicable",
-  "verdict": "Start by celebrating 1-2 specific things the agent did well. Be warm and specific. Then mention 1-2 concrete improvements. End with an encouraging line.",
-  "practice_minutes": ${Math.ceil((talkTime || 60) / 60)}
-}`;
+      : buildNexoraGenericEvaluationPrompt({ transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred });
 
     const resp = await claudeCall({
       model: 'claude-sonnet-4-6',
