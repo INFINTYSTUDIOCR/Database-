@@ -3296,6 +3296,10 @@ function sendDiagnosticReportWA(id){
 
 // ── APLICACIONES · TRAINING GRATIS 50 ─────────────────────
 var OE50_APPLICATIONS = [];
+var OE50_MAIL_SELECTED = {};
+var OE50_MAIL_FILTER = { level:'', source:'', consent:'eligible' };
+var OE50_MAIL_STATUS = null;
+var OE50_MAIL_POLL = null;
 
 function oe50Escape(value){
   return String(value == null ? '' : value)
@@ -3319,31 +3323,118 @@ function oe50LevelLabel(level){
   return labels[level] || level || '—';
 }
 
+function oe50IsMailEligible(a){
+  return !!(a && a.dataConsent === true && a.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(a.email)));
+}
+
+function oe50FilteredApplications(){
+  return OE50_APPLICATIONS.filter(function(a){
+    if(OE50_MAIL_FILTER.level && a.level !== OE50_MAIL_FILTER.level) return false;
+    if(OE50_MAIL_FILTER.source && a.oeStatus !== OE50_MAIL_FILTER.source) return false;
+    if(OE50_MAIL_FILTER.consent === 'eligible' && !oe50IsMailEligible(a)) return false;
+    if(OE50_MAIL_FILTER.consent === 'media' && !a.mediaConsent) return false;
+    return true;
+  });
+}
+
+function oe50SelectedIds(){
+  return Object.keys(OE50_MAIL_SELECTED).filter(function(id){ return OE50_MAIL_SELECTED[id]; });
+}
+
+function oe50SelectedEligibleCount(){
+  var map = {};
+  OE50_APPLICATIONS.forEach(function(a){ map[a.id] = a; });
+  return oe50SelectedIds().filter(function(id){
+    return oe50IsMailEligible(map[id]);
+  }).length;
+}
+
 async function loadOe50Applications(){
   var data = await superBrainFetch('/campaign/oe50/applications?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
   OE50_APPLICATIONS = Array.isArray(data.applications) ? data.applications : [];
   return OE50_APPLICATIONS;
 }
 
-async function renderOe50Applications(m){
+async function loadOe50MailStatus(){
+  try{
+    OE50_MAIL_STATUS = await superBrainFetch('/campaign/oe50/mail/status?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+  }catch(e){
+    OE50_MAIL_STATUS = { configured:false, error:e.message||String(e) };
+  }
+  return OE50_MAIL_STATUS;
+}
+
+function oe50UpdateSelectionCounter(){
+  var el = document.getElementById('oe50-selected-count');
+  if(el) el.textContent = String(oe50SelectedEligibleCount());
+}
+
+function oe50ToggleSelect(id, checked){
+  if(checked) OE50_MAIL_SELECTED[id] = true;
+  else delete OE50_MAIL_SELECTED[id];
+  oe50UpdateSelectionCounter();
+}
+
+function oe50SelectVisible(checked){
+  oe50FilteredApplications().forEach(function(a){
+    if(!oe50IsMailEligible(a)) return;
+    if(checked) OE50_MAIL_SELECTED[a.id] = true;
+    else delete OE50_MAIL_SELECTED[a.id];
+    var box = document.getElementById('oe50-check-'+a.id);
+    if(box) box.checked = !!checked;
+  });
+  var master = document.getElementById('oe50-check-all');
+  if(master) master.checked = !!checked;
+  oe50UpdateSelectionCounter();
+}
+
+function oe50ApplyFilters(){
+  var level = document.getElementById('oe50-filter-level');
+  var source = document.getElementById('oe50-filter-source');
+  var consent = document.getElementById('oe50-filter-consent');
+  OE50_MAIL_FILTER.level = level ? level.value : '';
+  OE50_MAIL_FILTER.source = source ? source.value : '';
+  OE50_MAIL_FILTER.consent = consent ? consent.value : 'eligible';
+  renderOe50Applications(document.getElementById('main-content'), true);
+}
+
+async function renderOe50Applications(m, keepDraft){
   if(!hasMasterAccess()){
     m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>';
     return;
   }
-  m.innerHTML='<div class="loading"><i class="ti ti-loader spin"></i><span>Cargando aplicaciones…</span></div>';
+  var draftSubject = keepDraft && document.getElementById('oe50-mail-subject') ? document.getElementById('oe50-mail-subject').value : 'Actualización · Training gratuito Infinity Studio CR';
+  var draftMessage = keepDraft && document.getElementById('oe50-mail-message') ? document.getElementById('oe50-mail-message').value :
+    'Hola {{name}},\n\nGracias por aplicar al training gratuito de Infinity Studio CR.\n\nEstamos revisando las solicitudes y te contactaremos pronto con los siguientes pasos.\n\nNivel declarado: {{level}}\n\nSaludos,\nInfinity Studio CR';
+
+  if(!keepDraft){
+    m.innerHTML='<div class="loading"><i class="ti ti-loader spin"></i><span>Cargando aplicaciones…</span></div>';
+  }
   try{
-    var rows = await loadOe50Applications();
+    if(!keepDraft || !OE50_APPLICATIONS.length){
+      await Promise.all([loadOe50Applications(), loadOe50MailStatus()]);
+    }
+    var rows = oe50FilteredApplications();
+    var all = OE50_APPLICATIONS;
     var byLevel = { principiante:0, intermedio:0, 'avanzado-pro':0 };
     var mediaOk = 0;
+    var eligibleMail = 0;
     var tiktok = 0;
-    rows.forEach(function(a){
+    all.forEach(function(a){
       if(Object.prototype.hasOwnProperty.call(byLevel,a.level)) byLevel[a.level]++;
       if(a.mediaConsent) mediaOk++;
+      if(oe50IsMailEligible(a)) eligibleMail++;
       if(a.source && String(a.source.utmSource||'').toLowerCase()==='tiktok') tiktok++;
     });
+    var mailReady = !!(OE50_MAIL_STATUS && OE50_MAIL_STATUS.configured);
     var body = rows.length ? rows.map(function(a){
       var submitted = a.submittedAt ? new Date(a.submittedAt).toLocaleString('es-CR') : '—';
+      var eligible = oe50IsMailEligible(a);
+      var checked = !!OE50_MAIL_SELECTED[a.id];
       return '<tr>'
+        +'<td style="width:34px;">'+(eligible
+          ? '<input type="checkbox" id="oe50-check-'+oe50Escape(a.id)+'" '+(checked?'checked':'')+' onchange="oe50ToggleSelect(\''+oe50Escape(a.id)+'\', this.checked)">'
+          : '<span title="Sin consentimiento o correo inválido" style="color:var(--t3);">—</span>')+'</td>'
         +'<td><strong>'+oe50Escape(a.fullName)+'</strong><div style="font-size:10px;color:var(--t3);">'+oe50Escape(submitted)+'</div></td>'
         +'<td>'+oe50Escape(oe50LevelLabel(a.level))+'</td>'
         +'<td style="font-size:11px;">'+oe50Escape(a.phone)+'<br>'+oe50Escape(a.email)+'</td>'
@@ -3351,7 +3442,7 @@ async function renderOe50Applications(m){
         +'<td><span class="badge '+(a.mediaConsent?'b-functional':'')+'" style="'+(a.mediaConsent?'':'background:var(--ab);color:var(--ad);')+'">'+(a.mediaConsent?'Sí':'No')+'</span></td>'
         +'<td style="font-size:11px;">'+oe50Escape((a.source&&a.source.utmSource)||'direct')+'</td>'
         +'</tr>';
-    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:2rem;">Todavía no hay aplicaciones.</td></tr>';
+    }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:2rem;">No hay aplicaciones con estos filtros.</td></tr>';
 
     m.innerHTML='<div class="fade">'
       +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1rem;">'
@@ -3360,22 +3451,188 @@ async function renderOe50Applications(m){
       +'<button class="btn btn-outline btn-sm" onclick="renderOe50Applications(document.getElementById(\'main-content\'))"><i class="ti ti-refresh"></i>Actualizar</button>'
       +'<button class="btn btn-navy btn-sm" onclick="exportOe50ApplicationsExcel()"><i class="ti ti-file-spreadsheet"></i>Descargar Excel</button>'
       +'</div>'
-      +'<div class="ib ib-navy">Base separada de interesados. No crea estudiantes ni mezcla datos con Kamuk.</div>'
+      +'<div class="ib ib-navy">Base separada de interesados. No crea estudiantes ni mezcla datos con Kamuk. Bulk email solo a quienes autorizaron contacto (`dataConsent`).</div>'
+      +(mailReady
+        ? '<div class="ib ib-green" style="margin-top:8px;"><i class="ti ti-mail-check"></i> Correo listo: '+oe50Escape((OE50_MAIL_STATUS&&OE50_MAIL_STATUS.from)||'info@studioinfinitycr.com')+'</div>'
+        : '<div class="ib ib-amber" style="margin-top:8px;"><i class="ti ti-mail-off"></i> Correo no configurado todavía. En Render agregá <code>OE50_SMTP_APP_PASSWORD</code> (App Password de Google para info@studioinfinitycr.com). WhatsApp bulk queda para una fase posterior.</div>')
       +'<div class="stats-grid" style="margin:14px 0;">'
-      +'<div class="stat-card"><div class="stat-value">'+rows.length+'</div><div class="stat-label">Solicitudes</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+all.length+'</div><div class="stat-label">Solicitudes</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+eligibleMail+'</div><div class="stat-label">Elegibles email</div></div>'
       +'<div class="stat-card"><div class="stat-value">'+byLevel.principiante+'</div><div class="stat-label">Principiantes</div></div>'
       +'<div class="stat-card"><div class="stat-value">'+byLevel.intermedio+'</div><div class="stat-label">Intermedios</div></div>'
       +'<div class="stat-card"><div class="stat-value">'+byLevel['avanzado-pro']+'</div><div class="stat-label">Avanzado / Pro</div></div>'
       +'<div class="stat-card"><div class="stat-value">'+mediaOk+'</div><div class="stat-label">Autorizan cámara</div></div>'
-      +'<div class="stat-card"><div class="stat-value">'+tiktok+'</div><div class="stat-label">UTM TikTok</div></div>'
       +'</div>'
-      +'<div class="card" style="overflow-x:auto;"><table class="tbl"><thead><tr>'
+
+      +'<div class="card" style="margin-bottom:14px;">'
+      +'<div class="card-title"><i class="ti ti-filter"></i>Filtros y selección</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">'
+      +'<div style="min-width:160px;"><label class="lbl">Nivel</label><select class="inp" id="oe50-filter-level" onchange="oe50ApplyFilters()">'
+      +'<option value="">Todos</option>'
+      +'<option value="principiante"'+(OE50_MAIL_FILTER.level==='principiante'?' selected':'')+'>Principiante</option>'
+      +'<option value="intermedio"'+(OE50_MAIL_FILTER.level==='intermedio'?' selected':'')+'>Intermedio</option>'
+      +'<option value="avanzado-pro"'+(OE50_MAIL_FILTER.level==='avanzado-pro'?' selected':'')+'>Avanzado / Pro</option>'
+      +'</select></div>'
+      +'<div style="min-width:200px;"><label class="lbl">Origen OE</label><select class="inp" id="oe50-filter-source" onchange="oe50ApplyFilters()">'
+      +'<option value="">Todos</option>'
+      +'<option value="oe-selected"'+(OE50_MAIL_FILTER.source==='oe-selected'?' selected':'')+'>OE seleccionado</option>'
+      +'<option value="oe-not-selected"'+(OE50_MAIL_FILTER.source==='oe-not-selected'?' selected':'')+'>OE no clasificó</option>'
+      +'<option value="oe-waitlist"'+(OE50_MAIL_FILTER.source==='oe-waitlist'?' selected':'')+'>OE espera</option>'
+      +'<option value="oe-selected-open-english"'+(OE50_MAIL_FILTER.source==='oe-selected-open-english'?' selected':'')+'>Ya en Open English</option>'
+      +'<option value="video"'+(OE50_MAIL_FILTER.source==='video'?' selected':'')+'>Por el video</option>'
+      +'</select></div>'
+      +'<div style="min-width:180px;"><label class="lbl">Consentimiento</label><select class="inp" id="oe50-filter-consent" onchange="oe50ApplyFilters()">'
+      +'<option value="eligible"'+(OE50_MAIL_FILTER.consent==='eligible'?' selected':'')+'>Elegibles email</option>'
+      +'<option value=""'+(OE50_MAIL_FILTER.consent===''?' selected':'')+'>Todos</option>'
+      +'<option value="media"'+(OE50_MAIL_FILTER.consent==='media'?' selected':'')+'>Autorizan cámara</option>'
+      +'</select></div>'
+      +'<button class="btn btn-outline btn-sm" type="button" onclick="oe50SelectVisible(true)"><i class="ti ti-checkbox"></i>Seleccionar visibles</button>'
+      +'<button class="btn btn-outline btn-sm" type="button" onclick="oe50SelectVisible(false)"><i class="ti ti-square"></i>Limpiar selección</button>'
+      +'<div style="margin-left:auto;font-size:13px;font-weight:700;color:var(--navy);">Seleccionados elegibles: <span id="oe50-selected-count">'+oe50SelectedEligibleCount()+'</span></div>'
+      +'</div></div>'
+
+      +'<div class="card" style="overflow-x:auto;margin-bottom:14px;"><table class="tbl"><thead><tr>'
+      +'<th><input type="checkbox" id="oe50-check-all" title="Seleccionar visibles elegibles" onchange="oe50SelectVisible(this.checked)"></th>'
       +'<th>Persona</th><th>Nivel</th><th>Contacto</th><th>Origen OE</th><th>Cámara</th><th>Tráfico</th>'
       +'</tr></thead><tbody>'+body+'</tbody></table></div>'
+
+      +'<div class="card">'
+      +'<div class="card-title"><i class="ti ti-mail-forward"></i>Bulk email · info@studioinfinitycr.com</div>'
+      +'<div class="ib ib-amber" style="margin-bottom:10px;">Usá <code>{{name}}</code> y <code>{{level}}</code> para personalizar. Primero enviá una prueba a info@. WhatsApp no está en esta versión.</div>'
+      +'<label class="lbl">Asunto</label>'
+      +'<input class="inp" id="oe50-mail-subject" maxlength="200" value="'+oe50Escape(draftSubject)+'">'
+      +'<label class="lbl" style="margin-top:10px;">Mensaje</label>'
+      +'<textarea class="inp" id="oe50-mail-message" maxlength="8000" style="min-height:180px;">'+oe50Escape(draftMessage)+'</textarea>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">'
+      +'<button class="btn btn-outline btn-sm" type="button" onclick="oe50MailPreview()"><i class="ti ti-eye"></i>Vista previa</button>'
+      +'<button class="btn btn-outline btn-sm" type="button" onclick="oe50MailTest()"'+(mailReady?'':' disabled')+'><i class="ti ti-mail"></i>Enviar prueba a info@</button>'
+      +'<button class="btn btn-navy btn-sm" type="button" onclick="oe50MailSendCampaign()"'+(mailReady?'':' disabled')+'><i class="ti ti-send"></i>Enviar a seleccionados</button>'
+      +'</div>'
+      +'<div id="oe50-mail-preview" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--b);border-radius:10px;background:var(--ab);"></div>'
+      +'<div id="oe50-mail-progress" style="display:none;margin-top:12px;"></div>'
+      +'</div>'
       +'</div>';
   }catch(e){
     m.innerHTML='<div class="fade"><div class="ib ib-red">No se pudieron cargar las aplicaciones: '+oe50Escape(e.message||e)+'</div></div>';
   }
+}
+
+function oe50MailPayload(){
+  return {
+    subject: (document.getElementById('oe50-mail-subject')||{}).value || '',
+    message: (document.getElementById('oe50-mail-message')||{}).value || '',
+    secret: SUPER_BRAIN_SECRET
+  };
+}
+
+async function oe50MailPreview(){
+  try{
+    var ids = oe50SelectedIds();
+    var payload = oe50MailPayload();
+    if(ids[0]) payload.applicationId = ids[0];
+    var data = await superBrainFetch('/campaign/oe50/mail/preview', {
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+    var box = document.getElementById('oe50-mail-preview');
+    if(!box) return;
+    box.style.display = 'block';
+    box.innerHTML = '<div style="font-size:12px;color:var(--t3);margin-bottom:6px;">Vista previa para <strong>'+oe50Escape(data.name)+'</strong> &lt;'+oe50Escape(data.to)+'&gt;</div>'
+      +'<div style="font-weight:800;margin-bottom:8px;">'+oe50Escape(data.subject)+'</div>'
+      +'<div style="white-space:pre-wrap;font-size:13px;line-height:1.55;">'+oe50Escape(data.text)+'</div>';
+  }catch(e){
+    showToast(e.message||'No se pudo generar la vista previa','err');
+  }
+}
+
+async function oe50MailTest(){
+  try{
+    if(!confirm('¿Enviar correo de prueba a info@studioinfinitycr.com?')) return;
+    var ids = oe50SelectedIds();
+    var payload = oe50MailPayload();
+    if(ids[0]) payload.applicationId = ids[0];
+    showToast('Enviando prueba…');
+    var data = await superBrainFetch('/campaign/oe50/mail/test', {
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+    showToast('Prueba enviada a '+((data&&data.to)||'info@studioinfinitycr.com'));
+  }catch(e){
+    showToast(e.message||'No se pudo enviar la prueba','err');
+  }
+}
+
+async function oe50MailSendCampaign(){
+  try{
+    var ids = oe50SelectedIds().filter(function(id){
+      var row = OE50_APPLICATIONS.find(function(a){ return a.id === id; });
+      return oe50IsMailEligible(row);
+    });
+    if(!ids.length){ showToast('Seleccioná al menos un destinatario elegible','err'); return; }
+    if(!confirm('Vas a enviar este correo a '+ids.length+' persona(s) desde info@studioinfinitycr.com.\n\n¿Confirmás el envío?')) return;
+    var payload = oe50MailPayload();
+    payload.applicationIds = ids;
+    payload.confirmCount = ids.length;
+    showToast('Iniciando campaña…');
+    var data = await superBrainFetch('/campaign/oe50/mail/campaign', {
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+    oe50StartMailPoll(data.campaignId);
+  }catch(e){
+    showToast(e.message||'No se pudo iniciar la campaña','err');
+  }
+}
+
+function oe50StopMailPoll(){
+  if(OE50_MAIL_POLL){ clearInterval(OE50_MAIL_POLL); OE50_MAIL_POLL = null; }
+}
+
+function oe50RenderMailProgress(campaign){
+  var box = document.getElementById('oe50-mail-progress');
+  if(!box) return;
+  var totals = campaign.totals || {};
+  var sent = totals.sent || 0;
+  var failed = totals.failed || 0;
+  var eligible = totals.eligible || ((campaign.results||[]).length);
+  var done = campaign.status === 'completed' || campaign.status === 'failed';
+  var pct = eligible ? Math.min(100, Math.round(((sent+failed)/eligible)*100)) : 0;
+  var failedRows = (campaign.results||[]).filter(function(r){ return r.status==='failed'; }).slice(0,8);
+  box.style.display = 'block';
+  box.innerHTML = '<div class="ib '+(done?(failed&&!sent?'ib-red':'ib-green'):'ib-navy')+'">'
+    +'<strong>Campaña '+oe50Escape(campaign.status||'…')+'</strong> · '
+    +'enviados '+sent+' · fallidos '+failed+' · elegibles '+eligible
+    +(campaign.campaignId || campaign.id ? ' · ID '+(campaign.campaignId||'') : '')
+    +'</div>'
+    +'<div style="height:8px;background:var(--ab);border-radius:999px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:'+pct+'%;background:var(--navy);"></div></div>'
+    +(failedRows.length
+      ? '<div style="margin-top:8px;font-size:12px;color:var(--t2);">Fallidos: '+failedRows.map(function(r){ return oe50Escape(r.email||r.id)+' ('+oe50Escape(r.error||'error')+')'; }).join(' · ')+'</div>'
+      : '');
+}
+
+function oe50StartMailPoll(campaignId){
+  oe50StopMailPoll();
+  var box = document.getElementById('oe50-mail-progress');
+  if(box){
+    box.style.display='block';
+    box.innerHTML='<div class="ib ib-navy">Enviando campaña <code>'+oe50Escape(campaignId)+'</code>…</div>';
+  }
+  async function tick(){
+    try{
+      var data = await superBrainFetch('/campaign/oe50/mail/campaign/'+encodeURIComponent(campaignId)+'?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+      data.campaignId = campaignId;
+      oe50RenderMailProgress(data);
+      if(data.status==='completed' || data.status==='failed'){
+        oe50StopMailPoll();
+        showToast(data.status==='completed' ? 'Campaña completada' : 'Campaña finalizó con errores', data.status==='completed'?'':'err');
+      }
+    }catch(e){
+      oe50StopMailPoll();
+      showToast(e.message||'No se pudo consultar la campaña','err');
+    }
+  }
+  tick();
+  OE50_MAIL_POLL = setInterval(tick, 2000);
 }
 
 async function exportOe50ApplicationsExcel(){

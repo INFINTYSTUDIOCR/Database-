@@ -818,6 +818,376 @@ app.get('/campaign/oe50/applications', requireMasterOrAnalyzeSecret, async (_req
   }
 });
 
+// ── OE50 BULK EMAIL (Google Workspace · info@studioinfinitycr.com) ──
+const nodemailer = require('nodemailer');
+const OE50_SMTP_USER = String(process.env.OE50_SMTP_USER || 'info@studioinfinitycr.com').trim().toLowerCase();
+const OE50_SMTP_APP_PASSWORD = String(process.env.OE50_SMTP_APP_PASSWORD || '').replace(/\s+/g, '');
+const OE50_MAIL_FROM_NAME = String(process.env.OE50_MAIL_FROM_NAME || 'Infinity Studio CR').trim().slice(0, 80);
+const OE50_MAIL_MAX_RECIPIENTS = 200;
+const OE50_MAIL_SUBJECT_MAX = 200;
+const OE50_MAIL_BODY_MAX = 8000;
+const OE50_MAIL_SEND_GAP_MS = 450;
+const oe50MailCampaignLocks = new Set();
+
+function oe50MailConfigured() {
+  return !!(OE50_SMTP_USER && OE50_SMTP_APP_PASSWORD && OE50_SMTP_APP_PASSWORD.length >= 8);
+}
+
+function oe50MailEscapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function oe50MailLevelLabel(level) {
+  const labels = {
+    principiante: 'Principiante',
+    intermedio: 'Intermedio',
+    'avanzado-pro': 'Avanzado / Pro'
+  };
+  return labels[level] || level || '';
+}
+
+function oe50MailPersonalize(template, application) {
+  const name = String(application?.fullName || '').trim() || 'amigo/a';
+  const level = oe50MailLevelLabel(application?.level);
+  return String(template || '')
+    .replace(/\{\{\s*name\s*\}\}/gi, name)
+    .replace(/\{\{\s*level\s*\}\}/gi, level);
+}
+
+function oe50MailTextToHtml(text) {
+  const escaped = oe50MailEscapeHtml(text);
+  const paragraphs = escaped.split(/\n{2,}/).map((block) => {
+    const withBreaks = block.replace(/\n/g, '<br>');
+    return `<p style="margin:0 0 14px;line-height:1.55;color:#1e1e2e;font-size:15px;">${withBreaks}</p>`;
+  });
+  return (
+    '<div style="font-family:Inter,Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">' +
+    `<div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5B21B6;margin-bottom:14px;">${oe50MailEscapeHtml(OE50_MAIL_FROM_NAME)}</div>` +
+    paragraphs.join('') +
+    '<hr style="border:none;border-top:1px solid #e5e7eb;margin:22px 0;">' +
+    '<p style="margin:0;font-size:12px;color:#6b7280;line-height:1.5;">Infinity Studio CR · Training gratuito · Convocatoria 50</p>' +
+    '</div>'
+  );
+}
+
+function createOe50MailTransport() {
+  if (!oe50MailConfigured()) {
+    throw new Error('Correo OE50 no configurado. Definí OE50_SMTP_APP_PASSWORD en Render.');
+  }
+  return nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: OE50_SMTP_USER,
+      pass: OE50_SMTP_APP_PASSWORD
+    }
+  });
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function loadOe50ApplicationForMail(id) {
+  const cleanId = String(id || '').trim();
+  if (!/^OE50-[A-Z0-9]{8,40}$/i.test(cleanId)) return null;
+  const row = await sbGetOne('infinity_sessions', cleanId);
+  const data = row?.data;
+  if (!data || data.type !== 'oe50-free-training-application') return null;
+  if (data.product && data.product !== 'infinity') return null;
+  if (data.dataConsent !== true) return null;
+  const email = String(data.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return { id: cleanId, ...data, email };
+}
+
+function validateOe50MailPayload(body) {
+  const subject = cleanApplicationText(body?.subject, OE50_MAIL_SUBJECT_MAX);
+  const message = String(body?.message || '').trim().slice(0, OE50_MAIL_BODY_MAX);
+  if (subject.length < 3) return { error: 'El asunto debe tener al menos 3 caracteres.' };
+  if (message.length < 10) return { error: 'El mensaje debe tener al menos 10 caracteres.' };
+  return { subject, message };
+}
+
+async function sendOe50MailOne(transport, { to, subject, text, html }) {
+  return transport.sendMail({
+    from: `"${OE50_MAIL_FROM_NAME}" <${OE50_SMTP_USER}>`,
+    to,
+    replyTo: OE50_SMTP_USER,
+    subject,
+    text,
+    html
+  });
+}
+
+app.get('/campaign/oe50/mail/status', requireMasterOrAnalyzeSecret, async (_req, res) => {
+  try {
+    return res.json({
+      ok: true,
+      configured: oe50MailConfigured(),
+      from: OE50_SMTP_USER,
+      fromName: OE50_MAIL_FROM_NAME,
+      maxRecipients: OE50_MAIL_MAX_RECIPIENTS,
+      placeholders: ['{{name}}', '{{level}}']
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'No se pudo verificar el correo.' });
+  }
+});
+
+app.post('/campaign/oe50/mail/preview', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const validated = validateOe50MailPayload(req.body || {});
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const applicationId = String(req.body?.applicationId || '').trim();
+    let sample = {
+      fullName: 'Persona ejemplo',
+      level: 'intermedio',
+      email: OE50_SMTP_USER
+    };
+    if (applicationId) {
+      const loaded = await loadOe50ApplicationForMail(applicationId);
+      if (!loaded) return res.status(400).json({ error: 'La solicitud de muestra no es elegible o no existe.' });
+      sample = loaded;
+    }
+    const subject = oe50MailPersonalize(validated.subject, sample);
+    const text = oe50MailPersonalize(validated.message, sample);
+    return res.json({
+      ok: true,
+      to: sample.email,
+      name: sample.fullName,
+      subject,
+      text,
+      html: oe50MailTextToHtml(text)
+    });
+  } catch (err) {
+    console.error('oe50 mail preview:', err.message);
+    return res.status(500).json({ error: 'No se pudo generar la vista previa.' });
+  }
+});
+
+app.post('/campaign/oe50/mail/test', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!oe50MailConfigured()) {
+      return res.status(503).json({ error: 'Correo no configurado. Agregá OE50_SMTP_APP_PASSWORD en Render.' });
+    }
+    const validated = validateOe50MailPayload(req.body || {});
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const applicationId = String(req.body?.applicationId || '').trim();
+    let sample = {
+      fullName: 'Prueba Engine',
+      level: 'intermedio',
+      email: OE50_SMTP_USER
+    };
+    if (applicationId) {
+      const loaded = await loadOe50ApplicationForMail(applicationId);
+      if (loaded) sample = loaded;
+    }
+    const subject = `[PRUEBA] ${oe50MailPersonalize(validated.subject, sample)}`;
+    const text = oe50MailPersonalize(validated.message, sample);
+    const transport = createOe50MailTransport();
+    const info = await sendOe50MailOne(transport, {
+      to: OE50_SMTP_USER,
+      subject,
+      text,
+      html: oe50MailTextToHtml(text)
+    });
+    return res.json({
+      ok: true,
+      to: OE50_SMTP_USER,
+      messageId: info.messageId || null,
+      subject
+    });
+  } catch (err) {
+    console.error('oe50 mail test:', err.message);
+    return res.status(500).json({ error: err.message || 'No se pudo enviar el correo de prueba.' });
+  }
+});
+
+app.post('/campaign/oe50/mail/campaign', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!oe50MailConfigured()) {
+      return res.status(503).json({ error: 'Correo no configurado. Agregá OE50_SMTP_APP_PASSWORD en Render.' });
+    }
+    const validated = validateOe50MailPayload(req.body || {});
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const confirmCount = Number(req.body?.confirmCount);
+    const rawIds = Array.isArray(req.body?.applicationIds) ? req.body.applicationIds : [];
+    if (!rawIds.length) return res.status(400).json({ error: 'Seleccioná al menos un destinatario.' });
+    if (rawIds.length > OE50_MAIL_MAX_RECIPIENTS) {
+      return res.status(400).json({ error: `Máximo ${OE50_MAIL_MAX_RECIPIENTS} destinatarios por campaña.` });
+    }
+    if (confirmCount !== rawIds.length) {
+      return res.status(400).json({ error: 'Confirmá la cantidad exacta de destinatarios antes de enviar.' });
+    }
+
+    const uniqueIds = [...new Set(rawIds.map((id) => String(id || '').trim()).filter(Boolean))];
+    const recipients = [];
+    const skipped = [];
+    const seenEmails = new Set();
+    for (const id of uniqueIds) {
+      const application = await loadOe50ApplicationForMail(id);
+      if (!application) {
+        skipped.push({ id, reason: 'not_eligible' });
+        continue;
+      }
+      if (seenEmails.has(application.email)) {
+        skipped.push({ id, reason: 'duplicate_email', email: application.email });
+        continue;
+      }
+      seenEmails.add(application.email);
+      recipients.push({
+        id: application.id,
+        email: application.email,
+        fullName: application.fullName,
+        level: application.level
+      });
+    }
+    if (!recipients.length) {
+      return res.status(400).json({ error: 'Ningún destinatario es elegible (falta consentimiento o correo inválido).' });
+    }
+
+    const campaignId = `OE50MAIL-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    const nowIso = new Date().toISOString();
+    const campaign = {
+      type: 'oe50-mail-campaign',
+      product: 'infinity',
+      campaign: 'training-diciembre-50',
+      status: 'queued',
+      from: OE50_SMTP_USER,
+      fromName: OE50_MAIL_FROM_NAME,
+      subjectTemplate: validated.subject,
+      messageTemplate: validated.message,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      createdBy: req.auth?.sub || 'master',
+      totals: {
+        requested: uniqueIds.length,
+        eligible: recipients.length,
+        skipped: skipped.length,
+        sent: 0,
+        failed: 0
+      },
+      skipped,
+      results: recipients.map((r) => ({
+        id: r.id,
+        email: r.email,
+        fullName: r.fullName,
+        status: 'queued'
+      }))
+    };
+    const saved = await sbSet('infinity_sessions', campaignId, campaign);
+    if (!saved) return res.status(503).json({ error: 'No se pudo crear la campaña.' });
+
+    // Fire-and-forget worker; progress is polled from Engine.
+    setImmediate(() => {
+      runOe50MailCampaign(campaignId).catch((err) => {
+        console.error('oe50 mail campaign worker:', err.message);
+      });
+    });
+
+    return res.status(202).json({
+      ok: true,
+      campaignId,
+      eligible: recipients.length,
+      skipped: skipped.length,
+      status: 'queued'
+    });
+  } catch (err) {
+    console.error('oe50 mail campaign:', err.message);
+    return res.status(500).json({ error: 'No se pudo iniciar la campaña.' });
+  }
+});
+
+app.get('/campaign/oe50/mail/campaign/:id', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!/^OE50MAIL-[A-Z0-9-]+$/i.test(id)) {
+      return res.status(400).json({ error: 'ID de campaña inválido.' });
+    }
+    const row = await sbGetOne('infinity_sessions', id);
+    if (!row?.data || row.data.type !== 'oe50-mail-campaign') {
+      return res.status(404).json({ error: 'Campaña no encontrada.' });
+    }
+    return res.json({ ok: true, campaignId: id, ...row.data });
+  } catch (err) {
+    console.error('oe50 mail campaign get:', err.message);
+    return res.status(500).json({ error: 'No se pudo cargar la campaña.' });
+  }
+});
+
+async function runOe50MailCampaign(campaignId) {
+  if (oe50MailCampaignLocks.has(campaignId)) return;
+  oe50MailCampaignLocks.add(campaignId);
+  try {
+    const row = await sbGetOne('infinity_sessions', campaignId);
+    const campaign = row?.data;
+    if (!campaign || campaign.type !== 'oe50-mail-campaign') return;
+    if (campaign.status === 'completed' || campaign.status === 'failed') return;
+
+    campaign.status = 'sending';
+    campaign.startedAt = campaign.startedAt || new Date().toISOString();
+    campaign.updatedAt = new Date().toISOString();
+    await sbSet('infinity_sessions', campaignId, campaign);
+
+    const transport = createOe50MailTransport();
+    let sent = 0;
+    let failed = 0;
+
+    for (let i = 0; i < campaign.results.length; i++) {
+      const item = campaign.results[i];
+      if (item.status === 'sent') {
+        sent += 1;
+        continue;
+      }
+      try {
+        const application = await loadOe50ApplicationForMail(item.id);
+        if (!application) {
+          item.status = 'failed';
+          item.error = 'not_eligible';
+          failed += 1;
+        } else {
+          const subject = oe50MailPersonalize(campaign.subjectTemplate, application);
+          const text = oe50MailPersonalize(campaign.messageTemplate, application);
+          const info = await sendOe50MailOne(transport, {
+            to: application.email,
+            subject,
+            text,
+            html: oe50MailTextToHtml(text)
+          });
+          item.status = 'sent';
+          item.sentAt = new Date().toISOString();
+          item.messageId = info.messageId || null;
+          item.subject = subject;
+          sent += 1;
+        }
+      } catch (err) {
+        item.status = 'failed';
+        item.error = String(err.message || err).slice(0, 240);
+        failed += 1;
+      }
+      campaign.totals.sent = sent;
+      campaign.totals.failed = failed;
+      campaign.updatedAt = new Date().toISOString();
+      await sbSet('infinity_sessions', campaignId, campaign);
+      if (i < campaign.results.length - 1) await sleepMs(OE50_MAIL_SEND_GAP_MS);
+    }
+
+    campaign.status = failed && !sent ? 'failed' : 'completed';
+    campaign.completedAt = new Date().toISOString();
+    campaign.updatedAt = campaign.completedAt;
+    await sbSet('infinity_sessions', campaignId, campaign);
+  } finally {
+    oe50MailCampaignLocks.delete(campaignId);
+  }
+}
+
 /** QA battery (7+7): live AI demos with ANALYZE_SECRET — public site stays buffered. */
 function isQaLiveDemo(req, body) {
   const secret = req.headers['x-analyze-secret'] || body?.secret || body?.qaSecret;

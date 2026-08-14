@@ -84,6 +84,14 @@ La fuente queda guardada usando los parámetros UTM de cada enlace y aparece en 
 2. Redeploy del backend para activar:
    - `POST /campaign/oe50/apply`
    - `GET /campaign/oe50/applications` (solo Master/secret)
-3. En Nexus Engine → **Aplicaciones · 50**, confirmar que la solicitud aparece y descargar el Excel.
+   - `GET /campaign/oe50/mail/status`
+   - `POST /campaign/oe50/mail/preview`
+   - `POST /campaign/oe50/mail/test` (prueba a info@)
+   - `POST /campaign/oe50/mail/campaign` + `GET /campaign/oe50/mail/campaign/:id`
+3. En Render configurar:
+   - `OE50_SMTP_USER=info@studioinfinitycr.com`
+   - `OE50_SMTP_APP_PASSWORD=` (Google App Password de info@)
+   - `OE50_MAIL_FROM_NAME=Infinity Studio CR`
+4. En Nexus Engine → **Aplicaciones · 50**, seleccionar destinatarios, enviar prueba a info@ y luego el lote.
 
-Los textos de WhatsApp quedan preparados en este documento, pero no se activa ninguna automatización ni envío automático todavía.
+Los textos de WhatsApp quedan preparados en este documento. El bulk por WhatsApp desde Engine queda para una fase posterior (requiere Meta Cloud API).
