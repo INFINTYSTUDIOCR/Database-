@@ -56,9 +56,9 @@
 <script src="js/jill-foundations-modules.js?v=20260713m07"></script>
 <script src="games/_shared/infinity-arcade-run.js?v=r2"></script>
 <script src="js/jill-quiz.js?v=20260813park2"></script>
-<script src="js/tts-chunks.js?v=20260811nocut"></script>
-<script src="js/nexora-stream-voice.js"></script>
-<script src="js/ptt-mic.js?v=20260811nocut"></script>
+<script src="js/tts-chunks.js?v=20260814smooth"></script>
+<script src="js/nexora-stream-voice.js?v=20260814smooth"></script>
+<script src="js/ptt-mic.js?v=20260814smooth"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -4240,6 +4240,8 @@ var _claireState = {
 var _claireTTSQueue = [];
 var _claireTTSBusy = false;
 var _claireSpeakGen = 0;
+var _claireTtsWatchdog = null;
+var _claireReplyGuard = (typeof ttsMakeRepeatGuard === 'function') ? ttsMakeRepeatGuard() : null;
 
 function claireEscapeHtml(s){
   return String(s || '').replace(/[&<>"']/g, function(c){
@@ -4423,8 +4425,10 @@ function claireCleanTtsText(text){
 function claireSpeak(text){
   var clean = claireCleanTtsText(text);
   if(!clean || clean.length < 3) return;
+  if(typeof ttsIsRepeat === 'function' && ttsIsRepeat(_claireReplyGuard, clean)) return;
+  if(typeof ttsMarkSpoken === 'function') ttsMarkSpoken(_claireReplyGuard, clean);
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
-  claireStopSpeech(false);
+  claireStopSpeech();
   var chunks = (typeof ttsSpeakLines === 'function') ? ttsSpeakLines(clean, 900) : [clean];
   chunks.forEach(function(chunk){
     if(chunk && chunk.trim().length >= 3) _claireTTSQueue.push(chunk.trim());
@@ -4434,13 +4438,48 @@ function claireSpeak(text){
 
 function claireStopSpeech(bumpGen){
   if(bumpGen !== false) _claireSpeakGen++;
-  if(_claireState.audio){
-    try{ _claireState.audio.pause(); }catch(e){}
-    _claireState.audio = null;
-  }
+  clearTimeout(_claireTtsWatchdog);
+  if(typeof ttsStopAudio === 'function') ttsStopAudio(_claireState.audio);
+  else if(_claireState.audio){ try{ _claireState.audio.pause(); }catch(e){} }
+  _claireState.audio = null;
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e2){}
   _claireTTSQueue = [];
   _claireTTSBusy = false;
   _claireState.speaking = false;
+}
+
+function clairePlayBrowserTts(text, onEnded, onError){
+  if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.94;
+  var voices = speechSynthesis.getVoices() || [];
+  var v = voices.find(function(vo){ return vo.lang === 'en-US'; })
+    || voices.find(function(vo){ return (vo.lang || '').indexOf('en') === 0; });
+  if(v) u.voice = v;
+  u.onend = function(){ if(onEnded) onEnded(); };
+  u.onerror = function(){ if(onError) onError(); };
+  speechSynthesis.speak(u);
+  return true;
+}
+
+function claireArmTtsWatchdog(line, onStallDone, onStallStart){
+  if(typeof armTtsPlaybackWatchdog !== 'function') return;
+  armTtsPlaybackWatchdog({
+    textLen: String(line || '').length,
+    clearTimer: function(){ clearTimeout(_claireTtsWatchdog); },
+    setTimer: function(fn, delay){ clearTimeout(_claireTtsWatchdog); _claireTtsWatchdog = setTimeout(fn, delay); },
+    getBusy: function(){ return _claireTTSBusy; },
+    setBusy: function(v){ _claireTTSBusy = !!v; },
+    getAudio: function(){ return _claireState.audio; },
+    setAudio: function(a){ _claireState.audio = a; },
+    onFetchStall: function(){
+      if(onStallStart) onStallStart();
+      return clairePlayBrowserTts(line, onStallDone, onStallDone);
+    },
+    onAdvance: onStallDone
+  });
 }
 
 function claireTTSFlush(){
@@ -4449,8 +4488,22 @@ function claireTTSFlush(){
   _claireState.speaking = true;
   var gen = _claireSpeakGen;
   var text = _claireTTSQueue.shift();
+  var finished = false;
+  var fallbackStarted = false;
   var statusEl = document.getElementById('claire-status');
   if(statusEl && !statusEl.textContent) statusEl.textContent = 'Claire habla…';
+  function finishClaireLine(){
+    if(finished) return;
+    finished = true;
+    clearTimeout(_claireTtsWatchdog);
+    if(_claireState.audio) _claireState.audio = null;
+    _claireTTSBusy = false;
+    _claireState.speaking = _claireTTSQueue.length > 0;
+    var st = document.getElementById('claire-status');
+    if(st && st.textContent === 'Claire habla…') st.textContent = '';
+    claireTTSFlush();
+  }
+  claireArmTtsWatchdog(text, finishClaireLine, function(){ fallbackStarted = true; });
   infinityFetch('/claire-tts', {
     method:'POST',
     headers:authHeaders(),
@@ -4458,35 +4511,31 @@ function claireTTSFlush(){
   })
   .then(function(r){ return r.ok ? r.blob() : null; })
   .then(function(blob){
-    if(gen !== _claireSpeakGen || !blob){
-      _claireTTSBusy = false;
-      _claireState.speaking = _claireTTSQueue.length > 0;
-      if(gen === _claireSpeakGen) claireTTSFlush();
+    if(gen !== _claireSpeakGen || fallbackStarted || finished) return;
+    if(!blob){
+      fallbackStarted = true;
+      if(clairePlayBrowserTts(text, finishClaireLine, finishClaireLine)) return;
+      finishClaireLine();
       return;
     }
     var audio = new Audio(URL.createObjectURL(blob));
     _claireState.audio = audio;
-    audio.onended = audio.onerror = function(){
-      if(_claireState.audio === audio) _claireState.audio = null;
-      _claireTTSBusy = false;
-      _claireState.speaking = _claireTTSQueue.length > 0;
-      var st = document.getElementById('claire-status');
-      if(st && st.textContent === 'Claire habla…') st.textContent = '';
-      claireTTSFlush();
-    };
+    audio.onended = audio.onerror = finishClaireLine;
     audio.play().catch(function(){
-      _claireTTSBusy = false;
-      _claireState.speaking = _claireTTSQueue.length > 0;
       var st = document.getElementById('claire-status');
       if(st) st.textContent = 'Tocá enviar o micrófono para activar voz.';
-      claireTTSFlush();
+      fallbackStarted = true;
+      if(clairePlayBrowserTts(text, finishClaireLine, finishClaireLine)) return;
+      finishClaireLine();
     });
   })
   .catch(function(){
-    _claireTTSBusy = false;
-    _claireState.speaking = _claireTTSQueue.length > 0;
+    if(gen !== _claireSpeakGen || fallbackStarted || finished) return;
     var st = document.getElementById('claire-status');
     if(st) st.textContent = 'Voz Claire no disponible — reintentá en unos segundos.';
+    fallbackStarted = true;
+    if(clairePlayBrowserTts(text, finishClaireLine, finishClaireLine)) return;
+    finishClaireLine();
   });
 }
 
@@ -4566,6 +4615,7 @@ async function startClaireSession(){
     return;
   }
   if(typeof unlockTtsAudio === 'function') await unlockTtsAudio();
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_claireReplyGuard);
   claireStopSpeech();
   _claireState.sessionActive = true;
   _claireState.sessionId = 'portal-claire-' + (s.id || Date.now());
@@ -4606,6 +4656,7 @@ async function sendClairePortalMessage(micText){
   var text = (micText || (inp ? inp.value : '') || '').trim();
   if(!text) return;
   if(inp) inp.value = '';
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_claireReplyGuard);
   claireStopSpeech();
   _claireState.sending = true;
   _claireState.history.push({ role:'user', content:text });
@@ -4704,6 +4755,7 @@ function aliceCancelSpeech(){
   _aliceTtsPrefetch = {};
   _aliceTtsRetry = {};
   _aliceLastSpokenKey = '';
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_aliceReplyGuard);
   // Keep _aliceLastSpokenText for echo detection after interrupt
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
@@ -5538,6 +5590,7 @@ async function sendAliceMessage(micText){
 
   var fullText = '';
   var alicePrefetchState = {};
+  var aliceTurnSpoke = false;
   var ctrl = new AbortController();
   var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
 
@@ -5594,11 +5647,18 @@ async function sendAliceMessage(micText){
       : 'I did not get that — could you try again?';
     _aliceState.history[streamIdx] = { role:'assistant', content: spokenAlice };
     aliceQueueFullReply(spokenAlice);
+    aliceTurnSpoke = true;
     aliceRenderHistoryMessages();
     saveAliceRuntimeStorage();
     if(statusEl) statusEl.textContent = '';
 
   } catch(e){
+    // The reply may already be playing; a render or save error must not make
+    // Alice speak a second, different answer on top of it.
+    if(aliceTurnSpoke){
+      if(statusEl) statusEl.textContent = '';
+      return;
+    }
     if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
     try {
       var fbCatch = await alicePostFallbackReply(text, _aliceState.history.slice(0, streamIdx).slice(-10));
@@ -6298,13 +6358,28 @@ if(typeof document !== 'undefined'){
   document.addEventListener('webkitfullscreenchange', aliceSyncFullscreenBtn);
 }
 
+var _aliceReplyGuard = (typeof ttsMakeRepeatGuard === 'function') ? ttsMakeRepeatGuard() : null;
+
+/** Drop the line already in the air before a new reply takes over the queue. */
+function aliceStopCurrentLine(){
+  _aliceSpeakGen++;
+  if(typeof ttsStopAudio === 'function') ttsStopAudio(window._aliceAudio);
+  window._aliceAudio = null;
+  clearTimeout(_aliceTtsWatchdog);
+  _aliceTTSQueue = [];
+  _aliceTTSBusy = false;
+}
+
 function aliceQueueFullReply(text){
   if(!text || !_aliceSpeakEnabled) return;
-  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var main = aliceTtsMainLine(text);
   if(!main || main.length < 3) return;
-  // Clear stale queue so a new full reply is never mixed with a half-played one
-  _aliceTTSQueue = [];
+  // Every turn path funnels through here, so the repeat guard belongs here.
+  // While it lived in aliceSpeak() the stream and fallback paths both spoke.
+  if(typeof ttsIsRepeat === 'function' && ttsIsRepeat(_aliceReplyGuard, main)) return;
+  if(typeof ttsMarkSpoken === 'function') ttsMarkSpoken(_aliceReplyGuard, main);
+  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+  aliceStopCurrentLine();
   ttsSpeakLines(main, 1200).forEach(function(line){
     if(line && line.length >= 3) aliceQueueSpeak(line);
   });
@@ -6786,6 +6861,7 @@ async function nexoraAnswerCall(){
 
   var clientStatus = document.getElementById('nx-alice-status');
   if(clientStatus) clientStatus.textContent = '';
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_nexoraReplyGuard);
 
   var student = window._currentStudent || window._portalStudent || {};
   var accountContext = nexoraBuildAccountContext(p);
@@ -6908,6 +6984,7 @@ function nexoraSendToAlice(text){
   }
   _nxSending = true;
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_nexoraReplyGuard);
   nexoraHardCancelSpeech();
   var p = _nxState.profile;
   var sc = _nxState.scenario;
@@ -7230,6 +7307,7 @@ var _nxPlayingChunk = null;
 var _nexoraTtsPrefetch = {};
 var _nxTtsWatchdog = null;
 var _nxTtsRetry = {};
+var _nexoraReplyGuard = (typeof ttsMakeRepeatGuard === 'function') ? ttsMakeRepeatGuard() : null;
 
 function nexoraPlayBrowserTts(text, onEnded, onError){
   if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
@@ -7247,7 +7325,8 @@ function nexoraPlayBrowserTts(text, onEnded, onError){
   return true;
 }
 
-function nexoraArmTtsWatchdog(textLen){
+function nexoraArmTtsWatchdog(line, onStallDone, onStallStart){
+  var textLen = String(line || '').length || (Number(line) || 0);
   if(typeof armTtsPlaybackWatchdog === 'function'){
     armTtsPlaybackWatchdog({
       textLen: textLen,
@@ -7257,7 +7336,15 @@ function nexoraArmTtsWatchdog(textLen){
       setBusy: function(v){ _nxTTSBusy = !!v; },
       getAudio: function(){ return window._nxAudio; },
       setAudio: function(a){ window._nxAudio = a; },
-      onAdvance: function(){ _nxPlayingChunk = null; if(typeof _nxTTSFlushPortal === 'function') _nxTTSFlushPortal(); }
+      onFetchStall: function(){
+        if(typeof line !== 'string' || line.length < 3) return false;
+        if(onStallStart) onStallStart();
+        return nexoraPlayBrowserTts(line, onStallDone, onStallDone);
+      },
+      onAdvance: function(){
+        if(onStallDone) onStallDone();
+        else { _nxPlayingChunk = null; if(typeof _nxTTSFlushPortal === 'function') _nxTTSFlushPortal(); }
+      }
     });
     return;
   }
@@ -7309,7 +7396,11 @@ function nexoraPauseSpeech(){
 function nexoraHardCancelSpeech(){
   clearTimeout(_nxResumeTimer);
   _nxSpeakGen++;
-  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio = null; }
+  clearTimeout(_nxTtsWatchdog);
+  if(typeof ttsStopAudio === 'function') ttsStopAudio(window._nxAudio);
+  else if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
+  window._nxAudio = null;
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e2){}
   _nxTTSQueue = [];
   _nxTTSBusy = false;
   _nxPlayingChunk = null;
@@ -7326,13 +7417,17 @@ function nexoraCancelSpeech(){ nexoraHardCancelSpeech(); }
 
 function nexoraSpeak(text){
   if(!text || !nexoraReplyTtsReady(text)) return;
+  var full = prepareTtsLine(text);
+  if(typeof ttsIsRepeat === 'function' && ttsIsRepeat(_nexoraReplyGuard, full)) return;
+  if(typeof ttsMarkSpoken === 'function') ttsMarkSpoken(_nexoraReplyGuard, full);
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   nexoraHardCancelSpeech();
-  ttsSpeakLines(text, 900).forEach(function(chunk){ nexoraQueueSpeak(chunk); });
+  ttsSpeakLines(full, 900).forEach(function(chunk){ nexoraQueueSpeak(chunk); });
 }
 
 function nexoraQueueSpeak(text){
   if(!text || text.trim().length < 2) return;
+  if(_nxTTSQueue.indexOf(text) !== -1 || _nxPlayingChunk === text) return;
   _nxTTSQueue.push(text);
   _nxTTSFlushPortal();
 }
@@ -7344,7 +7439,6 @@ function _nxTTSFlushPortal(){
   var chunk = _nxTTSQueue.shift();
   _nxPlayingChunk = chunk;
   var clean = prepareTtsLine(chunk);
-  nexoraArmTtsWatchdog(clean.length);
   if(!clean || !nexoraReplyTtsReady(clean)){
     _nxPlayingChunk = null;
     clearTimeout(_nxTtsWatchdog);
@@ -7357,26 +7451,31 @@ function _nxTTSFlushPortal(){
     _nxTTSBusy=false;
     return;
   }
+  var finished = false;
+  var fallbackStarted = false;
 
   function finishNexoraLine(){
+    if(finished) return;
+    finished = true;
     window._nxAudio = null;
     clearTimeout(_nxTtsWatchdog);
     _nxPlayingChunk = null;
     _nxTTSBusy = false;
     _nxTTSFlushPortal();
   }
+  nexoraArmTtsWatchdog(clean, finishNexoraLine, function(){ fallbackStarted = true; });
 
   function playBlob(b){
+    if(fallbackStarted || finished) return;
     if(gen !== _nxSpeakGen){
-      _nxTTSQueue.unshift(chunk);
-      _nxPlayingChunk = chunk;
       _nxTTSBusy = false;
+      _nxPlayingChunk = null;
       clearTimeout(_nxTtsWatchdog);
-      setTimeout(_nxTTSFlushPortal, 40);
       return;
     }
     if(!b){
       delete _nxTtsRetry[clean];
+      fallbackStarted = true;
       if(nexoraPlayBrowserTts(clean, finishNexoraLine, finishNexoraLine)) return;
       finishNexoraLine();
       return;
@@ -7388,6 +7487,7 @@ function _nxTTSFlushPortal(){
       onError: function(){
         window._nxAudio = null;
         clearTimeout(_nxTtsWatchdog);
+        fallbackStarted = true;
         if(nexoraPlayBrowserTts(clean, finishNexoraLine, function(){
           _nxTtsRetry[clean] = (_nxTtsRetry[clean] || 0) + 1;
           if(_nxTtsRetry[clean] < 2) _nxTTSQueue.unshift(chunk);
@@ -7413,13 +7513,10 @@ function _nxTTSFlushPortal(){
   .then(function(r){return r.ok?r.blob():null;})
   .then(playBlob)
   .catch(function(){
-    clearTimeout(_nxTtsWatchdog);
-    _nxTtsRetry[clean] = (_nxTtsRetry[clean] || 0) + 1;
-    if(_nxTtsRetry[clean] < 3) _nxTTSQueue.unshift(chunk);
-    else delete _nxTtsRetry[clean];
-    _nxPlayingChunk = chunk;
-    _nxTTSBusy=false;
-    setTimeout(_nxTTSFlushPortal, 40);
+    if(gen !== _nxSpeakGen || fallbackStarted || finished) return;
+    fallbackStarted = true;
+    if(nexoraPlayBrowserTts(clean, finishNexoraLine, finishNexoraLine)) return;
+    finishNexoraLine();
   });
 }
 
@@ -7509,8 +7606,27 @@ var _jillStreamCtrl = null;
 var _jillTtsPrefetch = {};
 var _jillTtsRetry = {};
 var _jillTtsWatchdog = null;
+var _jillReplyGuard = (typeof ttsMakeRepeatGuard === 'function') ? ttsMakeRepeatGuard() : null;
 
-function jillArmTtsWatchdog(textLen){
+function jillPlayBrowserTts(text, lang, onEnded, onError){
+  if(!window.speechSynthesis || !text){ if(onError) onError(); return false; }
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = jillNormalizeTtsLang(lang);
+  u.rate = 0.94;
+  var voices = speechSynthesis.getVoices() || [];
+  var prefix = u.lang.slice(0, 2).toLowerCase();
+  var v = voices.find(function(vo){ return String(vo.lang || '').toLowerCase() === u.lang.toLowerCase(); })
+    || voices.find(function(vo){ return String(vo.lang || '').toLowerCase().indexOf(prefix) === 0; });
+  if(v) u.voice = v;
+  u.onend = function(){ if(onEnded) onEnded(); };
+  u.onerror = function(){ if(onError) onError(); };
+  speechSynthesis.speak(u);
+  return true;
+}
+
+function jillArmTtsWatchdog(line, lang, onStallDone, onStallStart){
+  var textLen = String(line || '').length || (Number(line) || 0);
   if(typeof armTtsPlaybackWatchdog === 'function'){
     armTtsPlaybackWatchdog({
       textLen: textLen,
@@ -7520,7 +7636,15 @@ function jillArmTtsWatchdog(textLen){
       setBusy: function(v){ _jillTTSBusy = !!v; },
       getAudio: function(){ return _jillState.audio; },
       setAudio: function(a){ _jillState.audio = a; },
-      onAdvance: function(){ _jillState.speaking = _jillTTSQueue.length > 0; _jillTTSFlush(); }
+      onFetchStall: function(){
+        if(typeof line !== 'string' || line.length < 3) return false;
+        if(onStallStart) onStallStart();
+        return jillPlayBrowserTts(line, lang, onStallDone, onStallDone);
+      },
+      onAdvance: function(){
+        if(onStallDone) onStallDone();
+        else { _jillState.speaking = _jillTTSQueue.length > 0; _jillTTSFlush(); }
+      }
     });
     return;
   }
@@ -7872,14 +7996,17 @@ function _jillTTSFlush(){
   var text = typeof item === 'string' ? item : item.text;
   var lang = jillNormalizeTtsLang(typeof item === 'string' ? jillDetectTtsLang(text) : (item.lang || 'es-CR'));
   var clean = jillCleanTtsText(text);
-  jillArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); _jillState.speaking=_jillTTSQueue.length>0; _jillTTSFlush(); return; }
 
   var nextItem = _jillTTSQueue[0];
   var nextLang = nextItem ? jillNormalizeTtsLang(typeof nextItem === 'string' ? jillDetectTtsLang(nextItem) : nextItem.lang) : null;
   var langPause = (nextLang && nextLang !== lang) ? 40 : 0;
+  var finished = false;
+  var fallbackStarted = false;
 
   function finishJillLine(){
+    if(finished) return;
+    finished = true;
     clearTimeout(_jillTtsWatchdog);
     _jillState.audio = null;
     _jillTTSBusy = false;
@@ -7887,8 +8014,10 @@ function _jillTTSFlush(){
     if(langPause) setTimeout(_jillTTSFlush, langPause);
     else _jillTTSFlush();
   }
+  jillArmTtsWatchdog(clean, lang, finishJillLine, function(){ fallbackStarted = true; });
 
   function playBlob(b){
+    if(fallbackStarted || finished) return;
     if(!_jillSpeakEnabled || gen !== _jillSpeakGen){
       _jillTTSBusy=false;
       clearTimeout(_jillTtsWatchdog);
@@ -7897,10 +8026,8 @@ function _jillTTSFlush(){
       return;
     }
     if(!b){
-      var rk0 = jillTtsCacheKey(clean, lang);
-      _jillTtsRetry[rk0] = (_jillTtsRetry[rk0] || 0) + 1;
-      if(_jillTtsRetry[rk0] < 5) _jillTTSQueue.unshift({ text: text, lang: lang });
-      else delete _jillTtsRetry[rk0];
+      fallbackStarted = true;
+      if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
       finishJillLine();
       return;
     }
@@ -7918,10 +8045,8 @@ function _jillTTSFlush(){
       onError: function(){
         if(gen !== _jillSpeakGen) return;
         _jillState.audio = null;
-        var rk = jillTtsCacheKey(clean, lang);
-        _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
-        if(_jillTtsRetry[rk] < 5) _jillTTSQueue.unshift({ text: text, lang: lang });
-        else delete _jillTtsRetry[rk];
+        fallbackStarted = true;
+        if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
         finishJillLine();
       }
     });
@@ -7953,6 +8078,8 @@ function _jillTTSFlush(){
         delete _jillTtsPrefetch[cacheKey];
         jillFetchTtsBlob(clean, lang).then(playBlob).catch(function(){
           if(waitGen !== _jillSpeakGen){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); return; }
+          fallbackStarted = true;
+          if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
           finishJillLine();
         });
       }
@@ -7963,14 +8090,9 @@ function _jillTTSFlush(){
   .then(playBlob)
   .catch(function(){
     if(gen !== _jillSpeakGen){ _jillTTSBusy=false; clearTimeout(_jillTtsWatchdog); return; }
-    var rk = jillTtsCacheKey(clean, lang);
-    _jillTtsRetry[rk] = (_jillTtsRetry[rk] || 0) + 1;
-    if(_jillTtsRetry[rk] < 3) _jillTTSQueue.unshift({ text: text, lang: lang });
-    else delete _jillTtsRetry[rk];
-    _jillTTSBusy=false;
-    clearTimeout(_jillTtsWatchdog);
-    _jillState.speaking=_jillTTSQueue.length>0;
-    setTimeout(_jillTTSFlush, 40);
+    fallbackStarted = true;
+    if(jillPlayBrowserTts(clean, lang, finishJillLine, finishJillLine)) return;
+    finishJillLine();
   });
 }
 
@@ -7986,7 +8108,8 @@ function alicePrunePrefetchCache(){
   keys.slice(0, keys.length - 14).forEach(function(k){ delete _aliceTtsPrefetch[k]; });
 }
 
-function aliceArmTtsWatchdog(textLen){
+function aliceArmTtsWatchdog(line, onStallDone, onStallStart){
+  var textLen = (line && line.length) ? line.length : (Number(line) || 0);
   if(typeof armTtsPlaybackWatchdog === 'function'){
     armTtsPlaybackWatchdog({
       textLen: textLen,
@@ -7996,6 +8119,13 @@ function aliceArmTtsWatchdog(textLen){
       setBusy: function(v){ _aliceTTSBusy = !!v; },
       getAudio: function(){ return window._aliceAudio; },
       setAudio: function(a){ window._aliceAudio = a; },
+      // A hung ElevenLabs call must not read as Alice going mute.
+      onFetchStall: function(){
+        if(typeof line !== 'string' || line.length < 3) return false;
+        if(typeof onStallStart === 'function') onStallStart();
+        var done = (typeof onStallDone === 'function') ? onStallDone : function(){ _aliceTTSFlush(); };
+        return alicePlayBrowserTts(line, done, done);
+      },
       onAdvance: function(){ _aliceTTSFlush(); }
     });
     return;
@@ -8040,18 +8170,23 @@ function _aliceTTSFlush(){
   var gen = _aliceSpeakGen;
   var text = _aliceTTSQueue.shift();
   var clean = aliceCleanTtsText(text);
-  aliceArmTtsWatchdog(clean.length);
   if(clean.length < 3){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
+  var finished = false;
+  var fallbackStarted = false;
 
   function finishAliceLine(){
+    if(finished) return;
+    finished = true;
     window._aliceAudio = null;
     clearTimeout(_aliceTtsWatchdog);
     _aliceTTSBusy = false;
     _aliceState.speaking = _aliceTTSQueue.length > 0;
     _aliceTTSFlush();
   }
+  aliceArmTtsWatchdog(clean, function(){ finishAliceLine(); }, function(){ fallbackStarted = true; });
 
   function playBlob(b){
+    if(fallbackStarted || finished) return;
     if(!_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
     if(!b){
       _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
@@ -8062,6 +8197,7 @@ function _aliceTTSFlush(){
       }
       delete _aliceTtsRetry[clean];
       // ElevenLabs down / 401 / empty — still speak (browser) so Companion never goes mute
+      fallbackStarted = true;
       if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
       finishAliceLine();
       return;
@@ -8080,6 +8216,7 @@ function _aliceTTSFlush(){
           return;
         }
         delete _aliceTtsRetry[clean];
+        fallbackStarted = true;
         if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
         finishAliceLine();
       }
@@ -8101,6 +8238,7 @@ function _aliceTTSFlush(){
         clearInterval(waitPrefetch);
         delete _aliceTtsPrefetch[clean];
         aliceFetchTtsBlob(clean).then(playBlob).catch(function(){
+          fallbackStarted = true;
           if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
           finishAliceLine();
         });
@@ -8126,6 +8264,7 @@ function _aliceTTSFlush(){
       return;
     }
     delete _aliceTtsRetry[clean];
+    fallbackStarted = true;
     if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
     _aliceTTSBusy=false;
     _aliceState.speaking=_aliceTTSQueue.length>0;
@@ -8137,7 +8276,8 @@ function aliceQueueSpeak(text){
   if(!text || text.trim().length < 2 || !_aliceSpeakEnabled) return;
   var line = aliceCleanTtsText(text);
   if(line.length < 3) return;
-  if(_aliceTTSQueue.length && _aliceTTSQueue[_aliceTTSQueue.length - 1] === line) return;
+  // Comparing only against the tail let a line repeat when another slipped between.
+  if(_aliceTTSQueue.indexOf(line) !== -1) return;
   _aliceTTSQueue.push(line);
   _aliceTTSFlush();
 }
@@ -8163,7 +8303,9 @@ var _jillState = {
 if(typeof window !== 'undefined') window._jillState = _jillState;
 
 function jillStopAudio(){
-  if(_jillState.audio){ _jillState.audio.pause(); _jillState.audio = null; }
+  if(typeof ttsStopAudio === 'function') ttsStopAudio(_jillState.audio);
+  else if(_jillState.audio){ try{ _jillState.audio.pause(); }catch(e){} }
+  _jillState.audio = null;
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   _jillState.speaking = false;
 }
@@ -9079,6 +9221,7 @@ async function sendJillMsg(micText, sendOpts){
   var statusEl = document.getElementById('jill-status');
   if(statusEl) statusEl.textContent = isCompanion ? 'Jill Modo Libre responde…' : 'Jill responde…';
   var unwatchJill = voiceSendWatchdog(function(){ return _jillSending; }, function(){ _jillSending = false; });
+  if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_jillReplyGuard);
   jillCancelSpeech();
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('jill-mic-btn'));
   jillStopMic();
@@ -9275,6 +9418,9 @@ function jillSpeak(text){
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   if(typeof AiBoardDirective !== 'undefined' && AiBoardDirective.strip) text = AiBoardDirective.strip(text);
   text = String(text || '').replace(/\[\[CTYPE:[^\]]*\]\]/gi, '').trim();
+  if(typeof ttsIsRepeat === 'function' && ttsIsRepeat(_jillReplyGuard, text)) return;
+  if(typeof ttsMarkSpoken === 'function') ttsMarkSpoken(_jillReplyGuard, text);
+  jillCancelSpeech();
   if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive()){
     JillVisualStage.updateCaption(text);
   }
