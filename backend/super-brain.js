@@ -598,8 +598,40 @@ function buildProactiveCanonBlock(published, charLimit = 1000) {
   return lines.join('\n').slice(0, charLimit);
 }
 
-async function getPropagatedContext(query, charLimit = 4500) {
-  const sources = await loadKnowledgeSources(query);
+function formatPublishedLayers(lesson, charLimit = 1800) {
+  const layers = lesson?.meta?.layers;
+  if (!layers || typeof layers !== 'object') return '';
+  const lines = [];
+  const pedagogy = Array.isArray(layers.pedagogy) ? layers.pedagogy : [];
+  const delivery = Array.isArray(layers.delivery) ? layers.delivery : [];
+  const structures = Array.isArray(layers.structures) ? layers.structures : [];
+  if (pedagogy.length) {
+    lines.push('PEDAGOGY: ' + pedagogy.slice(0, 5).map((p) =>
+      [p?.name, p?.evidence, p?.whyItWorks].filter(Boolean).join(' — ')
+    ).filter(Boolean).join(' | '));
+  }
+  if (delivery.length) {
+    lines.push('DELIVERY: ' + delivery.slice(0, 8).map((d) =>
+      `[${d?.kind || 'explain'}${d?.approxSec ? ` ~${d.approxSec}s` : ''}] ${d?.segment || d?.note || ''}`
+    ).filter(Boolean).join(' | '));
+  }
+  if (structures.length) {
+    lines.push('STRUCTURES: ' + structures.slice(0, 6).map((s) =>
+      [s?.pattern, s?.shortcut, s?.exampleEN, s?.howToInstall].filter(Boolean).join(' — ')
+    ).filter(Boolean).join(' | '));
+  }
+  return lines.join('\n').slice(0, charLimit);
+}
+
+function publishedRevision(published) {
+  const latest = (published || [])
+    .filter((lesson) => lesson?.published !== false)
+    .slice()
+    .sort((a, b) => String(b.publishedAt || b.date || '').localeCompare(String(a.publishedAt || a.date || '')))[0];
+  return latest ? `${latest.id || 'published'}@${latest.publishedAt || latest.date || ''}` : 'none';
+}
+
+function buildPropagatedContext(sources, charLimit) {
   const canonBudget = Math.floor(charLimit * 0.38);
   const canon = buildProactiveCanonBlock(sources.published, canonBudget);
   const lines = [];
@@ -612,6 +644,8 @@ async function getPropagatedContext(query, charLimit = 4500) {
   sources.relevantPublished.slice(0, 6).forEach(l => {
     if (isNoiseLesson(l)) return;
     reactive.push(`- ${l.title}: ${String(l.content || '').slice(0, 900)}`);
+    const layers = formatPublishedLayers(l, 1600);
+    if (layers) reactive.push(`  JOHNNY 3-LAYER DOCTRINE:\n${layers}`);
   });
   sources.relevantKb.slice(-6).forEach(e => {
     reactive.push(`- ${String(e.text || '').slice(0, 400)}`);
@@ -624,6 +658,19 @@ async function getPropagatedContext(query, charLimit = 4500) {
     lines.push(reactive.join('\n'));
   }
   return lines.join('\n').slice(0, charLimit);
+}
+
+async function getPropagatedContextSnapshot(query, charLimit = 4500) {
+  const sources = await loadKnowledgeSources(query);
+  return {
+    context: buildPropagatedContext(sources, charLimit),
+    revision: publishedRevision(sources.published)
+  };
+}
+
+async function getPropagatedContext(query, charLimit = 4500) {
+  const snapshot = await getPropagatedContextSnapshot(query, charLimit);
+  return snapshot.context;
 }
 
 async function deletePublishedLesson(state, lessonId) {
@@ -914,6 +961,7 @@ module.exports = {
   greeting,
   buildContextBlock,
   getPropagatedContext,
+  getPropagatedContextSnapshot,
   getFullSummary,
   publicSummary,
   appendNexusKB,

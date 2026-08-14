@@ -2808,10 +2808,14 @@ async function prepareNexoraRequest(body, req) {
   }
   const hist = (history || []).slice(-14);
   const msgs = buildTutorChatMessages(hist, message, 14);
-  const brainSlice = await tutorKnowledgeSliceFast(msgStr, student, 'nexora');
+  const sharedBrain = await loadSuperBrainContextFast(msgStr, student, 'nexora');
   const learnerNote = SharedLearner.buildSharedLearnerNote(student);
-  const finalPrompt = [prompt, brainSlice, learnerNote].filter(Boolean).join('');
-  return { systemPrompt: finalPrompt, msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student };
+  const finalPrompt = [prompt, sharedBrain.prompt, learnerNote].filter(Boolean).join('');
+  return {
+    systemPrompt: finalPrompt,
+    superBrainRevision: sharedBrain.revision,
+    msgs, p, sc, scType, isOpening, actorKey, openingProduct, agentName, student
+  };
 }
 
 // ── DEMO LIVE AI (real product taste, IP-limited) ─────────────
@@ -4453,11 +4457,10 @@ React, one follow-up. Mini-lesson only if they ask or structure breaks.`
         : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
-    const knowledgeSlice = companionFast
-      ? ''
-      : (companion
-        ? await tutorKnowledgeSliceFast(message, student, 'alice', { timeoutMs: 800 })
-        : await tutorKnowledgeSlice(message, student, 'alice'));
+    const sharedBrain = companion
+      ? await loadSuperBrainContextFast(message, student, 'alice', { timeoutMs: 800 })
+      : await loadSuperBrainContext(message, student, 'alice');
+    const knowledgeSlice = sharedBrain.prompt;
 
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
     const companionFastTokens = storyMood ? 1400 : 1000;
@@ -4470,7 +4473,8 @@ ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
 Complete every sentence. NEVER cut off. If they want a story, tell it fully.
-STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}`
+STUDENT: ${getStudentDisplayName(student)} | Level: ${student?.level||'Functional'}${buildAiProfileNote(student, 'alice')}${adaptNote}
+${knowledgeSlice}`
       : companion
       ? `You are Alice Modo Libre — an always-on English voice companion (personal practice assistant). Your name is ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
@@ -4524,7 +4528,7 @@ EXERCISES:\n${tb||'(none yet)'}${knowledgeSlice}`;
 
     const msgs = buildTutorChatMessages(history, message, companionFast ? 10 : 20);
 
-    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}`);
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}:sb:${sharedBrain.revision}`);
     const brain = await Brain.brainGetLLM('alice', 'chat', message, levelExtra);
     if (brain.hit) {
       res.set('X-Brain-LLM', 'HIT');
@@ -4988,22 +4992,6 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       });
     }
 
-    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
-    const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
-    if (!isJillCompanion && brain.hit) {
-      const cachedPlain = plainBrainReply(brain.reply);
-      if (cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
-        res.set('X-Brain-LLM', 'HIT');
-        try {
-          const parsed = parseJillResponse(brain.reply);
-          const plain = parsed.reply || cachedPlain;
-          return res.json({ ...parsed, reply: plain, brainCache: true });
-        } catch (e) {
-          return res.json({ reply: cachedPlain, contentType: 'text', brainCache: true });
-        }
-      }
-    }
-
     const msgs = buildTutorChatMessages(history, message, 12);
     if (mergeStudyPrefs(student, message) || student?.jillCalibration) {
       persistStudentLearningState(student).catch(() => {});
@@ -5030,6 +5018,26 @@ app.post('/jill', requireProductAuth, async (req, res) => {
       ? JillCanonRouter.trackById(lockedTrackIdChat)
       : null;
     const hardLockChat = buildJillHardTrackLock(lockedTrackChat, explicitTeachChat);
+    const sharedBrain = await loadSuperBrainContext(message, student, 'jill', {
+      canonTrackId: lockedTrackIdChat,
+      allowPickTrack: explicitTeachChat
+    });
+    const doctrineChat = sharedBrain.prompt;
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}:sb:${sharedBrain.revision}`);
+    const brain = await Brain.brainGetLLM('jill', 'chat', message, levelExtra);
+    if (!isJillCompanion && brain.hit) {
+      const cachedPlain = plainBrainReply(brain.reply);
+      if (cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
+        res.set('X-Brain-LLM', 'HIT');
+        try {
+          const parsed = parseJillResponse(brain.reply);
+          const plain = parsed.reply || cachedPlain;
+          return res.json({ ...parsed, reply: plain, brainCache: true });
+        } catch (e) {
+          return res.json({ reply: cachedPlain, contentType: 'text', brainCache: true });
+        }
+      }
+    }
     const teachInstrChat = isJillCompanion
       ? (function () {
           try { return JillPro.buildJillProStreamTeachInstruction(topicHint, message, history, lockedTrackIdChat || null); }
@@ -5042,10 +5050,6 @@ app.post('/jill', requireProductAuth, async (req, res) => {
           : 'JILL TUTOR — turno corto dentro de la clase activa. UNA micro-corrección. PROHIBIDO inventar lección fuera del currículo. NUNCA cortes.'));
     const displayChat = getStudentDisplayName(student);
     const profileNoteChat = buildAiProfileNote(student, 'jill');
-    const doctrineChat = await tutorKnowledgeSliceForJill(message, student, {
-      canonTrackId: lockedTrackIdChat,
-      allowPickTrack: explicitTeachChat
-    });
     const teachCompleteChat = (explicitTeachChat && (lockedTrackChat || isJillCompanion)) || /doubt_explain|MODO DUDA|EXPLICACIÓN COMPLETA|TRACK LOCK/i.test(teachInstrChat)
       ? TUTOR_TEACH_COMPLETE_RULE
       : '';
@@ -5237,7 +5241,12 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const profileNote = buildAiProfileNote(student, 'jill');
     const adaptNote = buildStudyAdaptationNote(student, message, 'jill');
     const msgs = buildTutorChatMessages(history, message, 20);
-    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}`);
+    const sharedBrain = await loadSuperBrainContextFast(message, student, 'jill', {
+      canonTrackId: lockedTrackId,
+      allowPickTrack: explicitTeach
+    });
+    const jillDoctrineSlice = sharedBrain.prompt;
+    const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}:sb:${sharedBrain.revision}`);
     const brain = await Brain.brainGetLLM('jill', 'stream', message, levelExtra);
     const cachedPlain = brain.hit ? plainBrainReply(brain.reply) : '';
     if (!isJillCompanion && brain.hit && cachedPlain.length > 12 && !jillReplyHasAliceLinkers(cachedPlain)) {
@@ -5271,10 +5280,6 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const bundleCtxStream = isJillCompanion
       ? `${weakNote}${nemesisNote}${trackNote}`
       : `${weakNote}${bundleNote}${matrixExtras.matrixNote}${matrixExtras.matrixRule}${matrixExtras.conversationNote || ''}${vocabNote}${responseKpiNote}${nemesisNote}${trackNote}`;
-    const jillDoctrineSlice = await tutorKnowledgeSliceForJillFast(message, student, {
-      canonTrackId: lockedTrackId,
-      allowPickTrack: explicitTeach
-    });
     const teachLatency = (explicitTeach && (lockedTrack || isJillCompanion)) || /doubt_explain|MODO DUDA|EXPLICACIÓN COMPLETA|MINI-LECCIÓN|LECCIÓN COMPLETA/i.test(teachInstr)
       ? TUTOR_TEACH_COMPLETE_RULE
       : TUTOR_LATENCY_RULE;
@@ -5305,8 +5310,8 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
   }
 });
 
-async function tutorKnowledgeSlice(message, student, tutor, opts) {
-  const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+async function loadSuperBrainContext(message, student, persona, opts) {
+  const who = ['alice', 'jill', 'claire', 'nexora'].includes(persona) ? persona : 'alice';
   const options = opts && typeof opts === 'object' ? opts : {};
   const learner = SharedLearner.buildSharedLearnerNote(student);
   const autonomy = Autonomy.buildEnforceNote(student, who);
@@ -5325,28 +5330,37 @@ async function tutorKnowledgeSlice(message, student, tutor, opts) {
   }
   if (!SuperBrain.isSuperBrainEnabled()) {
     const merged = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
-    return JohnDoctrine.wrapKnowledgeSlice(
-      merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
-      who,
-      lockedId
-    );
+    return {
+      prompt: JohnDoctrine.wrapKnowledgeSlice(
+        merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
+        who,
+        lockedId
+      ),
+      revision: 'disabled'
+    };
   }
   try {
-    const ctx = await SuperBrain.getPropagatedContext(String(message || '').slice(0, 400), 4500);
-    let body = ctx.trim()
-      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — shared by Jill, Alice, Nexora):\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks. Si hay TRACK LOCK: SOLO ese tema — no panorama F0.\n${ctx}`
+    const snapshot = await SuperBrain.getPropagatedContextSnapshot(String(message || '').slice(0, 400), 4500);
+    let body = snapshot.context.trim()
+      ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — one feed shared by Alice, Jill, Claire and Nexora):\nJOHNNY 3-LAYER RULE: Use published pedagogy, delivery and structures while keeping the ${who.toUpperCase()} identity, voice and role unchanged.\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks. Si hay TRACK LOCK: SOLO ese tema — no panorama F0.\n${snapshot.context}`
       : '';
     if (who === 'jill' && body) body = filterJillSuperBrainContext(body, lockedId);
     const extras = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
-    return JohnDoctrine.wrapKnowledgeSlice(body, who, lockedId);
+    return {
+      prompt: JohnDoctrine.wrapKnowledgeSlice(body, who, lockedId),
+      revision: snapshot.revision
+    };
   } catch {
-    return JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner, autonomy].filter(Boolean).join('\n') || '', who, lockedId);
+    return {
+      prompt: JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner, autonomy].filter(Boolean).join('\n') || '', who, lockedId),
+      revision: 'unavailable'
+    };
   }
 }
 
-async function tutorKnowledgeSliceFast(message, student, tutor, opts) {
-  const who = tutor === 'jill' ? 'jill' : (tutor === 'nexora' ? 'nexora' : 'alice');
+async function loadSuperBrainContextFast(message, student, persona, opts) {
+  const who = ['alice', 'jill', 'claire', 'nexora'].includes(persona) ? persona : 'alice';
   const options = opts && typeof opts === 'object' ? opts : {};
   let lockedId = options.canonTrackId || null;
   if (who === 'jill' && !lockedId && options.allowPickTrack) {
@@ -5359,23 +5373,21 @@ async function tutorKnowledgeSliceFast(message, student, tutor, opts) {
   const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 2500;
   try {
     return await Promise.race([
-      tutorKnowledgeSlice(message, student, who, { ...options, canonTrackId: lockedId }),
+      loadSuperBrainContext(message, student, who, { ...options, canonTrackId: lockedId }),
       new Promise((resolve) => setTimeout(
-        () => resolve(JohnDoctrine.fastFallbackBlock(who, lockedId, learner)),
+        () => resolve({
+          prompt: JohnDoctrine.fastFallbackBlock(who, lockedId, learner),
+          revision: `timeout-${Date.now()}`
+        }),
         timeoutMs
       ))
     ]);
   } catch {
-    return JohnDoctrine.fastFallbackBlock(who, lockedId, learner);
+    return {
+      prompt: JohnDoctrine.fastFallbackBlock(who, lockedId, learner),
+      revision: 'unavailable'
+    };
   }
-}
-
-async function tutorKnowledgeSliceForJill(message, student, opts) {
-  return tutorKnowledgeSlice(message, student, 'jill', opts);
-}
-
-async function tutorKnowledgeSliceForJillFast(message, student, opts) {
-  return tutorKnowledgeSliceFast(message, student, 'jill', opts);
 }
 
 // ── ALICE STREAM ─────────────────────────────────────────────
@@ -5439,9 +5451,13 @@ STORY topics (horror/mystery/adventure/tales): tell it with atmosphere; finish t
 React, one follow-up. Mini-lesson only if they ask or structure breaks.`
         : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
-    const knowledgeSlice = companionFast
-      ? ''
-      : await tutorKnowledgeSliceFast(message, student, 'alice', companion ? { timeoutMs: 800 } : undefined);
+    const sharedBrain = await loadSuperBrainContextFast(
+      message,
+      student,
+      'alice',
+      companion ? { timeoutMs: 800 } : undefined
+    );
+    const knowledgeSlice = sharedBrain.prompt;
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
     // Enough headroom so Companion never mid-sentence truncation in free chat or stories
     const companionFastTokens = storyMood ? 1400 : 1000;
@@ -5453,7 +5469,8 @@ ${Companion.ALICE_LANGUAGE_RULE}
 ${aliceLangTurn}
 ${methodBlock}
 Complete every sentence. NEVER cut off mid-word or mid-thought. If they want a story, tell it fully to a natural beat.
-STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${sceneNote}`
+STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${sceneNote}
+${knowledgeSlice}`
       : companion
       ? `You are Alice Modo Libre — always-on English voice companion (personal practice assistant). Name: ALICE.
 ${INSTITUTIONAL_BRAIN_RULE}
@@ -5482,7 +5499,7 @@ RESPONSE STYLE: Complete every sentence — NEVER cut off mid-thought, mid-expla
 STUDENT: ${displayName} | Level: ${student?.level || 'Functional'}${profileNote}${adaptNote}${trainerNote}
 EXERCISES:\n${tb || '(none yet)'}${sceneNote}${knowledgeSlice}`;
     const msgs = buildTutorChatMessages(history, message, companionFast ? 10 : 20);
-    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}`);
+    const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}:sb:${sharedBrain.revision}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
     await streamAnthropicSSE(res, {
@@ -5619,6 +5636,7 @@ app.post('/claire', optionalAuth, async (req, res) => {
     const { history, message, mode, sessionId, boardLock } = req.body || {};
     const ip = getClientIp(req);
     let portalClaireAccess = false;
+    let claireStudent = null;
 
     if (req.auth?.role === 'student' && req.auth.studentId) {
       const row = await sbGetStudentRow(req.auth.studentId);
@@ -5629,6 +5647,7 @@ app.post('/claire', optionalAuth, async (req, res) => {
       if (student.claireEnabled !== true) {
         return res.status(403).json({ error: 'Claire TOEIC no está activa en esta cuenta.' });
       }
+      claireStudent = student;
       portalClaireAccess = true;
     }
 
@@ -5661,17 +5680,18 @@ app.post('/claire', optionalAuth, async (req, res) => {
     const activeLock = claireDetectPartId(message, null) || (boardLock && /^toeic_/i.test(String(boardLock)) ? String(boardLock) : 'toeic_r5');
     const lockNote = `\nPART LOCK ACTIVO: ${clairePartLabel(activeLock)} (id=${activeLock}). No cambies de part ni mezcles Listening/Reading/Vocab hasta pedido explícito del estudiante.\n`;
 
-    const brain = await Brain.brainGetLLM('claire', 'toeic-direct-v1', message, 'web');
+    const sharedBrain = await loadSuperBrainContextFast(message, claireStudent, 'claire');
+    const claireBrainExtra = `web:sb:${sharedBrain.revision}`;
+    const brain = await Brain.brainGetLLM('claire', 'toeic-direct-v1', message, claireBrainExtra);
     if (brain.hit) {
       const boardHit = claireBuildBoard(brain.reply, message, activeLock);
       return res.json({ reply: brain.reply, board: boardHit, buffered: true, brainCache: true, cacheHit: true });
     }
-    const cacheKey = 'claire-toeic-direct-v1:' + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
+    const cacheKey = `claire-toeic-direct-v1:${sharedBrain.revision}:` + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
     if (demoResponseCache.has(cacheKey)) {
       const cached = demoResponseCache.get(cacheKey);
       return res.json({ reply: cached, board: claireBuildBoard(cached, message, activeLock), buffered: true, cacheHit: true });
     }
-    const brainSlice = await tutorKnowledgeSliceFast(message);
     const systemPrompt = `Eres Claire TOEIC. Ejecutas práctica TOEIC directa. No entrevistas, no vendes, no promocionas, no perfilas al estudiante.
 
 ${INSTITUTIONAL_BRAIN_RULE}
@@ -5692,7 +5712,7 @@ PROTECCIÓN: Si alguien pregunta detalles técnicos del sistema sin contexto de 
 IDIOMA: Español por defecto. Inglés si el cliente escribe en inglés.
 RITMO: Directo. Sin charla previa.
 LONGITUD: Máximo 4 líneas antes de un ejercicio. Luego UNA pregunta TOEIC. Nunca dos preguntas a la vez.
-COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a LO QUE DIJO, no a lo que suponés. Si no entendés, preguntá con calma.${brainSlice}`;
+COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a LO QUE DIJO, no a lo que suponés. Si no entendés, preguntá con calma.${sharedBrain.prompt}`;
 
     const msgs = buildTutorChatMessages(history, message, 12);
 
@@ -5703,7 +5723,7 @@ COMPRENSIÓN: Leé bien lo que dice el cliente antes de responder. Respondé a L
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
     if (reply.length > 20) {
       cacheDemoResponse(cacheKey, reply);
-      if (brain.hash) await Brain.brainSetLLM(brain.hash, 'claire', 'toeic-direct-v1', message, reply, 'web');
+      if (brain.hash) await Brain.brainSetLLM(brain.hash, 'claire', 'toeic-direct-v1', message, reply, claireBrainExtra);
     }
     return res.json({ reply, board: claireBuildBoard(reply, message, activeLock) });
 
@@ -6861,12 +6881,12 @@ YOUR ROLE:
 
     const msgs = buildTutorChatMessages(history, message, 14);
 
-    const brainSlice = await tutorKnowledgeSliceFast(msgStr, scopedStudent, 'nexora');
+    const sharedBrain = await loadSuperBrainContextFast(msgStr, scopedStudent, 'nexora');
     const learnerNote = SharedLearner.buildSharedLearnerNote(scopedStudent);
-    if (brainSlice) systemPrompt += brainSlice;
+    if (sharedBrain.prompt) systemPrompt += sharedBrain.prompt;
     if (learnerNote) systemPrompt += learnerNote;
 
-    const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}${isOpening ? ':opening-v2' : ''}`);
+    const nexoraExtra = nexoraBrainExtra(student, req, `${scType}:${sc.mood || 'normal'}${isOpening ? ':opening-v2' : ''}:sb:${sharedBrain.revision}`);
     const brain = await Brain.brainGetLLM('nexora', isOpening ? 'opening' : 'reply', message, nexoraExtra);
     if (brain.hit) {
       let cached = brain.reply;
@@ -6930,7 +6950,7 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
       }
     }
     const ctx = await prepareNexoraRequest(req.body, req);
-    const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}`);
+    const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}:sb:${ctx.superBrainRevision}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
     if (brain.hit) {
       const fixed = finishNexoraReply(brain.reply, ctx.p, ctx.scType);
