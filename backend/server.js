@@ -1259,6 +1259,19 @@ const NEXORA_MALE_FIRST_NAMES = new Set([
   'Andrew', 'Joshua', 'Benjamin', 'Samuel', 'Gabriel', 'Lucas', 'Henry', 'Leo'
 ]);
 
+/**
+ * Nexora speaks English on a live business floor. Without this the synth defaults to
+ * the tutor profile: es-CR language code (which also runs English lines through the
+ * Costa Rican phonetic scrubber), 1.0 speed and low style — the "sleepy" delivery.
+ */
+const NEXORA_TTS_VOICE = {
+  languageCode: 'en-US',
+  speed: Number(process.env.NEXORA_TTS_SPEED || 1.12),
+  stability: Number(process.env.NEXORA_TTS_STABILITY || 0.4),
+  similarityBoost: Number(process.env.NEXORA_TTS_SIMILARITY || 0.75),
+  style: Number(process.env.NEXORA_TTS_STYLE || 0.34)
+};
+
 function enforceNexoraTtsVoice(firstName, voiceId) {
   const first = String(firstName || '').trim().split(/\s+/)[0];
   if (!first) return voiceId;
@@ -2553,11 +2566,16 @@ app.post('/demo/tts', async (req, res) => {
       const fallback = NEXORA_FEMALE_FIRST_NAMES.has(String(firstName || '').trim().split(/\s+/)[0])
         ? (JILL_VOICE_ID || ALICE_VOICE_ID)
         : (getDemoVoiceProfiles().nexora_star?.voiceId || 'bfGb7JTLUnZebZRiFYyq');
-      return await synthesizeSpeech(req, res, { text, voiceId: fallback, label: 'Nexora demo' });
+      return await synthesizeSpeech(req, res, { text, voiceId: fallback, label: 'Nexora demo', ...NEXORA_TTS_VOICE });
     }
 
-    const label = voiceId === ALICE_VOICE_ID ? 'Alice' : 'Nexora demo';
-    return await synthesizeSpeech(req, res, { text, voiceId, label });
+    const isAlice = voiceId === ALICE_VOICE_ID;
+    return await synthesizeSpeech(req, res, {
+      text,
+      voiceId,
+      label: isAlice ? 'Alice' : 'Nexora demo',
+      ...(isAlice ? {} : NEXORA_TTS_VOICE)
+    });
   } catch (err) {
     console.error('Demo TTS error:', err.message);
     return res.status(500).json({ error: 'TTS unavailable' });
@@ -6728,7 +6746,8 @@ app.post('/nexora-tts', requireProductAuth, async (req, res) => {
     return await synthesizeSpeech(req, res, {
       text,
       voiceId: resolved,
-      label: 'Nexora'
+      label: 'Nexora',
+      ...NEXORA_TTS_VOICE
     });
   } catch (err) {
     console.error('Nexora TTS error:', err.message);
