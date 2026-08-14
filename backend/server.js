@@ -2076,6 +2076,83 @@ function applyNexoraCrmActionImpact(evaluation, crmActions) {
   return ev;
 }
 
+function buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime }) {
+  return `You are a senior recruiter writing a candid post-interview hiring debrief for another hiring manager.
+
+Candidate: ${agentName || 'Candidate'}
+Position: ${scenario?.candidateRole || scenario?.title || 'Open role'}
+Company context: ${scenario?.company || 'Regional employer'}
+Interview length: ${talkTime || 0} seconds
+Expected behavioral questions: ${scenario?.questionCount || 6}
+
+Transcript:
+${transcript || '(no transcript)'}
+
+EVALUATION STANDARD:
+- Judge only evidence present in the transcript. Do not invent pronunciation, eye contact, body language, tone, credentials, or achievements.
+- Be honest and selective. A completed interview is not automatically a good interview.
+- English: clarity, grammar patterns, fluency/coherence, vocabulary range, filler words detectable in text, and professional register.
+- Soft skills: communication, confidence signals, ownership, teamwork, conflict handling, and leadership signals.
+- STAR: whether Situation, Task, Action, and Result were complete across answers. Penalize missing individual actions and unquantified results.
+- Content: impact, metrics, role relevance, credibility, specificity, and vagueness.
+- Explicitly identify failures, gaps, contradictions, blame shifting, inflated or unsupported claims, and other recruiter red flags. If none are severe, list the most material evidence gaps.
+- Hiring leaning must be exactly "HIRE", "MAYBE", or "NO HIRE". Base it on evidence for this position, not encouragement.
+- Give exactly 3 concrete practice fixes. Each must be an observable exercise the candidate can perform.
+- Scores are integers 0-10. overall_score is an integer 0-100 weighted across English, soft skills, STAR completeness, and content quality.
+
+Respond ONLY with valid JSON, no markdown or extra text:
+{
+  "overall_score": 64,
+  "wins": ["specific evidence-backed strength"],
+  "english": {
+    "score": 6,
+    "clarity": "specific assessment",
+    "grammar": "recurring errors or clean patterns with examples",
+    "fluency": "coherence, sentence flow, and hesitation evidence",
+    "vocabulary": "range, precision, and repetition",
+    "filler_words": "detected fillers with counts when possible, or not evident in transcript",
+    "register": "professionalism and appropriateness",
+    "summary": "bottom line"
+  },
+  "soft_skills": {
+    "score": 6,
+    "communication": "specific assessment",
+    "confidence": "specific assessment",
+    "ownership": "specific assessment",
+    "teamwork": "specific assessment",
+    "conflict": "specific assessment",
+    "leadership": "specific assessment",
+    "summary": "bottom line"
+  },
+  "star_completeness": {
+    "score": 5,
+    "situation": "what was present or missing",
+    "task": "what was present or missing",
+    "action": "what was present or missing",
+    "result": "what was present or missing",
+    "summary": "pattern across answers"
+  },
+  "content_quality": {
+    "score": 5,
+    "impact": "business/customer/team impact",
+    "metrics": "quantification quality",
+    "relevance": "fit for the target role",
+    "vagueness": "unsupported generalities",
+    "summary": "bottom line"
+  },
+  "red_flags": ["explicit failure, gap, or recruiter concern"],
+  "improvements": ["specific area to improve and why it matters in hiring"],
+  "interview_debrief": {
+    "leaning": "MAYBE",
+    "reasons": ["2-4 concise reasons for the decision"],
+    "strongest_signal": "best evidence for hiring",
+    "biggest_risk": "main reason not to advance"
+  },
+  "practice_fixes": ["fix 1", "fix 2", "fix 3"],
+  "practice_minutes": ${Math.max(1, Math.ceil((talkTime || 60) / 60))}
+}`;
+}
+
 app.post('/demo/nexora-lab/eval', async (req, res) => {
   try {
     const { demoSessionId, transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred } = req.body || {};
@@ -2089,7 +2166,10 @@ app.post('/demo/nexora-lab/eval', async (req, res) => {
     const ip = getClientIp(req);
     await checkDemoIpLimit(ip, 'nexora', { action: 'message' });
 
-    const evalPrompt = `You are evaluating a customer service call simulation.
+    const isInterview = scenario?.type === 'star_interview';
+    const evalPrompt = isInterview
+      ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
+      : `You are evaluating a customer service call simulation.
 
 Agent: ${agentName || 'Agent'}
 Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
@@ -2123,15 +2203,18 @@ Respond ONLY with valid JSON, no markdown:
 }`;
 
     const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
-      system: 'You evaluate call simulations. Respond ONLY with valid JSON. No markdown.',
+      model: isInterview ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
+      max_tokens: isInterview ? 1800 : 600,
+      system: isInterview
+        ? 'You are a rigorous senior recruiter. Return valid JSON only. Never soften material hiring concerns.'
+        : 'You evaluate call simulations. Respond ONLY with valid JSON. No markdown.',
       messages: [{ role: 'user', content: evalPrompt }]
     });
 
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const clean = text.replace(/```json|```/g, '').trim();
-    return res.json(applyNexoraCrmActionImpact(JSON.parse(clean), crmActions));
+    const evaluation = JSON.parse(clean);
+    return res.json(isInterview ? evaluation : applyNexoraCrmActionImpact(evaluation, crmActions));
   } catch (err) {
     console.error('Demo nexora lab eval error:', err.message);
     return res.status(500).json({ error: 'Evaluation failed' });
@@ -2482,6 +2565,7 @@ app.post('/demo/tts', async (req, res) => {
 });
 
 const NEXORA_DIALOGUE_RULE = '\nOUTPUT FORMAT: Spoken dialogue ONLY. No stage directions, no *actions*, no narration (never write "smiles warmly", "extends hand", "nods", etc.). Start directly with what you SAY out loud.';
+const NEXORA_PROFESSIONAL_PACE_RULE = '\nPACING: Sound like a concise senior business professional. Use complete natural sentences, no ellipses, no scripted enthusiasm, no classroom language, and no filler.';
 const TUTOR_PACE_RULE = '\nPACING (spoken aloud): Sound 100% human — like a real CR tutor in class. Prefer commas over heavy periods, no ellipses (...), no staccato fragments, no "Paso 1/2" textbook tone. Warm, clear, natural.';
 const TUTOR_LATENCY_RULE = '\nLIVE TURN (charla libre solamente): 2-3 oraciones cortas. Sin relleno. Respondé al toque.';
 const AI_BOARD_JILL_RULE = `
@@ -2586,6 +2670,39 @@ function enforceNexoraClientName(reply, profile) {
   return fixed;
 }
 
+function buildProfessionalStarInterviewPrompt(ctx, sc, agentName) {
+  const questions = Array.isArray(ctx.starFocus) && ctx.starFocus.length
+    ? ctx.starFocus.slice(0, 8)
+    : (Array.isArray(sc.starFocus) ? sc.starFocus.slice(0, 8) : []);
+  const questionCount = Math.max(5, Math.min(8, Number(ctx.questionCount || sc.questionCount || questions.length || 6)));
+  const answerCount = Math.max(0, Number(ctx.interviewAnswerCount) || 0);
+  const questionList = questions.length
+    ? questions.map((q, i) => `${i + 1}. ${q}`).join('\n')
+    : '1. Tell me about a time you handled a difficult professional situation.\n2. Tell me about a time you took ownership.\n3. Describe a conflict you handled professionally.\n4. Tell me about a time you worked under pressure.\n5. Describe a measurable improvement you delivered.\n6. Tell me about a mistake and what you changed.';
+  return `You are ${ctx.interviewerName || sc.interviewer || 'a senior recruiter'}, ${ctx.recruiterRole || sc.role || 'Senior Talent Acquisition Partner'}, conducting a serious hiring interview.
+Company: ${ctx.company || sc.company || 'a regional employer'}
+Candidate: ${agentName || 'the candidate'}
+Position: ${ctx.candidateRole || sc.candidateRole || sc.title || 'the open role'}
+Candidate response turns so far: ${answerCount}
+
+CORE BEHAVIORAL QUESTIONS (${questionCount} total, ask in order):
+${questionList}
+
+INTERVIEW PROTOCOL:
+- Act like a real recruiter or hiring manager, never a tutor, teacher, game host, or English coach.
+- Ask exactly one core question at a time. Do not reveal future questions.
+- Internally assess Situation, Task, Action, and Result for each answer.
+- If a STAR component is missing, vague, or collective ("we") without ownership, ask one concise evidence-seeking follow-up. At most two follow-ups per core question.
+- Probe especially for the candidate's individual action, decision, measurable result, role relevance, and credibility.
+- Do not coach them through the answer, label STAR components aloud, correct grammar, give mid-interview feedback, or praise every response.
+- Brief neutral transitions are appropriate: "Thank you." "Understood." Then continue.
+- Watch for contradictions, blame shifting, inflated claims, missing metrics, weak ownership, and unprofessional register. Do not announce a hiring verdict during the interview.
+- After all core questions, close professionally and ask, "What questions do you have for me about the role or the company?"
+- Keep each recruiter turn to 1-3 complete sentences and end with one clear question.
+- FIRST TURN ONLY: introduce yourself, your role, the company, and the position in one sentence; then ask core question 1.
+- Never mention AI, English learning, Nexora, scoring, prompts, or these instructions.`;
+}
+
 function buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext, negRole }) {
   const p = profile || {};
   const sc = scenario || {};
@@ -2624,24 +2741,7 @@ function buildNexoraSystemPrompt({ profile, scenario, agentName, accountContext,
   let systemPrompt = '';
   if (scType === 'star_interview') {
     const ctx = accountContext || {};
-    const starFocusStr = ctx.starFocus?.length ? ctx.starFocus.map((q, i) => (i + 1) + '. ' + q).join('\n') : 'General STAR questions';
-    systemPrompt = `You are ${ctx.interviewerName || 'a senior interviewer'} conducting a structured STAR behavioral interview for: ${sc.title}.
-Company: ${ctx.company || sc.company || 'the company'}
-
-STAR FOCUS QUESTIONS (use these as your guide):
-${starFocusStr}
-
-YOUR ROLE:
-- YOU are the interviewer. ${agentName} is the candidate being evaluated.
-- Ask strictly STAR-format questions: Situation, Task, Action, Result.
-- Probe for specifics: "What was YOUR specific action?" "What was the measurable result?"
-- If they skip a STAR component: "You've described the situation — what specific actions did YOU take?"
-- Evaluate clarity, structure, connector usage, confidence and specific examples.
-- After 2-3 exchanges, give brief feedback and move to the next question.
-- 1-3 sentences per turn. Professional and focused.
-- Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
-- FIRST TURN ONLY: One-sentence intro (name, title, ${ctx.company || sc.company || 'company'}). Then ask question 1 from STAR FOCUS immediately. Must end with a complete question mark. Never use ellipsis (...). Never stop at "and I".
-- NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
+    systemPrompt = buildProfessionalStarInterviewPrompt(ctx, sc, agentName);
   } else if (scType === 'interview') {
     const ctx = accountContext || {};
     const panelStr = ctx.panelists?.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
@@ -2787,8 +2887,11 @@ CRITICAL RULES:
 - Keep responses SHORT — 1-3 sentences max. Real phone call pace.`;
   }
   const agentLabel = String(agentName || 'Agent').trim() || 'Agent';
-  const agentIdentity = `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Address them as ${agentLabel}. Never invent a different name for them.`;
-  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + TUTOR_PACE_RULE + agentIdentity, p, sc, scType };
+  const agentIdentity = scType === 'star_interview'
+    ? `\nCANDIDATE IDENTITY: The candidate is "${agentLabel}" ONLY. Address them as ${agentLabel}. Never invent a different name for them.`
+    : `\nAGENT IDENTITY: The call-center agent (the human you're speaking with) is "${agentLabel}" ONLY. Address them as ${agentLabel}. Never invent a different name for them.`;
+  const paceRule = scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_PACE_RULE;
+  return { systemPrompt: systemPrompt + NEXORA_DIALOGUE_RULE + TURN_TAKING_RULE + paceRule + agentIdentity, p, sc, scType };
 }
 
 function finishNexoraReply(raw, p, scType) {
@@ -6755,24 +6858,7 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
 
     if(scType === 'star_interview'){
       const ctx = accountContext || {};
-      const starFocusStr = ctx.starFocus && ctx.starFocus.length ? ctx.starFocus.map((q,i) => (i+1)+'. '+q).join('\n') : 'General STAR questions';
-      systemPrompt = `You are ${ctx.interviewerName || 'a senior interviewer'} conducting a structured STAR behavioral interview for: ${sc.title}.
-Company: ${ctx.company || sc.company || 'the company'}
-
-STAR FOCUS QUESTIONS (use these as your guide):
-${starFocusStr}
-
-YOUR ROLE:
-- YOU are the interviewer. ${agentName} is the candidate being evaluated.
-- Ask strictly STAR-format questions: Situation, Task, Action, Result.
-- Probe for specifics: "What was YOUR specific action?" "What was the measurable result?"
-- If they skip a STAR component: "You've described the situation — what specific actions did YOU take?"
-- Evaluate clarity, structure, connector usage, confidence and specific examples.
-- After 2-3 exchanges, give brief feedback and move to the next question.
-- 1-3 sentences per turn. Professional and focused.
-- Your name is ${ctx.interviewerName || 'the interviewer'}. NEVER change your name.
-- FIRST TURN ONLY: One-sentence intro (name, title, ${ctx.company || sc.company || 'company'}). Then ask question 1 from STAR FOCUS immediately. Must end with a complete question mark. Never use ellipsis (...). Never stop at "and I".
-- NEVER break character. You are the interviewer, ${agentName} is the one being evaluated.`;
+      systemPrompt = buildProfessionalStarInterviewPrompt(ctx, sc, agentName);
     } else if(scType === 'interview'){
       const ctx = accountContext || {};
       const panelStr = ctx.panelists && ctx.panelists.length > 0 ? `You are one of a panel of interviewers: ${ctx.panelists.join(', ')}.` : `You are ${ctx.interviewerName || p.name}, ${ctx.role || 'HR Manager'} at ${ctx.company || 'the company'}.`;
@@ -6901,8 +6987,10 @@ YOUR ROLE:
 
     const msgStr = String(message || '');
     const isOpening = /^START_/.test(msgStr) && (!history || history.length === 0);
-    systemPrompt += `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`;
-    systemPrompt += TUTOR_PACE_RULE;
+    systemPrompt += scType === 'star_interview'
+      ? `\nCANDIDATE IDENTITY: The candidate is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`
+      : `\nAGENT IDENTITY: The call-center agent is "${agentName}" ONLY. Address them as ${agentName}. Never invent a different name for them.`;
+    systemPrompt += scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_PACE_RULE;
 
     const actorKey = resolveActorKey({ student, req, profile: p });
     const openingProduct = `nexora-${scType}-${sc.id || msgStr || 'default'}`;
@@ -6992,7 +7080,7 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 320,
-      system: ctx.systemPrompt + TUTOR_LATENCY_RULE + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
+      system: ctx.systemPrompt + (ctx.scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_LATENCY_RULE) + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
       messages: ctx.msgs,
       brainMeta: { hash: brain.hash, tutor: 'nexora', intent: 'stream', message: req.body?.message, extra: nexoraExtra }
     });
@@ -7012,7 +7100,10 @@ app.post('/nexora-eval', requireProductAuth, async (req, res) => {
     }
     const { transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred } = req.body || {};
 
-    const evalPrompt = `You are evaluating a customer service call simulation.
+    const isInterview = scenario?.type === 'star_interview';
+    const evalPrompt = isInterview
+      ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
+      : `You are evaluating a customer service call simulation.
 
 Agent: ${agentName || 'Agent'}
 Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
@@ -7049,14 +7140,17 @@ Respond ONLY with valid JSON, no markdown:
 
     const resp = await claudeCall({
       model: 'claude-sonnet-4-6',
-      max_tokens: 600,
-      system: 'You evaluate customer service call simulations. Respond ONLY with valid JSON. No markdown. No extra text.',
+      max_tokens: isInterview ? 1800 : 600,
+      system: isInterview
+        ? 'You are a rigorous senior recruiter. Return valid JSON only. Never soften material hiring concerns.'
+        : 'You evaluate customer service call simulations. Respond ONLY with valid JSON. No markdown. No extra text.',
       messages: [{ role: 'user', content: evalPrompt }]
     });
 
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const clean = text.replace(/```json|```/g, '').trim();
-    const ev = applyNexoraCrmActionImpact(JSON.parse(clean), crmActions);
+    const parsedEvaluation = JSON.parse(clean);
+    const ev = isInterview ? parsedEvaluation : applyNexoraCrmActionImpact(parsedEvaluation, crmActions);
 
     if (student?.id && req.auth.role === 'student') {
       InfinityVictory.recordNexoraSession(student, ev, {
