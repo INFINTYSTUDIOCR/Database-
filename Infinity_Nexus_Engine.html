@@ -321,6 +321,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" id="nav-users" onclick="showView('users',this)"><i class="ti ti-shield"></i>Gestión de usuarios</div>
       <div class="sb-item" id="nav-roster" onclick="showView('roster',this)"><i class="ti ti-id-badge-2"></i>Trainer Roster</div>
       <div class="sb-item" id="nav-crm" onclick="showView('crm',this)"><i class="ti ti-target-arrow"></i>CRM · Leads</div>
+      <div class="sb-item" id="nav-oe50" onclick="showView('oe50-applications',this)"><i class="ti ti-clipboard-list"></i>Aplicaciones · 50</div>
       <div class="sb-item" id="nav-diagnostic" onclick="showView('diagnostic',this)"><i class="ti ti-clipboard-check"></i>Intake Diagnostic</div>
       <div class="sb-item" id="nav-finance" onclick="showView('finance',this)"><i class="ti ti-report-money"></i>Reporte financiero</div>
       <div class="sb-item" id="nav-auditlog" onclick="showView('auditlog',this)"><i class="ti ti-history"></i>Log de auditoría</div>
@@ -1155,6 +1156,7 @@ function startApp(){
     document.getElementById('nav-users').style.display='none';
     document.getElementById('nav-master-section').style.display='none';
     document.getElementById('nav-crm').style.display='none';
+    document.getElementById('nav-oe50').style.display='none';
     document.getElementById('nav-finance').style.display='none';
     document.getElementById('nav-auditlog').style.display='none';
     document.getElementById('nav-avail-overview').style.display='none';
@@ -1253,6 +1255,7 @@ function showView(view, btn){
   else if(view==='staffchat') renderStaffChat(m);
   else if(view==='chattranscripts') renderChatTranscripts(m);
   else if(view==='crm') renderCRM(m);
+  else if(view==='oe50-applications') renderOe50Applications(m);
   else if(view==='finance') renderFinance(m);
 }
 
@@ -3258,6 +3261,131 @@ function sendDiagnosticReportWA(id){
   showShareModal('Reporte de Diagnóstico', lines.join('\n'), ((s.info&&s.info.phone)||''));
 }
 
+
+// ── APLICACIONES · TRAINING GRATIS 50 ─────────────────────
+var OE50_APPLICATIONS = [];
+
+function oe50Escape(value){
+  return String(value == null ? '' : value)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function oe50SourceLabel(status){
+  var labels = {
+    'oe-selected':'OE/Hola Brete · seleccionado',
+    'oe-not-selected':'OE/Hola Brete · no clasificó',
+    'oe-waitlist':'OE/Hola Brete · espera',
+    'oe-selected-open-english':'Ya cursa Open English',
+    'video':'Llegó por el video'
+  };
+  return labels[status] || status || '—';
+}
+
+function oe50LevelLabel(level){
+  var labels = { principiante:'Principiante', intermedio:'Intermedio', 'avanzado-pro':'Avanzado / Pro' };
+  return labels[level] || level || '—';
+}
+
+async function loadOe50Applications(){
+  var data = await superBrainFetch('/campaign/oe50/applications?secret='+encodeURIComponent(SUPER_BRAIN_SECRET));
+  OE50_APPLICATIONS = Array.isArray(data.applications) ? data.applications : [];
+  return OE50_APPLICATIONS;
+}
+
+async function renderOe50Applications(m){
+  if(!hasMasterAccess()){
+    m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido a Master Trainer / Super Admin.</div></div>';
+    return;
+  }
+  m.innerHTML='<div class="loading"><i class="ti ti-loader spin"></i><span>Cargando aplicaciones…</span></div>';
+  try{
+    var rows = await loadOe50Applications();
+    var byLevel = { principiante:0, intermedio:0, 'avanzado-pro':0 };
+    var mediaOk = 0;
+    var tiktok = 0;
+    rows.forEach(function(a){
+      if(Object.prototype.hasOwnProperty.call(byLevel,a.level)) byLevel[a.level]++;
+      if(a.mediaConsent) mediaOk++;
+      if(a.source && String(a.source.utmSource||'').toLowerCase()==='tiktok') tiktok++;
+    });
+    var body = rows.length ? rows.map(function(a){
+      var submitted = a.submittedAt ? new Date(a.submittedAt).toLocaleString('es-CR') : '—';
+      return '<tr>'
+        +'<td><strong>'+oe50Escape(a.fullName)+'</strong><div style="font-size:10px;color:var(--t3);">'+oe50Escape(submitted)+'</div></td>'
+        +'<td>'+oe50Escape(oe50LevelLabel(a.level))+'</td>'
+        +'<td style="font-size:11px;">'+oe50Escape(a.phone)+'<br>'+oe50Escape(a.email)+'</td>'
+        +'<td style="font-size:11px;">'+oe50Escape(oe50SourceLabel(a.oeStatus))+'</td>'
+        +'<td><span class="badge '+(a.mediaConsent?'b-functional':'')+'" style="'+(a.mediaConsent?'':'background:var(--ab);color:var(--ad);')+'">'+(a.mediaConsent?'Sí':'No')+'</span></td>'
+        +'<td style="font-size:11px;">'+oe50Escape((a.source&&a.source.utmSource)||'direct')+'</td>'
+        +'</tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:2rem;">Todavía no hay aplicaciones.</td></tr>';
+
+    m.innerHTML='<div class="fade">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1rem;">'
+      +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;"><i class="ti ti-clipboard-list"></i> Aplicaciones · Training gratuito 50</h2>'
+      +'<a class="btn btn-outline btn-sm" href="programa-50.html?utm_source=engine&utm_medium=internal&utm_campaign=training_diciembre_50" target="_blank"><i class="ti ti-external-link"></i>Abrir landing</a>'
+      +'<button class="btn btn-outline btn-sm" onclick="renderOe50Applications(document.getElementById(\'main-content\'))"><i class="ti ti-refresh"></i>Actualizar</button>'
+      +'<button class="btn btn-navy btn-sm" onclick="exportOe50ApplicationsExcel()"><i class="ti ti-file-spreadsheet"></i>Descargar Excel</button>'
+      +'</div>'
+      +'<div class="ib ib-navy">Base separada de interesados. No crea estudiantes ni mezcla datos con Kamuk.</div>'
+      +'<div class="stats-grid" style="margin:14px 0;">'
+      +'<div class="stat-card"><div class="stat-value">'+rows.length+'</div><div class="stat-label">Solicitudes</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+byLevel.principiante+'</div><div class="stat-label">Principiantes</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+byLevel.intermedio+'</div><div class="stat-label">Intermedios</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+byLevel['avanzado-pro']+'</div><div class="stat-label">Avanzado / Pro</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+mediaOk+'</div><div class="stat-label">Autorizan cámara</div></div>'
+      +'<div class="stat-card"><div class="stat-value">'+tiktok+'</div><div class="stat-label">UTM TikTok</div></div>'
+      +'</div>'
+      +'<div class="card" style="overflow-x:auto;"><table class="tbl"><thead><tr>'
+      +'<th>Persona</th><th>Nivel</th><th>Contacto</th><th>Origen OE</th><th>Cámara</th><th>Tráfico</th>'
+      +'</tr></thead><tbody>'+body+'</tbody></table></div>'
+      +'</div>';
+  }catch(e){
+    m.innerHTML='<div class="fade"><div class="ib ib-red">No se pudieron cargar las aplicaciones: '+oe50Escape(e.message||e)+'</div></div>';
+  }
+}
+
+async function exportOe50ApplicationsExcel(){
+  try{
+    var rows = OE50_APPLICATIONS.length ? OE50_APPLICATIONS : await loadOe50Applications();
+    if(!rows.length){ showToast('No hay aplicaciones para exportar','err'); return; }
+    var data = rows.map(function(a){
+      return {
+        'Fecha de solicitud':a.submittedAt||'',
+        'Estado interno':a.status||'pending-review',
+        'Nombre y apellidos':a.fullName||'',
+        'WhatsApp':a.phone||'',
+        'Correo':a.email||'',
+        'Origen de convocatoria':oe50SourceLabel(a.oeStatus),
+        'Nivel declarado':oe50LevelLabel(a.level),
+        'Compromiso sábados':a.saturdayCommitment?'Sí':'No',
+        'Práctica semanal':a.weeklyPracticeCommitment?'Sí':'No',
+        'Consentimiento datos':a.dataConsent?'Sí':'No',
+        'Consentimiento imagen/KPIs':a.mediaConsent?'Sí':'No',
+        'Elegible conversatorio documentado':a.eligibleForDocumentedConversatorio?'Sí':'No',
+        'UTM source':(a.source&&a.source.utmSource)||'direct',
+        'UTM medium':(a.source&&a.source.utmMedium)||'',
+        'UTM campaign':(a.source&&a.source.utmCampaign)||'',
+        'UTM content':(a.source&&a.source.utmContent)||'',
+        'Referrer':(a.source&&a.source.referrer)||'',
+        'ID solicitud':a.id||''
+      };
+    });
+    var ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      {wch:22},{wch:18},{wch:30},{wch:18},{wch:30},{wch:34},
+      {wch:18},{wch:18},{wch:18},{wch:20},{wch:25},{wch:30},{wch:14},
+      {wch:14},{wch:28},{wch:22},{wch:38},{wch:28}
+    ];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Aplicaciones 50');
+    XLSX.writeFile(wb, 'aplicaciones_training_50_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    showToast('Excel de aplicaciones descargado');
+  }catch(e){
+    showToast('No se pudo exportar: '+(e.message||e),'err');
+  }
+}
 
 // ── CRM / PIPELINE DE LEADS ───────────────────────────────
 var PIPELINE_LABELS = { active:'Active', prospecto:'Prospecto', needs_plan:'Needs Plan' };
@@ -5706,7 +5834,34 @@ function renderSuperBrain(m){
     +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="tiktokJillImportUrls()"><i class="ti ti-download"></i>Importar URLs</button>'
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-school"></i>Clase de John → Super Brain</div>'
-    +'<div class="ib ib-amber" style="font-size:11px;margin-bottom:8px;">Pegá transcripción de clase, o subí foto de pizarra/material. Se convierte en doctrina y alimenta Jill + Alice + Nexora.</div>'
+    +'<div class="ib ib-amber" style="font-size:11px;margin-bottom:8px;">Grabá o subí audio de clase → transcripción → <strong>3 capas</strong> (Pedagogía / Entrega / Estructuras) → revisar → publicar a Jill + Alice + Nexora. También podés pegar texto o subir foto de pizarra.</div>'
+    +'<input class="inp" id="sb-johnny-title" placeholder="Título de la clase (opcional)" style="margin-bottom:8px;">'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">'
+    +'<button type="button" class="btn btn-navy btn-sm" onclick="johnnyRecStart()"><i class="ti ti-microphone"></i>Grabar</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="johnnyRecPause()"><i class="ti ti-player-pause"></i>Pausar</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="johnnyRecStop()"><i class="ti ti-player-stop"></i>Detener</button>'
+    +'<span id="sb-johnny-timer" style="font-variant-numeric:tabular-nums;font-size:13px;min-width:48px;">00:00</span>'
+    +'<div style="flex:1;min-width:80px;height:6px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden;"><div id="sb-johnny-level" style="height:100%;width:2%;background:var(--purple);transition:width .1s;"></div></div>'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;"><i class="ti ti-upload"></i> Subir audio<input type="file" id="sb-johnny-audio" accept="audio/*,.webm,.mp3,.m4a,.wav" style="display:none" onchange="johnnyRecUpload(this)"></label>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="johnnyRecSavePending()"><i class="ti ti-inbox"></i>Guardar pendiente</button>'
+    +'<button type="button" class="btn btn-navy btn-sm" onclick="johnnyRecPublish()"><i class="ti ti-broadcast"></i>Publicar e implementar</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="johnnyRecResplit()"><i class="ti ti-layers-intersect"></i>Re-separar capas</button>'
+    +'</div>'
+    +'<div id="sb-johnny-status" style="font-size:11px;color:var(--t2);margin-bottom:8px;"></div>'
+    +'<div id="sb-johnny-layers" style="display:none;margin-bottom:10px;">'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">'
+    +'<button type="button" class="btn btn-outline btn-sm btn-navy" id="sb-johnny-btn-pedagogy" onclick="JohnnyClassRecorder.showTab(\'pedagogy\')">Pedagogía</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" id="sb-johnny-btn-delivery" onclick="JohnnyClassRecorder.showTab(\'delivery\')">Entrega</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" id="sb-johnny-btn-structures" onclick="JohnnyClassRecorder.showTab(\'structures\')">Estructuras</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" id="sb-johnny-btn-transcript" onclick="JohnnyClassRecorder.showTab(\'transcript\')">Transcript</button>'
+    +'</div>'
+    +'<div id="sb-johnny-tab-pedagogy" style="font-size:12px;max-height:180px;overflow:auto;"></div>'
+    +'<div id="sb-johnny-tab-delivery" style="display:none;font-size:12px;max-height:180px;overflow:auto;"></div>'
+    +'<div id="sb-johnny-tab-structures" style="display:none;font-size:12px;max-height:180px;overflow:auto;"></div>'
+    +'<pre id="sb-johnny-tab-transcript" style="display:none;font-size:11px;max-height:180px;overflow:auto;white-space:pre-wrap;margin:0;"></pre>'
+    +'</div>'
     +'<textarea class="inp" id="sb-class-transcript" placeholder="Pegá transcripción de clase / TikTok / explicación tuya…" style="min-height:90px;font-size:12px;"></textarea>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
     +'<button class="btn btn-outline btn-sm" onclick="superBrainAnalyzeClass()"><i class="ti ti-search"></i>Analizar fallos</button>'
@@ -6079,6 +6234,67 @@ async function superBrainAnalyzeClass(){
     showToast('Clase analizada — refuerzos al cerebro');
     superBrainRefresh();
   }catch(e){ if(st) st.textContent = e.message; showToast(e.message,'err'); }
+}
+
+async function johnnyRecStart(){
+  try{
+    if(!window.JohnnyClassRecorder) throw new Error('johnny-class-recorder.js no cargó');
+    await JohnnyClassRecorder.startRecord();
+  }catch(e){ showToast(e.message,'err'); JohnnyClassRecorder && JohnnyClassRecorder.setStatus(e.message); }
+}
+function johnnyRecPause(){
+  try{ JohnnyClassRecorder.pauseRecord(); }catch(e){ showToast(e.message,'err'); }
+}
+function johnnyRecStop(){
+  try{ JohnnyClassRecorder.stopRecord(); }catch(e){ showToast(e.message,'err'); }
+}
+async function johnnyRecUpload(input){
+  var file = input && input.files && input.files[0];
+  if(!file) return;
+  try{
+    JohnnyClassRecorder.setStatus('Subiendo audio…');
+    var data = await JohnnyClassRecorder.processFile(file, true);
+    showToast('Capas listas (pendiente) — revisá y publicá');
+    if(data && data.lessonId) superBrainRefresh();
+  }catch(e){ JohnnyClassRecorder.setStatus(e.message); showToast(e.message,'err'); }
+  if(input) input.value = '';
+}
+async function johnnyRecSavePending(){
+  try{
+    var data;
+    if(window.JohnnyClassRecorder && JohnnyClassRecorder.processLast){
+      try{
+        data = await JohnnyClassRecorder.processLast(true);
+      }catch(e1){
+        if(!/Grabá o subí/.test(e1.message||'')) throw e1;
+        data = await JohnnyClassRecorder.reSplit(true, true);
+      }
+    }
+    showToast('Clase Johnny en pendiente');
+    superBrainRefresh();
+    return data;
+  }catch(e){ JohnnyClassRecorder && JohnnyClassRecorder.setStatus(e.message); showToast(e.message,'err'); }
+}
+async function johnnyRecPublish(){
+  try{
+    var data;
+    try{
+      data = await JohnnyClassRecorder.processLast(false);
+    }catch(e1){
+      if(!/Grabá o subí/.test(e1.message||'')) throw e1;
+      data = await JohnnyClassRecorder.reSplit(false, true);
+    }
+    showToast('Publicado e implementado en Jill/Alice/Nexora');
+    superBrainRefresh();
+    return data;
+  }catch(e){ JohnnyClassRecorder && JohnnyClassRecorder.setStatus(e.message); showToast(e.message,'err'); }
+}
+async function johnnyRecResplit(){
+  try{
+    var data = await JohnnyClassRecorder.reSplit(true, false);
+    showToast('Capas recalculadas (sin publicar)');
+    return data;
+  }catch(e){ JohnnyClassRecorder.setStatus(e.message); showToast(e.message,'err'); }
 }
 
 async function superBrainIngestTeaching(review){
@@ -7383,6 +7599,7 @@ runAIAnalysis = async function(){
 
 </script>
 <script src="js/jill-f0-gate.js?v=20260708"></script>
+<script src="js/johnny-class-recorder.js?v=20260813"></script>
 <script src="nexus-unified.js"></script>
 <script src="nexus-unified-ui.js?v=20260717journey"></script>
 <script src="nexus-manual-calibration.js"></script>

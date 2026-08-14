@@ -348,7 +348,8 @@ async function ingest(state, { title, content, author, category, autoPublish, so
       content: item.content,
       author: item.author,
       category: item.category,
-      source: 'upload-direct'
+      source: 'upload-direct',
+      meta: item.meta
     });
     return { pending: null, lesson, published: true };
   }

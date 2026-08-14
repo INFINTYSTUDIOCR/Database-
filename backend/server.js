@@ -303,6 +303,17 @@ setTimeout(() => {
 
 const JillClassAnalyzer = require('./jill-class-analyzer');
 JillClassAnalyzer.initClassAnalyzer({ superBrain: SuperBrain, sbSet, sbGetOne });
+const JohnnyClassLayers = require('./johnny-class-layers');
+const multer = require('multer');
+const johnnyClassAudioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^(audio\/|video\/webm)/i.test(file.mimetype || '')
+      || /\.(webm|mp3|m4a|wav|ogg|mpeg|mp4)$/i.test(file.originalname || '');
+    cb(ok ? null : new Error('Solo audio (.webm/.mp3/.m4a/.wav)'), ok);
+  }
+}).single('audio');
 
 const TrainerModel = require('./trainer-model');
 const JillStructureCoach = require('./jill-structure-coach');
@@ -654,6 +665,158 @@ function requireMasterOrAnalyzeSecret(req, res, next) {
 function isAnalyzeSecretMatch(secret) {
   return !!(ANALYZE_SECRET && secret && secret === ANALYZE_SECRET);
 }
+
+// ── CAMPAIGN APPLICATIONS (Infinity only) ───────────────────
+// Public intake for the free training-to-December cohort. Records live in
+// infinity_sessions so no browser receives Supabase write credentials.
+const oe50ApplicationRateMap = new Map();
+const OE50_APPLICATION_WINDOW_MS = 60 * 60 * 1000;
+const OE50_APPLICATION_MAX_PER_IP = 8;
+const OE50_LEVELS = new Set(['principiante', 'intermedio', 'avanzado-pro']);
+const OE50_STATUSES = new Set([
+  'oe-selected',
+  'oe-not-selected',
+  'oe-waitlist',
+  'oe-selected-open-english',
+  'video'
+]);
+
+function cleanApplicationText(value, max) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+function normalizeApplicationPhone(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 18);
+}
+
+function applicationIpKey(req) {
+  const ip = String(req.ip || req.socket?.remoteAddress || 'unknown');
+  return crypto.createHash('sha256').update(ip).digest('hex').slice(0, 20);
+}
+
+function checkOe50ApplicationRate(req) {
+  const key = applicationIpKey(req);
+  const now = Date.now();
+  let entry = oe50ApplicationRateMap.get(key);
+  if (!entry || now >= entry.resetAt) {
+    entry = { count: 0, resetAt: now + OE50_APPLICATION_WINDOW_MS };
+  }
+  if (entry.count >= OE50_APPLICATION_MAX_PER_IP) {
+    return { ok: false, waitMin: Math.max(1, Math.ceil((entry.resetAt - now) / 60000)) };
+  }
+  entry.count += 1;
+  oe50ApplicationRateMap.set(key, entry);
+  return { ok: true };
+}
+
+function oe50ApplicationId(email, phone) {
+  const key = `${String(email || '').toLowerCase()}|${phone}`;
+  return `OE50-${crypto.createHash('sha256').update(key).digest('hex').slice(0, 20).toUpperCase()}`;
+}
+
+app.post('/campaign/oe50/apply', async (req, res) => {
+  try {
+    const body = req.body || {};
+    // Honeypot: acknowledge silently so bots do not learn the field name.
+    if (cleanApplicationText(body.website, 100)) {
+      return res.json({ ok: true, received: true });
+    }
+
+    const rate = checkOe50ApplicationRate(req);
+    if (!rate.ok) {
+      return res.status(429).json({
+        error: 'Demasiadas solicitudes desde esta conexión.',
+        waitMin: rate.waitMin
+      });
+    }
+
+    const fullName = cleanApplicationText(body.fullName, 120);
+    const phone = normalizeApplicationPhone(body.phone);
+    const email = cleanApplicationText(body.email, 160).toLowerCase();
+    const oeStatus = cleanApplicationText(body.oeStatus, 40);
+    const level = cleanApplicationText(body.level, 30);
+    const saturdayCommitment = body.saturdayCommitment === true;
+    const weeklyPracticeCommitment = body.weeklyPracticeCommitment === true;
+    const dataConsent = body.dataConsent === true;
+    const mediaConsent = body.mediaConsent === true;
+
+    if (fullName.length < 4) return res.status(400).json({ error: 'Ingresá tu nombre y apellidos.' });
+    if (phone.length < 8) return res.status(400).json({ error: 'Ingresá un teléfono válido con código de país.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Ingresá un correo electrónico válido.' });
+    }
+    if (!OE50_STATUSES.has(oeStatus)) return res.status(400).json({ error: 'Seleccioná cómo llegaste al programa.' });
+    if (!OE50_LEVELS.has(level)) return res.status(400).json({ error: 'Seleccioná tu nivel de inglés.' });
+    if (!saturdayCommitment || !weeklyPracticeCommitment) {
+      return res.status(400).json({ error: 'Este programa requiere compromiso los sábados y práctica semanal.' });
+    }
+    if (!dataConsent) {
+      return res.status(400).json({ error: 'Necesitamos tu autorización para procesar la solicitud.' });
+    }
+
+    const id = oe50ApplicationId(email, phone);
+    const existingRow = await sbGetOne('infinity_sessions', id);
+    const existing = existingRow?.data || null;
+    const nowIso = new Date().toISOString();
+    const source = {
+      utmSource: cleanApplicationText(body.utmSource, 80) || 'direct',
+      utmMedium: cleanApplicationText(body.utmMedium, 80),
+      utmCampaign: cleanApplicationText(body.utmCampaign, 120),
+      utmContent: cleanApplicationText(body.utmContent, 120),
+      referrer: cleanApplicationText(body.referrer, 300),
+      landingPath: cleanApplicationText(body.landingPath, 180)
+    };
+    const application = {
+      type: 'oe50-free-training-application',
+      campaign: 'training-diciembre-50',
+      product: 'infinity',
+      status: existing?.status || 'pending-review',
+      fullName,
+      phone,
+      email,
+      oeStatus,
+      level,
+      saturdayCommitment,
+      weeklyPracticeCommitment,
+      dataConsent,
+      mediaConsent,
+      eligibleForDocumentedConversatorio: mediaConsent,
+      source,
+      firstSubmittedAt: existing?.firstSubmittedAt || nowIso,
+      submittedAt: nowIso,
+      ipHash: applicationIpKey(req)
+    };
+    const saved = await sbSet('infinity_sessions', id, application);
+    if (!saved) return res.status(503).json({ error: 'No pudimos guardar la solicitud. Intentá nuevamente.' });
+
+    return res.status(existing ? 200 : 201).json({
+      ok: true,
+      received: true,
+      applicationId: id,
+      updated: !!existing,
+      mediaEligible: mediaConsent
+    });
+  } catch (err) {
+    console.error('campaign/oe50/apply:', err.message);
+    return res.status(500).json({ error: 'No pudimos procesar la solicitud.' });
+  }
+});
+
+app.get('/campaign/oe50/applications', requireMasterOrAnalyzeSecret, async (_req, res) => {
+  try {
+    const rows = await sbQuery(
+      'infinity_sessions',
+      'select=id,data,updated_at&id=like.OE50-*&order=updated_at.desc&limit=2000'
+    );
+    const applications = rows
+      .filter((row) => row?.data?.type === 'oe50-free-training-application')
+      .map((row) => ({ id: row.id, ...row.data, updatedAt: row.updated_at }));
+    return res.json({ ok: true, count: applications.length, applications });
+  } catch (err) {
+    console.error('campaign/oe50/applications:', err.message);
+    return res.status(500).json({ error: 'No se pudieron cargar las solicitudes.' });
+  }
+});
 
 /** QA battery (7+7): live AI demos with ANALYZE_SECRET — public site stays buffered. */
 function isQaLiveDemo(req, body) {
@@ -5895,6 +6058,172 @@ app.post('/super-brain/class-transcript', requireMasterOrAnalyzeSecret, async (r
   } catch (err) {
     console.error('super-brain/class-transcript:', err.message);
     return res.status(500).json({ error: 'Class analysis failed', detail: err.message });
+  }
+});
+
+/** Parse multipart audio for Johnny class recorder (FormData field "audio"). */
+function johnnyClassRecordUpload(req, res, next) {
+  const ct = String(req.headers['content-type'] || '');
+  if (!ct.includes('multipart/form-data')) return next();
+  johnnyClassAudioUpload(req, res, (err) => {
+    if (err) return res.status(400).json({ error: 'Audio upload failed', detail: err.message });
+    next();
+  });
+}
+
+function parseReviewFlag(v, defaultTrue = true) {
+  if (v === undefined || v === null || v === '') return defaultTrue;
+  const s = String(v).toLowerCase();
+  if (s === '0' || s === 'false' || s === 'no') return false;
+  if (s === '1' || s === 'true' || s === 'yes') return true;
+  return defaultTrue;
+}
+
+async function resolveJohnnyClassAudioBuffer(req) {
+  if (req.file && req.file.buffer && req.file.buffer.length) {
+    return {
+      buffer: req.file.buffer,
+      mimeType: req.file.mimetype || 'audio/webm',
+      filename: req.file.originalname || 'johnny-class.webm'
+    };
+  }
+  const b64 = String(req.body?.audioB64 || '').trim();
+  if (b64.length > 80) {
+    const raw = b64.replace(/^data:[^;]+;base64,/, '');
+    return {
+      buffer: Buffer.from(raw, 'base64'),
+      mimeType: String(req.body?.mime || 'audio/webm').split(';')[0],
+      filename: String(req.body?.filename || 'johnny-class.webm')
+    };
+  }
+  if (Buffer.isBuffer(req.body) && req.body.length) {
+    return {
+      buffer: req.body,
+      mimeType: req.headers['content-type'] || 'audio/webm',
+      filename: String(req.query?.filename || 'johnny-class.webm')
+    };
+  }
+  return null;
+}
+
+app.post('/super-brain/class-record', johnnyClassRecordUpload, requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+    const audio = await resolveJohnnyClassAudioBuffer(req);
+    if (!audio || !audio.buffer.length) {
+      return res.status(400).json({ error: 'Falta audio (FormData field "audio" o audioB64)' });
+    }
+    const titleHint = String(req.body?.title || req.query?.title || '').trim().slice(0, 120);
+    const author = String(req.body?.author || req.query?.author || 'John Ramírez').slice(0, 80);
+    const review = parseReviewFlag(req.body?.review ?? req.query?.review, true);
+
+    const { text: transcript, provider } = await JillClassAnalyzer.transcribeAudio(
+      audio.buffer,
+      audio.mimeType,
+      audio.filename
+    );
+    if (!String(transcript || '').trim()) {
+      return res.status(422).json({ error: 'Transcripción vacía — revisá el audio o la llave STT' });
+    }
+
+    const layers = await JohnnyClassLayers.splitTeachingLayers(transcript, {
+      title: titleHint,
+      claudeCall
+    });
+    const doctrineMarkdown = layers.doctrineMarkdown || JohnnyClassLayers.formatLayersMarkdown(layers);
+    const state = await SuperBrain.loadState();
+    const out = await SuperBrain.ingest(state, {
+      title: layers.title,
+      content: doctrineMarkdown,
+      author,
+      category: layers.category,
+      autoPublish: !review,
+      source: 'johnny-class-record',
+      meta: {
+        layers: {
+          pedagogy: layers.pedagogy,
+          delivery: layers.delivery,
+          structures: layers.structures
+        },
+        transcriptPreview: String(transcript).slice(0, 800),
+        source: 'johnny-class-record',
+        provider
+      }
+    });
+
+    return res.json({
+      ok: true,
+      lessonId: out.lesson?.id || out.pending?.id || null,
+      published: !!out.published,
+      title: layers.title,
+      category: layers.category,
+      layers,
+      transcript,
+      provider,
+      source: 'johnny-class-record'
+    });
+  } catch (err) {
+    console.error('super-brain/class-record:', err.message);
+    return res.status(500).json({ error: 'Class record failed', detail: err.message });
+  }
+});
+
+app.post('/super-brain/split-layers', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    const transcript = String(req.body?.transcript || '').trim();
+    if (transcript.length < 20) {
+      return res.status(400).json({ error: 'Pegá la transcripción (mínimo 20 caracteres).' });
+    }
+    const titleHint = String(req.body?.title || '').trim().slice(0, 120);
+    const ingest = !!req.body?.ingest;
+    const review = parseReviewFlag(req.body?.review, true);
+    const author = String(req.body?.author || 'John Ramírez').slice(0, 80);
+
+    const layers = await JohnnyClassLayers.splitTeachingLayers(transcript, {
+      title: titleHint,
+      claudeCall
+    });
+    const doctrineMarkdown = layers.doctrineMarkdown || JohnnyClassLayers.formatLayersMarkdown(layers);
+
+    let lessonId = null;
+    let published = false;
+    if (ingest) {
+      if (!SuperBrain.isSuperBrainEnabled()) return res.status(503).json({ error: 'Super Brain disabled' });
+      const state = await SuperBrain.loadState();
+      const out = await SuperBrain.ingest(state, {
+        title: layers.title,
+        content: doctrineMarkdown,
+        author,
+        category: layers.category,
+        autoPublish: !review,
+        source: 'johnny-split-layers',
+        meta: {
+          layers: {
+            pedagogy: layers.pedagogy,
+            delivery: layers.delivery,
+            structures: layers.structures
+          },
+          transcriptPreview: transcript.slice(0, 800),
+          source: 'johnny-split-layers'
+        }
+      });
+      lessonId = out.lesson?.id || out.pending?.id || null;
+      published = !!out.published;
+    }
+
+    return res.json({
+      ok: true,
+      title: layers.title,
+      category: layers.category,
+      layers,
+      transcript,
+      lessonId,
+      published,
+      source: 'johnny-split-layers'
+    });
+  } catch (err) {
+    console.error('super-brain/split-layers:', err.message);
+    return res.status(500).json({ error: 'Split layers failed', detail: err.message });
   }
 });
 
