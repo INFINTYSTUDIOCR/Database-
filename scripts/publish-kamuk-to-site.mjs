@@ -55,6 +55,9 @@ writeFileSync(join(DEST, 'index.html'), portal);
 const engine = prep(readFileSync(join(KAM_ROOT, 'Kamuk_Engine.html'), 'utf8'), 'engine');
 writeFileSync(join(DEST, 'Kamuk_Engine.html'), engine);
 
+const nexora = prep(readFileSync(join(KAM_ROOT, 'nexora.html'), 'utf8'), 'nexora');
+writeFileSync(join(DEST, 'nexora.html'), nexora);
+
 writeFileSync(
   join(DEST, 'README.md'),
   [
@@ -80,6 +83,12 @@ const checks = [
   ['portal loads casino floor', portal.includes('js/infinity-casino-floor.js?v=' + CASINO_FLOOR_V)],
   ['portal opens Companion Hub', portal.includes('Abrir Companion Hub')],
   ['no arcade cabinet entry', !portal.includes('Abrir Infinity Arcade')],
+  ['Nexora published', existsSync(join(DEST, 'nexora.html'))],
+  ['Nexora keeps local TTS helper', nexora.includes('src="js/tts-chunks.js')],
+  ['Nexora keeps local PTT helper', nexora.includes('src="js/ptt-mic.js')],
+  ['Nexora uses Kamuk Supabase', nexora.includes('lbspgbeqtcnjrbhiuucu.supabase.co')],
+  ['Nexora excludes Infinity Supabase', !nexora.includes('rxruvpfdpgowmpvydacd.supabase.co')],
+  ['Nexora excludes Infinity student table', !nexora.includes('infinity_students')],
   [
     'engine portal URL ok',
     engine.includes("STUDENT_PORTAL_URL = 'https://studioinfinitycr.com/kamuk/'")

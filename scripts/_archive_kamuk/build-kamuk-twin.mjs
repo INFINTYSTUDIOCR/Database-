@@ -42,6 +42,9 @@ function rebrandColors(html) {
     .replace(/#3B0E8C/g, '#1A5A8F')
     .replace(/#EDE9FE/g, '#E8F4FC')
     .replace(/rgba\(91,33,182/g, 'rgba(43,126,193')
+    .replace(/rgba\(124,58,237/g, 'rgba(31,106,168')
+    .replace(/#A78BFA/g, '#79B9E8')
+    .replace(/#C084FC/g, '#79B9E8')
     .replace(/#C4B5FD/g, '#A8D4F5')
     .replace(/#F3F0FF/g, '#E8F4FC')
     .replace(/#1e1b4b/g, '#0F3A5C');
@@ -253,6 +256,11 @@ function buildNexora() {
   if (!existsSync(src)) return { skipped: true };
   let html = readFileSync(src, 'utf8');
   html = rewriteAssetsToCdn(html);
+  // These Kamuk runtime helpers are published beside nexora.html. Keep their
+  // established local paths so GitHub Pages and /kamuk/ use the same bundles.
+  html = html
+    .replaceAll(`${CDN}/js/tts-chunks.js`, 'js/tts-chunks.js')
+    .replaceAll(`${CDN}/js/ptt-mic.js`, 'js/ptt-mic.js');
   html = rebrandColors(html);
   // Keep dual write in savePracticeMinutes: KAM- → kamuk host only
   html = html.replace(/https:\/\/lbspgbeqtcnjrbhiuucu\.supabase\.co/g, KAM_URL);
@@ -277,7 +285,14 @@ function buildNexora() {
 
   const dest = join(KAM_ROOT, 'nexora.html');
   writeFileSync(dest, html, 'utf8');
-  return { dest, bytes: html.length, host: html.includes(KAM_URL) };
+  return {
+    dest,
+    bytes: html.length,
+    host: html.includes(KAM_URL),
+    noInfinityData: !html.includes(INF_URL) && !html.includes('infinity_students'),
+    localVoiceHelpers:
+      html.includes('src="js/tts-chunks.js') && html.includes('src="js/ptt-mic.js')
+  };
 }
 
 function updateHubIndex() {
@@ -388,22 +403,33 @@ if (!existsSync(KAM_ROOT)) {
   process.exit(1);
 }
 
-const portal = buildPortal();
-const engine = buildEngine();
-const nexora = buildNexora();
-updateHubIndex();
-updateReadme();
-
-console.log('PORTAL', portal);
-console.log('ENGINE', engine);
-console.log('NEXORA', nexora);
-
+const nexoraOnly = process.argv.includes('--nexora-only');
 const fail = [];
-if (!portal.productKamuk) fail.push('portal product kamuk');
-if (!portal.kamukStudents || portal.noInfStudents === false) fail.push('portal tables');
-if (!engine.portalUrl) fail.push('engine portal url');
-if (!engine.kamCreate) fail.push('engine KAM create');
-if (!engine.companionToggle || !engine.nexoraToggle) fail.push('engine toggles');
+
+if (nexoraOnly) {
+  const nexora = buildNexora();
+  console.log('NEXORA', nexora);
+  if (!nexora.host || !nexora.noInfinityData) fail.push('nexora Kamuk data separation');
+  if (!nexora.localVoiceHelpers) fail.push('nexora local voice helpers');
+} else {
+  const portal = buildPortal();
+  const engine = buildEngine();
+  const nexora = buildNexora();
+  updateHubIndex();
+  updateReadme();
+
+  console.log('PORTAL', portal);
+  console.log('ENGINE', engine);
+  console.log('NEXORA', nexora);
+
+  if (!portal.productKamuk) fail.push('portal product kamuk');
+  if (!portal.kamukStudents || portal.noInfStudents === false) fail.push('portal tables');
+  if (!engine.portalUrl) fail.push('engine portal url');
+  if (!engine.kamCreate) fail.push('engine KAM create');
+  if (!engine.companionToggle || !engine.nexoraToggle) fail.push('engine toggles');
+  if (!nexora.noInfinityData) fail.push('nexora Kamuk data separation');
+}
+
 if (fail.length) {
   console.error('CHECKS FAILED', fail);
   process.exit(1);
