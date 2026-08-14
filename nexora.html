@@ -633,7 +633,11 @@ async function verifyNexoraStudentAccess(){
     var r = await infinityFetch('/auth/verify');
     var d = {};
     try{ d = await r.json(); }catch(e){}
-    if(!r.ok || d.ok === false){
+    // Only a definitive rejection from the server closes the lab. A cold start,
+    // 5xx, or offline backend must never lock a valid student out of Nexora —
+    // every tutor API still enforces access on the server side.
+    var rejected = r.status === 401 || r.status === 403 || (d && d.ok === false);
+    if(rejected){
       if(typeof clearAuthToken === 'function') clearAuthToken();
       var msg = (d && d.code === 'NEXORA_DISABLED')
         ? 'Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.'
@@ -645,10 +649,11 @@ async function verifyNexoraStudentAccess(){
       showNexoraAccessGate('Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.');
       return false;
     }
+    if(!r.ok) showToast('Verificación de acceso no disponible — seguí practicando');
     return true;
   }catch(e){
-    showNexoraAccessGate('No se pudo verificar tu acceso. Volvé al Portal del Estudiante e intentá de nuevo.');
-    return false;
+    showToast('Sin conexión al servidor de acceso — el lab sigue disponible');
+    return true;
   }
 }
 
@@ -765,6 +770,7 @@ function refreshNexoraScenario(prevId){
 }
 
 function applyScenarioToUI(sc){
+  if(!sc){ configureNexoraStartScreen(null); return; }
   var titleEl=document.getElementById('sp-title');
   if(titleEl) titleEl.textContent=sc.title + (sc.sessionLabel ? ' · '+sc.sessionLabel : '');
   configureNexoraStartScreen(sc);
@@ -861,18 +867,30 @@ var _nx={
 };
 
 // ── INIT ──────────────────────────────────────────────────────
+function showNexoraStartScreen(){
+  var start=document.getElementById('autoin-screen');
+  if(start) start.style.display='flex';
+}
+
+// Every step is individually fenced: a single failing subsystem (voice, scenario
+// bank, saved session) must still leave the student on a usable start screen.
 window.onload=function(){
-  clearNexoraDemoFlagsIfPortal();
-  bindAllNexoraPttMics();
-  var savedAgent=localStorage.getItem('nexora_agent');
-  if(savedAgent){_nx.agent=savedAgent.split(/\s+/)[0];document.getElementById('agent-inp').value=_nx.agent;}
-  var nxConfig=loadNexoraEngineConfig();
-  invalidateNexoraLabIfConfigChanged();
-  var prev=(_nx.scenario&&scenarioMatchesConfig(_nx.scenario,nxConfig))?_nx.scenario.id:null;
-  _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
-  if(_nx.scenario) applyScenarioToUI(_nx.scenario);
-  if(restoreNexoraLabRuntime()) return;
-  document.getElementById('autoin-screen').style.display='flex';
+  try{ clearNexoraDemoFlagsIfPortal(); }catch(e){}
+  try{ bindAllNexoraPttMics(); }catch(e){}
+  try{
+    var savedAgent=localStorage.getItem('nexora_agent');
+    var agentInp=document.getElementById('agent-inp');
+    if(savedAgent){_nx.agent=savedAgent.split(/\s+/)[0];if(agentInp) agentInp.value=_nx.agent;}
+  }catch(e){}
+  try{
+    var nxConfig=loadNexoraEngineConfig();
+    invalidateNexoraLabIfConfigChanged();
+    var prev=(_nx.scenario&&scenarioMatchesConfig(_nx.scenario,nxConfig))?_nx.scenario.id:null;
+    _nx.scenario=pickScenarioFromConfig(nxConfig,prev);
+    applyScenarioToUI(_nx.scenario);
+  }catch(e){ _nx.scenario=null; }
+  try{ if(restoreNexoraLabRuntime()) return; }catch(e){}
+  showNexoraStartScreen();
 };
 
 function setAgent(v){var n=String(v||'').trim().split(/\s+/)[0]||'Agent';_nx.agent=n;localStorage.setItem('nexora_agent',n);}
@@ -1076,6 +1094,11 @@ function resumeNexoraLab(){
 function nexoraAutoIn(){
   refreshNexoraScenario(_nx.scenario ? _nx.scenario.id : null);
   var sc = _nx.scenario;
+  if(!sc){
+    showToast('No hay escenario activo — pedí a tu trainer que active una sesión de Nexora');
+    showNexoraStartScreen();
+    return;
+  }
   if((sc.type||'')==='star_interview'){
     sc=applyInterviewTarget(personalizeStarInterviewer(sc));
     _nx.scenario=sc;
@@ -1085,7 +1108,17 @@ function nexoraAutoIn(){
   _nx.profiles.push(_nx.profile);
   _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.crmActions=[];_nx.talkSecs=0;_nx.onHold=false;
   document.getElementById('autoin-screen').style.display='none';
-  
+
+  try{
+    nexoraOpenScenarioSurface(sc);
+  }catch(e){
+    // Never leave the student on a blank lab: fall back to the start screen.
+    showToast('No se pudo abrir la simulación — intentá de nuevo');
+    showNexoraStartScreen();
+  }
+}
+
+function nexoraOpenScenarioSurface(sc){
   var scType = sc.type || 'customer_service';
   if(scType === 'star_interview'){
     showStarInterviewDisplay(sc);
