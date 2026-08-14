@@ -15,7 +15,7 @@ const SITE = 'https://studioinfinitycr.com';
 // Local runtime the portal loads from /kamuk/<dir>/ — must be published, never stripped.
 const ASSET_DIRS = ['js', 'games'];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
-const CASINO_FLOOR_V = '20260814hub1';
+const CASINO_FLOOR_V = '20260814refresh';
 
 mkdirSync(DEST, { recursive: true });
 
