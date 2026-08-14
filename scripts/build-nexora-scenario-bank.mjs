@@ -300,6 +300,177 @@ function expandCsIssues(specs) {
   return out.slice(0, POOL);
 }
 
+const ARC_SCENARIOS = [
+  {
+    key: 'cr-telco-roaming',
+    industry: 'Telecom',
+    title: 'Roaming Charges — Costa Rica Border Zone',
+    desc: 'A San Carlos customer was billed international roaming while working near the Nicaragua border and is threatening to port four family lines.',
+    issueType: 'billing_dispute',
+    mood: 'furious',
+    diff: 4,
+    objective: 'Resolve the disputed roaming charges while retaining the four-line family account.',
+    obstacle: 'Network telemetry shows tower handoff outside the domestic zone, but the customer says every device remained in Costa Rica.',
+    hiddenAgenda: 'The customer will stay if the agent explains the evidence, removes the charge under the border-zone exception, and confirms a roaming block.',
+    measurableClose: 'Retain all four lines, apply only the authorized border-zone credit, and add a roaming block with customer consent.',
+    targetMinutes: 10,
+    modelPhrase: 'I can see why a border-zone charge feels unfair. I will document the tower handoff, apply the authorized exception, and block roaming so it does not repeat.',
+    arcBeats: ['Demand a full refund and threaten to port all lines.', 'Reveal that a prior agent promised the charge would disappear automatically.', 'Accept the account if the credit and prevention step are both confirmed.'],
+    crmFriction: {
+      slaSeconds: 540,
+      incompleteHistory: 'The prior call recording is unavailable; only a partial disposition remains.',
+      policy: 'Border-zone credits up to $85 require verified domestic device use. Larger credits require supervisor approval.',
+      conflictingNotes: ['Network: device attached to tower NIC-17 for 11 minutes.', 'Store agent: customer showed work schedule in Los Chiles; promised a review, not an automatic credit.'],
+      actions: [
+        { id: 'telco-credit', label: 'Apply border-zone credit ($78.40)', cost: '$78.40 credit', scoreImpact: 8, outcome: 'Authorized exception applied.' },
+        { id: 'telco-block', label: 'Add international roaming block', cost: 'Future roaming disabled', scoreImpact: 6, outcome: 'Preventive control added.' },
+        { id: 'telco-full', label: 'Refund full bill ($214.90)', cost: '$214.90 credit', scoreImpact: -14, outcome: 'Outside agent authority; compliance exception created.' },
+        { id: 'telco-escalate', label: 'Escalate to retention supervisor', cost: 'Supervisor queue: 18 min', scoreImpact: -3, outcome: 'Escalated before using available authority.' }
+      ]
+    }
+  },
+  {
+    key: 'cr-bank-transfer',
+    industry: 'Finance',
+    title: 'SINPE Transfer Hold — Payroll Deadline',
+    desc: 'A small-business owner in Heredia has a transfer on hold hours before payroll and demands immediate release.',
+    issueType: 'security',
+    mood: 'panicked',
+    diff: 5,
+    objective: 'Protect the account while giving the client a viable payroll path before cutoff.',
+    obstacle: 'The transfer matches payroll history, but the login came from a new device and failed step-up verification twice.',
+    hiddenAgenda: 'The client will accept a secure callback and split payroll release, but will resist any process described as a generic fraud script.',
+    measurableClose: 'Complete enhanced verification, release the verified payroll batch or escalate to fraud operations, and document the disposition.',
+    targetMinutes: 9,
+    modelPhrase: 'I cannot bypass the security hold, but I can verify the payroll file now and route the release through our fraud desk before today’s cutoff.',
+    arcBeats: ['Demand that the hold be removed immediately.', 'Admit the accountant used a new laptop this morning.', 'Accept a secure callback if the agent gives a concrete cutoff and ownership.'],
+    crmFriction: {
+      slaSeconds: 480,
+      incompleteHistory: 'Device fingerprint details are restricted; the CRM only shows two failed challenges.',
+      policy: 'Agents cannot remove a high-risk transfer hold. Enhanced verification plus fraud-operations release is required.',
+      conflictingNotes: ['Risk engine: new device, unusual IP, payroll beneficiary pattern 92% familiar.', 'Branch note: owner called yesterday to ask about increasing payroll amount.'],
+      actions: [
+        { id: 'bank-verify', label: 'Start enhanced verification', cost: '3–5 min handling time', scoreImpact: 8, outcome: 'Enhanced verification started.' },
+        { id: 'bank-fraud', label: 'Escalate verified case to Fraud Operations', cost: 'Priority queue: 7 min', scoreImpact: 7, outcome: 'Secure release review opened.' },
+        { id: 'bank-release', label: 'Remove transfer hold', cost: 'Unauthorized risk exposure', scoreImpact: -20, outcome: 'Blocked: agent authority insufficient.' },
+        { id: 'bank-chargeback', label: 'Open chargeback', cost: 'Wrong workflow', scoreImpact: -10, outcome: 'Chargeback is not applicable to a pending transfer.' }
+      ]
+    }
+  },
+  {
+    key: 'cr-retail-appliance',
+    industry: 'Retail',
+    title: 'Appliance Delivery Damage — Escazú',
+    desc: 'A customer received a damaged refrigerator before a family event and wants a same-day replacement plus compensation.',
+    issueType: 'complaint_escalation',
+    mood: 'angry',
+    diff: 4,
+    objective: 'Secure a workable replacement window without issuing compensation outside policy.',
+    obstacle: 'The delivery photo shows packaging damage, while the driver marked the unit accepted without exception.',
+    hiddenAgenda: 'The customer mainly needs cold storage today and will accept a loaner plus next-day replacement if the agent takes ownership.',
+    measurableClose: 'Arrange a loaner or emergency delivery, schedule replacement pickup, and keep total goodwill within authority.',
+    targetMinutes: 10,
+    modelPhrase: 'The signed delivery note conflicts with the photo, so I am documenting both. I can arrange temporary cold storage today and the replacement tomorrow.',
+    arcBeats: ['Demand a new unit within two hours.', 'Reveal insulin must remain refrigerated.', 'Accept the recovery plan when timing, pickup, and compensation are explicit.'],
+    crmFriction: {
+      slaSeconds: 600,
+      incompleteHistory: 'Warehouse inventory refreshed 46 minutes ago and may be stale.',
+      policy: 'Agents may authorize delivery recovery up to $60; same-day replacement depends on warehouse confirmation.',
+      conflictingNotes: ['Driver: customer accepted unit with no visible damage.', 'Proof-of-delivery image: lower-right carton is visibly crushed.'],
+      actions: [
+        { id: 'retail-loaner', label: 'Arrange emergency loaner', cost: '$35 logistics', scoreImpact: 9, outcome: 'Temporary cold storage reserved.' },
+        { id: 'retail-replace', label: 'Schedule priority replacement', cost: 'Next-day priority slot', scoreImpact: 7, outcome: 'Replacement and pickup linked.' },
+        { id: 'retail-refund', label: 'Refund full order immediately', cost: '$1,249 exposure', scoreImpact: -12, outcome: 'Refund issued before required inspection.' },
+        { id: 'retail-credit', label: 'Issue $60 goodwill credit', cost: '$60 credit', scoreImpact: 2, outcome: 'Maximum agent goodwill applied.' }
+      ]
+    }
+  },
+  {
+    key: 'cr-hotel-overbook',
+    industry: 'Tourism',
+    title: 'Overbooked Hotel — Guanacaste Wedding',
+    desc: 'A wedding guest arrives in Guanacaste with a confirmed reservation, but the hotel has no room and the ceremony begins tomorrow.',
+    issueType: 'complaint_escalation',
+    mood: 'furious',
+    diff: 5,
+    objective: 'Recover the stay, protect the guest’s event timing, and control relocation cost.',
+    obstacle: 'The hotel blames the booking channel; the channel shows a valid confirmation and a non-refundable deposit.',
+    hiddenAgenda: 'The guest cares more about being near the wedding party than the room category and will accept a nearby partner property with transport.',
+    measurableClose: 'Confirm comparable lodging, preserve the deposit, arrange transport, and document who owns the difference in rate.',
+    targetMinutes: 11,
+    modelPhrase: 'Your confirmation is valid. I am taking ownership of the relocation, including transport and the rate difference, so you can reach the wedding on time.',
+    arcBeats: ['Demand the original ocean-view suite.', 'Reveal the wedding shuttle only serves two nearby properties.', 'Accept relocation only after transport and deposit protection are confirmed.'],
+    crmFriction: {
+      slaSeconds: 660,
+      incompleteHistory: 'Partner inventory is not real-time; the last sync was 23 minutes ago.',
+      policy: 'Walked guests receive comparable lodging and transport. Suite upgrades above $180 require duty-manager approval.',
+      conflictingNotes: ['Hotel PMS: reservation cancelled by channel at 14:06.', 'Channel ledger: confirmation active; deposit settled three weeks ago.'],
+      actions: [
+        { id: 'hotel-hold', label: 'Hold partner room for 10 minutes', cost: '$25 hold fee', scoreImpact: 7, outcome: 'Comparable room temporarily secured.' },
+        { id: 'hotel-transport', label: 'Authorize private transfer', cost: '$48 transport', scoreImpact: 6, outcome: 'Wedding transport protected.' },
+        { id: 'hotel-suite', label: 'Book premium suite without approval', cost: '$420 rate difference', scoreImpact: -14, outcome: 'Authority exceeded.' },
+        { id: 'hotel-escalate', label: 'Escalate rate exception to duty manager', cost: 'Manager SLA: 6 min', scoreImpact: 5, outcome: 'Rate exception review opened.' }
+      ]
+    }
+  },
+  {
+    key: 'latam-oeshift',
+    industry: 'Corporate',
+    title: 'Outsourced Support SLA — Overnight Queue',
+    desc: 'A regional client reports 37 overnight tickets breached SLA and threatens to move the support queue to another vendor.',
+    issueType: 'vip_complaint',
+    mood: 'firm',
+    diff: 5,
+    objective: 'Stabilize the account, agree an immediate queue-recovery plan, and avoid an unsupported service credit.',
+    obstacle: 'Workforce notes cite an unplanned absence spike, while the client dashboard shows agents were available but assigned to another queue.',
+    hiddenAgenda: 'Procurement wants a written concession for renewal leverage; operations will stay if ownership and a 24-hour recovery plan are credible.',
+    measurableClose: 'Agree ticket triage, executive follow-up, and a policy-compliant provisional SLA review without admitting unsupported liability.',
+    targetMinutes: 12,
+    modelPhrase: 'The dashboard and workforce note conflict, so I will not speculate. I can start priority triage now and deliver a validated RCA with the SLA review tomorrow.',
+    arcBeats: ['Demand a 25% monthly credit.', 'Expose that procurement is joining the renewal call tomorrow.', 'Accept a provisional review if the agent owns triage, RCA timing, and executive follow-up.'],
+    crmFriction: {
+      slaSeconds: 720,
+      incompleteHistory: 'The workforce export omits 01:00–02:15 because of a reporting outage.',
+      policy: 'Agents may start incident recovery. Financial concessions require validated breach minutes and account-director approval.',
+      conflictingNotes: ['WFM: 11 unscheduled absences caused coverage loss.', 'Routing audit: six agents were moved to a higher-priority queue without client approval.'],
+      actions: [
+        { id: 'oe-triage', label: 'Open P1 queue-recovery bridge', cost: 'Ops lead assigned', scoreImpact: 9, outcome: 'Recovery bridge opened.' },
+        { id: 'oe-rca', label: 'Commit validated RCA within 24 hours', cost: 'QA + WFM review', scoreImpact: 7, outcome: 'RCA owner and deadline recorded.' },
+        { id: 'oe-credit', label: 'Approve 25% monthly credit', cost: '$18,750 exposure', scoreImpact: -18, outcome: 'Financial authority exceeded.' },
+        { id: 'oe-account', label: 'Escalate concession to Account Director', cost: 'Director SLA: 15 min', scoreImpact: 5, outcome: 'Commercial review opened.' }
+      ]
+    }
+  },
+  {
+    key: 'latam-ecom-chargeback',
+    industry: 'Retail',
+    title: 'Marketplace Chargeback — Cross-Border Order',
+    desc: 'A marketplace seller faces a chargeback for an order delivered from Costa Rica to Panama and wants the case reversed before funds are debited.',
+    issueType: 'billing_dispute',
+    mood: 'worried',
+    diff: 4,
+    objective: 'Preserve the seller’s representment window without promising a guaranteed chargeback reversal.',
+    obstacle: 'Carrier proof shows delivery, but the recipient name does not match the cardholder and the signature image is incomplete.',
+    hiddenAgenda: 'The seller has better warehouse evidence but will only mention it if asked specifically about packing and dispatch records.',
+    measurableClose: 'Collect admissible evidence, submit representment before cutoff, and set accurate expectations on provisional debit.',
+    targetMinutes: 9,
+    modelPhrase: 'Delivery alone may not be enough because the recipient differs. Let’s add the packing record and customer messages before today’s representment cutoff.',
+    arcBeats: ['Demand an immediate reversal.', 'Reveal warehouse video and buyer chat exist when asked for evidence.', 'Accept the provisional debit when the submission and decision timeline are clear.'],
+    crmFriction: {
+      slaSeconds: 510,
+      incompleteHistory: 'The acquiring-bank reason code is present, but the original issuer memo is missing.',
+      policy: 'Representment requires delivery proof plus evidence linking the buyer to the recipient. Reversal cannot be guaranteed.',
+      conflictingNotes: ['Carrier: delivered to reception; signature unreadable.', 'Buyer chat: asks building receptionist to accept the package.'],
+      actions: [
+        { id: 'cb-evidence', label: 'Request packing and buyer-chat evidence', cost: 'Evidence review: 4 min', scoreImpact: 8, outcome: 'Admissible evidence requested.' },
+        { id: 'cb-submit', label: 'Submit chargeback representment', cost: '$15 processing fee', scoreImpact: 7, outcome: 'Representment submitted before cutoff.' },
+        { id: 'cb-reverse', label: 'Reverse chargeback immediately', cost: '$680 risk exposure', scoreImpact: -16, outcome: 'Blocked: issuer decision pending.' },
+        { id: 'cb-refund', label: 'Refund buyer outside dispute', cost: '$680 duplicate exposure', scoreImpact: -12, outcome: 'Duplicate-loss risk created.' }
+      ]
+    }
+  }
+];
+
 const CS_SPECS = {
   Healthcare: [
     ['insurance_claim', 'Claim Denied', 'Insurance denied the claim for {detail}. Patient needs reprocessing.', ['MRI lumbar scan','ER chest pain visit','knee arthroscopy','wellness labs panel','sleep study','PT session block','dermatology biopsy','urgent care visit','ambulance transport','outpatient surgery','colonoscopy screening','cardiac stress test','allergy testing','X-ray shoulder','ultrasound abdomen','mammogram screening','CT head scan','infusion therapy','home health visit','DME wheelchair']],
@@ -431,7 +602,8 @@ const INTERVIEWERS = ['Diana Foster', 'Carlos Mejia', 'Sarah Mitchell', 'James O
 function buildCsPool(poolKey, industry) {
   const specs = CS_SPECS[industry] || CS_SPECS.Corporate;
   const issues = expandCsIssues(specs);
-  return issues.map((issue, i) => {
+  const arcCases = ARC_SCENARIOS.filter(s => s.industry === industry);
+  const generated = issues.map((issue, i) => {
     const id = `${poolKey}-${pad(i + 1, 3)}`;
     return {
       id,
@@ -445,6 +617,17 @@ function buildCsPool(poolKey, industry) {
       profileSeed: buildProfileSeed(id, industry, i, issue.issueType, issue.title, issue.desc)
     };
   });
+  const upgraded = arcCases.map((arc, i) => {
+    const id = `${poolKey}-arc-${arc.key}`;
+    return {
+      ...arc,
+      id,
+      poolKey,
+      type: 'customer_service',
+      profileSeed: buildProfileSeed(id, industry, i + 70, arc.issueType, arc.title, arc.desc)
+    };
+  });
+  return upgraded.concat(generated.slice(upgraded.length)).slice(0, POOL);
 }
 
 function buildStarPool(poolKey, industry) {

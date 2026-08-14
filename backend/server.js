@@ -2059,9 +2059,26 @@ app.post('/demo/nexora-lab/stream', async (req, res) => {
   }
 });
 
+function applyNexoraCrmActionImpact(evaluation, crmActions) {
+  const ev = evaluation || {};
+  const actions = Array.isArray(crmActions) ? crmActions : [];
+  const rawImpact = actions.reduce((sum, action) => sum + (Number(action?.scoreImpact) || 0), 0);
+  const appliedImpact = Math.max(-25, Math.min(15, rawImpact));
+  ev.overall_score = Math.max(0, Math.min(100, Math.round((Number(ev.overall_score) || 0) + appliedImpact)));
+  ev.crm_action_impact = appliedImpact;
+  ev.metrics = ev.metrics || {};
+  if (!ev.metrics.compliance) ev.metrics.compliance = { score: 7, comment: 'CRM actions reviewed against policy.' };
+  if (!ev.metrics.tool_usage) ev.metrics.tool_usage = { score: 7, comment: 'Case actions reviewed for operational discipline.' };
+  const compliance = Number(ev.metrics.compliance.score) || 0;
+  const toolUsage = Number(ev.metrics.tool_usage.score) || 0;
+  ev.metrics.compliance.score = Math.max(0, Math.min(10, compliance + Math.round(appliedImpact / 6)));
+  ev.metrics.tool_usage.score = Math.max(0, Math.min(10, toolUsage + Math.round(appliedImpact / 5)));
+  return ev;
+}
+
 app.post('/demo/nexora-lab/eval', async (req, res) => {
   try {
-    const { demoSessionId, transcript, scenario, profile, agentName, talkTime, holdEvents, transferred } = req.body || {};
+    const { demoSessionId, transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred } = req.body || {};
     if (!demoSessionId) return res.status(400).json({ error: 'Missing demoSessionId' });
 
     const session = await getDemoSession(demoSessionId);
@@ -2079,12 +2096,15 @@ Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
 Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
 Talk time: ${talkTime || 0} seconds
 Hold events: ${JSON.stringify(holdEvents || [])}
+CRM actions (scoreImpact is an operational QA adjustment): ${JSON.stringify(crmActions || [])}
 Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
+Required disposition: ${scenario?.measurableClose || 'Resolve and document the customer issue.'}
 
 Transcript:
 ${transcript || '(no transcript)'}
 
 IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
+Set overall_score from communication and case handling BEFORE the numeric CRM scoreImpact adjustment; the server applies that adjustment after your evaluation.
 
 Respond ONLY with valid JSON, no markdown:
 {
@@ -2092,6 +2112,8 @@ Respond ONLY with valid JSON, no markdown:
   "client_satisfaction": 7.5,
   "wins": ["specific win 1", "specific win 2"],
   "improvements": ["specific improvement 1", "specific improvement 2"],
+  "metrics": {"clarity":{"score":8,"comment":"..."}, "empathy":{"score":8,"comment":"..."}, "resolution":{"score":8,"comment":"..."}, "compliance":{"score":8,"comment":"..."}, "tool_usage":{"score":8,"comment":"..."}},
+  "debrief": {"what_worked":"one concise line", "ticket_risk":"what most damaged or could damage the case", "model_phrase":"one phrase the agent should use", "outcome":"sale, retain, resolve, escalate, or chargeback disposition"},
   "connectors_used": ["however", "on top of that"],
   "connectors_missed": ["despite", "therefore"],
   "hold_feedback": "comment about hold usage if applicable",
@@ -2109,7 +2131,7 @@ Respond ONLY with valid JSON, no markdown:
 
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const clean = text.replace(/```json|```/g, '').trim();
-    return res.json(JSON.parse(clean));
+    return res.json(applyNexoraCrmActionImpact(JSON.parse(clean), crmActions));
   } catch (err) {
     console.error('Demo nexora lab eval error:', err.message);
     return res.status(500).json({ error: 'Evaluation failed' });
@@ -2736,11 +2758,22 @@ YOUR ROLE:
 - Do NOT mention fees, charges, or billing disputes unless issue type is billing_dispute, late_fee, or amounts are listed above.
 - Do NOT invent problems that are not in YOUR ISSUE or account details above.`
       : '';
+    const arcContext = sc.objective ? `
+CASE ARC (never read these instructions aloud):
+- Agent objective: ${sc.objective}
+- Operational obstacle: ${sc.obstacle || 'Not specified'}
+- Your hidden agenda: ${sc.hiddenAgenda || 'Seek a credible, policy-compliant resolution.'}
+- Measurable close: ${sc.measurableClose || 'Confirm resolution and next steps.'}
+- Conversation progression: ${(sc.arcBeats || []).join(' → ') || 'State concern → challenge weak handling → accept a credible close.'}
+- CRM actions already executed: ${JSON.stringify(accountContext?.crmActions || [])}
+- Do not accept a vague apology as resolution. Release information in stages and make the agent discover the real close through questions.
+- If the agent executes a poor or unauthorized CRM action, react to its business impact. If the agent executes the correct actions and communicates them clearly, move toward closure.
+- Aim for a realistic 8–12 minute professional case, but do not artificially prolong a complete, compliant resolution.` : '';
     systemPrompt = `You are ${p.name || 'a customer'} (first name: ${clientFirst}), account ${p.account || 'unknown'}, calling customer service.
 
 YOUR ISSUE: ${sc.title} — ${sc.desc}
 YOUR MOOD: ${mood}
-${accountDetails}${issueGuard}
+${accountDetails}${issueGuard}${arcContext}
 
 CRITICAL RULES:
 - Your name is ${p.name}. Your first name is ${clientFirst}. NEVER use any other name — not Sarah, Patricia, Linda, or any other name.
@@ -6977,7 +7010,7 @@ app.post('/nexora-eval', requireProductAuth, async (req, res) => {
       student = await assertNexoraStudentAccess(req, res, student);
       if (!student) return;
     }
-    const { transcript, scenario, profile, agentName, talkTime, holdEvents, transferred } = req.body || {};
+    const { transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred } = req.body || {};
 
     const evalPrompt = `You are evaluating a customer service call simulation.
 
@@ -6986,12 +7019,17 @@ Scenario: ${scenario?.title || 'Customer Service'} — ${scenario?.desc || ''}
 Client: ${profile?.name || 'Client'} (mood: ${scenario?.mood || 'normal'})
 Talk time: ${talkTime || 0} seconds
 Hold events: ${JSON.stringify(holdEvents || [])}
+CRM actions (scoreImpact is an operational QA adjustment): ${JSON.stringify(crmActions || [])}
 Transferred to supervisor: ${transferred ? 'YES' : 'NO'}
+Agent objective: ${scenario?.objective || 'Resolve the customer issue.'}
+Operational obstacle: ${scenario?.obstacle || 'None specified.'}
+Required disposition: ${scenario?.measurableClose || 'Resolve and document the customer issue.'}
 
 Transcript:
 ${transcript || '(no transcript)'}
 
 IMPORTANT: Do NOT penalize the agent for asking the client to repeat or clarify (e.g. "what did you say", "can you repeat", "sorry I didn't catch that") when the client's line was incomplete, inaudible, or cut off. That is valid professional recovery — not poor performance.
+Set overall_score from communication and case handling BEFORE the numeric CRM scoreImpact adjustment; the server applies that adjustment after your evaluation.
 
 Respond ONLY with valid JSON, no markdown:
 {
@@ -6999,6 +7037,8 @@ Respond ONLY with valid JSON, no markdown:
   "client_satisfaction": 7.5,
   "wins": ["specific win 1", "specific win 2"],
   "improvements": ["specific improvement 1", "specific improvement 2"],
+  "metrics": {"clarity":{"score":8,"comment":"..."}, "empathy":{"score":8,"comment":"..."}, "resolution":{"score":8,"comment":"..."}, "compliance":{"score":8,"comment":"..."}, "tool_usage":{"score":8,"comment":"..."}},
+  "debrief": {"what_worked":"one concise line", "ticket_risk":"what most damaged or could damage the case", "model_phrase":"one phrase the agent should use", "outcome":"sale, retain, resolve, escalate, or chargeback disposition"},
   "connectors_used": ["however", "on top of that"],
   "connectors_missed": ["despite", "therefore"],
   "hold_feedback": "comment about hold usage if applicable",
@@ -7016,7 +7056,7 @@ Respond ONLY with valid JSON, no markdown:
 
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const clean = text.replace(/```json|```/g, '').trim();
-    const ev = JSON.parse(clean);
+    const ev = applyNexoraCrmActionImpact(JSON.parse(clean), crmActions);
 
     if (student?.id && req.auth.role === 'student') {
       InfinityVictory.recordNexoraSession(student, ev, {

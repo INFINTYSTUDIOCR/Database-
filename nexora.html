@@ -165,6 +165,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 .sp-title{font-size:15px;font-weight:700;color:var(--navy);}
 .sp-desc{font-size:12px;color:var(--t2);margin-top:3px;}
 
+/* PROFESSIONAL CASE OPERATIONS */
+.case-brief{border:1px solid var(--gl);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;background:#F8FAFC;}
+.case-brief-label{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.case-brief-value{font-size:12px;line-height:1.45;color:var(--t2);}
+.case-sla{display:flex;align-items:center;justify-content:space-between;border-left:4px solid var(--green);background:#F0FDF4;padding:10px 12px;margin-bottom:12px;}
+.case-sla.warn{border-left-color:var(--orange);background:#FFFBEB;}
+.case-sla.breach{border-left-color:var(--red);background:#FEF2F2;}
+.case-sla-time{font-family:monospace;font-size:18px;font-weight:800;color:var(--navy);}
+.case-action{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--gl);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;background:white;}
+.case-action button{border:1px solid var(--navy);background:white;color:var(--navy);border-radius:6px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.case-action button:disabled{border-color:var(--gl);color:var(--t3);background:var(--off);cursor:default;}
+.case-action-meta{font-size:11px;color:var(--t3);margin-top:3px;}
+.case-action-result{font-size:11px;color:var(--t2);margin-top:4px;}
+.case-note-conflict{border-left:3px solid var(--orange);padding:8px 10px;background:#FFFBEB;font-size:12px;color:var(--t2);margin-bottom:7px;}
+
 /* QA SCREEN */
 .qa-screen{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;}
 .qa-card{background:white;border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;}
@@ -749,7 +764,7 @@ function applyScenarioToUI(sc){
 var _nx={
   agent:'',scenario:null,profile:null,profiles:[],
   active:false,onHold:false,callStart:null,callTimer:null,talkSecs:0,
-  holdEvents:[],holdStart:null,transcript:[],history:[],
+  holdEvents:[],holdStart:null,crmActions:[],transcript:[],history:[],
   mic:null,micOn:false
 };
 
@@ -902,7 +917,7 @@ function saveNexoraLabRuntime(){
     sessionStorage.setItem('nexora_lab_runtime', JSON.stringify({
       active:_nx.active, onHold:_nx.onHold, profile:_nx.profile, scenario:_nx.scenario,
       history:_nx.history, transcript:_nx.transcript, talkSecs:_nx.talkSecs,
-      holdEvents:_nx.holdEvents, agent:_nx.agent, screen:detectNexoraLabScreen()
+      holdEvents:_nx.holdEvents, crmActions:_nx.crmActions, agent:_nx.agent, screen:detectNexoraLabScreen()
     }));
   }catch(e){}
 }
@@ -919,6 +934,7 @@ function restoreNexoraLabRuntime(){
     if(typeof assignNexoraProfile==='function') assignNexoraProfile(_nx.profile);
     _nx.history=s.history||[]; _nx.transcript=s.transcript||[];
     _nx.talkSecs=s.talkSecs||0; _nx.holdEvents=s.holdEvents||[];
+    _nx.crmActions=s.crmActions||[];
     _nx.onHold=!!s.onHold; _nx.active=true;
     if(s.agent){ _nx.agent=s.agent; document.getElementById('agent-inp').value=s.agent; }
     _nx.callStart=Date.now()-(_nx.talkSecs*1000);
@@ -975,7 +991,7 @@ function nexoraAutoIn(){
   _nx.profile=genProfile(sc);
   if(typeof assignNexoraProfile==='function') assignNexoraProfile(_nx.profile);
   _nx.profiles.push(_nx.profile);
-  _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.talkSecs=0;_nx.onHold=false;
+  _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.crmActions=[];_nx.talkSecs=0;_nx.onHold=false;
   document.getElementById('autoin-screen').style.display='none';
   
   var scType = sc.type || 'customer_service';
@@ -1138,6 +1154,7 @@ function startTimer(){
     var t=Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
     document.getElementById('timer-display').textContent=t;
     document.getElementById('co-timer').textContent=t;
+    updateCrmSla();
   },1000);
 }
 
@@ -1703,6 +1720,80 @@ function crmAccessTabHtml(sc, p){
     +'<div class="billing-row"><span>Unlock available</span><span style="color:var(--green);">After identity verification</span></div>';
 }
 
+function crmOperationsTabHtml(sc){
+  var f=sc&&sc.crmFriction;
+  if(!f) return '';
+  var used={};
+  (_nx.crmActions||[]).forEach(function(a){used[a.id]=a;});
+  var notes=(f.conflictingNotes||[]).map(function(n){
+    return '<div class="case-note-conflict">'+n+'</div>';
+  }).join('');
+  var actions=(f.actions||[]).map(function(a,i){
+    var prior=used[a.id];
+    return '<div class="case-action"><div><div style="font-size:12px;font-weight:700;color:var(--navy);">'+a.label+'</div>'
+      +'<div class="case-action-meta">Operational impact: '+(a.cost||'None recorded')+'</div>'
+      +(prior?'<div class="case-action-result">'+prior.outcome+'</div>':'')+'</div>'
+      +'<button '+(prior?'disabled':'')+' onclick="recordCrmAction('+i+',this)">'+(prior?'Recorded':'Execute')+'</button></div>';
+  }).join('');
+  return '<div class="case-sla" id="case-sla"><div><div class="case-brief-label">Case SLA</div><div style="font-size:11px;color:var(--t2);">Resolve or disposition before breach</div></div><div class="case-sla-time" id="case-sla-time">—</div></div>'
+    +'<div class="case-brief"><div class="case-brief-label">Agent objective</div><div class="case-brief-value">'+sc.objective+'</div></div>'
+    +'<div class="case-brief"><div class="case-brief-label">Operational obstacle</div><div class="case-brief-value">'+sc.obstacle+'</div></div>'
+    +'<div class="case-brief"><div class="case-brief-label">Required disposition</div><div class="case-brief-value">'+sc.measurableClose+'</div></div>'
+    +'<div class="case-brief"><div class="case-brief-label">Policy</div><div class="case-brief-value">'+f.policy+'</div></div>'
+    +'<div class="case-brief"><div class="case-brief-label">History gap</div><div class="case-brief-value">'+f.incompleteHistory+'</div></div>'
+    +'<div class="section-title">Conflicting records</div>'+notes
+    +'<div class="section-title" style="margin-top:14px;">Case actions</div>'+actions;
+}
+
+function ensureCrmOperationsTab(sc){
+  if(!sc||!sc.crmFriction) return;
+  var tabs=document.querySelector('#crm-main .tabs');
+  var tabContent=document.querySelector('#crm-main .tab-content');
+  if(!tabs||!tabContent) return;
+  var btn=document.getElementById('tab-operations-btn');
+  if(!btn){
+    btn=document.createElement('div');
+    btn.className='tab';
+    btn.id='tab-operations-btn';
+    btn.onclick=function(){switchTab('operations',btn);updateCrmSla();};
+    btn.innerHTML='<i class="ti ti-clipboard-check"></i>Case Operations';
+    tabs.insertBefore(btn,tabs.firstChild);
+  }
+  var pane=document.getElementById('tab-operations');
+  if(!pane){
+    pane=document.createElement('div');
+    pane.className='tab-pane';
+    pane.id='tab-operations';
+    tabContent.appendChild(pane);
+  }
+  pane.innerHTML=crmOperationsTabHtml(sc);
+  updateCrmSla();
+}
+
+function recordCrmAction(index,btn){
+  var sc=_nx.scenario;
+  var actions=sc&&sc.crmFriction&&sc.crmFriction.actions;
+  var action=actions&&actions[index];
+  if(!action||(_nx.crmActions||[]).some(function(a){return a.id===action.id;})) return;
+  var event={id:action.id,label:action.label,cost:action.cost||'',scoreImpact:action.scoreImpact||0,outcome:action.outcome||'',time:_nx.talkSecs};
+  _nx.crmActions.push(event);
+  if(btn){btn.disabled=true;btn.textContent='Recorded';}
+  ensureCrmOperationsTab(sc);
+  saveNexoraLabRuntime();
+  showToast('Case action recorded');
+}
+
+function updateCrmSla(){
+  var el=document.getElementById('case-sla');
+  var timeEl=document.getElementById('case-sla-time');
+  var limit=_nx.scenario&&_nx.scenario.crmFriction&&_nx.scenario.crmFriction.slaSeconds;
+  if(!el||!timeEl||!limit) return;
+  var remaining=Math.max(0,limit-_nx.talkSecs);
+  timeEl.textContent=Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0');
+  el.classList.toggle('warn',remaining>0&&remaining<=120);
+  el.classList.toggle('breach',remaining===0);
+}
+
 function applyCrmScenarioVisuals(sc, p){
   if(!p) return;
   syncProfileWithScenario(p, sc);
@@ -1740,6 +1831,7 @@ function applyCrmScenarioVisuals(sc, p){
       }).join('')+changes.innerHTML;
     }
   }
+  ensureCrmOperationsTab(sc);
 }
 
 function getCRMByIndustry(sc, p){
@@ -2155,6 +2247,12 @@ function buildNexoraPayload(message, history, p, sc){
       issueType:(p.issueType||(sc&&sc.issueType)||null),
       issueTitle:(sc&&sc.title)||null,
       issueDesc:(sc&&sc.desc)||null,
+      objective:(sc&&sc.objective)||null,
+      obstacle:(sc&&sc.obstacle)||null,
+      hiddenAgenda:(sc&&sc.hiddenAgenda)||null,
+      measurableClose:(sc&&sc.measurableClose)||null,
+      arcBeats:(sc&&sc.arcBeats)||[],
+      crmActions:_nx.crmActions||[],
       onlineAccessLocked:!!(p.crmState&&p.crmState.onlineAccess&&p.crmState.onlineAccess.status==='Locked'),
       cardBlocked:!!(p.crmState&&p.crmState.cardAccess)
     }
@@ -2551,6 +2649,7 @@ async function generateQA(isTransfer){
       agentName:_nx.agent||'Agent',
       talkTime:talkTime,
       holdEvents:_nx.holdEvents,
+      crmActions:_nx.crmActions,
       transferred:isTransfer
     }:{
       transcript:_nx.transcript.join('\n'),
@@ -2559,6 +2658,7 @@ async function generateQA(isTransfer){
       agentName:_nx.agent||'Agent',
       talkTime:talkTime,
       holdEvents:_nx.holdEvents,
+      crmActions:_nx.crmActions,
       transferred:isTransfer
     };
     var r=isNexoraPublicDemo()
@@ -2568,7 +2668,7 @@ async function generateQA(isTransfer){
     if(ev.error) throw new Error(ev.error);
     renderQA(ev,talkTime,isTransfer);
   }catch(e){
-    var fallback={overall_score:70,client_satisfaction:7,wins:['You completed the simulation','Good effort managing the call'],improvements:['Practice more connectors','Work on resolution clarity'],connectors_used:[],connectors_missed:['however','on top of that','therefore'],hold_feedback:'',verdict:'Good effort on this simulation! Every call makes you better. Keep practicing your English skills under pressure.',practice_minutes:Math.max(1,Math.ceil(talkTime/60))};
+    var fallback={overall_score:65,client_satisfaction:6.5,wins:['Case interaction completed'],improvements:['Confirm the required disposition before closing'],metrics:{clarity:{score:7},empathy:{score:7},resolution:{score:6},compliance:{score:6}},debrief:{what_worked:'You maintained a professional interaction.',ticket_risk:'The required disposition was not fully verified.',model_phrase:(_nx.scenario&&_nx.scenario.modelPhrase)||'Let me confirm the action, owner, and timing before we close.',outcome:'Case closed pending supervisor review.'},connectors_used:[],connectors_missed:[],hold_feedback:'',verdict:'Review the case disposition and retry the same customer to improve the close.',practice_minutes:Math.max(1,Math.ceil(talkTime/60))};
     renderQA(fallback,talkTime,isTransfer);
   }
 }
@@ -2582,6 +2682,13 @@ function renderQA(ev,talkTime,isTransfer){
 
   var html='';
 
+  var debrief=ev.debrief||{};
+  html+='<div class="qa-section"><div class="qa-section-title"><i class="ti ti-clipboard-check" style="color:var(--navy);"></i>Supervisor debrief</div>'
+    +'<div class="qa-item"><strong style="min-width:108px;">What worked</strong><span>'+(debrief.what_worked||(ev.wins&&ev.wins[0])||'Case interaction completed.')+'</span></div>'
+    +'<div class="qa-item"><strong style="min-width:108px;">Ticket risk</strong><span>'+(debrief.ticket_risk||(ev.improvements&&ev.improvements[0])||'Disposition evidence was incomplete.')+'</span></div>'
+    +'<div class="qa-item"><strong style="min-width:108px;">Model phrase</strong><span>'+(debrief.model_phrase||(_nx.scenario&&_nx.scenario.modelPhrase)||'Let me confirm the action, owner, and timing before we close.')+'</span></div>'
+    +'<div class="qa-item"><strong style="min-width:108px;">Outcome</strong><span>'+(debrief.outcome||'Closed for QA review.')+'</span></div></div>';
+
   // Wins
   if(ev.wins&&ev.wins.length){
     html+='<div class="qa-section"><div class="qa-section-title"><i class="ti ti-trophy" style="color:var(--green);"></i>What you did well</div>'
@@ -2590,12 +2697,12 @@ function renderQA(ev,talkTime,isTransfer){
 
   // Metrics
   var metrics=[
-    {key:'clarity',label:'Message clarity'},
+    {key:'clarity',label:'Clarity'},
+    {key:'empathy',label:'Empathy'},
     {key:'resolution',label:'Issue resolution'},
-    {key:'attitude',label:'Professionalism'},
+    {key:'compliance',label:'Compliance'},
     {key:'hold_usage',label:'Hold management'},
-    {key:'talk_time_effectiveness',label:'Talk time'},
-    {key:'tool_usage',label:'Tool/CRM usage'},
+    {key:'tool_usage',label:'CRM discipline'},
   ];
   if(ev.metrics){
     html+='<div class="qa-section"><div class="qa-section-title"><i class="ti ti-chart-bar" style="color:var(--purple);"></i>Performance metrics</div>';
@@ -2633,12 +2740,21 @@ function renderQA(ev,talkTime,isTransfer){
 
   // Actions
   html+='<div style="display:flex;gap:10px;justify-content:center;padding-top:8px;">'
+    +'<button class="btn btn-navy" onclick="retrySameCustomer()"><i class="ti ti-refresh"></i>Retry Same Customer</button>'
     +'<button class="btn btn-green" onclick="nextCall()"><i class="ti ti-phone-incoming"></i>Auto-In — Next Call</button>'
     +'<button class="btn btn-outline" onclick="closeQA()"><i class="ti ti-x"></i>Exit</button>'
     +'</div>';
 
   document.getElementById('qa-body').innerHTML=html;
   savePracticeMinutes(ev.practice_minutes||Math.ceil(talkTime/60));
+}
+
+function retrySameCustomer(){
+  document.getElementById('qa-screen').style.display='none';
+  _nx.history=[];_nx.transcript=[];_nx.holdEvents=[];_nx.crmActions=[];_nx.talkSecs=0;_nx.onHold=false;_nx.active=false;
+  document.getElementById('crm-main').style.display='none';
+  document.getElementById('empty-state').style.display='flex';
+  showIncomingCall();
 }
 
 function nextCall(){
