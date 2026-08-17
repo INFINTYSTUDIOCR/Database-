@@ -6,7 +6,7 @@ delete process.env.ANTHROPIC_API_KEY;
 const express = require('express');
 const { signToken, requireAuth } = require('./auth');
 const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
-const { weekKeyCR, HOME_CASES } = require('./kamuk-holdings-floor');
+const { weekKeyCR, HOME_CASES, passingCoursePayload } = require('./kamuk-holdings-floor');
 
 function readyHomeAnswers() {
   const answers = {};
@@ -28,6 +28,7 @@ async function run() {
   const students = new Map([
     ['KAM-TEST-01', { id: 'KAM-TEST-01', name: 'QA Student A', portalUser: 'q.student' }],
     ['KAM-TEST-02', { id: 'KAM-TEST-02', name: 'QA Student B', portalUser: 'q.student.b' }],
+    ['KAM-TEST-03', { id: 'KAM-TEST-03', name: 'QA Enabled', portalUser: 'q.enabled', simulationEnabled: true, kamukHoldings: { enabled: true } }],
     ['INF-TEST-01', { id: 'INF-TEST-01', name: 'Infinity Student', portalUser: 'i.student' }]
   ]);
   const sessions = new Map();
@@ -90,8 +91,14 @@ async function run() {
   const base = `http://127.0.0.1:${server.address().port}`;
   const tokenA = signToken({ role: 'student', studentId: 'KAM-TEST-01', name: 'QA Student A', sub: 'KAM-TEST-01' }, 300);
   const tokenB = signToken({ role: 'student', studentId: 'KAM-TEST-02', name: 'QA Student B', sub: 'KAM-TEST-02' }, 300);
+  const tokenEnabled = signToken({ role: 'student', studentId: 'KAM-TEST-03', name: 'QA Enabled', sub: 'KAM-TEST-03' }, 300);
   const trainerToken = signToken({ role: 'trainer', name: 'QA Supervisor', sub: 'qa-supervisor' }, 300);
-  const doneSteps = ['welcome', 'service', 'practice', 'products', 'quiz', 'mock'];
+  const course = passingCoursePayload();
+  const doneSteps = course.done;
+
+  function certify(homeAnswers) {
+    return Object.assign({}, course, { homeAnswers: homeAnswers || {} });
+  }
 
   async function request(path, token, body, expectOk = true) {
     const response = await fetch(base + path, {
@@ -109,17 +116,33 @@ async function run() {
   assert.equal(denied.status, 403);
   assert.equal(denied.data.code, 'NESTING_REQUIRED');
 
-  const progress = await request('/kamuk-holdings/crm/training/progress', tokenA, {
+  const enabledAccess = await request('/kamuk-holdings/crm/training/progress', tokenEnabled);
+  assert.equal(enabledAccess.data.crmEnabled, true);
+  const enabledDesk = await request('/kamuk-holdings/crm/presence', tokenEnabled, { status: 'online' });
+  assert.equal(enabledDesk.data.employee.id, 'KAM-TEST-03');
+
+  const incomplete = await request('/kamuk-holdings/crm/training/progress', tokenA, {
     done: doneSteps,
     homeAnswers: readyHomeAnswers()
   });
+  assert.equal(incomplete.data.complete, false);
+  assert.equal(incomplete.data.courseComplete, false);
+  assert.ok(!incomplete.data.nestingCompletedAt);
+
+  const failedQuiz = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign({}, course, {
+    quizAnswers: { q1: 2, q2: 2, q3: 2, q4: 2, q5: 2, q6: 2, q7: 0, q8: 2, q9: 0, q10: 2 },
+    homeAnswers: readyHomeAnswers()
+  }));
+  assert.equal(failedQuiz.data.quiz.passed, false);
+  assert.ok(!failedQuiz.data.nestingCompletedAt);
+
+  const progress = await request('/kamuk-holdings/crm/training/progress', tokenA, certify(readyHomeAnswers()));
   assert.ok(progress.data.nestingCompletedAt);
   assert.equal(progress.data.complete, true);
+  assert.equal(progress.data.courseComplete, true);
+  assert.ok(progress.data.quiz.passed);
 
-  await request('/kamuk-holdings/crm/training/progress', tokenB, {
-    done: doneSteps,
-    homeAnswers: readyHomeAnswers()
-  });
+  await request('/kamuk-holdings/crm/training/progress', tokenB, certify(readyHomeAnswers()));
 
   const presence = await request('/kamuk-holdings/crm/presence', tokenA, { status: 'online' });
   assert.equal(presence.data.employee.id, 'KAM-TEST-01');
@@ -291,6 +314,12 @@ async function run() {
   assert.ok(supervisor.data.winner);
   assert.ok(supervisor.data.summary.freshPool >= 0);
   assert.ok(supervisor.data.recentTouches.length >= 2);
+  assert.ok(Array.isArray(supervisor.data.training));
+  const trainA = supervisor.data.training.find((row) => row.studentId === 'KAM-TEST-01');
+  assert.ok(trainA);
+  assert.equal(trainA.quizPassed, true);
+  assert.equal(trainA.homeReady, 10);
+  assert.ok(trainA.nestingCompletedAt);
 
   const coach = await request('/kamuk-holdings/crm/supervisor/coaching', trainerToken, {
     studentId: 'KAM-TEST-02',
@@ -301,10 +330,7 @@ async function run() {
 
   // Product isolation: Infinity student cannot use Kamuk routes.
   const infinityToken = signToken({ role: 'student', studentId: 'INF-TEST-01', name: 'Infinity Student', sub: 'INF-TEST-01' }, 300);
-  await request('/infinity-holdings/crm/training/progress', infinityToken, {
-    done: doneSteps,
-    homeAnswers: readyHomeAnswers()
-  });
+  await request('/infinity-holdings/crm/training/progress', infinityToken, certify(readyHomeAnswers()));
   const cross = await request('/kamuk-holdings/crm/presence', infinityToken, { status: 'online' }, false);
   assert.equal(cross.status, 403);
   await request('/infinity-holdings/crm/presence', infinityToken, { status: 'online' });

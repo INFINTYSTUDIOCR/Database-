@@ -21,7 +21,7 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260817sim2';
+const SIM_V = '20260817crmall';
 
 mkdirSync(DEST, { recursive: true });
 

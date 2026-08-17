@@ -20,8 +20,83 @@ const HOME_CASES = [
   { id: 'hc10', connectors: ['therefore', 'however'], family: ['activate', 'activation', 'inactive'], phrasal: 'sort out', vocab: ['virtual card', 'travel notice', 'cash access', 'limitation'] }
 ];
 
-const REQUIRED_DONE = ['welcome', 'service', 'practice', 'products', 'quiz', 'mock'];
+const REQUIRED_DONE = ['welcome', 'service', 'comms', 'products', 'compliance', 'resolution', 'quiz', 'mock'];
+const QUIZ_PASS_RATE = 0.8;
+const QUIZ_MIN_QUESTIONS = 10;
 const FOLLOW_DISPOSITIONS = /awaiting action|pending system|returned to queue|\baa\b|\bpsa\b|queue|flagged aa|flagged psa/i;
+
+const COURSE_CHECKS = {
+  'welcome-mcq': 0,
+  'service-scenario': 1,
+  'service-match': { empathy: 'impact', sympathy: 'emotion', rapport: 'trust' },
+  'comms-seq': ['acknowledge', 'investigate', 'act', 'next'],
+  'products-match': { payroll: 'operating', hotel: 'obsidian', expansion: 'loan' },
+  'compliance-tf': false,
+  'compliance-multi': ['last6', 'never-pin'],
+  'resolution-email': 0
+};
+
+const CERT_BANK = [
+  { id: 'q1', answer: 0 },
+  { id: 'q2', answer: 0 },
+  { id: 'q3', answer: 0 },
+  { id: 'q4', answer: 0 },
+  { id: 'q5', answer: 0 },
+  { id: 'q6', answer: 0 },
+  { id: 'q7', answer: 1 },
+  { id: 'q8', answer: 0 },
+  { id: 'q9', answer: 2 },
+  { id: 'q10', answer: 0 },
+  { id: 'q11', answer: 1 },
+  { id: 'q12', answer: 0 }
+];
+
+function sameAnswer(expected, actual) {
+  if (Array.isArray(expected)) {
+    const left = expected.map((item) => String(item));
+    const right = Array.isArray(actual) ? actual.map((item) => String(item)) : [];
+    return left.length === right.length && left.every((item, index) => item === right[index]);
+  }
+  if (expected && typeof expected === 'object') {
+    const keys = Object.keys(expected);
+    const value = actual && typeof actual === 'object' ? actual : {};
+    return keys.length === Object.keys(value).length && keys.every((key) => String(expected[key]) === String(value[key]));
+  }
+  return expected === actual || String(expected) === String(actual);
+}
+
+function gradeCourseChecks(checks) {
+  const source = checks && typeof checks === 'object' ? checks : {};
+  const results = {};
+  let passed = 0;
+  Object.keys(COURSE_CHECKS).forEach((id) => {
+    const ok = sameAnswer(COURSE_CHECKS[id], source[id]);
+    results[id] = ok;
+    if (ok) passed += 1;
+  });
+  return { results, passed, total: Object.keys(COURSE_CHECKS).length, complete: passed === Object.keys(COURSE_CHECKS).length };
+}
+
+function gradeCertification(quizAnswers) {
+  const source = quizAnswers && typeof quizAnswers === 'object' ? quizAnswers : {};
+  const submitted = CERT_BANK.filter((item) => Object.prototype.hasOwnProperty.call(source, item.id));
+  const correct = submitted.filter((item) => Number(source[item.id]) === item.answer).length;
+  const asked = Math.max(submitted.length, 0);
+  const passed = asked >= QUIZ_MIN_QUESTIONS && asked ? (correct / asked) >= QUIZ_PASS_RATE : false;
+  return { asked, correct, score: asked ? Math.round((correct / asked) * 100) : 0, passed };
+}
+
+function passingCoursePayload() {
+  const checks = {};
+  Object.keys(COURSE_CHECKS).forEach((id) => {
+    checks[id] = Array.isArray(COURSE_CHECKS[id]) ? COURSE_CHECKS[id].slice() : (
+      COURSE_CHECKS[id] && typeof COURSE_CHECKS[id] === 'object' ? { ...COURSE_CHECKS[id] } : COURSE_CHECKS[id]
+    );
+  });
+  const quizAnswers = {};
+  CERT_BANK.forEach((item) => { quizAnswers[item.id] = item.answer; });
+  return { checks, quizAnswers, mockIndex: 12, done: REQUIRED_DONE.slice() };
+}
 
 function clean(value, max = 500) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
@@ -76,10 +151,40 @@ function homeAnswerReady(item, answer) {
 function validateTrainingProgress(payload) {
   const done = Array.isArray(payload && payload.done) ? payload.done.map((item) => clean(item, 40)).filter(Boolean) : [];
   const homeAnswers = payload && payload.homeAnswers && typeof payload.homeAnswers === 'object' ? payload.homeAnswers : {};
-  const missingSteps = REQUIRED_DONE.filter((step) => !done.includes(step));
+  const checks = payload && payload.checks && typeof payload.checks === 'object' ? payload.checks : {};
+  const quizAnswers = payload && payload.quizAnswers && typeof payload.quizAnswers === 'object' ? payload.quizAnswers : {};
+  const mockIndex = Math.max(0, Number(payload && payload.mockIndex) || 0);
+  const quizAttempts = Math.max(0, Number(payload && payload.quizAttempts) || 0);
+  const checkGrade = gradeCourseChecks(checks);
+  const quiz = gradeCertification(quizAnswers);
+  const mockReady = mockIndex >= 11;
+  const missingSteps = REQUIRED_DONE.filter((step) => {
+    if (step === 'quiz') return !quiz.passed;
+    if (step === 'mock') return !mockReady;
+    return !done.includes(step);
+  });
+  if (!checkGrade.complete && !missingSteps.includes('welcome')) {
+    const incomplete = Object.keys(COURSE_CHECKS).find((id) => !checkGrade.results[id]);
+    if (incomplete) missingSteps.push('checks');
+  }
+  const courseComplete = missingSteps.length === 0 && checkGrade.complete && quiz.passed && mockReady;
   const homeStatus = HOME_CASES.map((item) => ({ id: item.id, ready: homeAnswerReady(item, homeAnswers[item.id]) }));
   const homeReady = homeStatus.every((item) => item.ready);
-  return { done, homeAnswers, missingSteps, homeStatus, homeReady, complete: missingSteps.length === 0 && homeReady };
+  return {
+    done,
+    homeAnswers,
+    checks,
+    quizAnswers,
+    mockIndex,
+    quizAttempts,
+    checkGrade,
+    quiz,
+    missingSteps,
+    homeStatus,
+    homeReady,
+    courseComplete,
+    complete: courseComplete && homeReady
+  };
 }
 
 function floorState(student, product) {
@@ -88,6 +193,17 @@ function floorState(student, product) {
 
 function isNestingComplete(student, product) {
   return Boolean(floorState(student, product).nestingCompletedAt);
+}
+
+function flagOn(value) {
+  return value === true || value === 'true' || value === 1;
+}
+
+function isCrmEnabled(student, product) {
+  if (isNestingComplete(student, product)) return true;
+  const state = floorState(student, product);
+  if (flagOn(state.enabled) || flagOn(state.crmEnabled)) return true;
+  return product === 'kamuk' && flagOn(student && student.simulationEnabled);
 }
 
 function metricsFromFloor(state) {
@@ -252,6 +368,12 @@ function hasTouchEvidence(events, acceptedAt, type) {
 module.exports = {
   HOME_CASES,
   REQUIRED_DONE,
+  COURSE_CHECKS,
+  CERT_BANK,
+  QUIZ_PASS_RATE,
+  passingCoursePayload,
+  gradeCourseChecks,
+  gradeCertification,
   pack,
   templateMap,
   clean,
@@ -265,6 +387,7 @@ module.exports = {
   validateTrainingProgress,
   floorState,
   isNestingComplete,
+  isCrmEnabled,
   metricsFromFloor,
   dispositionKind,
   listWorkItems,

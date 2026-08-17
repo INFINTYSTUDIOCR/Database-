@@ -1278,7 +1278,8 @@ function studentAccessFlags(student) {
       : (student.system_mode || 'jill') !== 'alice',
     jillProEnabled: student.jillProEnabled === true,
     companionEnabled: normalizeCompanionEnabled(student),
-    claireEnabled: student.claireEnabled === true
+    claireEnabled: student.claireEnabled === true,
+    simulationEnabled: student.simulationEnabled === true
   };
 }
 

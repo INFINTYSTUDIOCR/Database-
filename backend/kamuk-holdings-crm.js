@@ -2,9 +2,9 @@ const path = require('path');
 const {
   pack, templateMap, clean, productForStudent, sessionsTable, studentsTable, holdingsKey,
   weekKeyCR, workItemId, claimLockId, validateTrainingProgress, floorState,
-  isNestingComplete, metricsFromFloor, dispositionKind, listWorkItems, listTouches,
+  isNestingComplete, isCrmEnabled, metricsFromFloor, dispositionKind, listWorkItems, listTouches,
   deterministicErrors, buildFloorAlicePrompt, normalizeFloorEvaluation,
-  pendingEvaluationResult, leaderboardFromTouches, hasTouchEvidence
+  pendingEvaluationResult, leaderboardFromTouches, hasTouchEvidence, REQUIRED_DONE
 } = require('./kamuk-holdings-floor');
 
 const caseIndex = new Map((pack.cases || []).map((item) => [item.id, item]));
@@ -171,7 +171,7 @@ function registerKamukHoldingsCrm(app, deps) {
       const studentId = requirePortalStudent(req, res);
       if (!studentId) return;
       const student = await loadStudent(studentId);
-      if (!student || !isNestingComplete(student, productForStudent(studentId))) {
+      if (!student || !isCrmEnabled(student, productForStudent(studentId))) {
         return res.status(403).json({ error: 'Complete nesting training before entering the case floor', code: 'NESTING_REQUIRED' });
       }
       req.floorStudent = student;
@@ -232,9 +232,24 @@ function registerKamukHoldingsCrm(app, deps) {
       const student = await loadStudent(studentId);
       if (!student) return res.status(404).json({ error: 'Student not found' });
       const state = floorState(student, productForStudent(studentId));
-      const validated = validateTrainingProgress({ done: state.trainingDone, homeAnswers: state.homeAnswers });
+      const validated = validateTrainingProgress({
+        done: state.trainingDone,
+        homeAnswers: state.homeAnswers,
+        checks: state.courseChecks,
+        quizAnswers: state.courseQuizAnswers,
+        mockIndex: state.mockIndex,
+        quizAttempts: state.quizAttempts
+      });
       return res.json({
-        ok: true, done: validated.done, homeStatus: validated.homeStatus,
+        ok: true,
+        done: validated.done,
+        homeStatus: validated.homeStatus,
+        quiz: validated.quiz,
+        checkGrade: validated.checkGrade,
+        mockIndex: validated.mockIndex,
+        quizAttempts: validated.quizAttempts,
+        courseComplete: validated.courseComplete,
+        crmEnabled: isCrmEnabled(student, productForStudent(studentId)),
         nestingCompletedAt: state.nestingCompletedAt || null,
         complete: Boolean(state.nestingCompletedAt) || validated.complete
       });
@@ -256,14 +271,33 @@ function registerKamukHoldingsCrm(app, deps) {
       const nestingCompletedAt = validated.complete
         ? (previous.nestingCompletedAt || new Date().toISOString())
         : (previous.nestingCompletedAt || null);
+      const now = new Date().toISOString();
       student[key] = {
-        ...previous, trainingDone: validated.done, homeAnswers: validated.homeAnswers,
-        nestingCompletedAt, trainingUpdatedAt: new Date().toISOString()
+        ...previous,
+        trainingDone: validated.done,
+        homeAnswers: validated.homeAnswers,
+        courseChecks: validated.checks,
+        courseQuizAnswers: validated.quizAnswers,
+        mockIndex: validated.mockIndex,
+        quizScore: validated.quiz.score,
+        quizPassed: validated.quiz.passed,
+        quizAttempts: Math.max(Number(previous.quizAttempts) || 0, validated.quizAttempts),
+        courseComplete: validated.courseComplete,
+        nestingCompletedAt,
+        trainingUpdatedAt: now,
+        courseCompletedAt: validated.courseComplete ? (previous.courseCompletedAt || now) : previous.courseCompletedAt || null
       };
       await sbSetStudent(studentId, student);
       return res.json({
-        ok: true, done: validated.done, homeStatus: validated.homeStatus,
-        nestingCompletedAt, complete: Boolean(nestingCompletedAt) || validated.complete
+        ok: true,
+        done: validated.done,
+        homeStatus: validated.homeStatus,
+        quiz: validated.quiz,
+        checkGrade: validated.checkGrade,
+        courseComplete: validated.courseComplete,
+        crmEnabled: isCrmEnabled(student, product),
+        nestingCompletedAt,
+        complete: Boolean(nestingCompletedAt) || validated.complete
       });
     } catch (error) {
       return res.status(500).json({ error: 'Training progress could not be saved' });
@@ -663,6 +697,31 @@ function registerKamukHoldingsCrm(app, deps) {
           return { ...data, connected: ageMs < 70000, heartbeatAgeSec: Math.max(0, Math.round(ageMs / 1000)) };
         });
       const recentTouches = touches.sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt))).slice(0, 100);
+      const training = studentRows.map((row) => {
+        const student = row.data || {};
+        const state = floorState(student, product);
+        const validated = validateTrainingProgress({
+          done: state.trainingDone,
+          homeAnswers: state.homeAnswers,
+          checks: state.courseChecks,
+          quizAnswers: state.courseQuizAnswers,
+          mockIndex: state.mockIndex,
+          quizAttempts: state.quizAttempts
+        });
+        return {
+          studentId: row.id,
+          name: clean(student.info?.name || student.name || row.id, 100),
+          modulesDone: validated.done.filter((step) => REQUIRED_DONE.includes(step)).length,
+          modulesTotal: REQUIRED_DONE.length,
+          quizScore: validated.quiz.score,
+          quizPassed: validated.quiz.passed,
+          quizAttempts: Number(state.quizAttempts) || validated.quizAttempts || 0,
+          homeReady: validated.homeStatus.filter((item) => item.ready).length,
+          homeTotal: validated.homeStatus.length,
+          courseComplete: validated.courseComplete,
+          nestingCompletedAt: state.nestingCompletedAt || null
+        };
+      }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
       return res.json({
         ok: true, product, weekKey, generatedAt: new Date().toISOString(),
         summary: {
@@ -671,11 +730,13 @@ function registerKamukHoldingsCrm(app, deps) {
           unassigned: workItems.filter((item) => item.status === 'unassigned').length,
           freshPool: workItems.filter((item) => item.status === 'unassigned' && item.touchNumber === 1).length,
           followUpPool: workItems.filter((item) => item.status === 'unassigned' && item.touchNumber > 1).length,
-          pendingEvaluations: touches.filter((item) => item.pendingEvaluation || item.evaluation?.pendingEvaluation).length
+          pendingEvaluations: touches.filter((item) => item.pendingEvaluation || item.evaluation?.pendingEvaluation).length,
+          nestingReady: training.filter((item) => item.nestingCompletedAt).length
         },
         live, leaderboard: board, winner: board[0] || null,
         resolveRates: board.map(({ studentId, name, started, resolved, resolutionRate }) => ({ studentId, name, started, resolved, resolutionRate })),
-        recentTouches
+        recentTouches,
+        training
       });
     } catch (error) {
       return res.status(500).json({ error: 'Supervisor feed unavailable' });
