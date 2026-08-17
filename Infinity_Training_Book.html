@@ -304,8 +304,8 @@ body.embed-mode .main-wrap{height:calc(100vh - 52px);}
     <div class="nav-section">Audioteca</div>
     <div class="nav-item" onclick="showSection('videos',this)"><i class="ti ti-player-play"></i>Videos y simulaciones<span class="nav-badge nb-blue" id="nb-videos">—</span></div>
 
-    <div class="nav-section">Historial</div>
-    <div class="nav-item" onclick="showSection('sessions',this)"><i class="ti ti-notes"></i>Notas de sesiones</div>
+    <div class="nav-section">Experiencia laboral</div>
+    <div class="nav-item" onclick="showSection('simulation',this)"><i class="ti ti-device-gamepad-2"></i>Simulation</div>
   </div>
 
   <!-- CONTENT -->
@@ -651,8 +651,24 @@ function showSection(id, btn){
   else if(id==='phase2') renderPhase2(area);
   else if(id==='phase3') renderPhase3(area);
   else if(id==='videos') renderVideos(area);
-  else if(id==='sessions') renderSessions(area);
+  else if(id==='simulation') renderSimulation(area);
   else if(id==='measurement') renderMeasurement(area);
+}
+
+function renderSimulation(area){
+  area.innerHTML='<div id="simulation-onboarding-root"></div><div id="simulation-access-root"></div>';
+  if(window.SimulationOnboarding){
+    SimulationOnboarding.mount(document.getElementById('simulation-onboarding-root'),{
+      product:'infinity',
+      accessRoot:document.getElementById('simulation-access-root')
+    });
+  }
+  if(window.SimulationAccess){
+    SimulationAccess.mount(document.getElementById('simulation-access-root'),{
+      product:'infinity',
+      launchUrl:'infinity-holdings-crm.html'
+    });
+  }
 }
 
 // ── SECTION RENDERERS ─────────────────────────────────────
@@ -741,11 +757,10 @@ function renderOverview(area){
     +'<div style="margin-top:10px;"><button class="btn btn-navy" onclick="goToExercises()" style="width:100%;justify-content:center;"><i class="ti ti-arrow-right"></i> Ir a Mis ejercicios</button></div>'
     +'</div>'
 
-    +(notes?'<div class="portal-section">'
-    +'<div class="section-title"><i class="ti ti-notes"></i> Última nota de sesión</div>'
-    +'<div class="section-sub">'+notes.date+' · '+notes.trainer+'</div>'
-    +'<div style="font-size:13px;color:var(--text);line-height:1.65;">'+notes.text.split('\n').join('<br>').substring(0,280)+'...</div>'
-    +'<button class="btn btn-outline" style="margin-top:10px;" onclick="goToSessions()"><i class="ti ti-notes"></i> Ver historial completo</button></div>':'')
+    +'<div class="portal-section">'
+    +'<div class="section-title"><i class="ti ti-device-gamepad-2"></i> Infinity Simulation</div>'
+    +'<div class="section-sub">Entrenamiento laboral con casos, KPIs y Q&amp;A.</div>'
+    +'<button class="btn btn-outline" style="margin-top:10px;" onclick="showSection(\'simulation\',document.querySelector(\'.sidebar [onclick*=simulation]\'))"><i class="ti ti-building-bank"></i> Abrir Simulation</button></div>'
 
     +'<div class="portal-section">'
     +'<div class="section-title"><i class="ti ti-info-circle"></i> Información del estudiante</div>'
@@ -1020,5 +1035,8 @@ function showToast(msg,type){
   setTimeout(function(){t.classList.remove('show');},3000);
 }
 </script>
+<script src="infinity-auth.js"></script>
+<script src="js/simulation-onboarding.js"></script>
+<script src="js/simulation-access.js"></script>
 </body>
 </html>

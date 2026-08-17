@@ -11,6 +11,8 @@ const JillPro = require('./jill-companion');
 const JillCanonRouter = require('./jill-canon-router');
 const Billing = require('./stripe-billing');
 const JillBilling = require('./jill-billing');
+const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
+const { registerSimulationAccess } = require('./simulation-access');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -40,6 +42,7 @@ app.use((req, res, next) => {
 // ── CORS (allowed origins only) ──────────────────────────────
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://infintystudiocr.github.io',
+  'https://kamukschool.github.io',
   'https://studioinfinitycr.com',
   'https://www.studioinfinitycr.com',
   'http://localhost:8765',
@@ -6515,6 +6518,24 @@ app.get('/learner/autonomy', requireProductAuth, async (req, res) => {
 
 // ── Análisis de clases grabadas (cerebro analiza audio) — solo profe/admin ──
 const requireTeacherAccess = requireAuth(['trainer', 'superadmin', 'master']);
+
+registerSimulationAccess(app, {
+  requireProductAuth,
+  requireTeacherAccess,
+  sbGetStudentRow,
+  sbSetStudent,
+  sbGet
+});
+
+registerKamukHoldingsCrm(app, {
+  requireProductAuth,
+  requireTeacherAccess,
+  sbGetStudentRow,
+  sbSetStudent,
+  sbGet,
+  sbSet,
+  claudeCall
+});
 
 app.post('/jill/class-transcript', requireTeacherAccess, async (req, res) => {
   try {
