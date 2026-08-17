@@ -218,6 +218,45 @@ async function sbSet(table, id, data) {
   }
 }
 
+/** Insert-only write for atomic claims. Returns { ok, created, row }. */
+async function sbInsertOnly(table, id, data) {
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('sbInsertOnly: SUPABASE not configured');
+    return { ok: false, created: false, row: null };
+  }
+  try {
+    const existing = await sbGetOne(table, id);
+    if (existing) return { ok: true, created: false, row: existing };
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation,resolution=ignore-duplicates'
+      },
+      body: JSON.stringify({ id, data, updated_at: new Date().toISOString() })
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => '');
+      console.error(`sbInsertOnly ${table}/${id} failed: ${r.status} ${t.slice(0, 160)}`);
+      const again = await sbGetOne(table, id);
+      if (again) return { ok: true, created: false, row: again };
+      return { ok: false, created: false, row: null };
+    }
+    const rows = await r.json().catch(() => []);
+    if (Array.isArray(rows) && rows[0]) return { ok: true, created: true, row: rows[0] };
+    const verify = await sbGetOne(table, id);
+    if (!verify) return { ok: false, created: false, row: null };
+    const mine = JSON.stringify(verify.data || {}) === JSON.stringify(data);
+    return { ok: true, created: mine, row: verify };
+  } catch (err) {
+    console.error(`sbInsertOnly ${table}/${id} error:`, err.message);
+    return { ok: false, created: false, row: null };
+  }
+}
+
 async function sbGetOne(table, id) {
   const { url: SUPABASE_URL, key: SUPABASE_KEY } = sbCreds(table);
   if (!SUPABASE_URL || !SUPABASE_KEY || !id) return null;
@@ -6534,6 +6573,8 @@ registerKamukHoldingsCrm(app, {
   sbSetStudent,
   sbGet,
   sbSet,
+  sbGetOne,
+  sbInsertOnly,
   claudeCall
 });
 
