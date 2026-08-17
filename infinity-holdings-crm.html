@@ -5,31 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Infinity Simulation · Corporate Banking CRM</title>
   <style>
-    html,body{width:100%;height:100%;margin:0;background:#f4f1eb;overflow:hidden}
+    html,body{width:100%;height:100%;margin:0;background:#f4f1eb;overflow:hidden;font-family:Inter,Arial,sans-serif}
     iframe{width:100%;height:100%;border:0;display:block}
-    .gate{min-height:100%;display:grid;place-items:center;padding:20px;box-sizing:border-box;font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at top,#ede9fe,#f8fafc 55%)}
-    .card{width:min(430px,100%);box-sizing:border-box;padding:28px;background:#fff;border:1px solid #ddd6fe;border-radius:18px;box-shadow:0 24px 70px rgba(46,16,101,.16)}
-    .brand{font-weight:900;color:#5b21b6;letter-spacing:.02em;margin-bottom:20px}.card h1{font-size:23px;color:#1e1b4b;margin:0 0 7px}.card p{color:#64748b;font-size:13px;line-height:1.55;margin:0 0 20px}
-    label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin:12px 0 5px}
-    input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font:600 14px Inter,Arial,sans-serif}input:focus{outline:2px solid rgba(91,33,182,.2);border-color:#7c3aed}
-    #sim-pin{font-family:monospace;letter-spacing:.3em}button{width:100%;margin-top:17px;padding:12px;border:0;border-radius:9px;background:#5b21b6;color:#fff;font-weight:800;cursor:pointer}button:disabled{opacity:.55}
-    .msg{font:600 12px Inter,Arial,sans-serif;color:#b42318;min-height:18px;margin-top:9px}.help{margin-top:14px!important;font-size:11px!important}
+    .gate{min-height:100%;display:grid;place-items:center;padding:20px;box-sizing:border-box;background:radial-gradient(circle at top,#ede9fe,#f8fafc 55%)}
+    .card{width:min(430px,100%);box-sizing:border-box;padding:28px;background:#fff;border:1px solid #ddd6fe;border-radius:18px;box-shadow:0 24px 70px rgba(46,16,101,.16);text-align:center}
+    .brand{font-weight:900;color:#5b21b6;letter-spacing:.02em;margin-bottom:16px}
+    .card h1{font-size:22px;color:#1e1b4b;margin:0 0 8px}
+    .card p{color:#64748b;font-size:13px;line-height:1.55;margin:0}
+    .msg{font:600 12px Inter,Arial,sans-serif;color:#b42318;min-height:18px;margin-top:14px}
   </style>
 </head>
 <body>
   <div class="gate" id="login-gate">
-    <form class="card" id="simulation-login">
+    <div class="card">
       <div class="brand">∞ INFINITY SIMULATION</div>
-      <h1>Corporate Banking CRM</h1>
-      <p>Ingresá con el usuario de Simulation y el PIN de 6 números que configuraste desde tu Training Book.</p>
-      <label for="sim-user">Usuario</label>
-      <input id="sim-user" autocomplete="username" spellcheck="false" required>
-      <label for="sim-pin">PIN · 6 números</label>
-      <input id="sim-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" required>
-      <button id="sim-submit" type="submit">Ingresar al desk</button>
+      <h1>Opening your desk…</h1>
+      <p>Using your Training Book session. No extra codes.</p>
       <div class="msg" id="sim-msg"></div>
-      <p class="help">¿Lo olvidaste? Solicitá un reset al trainer desde el Engine.</p>
-    </form>
+    </div>
   </div>
   <iframe id="simulation-frame" title="Infinity Corporate Banking Simulation" allow="microphone" hidden></iframe>
   <script src="infinity-auth.js"></script>
@@ -37,69 +30,40 @@
     (function () {
       var params = new URLSearchParams(location.search);
       var product = params.get('product') === 'kamuk' ? 'kamuk' : 'infinity';
-      var token = localStorage.getItem('infinity_simulation_token') || '';
-      var savedProduct = localStorage.getItem('infinity_simulation_product') || '';
       var gate = document.getElementById('login-gate');
       var frame = document.getElementById('simulation-frame');
-      var form = document.getElementById('simulation-login');
-      var user = document.getElementById('sim-user');
-      var pin = document.getElementById('sim-pin');
-      var button = document.getElementById('sim-submit');
       var msg = document.getElementById('sim-msg');
-      user.value = params.get('user') || '';
 
       function openDesk() {
         gate.hidden = true;
         frame.hidden = false;
-        frame.src = 'kamuk/kamuk-holdings-crm.html?simulation=1&product=' + encodeURIComponent(product);
+        frame.src = 'kamuk/kamuk-holdings-crm.html?product=' + encodeURIComponent(product);
       }
 
-      if (token && savedProduct === product) {
-        fetch(INFINITY_API + '/auth/verify', { headers: { Authorization: 'Bearer ' + token } })
-          .then(function (response) {
-            if (!response.ok) throw new Error('expired');
-            return response.json();
-          })
-          .then(function (data) {
-            var matches = product === 'kamuk'
-              ? String(data.studentId || '').indexOf('KAM-') === 0
-              : String(data.studentId || '').indexOf('KAM-') !== 0;
-            if (!matches) throw new Error('product');
-            openDesk();
-          })
-          .catch(function () {
-            localStorage.removeItem('infinity_simulation_token');
-            localStorage.removeItem('infinity_simulation_product');
-          });
+      function fail(text) {
+        msg.textContent = text || 'Open this page from your Training Book while logged in.';
       }
 
-      form.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        msg.textContent = '';
-        var username = user.value.trim().toLowerCase();
-        var password = pin.value;
-        if (!/^\d{6}$/.test(password)) {
-          msg.textContent = 'Ingresá exactamente 6 números.';
-          return;
-        }
-        button.disabled = true;
-        try {
-          var response = await fetch(INFINITY_API + '/simulation/access/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: username, pin: password, product: product })
-          });
-          var data = await response.json().catch(function () { return {}; });
-          if (!response.ok) throw new Error(data.error || 'Acceso inválido.');
-          localStorage.setItem('infinity_simulation_token', data.token);
-          localStorage.setItem('infinity_simulation_product', data.product);
+      if (typeof getAuthToken !== 'function' || !getAuthToken()) {
+        fail('No Training Book session found. Log in to the portal first.');
+        return;
+      }
+
+      fetch(INFINITY_API + '/auth/verify', { headers: { Authorization: 'Bearer ' + getAuthToken() } })
+        .then(function (response) {
+          if (!response.ok) throw new Error('expired');
+          return response.json();
+        })
+        .then(function (data) {
+          if (data.role !== 'student') throw new Error('role');
+          var sid = String(data.studentId || '');
+          var matches = product === 'kamuk' ? sid.indexOf('KAM-') === 0 : sid.indexOf('KAM-') !== 0;
+          if (!matches) throw new Error('product');
           openDesk();
-        } catch (error) {
-          msg.textContent = error.message;
-        } finally {
-          button.disabled = false;
-        }
-      });
+        })
+        .catch(function () {
+          fail('Session expired. Return to the Training Book and open Simulation again.');
+        });
     })();
   </script>
 </body>

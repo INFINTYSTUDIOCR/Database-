@@ -656,16 +656,11 @@ function showSection(id, btn){
 }
 
 function renderSimulation(area){
-  area.innerHTML='<div id="simulation-onboarding-root"></div><div id="simulation-access-root"></div>';
+  area.innerHTML='<div id="simulation-onboarding-root"></div>';
   if(window.SimulationOnboarding){
     SimulationOnboarding.mount(document.getElementById('simulation-onboarding-root'),{
       product:'infinity',
-      accessRoot:document.getElementById('simulation-access-root')
-    });
-  }
-  if(window.SimulationAccess){
-    SimulationAccess.mount(document.getElementById('simulation-access-root'),{
-      product:'infinity',
+      studentId:(CURRENT&&(CURRENT.code||CURRENT.id))||'',
       launchUrl:'infinity-holdings-crm.html'
     });
   }
@@ -1037,6 +1032,5 @@ function showToast(msg,type){
 </script>
 <script src="infinity-auth.js"></script>
 <script src="js/simulation-onboarding.js"></script>
-<script src="js/simulation-access.js"></script>
 </body>
 </html>
