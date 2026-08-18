@@ -21,9 +21,9 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260818crmw';
-const CRM_V = '20260818ios';
-const RECURSOS_V = '20260818expr';
+const SIM_V = '20260818fmtE';
+const CRM_V = '20260818fmtE';
+const RECURSOS_V = '20260818fmtE';
 
 mkdirSync(DEST, { recursive: true });
 
@@ -46,6 +46,10 @@ function prep(html, kind) {
   );
   html = html.replace(
     /(src="js\/kamuk-holdings-crm\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + CRM_V + '"'
+  );
+  html = html.replace(
+    /(src="js\/kamuk-desk-english\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + CRM_V + '"'
   );
   html = html.replace(
@@ -134,6 +138,10 @@ const checks = [
   ['portal mounts simulation for every student', portal.includes('mountKamukSimulation')],
   ['CRM practice cache-bust', existsSync(join(DEST, 'js/kamuk-holdings-crm.js'))],
   ['CRM 10 practice cases', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes("id: 'gp10'")],
+  ['CRM Formato E send gate', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes('gradeFormatoE')],
+  ['desk English grader published', existsSync(join(DEST, 'js/kamuk-desk-english.js'))],
+  ['Recursos Email + Phone', readFileSync(join(DEST, 'js/kamuk-recursos-library.js'), 'utf8').includes("id: 'email'") && readFileSync(join(DEST, 'js/kamuk-recursos-library.js'), 'utf8').includes("id: 'phone'")],
+  ['mock Formato E step', readFileSync(join(DEST, 'js/simulation-onboarding.js'), 'utf8').includes("grade: 'formato-e'")],
   ['CRM red coach', readFileSync(join(DEST, 'css/kamuk-holdings-crm.css'), 'utf8').includes('desk-guide-look')],
   [
     'engine portal URL ok',

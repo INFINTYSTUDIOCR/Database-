@@ -7,8 +7,9 @@ const express = require('express');
 const { signToken, requireAuth } = require('./auth');
 const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
 const {
-  weekKeyCR, HOME_CASES, passingCoursePayload, gradeHomeAnswer, applyActivityHeartbeat,
-  detectAssistSignals, crDateKey, DELAY_GAP_MS, PRIZE_SCORE, applyQualityGates, scoreFromErrors
+  weekKeyCR, HOME_CASES, passingCoursePayload, gradeHomeAnswer, gradeFormatoE, gradePracticeTouch,
+  applyActivityHeartbeat, detectAssistSignals, crDateKey, DELAY_GAP_MS, PRIZE_SCORE,
+  applyQualityGates, scoreFromErrors
 } = require('./kamuk-holdings-floor');
 
 function readyHomeAnswers() {
@@ -30,8 +31,10 @@ function readyHomeAnswers() {
   return answers;
 }
 
-const GOLD_EMAIL = 'Hello, I reviewed the follow-up because the authorization letter is now on file. However I will not promise an outcome the network has not decided. In other words, I confirmed identity verification, documented the evidence in the internal note, and I own the next callback today before 3:00 p.m. Therefore your operating path stays clear while we complete verification. I will follow up with Operations if anything else is still pending.';
+const GOLD_EMAIL = 'Hello Marta, thank you for writing. I understand this payroll freeze is blocking supplier payments on the Operating Account. I reviewed the restriction in the CRM because two supplier ACH payments declined. However I will not lift every control blindly. In other words, I verified the freeze, I escalated to Operations, and I have documented Previous contacts. I will call you today before 3:00 p.m. with the authorization path. Kind regards';
 const GOLD_NOTE = 'Reviewed authorization evidence, confirmed identity verification, and parked a 3:00 p.m. callback with Operations as owner.';
+const PRACTICE_GOLD_NOTE = 'I understand the client called about the payroll freeze. You mentioned the supplier ACH declined. Just to make sure, the Operating Account is restricted and the Obsidian card stays active. I will follow up with Operations today before 4:30 p.m.';
+const WEAK_PRACTICE_EMAIL = 'ok thanks I blocked it';
 const GENERIC_EMAIL = 'Hello, I am writing because we need clarity. However I own the next check and will call tomorrow at 9:00 a.m.';
 const AI_EMAIL = 'Hello, I hope this message finds you well. It is important to note that in today\'s fast-paced banking landscape I am here to assist you. Rest assured that I will leverage a robust solution to streamline your experience. Please do not hesitate to reach out should you need anything else regarding this matter today before 3:00 p.m.';
 
@@ -188,7 +191,25 @@ async function run() {
   assert.equal(rulesAgain.data.casesRulesAccepted, true);
   assert.ok(rulesAgain.data.homeAnswers && rulesAgain.data.homeAnswers.hc1);
   assert.equal(rulesAgain.data.deskGuideCompleted, false);
-  const practiceOne = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), { practiceCaseId: 'gp1' }));
+  const goldFormato = gradeFormatoE(GOLD_EMAIL);
+  assert.equal(goldFormato.ok, true, 'gold Formato E: ' + goldFormato.missing.join(' · '));
+  const weakFormato = gradePracticeTouch({ email: WEAK_PRACTICE_EMAIL });
+  assert.equal(weakFormato.ok, false);
+  const practiceMissing = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), { practiceCaseId: 'gp1' }), false);
+  assert.equal(practiceMissing.status, 400);
+  assert.equal(practiceMissing.data.code, 'FORMATO_E');
+  assert.ok(Array.isArray(practiceMissing.data.missing) && practiceMissing.data.missing.length >= 1);
+  const practiceWeak = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), {
+    practiceCaseId: 'gp1',
+    practiceEmail: WEAK_PRACTICE_EMAIL
+  }), false);
+  assert.equal(practiceWeak.status, 400);
+  assert.equal(practiceWeak.data.code, 'FORMATO_E');
+  const practiceOne = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), {
+    practiceCaseId: 'gp1',
+    practiceEmail: GOLD_EMAIL,
+    practiceNote: PRACTICE_GOLD_NOTE
+  }));
   assert.equal(practiceOne.data.deskGuideCompleted, false);
   assert.ok(Array.isArray(practiceOne.data.deskGuideDone) && practiceOne.data.deskGuideDone.indexOf('gp1') >= 0);
   const practiceClaim = await request('/kamuk-holdings/crm/case/claim', tokenA, { workItemId: 'PRACTICE-gp1' }, false);

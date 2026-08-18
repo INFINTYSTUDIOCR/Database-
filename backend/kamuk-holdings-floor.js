@@ -274,7 +274,7 @@ function passingCoursePayload() {
   });
   const quizAnswers = {};
   CERT_BANK.forEach((item) => { quizAnswers[item.id] = item.answer; });
-  return { checks, quizAnswers, mockIndex: 12, done: REQUIRED_DONE.slice() };
+  return { checks, quizAnswers, mockIndex: MOCK_COMPLETE_INDEX + 1, done: REQUIRED_DONE.slice() };
 }
 
 function clean(value, max = 500) {
@@ -333,6 +333,86 @@ function hitCount(lower, list) {
 
 function hasTimedNext(text) {
   return /\b(today|tomorrow|within|business day|a\.m\.|p\.m\.|\d{1,2}:\d{2})\b/i.test(String(text || ''));
+}
+
+const EMPATHY_RE = /\b(understand|hear|sorry|apologize)\b|thank you for (writing|calling|waiting)/i;
+const EXEC_RE = /\b(i have|i blocked|i opened|i verified|i reviewed|i filed|i set|i activated|i escalated|i looked into|i sorted out)\b/i;
+const WILL_RE = /\b(i will|i am going to)\b/i;
+const CLOSE_RE = /\b(best regards|kind regards)\b/i;
+const OPEN_RE = /^(dear|hello|hi)\s+[a-z]/i;
+const MIRROR_RE = /\b(you said|you mentioned|so you|just to make sure|what happened was)\b/i;
+const MOCK_COMPLETE_INDEX = 12;
+const MOCK_LEGACY_INDEX = 11;
+const EMAIL_WORD_MIN = 55;
+
+function listHits(lower, list) {
+  return (list || []).filter((word) => lower.includes(String(word).toLowerCase()));
+}
+
+function gradeFormatoE(emailBody) {
+  const text = String(emailBody || '').trim();
+  const lower = text.toLowerCase();
+  const words = wordCount(text);
+  const connectors = listHits(lower, PROFESSIONAL_CONNECTORS);
+  const method = listHits(lower, METHOD_PHRASES);
+  const parts = {
+    encabezado: OPEN_RE.test(text),
+    empatia: EMPATHY_RE.test(text),
+    explicacion: connectors.length >= 2 && method.length >= 1,
+    ejecucion: EXEC_RE.test(text),
+    encierro: hasTimedNext(text) && WILL_RE.test(text) && CLOSE_RE.test(text)
+  };
+  const missing = [];
+  if (!parts.encabezado) missing.push('E1 Encabezado: Dear/Hello/Hi + nombre del cliente');
+  if (!parts.empatia) missing.push('E2 Empatía: understand / hear / sorry / apologize / thank you for writing|calling|waiting');
+  if (connectors.length < 2) missing.push('E3 Explicación: al menos 2 conectores (because, however, therefore…)');
+  if (method.length < 1) missing.push('E3 Explicación: al menos 1 método linker (in other words, even though…)');
+  if (!parts.ejecucion) missing.push('E4 Ejecución: qué YA hiciste (I have / I blocked / I reviewed / I escalated…)');
+  if (!hasTimedNext(text) || !WILL_RE.test(text)) missing.push('E5 Encierro: I will / I am going to + hora (today / 4:30 p.m. / business days)');
+  if (!CLOSE_RE.test(text)) missing.push('E5 Encierro: cierre Best regards / Kind regards');
+  if (words < EMAIL_WORD_MIN) missing.push('Mínimo 55 palabras (van ' + words + ')');
+  return { ok: missing.length === 0, missing, connectors, method, words, parts };
+}
+
+function gradeAmrNote(noteText) {
+  const text = String(noteText || '').trim();
+  const parts = {
+    acknowledge: EMPATHY_RE.test(text),
+    mirror: MIRROR_RE.test(text),
+    respond: WILL_RE.test(text) && hasTimedNext(text)
+  };
+  const missing = [];
+  if (!parts.acknowledge) missing.push('AMR Acknowledge: understand / hear / sorry / apologize / thank you for calling|waiting');
+  if (!parts.mirror) missing.push('AMR Mirror: you said / you mentioned / so you / just to make sure / what happened was');
+  if (!parts.respond) missing.push('AMR Respond: I will + next step con hora');
+  return { ok: missing.length === 0, missing, parts };
+}
+
+function gradePracticeTouch(input) {
+  const source = input && typeof input === 'object' ? input : {};
+  const emailGrade = gradeFormatoE(source.email);
+  const missing = emailGrade.missing.slice();
+  let amr = null;
+  if (source.note != null && String(source.note).trim()) {
+    amr = gradeAmrNote(source.note);
+    missing.push(...amr.missing);
+  }
+  return {
+    ok: emailGrade.ok && (!amr || amr.ok),
+    missing,
+    email: emailGrade,
+    amr,
+    connectors: emailGrade.connectors,
+    method: emailGrade.method,
+    words: emailGrade.words,
+    parts: emailGrade.parts
+  };
+}
+
+function mockTourReady(mockIndex, done) {
+  const index = Math.max(0, Number(mockIndex) || 0);
+  if (index >= MOCK_COMPLETE_INDEX) return true;
+  return index >= MOCK_LEGACY_INDEX && Array.isArray(done) && done.includes('mock');
 }
 
 function applyActivityHeartbeat(floor, at = new Date()) {
@@ -465,7 +545,7 @@ function validateTrainingProgress(payload) {
     : {};
   const checkGrade = gradeCourseChecks(checks);
   const quiz = gradeCertification(quizAnswers);
-  const mockReady = mockIndex >= 11;
+  const mockReady = mockTourReady(mockIndex, done);
   const missingSteps = REQUIRED_DONE.filter((step) => {
     if (step === 'quiz') return !quiz.passed;
     if (step === 'mock') return !mockReady;
@@ -660,21 +740,30 @@ function deterministicErrors(caseData, submission) {
   if (!email) errors.push({ code: 'missing-email', label: 'Missing client email', evidence: 'No outbound email was recorded for this touch.' });
   if (!noteText) errors.push({ code: 'missing-note', label: 'Missing interaction note', evidence: 'No brief internal note was recorded for this touch.' });
   if (email) {
-    if (!/^(dear|hello|hi)\b/i.test(emailBody.trim())) {
-      errors.push({ code: 'email-opening', label: 'Unnatural email opening', evidence: 'Client email should open with Dear, Hello or Hi.' });
+    const graded = gradeFormatoE(emailBody);
+    if (!graded.parts.encabezado) {
+      errors.push({ code: 'email-opening', label: 'Encabezado (E1) missing', evidence: 'Start with Dear, Hello or Hi + the client first name.' });
     }
-    const connectorHits = PROFESSIONAL_CONNECTORS.filter((word) => emailBody.toLowerCase().includes(word)).length;
-    if (connectorHits < 2) {
-      errors.push({ code: 'email-connector', label: 'Weak connector use', evidence: 'Use at least two professional connectors or linkers in the client email.' });
+    if (!graded.parts.empatia) {
+      errors.push({ code: 'email-empathy', label: 'Empatía (E2) missing', evidence: 'Acknowledge impact: understand / hear / sorry / apologize / thank you for writing, calling or waiting.' });
     }
-    if (hitCount(emailBody.toLowerCase(), METHOD_PHRASES) < 1) {
+    if (graded.connectors.length < 2) {
+      errors.push({ code: 'email-connector', label: 'Weak connector use', evidence: 'Use at least two professional connectors in the client email.' });
+    }
+    if (graded.method.length < 1) {
       errors.push({ code: 'method-linker', label: 'Missing método linker', evidence: 'Use a linker from Linkers y expresiones — método in Recursos.' });
     }
-    if (!hasTimedNext(emailBody)) {
-      errors.push({ code: 'email-next-step', label: 'Missing timed next step in email', evidence: 'The email must include a timed next step.' });
+    if (!graded.parts.ejecucion) {
+      errors.push({ code: 'email-execution', label: 'Ejecución (E4) missing', evidence: 'Say what you already did in the CRM (I have / I blocked / I reviewed / I escalated…).' });
     }
-    if (emailWords < 45) {
-      errors.push({ code: 'email-substance', label: 'Email too thin', evidence: 'Write a structured email with real substance (about 45+ words).' });
+    if (!hasTimedNext(emailBody) || !WILL_RE.test(emailBody)) {
+      errors.push({ code: 'email-next-step', label: 'Encierro (E5) missing timed next step', evidence: 'Include I will / I am going to and a timed next step.' });
+    }
+    if (!CLOSE_RE.test(emailBody)) {
+      errors.push({ code: 'email-closing', label: 'Encierro (E5) missing closing', evidence: 'Close with Best regards or Kind regards.' });
+    }
+    if (emailWords < EMAIL_WORD_MIN) {
+      errors.push({ code: 'email-substance', label: 'Email too thin', evidence: 'Write a Formato E email with real substance (55+ words).' });
     }
   }
   if (noteText && wordCount(noteText) < 12) {
@@ -838,6 +927,9 @@ module.exports = {
   gradeCourseChecks,
   gradeCertification,
   gradeHomeAnswer,
+  gradeFormatoE,
+  gradeAmrNote,
+  gradePracticeTouch,
   homeAnswerReady,
   detectAssistSignals,
   applyActivityHeartbeat,

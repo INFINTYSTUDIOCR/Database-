@@ -6,7 +6,8 @@ const {
   deterministicErrors, buildFloorAlicePrompt, normalizeFloorEvaluation,
   pendingEvaluationResult, leaderboardFromTouches, hasTouchEvidence, REQUIRED_DONE,
   applyActivityHeartbeat, detectAssistSignals, pickWeeklyWinner, wordCount,
-  rulesAcceptedThisWeek, deskGuideDoneThisWeek, deskGuideDoneList, deskGuideAllComplete
+  rulesAcceptedThisWeek, deskGuideDoneThisWeek, deskGuideDoneList, deskGuideAllComplete,
+  gradePracticeTouch
 } = require('./kamuk-holdings-floor');
 
 const caseIndex = new Map((pack.cases || []).map((item) => [item.id, item]));
@@ -292,6 +293,19 @@ function registerKamukHoldingsCrm(app, deps) {
       const acceptRules = req.body && req.body.acceptCasesRules === true;
       const acceptGuide = req.body && req.body.acceptDeskGuide === true;
       const practiceId = clean(req.body && req.body.practiceCaseId, 8);
+      if (/^gp([1-9]|10)$/.test(practiceId) && !acceptGuide) {
+        const graded = gradePracticeTouch({
+          email: req.body && req.body.practiceEmail,
+          note: req.body && req.body.practiceNote
+        });
+        if (!graded.ok) {
+          return res.status(400).json({
+            error: 'Practice email must pass Formato E',
+            code: 'FORMATO_E',
+            missing: graded.missing
+          });
+        }
+      }
       let guideDone = deskGuideDoneList(previous);
       if (/^gp([1-9]|10)$/.test(practiceId) && guideDone.indexOf(practiceId) < 0) guideDone.push(practiceId);
       if (acceptGuide) guideDone = ['gp1', 'gp2', 'gp3', 'gp4', 'gp5', 'gp6', 'gp7', 'gp8', 'gp9', 'gp10'];
