@@ -23,7 +23,7 @@ const EXTRA_HTML = [
 const CASINO_FLOOR_V = '20260814refresh';
 const SIM_V = '20260818ios';
 const CRM_V = '20260818ios';
-const RECURSOS_V = '20260818ios';
+const RECURSOS_V = '20260818expr';
 
 mkdirSync(DEST, { recursive: true });
 
