@@ -1426,6 +1426,12 @@ app.post('/auth/login', async (req, res) => {
         name: match.data.info?.name || loginUser
       }, JWT_EXPIRY_STUDENT_SEC);
       const st = match.data;
+      try {
+        const { recordLoginPatch } = require('./kamuk-holdings-audit');
+        await sbSetStudent(match.id, Object.assign({}, st, recordLoginPatch(st)));
+      } catch (auditErr) {
+        console.warn('student login audit:', auditErr.message);
+      }
       return res.json({
         token,
         expiresIn: JWT_EXPIRY_STUDENT_SEC,
@@ -1437,9 +1443,11 @@ app.post('/auth/login', async (req, res) => {
     }
 
     if (role === 'trainer') {
+      const product = String(req.body?.product || '').trim().toLowerCase();
+      const usersTable = product === 'kamuk' ? 'kamuk_users' : 'infinity_users';
       const masterEmail = (process.env.MASTER_TRAINER_EMAIL || 'trainer@infinity.cr').toLowerCase();
       const masterPass = process.env.MASTER_TRAINER_PASS || process.env.ANALYZE_SECRET || 'nexus2025';
-      if (loginUser === masterEmail && password === masterPass) {
+      if (product !== 'kamuk' && loginUser === masterEmail && password === masterPass) {
         clearLoginRateLimit(ip);
         const token = signToken({
           sub: 'USR-MASTER',
@@ -1454,7 +1462,7 @@ app.post('/auth/login', async (req, res) => {
           name: process.env.MASTER_TRAINER_NAME || 'Master Trainer'
         });
       }
-      const rows = await sbGet('infinity_users');
+      const rows = await sbGet(usersTable);
       const match = rows.find(r =>
         r.data &&
         String(r.data.email || '').trim().toLowerCase() === loginUser &&
@@ -1474,13 +1482,15 @@ app.post('/auth/login', async (req, res) => {
         role: trainerRole,
         name: match.data.name,
         email: match.data.email,
-        department: match.data.department
+        department: match.data.department,
+        product: product === 'kamuk' ? 'kamuk' : 'infinity'
       });
       return res.json({
         token,
         expiresIn: JWT_EXPIRY_SEC,
         role: trainerRole,
-        name: match.data.name
+        name: match.data.name,
+        product: product === 'kamuk' ? 'kamuk' : 'infinity'
       });
     }
 

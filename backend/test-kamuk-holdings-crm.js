@@ -11,6 +11,7 @@ const {
   applyActivityHeartbeat, detectAssistSignals, crDateKey, DELAY_GAP_MS, PRIZE_SCORE,
   applyQualityGates, scoreFromErrors
 } = require('./kamuk-holdings-floor');
+const { gradeCallTurn, nextCallTurn, isInternalOnly, openingLine } = require('./kamuk-holdings-call-scripts');
 
 function readyHomeAnswers() {
   const answers = {};
@@ -34,6 +35,8 @@ function readyHomeAnswers() {
 const GOLD_EMAIL = 'Hello Marta, thank you for writing. I understand this payroll freeze is blocking supplier payments on the Operating Account. I reviewed the restriction in the CRM because two supplier ACH payments declined. However I will not lift every control blindly. In other words, I verified the freeze, I escalated to Operations, and I have documented Previous contacts. I will call you today before 3:00 p.m. with the authorization path. Kind regards';
 const GOLD_NOTE = 'Reviewed authorization evidence, confirmed identity verification, and parked a 3:00 p.m. callback with Operations as owner.';
 const PRACTICE_GOLD_NOTE = 'I understand the client called about the payroll freeze. You mentioned the supplier ACH declined. Just to make sure, the Operating Account is restricted and the Obsidian card stays active. I will follow up with Operations today before 4:30 p.m.';
+const GOLD_CALL = 'I understand payroll is frozen. You mentioned two supplier ACH payments declined. We are on a recorded line. I will review Statements today before 4:30 p.m. because I own the callback. I cannot send a PIN.';
+const BAD_CALL = 'Give me your PIN and full card number. Calm down. Someone will call you whenever.';
 const WEAK_PRACTICE_EMAIL = 'ok thanks I blocked it';
 const GENERIC_EMAIL = 'Hello, I am writing because we need clarity. However I own the next check and will call tomorrow at 9:00 a.m.';
 const AI_EMAIL = 'Hello, I hope this message finds you well. It is important to note that in today\'s fast-paced banking landscape I am here to assist you. Rest assured that I will leverage a robust solution to streamline your experience. Please do not hesitate to reach out should you need anything else regarding this matter today before 3:00 p.m.';
@@ -240,6 +243,36 @@ async function run() {
   const claimConflict = await request('/kamuk-holdings/crm/case/claim', tokenB, { workItemId: firstWorkItemId }, false);
   assert.equal(claimConflict.status, 409);
 
+  assert.equal(isInternalOnly({ id: 'KH-1084' }), true);
+  assert.equal(isInternalOnly({ id: 'KH-1042' }), false);
+  assert.equal(gradeCallTurn(GOLD_CALL).amr, true);
+  assert.equal(gradeCallTurn(BAD_CALL).pinAsk, true);
+  assert.equal(gradeCallTurn(BAD_CALL).quality, 'poor');
+  const freezeCase = { id: 'KH-1042', templateId: 'KH-1042', client: { name: 'Marta Rivera' }, mood: 'distressed' };
+  const goodScript = nextCallTurn({ caseData: freezeCase, agentText: GOLD_CALL, mood: 'distressed', score: 40 });
+  const badScript = nextCallTurn({ caseData: freezeCase, agentText: BAD_CALL, mood: 'distressed', score: 40 });
+  assert.ok(goodScript.score > 40);
+  assert.ok(badScript.score < 40);
+  assert.ok(openingLine(freezeCase).toLowerCase().includes('frozen') || openingLine(freezeCase).toLowerCase().includes('third'));
+
+  const practiceCall = await request('/kamuk-holdings/crm/call/token', tokenA, { caseId: 'KH-PRAC-GP1' });
+  assert.ok(practiceCall.data.firstMessage);
+  assert.ok(practiceCall.data.voiceId);
+  const practiceGood = await request('/kamuk-holdings/crm/call/turn', tokenA, {
+    caseId: 'KH-PRAC-GP1', text: GOLD_CALL, mood: practiceCall.data.mood, score: 40
+  });
+  assert.ok(practiceGood.data.reply);
+  assert.equal(practiceGood.data.amr, true);
+  const practiceBad = await request('/kamuk-holdings/crm/call/turn', tokenA, {
+    caseId: 'KH-PRAC-GP1', text: BAD_CALL, mood: 'distressed', score: 40
+  });
+  assert.ok(practiceBad.data.coaching && practiceBad.data.coaching.length >= 1);
+  const liveCall = await request('/kamuk-holdings/crm/call/token', tokenA, { caseId: firstCaseId });
+  assert.ok(liveCall.data.firstMessage);
+  const internalCall = await request('/kamuk-holdings/crm/call/token', tokenA, { caseId: 'KH-1084' }, false);
+  assert.equal(internalCall.status, 400);
+  assert.equal(internalCall.data.code, 'NO_CLIENT_CALL');
+
   // Mandatory email + note.
   const missingEvidence = await request('/kamuk-holdings/crm/case/resolve', tokenA, {
     caseId: firstCaseId,
@@ -431,6 +464,20 @@ async function run() {
   assert.equal(trainA.quizPassed, true);
   assert.equal(trainA.homeReady, 10);
   assert.ok(trainA.nestingCompletedAt);
+  assert.ok(Array.isArray(supervisor.data.emails));
+  const emailAudit = supervisor.data.emails.find((row) => row.studentId === 'KAM-TEST-02');
+  assert.ok(emailAudit);
+  assert.equal(emailAudit.formatoE, true);
+  const dossier = await request('/kamuk-holdings/crm/supervisor/student/KAM-TEST-02?product=kamuk', trainerToken);
+  assert.equal(dossier.data.dossier.studentId, 'KAM-TEST-02');
+  const ask = await request('/kamuk-holdings/crm/supervisor/ask?product=kamuk', trainerToken, {
+    studentId: 'KAM-TEST-02',
+    question: 'Este correo pasa Formato E y esta listo para el desk?'
+  });
+  assert.ok(ask.data.answer);
+  const report = await request('/kamuk-holdings/crm/supervisor/report?product=kamuk', trainerToken, { studentId: 'KAM-TEST-02' });
+  assert.ok(report.data.report);
+  assert.ok(report.data.decision);
 
   const coach = await request('/kamuk-holdings/crm/supervisor/coaching', trainerToken, {
     studentId: 'KAM-TEST-02',

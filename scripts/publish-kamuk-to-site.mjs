@@ -21,8 +21,8 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260818fmtE';
-const CRM_V = '20260818fmtE';
+const SIM_V = '20260818audit';
+const CRM_V = '20260818call';
 const RECURSOS_V = '20260818fmtE';
 
 mkdirSync(DEST, { recursive: true });
@@ -46,6 +46,10 @@ function prep(html, kind) {
   );
   html = html.replace(
     /(src="js\/kamuk-holdings-crm\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + CRM_V + '"'
+  );
+  html = html.replace(
+    /(src="js\/kamuk-holdings-call\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + CRM_V + '"'
   );
   html = html.replace(
@@ -140,8 +144,12 @@ const checks = [
   ['CRM 10 practice cases', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes("id: 'gp10'")],
   ['CRM Formato E send gate', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes('gradeFormatoE')],
   ['desk English grader published', existsSync(join(DEST, 'js/kamuk-desk-english.js'))],
+  ['CRM call scripts published', existsSync(join(DEST, 'js/kamuk-holdings-call.js')) && readFileSync(join(DEST, 'js/kamuk-holdings-call.js'), 'utf8').includes('call/turn')],
+  ['Nexora lab pre-July-27', readFileSync(join(DEST, 'nexora.html'), 'utf8').includes('Operational Simulation Lab') && !readFileSync(join(DEST, 'nexora.html'), 'utf8').includes('nexora-simulation-program')],
   ['Recursos Email + Phone', readFileSync(join(DEST, 'js/kamuk-recursos-library.js'), 'utf8').includes("id: 'email'") && readFileSync(join(DEST, 'js/kamuk-recursos-library.js'), 'utf8').includes("id: 'phone'")],
   ['mock Formato E step', readFileSync(join(DEST, 'js/simulation-onboarding.js'), 'utf8').includes("grade: 'formato-e'")],
+  ['Auditoría Kamuk in Engine', engine.includes('Auditoría Kamuk') && engine.includes('robert.grego@kamuk.cr')],
+  ['supervisor Q&A audit UI', readFileSync(join(DEST, 'js/simulation-supervisor.js'), 'utf8').includes('sim-audit-ask')],
   ['CRM red coach', readFileSync(join(DEST, 'css/kamuk-holdings-crm.css'), 'utf8').includes('desk-guide-look')],
   [
     'engine portal URL ok',

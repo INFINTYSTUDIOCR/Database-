@@ -9,6 +9,10 @@ const {
   rulesAcceptedThisWeek, deskGuideDoneThisWeek, deskGuideDoneList, deskGuideAllComplete,
   gradePracticeTouch
 } = require('./kamuk-holdings-floor');
+const { collectEmails, buildDossier, deterministicReport, askFallback, decide } = require('./kamuk-holdings-audit');
+const {
+  isInternalOnly, buildCallSession, nextCallTurn, practiceTemplateId, voiceForClient
+} = require('./kamuk-holdings-call-scripts');
 
 const caseIndex = new Map((pack.cases || []).map((item) => [item.id, item]));
 const liveCache = new Map();
@@ -142,6 +146,20 @@ function notesFromEvents(events) {
   return events.filter((event) => event.type === 'note' && event.text).map((event) => ({
     channel: event.channel, text: event.text, at: event.at
   }));
+}
+
+function isPracticeCaseId(caseId) {
+  return /^KH-PRAC-/i.test(caseId) || /^PRACTICE-/i.test(caseId);
+}
+
+function resolveDeskCase(caseId) {
+  const id = clean(caseId, 40);
+  if (caseIndex.has(id)) return caseIndex.get(id);
+  const template = practiceTemplateId(id);
+  if (template && caseIndex.has(template)) {
+    return Object.assign({}, caseIndex.get(template), { id, practice: true, templateId: template });
+  }
+  return null;
 }
 
 function registerKamukHoldingsCrm(app, deps) {
@@ -775,7 +793,7 @@ function registerKamukHoldingsCrm(app, deps) {
           return { ...data, connected: ageMs < 70000, heartbeatAgeSec: Math.max(0, Math.round(ageMs / 1000)) };
         });
       const recentTouches = touches.sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt))).slice(0, 100);
-      const training = studentRows.map((row) => {
+        const training = studentRows.map((row) => {
         const student = row.data || {};
         const state = floorState(student, product);
         const validated = validateTrainingProgress({
@@ -785,6 +803,11 @@ function registerKamukHoldingsCrm(app, deps) {
           quizAnswers: state.courseQuizAnswers,
           mockIndex: state.mockIndex,
           quizAttempts: state.quizAttempts
+        });
+        const studentTouches = touches.filter((touch) => touch.studentId === row.id);
+        const liveRow = live.find((item) => item.studentId === row.id);
+        const dossier = buildDossier({
+          studentId: row.id, student, product, touches: studentTouches, live: liveRow
         });
         return {
           studentId: row.id,
@@ -799,9 +822,17 @@ function registerKamukHoldingsCrm(app, deps) {
           courseComplete: validated.courseComplete,
           nestingCompletedAt: state.nestingCompletedAt || null,
           delayStrikes: Number(state.delayStrikes) || 0,
-          delayPenalty: Boolean(state.delayPenalty)
+          delayPenalty: Boolean(state.delayPenalty),
+          lastLoginAt: dossier.logins.lastLoginAt,
+          loginCount: dossier.logins.loginCount,
+          deskMin: dossier.duration.deskMin,
+          callMin: dossier.duration.callMin,
+          emailPass: dossier.emailPass,
+          emailFail: dossier.emailFail,
+          decision: decide(dossier).decision
         };
       }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+      const emails = collectEmails(recentTouches);
       return res.json({
         ok: true, product, weekKey, generatedAt: new Date().toISOString(),
         summary: {
@@ -811,12 +842,15 @@ function registerKamukHoldingsCrm(app, deps) {
           freshPool: workItems.filter((item) => item.status === 'unassigned' && item.touchNumber === 1).length,
           followUpPool: workItems.filter((item) => item.status === 'unassigned' && item.touchNumber > 1).length,
           pendingEvaluations: touches.filter((item) => item.pendingEvaluation || item.evaluation?.pendingEvaluation).length,
-          nestingReady: training.filter((item) => item.nestingCompletedAt).length
+          nestingReady: training.filter((item) => item.nestingCompletedAt).length,
+          emailsAudited: emails.length,
+          formatoEFail: emails.filter((item) => !item.formatoE).length
         },
         live, leaderboard: board, winner: pickWeeklyWinner(board),
         resolveRates: board.map(({ studentId, name, started, resolved, resolutionRate }) => ({ studentId, name, started, resolved, resolutionRate })),
         recentTouches,
-        training
+        training,
+        emails
       });
     } catch (error) {
       return res.status(500).json({ error: 'Supervisor feed unavailable' });
@@ -865,48 +899,194 @@ function registerKamukHoldingsCrm(app, deps) {
     }
   });
 
+  async function loadDossier(product, studentId) {
+    const id = clean(studentId, 40);
+    if (!id || productForStudent(id) !== product) return null;
+    const [row, rows] = await Promise.all([sbGetStudentRow(id), sbGet(sessionsTable(product))]);
+    if (!row) return null;
+    const weekKey = weekKeyCR();
+    const touches = listTouches(rows, product, weekKey).filter((touch) => touch.studentId === id);
+    const live = rows.find((item) => String(item.id) === `KHCRM-LIVE-${id}`)?.data || null;
+    return buildDossier({ studentId: id, student: row.data || {}, product, touches, live });
+  }
+
+  app.get(crmPaths('/supervisor/student/:id'), requireTeacherAccess, async (req, res) => {
+    try {
+      if (!requireSupervisor(req, res)) return;
+      const product = supervisorProduct(req);
+      const dossier = await loadDossier(product, req.params.id);
+      if (!dossier) return res.status(404).json({ error: 'Student not found' });
+      return res.json({ ok: true, dossier, report: deterministicReport(dossier) });
+    } catch (error) {
+      return res.status(500).json({ error: 'Student audit unavailable' });
+    }
+  });
+
+  app.post(crmPaths('/supervisor/ask'), requireTeacherAccess, async (req, res) => {
+    try {
+      if (!requireSupervisor(req, res)) return;
+      const product = supervisorProduct(req);
+      const question = clean(req.body?.question, 500);
+      const dossier = await loadDossier(product, req.body?.studentId);
+      if (!dossier) return res.status(404).json({ error: 'Student not found' });
+      if (!question) return res.status(400).json({ error: 'Question required' });
+      const fallback = askFallback(dossier, question);
+      if (!process.env.ANTHROPIC_API_KEY) return res.json(fallback);
+      try {
+        const response = await claudeCall({
+          model: 'claude-sonnet-4-6', max_tokens: 900,
+          system: 'You are the Kamuk School trainer copilot. Help Robert Grego decide. Answer in Spanish. Use only the dossier. Be specific about emails (Formato E), logins, duration, completions and CRM work. End with a clear decision: hold, coach, watch, or ready.',
+          messages: [{ role: 'user', content: 'Pregunta del trainer: ' + question + '\n\nExpediente:\n' + JSON.stringify(dossier).slice(0, 12000) }]
+        });
+        const answer = (response.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('\n').trim();
+        return res.json({ ok: true, source: 'ai', answer, decision: fallback.decision, label: fallback.label });
+      } catch (error) {
+        return res.json(fallback);
+      }
+    } catch (error) {
+      return res.status(500).json({ error: 'Q&A unavailable' });
+    }
+  });
+
+  app.post(crmPaths('/supervisor/report'), requireTeacherAccess, async (req, res) => {
+    try {
+      if (!requireSupervisor(req, res)) return;
+      const product = supervisorProduct(req);
+      const dossier = await loadDossier(product, req.body?.studentId);
+      if (!dossier) return res.status(404).json({ error: 'Student not found' });
+      const base = deterministicReport(dossier);
+      if (!process.env.ANTHROPIC_API_KEY) return res.json(base);
+      try {
+        const response = await claudeCall({
+          model: 'claude-sonnet-4-6', max_tokens: 1400,
+          system: 'You are Alice QA writing a detailed Kamuk trainer report for Robert Grego. Spanish. Cover logins, duration, course completion, written cases, CRM emails (Formato E), notes, calls, scores. Finish with decisión and next coaching move.',
+          messages: [{ role: 'user', content: JSON.stringify(dossier).slice(0, 14000) }]
+        });
+        const report = (response.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('\n').trim();
+        return res.json(Object.assign({}, base, { source: 'ai', report: report || base.report }));
+      } catch (error) {
+        return res.json(base);
+      }
+    } catch (error) {
+      return res.status(500).json({ error: 'Report unavailable' });
+    }
+  });
+
+  async function requireActiveCallCase(req, res) {
+    const studentId = req.auth.studentId;
+    const caseId = clean(req.body?.caseId, 40);
+    const caseData = resolveDeskCase(caseId);
+    if (!caseData) {
+      res.status(404).json({ error: 'Case not found' });
+      return null;
+    }
+    if (isInternalOnly(caseData)) {
+      res.status(400).json({ error: 'Internal-only case. Do not contact the client.', code: 'NO_CLIENT_CALL' });
+      return null;
+    }
+    const live = await loadLive(studentId);
+    if (!isPracticeCaseId(caseId) && live?.activeCaseId !== caseId) {
+      res.status(409).json({ error: 'Claim this case before starting a call' });
+      return null;
+    }
+    return { studentId, caseId, caseData, live };
+  }
+
   app.post(crmPaths('/call/token'), deskAuth, async (req, res) => {
     try {
-      const studentId = req.auth.studentId;
-      const caseId = clean(req.body?.caseId, 30);
-      const caseData = caseIndex.get(caseId);
-      const live = await loadLive(studentId);
-      if (!caseData) return res.status(404).json({ error: 'Case not found' });
-      if (live?.activeCaseId !== caseId) return res.status(409).json({ error: 'Claim this case before starting a call' });
+      const ctx = await requireActiveCallCase(req, res);
+      if (!ctx) return;
+      const { studentId, caseId, caseData } = ctx;
+      const session = buildCallSession(caseData, req.auth);
+      const client = caseData.client || {};
       const agentId = clean(process.env.INFINITY_HOLDINGS_AGENT_ID || process.env.KAMUK_HOLDINGS_AGENT_ID, 80);
       const apiKey = process.env.ELEVENLABS_KEY || '';
-      if (!agentId || !apiKey) return res.status(503).json({ error: 'Voice is not configured for this desk', code: 'VOICE_NOT_CONFIGURED', voiceAvailable: false });
-      const client = caseData.client || {};
-      const personality = client.personality || {};
-      const dynamicVariables = {
-        case_id: caseId, case_title: clean(caseData.title, 160), case_brief: clean(caseData.brief, 500),
-        client_statement: clean(caseData.clientStatement, 500), client_name: clean(client.name, 100),
-        client_company: clean(client.company, 120), client_segment: clean(client.segment, 80),
-        personality: clean((personality.traits || []).join(', '), 200),
-        baseline_mood: clean(personality.baselineMood || caseData.mood || 'neutral', 40),
-        negotiation_style: clean(personality.negotiationStyle, 300),
-        negotiation_goals: clean((personality.goals || []).join('; '), 400),
-        protected_facts: clean(caseData.focus, 300), student_id: studentId,
-        student_name: clean(req.auth?.name || studentId, 100)
-      };
-      const tokenResponse = await fetch(`https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`, {
-        headers: { 'xi-api-key': apiKey }
-      });
-      if (!tokenResponse.ok) return res.status(502).json({ error: 'Could not open the simulated call channel', code: 'VOICE_TOKEN_FAILED' });
-      const body = await tokenResponse.json();
-      const signedUrl = body.signed_url || body.signedUrl;
-      if (!signedUrl) return res.status(502).json({ error: 'Voice provider returned an empty session', code: 'VOICE_TOKEN_EMPTY' });
+      let signedUrl = null;
+      if (agentId && apiKey) {
+        const tokenResponse = await fetch(`https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`, {
+          headers: { 'xi-api-key': apiKey }
+        });
+        if (tokenResponse.ok) {
+          const body = await tokenResponse.json();
+          signedUrl = body.signed_url || body.signedUrl || null;
+        }
+      }
       await saveLive(studentId, {
         status: 'on-call',
-        call: { status: 'connecting', mood: personality.baselineMood || caseData.mood || 'neutral', voiceId: personality.voiceId || null, startedAt: new Date().toISOString() }
+        call: {
+          status: 'connecting', mood: session.mood, voiceId: session.voiceId,
+          family: session.family, score: session.score, startedAt: new Date().toISOString()
+        }
       });
       return res.json({
-        ok: true, voiceAvailable: true, signedUrl, agentId, voiceId: personality.voiceId || null,
-        dynamicVariables, firstMessage: clean(caseData.clientStatement, 400),
-        client: { name: client.name, phone: client.phone, company: client.company, mood: personality.baselineMood || caseData.mood || 'neutral' }
+        ok: true,
+        voiceAvailable: Boolean(apiKey),
+        convaiAvailable: Boolean(signedUrl),
+        signedUrl,
+        agentId: signedUrl ? agentId : null,
+        voiceId: session.voiceId,
+        voiceAccent: session.voiceAccent,
+        firstMessage: session.opening,
+        dynamicVariables: session.dynamicVariables,
+        mood: session.mood,
+        score: session.score,
+        family: session.family,
+        client: { name: client.name, phone: client.phone, company: client.company, mood: session.mood }
       });
     } catch (error) {
       return res.status(500).json({ error: 'Could not start the simulated call' });
+    }
+  });
+
+  app.post(crmPaths('/call/turn'), deskAuth, async (req, res) => {
+    try {
+      const ctx = await requireActiveCallCase(req, res);
+      if (!ctx) return;
+      const { studentId, caseData, live } = ctx;
+      const turn = nextCallTurn({
+        caseData,
+        agentText: req.body?.text,
+        mood: clean(req.body?.mood || live?.call?.mood, 40),
+        score: Number(req.body?.score != null ? req.body.score : live?.call?.score)
+      });
+      await saveLive(studentId, {
+        status: 'on-call',
+        call: {
+          ...(live?.call || {}),
+          status: 'connected',
+          mood: turn.mood,
+          score: turn.score,
+          lastQuality: turn.quality,
+          updatedAt: new Date().toISOString()
+        }
+      });
+      return res.json(turn);
+    } catch (error) {
+      return res.status(500).json({ error: 'Could not continue the simulated call' });
+    }
+  });
+
+  app.post(crmPaths('/call/tts'), deskAuth, async (req, res) => {
+    try {
+      const ctx = await requireActiveCallCase(req, res);
+      if (!ctx) return;
+      const apiKey = process.env.ELEVENLABS_KEY || '';
+      if (!apiKey) return res.status(503).json({ error: 'Voice is not configured for this desk', code: 'VOICE_NOT_CONFIGURED', voiceAvailable: false });
+      const text = clean(req.body?.text, 800);
+      if (!text) return res.status(400).json({ error: 'Missing text' });
+      const voice = voiceForClient(ctx.caseData.client || {});
+      const voiceId = clean(req.body?.voiceId || voice.voiceId, 80);
+      const tts = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`, {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        body: JSON.stringify({ text, model_id: 'eleven_turbo_v2_5' })
+      });
+      if (!tts.ok) return res.status(502).json({ error: 'Could not synthesize the client voice', code: 'VOICE_TTS_FAILED' });
+      const buffer = Buffer.from(await tts.arrayBuffer());
+      res.set('Content-Type', 'audio/mpeg');
+      return res.send(buffer);
+    } catch (error) {
+      return res.status(500).json({ error: 'Could not play the client voice' });
     }
   });
 
