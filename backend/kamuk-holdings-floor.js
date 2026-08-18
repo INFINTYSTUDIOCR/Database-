@@ -7,17 +7,196 @@ const crypto = require('crypto');
 const pack = require(path.join('..', 'kamuk', 'data', 'kamuk-holdings-crm-pack-v1.json'));
 const templateMap = pack.templateMap || Object.fromEntries((pack.cases || []).map((item) => [item.id, item.templateId || item.id]));
 
+const PRIZE_SCORE = 8;
+const PRIZE_USD = 40;
+const DELAY_GAP_MS = 30 * 60 * 1000;
+const DELAY_STRIKE_LIMIT = 3;
+const HOME_WORD_MIN = 100;
+const HOME_WORD_MAX = 200;
+
+const PROFESSIONAL_CONNECTORS = [
+  'because', 'however', 'therefore', 'although', 'in addition', 'as a result',
+  'even though', 'on the other hand', 'in order to', 'consequently', 'nevertheless'
+];
+
+const METHOD_PHRASES = [
+  'even when', 'even though', 'what happens is that', 'when was that', 'when thinking',
+  'in which', 'on which', 'which is used', 'despite that', 'in other words', 'which means',
+  'not only', 'as well as', 'the thing is that', 'you know what i mean', 'it is said that',
+  'it should be done', 'somehow', 'i realized', 'find a way', 'figure out', 'instead of',
+  'about to', 'on the other hand', 'according to', 'such as', 'by now', 'for the moment',
+  'so far', 'unless', 'without the', 'however'
+];
+
+const BANKING_TERMS = [
+  'identity', 'verification', 'provisional credit', 'dispute', 'chargeback', 'travel notice',
+  'virtual card', 'authorization', 'disposition', 'awaiting action', 'pending system',
+  'replacement card', 'reporting window', 'merchant', 'statement', 'last 6', 'pin',
+  'follow up', 'follow-up', 'case number', 'business day', 'handoff', 'escalate',
+  'compliance', 'recorded line', 'operating account'
+];
+
+const AFFIX_FORMS = [
+  'unauthorized', 'authorization', 'verification', 'unverified', 'cancellation', 'cancelled',
+  'ineligible', 'eligibility', 'replacement', 'activation', 'inactive', 'unresolved',
+  'non-compliant', 'compliance', 'confirmation', 'investigation'
+];
+
+const GPT_FILLER = [
+  'as an ai', 'i hope this message finds you', 'i hope this email finds you',
+  'in today\'s fast-paced', 'it is important to note', 'delve into',
+  'rest assured that', 'leverage a robust', 'streamline your experience',
+  'please do not hesitate', 'please don\'t hesitate', 'i am here to assist you',
+  'in conclusion,', 'banking landscape', 'do not hesitate to reach out'
+];
+
+const TRANSLATOR_ESE = [
+  'i remain attentive', 'for your knowledge', 'i comment you', 'i proceed to',
+  'in attention to', 'make a dispute', 'make a refund', 'i put you in contact',
+  'the same one of', 'i stay pending'
+];
+
 const HOME_CASES = [
-  { id: 'hc1', connectors: ['because', 'however'], family: ['authorize', 'authorization', 'unauthorized'], phrasal: 'look into', vocab: ['duplicate charge', 'merchant', 'dispute', 'timeline'] },
-  { id: 'hc2', connectors: ['because', 'therefore'], family: ['verify', 'verification', 'unverified'], phrasal: 'sort out', vocab: ['decline', 'travel notice', 'limit', 'available'] },
-  { id: 'hc3', connectors: ['although', 'in addition'], family: ['cancel', 'cancellation', 'cancelled'], phrasal: 'follow up', vocab: ['recurring payment', 'merchant block', 'evidence', 'chargeback'] },
-  { id: 'hc4', connectors: ['because', 'however'], family: ['authorize', 'authorization', 'unauthorized'], phrasal: 'look into', vocab: ['provisional credit', 'block', 'replacement card', 'investigation'] },
-  { id: 'hc5', connectors: ['although', 'therefore'], family: ['resolve', 'resolution', 'unresolved'], phrasal: 'sort out', vocab: ['service not rendered', 'booking confirmation', 'evidence', 'merchant response'] },
-  { id: 'hc6', connectors: ['however', 'in addition'], family: ['comply', 'compliance', 'non-compliant'], phrasal: 'follow up', vocab: ['provisional credit', 'confirmation', 'case number', 'business day'] },
-  { id: 'hc7', connectors: ['because', 'although'], family: ['eligible', 'eligibility', 'ineligible'], phrasal: 'look into', vocab: ['reporting window', 'statement date', 'alternative', 'internal report'] },
-  { id: 'hc8', connectors: ['however', 'therefore'], family: ['decide', 'decision', 'undecided'], phrasal: 'follow up', vocab: ['outcome', 'network', 'evidence', 'deadline'] },
-  { id: 'hc9', connectors: ['because', 'in addition'], family: ['resolve', 'resolution', 'unresolved'], phrasal: 'sort out', vocab: ['refund', 'double credit', 'withdraw', 'reopen'] },
-  { id: 'hc10', connectors: ['therefore', 'however'], family: ['activate', 'activation', 'inactive'], phrasal: 'sort out', vocab: ['virtual card', 'travel notice', 'cash access', 'limitation'] }
+  {
+    id: 'hc1',
+    title: 'PIN request with a broken identity trail',
+    line: '“Just text me the PIN. The last agent already said my ID was fine.”',
+    facts: 'Client wants the PIN by SMS from a taxi. Mother’s maiden name matches. Date of birth on file is 12 Mar 1984; client said 12 Mar 1985. Previous note says “ID OK” with no data points. Card is Active. Policy: never send, read or email a PIN; last 6 only after full identity on a recorded line.',
+    connectors: ['because', 'however'],
+    family: ['verify', 'verification', 'unverified'],
+    phrasal: 'look into',
+    vocab: ['identity verification', 'PIN', 'last 6', 'recorded line'],
+    disposition: ['awaiting action', 'aa'],
+    resolution: ['never send', 'date of birth', 'recorded line', 'identity'],
+    forbidden: ['text the pin', 'sms the pin', 'email the pin', 'here is your pin'],
+    why: ['policy', 'mismatch', 'because']
+  },
+  {
+    id: 'hc2',
+    title: 'Hotel decline with two possible blocks',
+    line: '“Everyone is watching me at check-in. Fix the card now.”',
+    facts: 'Lisbon hotel decline. Available balance $8,400. No travel notice on file. Assistant filed a travel notice for Paris, not Lisbon. A $500 hotel MCC block remains from a prior dispute. Identity is not fully re-verified on this call. Policy: do not lift every control blindly; confirm which rule fired, then act.',
+    connectors: ['because', 'therefore'],
+    family: ['authorize', 'authorization', 'unauthorized'],
+    phrasal: 'sort out',
+    vocab: ['travel notice', 'decline', 'merchant category', 'available'],
+    disposition: ['pending system', 'psa'],
+    resolution: ['travel notice', 'lisbon', 'hotel', 'verify'],
+    forbidden: ['lift every block', 'remove all restrictions', 'guarantee it will work'],
+    why: ['because', 'two', 'policy']
+  },
+  {
+    id: 'hc3',
+    title: 'Deposit versus balance, not a duplicate',
+    line: '“You charged me twice. File the dispute today.”',
+    facts: 'Two postings of $2,150, one day apart, same merchant. Descriptors: DEPOSIT then BALANCE. Client did not attach the booking confirmation. Policy: a deposit plus remaining balance is not a duplicate. Chargeback needs evidence. Billing inquiry is allowed.',
+    connectors: ['although', 'in addition'],
+    family: ['cancel', 'cancellation', 'cancelled'],
+    phrasal: 'follow up',
+    vocab: ['duplicate charge', 'merchant', 'chargeback', 'evidence'],
+    disposition: ['awaiting action', 'aa'],
+    resolution: ['not a duplicate', 'deposit', 'booking confirmation', 'billing'],
+    forbidden: ['open the chargeback now', 'file fraud', 'instant refund'],
+    why: ['although', 'descriptor', 'policy']
+  },
+  {
+    id: 'hc4',
+    title: 'ATM withdrawals with PIN present',
+    line: '“The card is in my hand. Is my money gone? Refund me now.”',
+    facts: 'Six ATM withdrawals in another city, $3,000 total. Chip-and-PIN was used. Card is physically with the client. Spouse is an authorized user. No police report. Policy: PIN-present ATM is not automatic unauthorized fraud; block and replace; provisional credit needs investigation, not an instant refund.',
+    connectors: ['because', 'however'],
+    family: ['authorize', 'authorization', 'unauthorized'],
+    phrasal: 'look into',
+    vocab: ['provisional credit', 'replacement card', 'investigation', 'PIN'],
+    disposition: ['awaiting action', 'aa'],
+    resolution: ['block', 'replacement card', 'investigation', 'provisional credit'],
+    forbidden: ['instant refund', 'accuse the spouse', 'the money is gone'],
+    why: ['because', 'pin', 'policy']
+  },
+  {
+    id: 'hc5',
+    title: 'Hotel overbooked, merchant first',
+    line: '“The hotel says the bank must solve it. Put the $1,200 back.”',
+    facts: '$1,200 posting. Room not provided (overbooking). Client has a booking confirmation. Chat screenshot from a front-desk account: “we cannot help, call your bank.” Not an official refund-desk letter. Policy: service-not-rendered usually needs merchant contact first (10 business days) unless written refusal exists. Screenshot may be enough if documented.',
+    connectors: ['although', 'therefore'],
+    family: ['resolve', 'resolution', 'unresolved'],
+    phrasal: 'sort out',
+    vocab: ['service not rendered', 'booking confirmation', 'merchant response', 'evidence'],
+    disposition: ['pending system', 'psa'],
+    resolution: ['service not rendered', 'screenshot', 'document', 'merchant'],
+    forbidden: ['pay from bank funds', 'close without evidence', 'instant refund'],
+    why: ['although', 'policy', 'therefore']
+  },
+  {
+    id: 'hc6',
+    title: 'Broken same-day refund promise',
+    line: '“Another bank refunds in 24 hours. Your colleague promised today.”',
+    facts: 'Valid card-not-present fraud $890. Client is Standard, not VIP. Previous agent wrote “you will have it today.” Internal chat says VIP may get same-day goodwill — supervisor authority only. Policy: provisional credit in two business days after a case number; final decision 45–90 days. Do not match an invalid promise yourself.',
+    connectors: ['however', 'in addition'],
+    family: ['comply', 'compliance', 'non-compliant'],
+    phrasal: 'follow up',
+    vocab: ['provisional credit', 'case number', 'business day', 'goodwill'],
+    disposition: ['awaiting action', 'aa'],
+    resolution: ['provisional credit', 'case number', 'supervisor', 'two business days'],
+    forbidden: ['instant refund', 'same-day refund', 'i will refund today'],
+    why: ['however', 'policy', 'standard']
+  },
+  {
+    id: 'hc7',
+    title: 'Late dispute after the network window',
+    line: '“It is still theft. Are you doing nothing because I was in hospital?”',
+    facts: 'Charge 20 May. Statement date 31 May. Client reports 18 August — past the 60-day network window from the statement date. Client says hospital stay, no documents on file. Policy: network dispute is ineligible; hardship exception needs medical evidence and supervisor. Alternative: internal report and monitoring, not a chargeback.',
+    connectors: ['because', 'although'],
+    family: ['eligible', 'eligibility', 'ineligible'],
+    phrasal: 'look into',
+    vocab: ['reporting window', 'statement date', 'internal report', 'chargeback'],
+    disposition: ['awaiting action', 'aa'],
+    resolution: ['ineligible', 'reporting window', 'internal report', 'hospital'],
+    forbidden: ['file the chargeback', 'network will reverse', 'ignore the window'],
+    why: ['because', 'although', 'statement']
+  },
+  {
+    id: 'hc8',
+    title: 'Client wants a guaranteed win',
+    line: '“Promise me I am going to win. Sales said we always win these.”',
+    facts: 'Dispute filed correctly with evidence. Representment pending. Network decision in 12 business days. A sales manager emailed “we always win these.” Policy: never guarantee a network outcome. Explain the process, the deadline, and the follow-up without echoing sales.',
+    connectors: ['however', 'therefore'],
+    family: ['decide', 'decision', 'undecided'],
+    phrasal: 'follow up',
+    vocab: ['network', 'evidence', 'deadline', 'outcome'],
+    disposition: ['pending system', 'psa'],
+    resolution: ['cannot guarantee', 'network', 'deadline', 'follow up'],
+    forbidden: ['you will win', 'i guarantee', 'we always win'],
+    why: ['however', 'policy', 'network']
+  },
+  {
+    id: 'hc9',
+    title: 'Merchant refund already posted',
+    line: '“Keep the claim open anyway, just in case.”',
+    facts: '$620 merchant refund posted yesterday. An open dispute is still live. Keeping both can create a double credit. Policy: withdraw the dispute, confirm the refund, and explain that the claim can be reopened within 10 days if the refund reverses.',
+    connectors: ['because', 'in addition'],
+    family: ['resolve', 'resolution', 'unresolved'],
+    phrasal: 'sort out',
+    vocab: ['refund', 'double credit', 'withdraw', 'reopen'],
+    disposition: ['resolved', 'resolved with client'],
+    resolution: ['withdraw', 'double credit', 'reopen', 'refund'],
+    forbidden: ['keep both open', 'leave the dispute open', 'just in case keep'],
+    why: ['because', 'double', 'policy']
+  },
+  {
+    id: 'hc10',
+    title: 'Flight in 12 hours and a WhatsApp wire',
+    line: '“A physical card in five days is useless. Wire $4,200 to this travel agency now.”',
+    facts: 'Fraud block on the physical card. Flight at 6:00 a.m. Client wants a wire to a WhatsApp “travel agency” to pay the airline. Virtual card can be activated. Airport ATM cash is limited while the replacement is in transit. Policy: do not wire to an unverified third party; activate the virtual card; set a travel notice; explain the cash limitation.',
+    connectors: ['therefore', 'however'],
+    family: ['activate', 'activation', 'inactive'],
+    phrasal: 'sort out',
+    vocab: ['virtual card', 'travel notice', 'cash access', 'wire'],
+    disposition: ['resolved', 'resolved with client'],
+    resolution: ['virtual card', 'travel notice', 'do not wire', 'whatsapp'],
+    forbidden: ['send the wire', 'wire the money', 'pay the whatsapp'],
+    why: ['therefore', 'unverified', 'policy']
+  }
 ];
 
 const REQUIRED_DONE = ['welcome', 'service', 'comms', 'products', 'compliance', 'resolution', 'quiz', 'mock'];
@@ -129,6 +308,12 @@ function weekKeyCR(date = new Date()) {
   return monday.getUTCFullYear() + '-W' + String(week).padStart(2, '0');
 }
 
+function crDateKey(date = new Date()) {
+  const crMs = date.getTime() - 6 * 60 * 60 * 1000;
+  const cr = new Date(crMs);
+  return cr.getUTCFullYear() + '-' + String(cr.getUTCMonth() + 1).padStart(2, '0') + '-' + String(cr.getUTCDate()).padStart(2, '0');
+}
+
 function workItemId(product, weekKey, caseId) {
   return 'KHCRM-WI-' + product + '-' + weekKey + '-' + caseId;
 }
@@ -137,15 +322,135 @@ function claimLockId(product, weekKey, caseId) {
   return 'KHCRM-CLAIM-' + product + '-' + weekKey + '-' + caseId;
 }
 
-function homeAnswerReady(item, answer) {
+function wordCount(text) {
+  const trimmed = String(text || '').trim();
+  return trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
+}
+
+function hitCount(lower, list) {
+  return (list || []).filter((word) => lower.includes(String(word).toLowerCase())).length;
+}
+
+function hasTimedNext(text) {
+  return /\b(today|tomorrow|within|business day|a\.m\.|p\.m\.|\d{1,2}:\d{2})\b/i.test(String(text || ''));
+}
+
+function applyActivityHeartbeat(floor, at = new Date()) {
+  const now = at instanceof Date ? at : new Date(at);
+  const prev = floor && typeof floor === 'object' ? floor : {};
+  const dayKey = crDateKey(now);
+  const lastAt = prev.lastActivityAt ? new Date(prev.lastActivityAt).getTime() : 0;
+  const gap = lastAt ? now.getTime() - lastAt : 0;
+  const sameDay = prev.delayDayKey === dayKey;
+  let strikes = sameDay ? Math.max(0, Number(prev.delayStrikes) || 0) : 0;
+  const events = sameDay && Array.isArray(prev.delayEvents) ? prev.delayEvents.slice(-12) : [];
+  if (sameDay && lastAt && gap > DELAY_GAP_MS) {
+    strikes += 1;
+    events.push({ at: now.toISOString(), gapMin: Math.round(gap / 60000) });
+  }
+  return Object.assign({}, prev, {
+    lastActivityAt: now.toISOString(),
+    delayDayKey: dayKey,
+    delayStrikes: strikes,
+    delayEvents: events.slice(-12),
+    delayPenalty: strikes >= DELAY_STRIKE_LIMIT
+  });
+}
+
+function detectAssistSignals(text, context) {
+  const raw = String(text || '');
+  const lower = raw.toLowerCase();
+  const words = wordCount(raw);
+  const prevWords = Math.max(0, Number(context && context.previousWords) || 0);
+  const gptHits = GPT_FILLER.filter((item) => lower.includes(item)).length;
+  const translatorHits = TRANSLATOR_ESE.filter((item) => lower.includes(item)).length;
+  const connectors = PROFESSIONAL_CONNECTORS.filter((item) => lower.includes(item)).length;
+  const hasVoice = /\b(i will|i'm|i am|i own|i'll)\b/i.test(raw);
+  const hasContraction = /\b(i'll|don't|can't|won't|it's|we're)\b/i.test(raw);
+  const pasteBurst = prevWords < 25 && words >= 90;
+  const polishedBurst = pasteBurst && connectors >= 4 && !hasContraction && !hasVoice;
+  const reasons = [];
+  if (gptHits >= 2) reasons.push('chatgpt-filler');
+  if (translatorHits >= 1) reasons.push('translator-ese');
+  if (pasteBurst && (gptHits >= 1 || translatorHits >= 1 || polishedBurst)) reasons.push('sudden-polished-paste');
+  if (polishedBurst) reasons.push('zero-voice-high-connectors');
+  const blockPrize = reasons.length >= 1 && (gptHits >= 2 || (pasteBurst && gptHits + translatorHits >= 1) || polishedBurst);
+  return {
+    gptHits,
+    translatorHits,
+    pasteBurst,
+    polishedBurst,
+    reasons,
+    blockPrize,
+    evidence: reasons.join(', ')
+  };
+}
+
+function gradeHomeAnswer(item, answer, context) {
   const text = String(answer || '').trim();
   const lower = text.toLowerCase();
-  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
-  const connectorCount = item.connectors.filter((word) => lower.includes(word.toLowerCase())).length;
-  const familyUsed = item.family.some((word) => lower.includes(word.toLowerCase()));
-  const phrasalUsed = lower.includes(item.phrasal.toLowerCase());
-  const vocabCount = item.vocab.filter((word) => lower.includes(word.toLowerCase())).length;
-  return words >= 80 && words <= 180 && connectorCount >= 2 && familyUsed && phrasalUsed && vocabCount >= 2;
+  const words = wordCount(text);
+  const sentences = text.split(/[.!?]+/).map((part) => part.trim()).filter(Boolean);
+  const connectorCount = hitCount(lower, item.connectors);
+  const methodHits = hitCount(lower, METHOD_PHRASES);
+  const familyUsed = (item.family || []).some((word) => lower.includes(word.toLowerCase()));
+  const phrasalUsed = lower.includes(String(item.phrasal || '').toLowerCase());
+  const vocabCount = hitCount(lower, item.vocab);
+  const resolutionHits = hitCount(lower, item.resolution);
+  const forbiddenHit = (item.forbidden || []).some((word) => lower.includes(word.toLowerCase()));
+  const whyHits = hitCount(lower, item.why);
+  const dispositionHit = hitCount(lower, item.disposition) >= 1;
+  const hasOpen = /\b(what|why|how|could you (explain|describe|walk)|can you (tell|explain|describe))\b/i.test(text);
+  const hasClosed = /\b(did you|do you|have you|is this|are you|was the|can you confirm|could you confirm)\b/i.test(text);
+  const timed = hasTimedNext(text);
+  const owner = /\b(i will|i am|i own|owner|operations|supervisor|follow up|follow-up|next agent)\b/i.test(text);
+  const ack = /\b(understand|i hear|you have had|impact)\b/i.test(text);
+  const integrity = detectAssistSignals(text, context || {});
+  const terse = words < HOME_WORD_MIN || sentences.length < 4;
+  const resolution = !forbiddenHit && !terse && resolutionHits >= 2 && dispositionHit;
+  const language = familyUsed && phrasalUsed && vocabCount >= 2;
+  const explanation = whyHits >= 2 && /(because|therefore|as a result|although|since\b)/.test(lower);
+  const execution = hasOpen && hasClosed && words >= HOME_WORD_MIN && words <= HOME_WORD_MAX;
+  const transition = timed && owner;
+  const connectorsOk = connectorCount >= 2 && methodHits >= 1;
+  const documentation = ack && timed && owner;
+  const clarity = sentences.length >= 4 && sentences.every((sentence) => wordCount(sentence) <= 40);
+  const ready = resolution && language && explanation && execution && transition && connectorsOk && documentation && clarity && !integrity.blockPrize;
+  const missing = [];
+  if (terse) missing.push('substance (100–200 words, four clear sentences)');
+  if (words > HOME_WORD_MAX) missing.push('shorten to 200 words');
+  if (!connectorsOk) missing.push('required connectors plus a método linker');
+  if (!familyUsed) missing.push('a prefix/suffix family form');
+  if (!phrasalUsed) missing.push('the phrasal verb');
+  if (vocabCount < 2) missing.push('two case terms');
+  if (!resolution) missing.push('a correct disposition and safe resolution');
+  if (!explanation) missing.push('a policy explanation');
+  if (!hasOpen || !hasClosed) missing.push('one open and one closed question');
+  if (!transition) missing.push('owner + timed next step');
+  if (!documentation || !clarity) missing.push('clear structure');
+  if (integrity.blockPrize) missing.push('write in your own voice (AI/translator pattern)');
+  return {
+    ready,
+    words,
+    integrity,
+    dimensions: {
+      resolution,
+      language,
+      explanation,
+      execution,
+      transition,
+      connectors: connectorsOk,
+      documentation,
+      clarity
+    },
+    message: ready
+      ? ('Rubric complete · ' + words + ' words.')
+      : ('Still needed: ' + missing.join(' · '))
+  };
+}
+
+function homeAnswerReady(item, answer, context) {
+  return gradeHomeAnswer(item, answer, context).ready;
 }
 
 function validateTrainingProgress(payload) {
@@ -155,6 +460,9 @@ function validateTrainingProgress(payload) {
   const quizAnswers = payload && payload.quizAnswers && typeof payload.quizAnswers === 'object' ? payload.quizAnswers : {};
   const mockIndex = Math.max(0, Number(payload && payload.mockIndex) || 0);
   const quizAttempts = Math.max(0, Number(payload && payload.quizAttempts) || 0);
+  const previousAnswers = payload && payload.previousHomeAnswers && typeof payload.previousHomeAnswers === 'object'
+    ? payload.previousHomeAnswers
+    : {};
   const checkGrade = gradeCourseChecks(checks);
   const quiz = gradeCertification(quizAnswers);
   const mockReady = mockIndex >= 11;
@@ -168,7 +476,12 @@ function validateTrainingProgress(payload) {
     if (incomplete) missingSteps.push('checks');
   }
   const courseComplete = missingSteps.length === 0 && checkGrade.complete && quiz.passed && mockReady;
-  const homeStatus = HOME_CASES.map((item) => ({ id: item.id, ready: homeAnswerReady(item, homeAnswers[item.id]) }));
+  const homeStatus = HOME_CASES.map((item) => {
+    const graded = gradeHomeAnswer(item, homeAnswers[item.id], {
+      previousWords: wordCount(previousAnswers[item.id])
+    });
+    return { id: item.id, ready: graded.ready, words: graded.words, integrity: graded.integrity };
+  });
   const homeReady = homeStatus.every((item) => item.ready);
   return {
     done,
@@ -193,6 +506,30 @@ function floorState(student, product) {
 
 function isNestingComplete(student, product) {
   return Boolean(floorState(student, product).nestingCompletedAt);
+}
+
+function rulesAcceptedThisWeek(state, weekKey) {
+  const current = weekKey || weekKeyCR();
+  return Boolean(state && state.casesRulesAcceptedAt && state.casesRulesWeekKey === current);
+}
+
+function deskGuideDoneList(state) {
+  const raw = Array.isArray(state && state.deskGuideDone) ? state.deskGuideDone : [];
+  const ids = [];
+  raw.forEach((id) => {
+    const key = String(id || '').trim();
+    if (/^gp([1-9]|10)$/.test(key) && ids.indexOf(key) < 0) ids.push(key);
+  });
+  return ids;
+}
+
+function deskGuideAllComplete(state) {
+  if (deskGuideDoneList(state).length >= 10) return true;
+  return Boolean(state && state.deskGuideCompletedAt);
+}
+
+function deskGuideDoneThisWeek(state) {
+  return deskGuideAllComplete(state);
 }
 
 function flagOn(value) {
@@ -221,7 +558,9 @@ function metricsFromFloor(state) {
     points: Math.max(0, Number(state.points) || 0),
     weeklyPoints,
     team: state.team || null,
-    nestingCompletedAt: state.nestingCompletedAt || null
+    nestingCompletedAt: state.nestingCompletedAt || null,
+    delayStrikes: Math.max(0, Number(state.delayStrikes) || 0),
+    delayPenalty: Boolean(state.delayPenalty)
   };
 }
 
@@ -247,19 +586,60 @@ function listTouches(rows, product, weekKey) {
     .map((row) => Object.assign({ id: row.id }, row.data));
 }
 
-function scoreFromErrors(errors) {
+function prizeFields(casePoints, integrityBlocked) {
+  const eligible = casePoints >= PRIZE_SCORE && !integrityBlocked;
+  return {
+    competitionEligible: eligible,
+    prizeEligible: eligible,
+    prizeUsd: eligible ? PRIZE_USD : 0,
+    qaScore: casePoints * 10,
+    verdict: casePoints >= 9
+      ? 'Corporate standard exceeded'
+      : casePoints >= PRIZE_SCORE
+        ? (eligible ? 'Prize standard met' : 'Quality high — prize blocked')
+        : casePoints >= 5 ? 'Banking standard in range' : 'Coaching required'
+  };
+}
+
+function scoreFromErrors(errors, extras) {
   const list = Array.isArray(errors) ? errors.slice(0, 10) : [];
   const casePoints = Math.max(0, 10 - list.length);
-  return {
+  const integrityBlocked = Boolean(extras && extras.integrityBlocked);
+  return Object.assign({
     errors: list.map((item) => ({
       code: clean((item && item.code) || 'error', 40),
       label: clean((item && (item.label || item.code)) || 'Error', 120),
       evidence: clean((item && item.evidence) || '', 300)
     })),
-    casePoints,
-    competitionEligible: casePoints >= 7,
-    qaScore: casePoints * 10,
-    verdict: casePoints >= 9 ? 'Corporate standard exceeded' : casePoints >= 7 ? 'Banking standard met' : 'Coaching required'
+    casePoints
+  }, prizeFields(casePoints, integrityBlocked));
+}
+
+function mergeFloorErrors(primary, secondary) {
+  const combined = [];
+  const seen = new Set();
+  [].concat(primary || [], secondary || []).forEach((item) => {
+    const code = clean((item && item.code) || 'error', 40);
+    if (seen.has(code)) return;
+    seen.add(code);
+    combined.push(item);
+  });
+  return combined.slice(0, 10);
+}
+
+function corpusFromSubmission(submission) {
+  const email = (submission.events || []).find((event) => event.type === 'email' && event.body);
+  const note = (submission.notes || [])[0];
+  return {
+    email,
+    note,
+    text: [
+      email && email.body,
+      typeof note === 'string' ? note : (note && (note.text || note.body)),
+      submission.resolution && submission.resolution.summary,
+      submission.resolution && submission.resolution.nextStep,
+      submission.resolution && submission.resolution.disposition
+    ].filter(Boolean).join(' ')
   };
 }
 
@@ -272,42 +652,111 @@ function deterministicErrors(caseData, submission) {
   (caseData.forbiddenActions || []).forEach((key) => {
     if (keys.has(key)) errors.push({ code: 'forbidden-' + key, label: 'Unsafe action: ' + key.replace(/-/g, ' '), evidence: 'A forbidden control appeared in the evidence trail.' });
   });
-  const email = (submission.events || []).find((event) => event.type === 'email' && event.body);
-  const note = (submission.notes || [])[0];
+  const { email, note, text } = corpusFromSubmission(submission);
+  const lower = text.toLowerCase();
+  const emailBody = String((email && email.body) || '');
+  const emailWords = wordCount(emailBody);
+  const noteText = typeof note === 'string' ? note : String((note && (note.text || note.body)) || '');
   if (!email) errors.push({ code: 'missing-email', label: 'Missing client email', evidence: 'No outbound email was recorded for this touch.' });
-  if (!note) errors.push({ code: 'missing-note', label: 'Missing interaction note', evidence: 'No brief internal note was recorded for this touch.' });
+  if (!noteText) errors.push({ code: 'missing-note', label: 'Missing interaction note', evidence: 'No brief internal note was recorded for this touch.' });
   if (email) {
-    const lower = String(email.body || '').toLowerCase();
-    if (!/^(dear|hello|hi)\b/.test(lower)) errors.push({ code: 'email-opening', label: 'Unnatural email opening', evidence: 'Client email should open with Dear, Hello or Hi.' });
-    if (!/(because|however|therefore|although|in addition|as a result)/.test(lower)) errors.push({ code: 'email-connector', label: 'Missing connector in email', evidence: 'Use at least one professional connector naturally.' });
-    if (!/\b(today|tomorrow|within|by\s+\d|business day|a\.m\.|p\.m\.)\b/i.test(email.body || '')) errors.push({ code: 'email-next-step', label: 'Missing timed next step in email', evidence: 'The email must include a timed next step.' });
+    if (!/^(dear|hello|hi)\b/i.test(emailBody.trim())) {
+      errors.push({ code: 'email-opening', label: 'Unnatural email opening', evidence: 'Client email should open with Dear, Hello or Hi.' });
+    }
+    const connectorHits = PROFESSIONAL_CONNECTORS.filter((word) => emailBody.toLowerCase().includes(word)).length;
+    if (connectorHits < 2) {
+      errors.push({ code: 'email-connector', label: 'Weak connector use', evidence: 'Use at least two professional connectors or linkers in the client email.' });
+    }
+    if (hitCount(emailBody.toLowerCase(), METHOD_PHRASES) < 1) {
+      errors.push({ code: 'method-linker', label: 'Missing método linker', evidence: 'Use a linker from Linkers y expresiones — método in Recursos.' });
+    }
+    if (!hasTimedNext(emailBody)) {
+      errors.push({ code: 'email-next-step', label: 'Missing timed next step in email', evidence: 'The email must include a timed next step.' });
+    }
+    if (emailWords < 45) {
+      errors.push({ code: 'email-substance', label: 'Email too thin', evidence: 'Write a structured email with real substance (about 45+ words).' });
+    }
+  }
+  if (noteText && wordCount(noteText) < 12) {
+    errors.push({ code: 'note-substance', label: 'Thin documentation', evidence: 'The internal note needs facts, action and a next owner.' });
+  }
+  if (hitCount(lower, BANKING_TERMS) < 2) {
+    errors.push({ code: 'language-terms', label: 'Thin professional language', evidence: 'Use banking terms from the Holdings glossary.' });
+  }
+  if (!AFFIX_FORMS.some((form) => lower.includes(form))) {
+    errors.push({ code: 'language-affix', label: 'Missing prefix/suffix family', evidence: 'Use a prefix or suffix family form (verification, unauthorized, replacement…).' });
+  }
+  if (!/(because|therefore|as a result|although)/.test(lower) || !/(policy|procedure|evidence|timeline|because the)/.test(lower)) {
+    errors.push({ code: 'explanation', label: 'Weak explanation', evidence: 'Explain why the chosen path is safe, using policy or evidence.' });
+  }
+  if (!/\b(i will|i own|follow up|operations|supervisor|next agent)\b/i.test(text) || !hasTimedNext(text)) {
+    errors.push({ code: 'transition', label: 'Weak handoff', evidence: 'Name an owner and a timed next step so the next agent can continue.' });
+  }
+  if (/\b(i guarantee|you will win|instant refund|wire the money)\b/i.test(lower)) {
+    errors.push({ code: 'overpromise', label: 'Unsafe over-promise', evidence: 'Do not guarantee outcomes or take forbidden shortcuts.' });
+  }
+  if (!errors.length && emailWords < 70) {
+    errors.push({ code: 'exceptional-bar', label: 'Below exceptional standard', evidence: '10/10 needs extended professional writing; 8/10 still requires the full rubric.' });
   }
   return scoreFromErrors(errors.slice(0, 10));
+}
+
+function applyQualityGates(scored, gates) {
+  const errors = (scored.errors || []).slice();
+  if (gates && gates.delayPenalty) {
+    errors.push({
+      code: 'delay-strikes',
+      label: 'Three idle pauses over 30 minutes today',
+      evidence: 'Server recorded three gaps longer than 30 minutes on this Costa Rica calendar day.'
+    });
+  }
+  if (gates && gates.integrity && gates.integrity.blockPrize) {
+    errors.push({
+      code: 'integrity-assist',
+      label: 'AI/translator pattern',
+      evidence: 'Server heuristics: ' + (gates.integrity.evidence || 'polished assist pattern')
+    });
+  }
+  const next = scoreFromErrors(mergeFloorErrors(errors), {
+    integrityBlocked: Boolean(gates && gates.integrity && gates.integrity.blockPrize)
+  });
+  return Object.assign({}, scored, next, {
+    delayPenalty: Boolean(gates && gates.delayPenalty),
+    integrity: (gates && gates.integrity) || { blockPrize: false, reasons: [] }
+  });
 }
 
 function buildFloorAlicePrompt(caseData, submission, fallback, kind) {
   return 'You are Alice, Senior QA Director for Kamuk Holdings nesting floor.\n'
     + 'Score ONE agent touch from 10 points. Every distinct error deducts exactly 1 point.\n'
-    + 'Return ONLY JSON: {"errors":[{"code":"short-code","label":"short label","evidence":"proof"}],"summary":"2 sentences","strengths":["max 4"],"improvements":["max 4"],"dimensions":{"English":0-100,"Judgment":0-100,"Compliance":0-100,"Documentation":0-100}}\n'
+    + 'Be FAIR but strict. A student who writes professional English, uses the school método linkers (however, even though, in other words, as well as, which means, on the other hand…), phrasals and prefix/suffix forms, explains the policy, documents clearly and structures the email CAN reach 8/10. Generic complete work is 5–7. Terse empty writing fails. 10/10 is exceptional and rare. Prefer método language over random IELTS connector dumps.\n'
+    + 'Also judge: resolution, language, explanation, simple execution, transitions, connectors, documentation, email structure, clarity.\n'
+    + 'Return ONLY JSON: {"errors":[{"code":"short-code","label":"short label","evidence":"proof"}],"summary":"2 sentences","strengths":["max 4"],"improvements":["max 4"],"dimensions":{"Resolution":0-100,"Language":0-100,"Explanation":0-100,"Execution":0-100,"Transition":0-100,"Connectors":0-100,"Documentation":0-100,"Clarity":0-100}}\n'
     + 'Touch kind: ' + kind + '\n'
     + 'CASE:\n' + JSON.stringify({ id: caseData.id, type: caseData.type, brief: caseData.brief, expectedResolution: caseData.expectedResolution, requiredActions: caseData.requiredActions, forbiddenActions: caseData.forbiddenActions }) + '\n'
     + 'EVIDENCE:\n' + JSON.stringify(submission) + '\n'
     + 'CONTROL PRECHECK:\n' + JSON.stringify(fallback);
 }
 
-function normalizeFloorEvaluation(value, fallback) {
-  const scored = scoreFromErrors(value && value.errors && value.errors.length ? value.errors : fallback.errors);
+function normalizeFloorEvaluation(value, fallback, gates) {
+  const merged = mergeFloorErrors(value && value.errors, fallback && fallback.errors);
+  const scored = applyQualityGates(scoreFromErrors(merged.length ? merged : (fallback && fallback.errors) || []), gates || {});
   const dimensions = (value && value.dimensions) || {};
   const bounded = (number) => Math.max(0, Math.min(100, Math.round(Number(number) || 0)));
+  const fallbackDim = scored.casePoints * 10;
   return Object.assign({}, scored, {
-    summary: clean((value && value.summary) || fallback.summary || scored.verdict, 700),
-    strengths: (Array.isArray(value && value.strengths) ? value.strengths : fallback.strengths || []).slice(0, 4).map((item) => clean(item, 180)),
-    improvements: (Array.isArray(value && value.improvements) ? value.improvements : fallback.improvements || []).slice(0, 4).map((item) => clean(item, 180)),
+    summary: clean((value && value.summary) || (fallback && fallback.summary) || scored.verdict, 700),
+    strengths: (Array.isArray(value && value.strengths) ? value.strengths : (fallback && fallback.strengths) || []).slice(0, 4).map((item) => clean(item, 180)),
+    improvements: (Array.isArray(value && value.improvements) ? value.improvements : (fallback && fallback.improvements) || []).slice(0, 4).map((item) => clean(item, 180)),
     dimensions: {
-      English: bounded(dimensions.English != null ? dimensions.English : 70),
-      Judgment: bounded(dimensions.Judgment != null ? dimensions.Judgment : scored.casePoints * 10),
-      Compliance: bounded(dimensions.Compliance != null ? dimensions.Compliance : scored.casePoints * 10),
-      Documentation: bounded(dimensions.Documentation != null ? dimensions.Documentation : 70)
+      Resolution: bounded(dimensions.Resolution != null ? dimensions.Resolution : dimensions.Judgment != null ? dimensions.Judgment : fallbackDim),
+      Language: bounded(dimensions.Language != null ? dimensions.Language : dimensions.English != null ? dimensions.English : 70),
+      Explanation: bounded(dimensions.Explanation != null ? dimensions.Explanation : 70),
+      Execution: bounded(dimensions.Execution != null ? dimensions.Execution : dimensions.Compliance != null ? dimensions.Compliance : fallbackDim),
+      Transition: bounded(dimensions.Transition != null ? dimensions.Transition : 70),
+      Connectors: bounded(dimensions.Connectors != null ? dimensions.Connectors : 70),
+      Documentation: bounded(dimensions.Documentation != null ? dimensions.Documentation : 70),
+      Clarity: bounded(dimensions.Clarity != null ? dimensions.Clarity : 70)
     },
     pointsAwarded: scored.competitionEligible ? scored.casePoints : 0,
     pendingEvaluation: false
@@ -319,9 +768,16 @@ function pendingEvaluationResult(fallback) {
     pendingEvaluation: true,
     pointsAwarded: 0,
     competitionEligible: false,
+    prizeEligible: false,
+    prizeUsd: 0,
     summary: 'AI evaluation is pending. This touch is saved for Alice scoring and will not add competition points until evaluated.',
     verdict: 'Pending evaluation'
   });
+}
+
+function pickWeeklyWinner(board) {
+  const row = (board || []).find((item) => (Number(item.weeklyPoints) || 0) > 0);
+  return row ? Object.assign({}, row, { prizeUsd: PRIZE_USD, prizeScore: PRIZE_SCORE }) : null;
 }
 
 function leaderboardFromTouches(touches, studentsById) {
@@ -350,7 +806,8 @@ function leaderboardFromTouches(touches, studentsById) {
   return [...byStudent.values()]
     .map((row) => Object.assign({}, row, {
       resolutionRate: row.started ? Math.round((row.resolved / row.started) * 100) : 0,
-      averageScore: row.handled ? Math.round((row.scoreTotal / row.handled) * 10) / 10 : 0
+      averageScore: row.handled ? Math.round((row.scoreTotal / row.handled) * 10) / 10 : 0,
+      prizeEligible: (Number(row.weeklyPoints) || 0) > 0
     }))
     .sort((a, b) => b.weeklyPoints - a.weeklyPoints || b.resolved - a.resolved || b.averageScore - a.averageScore || String(a.name).localeCompare(String(b.name)))
     .map((row, index) => Object.assign({}, row, { rank: index + 1 }));
@@ -371,9 +828,22 @@ module.exports = {
   COURSE_CHECKS,
   CERT_BANK,
   QUIZ_PASS_RATE,
+  PRIZE_SCORE,
+  PRIZE_USD,
+  DELAY_GAP_MS,
+  DELAY_STRIKE_LIMIT,
+  HOME_WORD_MIN,
+  HOME_WORD_MAX,
   passingCoursePayload,
   gradeCourseChecks,
   gradeCertification,
+  gradeHomeAnswer,
+  homeAnswerReady,
+  detectAssistSignals,
+  applyActivityHeartbeat,
+  applyQualityGates,
+  crDateKey,
+  wordCount,
   pack,
   templateMap,
   clean,
@@ -387,16 +857,22 @@ module.exports = {
   validateTrainingProgress,
   floorState,
   isNestingComplete,
+  rulesAcceptedThisWeek,
+  deskGuideDoneThisWeek,
+  deskGuideDoneList,
+  deskGuideAllComplete,
   isCrmEnabled,
   metricsFromFloor,
   dispositionKind,
   listWorkItems,
   listTouches,
   scoreFromErrors,
+  mergeFloorErrors,
   deterministicErrors,
   buildFloorAlicePrompt,
   normalizeFloorEvaluation,
   pendingEvaluationResult,
+  pickWeeklyWinner,
   leaderboardFromTouches,
   hasTouchEvidence,
   crypto

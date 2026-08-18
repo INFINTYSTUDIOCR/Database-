@@ -1592,7 +1592,7 @@ function mountKamukSimulation(){
   SimulationOnboarding.mount(onboardingRoot, {
     product:'kamuk',
     studentId: studentId,
-    launchUrl:'kamuk-holdings-crm.html',
+    launchUrl:'https://studioinfinitycr.com/kamuk/kamuk-holdings-crm.html',
     crmEnabled: !CURRENT_STUDENT || CURRENT_STUDENT.simulationEnabled !== false
   });
 }
@@ -5104,6 +5104,21 @@ var ALICE_STUDENT_PALETTES = {
     btnShadow: '0 4px 20px rgba(236,72,153,0.5)',
     badgeBg: 'rgba(244,114,182,0.16)',
     msgBg: 'rgba(244,114,182,0.18)'
+  },
+  black: {
+    cardBg: 'linear-gradient(160deg,#000000 0%,#0a0a0a 40%,#171717 100%)',
+    cardShadow: '0 8px 40px rgba(0,0,0,0.7), 0 0 44px rgba(255,255,255,0.08)',
+    cardBorder: 'rgba(255,255,255,0.22)',
+    studioLabel: '#E5E5E5',
+    title: '#F5F5F5',
+    titleShadow: 'rgba(255,255,255,0.35)',
+    accent: '#E5E5E5',
+    accentLight: '#FAFAFA',
+    rgb: '229,229,229',
+    btnGrad: 'linear-gradient(135deg,#0a0a0a,#262626,#525252)',
+    btnShadow: '0 4px 20px rgba(0,0,0,0.65)',
+    badgeBg: 'rgba(255,255,255,0.10)',
+    msgBg: 'rgba(255,255,255,0.12)'
   }
 };
 
@@ -9639,7 +9654,7 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
-<script src="https://studioinfinitycr.com/js/simulation-onboarding.js?v=20260817crmall"></script>
+<script src="js/simulation-onboarding.js?v=20260818gp10"></script>
 <script src="https://studioinfinitycr.com/js/infinity-arcade-lil-games.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/infinity-casino-floor.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/infinity-modern-games.js?v=20260814refresh"></script>

@@ -21,7 +21,8 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260817crmall';
+const SIM_V = '20260818gp10';
+const CRM_V = '20260818gp10';
 
 mkdirSync(DEST, { recursive: true });
 
@@ -41,6 +42,10 @@ function prep(html, kind) {
   html = html.replace(
     /(src="js\/simulation-(?:onboarding|access|supervisor)\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + SIM_V + '"'
+  );
+  html = html.replace(
+    /(src="js\/kamuk-holdings-crm\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + CRM_V + '"'
   );
   if (kind === 'engine') {
     html = html.replace(
@@ -112,8 +117,11 @@ const checks = [
   ['CRM page published', existsSync(join(DEST, 'kamuk-holdings-crm.html'))],
   ['CRM pack published', existsSync(join(DEST, 'data/kamuk-holdings-crm-pack-v1.json'))],
   ['CRM css published', existsSync(join(DEST, 'css/kamuk-holdings-crm.css'))],
-  ['portal loads simulation onboarding', portal.includes('js/simulation-onboarding.js')],
+  ['portal loads simulation onboarding', portal.includes('js/simulation-onboarding.js?v=' + SIM_V)],
   ['portal mounts simulation for every student', portal.includes('mountKamukSimulation')],
+  ['CRM practice cache-bust', existsSync(join(DEST, 'js/kamuk-holdings-crm.js'))],
+  ['CRM 10 practice cases', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes("id: 'gp10'")],
+  ['CRM red coach', readFileSync(join(DEST, 'css/kamuk-holdings-crm.css'), 'utf8').includes('desk-guide-look')],
   [
     'engine portal URL ok',
     engine.includes("STUDENT_PORTAL_URL = 'https://studioinfinitycr.com/kamuk/'")

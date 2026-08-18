@@ -6,23 +6,34 @@ delete process.env.ANTHROPIC_API_KEY;
 const express = require('express');
 const { signToken, requireAuth } = require('./auth');
 const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
-const { weekKeyCR, HOME_CASES, passingCoursePayload } = require('./kamuk-holdings-floor');
+const {
+  weekKeyCR, HOME_CASES, passingCoursePayload, gradeHomeAnswer, applyActivityHeartbeat,
+  detectAssistSignals, crDateKey, DELAY_GAP_MS, PRIZE_SCORE, applyQualityGates, scoreFromErrors
+} = require('./kamuk-holdings-floor');
 
 function readyHomeAnswers() {
   const answers = {};
   HOME_CASES.forEach((item) => {
     const [c1, c2] = item.connectors;
     const body = [
-      `I understand the impact ${c1} ${item.vocab[0]} creates real pressure for the client, ${c2} I will ${item.phrasal} the evidence before promising any outcome.`,
-      `I reviewed the ${item.family[1]} trail and confirmed whether the activity looks ${item.family[0]} or not using the case facts provided.`,
-      `I will explain the ${item.vocab[1]} finding in plain language, ask one open question and one closed question, then take or route a safe action.`,
-      `I will leave a brief internal note with owner and timeline so the next agent can continue without making the client repeat information.`,
-      `My timed next step is a callback within one business day after the ${item.vocab[2] || item.vocab[0]} check is complete.`
+      `I understand the impact this has on the client ${c1} the ${item.vocab[0]} is still open and the client needs a safe owner.`,
+      `${c2} I will not take an unsafe shortcut or over-promise an outcome I do not own.`,
+      `I will ${item.phrasal} the ${item.family[1]} trail and confirm whether this looks ${item.family[0]} using the CRM evidence, not memory.`,
+      `How did this start, and can you confirm the key fact on a recorded line before we move?`,
+      `The safe resolution is ${item.resolution[0]} plus ${item.resolution[1]}. Disposition: ${item.disposition[0]}.`,
+      `I will follow up today before 4:30 p.m. after the ${item.vocab[1]} check, and I own that callback.`,
+      `In other words, I will leave a brief note so the next agent can continue without repeating identity questions.`,
+      `This follows ${item.why.join(' ')} because the documented path is required, even though the client wants a faster shortcut.`
     ].join(' ');
     answers[item.id] = body;
   });
   return answers;
 }
+
+const GOLD_EMAIL = 'Hello, I reviewed the follow-up because the authorization letter is now on file. However I will not promise an outcome the network has not decided. In other words, I confirmed identity verification, documented the evidence in the internal note, and I own the next callback today before 3:00 p.m. Therefore your operating path stays clear while we complete verification. I will follow up with Operations if anything else is still pending.';
+const GOLD_NOTE = 'Reviewed authorization evidence, confirmed identity verification, and parked a 3:00 p.m. callback with Operations as owner.';
+const GENERIC_EMAIL = 'Hello, I am writing because we need clarity. However I own the next check and will call tomorrow at 9:00 a.m.';
+const AI_EMAIL = 'Hello, I hope this message finds you well. It is important to note that in today\'s fast-paced banking landscape I am here to assist you. Rest assured that I will leverage a robust solution to streamline your experience. Please do not hesitate to reach out should you need anything else regarding this matter today before 3:00 p.m.';
 
 async function run() {
   const students = new Map([
@@ -95,6 +106,35 @@ async function run() {
   const trainerToken = signToken({ role: 'trainer', name: 'QA Supervisor', sub: 'qa-supervisor' }, 300);
   const course = passingCoursePayload();
   const doneSteps = course.done;
+  const goldAnswers = readyHomeAnswers();
+  HOME_CASES.forEach((item) => {
+    const graded = gradeHomeAnswer(item, goldAnswers[item.id], { previousWords: 40 });
+    assert.equal(graded.ready, true, `${item.id} gold should certify: ${graded.message}`);
+  });
+  const terse = gradeHomeAnswer(HOME_CASES[0], 'I will help today.', { previousWords: 0 });
+  assert.equal(terse.ready, false);
+  assert.ok(/substance/i.test(terse.message));
+
+  const day = new Date('2026-08-17T16:00:00-06:00');
+  let delayState = { lastActivityAt: new Date(day.getTime() - DELAY_GAP_MS - 1000).toISOString(), delayDayKey: crDateKey(day), delayStrikes: 0 };
+  delayState = applyActivityHeartbeat(delayState, day);
+  delayState = applyActivityHeartbeat(delayState, new Date(day.getTime() + DELAY_GAP_MS + 2000));
+  delayState = applyActivityHeartbeat(delayState, new Date(day.getTime() + 2 * DELAY_GAP_MS + 4000));
+  assert.ok(delayState.delayStrikes >= 3);
+  assert.equal(delayState.delayPenalty, true);
+  const overnight = applyActivityHeartbeat(delayState, new Date('2026-08-18T09:00:00-06:00'));
+  assert.equal(overnight.delayStrikes, 0);
+  assert.equal(overnight.delayPenalty, false);
+  const delayedScore = applyQualityGates(scoreFromErrors([]), { delayPenalty: true });
+  assert.ok(delayedScore.casePoints <= 9);
+  assert.ok(delayedScore.errors.some((item) => item.code === 'delay-strikes'));
+
+  const aiLike = detectAssistSignals(AI_EMAIL, { previousWords: 0 });
+  assert.equal(aiLike.blockPrize, true);
+
+  const gatedByIntegrity = applyQualityGates(scoreFromErrors([]), { integrity: aiLike });
+  assert.equal(gatedByIntegrity.prizeEligible, false);
+  assert.equal(gatedByIntegrity.competitionEligible, false);
 
   function certify(homeAnswers) {
     return Object.assign({}, course, { homeAnswers: homeAnswers || {} });
@@ -141,6 +181,27 @@ async function run() {
   assert.equal(progress.data.complete, true);
   assert.equal(progress.data.courseComplete, true);
   assert.ok(progress.data.quiz.passed);
+  assert.equal(progress.data.casesRulesAccepted, false);
+  const rules = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), { acceptCasesRules: true }));
+  assert.equal(rules.data.casesRulesAccepted, true);
+  const rulesAgain = await request('/kamuk-holdings/crm/training/progress', tokenA);
+  assert.equal(rulesAgain.data.casesRulesAccepted, true);
+  assert.ok(rulesAgain.data.homeAnswers && rulesAgain.data.homeAnswers.hc1);
+  assert.equal(rulesAgain.data.deskGuideCompleted, false);
+  const practiceOne = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), { practiceCaseId: 'gp1' }));
+  assert.equal(practiceOne.data.deskGuideCompleted, false);
+  assert.ok(Array.isArray(practiceOne.data.deskGuideDone) && practiceOne.data.deskGuideDone.indexOf('gp1') >= 0);
+  const practiceClaim = await request('/kamuk-holdings/crm/case/claim', tokenA, { workItemId: 'PRACTICE-gp1' }, false);
+  assert.equal(practiceClaim.status, 400);
+  assert.equal(practiceClaim.data.code, 'PRACTICE_ONLY');
+  const practiceResolve = await request('/kamuk-holdings/crm/case/resolve', tokenA, { caseId: 'KH-PRAC-GP1' }, false);
+  assert.equal(practiceResolve.status, 400);
+  assert.equal(practiceResolve.data.code, 'PRACTICE_ONLY');
+  const guide = await request('/kamuk-holdings/crm/training/progress', tokenA, Object.assign(certify(readyHomeAnswers()), { acceptDeskGuide: true }));
+  assert.equal(guide.data.deskGuideCompleted, true);
+  assert.equal(guide.data.deskGuideDone.length, 10);
+  const guideAgain = await request('/kamuk-holdings/crm/training/progress', tokenA);
+  assert.equal(guideAgain.data.deskGuideCompleted, true);
 
   await request('/kamuk-holdings/crm/training/progress', tokenB, certify(readyHomeAnswers()));
 
@@ -230,18 +291,18 @@ async function run() {
   await request('/kamuk-holdings/crm/case/event', tokenB, {
     caseId: firstCaseId,
     type: 'note',
-    payload: { channel: 'Internal note', text: 'Continued prior AA trail and closed with evidence.', at: new Date().toISOString() }
+    payload: { channel: 'Internal note', text: GOLD_NOTE, at: new Date().toISOString() }
   });
   await request('/kamuk-holdings/crm/case/event', tokenB, {
     caseId: firstCaseId,
     type: 'email',
     payload: {
       subject: 'Case closed',
-      body: 'Hello, I completed the follow-up because the document arrived. Therefore your account path is clear and I will confirm by 3:00 p.m. today.',
+      body: GOLD_EMAIL,
       to: 'client@example.com'
     }
   });
-  for (const key of ['acknowledge', 'note', 'next-step']) {
+  for (const key of ['acknowledge', 'note', 'next-step', 'operational-risk', 'escalate-operations']) {
     await request('/kamuk-holdings/crm/case/action', tokenB, {
       caseId: firstCaseId,
       action: { key, label: key, at: new Date().toISOString() }
@@ -260,6 +321,7 @@ async function run() {
   });
   assert.equal(scored.data.evaluation.casePoints, 8);
   assert.equal(scored.data.evaluation.competitionEligible, true);
+  assert.equal(scored.data.evaluation.prizeEligible, true);
   assert.equal(scored.data.evaluation.pointsAwarded, 8);
   assert.equal(scored.data.evaluation.pendingEvaluation, false);
 
@@ -298,9 +360,37 @@ async function run() {
     },
     durationSec: 90
   });
-  assert.equal(gated.data.evaluation.casePoints, 6);
+  assert.ok(gated.data.evaluation.casePoints < PRIZE_SCORE);
   assert.equal(gated.data.evaluation.competitionEligible, false);
   assert.equal(gated.data.evaluation.pointsAwarded, 0);
+
+  claudePayload = { errors: [], summary: 'Polished but assisted.', strengths: [], improvements: [], dimensions: { Resolution: 90, Language: 90, Explanation: 90, Execution: 90, Transition: 90, Connectors: 90, Documentation: 90, Clarity: 90 } };
+  const poolAi = await request('/kamuk-holdings/crm/pool', tokenA);
+  const aiCase = poolAi.data.fresh.find((item) => item.caseId !== firstCaseId && item.caseId !== second.caseId);
+  assert.ok(aiCase);
+  await request('/kamuk-holdings/crm/case/claim', tokenA, { workItemId: aiCase.workItemId });
+  await request('/kamuk-holdings/crm/case/event', tokenA, {
+    caseId: aiCase.caseId,
+    type: 'note',
+    payload: { channel: 'Internal note', text: GOLD_NOTE, at: new Date().toISOString() }
+  });
+  await request('/kamuk-holdings/crm/case/event', tokenA, {
+    caseId: aiCase.caseId,
+    type: 'email',
+    payload: { subject: 'Update', body: AI_EMAIL, to: 'client@example.com' }
+  });
+  const aiScored = await request('/kamuk-holdings/crm/case/resolve', tokenA, {
+    caseId: aiCase.caseId,
+    resolution: {
+      disposition: 'Resolved with client confirmation',
+      summary: 'Validated the uploaded authorization, restored the operational path and confirmed the outcome with the client.',
+      nextStep: 'Send written confirmation before 3:00 p.m. today.'
+    },
+    durationSec: 90
+  });
+  assert.equal(aiScored.data.evaluation.prizeEligible, false);
+  assert.equal(aiScored.data.evaluation.competitionEligible, false);
+  assert.equal(aiScored.data.evaluation.pointsAwarded, 0);
 
   const board = await request('/kamuk-holdings/crm/leaderboard', tokenB);
   assert.equal(board.data.weekKey, weekKeyCR());

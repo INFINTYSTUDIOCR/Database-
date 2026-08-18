@@ -4,7 +4,9 @@ const {
   weekKeyCR, workItemId, claimLockId, validateTrainingProgress, floorState,
   isNestingComplete, isCrmEnabled, metricsFromFloor, dispositionKind, listWorkItems, listTouches,
   deterministicErrors, buildFloorAlicePrompt, normalizeFloorEvaluation,
-  pendingEvaluationResult, leaderboardFromTouches, hasTouchEvidence, REQUIRED_DONE
+  pendingEvaluationResult, leaderboardFromTouches, hasTouchEvidence, REQUIRED_DONE,
+  applyActivityHeartbeat, detectAssistSignals, pickWeeklyWinner, wordCount,
+  rulesAcceptedThisWeek, deskGuideDoneThisWeek, deskGuideDoneList, deskGuideAllComplete
 } = require('./kamuk-holdings-floor');
 
 const caseIndex = new Map((pack.cases || []).map((item) => [item.id, item]));
@@ -238,11 +240,15 @@ function registerKamukHoldingsCrm(app, deps) {
         checks: state.courseChecks,
         quizAnswers: state.courseQuizAnswers,
         mockIndex: state.mockIndex,
-        quizAttempts: state.quizAttempts
+        quizAttempts: state.quizAttempts,
+        previousHomeAnswers: state.homeAnswers
       });
       return res.json({
         ok: true,
         done: validated.done,
+        homeAnswers: validated.homeAnswers,
+        checks: validated.checks,
+        quizAnswers: validated.quizAnswers,
         homeStatus: validated.homeStatus,
         quiz: validated.quiz,
         checkGrade: validated.checkGrade,
@@ -251,7 +257,14 @@ function registerKamukHoldingsCrm(app, deps) {
         courseComplete: validated.courseComplete,
         crmEnabled: isCrmEnabled(student, productForStudent(studentId)),
         nestingCompletedAt: state.nestingCompletedAt || null,
-        complete: Boolean(state.nestingCompletedAt) || validated.complete
+        complete: Boolean(state.nestingCompletedAt) || validated.complete,
+        delayStrikes: Number(state.delayStrikes) || 0,
+        delayPenalty: Boolean(state.delayPenalty),
+        casesRulesAccepted: rulesAcceptedThisWeek(state, weekKeyCR()),
+        casesRulesWeekKey: state.casesRulesWeekKey || null,
+        deskGuideCompleted: deskGuideAllComplete(state),
+        deskGuideDone: deskGuideDoneList(state),
+        deskGuideWeekKey: state.deskGuideWeekKey || null
       });
     } catch (error) {
       return res.status(500).json({ error: 'Training progress unavailable' });
@@ -266,14 +279,25 @@ function registerKamukHoldingsCrm(app, deps) {
       if (!student) return res.status(404).json({ error: 'Student not found' });
       const product = productForStudent(studentId);
       const key = holdingsKey(product);
-      const validated = validateTrainingProgress(req.body || {});
       const previous = student[key] || {};
+      const validated = validateTrainingProgress(Object.assign({}, req.body || {}, {
+        previousHomeAnswers: previous.homeAnswers
+      }));
       const nestingCompletedAt = validated.complete
         ? (previous.nestingCompletedAt || new Date().toISOString())
         : (previous.nestingCompletedAt || null);
       const now = new Date().toISOString();
+      const weekKey = weekKeyCR();
+      const tracked = applyActivityHeartbeat(previous, new Date());
+      const acceptRules = req.body && req.body.acceptCasesRules === true;
+      const acceptGuide = req.body && req.body.acceptDeskGuide === true;
+      const practiceId = clean(req.body && req.body.practiceCaseId, 8);
+      let guideDone = deskGuideDoneList(previous);
+      if (/^gp([1-9]|10)$/.test(practiceId) && guideDone.indexOf(practiceId) < 0) guideDone.push(practiceId);
+      if (acceptGuide) guideDone = ['gp1', 'gp2', 'gp3', 'gp4', 'gp5', 'gp6', 'gp7', 'gp8', 'gp9', 'gp10'];
+      const guideComplete = guideDone.length >= 10;
       student[key] = {
-        ...previous,
+        ...tracked,
         trainingDone: validated.done,
         homeAnswers: validated.homeAnswers,
         courseChecks: validated.checks,
@@ -285,19 +309,36 @@ function registerKamukHoldingsCrm(app, deps) {
         courseComplete: validated.courseComplete,
         nestingCompletedAt,
         trainingUpdatedAt: now,
-        courseCompletedAt: validated.courseComplete ? (previous.courseCompletedAt || now) : previous.courseCompletedAt || null
+        courseCompletedAt: validated.courseComplete ? (previous.courseCompletedAt || now) : previous.courseCompletedAt || null,
+        casesRulesAcceptedAt: acceptRules ? now : previous.casesRulesAcceptedAt || null,
+        casesRulesWeekKey: acceptRules ? weekKey : (previous.casesRulesWeekKey || null),
+        deskGuideDone: guideDone,
+        deskGuideCompletedAt: guideComplete ? (previous.deskGuideCompletedAt || now) : previous.deskGuideCompletedAt || null,
+        deskGuideWeekKey: guideComplete ? weekKey : (previous.deskGuideWeekKey || null)
       };
       await sbSetStudent(studentId, student);
       return res.json({
         ok: true,
         done: validated.done,
+        homeAnswers: validated.homeAnswers,
+        checks: validated.checks,
+        quizAnswers: validated.quizAnswers,
         homeStatus: validated.homeStatus,
         quiz: validated.quiz,
         checkGrade: validated.checkGrade,
+        mockIndex: validated.mockIndex,
+        quizAttempts: Math.max(Number(previous.quizAttempts) || 0, validated.quizAttempts),
         courseComplete: validated.courseComplete,
         crmEnabled: isCrmEnabled(student, product),
         nestingCompletedAt,
-        complete: Boolean(nestingCompletedAt) || validated.complete
+        complete: Boolean(nestingCompletedAt) || validated.complete,
+        delayStrikes: Number(student[key].delayStrikes) || 0,
+        delayPenalty: Boolean(student[key].delayPenalty),
+        casesRulesAccepted: rulesAcceptedThisWeek(student[key], weekKey),
+        casesRulesWeekKey: student[key].casesRulesWeekKey || null,
+        deskGuideCompleted: deskGuideAllComplete(student[key]),
+        deskGuideDone: deskGuideDoneList(student[key]),
+        deskGuideWeekKey: student[key].deskGuideWeekKey || null
       });
     } catch (error) {
       return res.status(500).json({ error: 'Training progress could not be saved' });
@@ -309,15 +350,26 @@ function registerKamukHoldingsCrm(app, deps) {
       const studentId = req.auth.studentId;
       const student = req.floorStudent;
       const product = productForStudent(studentId);
-      const state = floorState(student, product);
-      const team = state.team || teamFor(studentId);
+      const key = holdingsKey(product);
+      const tracked = applyActivityHeartbeat(floorState(student, product), new Date());
+      student[key] = Object.assign({}, tracked, { team: tracked.team || teamFor(studentId) });
+      await sbSetStudent(studentId, student);
+      const team = student[key].team;
       const employee = { id: studentId, name: clean(student.info?.name || student.name || req.auth.name || studentId, 100), team };
       const live = await loadLive(studentId);
       await saveLive(studentId, {
         employee, team, status: clean(req.body?.status || (live?.activeCaseId ? 'working' : 'online'), 20),
-        metrics: metricsFromFloor(state)
+        metrics: metricsFromFloor(student[key])
       });
-      return res.json({ ok: true, employee, metrics: metricsFromFloor(state) });
+      return res.json({
+        ok: true, employee, metrics: metricsFromFloor(student[key]),
+        delayStrikes: Number(student[key].delayStrikes) || 0,
+        delayPenalty: Boolean(student[key].delayPenalty),
+        nestingCompletedAt: student[key].nestingCompletedAt || null,
+        deskGuideCompleted: deskGuideAllComplete(student[key]),
+        deskGuideDone: deskGuideDoneList(student[key]),
+        deskGuideWeekKey: student[key].deskGuideWeekKey || null
+      });
     } catch (error) {
       return res.status(500).json({ error: 'Could not open the corporate desk' });
     }
@@ -364,6 +416,9 @@ function registerKamukHoldingsCrm(app, deps) {
     }
     const { workItems, touches } = await floorRows(product, weekKey);
     const requestedWorkItemId = clean(req.body?.workItemId, 140);
+    if (/^PRACTICE-/i.test(requestedWorkItemId) || /^KH-PRAC-/i.test(clean(requestedCaseId, 40))) {
+      return res.status(400).json({ error: 'Practice cases stay off the weekly floor', code: 'PRACTICE_ONLY' });
+    }
     const candidates = workItems.filter((item) => {
       if (item.status !== 'unassigned') return false;
       if (requestedWorkItemId && item.id !== requestedWorkItemId) return false;
@@ -512,6 +567,9 @@ function registerKamukHoldingsCrm(app, deps) {
       const weekKey = weekKeyCR();
       const table = sessionsTable(product);
       const caseId = clean(req.body?.caseId, 30);
+      if (/^KH-PRAC-|^PRACTICE-/i.test(caseId)) {
+        return res.status(400).json({ error: 'Practice cases stay off the weekly floor', code: 'PRACTICE_ONLY' });
+      }
       const caseData = privateCase(caseId);
       if (!caseData) return res.status(404).json({ error: 'Case not found' });
       const live = await loadLive(studentId);
@@ -544,6 +602,14 @@ function registerKamukHoldingsCrm(app, deps) {
       }
       const controlPrecheck = deterministicErrors(caseData, submission);
       const kind = dispositionKind(submission.resolution.disposition);
+      const student = await loadStudent(studentId);
+      const key = holdingsKey(product);
+      const previous = student[key] || {};
+      const emailBody = String(((submission.events || []).find((event) => event.type === 'email') || {}).body || '');
+      const integrity = detectAssistSignals([emailBody, submission.resolution.summary].join(' '), {
+        previousWords: Number(previous.lastEmailWords) || 0
+      });
+      const gates = { delayPenalty: Boolean(previous.delayPenalty), integrity };
       let evaluation = pendingEvaluationResult(controlPrecheck);
       if (process.env.ANTHROPIC_API_KEY) {
         try {
@@ -553,15 +619,12 @@ function registerKamukHoldingsCrm(app, deps) {
             messages: [{ role: 'user', content: buildFloorAlicePrompt(caseData, submission, controlPrecheck, kind) }]
           });
           const text = (response.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('').replace(/```json|```/g, '').trim();
-          evaluation = normalizeFloorEvaluation(JSON.parse(text), controlPrecheck);
+          evaluation = normalizeFloorEvaluation(JSON.parse(text), controlPrecheck, gates);
         } catch (error) {
           console.warn('Kamuk Holdings Alice pending evaluation:', error.message);
         }
       }
       const completedAt = new Date().toISOString();
-      const student = await loadStudent(studentId);
-      const key = holdingsKey(product);
-      const previous = student[key] || {};
       const sameWeek = previous.weeklyPointsWeek === weekKey;
       const pointsAwarded = Number(evaluation.pointsAwarded) || 0;
       student[key] = {
@@ -572,7 +635,8 @@ function registerKamukHoldingsCrm(app, deps) {
         points: (Number(previous.points) || 0) + pointsAwarded,
         weeklyPoints: (sameWeek ? Number(previous.weeklyPoints) || 0 : 0) + pointsAwarded,
         weeklyPointsWeek: weekKey, lastHandledAt: completedAt, lastCaseId: caseId,
-        lastCasePoints: evaluation.pendingEvaluation ? null : evaluation.casePoints
+        lastCasePoints: evaluation.pendingEvaluation ? null : evaluation.casePoints,
+        lastEmailWords: wordCount(emailBody)
       };
       const studentName = clean(student.info?.name || student.name || req.auth.name || studentId, 100);
       const touchRecord = {
@@ -719,7 +783,9 @@ function registerKamukHoldingsCrm(app, deps) {
           homeReady: validated.homeStatus.filter((item) => item.ready).length,
           homeTotal: validated.homeStatus.length,
           courseComplete: validated.courseComplete,
-          nestingCompletedAt: state.nestingCompletedAt || null
+          nestingCompletedAt: state.nestingCompletedAt || null,
+          delayStrikes: Number(state.delayStrikes) || 0,
+          delayPenalty: Boolean(state.delayPenalty)
         };
       }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
       return res.json({
@@ -733,7 +799,7 @@ function registerKamukHoldingsCrm(app, deps) {
           pendingEvaluations: touches.filter((item) => item.pendingEvaluation || item.evaluation?.pendingEvaluation).length,
           nestingReady: training.filter((item) => item.nestingCompletedAt).length
         },
-        live, leaderboard: board, winner: board[0] || null,
+        live, leaderboard: board, winner: pickWeeklyWinner(board),
         resolveRates: board.map(({ studentId, name, started, resolved, resolutionRate }) => ({ studentId, name, started, resolved, resolutionRate })),
         recentTouches,
         training
