@@ -21,8 +21,9 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260818gp10';
-const CRM_V = '20260818gp10';
+const SIM_V = '20260818ios';
+const CRM_V = '20260818ios';
+const RECURSOS_V = '20260818ios';
 
 mkdirSync(DEST, { recursive: true });
 
@@ -46,6 +47,10 @@ function prep(html, kind) {
   html = html.replace(
     /(src="js\/kamuk-holdings-crm\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + CRM_V + '"'
+  );
+  html = html.replace(
+    /(src="js\/kamuk-recursos-library\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + RECURSOS_V + '"'
   );
   if (kind === 'engine') {
     html = html.replace(
@@ -72,6 +77,9 @@ for (const name of EXTRA_HTML) {
 
 const portal = prep(readFileSync(join(KAM_ROOT, 'index.html'), 'utf8'), 'portal');
 writeFileSync(join(DEST, 'index.html'), portal);
+
+const kamManifest = join(KAM_ROOT, 'manifest.webmanifest');
+if (existsSync(kamManifest)) writeFileSync(join(DEST, 'manifest.webmanifest'), readFileSync(kamManifest));
 
 const engine = prep(readFileSync(join(KAM_ROOT, 'Kamuk_Engine.html'), 'utf8'), 'engine');
 writeFileSync(join(DEST, 'Kamuk_Engine.html'), engine);
@@ -118,6 +126,11 @@ const checks = [
   ['CRM pack published', existsSync(join(DEST, 'data/kamuk-holdings-crm-pack-v1.json'))],
   ['CRM css published', existsSync(join(DEST, 'css/kamuk-holdings-crm.css'))],
   ['portal loads simulation onboarding', portal.includes('js/simulation-onboarding.js?v=' + SIM_V)],
+  ['portal loads recursos library', portal.includes('js/kamuk-recursos-library.js?v=' + RECURSOS_V)],
+  ['iOS login form submit', portal.includes('id="login-form"') && portal.includes('autocapitalize="none"')],
+  ['kamuk PWA manifest', portal.includes('href="manifest.webmanifest"')],
+  ['no endless glossary wall', !portal.includes("['Aun cuando','Even when")],
+  ['matching dropdowns', readFileSync(join(DEST, 'js/simulation-onboarding.js'), 'utf8').includes('Elegí el propósito')],
   ['portal mounts simulation for every student', portal.includes('mountKamukSimulation')],
   ['CRM practice cache-bust', existsSync(join(DEST, 'js/kamuk-holdings-crm.js'))],
   ['CRM 10 practice cases', readFileSync(join(DEST, 'js/kamuk-holdings-crm.js'), 'utf8').includes("id: 'gp10'")],

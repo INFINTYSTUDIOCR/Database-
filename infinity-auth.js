@@ -26,10 +26,14 @@ function getAuthToken() {
 
 function setAuthToken(token, expiresInSec) {
   var exp = Date.now() + (expiresInSec || 86400) * 1000;
-  sessionStorage.setItem(AUTH_TOKEN_KEY, token);
-  sessionStorage.setItem(AUTH_EXP_KEY, String(exp));
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
-  localStorage.setItem(AUTH_EXP_KEY, String(exp));
+  try {
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+    sessionStorage.setItem(AUTH_EXP_KEY, String(exp));
+  } catch (eSess) { /* iOS private / quota */ }
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_EXP_KEY, String(exp));
+  } catch (eLocal) { /* iOS ITP / private mode must not abort login */ }
 }
 
 function setAuthCredentials(user, password, role, product) {
@@ -68,13 +72,26 @@ function authHeaders(extra) {
 async function infinityLogin(user, password, role, opts) {
   opts = opts || {};
   var product = opts.product || sessionStorage.getItem(AUTH_PRODUCT_KEY) || '';
-  var payload = { user: user, password: password, role: role };
+  var payload = {
+    user: String(user || '').trim().toLowerCase(),
+    password: String(password == null ? '' : password).trim(),
+    role: role
+  };
   if (product) payload.product = product;
-  var r = await fetch(INFINITY_API + '/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  var r;
+  try {
+    r = await fetch(INFINITY_API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (netErr) {
+    var nerr = new Error('No se pudo conectar al servidor de acceso. Revisá la red e intentá de nuevo.');
+    nerr.status = 0;
+    nerr.network = true;
+    if (opts.silent) return null;
+    throw nerr;
+  }
   var text = await r.text();
   var d;
   try { d = JSON.parse(text); } catch (e) {
@@ -91,7 +108,7 @@ async function infinityLogin(user, password, role, opts) {
     throw err;
   }
   setAuthToken(d.token, d.expiresIn);
-  setAuthCredentials(user, password, role || 'student', product || null);
+  setAuthCredentials(payload.user, payload.password, role || 'student', product || null);
   return d;
 }
 

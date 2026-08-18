@@ -304,18 +304,34 @@ async function sbDelete(table, id) {
   }
 }
 
+function pgRestQuote(value) {
+  return '"' + String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+function portalPassMatches(stored, password) {
+  const got = String(password == null ? '' : password);
+  const gotTrim = got.trim();
+  const want = String(stored == null ? '' : stored);
+  return want === got || want === gotTrim || want.trim() === gotTrim;
+}
+
 async function sbFindStudentByPortalLogin(portalUser, password, product) {
   const loginUser = String(portalUser || '').trim().toLowerCase();
   if (!loginUser) return null;
-  const q = `select=id,data&data->>portalUser=eq.${encodeURIComponent(loginUser)}&limit=10`;
+  const quoted = encodeURIComponent(pgRestQuote(loginUser));
   const preferKamuk = String(product || '').toLowerCase() === 'kamuk';
   // STRICT product isolation — never search Infinity when product=kamuk and never kamuk for Infinity.
-  if (preferKamuk) {
-    const kamRows = await sbQuery('kamuk_students', q);
-    return kamRows.find(r => r.data && r.data.portalPass === password) || null;
+  const table = preferKamuk ? 'kamuk_students' : 'infinity_students';
+  let rows = await sbQuery(table, `select=id,data&data->>portalUser=ilike.${quoted}&limit=10`);
+  if (!rows.length) {
+    rows = await sbQuery(table, `select=id,data&data->>portalUser=eq.${quoted}&limit=10`);
   }
-  const infRows = await sbQuery('infinity_students', q);
-  return infRows.find(r => r.data && r.data.portalPass === password) || null;
+  return rows.find((r) => {
+    if (!r.data) return false;
+    const storedUser = String(r.data.portalUser || '').trim().toLowerCase();
+    if (storedUser !== loginUser) return false;
+    return portalPassMatches(r.data.portalPass, password);
+  }) || null;
 }
 
 const Brain = require('./nexus-brain');

@@ -26,7 +26,7 @@
     var msg = bar.querySelector('.pwa-install-msg');
     if (!msg) return;
     if (isIos()) {
-      msg.textContent = 'iPhone: tocá Instalar y seguí los 3 pasos (Safari).';
+      msg.textContent = 'iPhone/iPad: tocá Instalar y seguí los 3 pasos (Safari).';
     } else if (deferredPrompt) {
       msg.textContent = 'Instalá el Portal — acceso directo desde tu pantalla de inicio.';
     } else if (isAndroid()) {
@@ -54,7 +54,7 @@
       iosHelp.classList.add('show');
       return;
     }
-    alert('iPhone/iPad (Safari):\n1. Tocá Compartir (cuadrado con flecha)\n2. "Agregar a pantalla de inicio"\n3. Tocá Agregar');
+    alert('iPhone/iPad (Safari):\n1. Tocá Compartir (cuadrado con flecha)\n2. "Agregar a pantalla de inicio"\n3. Tocá Agregar\n\nLa app debe abrir studioinfinitycr.com/kamuk/ si sos estudiante Kamuk.');
   }
 
   function hideIosHelp() {
@@ -102,7 +102,8 @@
     hideIosHelp();
   });
 
-  if ('serviceWorker' in navigator) {
+  var isKamukPortal = /\/kamuk(\/|$)/i.test(location.pathname || '');
+  if ('serviceWorker' in navigator && !isKamukPortal) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then(function() { return navigator.serviceWorker.ready; })
       .catch(function(err) {
