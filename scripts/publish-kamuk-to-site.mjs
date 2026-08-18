@@ -21,7 +21,7 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260818ios';
+const SIM_V = '20260818crmw';
 const CRM_V = '20260818ios';
 const RECURSOS_V = '20260818expr';
 
