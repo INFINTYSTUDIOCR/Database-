@@ -951,7 +951,15 @@ var EXERCISES = {
 };
 
 async function dbGet(table){
-  const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  var r;
+  try {
+    r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=id,data',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  } catch(e) {
+    var nerr = new Error('dbGet network');
+    nerr.status = 0;
+    nerr.network = true;
+    throw nerr;
+  }
   if(!r.ok){ console.error('dbGet '+table+' failed: '+r.status); return []; }
   const data = await r.json();
   return Array.isArray(data) ? data : [];

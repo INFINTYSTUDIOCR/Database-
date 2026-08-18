@@ -314,6 +314,9 @@ function portalPassMatches(stored, password) {
 async function sbFindStudentByPortalLogin(portalUser, password, product) {
   const loginUser = String(portalUser || '').trim().toLowerCase();
   if (!loginUser) return null;
+  // Never wrap portalUser in PostgREST quotes for data->> filters: eq."johnny.ramirez"
+  // matches the literal quoted string and returns 0 rows. Dots are already the value
+  // after the operator (eq.johnny.ramirez works).
   const enc = encodeURIComponent(loginUser);
   const preferKamuk = String(product || '').toLowerCase() === 'kamuk';
   // STRICT product isolation — never search Infinity when product=kamuk and never kamuk for Infinity.
