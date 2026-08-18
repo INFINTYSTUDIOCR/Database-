@@ -89,23 +89,23 @@ async function infinityLogin(user, password, role, opts) {
     var nerr = new Error('No se pudo conectar al servidor de acceso. Revisá la red e intentá de nuevo.');
     nerr.status = 0;
     nerr.network = true;
-    if (opts.silent) return null;
     throw nerr;
   }
   var text = await r.text();
   var d;
   try { d = JSON.parse(text); } catch (e) {
-    if (opts.silent) return null;
-    var err = new Error('El servidor de acceso no respondió correctamente. Esperá unos segundos e intentá de nuevo.');
-    err.status = r.status;
-    throw err;
+    var parseErr = new Error('El servidor de acceso no respondió correctamente. Esperá unos segundos e intentá de nuevo.');
+    parseErr.status = r.status;
+    parseErr.network = true;
+    throw parseErr;
   }
   if (!r.ok) {
-    if (opts.silent) return null;
-    var err = new Error(d.error || 'Login failed');
-    err.status = r.status;
-    err.data = d;
-    throw err;
+    var fail = new Error(d.error || 'Login failed');
+    fail.status = r.status;
+    fail.data = d;
+    fail.network = !r.status || r.status >= 500;
+    if (opts.silent && !fail.network) return null;
+    throw fail;
   }
   setAuthToken(d.token, d.expiresIn);
   setAuthCredentials(payload.user, payload.password, role || 'student', product || null);
@@ -149,8 +149,10 @@ async function infinityEnsureAuth(opts) {
 
   var attempts = Math.max(1, opts.attempts || 3);
   for (var i = 0; i < attempts; i++) {
-    var d = await infinityLogin(user, pass, role, { silent: true, product: product || undefined });
-    if (d && getAuthToken()) return true;
+    try {
+      var d = await infinityLogin(user, pass, role, { silent: true, product: product || undefined });
+      if (d && getAuthToken()) return true;
+    } catch (e) { /* retry on network / 5xx */ }
     await new Promise(function (resolve) { setTimeout(resolve, 700 * (i + 1)); });
   }
   return !!getAuthToken();

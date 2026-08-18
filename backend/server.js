@@ -304,10 +304,6 @@ async function sbDelete(table, id) {
   }
 }
 
-function pgRestQuote(value) {
-  return '"' + String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
-}
-
 function portalPassMatches(stored, password) {
   const got = String(password == null ? '' : password);
   const gotTrim = got.trim();
@@ -318,13 +314,16 @@ function portalPassMatches(stored, password) {
 async function sbFindStudentByPortalLogin(portalUser, password, product) {
   const loginUser = String(portalUser || '').trim().toLowerCase();
   if (!loginUser) return null;
-  const quoted = encodeURIComponent(pgRestQuote(loginUser));
+  const enc = encodeURIComponent(loginUser);
   const preferKamuk = String(product || '').toLowerCase() === 'kamuk';
   // STRICT product isolation — never search Infinity when product=kamuk and never kamuk for Infinity.
   const table = preferKamuk ? 'kamuk_students' : 'infinity_students';
-  let rows = await sbQuery(table, `select=id,data&data->>portalUser=ilike.${quoted}&limit=10`);
+  let rows = await sbQuery(table, `select=id,data&data->>portalUser=eq.${enc}&limit=10`);
   if (!rows.length) {
-    rows = await sbQuery(table, `select=id,data&data->>portalUser=eq.${quoted}&limit=10`);
+    rows = await sbQuery(table, `select=id,data&data->>portalUser=ilike.${enc}&limit=10`);
+  }
+  if (!rows.length) {
+    rows = await sbGet(table);
   }
   return rows.find((r) => {
     if (!r.data) return false;
