@@ -118,10 +118,11 @@ function bump(html) {
     .replace(/ptt-mic\.js\?v=[^"']+/g, 'ptt-mic.js?v=20260811nocut');
 }
 
+// Infinity is master; Operarive is legacy mirror only (never source → Infinity).
 const paths = [
-  'C:/Users/ARMANDO/Projects/Operarive-Training-Database/index.html',
   'C:/Users/ARMANDO/Projects/Database-clone/Infinity_Student_Portal.html',
-  'C:/Users/ARMANDO/Projects/Database-clone/kamuk/index.html'
+  'C:/Users/ARMANDO/Projects/Database-clone/kamuk/index.html',
+  'C:/Users/ARMANDO/Projects/Operarive-Training-Database/index.html'
 ];
 
 for (const p of paths) {

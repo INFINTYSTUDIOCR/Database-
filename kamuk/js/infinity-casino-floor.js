@@ -1,12 +1,13 @@
 /**
- * Kamuk Companion Hub — same arcade add-on as Infinity (Knight/Thief/Raiders/Rapid).
- * Behavior twin; Kamuk blue chrome. Ranking is wired in the portal to kamuk_sessions only.
+ * Infinity Practice Hub — stylized gaming lobby + character title screens.
+ * Based on games_complete.html concept, adapted to Infinity palette (navy/gold).
+ * Warm, character-led — not cold SaaS.
  */
 (function (global) {
   'use strict';
 
   var MANTRA = 'LINK · IDEA · LINK';
-  var VER = '20260813kamuk3';
+  var VER = '20260814slower1';
   var stageIdx = 0;
   var stageTimer = null;
   var stagePauseUntil = 0;
@@ -223,7 +224,7 @@
     st.id = 'infinity-practice-hub-styles';
     st.setAttribute('data-ver', VER);
     st.textContent =
-      ':root{--inf-navy:#2B7EC1;--inf-deep:#1A5A8F;--inf-gold:#F7941D;--inf-gold2:#FFD700;--inf-ink:#0B1A28;--inf-surface:#0F2A40;--inf-text:#F4F8FC;--inf-mute:#A8D4F5;}' +
+      ':root{--inf-navy:#5B21B6;--inf-deep:#3B0E8C;--inf-gold:#F5A623;--inf-gold2:#FFD700;--inf-ink:#0B0618;--inf-surface:#140B28;--inf-text:#F8F5FF;--inf-mute:#B8A9D9;}' +
       '@keyframes hubFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}' +
       '@keyframes hubPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.2)}50%{box-shadow:0 0 0 8px rgba(245,166,35,0)}}' +
       '@keyframes hubCardIn{0%{opacity:0;transform:translateY(18px) scale(.96)}100%{opacity:1;transform:none}}' +
@@ -239,7 +240,7 @@
       '@keyframes hubRapidFlicker{0%,90%,100%{opacity:1}93%{opacity:.4}96%{opacity:1}}' +
       '.inf-hub{position:fixed;inset:0;z-index:2398;display:none;flex-direction:column;background:var(--inf-ink);color:var(--inf-text);font-family:Outfit,system-ui,sans-serif;overflow:hidden}' +
       '.inf-hub.is-open{display:flex}' +
-      '.inf-hub-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 0%,rgba(43,126,193,.45),transparent 50%),radial-gradient(ellipse at 85% 10%,rgba(247,148,29,.2),transparent 45%),linear-gradient(180deg,#0F3A5C 0%,#0B1A28 55%,#071018 100%)}' +
+      '.inf-hub-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 0%,rgba(91,33,182,.45),transparent 50%),radial-gradient(ellipse at 85% 10%,rgba(245,166,35,.2),transparent 45%),linear-gradient(180deg,#1a0a3a 0%,#0B0618 55%,#070412 100%)}' +
       '.inf-hub-bg:before{content:"";position:absolute;inset:0;opacity:.4;background-image:radial-gradient(1.5px 1.5px at 10% 20%,#fff,transparent),radial-gradient(1px 1px at 30% 8%,#F5A623,transparent),radial-gradient(1px 1px at 70% 15%,#C084FC,transparent),radial-gradient(1.5px 1.5px at 88% 28%,#fff,transparent);animation:hubFloat 8s ease-in-out infinite}' +
       '.inf-hub-top{position:relative;z-index:2;display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid rgba(245,166,35,.22);background:rgba(11,6,24,.88);backdrop-filter:blur(12px)}' +
       '.inf-hub-logo{font-family:"Bebas Neue",sans-serif;font-size:clamp(22px,5vw,30px);letter-spacing:.06em;color:#fff}' +
@@ -599,7 +600,7 @@
       el.innerHTML =
         '<div class="inf-hub-bg" aria-hidden="true"></div>' +
         '<div class="inf-hub-top">' +
-        '<div class="inf-hub-logo">KAMUK <span>HUB</span></div>' +
+        '<div class="inf-hub-logo">INFINITY <span>HUB</span></div>' +
         '<div class="inf-hub-pills" id="inf-hub-pills"></div>' +
         '<button type="button" class="inf-hub-close" onclick="closeInfinityCasinoFloor()">Cerrar</button>' +
         '</div>' +
@@ -626,7 +627,7 @@
   function openFloor() {
     if (typeof studentGamesOn === 'function' && !studentGamesOn(global.CURRENT_STUDENT)) {
       if (typeof showToast === 'function')
-        showToast('Activá Jill, Modo Libre, Alice o Companion con tu trainer.', 'err');
+        showToast('Activá Jill, Modo Libre o Alice con tu trainer.', 'err');
       return;
     }
     if (typeof closeInfinityArcadeMonitor === 'function') closeInfinityArcadeMonitor(true);
@@ -844,5 +845,5 @@
   document.addEventListener('fullscreenchange', notifyKnightFs);
   document.addEventListener('webkitfullscreenchange', notifyKnightFs);
 
-  console.log('[Kamuk Hub]', VER, GAMES.length, 'games characters ready');
+  console.log('[Infinity Hub]', VER, GAMES.length, 'games characters ready');
 })(typeof window !== 'undefined' ? window : globalThis);

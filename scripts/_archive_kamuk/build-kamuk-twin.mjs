@@ -1,5 +1,9 @@
 /**
- * Build Kamuk twins from current Infinity sources.
+ * ARCHIVED — do not use for day-to-day publish.
+ * Historical twin builder (Infinity → Operarive). Live flow is Infinity-master:
+ *   node scripts/publish-kamuk-to-site.mjs
+ * which irrigates Database-clone → ./kamuk/ and optionally mirrors to Operarive.
+ *
  * Feature-identical, Kamuk colors + kamuk_* Supabase + product kamuk auth.
  * Assets load from studioinfinitycr.com so GitHub Pages stays thin (static libs only — no student data).
  */

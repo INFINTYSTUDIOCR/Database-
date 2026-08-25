@@ -581,7 +581,7 @@
       if (student.jillMatrix) student.jillMatrix.pulseQuizPassed = true;
     }
     if (!opts.demoMode && student.id && typeof dbSet === 'function') {
-      dbSet('kamuk_students', student.id, student).catch(function () {});
+      dbSet('infinity_students', student.id, student).catch(function () {});
     }
     return {
       xp: rec.xp || 0,
