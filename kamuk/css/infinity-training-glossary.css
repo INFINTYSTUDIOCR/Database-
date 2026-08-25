@@ -88,15 +88,13 @@
 
 .inf-tb-cats {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
+  overflow-x: visible;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 4px;
   margin-bottom: 12px;
-  scrollbar-width: none;
 }
-
-.inf-tb-cats::-webkit-scrollbar { display: none; }
 
 .inf-tb-cat {
   flex: 0 0 auto;
