@@ -633,15 +633,17 @@
     open('email-modal');
   }
 
+  const COMPOSE_COACH_TIP = 'Formato E: E1–E5 · 2 conectores + 1 método · 55+ palabras. Detalle en el recuadro amarillo. Sin pegar.';
+
   function startCompose(replyId) {
     const email = replyId ? state.profile.emails.find((item) => String(item.id) === String(replyId)) : null;
     $('compose-lbl').textContent = email ? 'Reply' : 'New email';
     $('compose-subject').value = email ? (/^Re:/i.test(email.subject) ? email.subject : `Re: ${email.subject}`) : `Case update — ${state.active.id}`;
     $('compose-txt').value = '';
-    $('compose-txt').placeholder = 'Formato E in English: Encabezado, Empatía, Explicación, Ejecución, Encierro. Hello Marta + 2 connectors + 1 método linker.';
+    $('compose-txt').placeholder = 'Type your email here…';
     if ($('compose-coach')) {
       $('compose-coach').style.color = 'var(--text2)';
-      $('compose-coach').textContent = EMAIL_MODEL;
+      $('compose-coach').textContent = COMPOSE_COACH_TIP;
     }
     $('compose-box').classList.add('open');
     $('compose-txt').focus();
@@ -1662,14 +1664,14 @@
       const text = $('compose-txt').value.trim();
       if (!text) {
         coach.style.color = 'var(--text2)';
-        coach.textContent = EMAIL_MODEL;
+        coach.textContent = COMPOSE_COACH_TIP;
         return;
       }
       const graded = grader.gradeFormatoE(text);
       coach.style.color = graded.ok ? '#15803d' : 'var(--danger)';
       coach.textContent = graded.ok
         ? 'Formato E listo (' + graded.words + ' palabras). Podés Send.'
-        : graded.missing.join(' · ');
+        : 'Falta: ' + graded.missing.join(' · ');
     });
     $('compose-box').addEventListener('paste', blockImportedEmailText);
     $('compose-box').addEventListener('drop', blockImportedEmailText);

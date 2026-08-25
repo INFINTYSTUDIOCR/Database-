@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="css/kamuk-holdings-crm.css?v=20260825yell">
+<link rel="stylesheet" href="css/kamuk-holdings-crm.css?v=20260825compose">
 </head>
 <body>
 
@@ -302,9 +302,9 @@
           <div style="font-size:12.5px;font-weight:600;margin-bottom:4px;" id="compose-lbl">New email</div>
           <div style="font-size:11.5px;color:var(--text2);margin-bottom:3px;">To: <strong id="compose-to">—</strong></div>
           <input class="inp compose-subject" id="compose-subject" type="text" placeholder="Subject">
-          <textarea id="compose-txt" rows="8" placeholder="Formato E in English: Hello Marta, Empatía, Explicación (2 connectors + 1 método linker), Ejecución (what you already did in the CRM), Encierro (I will + 4:30 p.m.) + Kind regards."></textarea>
-          <div id="compose-coach" style="font-size:10.5px;line-height:1.5;color:var(--text2);margin-top:6px;">Formato E: Encabezado, Empatía, Explicación, Ejecución, Encierro. 2 conectores + 1 método linker. 55+ palabras. Paste is disabled.</div>
-          <div style="display:flex;gap:5px;margin-top:6px;"><button class="act accent" id="compose-send">Send</button><button class="act" id="compose-cancel">Cancel</button></div>
+          <div id="compose-coach" class="compose-coach">Formato E: E1–E5 · 2 conectores + 1 método · 55+ palabras. El detalle está en el recuadro amarillo. Sin pegar.</div>
+          <textarea id="compose-txt" rows="10" placeholder="Type your email here…"></textarea>
+          <div class="compose-actions"><button class="act accent" id="compose-send">Send</button><button class="act" id="compose-cancel">Cancel</button></div>
         </div>
       </div>
 
@@ -505,6 +505,6 @@
 <script src="js/simulation-crm-bridge.js?v=20260825sched"></script>
 <script src="js/kamuk-holdings-call.js?v=20260825nxlive"></script>
 <script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
-<script src="js/kamuk-holdings-crm.js?v=20260825fundamentos"></script>
+<script src="js/kamuk-holdings-crm.js?v=20260825compose"></script>
 </body>
 </html>

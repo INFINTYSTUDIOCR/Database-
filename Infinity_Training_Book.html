@@ -925,6 +925,12 @@ function renderPhase1(area){
       ['Disfrute','ING','I enjoy working','Enjoy → ING'],['Actividad general','ING','I like working','ING = actividad'],
       ['Despues de prep','ING','After working','Prep → ING'],['Accion en proceso','ING','I am working','BE activa ING'],
     ].map(function(r,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+r[0]+'</strong></td>'+r.slice(1).map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')
+    +'</tbody></table></div>'
+
+    +'<div class="portal-section"><div class="card-title"><i class="ti ti-list"></i>16 Irregular Verbs — obligatorios</div>'
+    +'<div class="info-box ib-amber"><strong>REGLA:</strong> Presente / pasado / participio en menos de 1 segundo. Si tardás más, se repite hasta automatizar.</div>'
+    +'<table class="ref-table"><thead><tr><th>Presente</th><th>Pasado Simple</th><th>Participio</th></tr></thead><tbody>'
+    +IRREGULAR_VERBS.map(function(v,i){return '<tr'+(i%2?' style="background:var(--gray)"':'')+'><td><strong>'+v.inf+'</strong></td><td style="color:var(--nm);">'+v.past+'</td><td style="color:var(--purple);">'+v.part+'</td></tr>';}).join('')
     +'</tbody></table></div></div>';
 }
 
