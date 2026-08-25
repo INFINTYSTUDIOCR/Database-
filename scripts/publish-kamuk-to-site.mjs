@@ -78,7 +78,8 @@ function walkFiles(root) {
 }
 
 /**
- * Overlay Infinity → kamuk for paths already in the twin.
+ * Overlay Infinity → kamuk for shared trees.
+ * Updates paths already in the twin and adds new Infinity-only files.
  * Never deletes kamuk-only files (no Infinity counterpart).
  */
 function irrigateDir(relDir) {
@@ -95,6 +96,15 @@ function irrigateDir(relDir) {
     const master = join(src, rel);
     if (!existsSync(master)) continue;
     cpSync(master, file);
+    n++;
+  }
+  // Add new master files that do not exist yet in the twin.
+  for (const file of walkFiles(src)) {
+    const rel = relative(src, file);
+    const twin = join(dst, rel);
+    if (existsSync(twin)) continue;
+    mkdirSync(dirname(twin), { recursive: true });
+    cpSync(file, twin);
     n++;
   }
   return n;

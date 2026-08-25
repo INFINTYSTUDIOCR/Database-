@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Infinity Holdings — glosario de nesting</title>
+  <style>
+    :root {
+      --blue: #3178C6;
+      --blue-deep: #1e5a9a;
+      --blue-soft: #E8F2FB;
+      --blue-tint: #F3F8FD;
+      --blue-border: #B7D4EE;
+      --text: #1a2b3c;
+      --muted: #5b6f82;
+      --muted2: #8a9aab;
+      --white: #ffffff;
+      --r: 16px;
+      --r-pill: 999px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(49,120,198,0.18), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(49,120,198,0.12), transparent 50%),
+        linear-gradient(180deg, #EAF3FB 0%, #F7FBFE 48%, #EEF5FB 100%);
+      min-height: 100%;
+    }
+    .tb-shell {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 14px 12px 28px;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tb-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tb-top-brand {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue-deep);
+    }
+    .tb-top a {
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-deep);
+      padding: 7px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--blue-border);
+      background: rgba(255,255,255,0.7);
+    }
+    .tb-top a.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: transparent;
+    }
+    .tb-card {
+      background: var(--white);
+      border: 1.5px solid var(--blue-border);
+      border-radius: 20px;
+      padding: 18px 16px 16px;
+      box-shadow: 0 10px 30px rgba(30, 90, 154, 0.08);
+      flex: 1;
+    }
+    .tb-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .tb-icon {
+      flex: 0 0 auto;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+    }
+    .tb-icon svg { width: 20px; height: 20px; }
+    .tb-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--blue-deep);
+      line-height: 1.25;
+    }
+    .tb-sub {
+      margin: 4px 0 0;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    /* Soft-blue glossary chrome (matches Training Book screenshot) */
+    .kh-lib { font-family: inherit; }
+    .kh-lib-lead { display: none; }
+    .kh-lib-search {
+      width: 100%;
+      min-height: 48px;
+      font-size: 15px;
+      padding: 12px 18px;
+      border: 1.5px solid #D5E4F2;
+      border-radius: var(--r-pill);
+      font-family: inherit;
+      margin: 12px 0 12px;
+      background: #FBFCFD;
+      color: var(--text);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .kh-lib-search::placeholder { color: var(--muted2); }
+    .kh-lib-search:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49,120,198,0.18);
+      background: #fff;
+    }
+    .kh-lib-cats {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+      scrollbar-width: none;
+    }
+    .kh-lib-cats::-webkit-scrollbar { display: none; }
+    .kh-lib-cat {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 9px 16px;
+      border-radius: var(--r-pill);
+      border: 1.5px solid var(--blue-border);
+      background: #fff;
+      color: var(--blue);
+      font: 700 12.5px/1 inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .kh-lib-cat.is-on {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    .kh-lib-count {
+      font-size: 11px;
+      color: var(--muted2);
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+    .kh-lib-chips {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      max-height: none;
+      overflow: visible;
+    }
+    .kh-lib-chip {
+      min-height: 64px;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1.5px solid #D7E6F4;
+      background: #fff;
+      cursor: pointer;
+      touch-action: manipulation;
+      font: inherit;
+      transition: border-color .15s, background .15s, box-shadow .15s;
+    }
+    .kh-lib-chip:hover {
+      border-color: var(--blue-border);
+      background: var(--blue-tint);
+    }
+    .kh-lib-chip b {
+      display: block;
+      font-size: 13.5px;
+      color: var(--blue-deep);
+      line-height: 1.25;
+    }
+    .kh-lib-chip small {
+      display: block;
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .kh-lib-chip.is-on {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(49,120,198,.22);
+      background: var(--blue-soft);
+    }
+    .kh-lib-panel {
+      margin-top: 14px;
+      min-height: 140px;
+      border-radius: 16px;
+      background: var(--blue-soft);
+      border: 1.5px solid var(--blue-border);
+      padding: 16px 16px 14px;
+    }
+    .kh-lib-panel h4 {
+      margin: 0 0 6px;
+      font-size: 17px;
+      color: var(--blue-deep);
+    }
+    .kh-lib-es {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .kh-lib-how {
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--text);
+      margin: 0 0 10px;
+    }
+    .kh-lib-forms { margin: 0 0 10px; }
+    .kh-lib-forms b {
+      display: block;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 4px;
+    }
+    .kh-lib-ex {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--blue-deep);
+    }
+    .kh-lib-ex li { margin-bottom: 4px; }
+    .kh-lib-empty {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .kh-read-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    @media (min-width: 520px) {
+      .kh-read-grid { grid-template-columns: 1fr 1fr; }
+      .tb-card { padding: 22px 22px 18px; }
+      .tb-title { font-size: 20px; }
+    }
+    .kh-read-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 88px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--blue-border);
+      background: #fff;
+      text-decoration: none;
+      color: inherit;
+    }
+    .kh-read-card strong { font-size: 13px; color: var(--blue-deep); }
+    .kh-read-card span { font-size: 12px; line-height: 1.45; color: var(--muted); }
+    .kh-read-go { margin-top: auto; font-size: 12px; font-weight: 800; color: var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="tb-shell">
+    <div class="tb-top">
+      <div class="tb-top-brand">∞ Infinity · Training Book</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="primary" href="../mac/machote-curso.pdf" target="_blank" rel="noopener">PDF del curso</a>
+        <a href="../mac/machote-curso.pdf" download>Descargar PDF</a>
+      </div>
+    </div>
+
+    <section class="tb-card" aria-label="Glosario de nesting">
+      <div class="tb-head">
+        <div class="tb-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="tb-title">Infinity Holdings — glosario de nesting</h1>
+          <p class="tb-sub">Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de Infinity Holdings (queue, Emails/Compose/Send, notes, Resolve).</p>
+        </div>
+      </div>
+      <div id="glossary-root"></div>
+    </section>
+  </div>
+
+  <script src="../../js/infinity-recursos-library.js?v=20260825gloss"></script>
+  <script>
+    (function () {
+      var root = document.getElementById('glossary-root');
+      var lib = window.InfinityRecursosLibrary || window.KamukRecursosLibrary;
+      if (root && lib && typeof lib.mountGlossary === 'function') {
+        lib.mountGlossary(root);
+      } else if (root) {
+        root.innerHTML = '<p class="kh-lib-empty">No se pudo cargar el glosario. Recargá la página.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>
