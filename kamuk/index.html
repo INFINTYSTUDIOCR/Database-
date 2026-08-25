@@ -1568,11 +1568,11 @@ function showPortal(s){
   var trainingBookHtml = ''
     +'<div class="card" style="padding:0;overflow:hidden;">'
     +'<div class="card-title" style="padding:12px 14px 8px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'
-    +'<span><i class="ti ti-book-2"></i> Training Book digital</span>'
-    +'<a href="training-book/mac/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
+    +'<span><i class="ti ti-book-2"></i> Glosario y Training Book</span>'
+    +'<a href="training-book/glosario/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
     +'</div>'
-    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Manual Infinity — versión digital. Leé acá o abrí en pantalla completa.</p>'
-    +'<iframe title="Training Book digital" src="training-book/mac/index.html" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Glosario y Training Book — método Idea + Linker + Idea, listas y ejemplos. Leé acá o abrí en pantalla completa.</p>'
+    +'<iframe title="Glosario y Training Book" src="training-book/glosario/index.html?v=20260825method" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
     +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
@@ -1589,8 +1589,9 @@ function showPortal(s){
   var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
     +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
 
-    +'<div class="card"><div class="card-title"><i class="ti ti-book-2"></i> Kamuk Holdings — glosario de nesting</div>'
-    +'<div id="kamuk-glossary-root"></div></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.55;margin:0 0 10px;">Cada módulo: <strong>Training</strong> → <strong>Mini quiz</strong> → <strong>Certification</strong> (80%). Incluye Formato E y el examen final.</p>'
+    +'<div id="kamuk-elearn-root"></div></div>'
 
     +'<div class="inf-skill">'
     +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
@@ -1653,7 +1654,13 @@ function showPortal(s){
   switchPortalTab(opts.tab || 'progreso');
   if(window.KamukRecursosLibrary){
     window.KamukRecursosLibrary.mountReadings(document.getElementById('kamuk-readings-root'));
-    window.KamukRecursosLibrary.mountGlossary(document.getElementById('kamuk-glossary-root'));
+  }
+  if(window.SimulationCorporateLearn && window.SimulationCorporateLearn.mountHub){
+    window.SimulationCorporateLearn.mountHub(document.getElementById('kamuk-elearn-root'), {
+      product: 'kamuk',
+      studentId: (s && (s.id || s.code)) || '',
+      accent: '#2B7EC1'
+    });
   }
   // Arcade lobby opens on demand (fullscreen) — not embedded small.
 
@@ -9821,6 +9828,7 @@ if(document.readyState === 'loading'){
 
 <script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
 <script src="js/kamuk-recursos-library.js?v=20260825gloss"></script>
+<script src="js/simulation-corporate-learn.js?v=20260825lang3"></script>
 <script src="js/infinity-holdings-config.js?v=20260825sched"></script>
 <script src="js/simulation-formato-e.js?v=20260825sched"></script>
 <script src="js/simulation-crm-bridge.js?v=20260825sched"></script>

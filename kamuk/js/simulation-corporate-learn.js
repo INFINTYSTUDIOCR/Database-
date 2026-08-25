@@ -443,10 +443,253 @@
         { id: 'q4', q: 'Best client coaching line?', options: ['“We will never ask for your PIN or SMS code by email or random link. Use the official app or number on your card.”', '“Click the link and tell me what you see.”', '“Send screenshots of your OTP.”'], answer: 0, why: 'Safe coaching.' },
         { id: 'q5', q: 'KPI?', options: ['Correct phishing response + zero secret harvesting.', 'Fastest click-through.', 'Most links opened.'], answer: 0, why: 'Security QA.' }
       ]
-    }
+    },
+
+    linkers: {
+      id: 'linkers',
+      title: 'Linkers / Conectores',
+      icon: 'link',
+      mins: 15,
+      lead: 'Training Book Fase 2: Idea → Linker → Idea. Inglés amplio — conversación, estudio y escritura. Sin conectores, las ideas quedan sueltas.',
+      lessons: [
+        {
+          title: 'Regla de oro',
+          body: 'Cada idea nueva necesita un linker. “I worked yesterday.” solo no es conversación. Expandí: Idea + linker + Idea.',
+          bullets: [
+            'Patrón: Idea → Linker → Idea → Linker → Idea',
+            'No uses “and” más de dos veces seguidas',
+            'En cualquier texto o monólogo: mínimo 2–3 conectores de categorías distintas'
+          ]
+        },
+        {
+          title: 'Categorías del Training Book',
+          body: 'Elegí el linker por función, no al azar.',
+          bullets: [
+            'Añadir: and, also, in addition, furthermore, as well, not only that',
+            'Razón: because, since, due to (+ noun), as, given that',
+            'Resultado: so, therefore, as a result, consequently, which means that',
+            'Contraste: but, however, even though, although, nevertheless, despite this, on the other hand',
+            'Secuencia: first, then, after that, finally, eventually',
+            'Natural: the thing is, on top of that, to be honest, actually, at the end of the day'
+          ]
+        },
+        {
+          title: 'Ejemplos de escritorio',
+          body: 'Usá evidencia del CRM + linker + acción.',
+          bullets: [
+            '“I reviewed Statements because two ACH payments declined. However, I will not lift every control.”',
+            '“There is no Lisbon travel notice; therefore I will file the correct one now.”',
+            '“Although the card is Active, the Operating Account is Restricted.”'
+          ]
+        }
+      ],
+      practice: [
+        {
+          id: 'p1',
+          q: 'Cliente: payroll bloqueado. Mejor nesting?',
+          options: [
+            { t: '“I understand payroll is blocked because the Operating Account is Restricted. However, I will escalate to Operations and call you before 4:30 p.m.”', ok: true },
+            { t: '“I reviewed. I escalated. I will call.”', ok: false },
+            { t: '“And and and I will help.”', ok: false }
+          ],
+          why: 'Idea → linker (because) → Idea → linker (however) → owned next step.'
+        },
+        {
+          id: 'p2',
+          q: '¿Cuál es contraste profesional (nueva frase)?',
+          options: [
+            { t: 'however', ok: true },
+            { t: 'because', ok: false },
+            { t: 'first', ok: false }
+          ],
+          why: 'however = contraste; because = razón; first = secuencia.'
+        },
+        {
+          id: 'p3',
+          q: 'due to se usa…',
+          options: [
+            { t: 'Antes de un sustantivo: due to the hold / due to the mismatch.', ok: true },
+            { t: 'Antes de una cláusula completa: due to I reviewed…', ok: false },
+            { t: 'Solo al final del correo como regards.', ok: false }
+          ],
+          why: 'due to + noun; because + clause.'
+        }
+      ],
+      quiz: [
+        { id: 'q1', q: 'El patrón Nexus obligatorio es…', options: ['Idea → Linker → Idea', 'Solo una oración suelta', 'Cinco “and” seguidos'], answer: 0, why: 'Fase 2 Training Book.' },
+        { id: 'q2', q: 'Linker de resultado formal…', options: ['therefore / as a result', 'also / as well', 'first / then'], answer: 0, why: 'Resultado.' },
+        { id: 'q3', q: 'Mejor contraste en email de desk…', options: ['…; however, I will not wire to an unverified channel.', '… and and and…', '… because because…'], answer: 0, why: 'however + policy.' },
+        { id: 'q4', q: 'which means that…', options: ['Explica la consecuencia del hecho anterior.', 'Es solo saludo.', 'Reemplaza identity verification.'], answer: 0, why: 'Resultado / clarificación.' },
+        { id: 'q5', q: 'Nesting bien hecho significa…', options: ['Ideas conectadas con linkers, no oraciones sueltas.', 'Solo una palabra por respuesta.', 'Solo listas sin verbos.'], answer: 0, why: 'Idea + linker + Idea.' }
+      ]
+    },
+
+    affixes: {
+      id: 'affixes',
+      title: 'Prefixes & Suffixes',
+      icon: 'puzzle',
+      mins: 12,
+      lead: 'Training Book Fase 3: prefijo cambia el SIGNIFICADO; sufijo cambia la FUNCIÓN gramatical. Inglés amplio — familias de palabras para sonar natural.',
+      lessons: [
+        {
+          title: 'Prefijos (significado)',
+          body: 'Pegá el prefijo a la base para negar, repetir, exagerar o marcar error.',
+          bullets: [
+            'un- / in- / non-: unhappy, incomplete, incorrect, nonsense',
+            'dis-: disagree, disappear, disconnect',
+            'mis-: misunderstand, misspell, misplace',
+            're-: rewrite, reread, review, rebuild',
+            'over- / under-: overreact, overcook, underestimate, underground',
+            'pre-: preheat, preview, prepaid, prearranged'
+          ]
+        },
+        {
+          title: 'Sufijos (función)',
+          body: 'Cambiás verbo/adjetivo → sustantivo/adverbio sin reinventar el concepto.',
+          bullets: [
+            '-ness: happy → happiness; awareness, completeness',
+            '-ment: develop → development; replacement, payment',
+            '-tion / -ation: educate → education; inform → information; create → creation',
+            '-ful / -less: stressful, hopeless',
+            '-able: manageable, payable',
+            '-ly: quickly, professionally'
+          ]
+        },
+        {
+          title: 'Familia de escritorio',
+          body: 'authorize → authorization → unauthorized. Misma raíz, tres usos en un case.',
+          bullets: [
+            '“Thank you for the information — it was clear.”',
+            '“Education opens options you cannot see yet.”',
+            '“Communication improves when we nest ideas.”'
+          ]
+        }
+      ],
+      practice: [
+        {
+          id: 'p1',
+          q: 'Cargo no autorizado — mejor forma…',
+          options: [
+            { t: 'unauthorized', ok: true },
+            { t: 'reauthorizedly', ok: false },
+            { t: 'overagree', ok: false }
+          ],
+          why: 'un- + authorize (+ -ed) = unauthorized.'
+        },
+        {
+          id: 'p2',
+          q: 'Prefijo mis- significa…',
+          options: [
+            { t: 'Error / incorrecto (mismatch, misunderstand).', ok: true },
+            { t: 'Repetir (como re-).', ok: false },
+            { t: 'Antes en el tiempo (como pre-).', ok: false }
+          ],
+          why: 'mis- = wrong.'
+        },
+        {
+          id: 'p3',
+          q: 'Sufijo -ment en desk…',
+          options: [
+            { t: 'replacement / payment (verbo → sustantivo)', ok: true },
+            { t: 'quickly (eso es -ly)', ok: false },
+            { t: 'unhappy (eso es un-)', ok: false }
+          ],
+          why: '-ment = noun from verb.'
+        }
+      ],
+      quiz: [
+        { id: 'q1', q: 'Prefijo vs sufijo — regla TB…', options: ['Prefijo = significado; sufijo = función gramatical.', 'Ambos solo cambian el spelling.', 'Sufijo niega; prefijo hace adverbios.'], answer: 0, why: 'Fase 3.' },
+        { id: 'q2', q: 'incomplete usa…', options: ['in- (negación)', 're-', '-ly'], answer: 0, why: 'in- + complete.' },
+        { id: 'q3', q: 'authorize → authorization es…', options: ['Sufijo (-ation) que pasa a sustantivo.', 'Prefijo un-.', 'Phrasal verb.'], answer: 0, why: 'Suffix.' },
+        { id: 'q4', q: 'Mejor frase natural…', options: ['“My notes are still incomplete.”', '“Identity is complete-less.”', '“I overagree the idea.”'], answer: 0, why: 'incomplete.' },
+        { id: 'q5', q: 're- en desk suele marcar…', options: ['Repetir o volver a hacer: review, replace, restore.', 'Error (mis-).', 'Exceso (over-).'], answer: 0, why: 're- = again.' }
+      ]
+    },
+
+    phrasals: {
+      id: 'phrasals',
+      title: 'Phrasal Verbs',
+      icon: 'arrows-exchange',
+      mins: 14,
+      lead: 'Training Book Fase 3: phrasals naturales en nesting — look into, follow up, sort out — inglés de vida diaria y trabajo, no solo listas sueltas.',
+      lessons: [
+        {
+          title: 'Investigar y resolver',
+          body: 'Usá phrasals con evidencia del CRM y dueño/hora.',
+          bullets: [
+            'look into = investigar (inseparable: look into it)',
+            'find out / figure out = averiguar / entender el path',
+            'sort out = resolver (separable: sort it out)',
+            'check on = revisar el estado de un restore / case',
+            'write up = documentar audit-ready'
+          ]
+        },
+        {
+          title: 'Contacto y ownership',
+          body: 'Promesas con phrasal + tiempo observable.',
+          bullets: [
+            'follow up with someone / on something + hora',
+            'call back: I will call you back today before 4:30 p.m.',
+            'hold on: keep the client while you look into…',
+            'hand off: pasar el caso con dueño nombrado (no dump)',
+            'put through: transferir con ownership'
+          ]
+        },
+        {
+          title: 'Otros de desk',
+          body: 'Naturalidad sin perder control.',
+          bullets: [
+            'bring up a topic · pick up where we left off',
+            'turn down an unsafe request · put off identity = fail',
+            'send over a confirmation · fill out a form',
+            'come across a notice in the CRM · the system went down → PSA'
+          ]
+        }
+      ],
+      practice: [
+        {
+          id: 'p1',
+          q: 'Cliente pide que investigues el cargo. Mejor línea…',
+          options: [
+            { t: '“I will look into the two postings on Statements and follow up with you before 4:30 p.m.”', ok: true },
+            { t: '“I will hang up now.”', ok: false },
+            { t: '“I give up.”', ok: false }
+          ],
+          why: 'look into + follow up + timed next step.'
+        },
+        {
+          id: 'p2',
+          q: 'look into es…',
+          options: [
+            { t: 'Inseparable: look into it (no “look it into”).', ok: true },
+            { t: 'Siempre separable: look it into.', ok: false },
+            { t: 'Solo para colgar llamadas.', ok: false }
+          ],
+          why: 'Inseparable phrasal.'
+        },
+        {
+          id: 'p3',
+          q: 'Cliente pide PIN por SMS. Mejor phrasal de rechazo…',
+          options: [
+            { t: '“I must turn down that request; I will not send a PIN by SMS.”', ok: true },
+            { t: '“I will put you through to WhatsApp for the PIN.”', ok: false },
+            { t: '“I will hang up without a callback.”', ok: false }
+          ],
+          why: 'turn down = reject unsafe ask.'
+        }
+      ],
+      quiz: [
+        { id: 'q1', q: 'follow up claro incluye…', options: ['Con quién/qué + cuándo.', 'Solo “later”.', 'Nada — solo silence.'], answer: 0, why: 'Seguimiento concreto.' },
+        { id: 'q2', q: 'sort out significa…', options: ['Resolver / arreglar el problema.', 'Colgar sin aviso.', 'Pedir el CVV.'], answer: 0, why: 'Resolve.' },
+        { id: 'q3', q: 'hand off correcto…', options: ['Pasar la tarea con contexto claro.', 'Abandonar sin explicación.', 'Borrar el archivo y callar.'], answer: 0, why: 'Transferencia con contexto.' },
+        { id: 'q4', q: 'Mejor cierre oral…', options: ['“I will call you back after lunch.”', '“I will hang up; figure it out yourself.”', '“I give up.”'], answer: 0, why: 'call back.' },
+        { id: 'q5', q: 'Los phrasals del TB se usan para…', options: ['Naturalidad dentro del nesting, no chips sueltos.', 'Reemplazar Formato E.', 'Saltar verificación.'], answer: 0, why: 'Fase 3 + nesting.' }
+      ]
+    },
+
   };
 
-  var MODULE_ORDER = ['empathy', 'rapport', 'qakpi', 'verify', 'antifraud', 'aml', 'idtheft', 'phishing'];
+  var MODULE_ORDER = ['empathy', 'rapport', 'qakpi', 'verify', 'antifraud', 'aml', 'idtheft', 'phishing', 'linkers', 'affixes', 'phrasals'];
 
   var FINAL_QUIZ = [
     { id: 'f1', module: 'empathy', q: 'Empathy vs sympathy — which is desk-correct?', options: ['Name the client impact and own the next step.', 'Only say you feel devastated.', 'Joke until they laugh.'], answer: 0, why: 'Empathy + ownership.' },
@@ -468,7 +711,10 @@
     { id: 'f17', module: 'rapport', q: 'Using Previous contacts builds rapport because…', options: ['It removes repeat effort from the client.', 'It lets you skip the case.', 'It replaces verification.'], answer: 0, why: 'Reduced effort.' },
     { id: 'f18', module: 'aml', q: 'Safe AML client line?', options: ['“Payment in review; funds still yours; update by [time].”', '“You are on the laundering list.”', '“Change the name to pass.”'], answer: 0, why: 'Neutral.' },
     { id: 'f19', module: 'verify', q: 'Never collect to “prove ID”…', options: ['PIN, full PAN, CVV, SMS OTP.', 'DOB on file.', 'Company name on file.'], answer: 0, why: 'Unsafe asks.' },
-    { id: 'f20', module: 'qakpi', q: 'Timed next step must include…', options: ['Observable time and usually a named owner.', '“Later”.', '“Whenever”.'], answer: 0, why: 'KPI.' }
+    { id: 'f20', module: 'qakpi', q: 'Timed next step must include…', options: ['Observable time and usually a named owner.', '“Later”.', '“Whenever”.'], answer: 0, why: 'KPI.' },
+    { id: 'f21', module: 'linkers', q: 'Nesting pattern?', options: ['Idea → Linker → Idea', 'Isolated one-liners only', 'Only “and” five times'], answer: 0, why: 'TB Fase 2.' },
+    { id: 'f22', module: 'affixes', q: 'Prefix vs suffix?', options: ['Prefix changes meaning; suffix changes grammar role.', 'Both only change spelling', 'Suffix always negates'], answer: 0, why: 'TB Fase 3.' },
+    { id: 'f23', module: 'phrasals', q: 'Best investigate line?', options: ['I will look into it and follow up before 4:30 p.m.', 'I give up', 'Hang up with no callback'], answer: 0, why: 'Desk phrasals.' }
   ];
 
   function esc(s) {
@@ -526,7 +772,16 @@
       '.cl-msg{font-size:12px;font-weight:700;color:#64748b}.cl-msg.ok{color:#15803d}.cl-msg.err{color:#b42318}',
       '.cl-cert{display:flex;gap:10px;align-items:center;background:#f0fdf4;border-radius:10px;padding:12px;color:#14532d;margin-bottom:12px}',
       '.cl-cert i{font-size:24px}.cl-cert b{font-size:13px}.cl-cert span{display:block;font-size:11px}',
-      '.cl-score{font-size:13px;font-weight:800;margin:8px 0}'
+      '.cl-score{font-size:13px;font-weight:800;margin:8px 0}',
+      '.cl-hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:0 0 12px}',
+      '.cl-hub-card{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:border-color .15s,box-shadow .15s}',
+      '.cl-hub-card:hover{border-color:' + accent + ';box-shadow:0 6px 18px rgba(15,23,42,.08)}',
+      '.cl-hub-card.done{border-color:#86efac;background:#f0fdf4}',
+      '.cl-hub-kicker{font:800 10px Inter,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748b;margin-bottom:6px}',
+      '.cl-hub-title{font:800 14px Inter,Arial,sans-serif;color:#0f172a;margin:0 0 6px}',
+      '.cl-hub-meta{font-size:11px;line-height:1.45;color:#64748b}',
+      '.cl-hub-badge{display:inline-block;margin-top:8px;font:800 10px Inter,Arial,sans-serif;color:#166534;background:#dcfce7;border-radius:999px;padding:3px 8px}',
+      '.cl-hub-back{margin:0 0 12px}'
     ].join('');
     document.head.appendChild(el);
   }
@@ -582,9 +837,9 @@
 
     function phaseBar() {
       var phases = [
-        { id: 'learn', label: '1 · Learn' },
-        { id: 'practice', label: '2 · Practice' },
-        { id: 'quiz', label: '3 · Quiz 80%' }
+        { id: 'learn', label: '1 · Training' },
+        { id: 'practice', label: '2 · Mini quiz' },
+        { id: 'quiz', label: '3 · Certification' }
       ];
       var idx = phases.map(function (p) { return p.id; }).indexOf(state.phase);
       return '<div class="cl-ph">' + phases.map(function (p, i) {
@@ -609,7 +864,7 @@
             + (L.bullets || []).map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('')
             + '</ul></div>';
         }).join('');
-        html += '<div class="cl-foot"><button type="button" class="cl-btn" id="cl-to-practice">Continue to practice</button></div>';
+        html += '<div class="cl-foot"><button type="button" class="cl-btn" id="cl-to-practice">Continue to mini quiz</button></div>';
       } else if (state.phase === 'practice') {
         html += (mod.practice || []).map(function (p) {
           var locked = state.practice[p.id] === true;
@@ -624,8 +879,8 @@
             + (locked ? '<div class="cl-why">' + esc(p.why) + '</div>' : '')
             + '</div>';
         }).join('');
-        html += '<div class="cl-foot"><span class="cl-msg' + (practiceDone() ? ' ok' : '') + '">' + (practiceDone() ? 'Practice complete.' : 'Answer each scenario.') + '</span>'
-          + (practiceDone() ? '<button type="button" class="cl-btn" id="cl-to-quiz">Start certification quiz</button>' : '') + '</div>';
+        html += '<div class="cl-foot"><span class="cl-msg' + (practiceDone() ? ' ok' : '') + '">' + (practiceDone() ? 'Mini quiz complete.' : 'Answer each scenario.') + '</span>'
+          + (practiceDone() ? '<button type="button" class="cl-btn" id="cl-to-quiz">Start certification</button>' : '') + '</div>';
       } else {
         if (!state.quizOrder) {
           state.quizOrder = shuffle(mod.quiz.map(function (q) { return q.id; }));
@@ -769,7 +1024,7 @@
       html += '<div class="cl-foot">'
         + (passed
           ? '<button type="button" class="cl-btn" id="cf-done">Continue to Guided CRM</button><span class="cl-msg ok">Final passed.</span>'
-          : '<button type="button" class="cl-btn" id="cf-submit">Submit final quiz</button><span class="cl-msg">20 questions · 80% required · attempt ' + ((state.attempts || 0) + 1) + '</span>')
+          : '<button type="button" class="cl-btn" id="cf-submit">Submit final quiz</button><span class="cl-msg">' + state.order.length + ' questions · 80% required · attempt ' + ((state.attempts || 0) + 1) + '</span>')
         + '</div></div>';
       root.innerHTML = html;
 
@@ -785,7 +1040,7 @@
         submit.addEventListener('click', function () {
           if (!state.order.every(function (id) { return state.answers[id] != null; })) {
             var msg = root.querySelector('.cl-msg');
-            if (msg) { msg.textContent = 'Answer all 20 questions.'; msg.className = 'cl-msg err'; }
+            if (msg) { msg.textContent = 'Answer all ' + state.order.length + ' questions.'; msg.className = 'cl-msg err'; }
             return;
           }
           state.attempts = (state.attempts || 0) + 1;
@@ -811,6 +1066,115 @@
     render();
   }
 
+
+  function mountHub(root, opts) {
+    if (!root) return;
+    opts = opts || {};
+    var product = opts.product === 'kamuk' ? 'kamuk' : 'infinity';
+    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var studentId = String(opts.studentId || '').trim();
+    var desk = product === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings Inc';
+    styles(accent);
+
+    var view = { mode: 'hub', moduleId: null };
+
+    function backHub() {
+      view.mode = 'hub';
+      view.moduleId = null;
+      render();
+    }
+
+    function render() {
+      if (view.mode === 'module') {
+        root.innerHTML = '<div class="cl"><button type="button" class="cl-btn ghost cl-hub-back" id="cl-hub-back">← All modules</button><div id="cl-hub-slot"></div></div>';
+        root.querySelector('#cl-hub-back').addEventListener('click', backHub);
+        mountModule(root.querySelector('#cl-hub-slot'), {
+          moduleId: view.moduleId,
+          product: product,
+          studentId: studentId,
+          accent: accent,
+          onContinue: backHub
+        });
+        return;
+      }
+      if (view.mode === 'final') {
+        root.innerHTML = '<div class="cl"><button type="button" class="cl-btn ghost cl-hub-back" id="cl-hub-back">← All modules</button><div id="cl-hub-slot"></div></div>';
+        root.querySelector('#cl-hub-back').addEventListener('click', backHub);
+        mountFinal(root.querySelector('#cl-hub-slot'), {
+          product: product,
+          studentId: studentId,
+          accent: accent,
+          onContinue: backHub
+        });
+        return;
+      }
+      if (view.mode === 'formato') {
+        root.innerHTML = '<div class="cl"><button type="button" class="cl-btn ghost cl-hub-back" id="cl-hub-back">← All modules</button><div id="cl-hub-slot"></div></div>';
+        root.querySelector('#cl-hub-back').addEventListener('click', backHub);
+        var slot = root.querySelector('#cl-hub-slot');
+        if (global.SimulationFormatoE && typeof global.SimulationFormatoE.mount === 'function') {
+          global.SimulationFormatoE.mount(slot, {
+            product: product,
+            studentId: studentId,
+            accent: accent,
+            onContinue: backHub
+          });
+        } else {
+          slot.innerHTML = '<div class="cl-msg err">Formato E module missing. Reload the portal.</div>';
+        }
+        return;
+      }
+
+      var cards = MODULE_ORDER.map(function (id, i) {
+        var mod = MODULES[id];
+        var done = isCertified(id, product, studentId);
+        return '<button type="button" class="cl-hub-card' + (done ? ' done' : '') + '" data-mod="' + id + '">'
+          + '<div class="cl-hub-kicker">Module ' + (i + 1) + ' · ' + (mod.mins || 10) + ' min</div>'
+          + '<div class="cl-hub-title">' + esc(mod.title) + '</div>'
+          + '<div class="cl-hub-meta">Training · Mini quiz · Certification (80%)</div>'
+          + (done ? '<span class="cl-hub-badge">Certified</span>' : '')
+          + '</button>';
+      }).join('');
+
+      var formatoDone = global.SimulationFormatoE && typeof global.SimulationFormatoE.isCertified === 'function'
+        ? global.SimulationFormatoE.isCertified(product, studentId)
+        : false;
+      cards += '<button type="button" class="cl-hub-card' + (formatoDone ? ' done' : '') + '" data-formato="1">'
+        + '<div class="cl-hub-kicker">Email standard · desk</div>'
+        + '<div class="cl-hub-title">Formato E</div>'
+        + '<div class="cl-hub-meta">Training · Drills · Certification</div>'
+        + (formatoDone ? '<span class="cl-hub-badge">Certified</span>' : '')
+        + '</button>';
+
+      var finalDone = isFinalCertified(product, studentId);
+      cards += '<button type="button" class="cl-hub-card' + (finalDone ? ' done' : '') + '" data-final="1">'
+        + '<div class="cl-hub-kicker">Capstone · ' + FINAL_QUIZ.length + ' questions</div>'
+        + '<div class="cl-hub-title">Final certification</div>'
+        + '<div class="cl-hub-meta">All modules · 80% pass</div>'
+        + (finalDone ? '<span class="cl-hub-badge">Certified</span>' : '')
+        + '</button>';
+
+      root.innerHTML = '<div class="cl">'
+        + '<p class="cl-lead">E-learning for the ' + esc(desk) + ' desk. Each module has <strong>Training</strong>, a <strong>Mini quiz</strong>, then <strong>Certification</strong> at 80%.</p>'
+        + '<div class="cl-hub-grid">' + cards + '</div>'
+        + '</div>';
+
+      root.querySelectorAll('[data-mod]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          view.mode = 'module';
+          view.moduleId = btn.getAttribute('data-mod');
+          render();
+        });
+      });
+      var fe = root.querySelector('[data-formato]');
+      if (fe) fe.addEventListener('click', function () { view.mode = 'formato'; view.moduleId = null; render(); });
+      var fi = root.querySelector('[data-final]');
+      if (fi) fi.addEventListener('click', function () { view.mode = 'final'; view.moduleId = null; render(); });
+    }
+
+    render();
+  }
+
   global.SimulationCorporateLearn = {
     MODULES: MODULES,
     MODULE_ORDER: MODULE_ORDER,
@@ -818,6 +1182,7 @@
     PASS: PASS,
     mountModule: mountModule,
     mountFinal: mountFinal,
+    mountHub: mountHub,
     isCertified: isCertified,
     isFinalCertified: isFinalCertified
   };
