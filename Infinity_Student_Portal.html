@@ -1459,17 +1459,17 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK (machote PDF fidedigno completo + Simulation / Nesting) ──
+  // ── TRAINING BOOK (interactive glossary + Simulation / Nesting; PDF secondary) ──
   var trainingBookHtml = ''
-    +'<div class="card" style="padding:0;overflow:hidden;">'
+    +'<div class="card" style="padding:0;overflow:hidden;border:1.5px solid #B7D4EE;">'
     +'<div class="card-title" style="padding:12px 14px 8px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'
-    +'<span><i class="ti ti-book-2"></i> Training Book digital</span>'
+    +'<span><i class="ti ti-book-2"></i> Training Book · glosario</span>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<a href="training-book/glosario/index.html" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-vocabulary"></i> Glosario</a>'
-    +'<a href="training-book/mac/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
+    +'<a href="training-book/mac/machote-curso.pdf" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-file-type-pdf"></i> PDF</a>'
+    +'<a href="training-book/glosario/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
     +'</div></div>'
-    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Manual Infinity completo — sin ediciones ni recortes. Leé acá o abrí en pantalla completa.</p>'
-    +'<iframe title="Training Book digital — Infinity" src="training-book/mac/index.html" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Tocá una tarjeta: explicación completa, pasos del desk y ejemplos en inglés. El PDF queda como referencia.</p>'
+    +'<iframe title="Training Book — glosario Infinity" src="training-book/glosario/index.html?v=20260825rich" style="width:100%;height:min(82vh,900px);border:0;display:block;background:#EAF3FB;"></iframe>'
     +'</div>'
     +'<div id="simulation-onboarding-root"></div>'
     +'<div id="simulation-nexora-panel" class="card" style="margin-top:16px;">'

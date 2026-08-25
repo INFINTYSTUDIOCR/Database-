@@ -1,0 +1,354 @@
+/* Infinity Holdings — Training Book glossary (soft blue UI) */
+:root {
+  --inf-tb-blue: #3178C6;
+  --inf-tb-blue-deep: #1e5a9a;
+  --inf-tb-blue-soft: #E8F2FC;
+  --inf-tb-blue-tint: #F3F8FD;
+  --inf-tb-border: #C5D9EE;
+  --inf-tb-text: #1A2B3C;
+  --inf-tb-muted: #5A6F84;
+  --inf-tb-faint: #8A9BB0;
+  --inf-tb-white: #ffffff;
+  --inf-tb-radius: 16px;
+  --inf-tb-radius-pill: 999px;
+}
+
+.inf-tb-shell {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--inf-tb-text);
+  background: var(--inf-tb-white);
+  border: 1.5px solid var(--inf-tb-border);
+  border-radius: 20px;
+  padding: 18px 18px 16px;
+  box-sizing: border-box;
+}
+
+.inf-tb-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.inf-tb-icon {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--inf-tb-blue-soft);
+  color: var(--inf-tb-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.inf-tb-icon svg { width: 16px; height: 16px; fill: currentColor; }
+
+.inf-tb-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--inf-tb-blue-deep);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.inf-tb-lead {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--inf-tb-muted);
+}
+
+.inf-tb-search {
+  width: 100%;
+  min-height: 48px;
+  font-size: 15px;
+  padding: 12px 18px;
+  border: 1.5px solid #D0DCE8;
+  border-radius: var(--inf-tb-radius-pill);
+  background: var(--inf-tb-white);
+  color: var(--inf-tb-text);
+  font-family: inherit;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.inf-tb-search::placeholder { color: var(--inf-tb-faint); }
+
+.inf-tb-search:focus {
+  border-color: var(--inf-tb-blue);
+  box-shadow: 0 0 0 3px rgba(49, 120, 198, 0.18);
+}
+
+.inf-tb-cats {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.inf-tb-cats::-webkit-scrollbar { display: none; }
+
+.inf-tb-cat {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 9px 16px;
+  border-radius: var(--inf-tb-radius-pill);
+  border: 1.5px solid var(--inf-tb-blue);
+  background: var(--inf-tb-white);
+  color: var(--inf-tb-blue);
+  font: 700 12.5px/1 inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.inf-tb-cat:hover { background: var(--inf-tb-blue-soft); }
+
+.inf-tb-cat.is-on {
+  background: var(--inf-tb-blue);
+  border-color: var(--inf-tb-blue);
+  color: #fff;
+}
+
+.inf-tb-count {
+  font-size: 11.5px;
+  color: var(--inf-tb-faint);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.inf-tb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  max-height: min(38vh, 280px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px;
+  margin-bottom: 12px;
+}
+
+.inf-tb-card {
+  min-height: 72px;
+  text-align: left;
+  padding: 14px 14px 12px;
+  border-radius: var(--inf-tb-radius);
+  border: 1.5px solid var(--inf-tb-border);
+  background: var(--inf-tb-white);
+  cursor: pointer;
+  touch-action: manipulation;
+  font: inherit;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.inf-tb-card:hover {
+  border-color: var(--inf-tb-blue);
+  background: var(--inf-tb-blue-tint);
+}
+
+.inf-tb-card.is-on {
+  border-color: var(--inf-tb-blue);
+  border-width: 2px;
+  background: var(--inf-tb-blue-soft);
+  box-shadow: 0 0 0 1px rgba(49, 120, 198, 0.2);
+}
+
+.inf-tb-card b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--inf-tb-blue-deep);
+  line-height: 1.25;
+}
+
+.inf-tb-card small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: var(--inf-tb-muted);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.inf-tb-panel {
+  margin-top: 2px;
+  min-height: 180px;
+  border-radius: var(--inf-tb-radius);
+  background: var(--inf-tb-blue-soft);
+  border: 1px solid var(--inf-tb-border);
+  padding: 16px 16px 18px;
+}
+
+.inf-tb-panel.is-rich {
+  max-height: min(52vh, 520px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inf-tb-panel h4 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--inf-tb-blue-deep);
+}
+
+.inf-tb-es {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--inf-tb-muted);
+  margin-bottom: 12px;
+}
+
+.inf-tb-es strong { color: var(--inf-tb-text); }
+
+.inf-tb-sec {
+  margin: 0 0 14px;
+}
+
+.inf-tb-sec:last-child { margin-bottom: 0; }
+
+.inf-tb-sec-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--inf-tb-blue);
+  margin: 0 0 6px;
+}
+
+.inf-tb-how {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--inf-tb-text);
+  margin: 0;
+}
+
+.inf-tb-steps,
+.inf-tb-avoid,
+.inf-tb-ex {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--inf-tb-text);
+}
+
+.inf-tb-steps li,
+.inf-tb-avoid li,
+.inf-tb-ex li {
+  margin-bottom: 6px;
+}
+
+.inf-tb-avoid li { color: #9a3412; }
+
+.inf-tb-ex-blocks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  counter-reset: ex;
+}
+
+.inf-tb-ex-blocks li {
+  counter-increment: ex;
+  position: relative;
+}
+
+.inf-tb-ex-blocks li::before {
+  content: "Ejemplo " counter(ex);
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--inf-tb-faint);
+  margin-bottom: 4px;
+}
+
+.inf-tb-quote {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--inf-tb-border);
+  border-left: 4px solid var(--inf-tb-blue);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--inf-tb-blue-deep);
+  font-weight: 600;
+}
+
+.inf-tb-forms { margin: 0 0 10px; }
+
+.inf-tb-forms b {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--inf-tb-faint);
+  margin-bottom: 4px;
+}
+
+.inf-tb-empty {
+  font-size: 13px;
+  color: var(--inf-tb-muted);
+  margin: 0;
+}
+
+/* Make room for the rich detail pane: shorter card grid */
+.inf-tb-grid {
+  max-height: min(28vh, 220px);
+}
+
+/* Readings (Recursos) — keep grid cards */
+.inf-tb-read-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 520px) {
+  .inf-tb-read-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.inf-tb-read-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 88px;
+  padding: 12px 14px;
+  border-radius: var(--inf-tb-radius);
+  border: 1.5px solid var(--inf-tb-border);
+  background: var(--inf-tb-white);
+  text-decoration: none;
+  color: inherit;
+  touch-action: manipulation;
+}
+
+.inf-tb-read-card strong { font-size: 13px; color: var(--inf-tb-blue-deep); }
+.inf-tb-read-card span { font-size: 12px; line-height: 1.45; color: var(--inf-tb-muted); }
+.inf-tb-read-go { margin-top: auto; font-size: 12px; font-weight: 800; color: var(--inf-tb-blue); }
+
+/* Standalone / fullscreen: taller chip grid */
+.inf-tb-shell.is-tall .inf-tb-grid {
+  max-height: min(52vh, 420px);
+}
+
+/* Legacy kh-lib aliases (Kamuk Recursos inline CSS still styles these) */
+.kh-lib.inf-tb-shell,
+.kh-lib { font-family: inherit; }

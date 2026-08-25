@@ -25,23 +25,324 @@
 
   function item(cat, en, es, how, a, b, forms) {
     var extra = Array.isArray(forms) ? { forms: forms } : (forms && typeof forms === 'object' ? forms : {});
-    return { cat: cat, en: en, es: es, how: how, examples: [a, b], gloss: extra.gloss || '', forms: extra.forms || [] };
+    var examples = [];
+    if (Array.isArray(extra.examples) && extra.examples.length) {
+      examples = extra.examples.slice();
+    } else {
+      if (a) examples.push(a);
+      if (b) examples.push(b);
+      if (extra.c) examples.push(extra.c);
+      if (extra.d) examples.push(extra.d);
+    }
+    return {
+      cat: cat,
+      en: en,
+      es: es,
+      how: how,
+      why: extra.why || '',
+      steps: extra.steps || [],
+      avoid: extra.avoid || [],
+      examples: examples.filter(Boolean),
+      gloss: extra.gloss || '',
+      forms: extra.forms || []
+    };
+  }
+
+  function section(title, bodyHtml) {
+    if (!bodyHtml) return '';
+    return '<div class="inf-tb-sec"><div class="inf-tb-sec-label">' + esc(title) + '</div>' + bodyHtml + '</div>';
+  }
+
+  function renderDetail(selected) {
+    if (!selected) {
+      return '<div class="inf-tb-panel kh-lib-panel"><p class="inf-tb-empty kh-lib-empty">Tocá una tarjeta (Email Formato E, Phone AMR, Método…). Abajo vas a ver la explicación completa y los ejemplos en inglés.</p></div>';
+    }
+    var ex = (selected.examples || []).filter(Boolean);
+    var exHtml = ex.length
+      ? '<ol class="inf-tb-ex-blocks">' + ex.map(function (e) {
+          return '<li><blockquote class="inf-tb-quote">' + esc(e) + '</blockquote></li>';
+        }).join('') + '</ol>'
+      : '';
+    var stepsHtml = (selected.steps && selected.steps.length)
+      ? '<ol class="inf-tb-steps">' + selected.steps.map(function (st) { return '<li>' + esc(st) + '</li>'; }).join('') + '</ol>'
+      : '';
+    var avoidHtml = (selected.avoid && selected.avoid.length)
+      ? '<ul class="inf-tb-avoid">' + selected.avoid.map(function (av) { return '<li>' + esc(av) + '</li>'; }).join('') + '</ul>'
+      : '';
+    var formsHtml = (selected.forms && selected.forms.length)
+      ? '<ul class="inf-tb-ex kh-lib-ex">' + selected.forms.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>'
+      : '';
+    var whyHtml = selected.why
+      ? '<p class="inf-tb-how kh-lib-how">' + esc(selected.why) + '</p>'
+      : '';
+    var howHtml = selected.how
+      ? '<p class="inf-tb-how kh-lib-how">' + esc(selected.how) + '</p>'
+      : '';
+    return '<div class="inf-tb-panel kh-lib-panel is-rich">'
+      + '<h4>' + esc(selected.en) + '</h4>'
+      + '<div class="inf-tb-es kh-lib-es">Español: <strong>' + esc(selected.es) + '</strong>' + (selected.gloss ? ' — ' + esc(selected.gloss) : '') + '</div>'
+      + section('Para qué sirve', whyHtml)
+      + section('Explicación completa', howHtml)
+      + section('Cómo hacerlo en el desk', stepsHtml)
+      + section('Formas, conjugaciones y para qué', formsHtml)
+      + section('Ejemplos en inglés (estudiá y adaptá — no copies ciego)', exHtml)
+      + section('Evitá / no hagas esto', avoidHtml)
+      + '</div>';
   }
 
   var GLOSS_ITEMS = [
-    item('email', 'E1 Encabezado', 'Hello / Dear + nombre', 'Abrí Emails → Compose. Primera línea: Dear/Hello/Hi + first name del cliente del case (Marta, no “Dear Client”). Send no pasa sin esto.', 'Hello Marta,', 'Hi Daniel,'),
-    item('email', 'E2 Empatía', 'Acknowledge impact', 'Nombrá el impacto que ves en el case brief / quote. Usá understand, hear, sorry, apologize o thank you for writing.', 'Thank you for writing. I understand the payroll freeze is blocking supplier ACH.', 'I hear this is the third call. I will review Previous contacts first.'),
-    item('email', 'E3 Explicación + linkers', '2 conectores + 1 método', 'En Explicación usá 2 conectores (because, however, therefore…) y 1 método linker (in other words, even though, as well as). Tocá Método / Conectores para más chips.', 'I reviewed the Operating Account restriction because two supplier ACH payments declined. However I will not lift every control. In other words, Operations owns the restore.', 'Even though the Obsidian card is Active, the Operating Account is Restricted; therefore payroll is still blocked.'),
-    item('email', 'E4 Ejecución', 'Qué YA hiciste en el CRM', 'Usá I have / I reviewed / I verified / I escalated / I blocked / I set. Debe ser acción del desk, no una promesa.', 'I reviewed Statements, I verified the freeze flag, and I escalated to Operations.', 'I have documented Previous contacts and I set AA until Operations restores the account.'),
-    item('email', 'E5 Encierro', 'I will + hora + regards', 'Dueño + today / 4:30 p.m. / business days. Cierre: Best regards o Kind regards. Mínimo 55 palabras en todo el correo.', 'I will call you today before 4:30 p.m. with the Operations outcome. Kind regards', 'I will follow up within two business days. Best regards'),
-    item('email', 'Technicismos in the email', 'AA, PSA, PIN, MCC, last 6', 'Usá los términos del desk, no teoría. Nunca pongas un PIN. Last 6 only after identity. AA/PSA son dispositions, no relleno.', 'I set AA and I will call you today before 4:30 p.m. I cannot send a PIN; last 6 only after identity on a recorded line.', 'PSA: the restore is with Operations. I reviewed the hotel MCC block and the travel notice in Cards.'),
-    item('phone', 'AMR Acknowledge', 'Acknowledge', 'Primera frase: el impacto. Línea grabada. Entendé antes de investigar.', 'I understand payroll is frozen and two supplier payments declined.', 'Thank you for waiting. I hear this is the third call.'),
-    item('phone', 'AMR Mirror', 'Mirror', 'Repetí el hecho clave: you said / you mentioned / so you / just to make sure / what happened was.', 'You mentioned the supplier ACH of $18,400 declined. Just to make sure, that is on the Operating Account.', 'So you need the card to work at the Lisbon hotel desk — what happened was a decline, not a lost card.'),
-    item('phone', 'AMR Respond', 'Respond', 'I will + dueño + hora. Luego documentá la nota con el mismo AMR.', 'I will review Statements now and I will call you today before 4:30 p.m.', 'I will escalate to Operations and I will follow up within two business days.'),
-    item('phone', 'Recorded line + hold', 'Línea grabada / hold', 'Identidad y last 6 solo en recorded line. En hold: decí por qué y volvé. No dejes al cliente colgado.', 'We are on a recorded line. Please stay with me while I look into Statements.', 'I am placing you on a brief hold to review Previous contacts. I will be right back.'),
-    item('phone', 'Identity before disclosure', 'Identidad primero', 'Verify identity en Cards & PIN antes de last 6. Nunca PAN completo. Nunca PIN.', 'Once identity is complete on the recorded line, I can confirm last 6 — never the PIN.', 'Date of birth does not match. I will not confirm last 6 until verification is complete.'),
-    item('phone', 'Ownership, no PIN', 'Dueño + política PIN', 'Nombrá qué vas a hacer vos. Policy: never send, read or email a PIN. SMS no es canal.', 'I own the callback today before 4:30 p.m. I cannot text the PIN.', 'I will not email the PIN. I will complete identity and confirm last 6 only.'),
-    item('metodo', 'Even when / even though', 'Aun cuando', 'Use even though to keep the policy after naming a fact that does not change the decision.', 'Even though the flight is tonight, I cannot send a PIN.', 'Even when the merchant refunded, I will confirm before I close the claim.'),
+    item('email', 'E1 Encabezado', 'Hello / Dear + nombre',
+      'El encabezado es la primera línea del correo al cliente. Abrí Emails → Compose. Escribí Dear / Hello / Hi + el first name del case (Marta, Daniel). Nunca “Dear Client” ni “Dear Sir/Madam”. Sin E1, Send no pasa el grader de Formato E.',
+      'Hello Marta,',
+      'Hi Daniel,',
+      {
+        why: 'Identifica a la persona. El desk de Infinity Holdings exige nombre real del case brief — no plantillas genéricas.',
+        steps: [
+          'Abrí el case y leé el first name del cliente.',
+          'Emails → Compose.',
+          'Primera línea: Hello / Hi / Dear + nombre + coma (Hello Marta,).',
+          'Seguí con E2 Empatía en la siguiente frase.'
+        ],
+        avoid: [
+          'Dear Client / Dear Customer / To whom it may concern.',
+          'Solo el nombre sin saludo (“Marta,”).',
+          'Usar un apellido o un ticket number como saludo.'
+        ],
+        c: 'Dear Sofia,',
+        d: 'Hello Carlos,'
+      }),
+    item('email', 'E2 Empatía', 'Acknowledge impact',
+      'Después del encabezado, nombrá el impacto que ves en el case brief o en la quote del cliente. No digas solo “I understand your concern”: nombrá payroll freeze, third call, hotel decline, etc. Verbos seguros: understand, hear, sorry, apologize, thank you for writing / calling / waiting.',
+      'Thank you for writing. I understand the payroll freeze is blocking supplier ACH.',
+      'I hear this is the third call. I will review Previous contacts first.',
+      {
+        why: 'La empatía profesional baja la temperatura y prueba que leíste el caso antes de explicar política.',
+        steps: [
+          'Leé el impacto en el brief (payroll, decline, dispute, hold).',
+          'Abrí con thank you for writing/calling O I understand / I hear + el impacto concreto.',
+          'No prometás aún el resultado: eso va en E4/E5.'
+        ],
+        avoid: [
+          '“I understand your concern” sin decir cuál es el impacto.',
+          'Empatía falsa + “but” agresivo en la misma frase.',
+          'Pedir PIN o datos sensibles en la empatía.'
+        ],
+        c: 'I am sorry the hotel declined your Obsidian card in Miami — I hear how urgent check-in is.',
+        d: 'Thank you for waiting. I understand the $180,000 payroll wire is on a compliance hold and the funds are still intact.'
+      }),
+    item('email', 'E3 Explicación + linkers', '2 conectores + 1 método',
+      'En la Explicación necesitás evidencia + nesting: mínimo 2 conectores de escritorio (because, however, therefore, although, in addition, as a result…) y 1 método linker (in other words, even though, even when, as well as, which means, on the other hand, the thing is that). Explicá el mecanismo sin culpar al cliente.',
+      'I reviewed the Operating Account restriction because two supplier ACH payments declined. However I will not lift every control. In other words, Operations owns the restore.',
+      'Even though the Obsidian card is Active, the Operating Account is Restricted; therefore payroll is still blocked.',
+      {
+        why: 'E3 es donde se ve el nesting del Training Book: no es un dump de conectores IELTS; es lógica de desk.',
+        steps: [
+          'Nombrá el hecho del CRM (restriction, decline, refund posted…).',
+          'Conector 1: because / as a result / therefore…',
+          'Conector 2: however / although / on the other hand…',
+          'Método linker: in other words / even though / which means…',
+          'Tocá Método y Conectores en este glosario para más chips con ejemplos completos.'
+        ],
+        avoid: [
+          'Tirar 5 conectores seguidos sin evidencia.',
+          'Culpar al cliente (“you failed to…”).',
+          'Explicar AML tip-off o revelar controles internos sensibles.'
+        ],
+        c: 'I verified identity because date of birth must match on a recorded line. However I cannot send a PIN. In other words, last 6 only after full verification.',
+        d: 'The refund posted; therefore I will withdraw the open dispute. On the other hand, we can reopen within 10 days if the refund reverses.'
+      }),
+    item('email', 'E4 Ejecución', 'Qué YA hiciste en el CRM',
+      'Ejecución = acciones ya hechas en el desk, en pasado / presente perfecto: I reviewed, I verified, I escalated, I blocked, I set, I opened, I documented, I activated. No es una promesa (“I will look into it” eso es E5). El cliente y el auditor deben ver ownership real.',
+      'I reviewed Statements, I verified the freeze flag, and I escalated to Operations.',
+      'I have documented Previous contacts and I set AA until Operations restores the account.',
+      {
+        why: 'Sin E4 el correo suena a plantilla. Con E4 demostrás que trabajaste el CRM antes de cerrar.',
+        steps: [
+          'Antes de Compose: hacé la acción en el CRM (Statements, note, escalate, travel notice…).',
+          'En el correo: listá 1–3 acciones con I reviewed / I verified / I escalated…',
+          'Si todavía no hiciste nada, volvé al CRM primero — no inventes E4.'
+        ],
+        avoid: [
+          'Mezclar E4 con “I will” (eso es Encierro).',
+          'Decir “I fixed it” sin evidencia en el CRM.',
+          'Copiar la gold sample sin acciones reales de ESTE case.'
+        ],
+        c: 'I verified identity on the recorded line, I checked Card transactions, and I set a travel notice for Miami.',
+        d: 'I reviewed Card transactions, I opened the dispute, and I blocked the card for reissue.'
+      }),
+    item('email', 'E5 Encierro', 'I will + hora + regards',
+      'Cierre con dueño + reloj: I will + today / before 4:30 p.m. / within two business days / tomorrow before noon. Después: Kind regards o Best regards. El correo completo debe tener mínimo 55 palabras (E1–E5 juntos).',
+      'I will call you today before 4:30 p.m. with the Operations outcome. Kind regards',
+      'I will follow up within two business days. Best regards',
+      {
+        why: 'El cliente necesita un next step con hora. “I will call you soon” no pasa el grader.',
+        steps: [
+          'Escribí I will + acción concreta (call / email / follow up).',
+          'Agregá marca de tiempo: today before 4:30 p.m. / within two business days…',
+          'Cerrá con Kind regards o Best regards.',
+          'Contá palabras: si van menos de 55, expandí E2/E3/E4 con un hecho más del CRM.'
+        ],
+        avoid: [
+          '“I will call you soon / later / ASAP” sin hora.',
+          'Cerrar sin regards.',
+          'Prometer un resultado que no controlás (network win, same-day goodwill).'
+        ],
+        c: 'I will email the case number today before 4:45 p.m. Kind regards',
+        d: 'I will call you tomorrow before noon with the Compliance outcome. Best regards'
+      }),
+    item('email', 'E6 Email completo', 'Formato E en un solo pase',
+      'Un correo de escritorio completo une E1–E5 en un solo pase: saludo con nombre, empatía con impacto, explicación con 2 conectores + 1 método, ejecución de lo YA hecho en el CRM, y encierro con I will + hora + regards. Mínimo 55 palabras. Estudiá la estructura; no copies ciego en drills ni en el desk.',
+      'Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account restriction because two supplier ACH payments declined. However I will not lift every control. In other words, Operations owns the restore. I reviewed Statements, I verified the freeze flag, and I escalated to Operations. I will call you today before 4:30 p.m. with the Operations outcome. Kind regards',
+      'Hello Daniel, thank you for calling. I hear the Miami hotel declined your Obsidian card at check-in. I verified identity because we were on a recorded line. However there was no travel notice on file. In other words, the decline was a control, not a lost card. I checked Card transactions and I set a travel notice for Miami. I will confirm by call today before 5:00 p.m. Kind regards',
+      {
+        why: 'E6 es el modelo mental del Send button: el grader mira las cinco piezas juntas, no cinco oraciones sueltas.',
+        steps: [
+          'Armá el outline E1→E5 antes de escribir.',
+          'Pegá hechos del case brief (nombres, montos, disposition).',
+          'Revisá: 2 conectores + 1 método + I will con hora + 55+ palabras.',
+          'Send solo cuando el grader del desk esté en verde.'
+        ],
+        avoid: [
+          'Copiar este gold sample en un drill o en un case distinto.',
+          'Saltar E4 (acciones) o E3 (linkers).',
+          'Meter un PIN o un PAN completo en el correo.'
+        ],
+        c: 'Hello Sofia, thank you for writing. I understand the $180,000 payroll wire is on a compliance hold and the funds are still intact. I reviewed Statements because the batch did not post. However this is a standard review, not a loss. In other words, Compliance owns the release timing. I documented Previous contacts and I routed the case to Compliance. I will call you tomorrow before noon with the outcome. Kind regards'
+      }),
+    item('email', 'Technicismos in the email', 'AA, PSA, PIN, MCC, last 6',
+      'En el correo usá el vocabulario del desk cuando aporta claridad: AA (awaiting action), PSA (pending system), MCC block, travel notice, last 6. Nunca envíes, leas ni escribas un PIN. Last 6 solo después de identity en línea grabada. AA/PSA son dispositions, no relleno decorativo.',
+      'I set AA and I will call you today before 4:30 p.m. I cannot send a PIN; last 6 only after identity on a recorded line.',
+      'PSA: the restore is with Operations. I reviewed the hotel MCC block and the travel notice in Cards.',
+      {
+        why: 'Los technicismos alinean al cliente con el status real del case y dejan audit trail claro.',
+        steps: [
+          'Elegí el disposition correcto (AA vs PSA) según quién tiene la próxima acción.',
+          'Si hablás de last 6, dejá claro: after identity / never the PIN.',
+          'MCC / travel notice: nombrá cuál regla disparó el decline.'
+        ],
+        avoid: [
+          'Poner un PIN en el email o en chat.',
+          'Prometer “I will text the PIN”.',
+          'Usar AA/PSA sin explicar el next step.'
+        ],
+        c: 'Disposition AA: waiting on the booking confirmation. I will follow up today before 4:30 p.m.',
+        d: 'I will not confirm last 6 until identity is complete on the recorded line.'
+      }),
+    item('phone', 'AMR Acknowledge', 'Acknowledge',
+      'En llamada o nota, AMR empieza con Acknowledge: primera frase = el impacto. Estás en línea grabada. Entendé antes de investigar. Usá I understand / I hear / thank you for waiting + el hecho concreto del case.',
+      'I understand payroll is frozen and two supplier payments declined.',
+      'Thank you for waiting. I hear this is the third call.',
+      {
+        why: 'Acknowledge baja la emoción y prueba que escuchaste antes del Mirror y del Respond.',
+        steps: [
+          'Dejá que el cliente termine el turn.',
+          'Nombrá el impacto en una frase (payroll, decline, third call…).',
+          'No abras el CRM en silencio sin decir qué estás haciendo.'
+        ],
+        avoid: [
+          'Interrumpir para pedir PIN de entrada.',
+          '“I understand” vacío.',
+          'Empezar con política antes de reconocer el impacto.'
+        ],
+        c: 'I understand the Lisbon hotel declined the card and you are at the desk now.',
+        d: 'I hear the urgency around the payroll wire — thank you for staying on the line.'
+      }),
+    item('phone', 'AMR Mirror', 'Mirror',
+      'Mirror = repetí el hecho clave para confirmar: you said / you mentioned / so you / just to make sure / what happened was. Cerrá con una confirmación corta. Esto gana 3 segundos y evita arreglar el problema equivocado.',
+      'You mentioned the supplier ACH of $18,400 declined. Just to make sure, that is on the Operating Account.',
+      'So you need the card to work at the Lisbon hotel desk — what happened was a decline, not a lost card.',
+      {
+        why: 'Mirror alinea el caso: monto, cuenta, merchant, ciudad. Sin Mirror, Respond suele ir al control equivocado.',
+        steps: [
+          'Elegí UN hecho clave (monto, merchant, account).',
+          'Repetilo con you mentioned / so you / just to make sure…',
+          'Esperá el “yes” del cliente antes de Respond.'
+        ],
+        avoid: [
+          'Espejo de la emoción sola (“you are angry”) sin el hecho.',
+          'Repetir todo el relato de 2 minutos.',
+          'Mirror en español en el desk EN.'
+        ],
+        c: 'Just to make sure I understood: you want last 6, not the PIN.',
+        d: 'You said the notice on file is Paris, but the decline was in Lisbon — correct?'
+      }),
+    item('phone', 'AMR Respond', 'Respond',
+      'Respond = I will + dueño + hora. Después documentá la nota interna con el mismo AMR. En phone: decí la acción y el reloj en voz alta. En note: escribí Acknowledge → Mirror → Respond con tiempo.',
+      'I will review Statements now and I will call you today before 4:30 p.m.',
+      'I will escalate to Operations and I will follow up within two business days.',
+      {
+        why: 'Sin Respond con reloj, la llamada queda abierta y el KPI de ownership se cae.',
+        steps: [
+          'Nombrá la acción que vos hacés ahora o hoy.',
+          'Pegá una marca de tiempo audible.',
+          'Escribí la nota AMR en Previous contacts / Internal note.'
+        ],
+        avoid: [
+          '“Someone will call you” sin dueño.',
+          'Respond sin hora.',
+          'Prometer un win de network o goodwill que no autorizás.'
+        ],
+        c: 'I will activate the virtual card now and I will stay on the line while it provisions.',
+        d: 'I will set AA and I will call you today before 4:30 p.m. with the Operations outcome.'
+      }),
+    item('phone', 'Recorded line + hold', 'Línea grabada / hold',
+      'Identidad y last 6 viven en recorded line. Si ponés hold: decí por qué y cuánto aproximadamente, y volvé. No dejes al cliente colgado sin contexto.',
+      'We are on a recorded line. Please stay with me while I look into Statements.',
+      'I am placing you on a brief hold to review Previous contacts. I will be right back.',
+      {
+        why: 'Hold profesional protege compliance y la experiencia del cliente.',
+        steps: [
+          'Confirmá recorded line cuando vayas a identity / last 6.',
+          'Antes del hold: “I am placing you on a brief hold to…”',
+          'Al volver: thank you for waiting + Mirror corto.'
+        ],
+        avoid: [
+          'Hold mudo de varios minutos.',
+          'Pedir PIN fuera de recorded line.',
+          'Colgar “por accidente” sin callback timed.'
+        ],
+        c: 'Please stay with me on the recorded line while I complete identity.',
+        d: 'Thank you for holding. I reviewed Previous contacts and I am ready with the next step.'
+      }),
+    item('phone', 'Identity before disclosure', 'Identidad primero',
+      'Verify identity en Cards & PIN antes de last 6. Nunca PAN completo. Nunca PIN. Si date of birth u otro data point no matchea, no confirmés last 6.',
+      'Once identity is complete on the recorded line, I can confirm last 6 — never the PIN.',
+      'Date of birth does not match. I will not confirm last 6 until verification is complete.',
+      {
+        why: 'Disclosure sin identity es un fail de compliance. El Training Book y el desk lo tratan como hard stop.',
+        steps: [
+          'Recorded line on.',
+          'Corrés los data points del perfil.',
+          'Solo entonces last 6 — nunca PIN / nunca PAN completo.'
+        ],
+        avoid: [
+          'Confirmar last 6 “porque el cliente tiene prisa”.',
+          'Leer el PIN “para ayudar”.',
+          'Identity por SMS o WhatsApp no verificado.'
+        ],
+        c: 'Mother’s maiden name matched; date of birth did not — I stay on the recorded line and I will not confirm last 6 yet.',
+        d: 'I will complete identity verification before I confirm last 6.'
+      }),
+    item('phone', 'Ownership, no PIN', 'Dueño + política PIN',
+      'Nombrá qué vas a hacer vos. Policy: never send, read or email a PIN. SMS no es canal para PIN. Ofrecé el path seguro: identity + last 6, virtual card, travel notice, escalate con hora.',
+      'I own the callback today before 4:30 p.m. I cannot text the PIN.',
+      'I will not email the PIN. I will complete identity and confirm last 6 only.',
+      {
+        why: 'Ownership + PIN policy es la línea que protege al cliente y al desk.',
+        steps: [
+          'Decí “I own…” + next step timed.',
+          'Si piden PIN: policy clara + alternativa segura.',
+          'Documentá en la nota: no PIN / last 6 after identity.'
+        ],
+        avoid: [
+          '“Maybe my supervisor can text the PIN”.',
+          'Pasar el caso sin dueño ni hora.',
+          'Discutir la policy en tono pelea.'
+        ],
+        c: 'I cannot send a PIN by SMS. I will activate the virtual card instead so you can pay today.',
+        d: 'I own this next step: identity now, then last 6 only — never the full number.'
+      }),
+        item('metodo', 'Even when / even though', 'Aun cuando', 'Use even though to keep the policy after naming a fact that does not change the decision.', 'Even though the flight is tonight, I cannot send a PIN.', 'Even when the merchant refunded, I will confirm before I close the claim.'),
     item('metodo', 'Once', 'Una vez que', 'Use once for a condition that unlocks the next safe action.', 'Once identity is complete on the recorded line, I can confirm last 6.', 'Once the travel notice is on file, I will re-try the authorization.'),
     item('metodo', 'however', 'Sin embargo', 'Use however to contrast the client request with policy without sounding rude.', 'I hear the urgency; however, I cannot wire to an unverified WhatsApp agency.', 'The refund posted; however, I must withdraw the open dispute to avoid a double credit.'),
     item('metodo', 'What happens is that…', 'Lo que pasa es que', 'Use this to explain the mechanism, not to blame the client.', 'What happens is that a deposit plus a balance is not a duplicate charge.', 'What happens is that PIN-present ATM needs investigation, not an instant refund.'),
@@ -198,18 +499,55 @@
     { cat: 'news', title: 'CBBC Newsround', why: 'Noticias más simples, ideales para práctica.', url: 'https://www.bbc.co.uk/newsround' }
   ];
 
-  function explorer(el, cats, items, kind) {
+  function resolveBrand(opts) {
+    opts = opts || {};
+    var b = String(opts.brand || '').toLowerCase();
+    if (b === 'kamuk') return 'kamuk';
+    if (b === 'infinity') return 'infinity';
+    try {
+      if (/\/kamuk\//i.test(String(location.pathname || ''))) return 'kamuk';
+    } catch (e) {}
+    return 'infinity';
+  }
+
+  function brandLead(kind, brand) {
+    if (kind !== 'gloss') {
+      return 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.';
+    }
+    var desk = brand === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings';
+    return 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de ' + desk + ' (queue, Emails/Compose/Send, notes, Resolve).';
+  }
+
+  function ensureIds(items) {
+    items.forEach(function (it, i) {
+      if (!it._id) it._id = it.cat + '-' + i + '-' + fold(it.en || it.title || '').slice(0, 24);
+    });
+  }
+
+  function explorer(el, cats, items, kind, opts) {
     if (!el) return;
+    opts = opts || {};
+    var brand = resolveBrand(opts);
     var cat = cats[0].id;
     var q = '';
     var openId = '';
+
+    ensureIds(items);
+    if (kind === 'gloss') {
+      cat = 'email';
+      var e2 = null;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].en === 'E2 Empatía') { e2 = items[i]; break; }
+      }
+      if (e2) openId = e2._id;
+    }
 
     function filtered() {
       var query = fold(q);
       return items.filter(function (it) {
         if (!query && it.cat !== cat) return false;
         if (!query) return true;
-        var blob = fold([it.en, it.es, it.how, it.title, it.why, (it.examples || []).join(' ')].join(' '));
+        var blob = fold([it.en, it.es, it.how, it.title, it.why, (it.steps || []).join(' '), (it.avoid || []).join(' '), (it.examples || []).join(' '), (it.forms || []).join(' ')].join(' '));
         return blob.indexOf(query) >= 0;
       });
     }
@@ -218,14 +556,12 @@
       var list = filtered();
       var chips = '';
       if (kind === 'gloss') {
-        chips = list.map(function (it, i) {
-          var id = it.cat + '-' + i + '-' + fold(it.en).slice(0, 24);
-          it._id = it._id || id;
-          return '<button type="button" class="kh-lib-chip' + (openId === it._id ? ' is-on' : '') + '" data-id="' + esc(it._id) + '"><b>' + esc(it.en) + '</b><small>' + esc(it.es) + '</small></button>';
+        chips = list.map(function (it) {
+          return '<button type="button" class="inf-tb-card kh-lib-chip' + (openId === it._id ? ' is-on' : '') + '" data-id="' + esc(it._id) + '"><b>' + esc(it.en) + '</b><small>' + esc(it.es) + '</small></button>';
         }).join('');
       } else {
         chips = list.map(function (it) {
-          return '<a class="kh-read-card" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="kh-read-go">Abrir ↗</span></a>';
+          return '<a class="inf-tb-read-card kh-read-card" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="inf-tb-read-go kh-read-go">Abrir ↗</span></a>';
         }).join('');
       }
       var selected = null;
@@ -234,54 +570,68 @@
       }
       var panel = '';
       if (kind === 'gloss') {
-        panel = selected
-          ? '<div class="kh-lib-panel"><h4>' + esc(selected.en) + '</h4><div class="kh-lib-es">Español: ' + esc(selected.es) + (selected.gloss ? ' — ' + esc(selected.gloss) : '') + '</div><p class="kh-lib-how">' + esc(selected.how) + '</p>' + ((selected.forms && selected.forms.length) ? '<div class="kh-lib-forms"><b>Formas, conjugaciones y para qué</b><ul class="kh-lib-ex">' + selected.forms.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div>' : '') + '<ul class="kh-lib-ex"><li>' + esc(selected.examples[0]) + '</li><li>' + esc(selected.examples[1]) + '</li></ul></div>'
-          : '<div class="kh-lib-panel"><p class="kh-lib-empty">Tocá Email (Formato E) o Phone (AMR). En Expresiones está the thing is. Buscá o tocá un chip.</p></div>';
+        panel = renderDetail(selected);
       }
-      el.innerHTML = '<p class="kh-lib-lead">' + (kind === 'gloss'
-        ? 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de Infinity Holdings (queue, Emails/Compose/Send, notes, Resolve).'
-        : 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.') + '</p>'
-        + '<input class="kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
-        + '<div class="kh-lib-cats">' + cats.map(function (c) {
-          return '<button type="button" class="kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
+      var leadClass = opts.hideLead ? 'inf-tb-lead kh-lib-lead' : 'inf-tb-lead kh-lib-lead';
+      var leadStyle = opts.hideLead ? ' style="display:none"' : '';
+      el.innerHTML = '<p class="' + leadClass + '"' + leadStyle + '>' + brandLead(kind, brand) + '</p>'
+        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
+        + '<div class="inf-tb-cats kh-lib-cats">' + cats.map(function (c) {
+          return '<button type="button" class="inf-tb-cat kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
         }).join('') + '</div>'
-        + '<div class="kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' lecturas') + (q ? ' · filtro activo' : '') + '</div>'
-        + (kind === 'gloss' ? '<div class="kh-lib-chips">' + (chips || '<p class="kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>' + panel
-          : '<div class="kh-read-grid">' + (chips || '<p class="kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>');
-      var search = el.querySelector('.kh-lib-search');
+        + '<div class="inf-tb-count kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' lecturas') + (q ? ' · filtro activo' : '') + '</div>'
+        + (kind === 'gloss' ? '<div class="inf-tb-grid kh-lib-chips">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>' + panel
+          : '<div class="inf-tb-read-grid kh-read-grid">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>');
+      var search = el.querySelector('.inf-tb-search') || el.querySelector('.kh-lib-search');
       if (search && q) {
         search.focus();
         try { search.setSelectionRange(q.length, q.length); } catch (e) {}
       }
     }
 
-    el.className = (el.className + ' kh-lib').replace(/\s+/g, ' ').trim();
+    el.className = (el.className + ' inf-tb-shell kh-lib').replace(/\s+/g, ' ').trim();
     el.addEventListener('click', function (ev) {
       var c = ev.target.closest('[data-cat]');
       if (c) { cat = c.getAttribute('data-cat'); q = ''; openId = ''; render(); return; }
       var chip = ev.target.closest('[data-id]');
       if (chip) {
         var id = chip.getAttribute('data-id');
-        openId = openId === id ? '' : id;
+        openId = id;
         render();
+        setTimeout(function () {
+          var p = el.querySelector('.inf-tb-panel');
+          if (p && p.scrollIntoView) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 30);
       }
     });
     el.addEventListener('input', function (ev) {
-      if (!ev.target.classList.contains('kh-lib-search')) return;
-      q = ev.target.value;
+      var t = ev.target;
+      if (!t.classList.contains('inf-tb-search') && !t.classList.contains('kh-lib-search')) return;
+      q = t.value;
       openId = '';
       render();
     });
     render();
   }
 
-  var api = {
-    mountGlossary: function (el) { explorer(el, GLOSS_CATS, GLOSS_ITEMS, 'gloss'); },
-    mountReadings: function (el) { explorer(el, READ_CATS, READ_ITEMS, 'read'); },
-    cats: GLOSS_CATS,
-    items: GLOSS_ITEMS
-  };
-  global.InfinityRecursosLibrary = api;
-  // Alias so shared mounts / older call sites keep working after irrigate.
-  if (!global.KamukRecursosLibrary) global.KamukRecursosLibrary = api;
+  function makeApi(defaultBrand) {
+    return {
+      mountGlossary: function (el, opts) {
+        opts = opts || {};
+        if (!opts.brand && defaultBrand) opts.brand = defaultBrand;
+        explorer(el, GLOSS_CATS, GLOSS_ITEMS, 'gloss', opts);
+      },
+      mountReadings: function (el, opts) {
+        opts = opts || {};
+        if (!opts.brand && defaultBrand) opts.brand = defaultBrand;
+        explorer(el, READ_CATS, READ_ITEMS, 'read', opts);
+      },
+      cats: GLOSS_CATS,
+      items: GLOSS_ITEMS
+    };
+  }
+
+  // Infinity default brand; Kamuk API defaults to Kamuk lead (also path /kamuk/).
+  global.InfinityRecursosLibrary = makeApi('infinity');
+  global.KamukRecursosLibrary = makeApi('kamuk');
 })(window);

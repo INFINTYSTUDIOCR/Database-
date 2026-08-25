@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Infinity Holdings — glosario de nesting</title>
-  <link rel="stylesheet" href="../../css/infinity-training-glossary.css?v=20260825gloss" />
+  <link rel="stylesheet" href="../../css/infinity-training-glossary.css?v=20260825rich" />
   <style>
     :root {
       --blue: #3178C6;
@@ -109,7 +109,8 @@
       background: transparent;
       border-radius: 0;
     }
-    #glossary-root .inf-tb-grid { max-height: min(48vh, 360px); }
+    #glossary-root .inf-tb-grid { max-height: min(28vh, 220px); }
+    #glossary-root .inf-tb-panel.is-rich { max-height: min(48vh, 480px); }
     @media (min-width: 520px) {
       .tb-card { padding: 22px 22px 18px; }
       .tb-title { font-size: 20px; }
@@ -119,10 +120,10 @@
 <body>
   <div class="tb-shell">
     <div class="tb-top">
-      <div class="tb-top-brand">∞ Infinity Holdings · Training Book</div>
+      <div class="tb-top-brand">∞ Infinity · Glosario de nesting</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a class="primary" href="../mac/machote-curso.pdf" target="_blank" rel="noopener">PDF del curso</a>
-        <a href="../mac/machote-curso.pdf" download>Descargar PDF</a>
+        <a class="primary" href="../mac/index.html">Training Book completo</a>
+        <a href="../mac/machote-curso.pdf" target="_blank" rel="noopener">Abrir PDF</a>
       </div>
     </div>
 
@@ -136,14 +137,14 @@
         </div>
         <div>
           <h1 class="tb-title">Infinity Holdings — glosario de nesting</h1>
-          <p class="tb-sub">Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de Infinity Holdings (queue, Emails/Compose/Send, notes, Resolve).</p>
+          <p class="tb-sub">Tocá una tarjeta: vas a ver para qué sirve, la explicación completa, los pasos en el desk y varios ejemplos en inglés — no un resumen escueto.</p>
         </div>
       </div>
       <div id="glossary-root"></div>
     </section>
   </div>
 
-  <script src="../../js/infinity-recursos-library.js?v=20260825gloss"></script>
+  <script src="../../js/infinity-recursos-library.js?v=20260825rich"></script>
   <script>
     (function () {
       var root = document.getElementById('glossary-root');
