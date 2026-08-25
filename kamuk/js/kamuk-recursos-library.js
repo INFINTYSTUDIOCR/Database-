@@ -34,6 +34,7 @@
     item('email', 'E3 Explicación + linkers', '2 conectores + 1 método', 'En Explicación usá 2 conectores (because, however, therefore…) y 1 método linker (in other words, even though, as well as). Tocá Método / Conectores para más chips.', 'I reviewed the Operating Account restriction because two supplier ACH payments declined. However I will not lift every control. In other words, Operations owns the restore.', 'Even though the Obsidian card is Active, the Operating Account is Restricted; therefore payroll is still blocked.'),
     item('email', 'E4 Ejecución', 'Qué YA hiciste en el CRM', 'Usá I have / I reviewed / I verified / I escalated / I blocked / I set. Debe ser acción del desk, no una promesa.', 'I reviewed Statements, I verified the freeze flag, and I escalated to Operations.', 'I have documented Previous contacts and I set AA until Operations restores the account.'),
     item('email', 'E5 Encierro', 'I will + hora + regards', 'Dueño + today / 4:30 p.m. / business days. Cierre: Best regards o Kind regards. Mínimo 55 palabras en todo el correo.', 'I will call you today before 4:30 p.m. with the Operations outcome. Kind regards', 'I will follow up within two business days. Best regards'),
+    item('email', 'E6 Email completo', 'Formato E en un solo pase', 'Escribí el Formato E completo en un solo pase (E1–E5). Mínimo 55 palabras. Ejemplo de escritorio (estructura, no copies).', 'Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account restriction because two payments declined. However I will not lift every control. In other words, I escalated to Operations and I have documented Previous contacts. I will call you today before 4:30 p.m. Kind regards.', 'Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account restriction because two payments declined. However I will not lift every control. In other words, I escalated to Operations and I have documented Previous contacts. I will call you today before 4:30 p.m. Kind regards.'),
     item('email', 'Technicismos in the email', 'AA, PSA, PIN, MCC, last 6', 'Usá los términos del desk, no teoría. Nunca pongas un PIN. Last 6 only after identity. AA/PSA son dispositions, no relleno.', 'I set AA and I will call you today before 4:30 p.m. I cannot send a PIN; last 6 only after identity on a recorded line.', 'PSA: the restore is with Operations. I reviewed the hotel MCC block and the travel notice in Cards.'),
     item('phone', 'AMR Acknowledge', 'Acknowledge', 'Primera frase: el impacto. Línea grabada. Entendé antes de investigar.', 'I understand payroll is frozen and two supplier payments declined.', 'Thank you for waiting. I hear this is the third call.'),
     item('phone', 'AMR Mirror', 'Mirror', 'Repetí el hecho clave: you said / you mentioned / so you / just to make sure / what happened was.', 'You mentioned the supplier ACH of $18,400 declined. Just to make sure, that is on the Operating Account.', 'So you need the card to work at the Lisbon hotel desk — what happened was a decline, not a lost card.'),
@@ -198,11 +199,48 @@
     { cat: 'news', title: 'CBBC Newsround', why: 'Noticias más simples, ideales para práctica.', url: 'https://www.bbc.co.uk/newsround' }
   ];
 
-  function explorer(el, cats, items, kind) {
+  function resolveBrand(opts) {
+    opts = opts || {};
+    var b = String(opts.brand || '').toLowerCase();
+    if (b === 'kamuk') return 'kamuk';
+    if (b === 'infinity') return 'infinity';
+    try {
+      if (/\/kamuk\//i.test(String(location.pathname || ''))) return 'kamuk';
+    } catch (e) {}
+    return 'infinity';
+  }
+
+  function brandLead(kind, brand) {
+    if (kind !== 'gloss') {
+      return 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.';
+    }
+    var desk = brand === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings';
+    return 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de ' + desk + ' (queue, Emails/Compose/Send, notes, Resolve).';
+  }
+
+  function ensureIds(items) {
+    items.forEach(function (it, i) {
+      if (!it._id) it._id = it.cat + '-' + i + '-' + fold(it.en || it.title || '').slice(0, 24);
+    });
+  }
+
+  function explorer(el, cats, items, kind, opts) {
     if (!el) return;
+    opts = opts || {};
+    var brand = resolveBrand(opts);
     var cat = cats[0].id;
     var q = '';
     var openId = '';
+
+    ensureIds(items);
+    if (kind === 'gloss') {
+      cat = 'email';
+      var e2 = null;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].en === 'E2 Empatía') { e2 = items[i]; break; }
+      }
+      if (e2) openId = e2._id;
+    }
 
     function filtered() {
       var query = fold(q);
@@ -218,14 +256,12 @@
       var list = filtered();
       var chips = '';
       if (kind === 'gloss') {
-        chips = list.map(function (it, i) {
-          var id = it.cat + '-' + i + '-' + fold(it.en).slice(0, 24);
-          it._id = it._id || id;
-          return '<button type="button" class="kh-lib-chip' + (openId === it._id ? ' is-on' : '') + '" data-id="' + esc(it._id) + '"><b>' + esc(it.en) + '</b><small>' + esc(it.es) + '</small></button>';
+        chips = list.map(function (it) {
+          return '<button type="button" class="inf-tb-card kh-lib-chip' + (openId === it._id ? ' is-on' : '') + '" data-id="' + esc(it._id) + '"><b>' + esc(it.en) + '</b><small>' + esc(it.es) + '</small></button>';
         }).join('');
       } else {
         chips = list.map(function (it) {
-          return '<a class="kh-read-card" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="kh-read-go">Abrir ↗</span></a>';
+          return '<a class="inf-tb-read-card kh-read-card" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="inf-tb-read-go kh-read-go">Abrir ↗</span></a>';
         }).join('');
       }
       var selected = null;
@@ -235,27 +271,27 @@
       var panel = '';
       if (kind === 'gloss') {
         panel = selected
-          ? '<div class="kh-lib-panel"><h4>' + esc(selected.en) + '</h4><div class="kh-lib-es">Español: ' + esc(selected.es) + (selected.gloss ? ' — ' + esc(selected.gloss) : '') + '</div><p class="kh-lib-how">' + esc(selected.how) + '</p>' + ((selected.forms && selected.forms.length) ? '<div class="kh-lib-forms"><b>Formas, conjugaciones y para qué</b><ul class="kh-lib-ex">' + selected.forms.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div>' : '') + '<ul class="kh-lib-ex"><li>' + esc(selected.examples[0]) + '</li><li>' + esc(selected.examples[1]) + '</li></ul></div>'
-          : '<div class="kh-lib-panel"><p class="kh-lib-empty">Tocá Email (Formato E) o Phone (AMR). En Expresiones está the thing is. Buscá o tocá un chip.</p></div>';
+          ? '<div class="inf-tb-panel kh-lib-panel"><h4>' + esc(selected.en) + '</h4><div class="inf-tb-es kh-lib-es">Español: <strong>' + esc(selected.es) + '</strong>' + (selected.gloss ? ' — ' + esc(selected.gloss) : '') + '</div><p class="inf-tb-how kh-lib-how">' + esc(selected.how) + '</p>' + ((selected.forms && selected.forms.length) ? '<div class="inf-tb-forms kh-lib-forms"><b>Formas, conjugaciones y para qué</b><ul class="inf-tb-ex kh-lib-ex">' + selected.forms.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div>' : '') + '<ul class="inf-tb-ex kh-lib-ex"><li>' + esc(selected.examples[0]) + '</li><li>' + esc(selected.examples[1]) + '</li></ul></div>'
+          : '<div class="inf-tb-panel kh-lib-panel"><p class="inf-tb-empty kh-lib-empty">Tocá Email (Formato E) o Phone (AMR). En Expresiones está the thing is. Buscá o tocá un chip.</p></div>';
       }
-      el.innerHTML = '<p class="kh-lib-lead">' + (kind === 'gloss'
-        ? 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de Kamuk Holdings (queue, Emails/Compose/Send, notes, Resolve).'
-        : 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.') + '</p>'
-        + '<input class="kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
-        + '<div class="kh-lib-cats">' + cats.map(function (c) {
-          return '<button type="button" class="kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
+      var leadClass = opts.hideLead ? 'inf-tb-lead kh-lib-lead' : 'inf-tb-lead kh-lib-lead';
+      var leadStyle = opts.hideLead ? ' style="display:none"' : '';
+      el.innerHTML = '<p class="' + leadClass + '"' + leadStyle + '>' + brandLead(kind, brand) + '</p>'
+        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
+        + '<div class="inf-tb-cats kh-lib-cats">' + cats.map(function (c) {
+          return '<button type="button" class="inf-tb-cat kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
         }).join('') + '</div>'
-        + '<div class="kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' lecturas') + (q ? ' · filtro activo' : '') + '</div>'
-        + (kind === 'gloss' ? '<div class="kh-lib-chips">' + (chips || '<p class="kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>' + panel
-          : '<div class="kh-read-grid">' + (chips || '<p class="kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>');
-      var search = el.querySelector('.kh-lib-search');
+        + '<div class="inf-tb-count kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' lecturas') + (q ? ' · filtro activo' : '') + '</div>'
+        + (kind === 'gloss' ? '<div class="inf-tb-grid kh-lib-chips">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>' + panel
+          : '<div class="inf-tb-read-grid kh-read-grid">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>');
+      var search = el.querySelector('.inf-tb-search') || el.querySelector('.kh-lib-search');
       if (search && q) {
         search.focus();
         try { search.setSelectionRange(q.length, q.length); } catch (e) {}
       }
     }
 
-    el.className = (el.className + ' kh-lib').replace(/\s+/g, ' ').trim();
+    el.className = (el.className + ' inf-tb-shell kh-lib').replace(/\s+/g, ' ').trim();
     el.addEventListener('click', function (ev) {
       var c = ev.target.closest('[data-cat]');
       if (c) { cat = c.getAttribute('data-cat'); q = ''; openId = ''; render(); return; }
@@ -267,16 +303,33 @@
       }
     });
     el.addEventListener('input', function (ev) {
-      if (!ev.target.classList.contains('kh-lib-search')) return;
-      q = ev.target.value;
+      var t = ev.target;
+      if (!t.classList.contains('inf-tb-search') && !t.classList.contains('kh-lib-search')) return;
+      q = t.value;
       openId = '';
       render();
     });
     render();
   }
 
-  global.KamukRecursosLibrary = {
-    mountGlossary: function (el) { explorer(el, GLOSS_CATS, GLOSS_ITEMS, 'gloss'); },
-    mountReadings: function (el) { explorer(el, READ_CATS, READ_ITEMS, 'read'); }
-  };
+  function makeApi(defaultBrand) {
+    return {
+      mountGlossary: function (el, opts) {
+        opts = opts || {};
+        if (!opts.brand && defaultBrand) opts.brand = defaultBrand;
+        explorer(el, GLOSS_CATS, GLOSS_ITEMS, 'gloss', opts);
+      },
+      mountReadings: function (el, opts) {
+        opts = opts || {};
+        if (!opts.brand && defaultBrand) opts.brand = defaultBrand;
+        explorer(el, READ_CATS, READ_ITEMS, 'read', opts);
+      },
+      cats: GLOSS_CATS,
+      items: GLOSS_ITEMS
+    };
+  }
+
+  // Infinity default brand; Kamuk API defaults to Kamuk lead (also path /kamuk/).
+  global.InfinityRecursosLibrary = makeApi('infinity');
+  global.KamukRecursosLibrary = makeApi('kamuk');
 })(window);

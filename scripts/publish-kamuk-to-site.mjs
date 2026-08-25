@@ -1,114 +1,80 @@
 /**
- * Publish Kamuk portal + engine under studioinfinitycr.com/kamuk/
+ * Publish / irrigate Kamuk under studioinfinitycr.com/kamuk/
  *
- * Infinity (Database-clone) is MASTER.
- * Flow: irrigate Infinity-owned files → ./kamuk/ (hosted twin), then prep
- * cache-bust + site URLs. Optionally mirror ./kamuk/ → Operarive (legacy
- * client only). NEVER copies Operarive → Infinity / kamuk as source of truth.
+ * MASTER = Infinity (Database-clone). The twin folder is Database-clone/kamuk/.
+ * Operarive-Training-Database is an optional legacy mirror/client only —
+ * never the source that rebuilds kamuk.
  *
- * Usage:
- *   node scripts/publish-kamuk-to-site.mjs
- *   node scripts/publish-kamuk-to-site.mjs --no-mirror
- *   node scripts/publish-kamuk-to-site.mjs --mirror
+ * Flow:
+ * 1) Overlay shared Infinity assets (js/css/games/…) into kamuk/ (no full wipe from Operarive).
+ * 2) Prep HTML already owned by Infinity under kamuk/ (cache-bust + portal URLs).
+ * 3) Optional mirror: kamuk/ → Operarive (--mirror / default when Operarive exists; --no-mirror to skip).
  *
- * Default: mirror to Operarive when that folder exists (skip with --no-mirror).
+ * Run: node scripts/publish-kamuk-to-site.mjs
+ *      node scripts/publish-kamuk-to-site.mjs --no-mirror
+ *      node scripts/publish-kamuk-to-site.mjs --mirror
  */
-import {
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-  cpSync,
-  existsSync,
-  readdirSync,
-  statSync
-} from 'fs';
-import { join, dirname, relative } from 'path';
+import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync, existsSync, copyFileSync } from 'fs';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const INF_ROOT = join(__dirname, '..');
 const DEST = join(INF_ROOT, 'kamuk');
-const OPER_ROOT =
-  process.env.KAMUK_MIRROR ||
-  'C:/Users/ARMANDO/Projects/Operarive-Training-Database';
+const OPER_ROOT = 'C:/Users/ARMANDO/Projects/Operarive-Training-Database';
 const SITE = 'https://studioinfinitycr.com';
 
-const argv = new Set(process.argv.slice(2));
-const wantMirror = argv.has('--mirror')
-  ? true
-  : argv.has('--no-mirror')
-    ? false
-    : existsSync(OPER_ROOT);
+const args = new Set(process.argv.slice(2));
+const wantMirror = args.has('--mirror') || (!args.has('--no-mirror') && existsSync(OPER_ROOT));
 
-// Shared Infinity trees overlaid into the Kamuk twin (kamuk-only files stay).
-const IRRIGATION_DIRS = ['js', 'css', 'games', 'training-book'];
+// Local runtime the portal loads from /kamuk/<dir>/ — twin-owned dirs under Infinity.
+const ASSET_DIRS = ['js', 'games', 'css', 'data', 'training-book'];
 // Extra HTML pages that live next to the portal (CRM desk + supervisor).
 const EXTRA_HTML = [
   'kamuk-holdings-crm.html',
   'kamuk-holdings-supervisor.html'
 ];
-const PREP_HTML = [
+const TWIN_HTML = [
   'index.html',
   'Kamuk_Engine.html',
   'nexora.html',
   ...EXTRA_HTML
 ];
+
+// Shared Infinity → kamuk overlay (file-level; never deletes kamuk-only CRM assets).
+const IRRIGATE_FROM_INF = [
+  'js/infinity-casino-floor.js',
+  'js/simulation-onboarding.js',
+  'js/simulation-access.js',
+  'js/simulation-supervisor.js',
+  'js/simulation-crm-bridge.js',
+  'js/simulation-formato-e.js',
+  'js/simulation-prep.js',
+  'js/simulation-training.js',
+  'js/simulation-corporate-learn.js',
+  'js/infinity-holdings-config.js',
+  'js/infinity-holdings-nexora-live.js',
+  'js/kamuk-desk-english.js',
+  'js/kamuk-recursos-library.js',
+  'js/infinity-recursos-library.js',
+  'js/infinity-scheduler.js',
+  'css/infinity-scheduler.css',
+  'css/infinity-training-glossary.css',
+  'training-book/glosario/index.html',
+  'training-book/mac/index.html',
+  'games/_shared/infinity-arcade-run.js',
+  'games/_shared/infinity-quiz-bank.js',
+  'games/_shared/qa-arcade-7.js'
+];
+
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
 const SIM_V = '20260825sched';
 const CRM_V = '20260825nxlive';
-const RECURSOS_V = '20260818fmtE';
+const RECURSOS_V = '20260825gloss';
 const SCHED_V = '20260825sched';
 
-if (!existsSync(DEST)) {
-  throw new Error('Missing Kamuk twin folder (Infinity master): ' + DEST);
-}
-
-function walkFiles(root) {
-  const out = [];
-  function walk(dir) {
-    for (const name of readdirSync(dir)) {
-      const full = join(dir, name);
-      if (statSync(full).isDirectory()) walk(full);
-      else out.push(full);
-    }
-  }
-  if (existsSync(root)) walk(root);
-  return out;
-}
-
-/**
- * Overlay Infinity → kamuk for shared trees.
- * Updates paths already in the twin and adds new Infinity-only files.
- * Never deletes kamuk-only files (no Infinity counterpart).
- */
-function irrigateDir(relDir) {
-  const src = join(INF_ROOT, relDir);
-  const dst = join(DEST, relDir);
-  if (!existsSync(src)) {
-    console.log('skip irrigate (no Infinity source):', relDir);
-    return 0;
-  }
-  mkdirSync(dst, { recursive: true });
-  let n = 0;
-  for (const file of walkFiles(dst)) {
-    const rel = relative(dst, file);
-    const master = join(src, rel);
-    if (!existsSync(master)) continue;
-    cpSync(master, file);
-    n++;
-  }
-  // Add new master files that do not exist yet in the twin.
-  for (const file of walkFiles(src)) {
-    const rel = relative(src, file);
-    const twin = join(dst, rel);
-    if (existsSync(twin)) continue;
-    mkdirSync(dirname(twin), { recursive: true });
-    cpSync(file, twin);
-    n++;
-  }
-  return n;
-}
+mkdirSync(DEST, { recursive: true });
 
 function prep(html, kind) {
   html = html.replace(
@@ -147,7 +113,15 @@ function prep(html, kind) {
     /(src="js\/kamuk-recursos-library\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + RECURSOS_V + '"'
   );
-  if (kind === 'engine' || kind === 'Kamuk_Engine.html') {
+  html = html.replace(
+    /(src="js\/infinity-recursos-library\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + RECURSOS_V + '"'
+  );
+  html = html.replace(
+    /(href="css\/infinity-training-glossary\.css)(\?v=[^"]*)?"/g,
+    '$1?v=' + RECURSOS_V + '"'
+  );
+  if (kind === 'engine') {
     html = html.replace(
       /var STUDENT_PORTAL_URL = '[^']*'/,
       "var STUDENT_PORTAL_URL = '" + SITE + "/kamuk/'"
@@ -156,33 +130,79 @@ function prep(html, kind) {
   return html;
 }
 
-console.log('Master: Infinity', INF_ROOT);
-console.log('Twin:  ', DEST);
-console.log(
-  'Direction: Infinity → kamuk' +
-    (wantMirror ? ' → Operarive (mirror)' : ' (no Operarive mirror)')
-);
-
-let irrigated = 0;
-for (const dir of IRRIGATION_DIRS) {
-  const n = irrigateDir(dir);
-  irrigated += n;
-  console.log('irrigated', dir + ':', n, 'files');
-}
-
-for (const name of PREP_HTML) {
-  const htmlPath = join(DEST, name);
-  if (!existsSync(htmlPath)) {
-    throw new Error('Missing Kamuk page (edit under Infinity/kamuk): ' + htmlPath);
+function irrigateSharedFromInfinity() {
+  let n = 0;
+  for (const rel of IRRIGATE_FROM_INF) {
+    const src = join(INF_ROOT, rel);
+    if (!existsSync(src)) continue;
+    const dst = join(DEST, rel);
+    mkdirSync(dirname(dst), { recursive: true });
+    copyFileSync(src, dst);
+    n++;
   }
-  const kind =
-    name === 'Kamuk_Engine.html' ? 'engine' : name === 'index.html' ? 'portal' : name;
-  writeFileSync(htmlPath, prep(readFileSync(htmlPath, 'utf8'), kind));
+  console.log('Irrigated', n, 'shared Infinity files → kamuk/');
 }
 
-const portal = readFileSync(join(DEST, 'index.html'), 'utf8');
-const engine = readFileSync(join(DEST, 'Kamuk_Engine.html'), 'utf8');
-const nexora = readFileSync(join(DEST, 'nexora.html'), 'utf8');
+function requireTwinMaster() {
+  for (const name of TWIN_HTML) {
+    const p = join(DEST, name);
+    if (!existsSync(p)) {
+      throw new Error(
+        'Missing Infinity Kamuk twin page (edit under Database-clone/kamuk/, not Operarive): ' + p
+      );
+    }
+  }
+  for (const dir of ASSET_DIRS) {
+    const p = join(DEST, dir);
+    if (!existsSync(p) && dir !== 'training-book') {
+      throw new Error('Missing Infinity Kamuk twin asset dir: ' + p);
+    }
+  }
+}
+
+function prepTwinHtml() {
+  const out = {};
+  for (const name of TWIN_HTML) {
+    const kind =
+      name === 'index.html'
+        ? 'portal'
+        : name === 'Kamuk_Engine.html'
+          ? 'engine'
+          : name === 'nexora.html'
+            ? 'nexora'
+            : name;
+    const html = prep(readFileSync(join(DEST, name), 'utf8'), kind);
+    writeFileSync(join(DEST, name), html);
+    out[kind] = html;
+  }
+  return out;
+}
+
+function mirrorToOperarive() {
+  if (!existsSync(OPER_ROOT)) {
+    console.log('Skip mirror: Operarive path missing', OPER_ROOT);
+    return;
+  }
+  for (const dir of ASSET_DIRS) {
+    const src = join(DEST, dir);
+    if (!existsSync(src)) continue;
+    const dst = join(OPER_ROOT, dir);
+    rmSync(dst, { recursive: true, force: true });
+    cpSync(src, dst, { recursive: true });
+  }
+  for (const name of TWIN_HTML) {
+    copyFileSync(join(DEST, name), join(OPER_ROOT, name));
+  }
+  const manifest = join(DEST, 'manifest.webmanifest');
+  if (existsSync(manifest)) copyFileSync(manifest, join(OPER_ROOT, 'manifest.webmanifest'));
+  // Legacy GitHub Pages entry name
+  copyFileSync(join(DEST, 'index.html'), join(OPER_ROOT, 'Kamuk_Student_Portal.html'));
+  console.log('Mirrored Infinity kamuk/ → Operarive (legacy client only)');
+}
+
+requireTwinMaster();
+irrigateSharedFromInfinity();
+const { portal, engine, nexora } = prepTwinHtml();
 
 writeFileSync(
   join(DEST, 'README.md'),
@@ -194,46 +214,20 @@ writeFileSync(
     '- Simulation CRM: ' + SITE + '/kamuk/kamuk-holdings-crm.html',
     '- Official login gate: ' + SITE + '/portal-access.html',
     '',
-    '**Infinity is master.** Edit under Database-clone (Infinity root + `kamuk/` twin),',
-    'then run `node scripts/publish-kamuk-to-site.mjs`.',
-    'Optional legacy mirror: copies this twin → Operarive-Training-Database (never the reverse).',
+    '**Master = Infinity (Database-clone).** Edit under Database-clone or Database-clone/kamuk/, then run:',
+    '`node scripts/publish-kamuk-to-site.mjs`',
+    'Direction: Infinity → kamuk twin (and optional Operarive mirror). Never Operarive → Infinity.',
     'Data stays in kamuk_* Supabase (never infinity_*).',
     ''
   ].join('\n')
 );
 
-if (wantMirror) {
-  if (!existsSync(OPER_ROOT)) {
-    console.warn('Mirror skipped — Operarive not found at', OPER_ROOT);
-  } else {
-    const mirrorDirs = ['js', 'css', 'games', 'data', 'training-book'];
-    for (const dir of mirrorDirs) {
-      const src = join(DEST, dir);
-      if (!existsSync(src)) continue;
-      const dst = join(OPER_ROOT, dir);
-      mkdirSync(dst, { recursive: true });
-      cpSync(src, dst, { recursive: true });
-    }
-    for (const name of [
-      'index.html',
-      'Kamuk_Engine.html',
-      'nexora.html',
-      'manifest.webmanifest',
-      ...EXTRA_HTML
-    ]) {
-      const src = join(DEST, name);
-      if (existsSync(src)) cpSync(src, join(OPER_ROOT, name));
-    }
-    if (existsSync(join(DEST, 'index.html'))) {
-      cpSync(join(DEST, 'index.html'), join(OPER_ROOT, 'Kamuk_Student_Portal.html'));
-    }
-    console.log('Mirrored kamuk twin → Operarive (client only):', OPER_ROOT);
-  }
-}
+if (wantMirror) mirrorToOperarive();
+else console.log('Mirror skipped (--no-mirror or Operarive absent)');
 
 console.log('Published', DEST);
 console.log('portal bytes', portal.length, 'engine bytes', engine.length);
-console.log('irrigated files', irrigated);
+console.log('asset dirs (twin-owned)', ASSET_DIRS.join(', '));
 console.log('extra html', EXTRA_HTML.join(', '));
 
 const checks = [

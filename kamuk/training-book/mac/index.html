@@ -3,130 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Infinity · Training Book digital</title>
+  <title>Infinity Holdings · Training Book</title>
+  <meta http-equiv="refresh" content="0; url=../glosario/index.html" />
   <style>
     :root {
-      --navy: #1e3a5f;
       --navy-deep: #132840;
-      --gold: #c9a227;
-      --paper: #f7f4ef;
-      --text: #1a2332;
-      --muted: #5b6b7c;
+      --blue: #3178C6;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
-      background: linear-gradient(165deg, var(--navy-deep) 0%, var(--navy) 42%, #2a4a6e 100%);
-      color: var(--text);
+      background: linear-gradient(165deg, #EAF3FB 0%, #F7FBFE 50%, #E8F2FB 100%);
+      color: #1a2b3c;
       display: flex;
       flex-direction: column;
       min-height: 100%;
-    }
-    .tb-chrome {
-      flex-shrink: 0;
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 14px;
-      background: rgba(255,255,255,0.08);
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      color: #fff;
-    }
-    .tb-brand {
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .tb-brand span {
-      color: var(--gold);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-    .tb-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tb-actions a {
-      text-decoration: none;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 7px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.28);
-      background: rgba(255,255,255,0.08);
-    }
-    .tb-actions a.primary {
-      background: var(--gold);
-      color: var(--navy-deep);
-      border-color: transparent;
-    }
-    .tb-stage {
-      flex: 1;
-      min-height: 0;
-      padding: 10px;
-      display: flex;
-    }
-    .tb-frame {
-      flex: 1;
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      background: var(--paper);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.28);
-    }
-    .tb-fallback {
-      display: none;
-      margin: auto;
-      max-width: 420px;
-      text-align: center;
-      color: #fff;
+      justify-content: center;
       padding: 24px;
+      text-align: center;
     }
-    .tb-fallback p { line-height: 1.55; color: rgba(255,255,255,0.88); font-size: 14px; }
+    h1 { font-size: 18px; color: #1e5a9a; margin: 0 0 8px; }
+    p { font-size: 14px; color: #5b6f82; line-height: 1.55; max-width: 420px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+    a {
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: 10px;
+    }
+    a.primary { background: var(--blue); color: #fff; }
+    a.secondary { background: #fff; color: var(--navy-deep); border: 1px solid #B7D4EE; }
   </style>
 </head>
 <body>
-  <header class="tb-chrome">
-    <div class="tb-brand">
-      ∞ Infinity · Training Book
-      <span>Digital</span>
-    </div>
-    <div class="tb-actions">
-      <a class="primary" href="machote-curso.pdf" target="_blank" rel="noopener">Abrir PDF</a>
-      <a href="machote-curso.pdf" download>Descargar</a>
-    </div>
-  </header>
-  <main class="tb-stage">
-    <iframe
-      class="tb-frame"
-      id="tb-pdf"
-      title="Training Book digital — Infinity"
-      src="machote-curso.pdf#toolbar=1&navpanes=0&view=FitH"
-    ></iframe>
-    <div class="tb-fallback" id="tb-fallback">
-      <p>Tu navegador no pudo incrustar el PDF. Abrilo con el botón de arriba.</p>
-      <p><a class="primary" href="machote-curso.pdf" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;padding:10px 16px;border-radius:8px;background:#c9a227;color:#132840;font-weight:800;text-decoration:none;">Abrir Training Book</a></p>
-    </div>
-  </main>
+  <h1>∞ Infinity Holdings · Training Book</h1>
+  <p>El Training Book interactivo es el glosario de nesting. Si no redirigió automáticamente, abrilo acá.</p>
+  <div class="actions">
+    <a class="primary" href="../glosario/index.html">Abrir glosario</a>
+    <a class="secondary" href="machote-curso.pdf" target="_blank" rel="noopener">PDF del curso</a>
+  </div>
   <script>
-    (function () {
-      var frame = document.getElementById('tb-pdf');
-      var fallback = document.getElementById('tb-fallback');
-      if (!frame) return;
-      setTimeout(function () {
-        try {
-          if (!frame.contentDocument && !frame.contentWindow) {
-            frame.style.display = 'none';
-            fallback.style.display = 'block';
-          }
-        } catch (e) { /* cross-origin PDF viewer is fine */ }
-      }, 2500);
-    })();
+    location.replace('../glosario/index.html');
   </script>
 </body>
 </html>
