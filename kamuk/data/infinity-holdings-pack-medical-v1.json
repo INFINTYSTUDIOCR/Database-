@@ -1,0 +1,74 @@
+{
+  "version": "medical-v1",
+  "industry": "medical",
+  "label": "Infinity Holdings Inc — Patient Support",
+  "cases": [
+    {
+      "id": "IH-M-2001",
+      "type": "Operational Complaint",
+      "sector": "Healthcare Services",
+      "priority": "P1",
+      "slaMinutes": 25,
+      "title": "Claim denied — prior auth on file",
+      "focus": "Find authorization evidence before explaining denial; no clinical advice.",
+      "brief": "Patient says the claim was denied though prior authorization exists. Verify identity (HIPAA-safe), locate authorization / statement trail, escalate to Claims Ops if you cannot overturn. Never give medical advice.",
+      "clientStatement": "You already authorized this procedure. Why was my claim denied?",
+      "mood": "anxious",
+      "client": {
+        "id": "MD-511",
+        "name": "Sofia Reyes",
+        "company": "Self — Member",
+        "email": "sofia.reyes@example.com",
+        "initials": "SR",
+        "segment": "Insured Member",
+        "status": "Active",
+        "relationshipYears": 3,
+        "relationshipGrade": "B+",
+        "riskTier": "Standard",
+        "balance": 0,
+        "creditLimit": 0,
+        "available": 0,
+        "creditScore": 0,
+        "transactions": [
+          { "date": "2026-08-18", "description": "Outpatient claim — imaging", "amount": -640, "status": "Declined" },
+          { "date": "2026-08-10", "description": "Prior authorization — imaging", "amount": 0, "status": "Posted" },
+          { "date": "2026-08-01", "description": "Premium payment", "amount": -320, "status": "Posted" }
+        ]
+      },
+      "history": []
+    },
+    {
+      "id": "IH-M-2002",
+      "type": "VIP Retention",
+      "sector": "Healthcare Services",
+      "priority": "P2",
+      "slaMinutes": 35,
+      "title": "Specialist referral portal error",
+      "focus": "Verify member, confirm referral status, timed callback — no inventing appointments.",
+      "brief": "VIP member cannot see specialist referral in the portal. Verify identity, check services/referral record, route to Care Coordination. Do not invent appointment slots.",
+      "clientStatement": "I am flying tomorrow. The referral still is not in the app.",
+      "mood": "impatient",
+      "client": {
+        "id": "MD-702",
+        "name": "David Okonkwo",
+        "company": "Self — VIP Member",
+        "email": "d.okonkwo@example.com",
+        "initials": "DO",
+        "segment": "VIP Care",
+        "status": "Active",
+        "relationshipYears": 8,
+        "relationshipGrade": "A",
+        "riskTier": "Low",
+        "balance": 0,
+        "creditLimit": 0,
+        "available": 0,
+        "creditScore": 0,
+        "transactions": [
+          { "date": "2026-08-22", "description": "Specialist referral — cardiology", "amount": 0, "status": "Pending" },
+          { "date": "2026-08-15", "description": "Annual wellness visit", "amount": -40, "status": "Posted" }
+        ]
+      },
+      "history": []
+    }
+  ]
+}

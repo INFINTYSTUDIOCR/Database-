@@ -2,42 +2,46 @@
   'use strict';
 
   var PROGRAM = {
-    label: 'Foundation 01 · 60-minute learning path',
-    title: 'Welcome to Kamuk Holdings',
-    intro: 'Complete this corporate e-learning path, pass the certification, practise in the guided CRM, then write the 10 nesting cases. Time shown is a guide, not a countdown.'
+    label: 'Foundation 01 · Corporate e-learning',
+    title: 'Welcome to Infinity Holdings Inc',
+    intro: 'Complete each corporate module (learn → practice → quiz 80%), Formato E certification, the final exam, then Guided CRM mock, Desk map and nesting on Infinity Holdings Inc.'
   };
 
-  var STEPS = [
-    { id: 'welcome', label: 'Welcome', icon: 'building-bank', mins: 5 },
-    { id: 'service', label: 'Service', icon: 'heart-handshake', mins: 8 },
-    { id: 'comms', label: 'Call control', icon: 'phone', mins: 8 },
-    { id: 'products', label: 'Products', icon: 'briefcase', mins: 10 },
-    { id: 'compliance', label: 'Compliance', icon: 'shield-check', mins: 10 },
-    { id: 'resolution', label: 'Resolution', icon: 'clipboard-check', mins: 8 },
-    { id: 'quiz', label: 'Certification', icon: 'certificate', mins: 4 },
-    { id: 'mock', label: 'Guided CRM', icon: 'device-desktop', mins: 7 },
-    { id: 'nesting', label: 'Nesting', icon: 'headset', mins: 0 }
+  var CORP_STEPS = [
+    { id: 'empathy', label: 'Empathy', icon: 'heart-handshake', mins: 12 },
+    { id: 'rapport', label: 'Rapport', icon: 'users', mins: 10 },
+    { id: 'qakpi', label: 'Q&A / KPIs', icon: 'message-question', mins: 14 },
+    { id: 'verify', label: 'Verification', icon: 'id', mins: 12 },
+    { id: 'antifraud', label: 'Anti-fraud', icon: 'shield-x', mins: 12 },
+    { id: 'aml', label: 'AML', icon: 'building-bank', mins: 12 },
+    { id: 'idtheft', label: 'ID theft', icon: 'user-exclamation', mins: 10 },
+    { id: 'phishing', label: 'Phishing', icon: 'mail-exclamation', mins: 10 }
   ];
 
+  var STEPS = [
+    { id: 'welcome', label: 'Welcome', icon: 'building-bank', mins: 5 }
+  ].concat(CORP_STEPS).concat([
+    { id: 'products', label: 'Products', icon: 'briefcase', mins: 10 },
+    { id: 'resolution', label: 'Resolution', icon: 'clipboard-check', mins: 8 },
+    { id: 'formatoe', label: 'Formato E', icon: 'mail', mins: 15 },
+    { id: 'final', label: 'Final exam', icon: 'certificate', mins: 12 },
+    { id: 'mock', label: 'Guided CRM', icon: 'device-desktop', mins: 7 },
+    { id: 'deskmap', label: 'Desk map', icon: 'map-2', mins: 6 },
+    { id: 'nesting', label: 'Nesting', icon: 'headset', mins: 0 }
+  ]);
+
   var COURSE_MINS = STEPS.reduce(function (sum, step) { return sum + (step.mins || 0); }, 0);
-  var REQUIRED_DONE = ['welcome', 'service', 'comms', 'products', 'compliance', 'resolution', 'quiz', 'mock'];
+  var REQUIRED_DONE = STEPS.filter(function (s) { return s.id !== 'nesting'; }).map(function (s) { return s.id; });
+  var BEFORE_FINAL = REQUIRED_DONE.filter(function (id) { return id !== 'final' && id !== 'mock' && id !== 'deskmap'; });
   var CHECK_KEYS = {
     welcome: ['welcome-mcq'],
-    service: ['service-scenario', 'service-match'],
-    comms: ['comms-seq'],
     products: ['products-match'],
-    compliance: ['compliance-tf', 'compliance-multi'],
     resolution: ['resolution-email']
   };
 
   var CHECK_ANSWERS = {
     'welcome-mcq': 0,
-    'service-scenario': 1,
-    'service-match': { empathy: 'impact', sympathy: 'emotion', rapport: 'trust' },
-    'comms-seq': ['acknowledge', 'investigate', 'act', 'next'],
     'products-match': { payroll: 'operating', hotel: 'obsidian', expansion: 'loan' },
-    'compliance-tf': false,
-    'compliance-multi': ['last6', 'never-pin'],
     'resolution-email': 0
   };
 
@@ -271,7 +275,7 @@
     function unlocked(id) {
       if (id === 'nesting' && crmEnabled) return true;
       var index = STEPS.map(function (s) { return s.id; }).indexOf(id);
-      return index === 0 || state.done.indexOf(STEPS[index - 1].id) >= 0;
+      return index === 0 || moduleReady(STEPS[index - 1].id);
     }
 
     function checkPassed(id) { return sameAnswer(CHECK_ANSWERS[id], state.checks[id]); }
@@ -279,10 +283,22 @@
     function moduleReady(id) {
       var keys = CHECK_KEYS[id];
       if (!keys) {
-        if (id === 'quiz') return quizPassed();
         if (id === 'mock') {
           var idx = state.mockIndex || 0;
           return state.done.indexOf('mock') >= 0 && (idx >= MOCK_TASKS.length - 1 || idx >= 11);
+        }
+        if (id === 'deskmap') return state.done.indexOf('deskmap') >= 0;
+        if (id === 'formatoe') {
+          if (state.done.indexOf('formatoe') >= 0) return true;
+          return !!(window.SimulationFormatoE && window.SimulationFormatoE.isCertified && window.SimulationFormatoE.isCertified(product, studentId));
+        }
+        if (id === 'final') {
+          if (state.done.indexOf('final') >= 0) return true;
+          return !!(window.SimulationCorporateLearn && window.SimulationCorporateLearn.isFinalCertified && window.SimulationCorporateLearn.isFinalCertified(product, studentId));
+        }
+        if (CORP_STEPS.some(function (s) { return s.id === id; })) {
+          if (state.done.indexOf(id) >= 0) return true;
+          return !!(window.SimulationCorporateLearn && window.SimulationCorporateLearn.isCertified && window.SimulationCorporateLearn.isCertified(id, product, studentId));
         }
         return state.done.indexOf(id) >= 0;
       }
@@ -493,41 +509,47 @@
 
     function welcomePanel() {
       return panelShell('Welcome — who we are', 5, 'Before products and policies, understand the company, your role and the promise we make to every client.',
-        '<div class="ob-b"><h4>Who we are</h4><p>Kamuk Holdings is a simulated financial services company serving businesses, executives and international clients. You are learning how a professional investigates, communicates, decides and documents in English.</p></div>'
+        '<div class="ob-b"><h4>Who we are</h4><p>Infinity Holdings Inc is the support CRM skeleton used in training and production-style practice. You are learning how a professional investigates, communicates, decides and documents in English.</p></div>'
         + '<div class="ob-b"><h4>What we do</h4><div class="ob-grid">'
         + '<div class="ob-card"><i class="ti ti-user-heart"></i><b>Protect the client</b><p>Keep money, access and private information safe.</p></div>'
         + '<div class="ob-card"><i class="ti ti-search"></i><b>Investigate</b><p>Use CRM evidence before explaining or promising.</p></div>'
         + '<div class="ob-card"><i class="ti ti-route"></i><b>Resolve or route</b><p>Take the safe action you own or escalate with a clear owner.</p></div>'
         + '<div class="ob-card"><i class="ti ti-notes"></i><b>Leave a trail</b><p>Document facts, actions and the timed next step.</p></div></div></div>'
         + '<div class="ob-b"><h4>Client promise</h4><p><strong>Clear, calm and accountable.</strong> We do not hide behind policy, guess, over-promise or make the client repeat information already in the CRM.</p></div>'
-        + mcqBlock('welcome-mcq', 'Knowledge check: what is the Kamuk Holdings client promise?',
+        + mcqBlock('welcome-mcq', 'Knowledge check: what is the Infinity Holdings Inc client promise?',
           ['Clear, calm and accountable service with investigation, a safe action and a timed next step.', 'Fast refunds on every complaint.', 'Transfer every difficult client to a supervisor immediately.'],
           'Correct. Ownership plus evidence plus a next step.')
-        + continueBtn('service', checkPassed('welcome-mcq')));
+        + continueBtn('empathy', checkPassed('welcome-mcq')));
     }
 
-    function servicePanel() {
-      return panelShell('Service — empathy, rapport and ownership', 8, 'Professional service starts by understanding impact, not by memorizing apologies.',
-        '<div class="ob-compare"><div class="ob-empathy"><b>Empathy — use it</b><p>“You have called three times and your suppliers are still unpaid. I understand why this is urgent.”</p></div><div class="ob-sympathy"><b>Sympathy — do not stop here</b><p>“I feel so sorry for you. That is terrible.”</p></div></div>'
-        + '<div class="ob-b" style="margin-top:14px"><h4>Rapport and ownership</h4><p>Rapport is professional trust. Ownership uses “I”, a concrete action and an observable next step.</p></div>'
-        + mcqBlock('service-scenario', 'Scenario: the client says “This is the third time.” What do you do first?',
-          ['Ask them to explain everything from the beginning.', 'Acknowledge the repeated effort and review previous contacts in the CRM.', 'Transfer immediately because they sound angry.'],
-          'Correct. Remove effort from the client and use the history already available.')
-        + matchBlock('service-match', 'Match each concept to its purpose.',
-          [{ key: 'empathy', label: 'Empathy' }, { key: 'sympathy', label: 'Sympathy' }, { key: 'rapport', label: 'Rapport' }],
-          [{ key: 'impact', label: 'Names the client’s specific impact' }, { key: 'emotion', label: 'Describes your feelings' }, { key: 'trust', label: 'Creates professional trust to work the case' }],
-          '<strong>Pista:</strong> Empatía = nombra el impacto específico del cliente. Simpatía = habla de TUS sentimientos (incorrecto en el desk). Rapport = confianza profesional para trabajar el caso.')
-        + continueBtn('comms', checkPassed('service-scenario') && checkPassed('service-match')));
+    function nextAfter(id) {
+      var ids = STEPS.map(function (s) { return s.id; });
+      var i = ids.indexOf(id);
+      return i >= 0 && i < ids.length - 1 ? ids[i + 1] : 'nesting';
     }
 
-    function commsPanel() {
-      return panelShell('Call control — professional communication', 8, 'A controlled call has a clear sequence. Do not skip investigation to please the client.',
-        '<div class="ob-process"><div><b>1. Acknowledge</b><span>Name the impact</span></div><div><b>2. Investigate</b><span>Open and closed questions</span></div><div><b>3. Act</b><span>Safe action you own</span></div><div><b>4. Next step</b><span>Owner + time</span></div></div>'
-        + '<div class="ob-b"><h4>Question types</h4><ul><li>Open: “What happened after the decline?”</li><li>Closed: “Is the card in your hand now?”</li></ul></div>'
-        + seqBlock('comms-seq', 'Put the call-control sequence in order.',
-          [{ key: 'act', label: 'Take or route a safe action' }, { key: 'acknowledge', label: 'Acknowledge impact' }, { key: 'next', label: 'Confirm a timed next step' }, { key: 'investigate', label: 'Investigate with evidence' }])
-        + continueBtn('products', checkPassed('comms-seq')));
+    function corporatePanel(moduleId) {
+      var meta = CORP_STEPS.find(function (s) { return s.id === moduleId; }) || { title: moduleId, mins: 10 };
+      var titleMap = {
+        empathy: 'Empathy vs Sympathy',
+        rapport: 'Build a Rapport',
+        qakpi: 'Basic Q&A + measurable KPIs',
+        verify: 'Account Verification',
+        antifraud: 'Anti-Fraud',
+        aml: 'Anti-Money Laundering',
+        idtheft: 'Identity Theft',
+        phishing: 'Phishing Awareness'
+      };
+      var ready = moduleReady(moduleId);
+      var nxt = nextAfter(moduleId);
+      return panelShell(titleMap[moduleId] || moduleId, meta.mins || 10, 'Corporate e-learning: learn the standard, practise scenarios, then certify with 80% on the module quiz.',
+        '<div id="ob-corp-' + moduleId + '"></div>'
+        + (ready ? continueBtn(nxt, true, 'Continue') : '<div class="ob-foot"><span class="ob-msg">Complete Learn → Practice → Quiz (80%) above.</span></div>'));
     }
+
+    function servicePanel() { return corporatePanel('empathy'); }
+    function commsPanel() { return corporatePanel('rapport'); }
+    function compliancePanel() { return corporatePanel('verify'); }
 
     function productsPanel() {
       return panelShell('Products and client needs', 10, 'Match the client need to the right product before you promise anything.',
@@ -539,27 +561,7 @@
         + matchBlock('products-match', 'Match the client need to the product.',
           [{ key: 'payroll', label: 'Pay 45 employees today' }, { key: 'hotel', label: 'Hotel declined the card in Miami' }, { key: 'expansion', label: 'Need $1.2M to open a second warehouse' }],
           [{ key: 'operating', label: 'Operating Account' }, { key: 'obsidian', label: 'Obsidian Corporate Card' }, { key: 'loan', label: 'Expansion Financing' }])
-        + continueBtn('compliance', checkPassed('products-match')));
-    }
-
-    function compliancePanel() {
-      var passedTf = checkPassed('compliance-tf');
-      var passedMulti = checkPassed('compliance-multi');
-      var selected = state.multi['compliance-multi'] || [];
-      return panelShell('CRM evidence, security and compliance', 10, 'The CRM is the source of truth. Card data, identity and AML rules protect the client and the bank.',
-        '<div class="ob-b"><h4>Security rules</h4><ul><li>Verify identity before disclosing account or card data.</li><li>You may read last 6 digits only — never the full number or the PIN.</li><li>Do not tip off a client during an AML or SAR review.</li></ul></div>'
-        + '<div class="ob-check"><h5>True or false: after the client asks, you may read the full card number.</h5>'
-        + '<button class="ob-choice' + (passedTf ? ' right' : '') + '" data-tf="compliance-tf" data-val="true"' + (passedTf ? ' disabled' : '') + '>True</button>'
-        + '<button class="ob-choice' + (passedTf ? ' right' : '') + '" data-tf="compliance-tf" data-val="false"' + (passedTf ? ' disabled' : '') + '>False</button>'
-        + '<div class="ob-feedback">' + (passedTf ? 'False. Last 6 digits only, and only after verification.' : 'Choose true or false.') + '</div></div>'
-        + '<div class="ob-check"><h5>Select every safe control. Then submit.</h5>'
-        + [['last6', 'Confirm last 6 digits after verification'], ['full-pan', 'Read the full card number if the client insists'], ['never-pin', 'Never share or regenerate a PIN on an unverified call'], ['sar-hint', 'Tell the client a SAR is being filed']].map(function (item) {
-          var on = selected.indexOf(item[0]) >= 0;
-          return '<label class="ob-opt"><input type="checkbox" data-multi="compliance-multi" value="' + item[0] + '"' + (on ? ' checked' : '') + (passedMulti ? ' disabled' : '') + '> ' + esc(item[1]) + '</label>';
-        }).join('')
-        + '<div class="ob-foot"><button class="ob-btn" data-multi-submit="compliance-multi"' + (passedMulti ? ' disabled' : '') + '>Check</button></div>'
-        + '<div class="ob-feedback">' + (passedMulti ? 'Correct. Last 6 and never share the PIN on an unverified call.' : 'Select only the safe controls.') + '</div></div>'
-        + continueBtn('resolution', passedTf && passedMulti));
+        + continueBtn('resolution', checkPassed('products-match')));
     }
 
     function resolutionPanel() {
@@ -569,41 +571,27 @@
         + mcqBlock('resolution-email', 'Which client email meets the standard?',
           ['Hello, I reviewed the duplicate charge because the timestamps match. I opened the dispute and will call you today before 4:45 p.m.', 'Dear client, refund refund refund dispute merchant timeline authorization.', 'OK I will see what I can do later.'],
           'Correct. Natural opening, connector, action and a timed next step.')
-        + continueBtn('quiz', checkPassed('resolution-email')));
+        + continueBtn('formatoe', checkPassed('resolution-email')));
     }
 
-    function ensureQuizOrder() {
-      if (state.quizOrder && state.quizOrder.length >= 10) return;
-      var ids = CERT_BANK.map(function (q) { return q.id; });
-      for (var i = ids.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp;
+    function formatoePanel() {
+      if (!moduleReady('resolution')) {
+        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish Resolution before Formato E training.</p></div></div>';
       }
-      state.quizOrder = ids.slice(0, 10);
-      save();
+      var ready = moduleReady('formatoe');
+      return panelShell('Formato E — professional client email', 15, 'Learn E1–E5, spot broken emails, write graded drills, then certify. The grader is the same one the live desk uses on Send.',
+        '<div id="ob-formato-e"></div>'
+        + (ready ? continueBtn('final', true, 'Continue to final exam') : '<div class="ob-foot"><span class="ob-msg">Complete Learn → Spot → Drills → Certification above.</span></div>'));
     }
 
-    function quizPanel() {
-      if (!REQUIRED_DONE.slice(0, 6).every(function (id) { return id === 'quiz' || id === 'mock' || moduleReady(id); })) {
-        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish the six learning modules before the certification.</p></div></div>';
+    function finalPanel() {
+      if (!BEFORE_FINAL.every(moduleReady)) {
+        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish every corporate module and Formato E before the final exam.</p></div></div>';
       }
-      ensureQuizOrder();
-      var passed = quizPassed();
-      return panelShell('Final certification', 4, 'Answer 10 questions. You need 80% to continue. Failed attempts show coaching, not a full answer key, and you may retry.',
-        (passed ? '<div class="ob-cert"><i class="ti ti-rosette-discount-check"></i><div><b>Certified ' + quizScore() + '%</b><span>Guided CRM is unlocked</span></div></div>' : '')
-        + state.quizOrder.map(function (id, index) {
-          var q = CERT_BANK.find(function (item) { return item.id === id; });
-          var pick = state.quizAnswers[id];
-          var show = passed || pick != null;
-          return '<div class="ob-q' + (show && pick === q.answer ? ' right' : (show && pick != null ? ' wrong' : '')) + '" data-qid="' + id + '"><h5>' + (index + 1) + '. ' + esc(q.q) + '</h5>'
-            + q.options.map(function (opt, i) {
-              return '<label class="ob-opt' + (show && i === q.answer && passed ? ' right' : '') + '"><input type="radio" name="' + id + '" data-quiz="' + id + '" data-pick="' + i + '"' + (pick === i ? ' checked' : '') + (passed ? ' disabled' : '') + '> ' + esc(opt) + '</label>';
-            }).join('')
-            + (show ? '<div class="ob-why">' + esc(q.why) + '</div>' : '') + '</div>';
-        }).join('')
-        + '<div class="ob-foot"><button class="ob-btn" id="ob-submit"' + (passed ? ' disabled' : '') + '>Submit certification</button>'
-        + (passed ? '<button class="ob-btn" data-next="mock">Continue to Guided CRM</button>' : '')
-        + '<span class="ob-msg" id="ob-score">' + (passed ? quizScore() + '% · passed' : '80% required · attempt ' + ((state.quizAttempts || 0) + 1)) + '</span></div>');
+      var ready = moduleReady('final');
+      return panelShell('Final exam — all modules', 12, '20 questions covering Empathy, Rapport, Q&A/KPIs, Verification, Anti-fraud, AML, Identity theft, Phishing and Formato E. Minimum 80%.',
+        '<div id="ob-final-exam"></div>'
+        + (ready ? continueBtn('mock', true, 'Continue to Guided CRM') : '<div class="ob-foot"><span class="ob-msg">Submit the final exam at 80%+ to unlock Guided CRM.</span></div>'));
     }
 
     function cls(target, name) {
@@ -638,7 +626,7 @@
       var mockDone = state.done.indexOf('mock') >= 0 && ((state.mockIndex || 0) >= MOCK_TASKS.length - 1 || (state.mockIndex || 0) >= 11);
       if (mockDone) activePanel = 'complete';
       return '<div class="gm"><div class="gm-guide"><div class="gm-n">' + (index + 1) + '</div><div><b>' + task.prompt + '</b><p>Hint: ' + task.tip + '</p></div></div>'
-        + '<div class="gm-shell"><aside class="gm-side"><div class="gm-brand">KAMUK HOLDINGS · TRAINING MOCK</div><div class="gm-label">Case queue</div>'
+        + '<div class="gm-shell"><aside class="gm-side"><div class="gm-brand">INFINITY HOLDINGS INC · GUIDED MOCK</div><div class="gm-label">Case queue</div>'
         + '<div class="' + cls('client-rivera', 'gm-client') + '" data-gm="client-rivera"><b>Marta Rivera</b><span>Operating account restricted</span></div>'
         + '<div class="gm-client"><b>Daniel Torres</b><span>Card declined abroad</span></div></aside>'
         + '<main class="gm-main"><div class="gm-top"><b>Marta Rivera · Rivera Logistics S.A.</b><span>Corporate · Mid-market</span></div>'
@@ -651,11 +639,21 @@
       return panelShell('Guided CRM — safe training environment', 7, 'This is not the production CRM. Click the highlighted control. The last steps require a real AMR note and a Formato E email — not click-through.',
         (state.done.indexOf('mock') >= 0 ? '<div class="ob-cert"><i class="ti ti-rosette-discount-check"></i><div><b>CRM navigation certified</b><span>Safe guided tour completed</span></div></div>' : '')
         + guidedCrm()
-        + (state.done.indexOf('mock') >= 0 ? continueBtn('nesting', true, 'Continue to nesting cases') : ''));
+        + (state.done.indexOf('mock') >= 0 ? continueBtn('deskmap', true, 'Continue to Desk map') : ''));
+    }
+
+    function deskmapPanel() {
+      if (state.done.indexOf('mock') < 0) {
+        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish Guided CRM before the live desk map.</p></div></div>';
+      }
+      var ready = state.done.indexOf('deskmap') >= 0;
+      return panelShell('Desk map — case type → tabs → close', 6, 'The guided mock taught clicks. This playbook maps each live queue family (Operational Complaint, Wire, VIP, AML, Loan, Credit, Concierge) to the real Holdings screens.',
+        '<div id="ob-crm-bridge"></div>'
+        + (ready ? continueBtn('nesting', true, 'Continue to nesting cases') : '<div class="ob-foot"><span class="ob-msg">Mark the playbook ready above to unlock nesting.</span></div>'));
     }
 
     function nestingPanel() {
-      if (!courseReady() && !crmEnabled) return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Nesting unlocks after the 60-minute path, certification and guided CRM.</p></div></div>';
+      if (!courseReady() && !crmEnabled) return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Nesting unlocks after the 60-minute path, certification, guided CRM and desk map.</p></div></div>';
       if (!rulesAck) {
         return panelShell('Nesting — 10 casos del queue', 0, 'Advertencia. Debés aceptar las reglas para participar. Este aviso aparece una vez por asignación semanal.',
           '<div class="ob-rules"><h4>Warning</h4>'
@@ -671,7 +669,7 @@
       return panelShell('Nesting — 10 written cases, untimed', 0, 'No time limit. Complete all 10 structured responses. Open the Holdings desk to work the cases in the CRM.',
         '<div class="ob-crm-where"><b>La práctica guiada del CRM no es esta lista.</b>'
         + '<p>Tocá el botón azul <strong>Abrir CRM · práctica guiada</strong>. Ahí entra al desk real. Los recuadros <strong>rojos</strong> dicen qué click, qué tab, qué leer, cómo escribir el correo y cómo cerrar (email + nota + Submit).</p>'
-        + '<ol><li>Queue → Accept (caso PRACTICE 1–10)</li><li>Tabs: Overview, Statements, Cards &amp; PIN, Emails, Previous contacts</li><li>Cerrar: Compose correo → Add note → Resolve → Submit</li></ol>'
+        + '<ol><li>Queue → Accept (caso PRACTICE 1–10)</li><li>Usá el <strong>Desk playbook</strong> del brief: tipo de caso → tabs → cierre</li><li>Tabs: Overview, Statements, Cards &amp; PIN, Emails, Previous contacts</li><li>Cerrar: Compose correo → Add note → Resolve → Submit</li></ol>'
         + '<p>Esta lista de abajo son los <strong>10 casos escritos</strong> (inglés + rúbrica). No tienen clicks rojos.</p></div>'
         + '<div class="ob-cert"><i class="ti ti-circle-check"></i><div><b>' + (ready ? 'Holdings desk ready' : 'Write all 10 cases') + '</b><span>' + (ready ? 'El desk abre la práctica guiada primero; después el queue semanal' : completed + '/10 structured responses ready') + '</span></div></div>'
         + '<div class="ob-foot"><button class="ob-btn" id="ob-launch"' + (ready || crmEnabled ? '' : ' disabled') + '><i class="ti ti-building-bank"></i> Abrir CRM · práctica guiada</button><span class="ob-msg">' + (ready || crmEnabled ? 'Desk real: PRACTICE 1–10 con marcas rojas. No es Nexora.' : 'Desk stays locked until all 10 cases meet the rubric.') + '</span></div>'
@@ -730,13 +728,62 @@
       if (state.step === 'products') return productsPanel();
       if (state.step === 'compliance') return compliancePanel();
       if (state.step === 'resolution') return resolutionPanel();
+      if (state.step === 'formatoe') return formatoePanel();
       if (state.step === 'quiz') return quizPanel();
       if (state.step === 'mock') return mockPanel();
+      if (state.step === 'deskmap') return deskmapPanel();
       return nestingPanel();
+    }
+
+    function mountFormatoEIfNeeded() {
+      if (state.step !== 'formatoe') return;
+      var slot = root.querySelector('#ob-formato-e');
+      if (!slot) return;
+      if (window.SimulationFormatoE && typeof window.SimulationFormatoE.mount === 'function') {
+        window.SimulationFormatoE.mount(slot, {
+          product: product,
+          accent: accent,
+          studentId: studentId,
+          done: moduleReady('formatoe'),
+          onReady: function () {
+            complete('formatoe');
+            save();
+            render();
+          },
+          onContinue: function () {
+            complete('formatoe');
+            go('quiz');
+          }
+        });
+        return;
+      }
+      slot.innerHTML = '<div class="ob-msg err">Formato E module missing. Reload the portal (simulation-formato-e.js + kamuk-desk-english.js).</div>';
+    }
+
+    function mountBridgeIfNeeded() {
+      if (state.step !== 'deskmap') return;
+      var slot = root.querySelector('#ob-crm-bridge');
+      if (!slot) return;
+      if (window.SimulationCrmBridge && typeof window.SimulationCrmBridge.mount === 'function') {
+        window.SimulationCrmBridge.mount(slot, {
+          product: product,
+          accent: accent,
+          done: state.done.indexOf('deskmap') >= 0,
+          onReady: function () {
+            complete('deskmap');
+            save();
+            render();
+          }
+        });
+        return;
+      }
+      slot.innerHTML = '<div class="ob-msg err">Desk map module missing. Reload the portal (simulation-crm-bridge.js).</div>';
     }
 
     function render() {
       root.innerHTML = '<div class="ob"><div class="ob-head"><small>' + PROGRAM.label + '</small><h2>' + PROGRAM.title + '</h2><p>' + PROGRAM.intro + '</p>' + pathMeter() + '</div>' + rail() + panel() + '</div>';
+      mountFormatoEIfNeeded();
+      mountBridgeIfNeeded();
     }
 
     function markCheck(id, value) {

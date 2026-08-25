@@ -1327,6 +1327,10 @@ function applyServerStudentFlags(d){
   if(typeof d.companionEnabled === 'boolean') CURRENT_STUDENT.companionEnabled = d.companionEnabled;
   if(typeof d.claireEnabled === 'boolean') CURRENT_STUDENT.claireEnabled = d.claireEnabled;
   if(d.companionEnabled === true || d.companionEnabled === 'true' || d.companionEnabled === 1) CURRENT_STUDENT.companionEnabled = true;
+  if(typeof d.simulationEnabled === 'boolean') CURRENT_STUDENT.simulationEnabled = d.simulationEnabled;
+  if(d.infinitySimulation && typeof d.infinitySimulation === 'object'){
+    CURRENT_STUDENT.infinitySimulation = Object.assign({}, CURRENT_STUDENT.infinitySimulation || {}, d.infinitySimulation);
+  }
   window._currentStudent = CURRENT_STUDENT;
   window._portalStudent = CURRENT_STUDENT;
 }
@@ -1347,6 +1351,7 @@ async function verifyStudentSessionAccess(){
     applyServerStudentFlags(d);
     checkNexoraAccess(CURRENT_STUDENT);
     applySystemMode(CURRENT_STUDENT);
+    if(typeof mountInfinitySimulation === 'function') mountInfinitySimulation();
   }catch(e){}
 }
 
@@ -1453,26 +1458,22 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK ─────────────────────────────────────
-  var trainingBookHtml = '<div class="card"><div class="card-title"><i class="ti ti-dumbbell"></i>Mi Training Book</div>'
-    +(tb.length ? tb.map(function(ex){
-        return '<div style="border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;">'
-          +'<div style="background:var(--navy);padding:8px 12px;display:flex;align-items:center;gap:8px;">'
-          +(ex.kpi?'<span class="badge" style="background:rgba(255,255,255,0.2);color:white;">'+ex.kpi+'</span>':'')
-          +'<span style="font-size:13px;font-weight:700;color:white;flex:1;">'+ex.title+'</span>'
-          +'</div>'
-          +'<div style="padding:10px 12px;">'
-          +'<div style="font-size:13px;color:var(--text);line-height:1.7;">'+(ex.studentTask || 'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div>'
-          +(ex.freq?'<div style="font-size:11px;color:var(--t3);margin-top:6px;"><i class="ti ti-repeat"></i> '+ex.freq+'</div>':'')
-          +'</div></div>';
-      }).join('')
-      : (exercises.length?exercises.map(function(ex){ return '<div style="background:var(--gray);border-radius:var(--r);padding:1rem;margin-bottom:8px;">'
-          +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+ex.title+'</div>'
-          +'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;">'+ex.kpi+'</div>'
-          +'<div style="font-size:12px;color:var(--text);line-height:1.6;">'+((ex.steps&&ex.steps.length)?ex.steps.slice(0,2).join(' '):'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div></div>'; }).join('')
-        :'<div style="font-size:13px;color:var(--t3);">Tu trainer todavía no asignó ejercicios.</div>'))
+  // ── TRAINING BOOK (digital book + Simulation / Nesting preserved) ──
+  var trainingBookHtml = ''
+    +'<div class="card" style="padding:0;overflow:hidden;">'
+    +'<div class="card-title" style="padding:12px 14px 8px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'
+    +'<span><i class="ti ti-book-2"></i> Training Book digital</span>'
+    +'<a href="training-book/mac/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
     +'</div>'
-    +'<div id="simulation-onboarding-root"></div>';
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Manual Infinity — versión digital. Leé acá o abrí en pantalla completa.</p>'
+    +'<iframe title="Training Book digital" src="training-book/mac/index.html" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
+    +'</div>'
+    +'<div id="simulation-onboarding-root"></div>'
+    +'<div id="simulation-nexora-panel" class="card" style="margin-top:16px;">'
+    +'<div class="card-title"><i class="ti ti-sparkles"></i> Nexora · Practice lab</div>'
+    +'<p style="font-size:13px;line-height:1.55;color:var(--t2);margin:0 0 12px;">Misma experiencia que producción con <strong>Infinity Holdings Inc</strong>. Práctica real. <strong>No impacta</strong> tu score semanal.</p>'
+    +'<div id="simulation-nexora-body"></div>'
+    +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
   var lastTt = (s.typingTests&&s.typingTests.length)?s.typingTests[s.typingTests.length-1]:null;
@@ -1558,6 +1559,7 @@ function showPortal(s){
 
   // Foundation onboarding lives inside the Training Book
   setTimeout(mountInfinitySimulation, 0);
+  setTimeout(function(){ renderSimulationNexoraPanel(s); }, 0);
 
   // Verificar si el trainer habilitó Nexora
   loadNexoraConfig(s);
@@ -1571,6 +1573,14 @@ function showPortal(s){
   afterPortalReady(s, opts);
 }
 
+function studentInfinityHoldingsCrmOn(s){
+  if(!s) return false;
+  var sim = s.infinitySimulation || {};
+  if(sim.enabled === true || sim.enabled === 'true' || sim.enabled === 1) return true;
+  if(sim.crmEnabled === true || sim.crmEnabled === 'true' || sim.crmEnabled === 1) return true;
+  return s.simulationEnabled === true || s.simulationEnabled === 'true' || s.simulationEnabled === 1;
+}
+
 function mountInfinitySimulation(){
   var onboardingRoot = document.getElementById('simulation-onboarding-root');
   if(!onboardingRoot || !window.SimulationOnboarding) return;
@@ -1578,9 +1588,64 @@ function mountInfinitySimulation(){
   SimulationOnboarding.mount(onboardingRoot, {
     product:'infinity',
     studentId: studentId,
-    launchUrl:'infinity-holdings-crm.html'
+    launchUrl:'infinity-holdings-crm.html',
+    crmEnabled: studentInfinityHoldingsCrmOn(CURRENT_STUDENT)
   });
+  renderSimulationNexoraPanel(CURRENT_STUDENT);
 }
+
+function nexoraIndustryFromConfig(nx){
+  if(nx && nx.holdingsPack){
+    var hp=String(nx.holdingsPack).toLowerCase();
+    if(hp==='banking'||hp==='legal'||hp==='medical') return hp;
+  }
+  if(window.NEXORA_INDUSTRY && window.NEXORA_INDUSTRY.holdingsPackFor){
+    return window.NEXORA_INDUSTRY.holdingsPackFor(nx||{});
+  }
+  if(window.InfinityHoldings && window.InfinityHoldings.normalizeIndustry){
+    return window.InfinityHoldings.normalizeIndustry((nx && (nx.industry || nx.industryLabel || nx.vertical)) || 'banking');
+  }
+  var t = String((nx && (nx.industry || nx.industryLabel)) || 'banking').toLowerCase();
+  if(/legal|law/.test(t)) return 'legal';
+  if(/medic|health/.test(t)) return 'medical';
+  return 'banking';
+}
+
+function openInfinityHoldingsNexoraPractice(){
+  var student = window._currentStudent || CURRENT_STUDENT;
+  if(!studentNexoraOn(student)){
+    showToast('Nexora no está activo. Pedí a tu trainer.','err');
+    return;
+  }
+  var nx = window._nexoraConfig || {};
+  var industry = nexoraIndustryFromConfig(nx);
+  var skills = [];
+  var ch = String(nx.channel || nx.channels || nx.skills || 'email,phone,chat').toLowerCase();
+  ['email','phone','chat'].forEach(function(s){ if(ch.indexOf(s) >= 0) skills.push(s); });
+  if(!skills.length) skills = ['email','phone','chat'];
+  var href = (window.InfinityHoldings && window.InfinityHoldings.holdingsCrmHref)
+    ? window.InfinityHoldings.holdingsCrmHref({ product:'infinity', nexora:true, industry:industry, skills:skills, base:'kamuk/kamuk-holdings-crm.html' })
+    : ('kamuk/kamuk-holdings-crm.html?product=infinity&nexora=1&industry=' + encodeURIComponent(industry) + '&skills=' + encodeURIComponent(skills.join(',')));
+  window.open(href, '_blank', 'noopener');
+}
+
+function renderSimulationNexoraPanel(s){
+  var body = document.getElementById('simulation-nexora-body');
+  if(!body) return;
+  var on = studentNexoraOn(s);
+  var nx = window._nexoraConfig;
+  if(!on){
+    body.innerHTML = '<div style="padding:12px;border-radius:10px;background:#f8fafc;border:1px dashed #cbd5e1;font-size:13px;color:#64748b;"><i class="ti ti-lock"></i> Nexora en Simulation · <strong>bloqueado</strong> hasta que el trainer lo active.</div>';
+    return;
+  }
+  var industry = nexoraIndustryFromConfig(nx || {});
+  body.innerHTML = '<div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Activo · industria <strong>'+industry+'</strong></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<button type="button" class="btn-primary" onclick="openInfinityHoldingsNexoraPractice()"><i class="ti ti-building-bank"></i> Infinity Holdings Inc (práctica)</button>'
+    +'<button type="button" class="btn-secondary" onclick="openNexoraLab()"><i class="ti ti-sparkles"></i> Lab STAR / oratoria / PDF</button>'
+    +'</div>';
+}
+
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
 // Un pasaje completo por ronda (puntos, comas, apóstrofes, dos puntos, etc.)
 var TYPING_TEST_PASSAGES = [
@@ -2765,12 +2830,23 @@ function syncJillNavLabel(s){
 
 async function checkNexoraAccess(s){
   var nexoraNav = document.getElementById('nav-nexora');
-  if(!nexoraNav) return;
-  if(!studentPortalAccessOk(s) || !studentNexoraOn(s)){
-    nexoraNav.style.display='none';
-    return;
+  if(nexoraNav){
+    if(!studentPortalAccessOk(s) || !studentNexoraOn(s)){
+      nexoraNav.style.display='none';
+    } else {
+      nexoraNav.style.display='flex';
+      nexoraNav.onclick = function(){
+        switchPortalTab('trainingbook');
+        setTimeout(function(){
+          mountInfinitySimulation();
+          renderSimulationNexoraPanel(s);
+          var panel = document.getElementById('simulation-nexora-panel');
+          if(panel) panel.scrollIntoView({ behavior:'smooth', block:'start' });
+        }, 80);
+      };
+    }
   }
-  nexoraNav.style.display='flex';
+  renderSimulationNexoraPanel(s);
 }
 
 async function savePortalTypingResult(result){
@@ -9559,6 +9635,10 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
+<script src="js/infinity-holdings-config.js"></script>
+<script src="js/kamuk-desk-english.js"></script>
+<script src="js/simulation-formato-e.js"></script>
+<script src="js/simulation-crm-bridge.js"></script>
 <script src="js/simulation-onboarding.js"></script>
 <script src="js/infinity-arcade-lil-games.js?v=20260814refresh"></script>
 <script src="js/infinity-casino-floor.js?v=20260814slower1"></script>

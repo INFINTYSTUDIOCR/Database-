@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Infinity CR — Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  STUDIO INFINITY CR — SCHEDULER                                  ║
+  ║  Blueprint for Cursor / Supabase integration                     ║
+  ║  Rosa de Amanda S.R.L. · studioinfinitycr.com                   ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║  SUPABASE TABLES NEEDED:                                         ║
+  ║                                                                  ║
+  ║  trainers                                                        ║
+  ║    id uuid pk                                                    ║
+  ║    name text                                                      ║
+  ║    initials text                                                  ║
+  ║    role text                                                      ║
+  ║    email text                                                     ║
+  ║    phone text                                                     ║
+  ║    meet_link text                                                 ║
+  ║    color text  (CSS var name)                                    ║
+  ║    specialties text[]                                            ║
+  ║    availability_notes text                                        ║
+  ║    active boolean default true                                   ║
+  ║    created_at timestamptz default now()                          ║
+  ║                                                                  ║
+  ║  students                                                        ║
+  ║    id uuid pk                                                    ║
+  ║    name text                                                      ║
+  ║    email text                                                     ║
+  ║    phone text                                                     ║
+  ║    level text  (Survival/Emerging/Functional/Advanced)           ║
+  ║    trainer_id uuid fk → trainers.id                             ║
+  ║    schedule_notes text                                            ║
+  ║    active boolean default true                                   ║
+  ║                                                                  ║
+  ║  sessions                                                        ║
+  ║    id uuid pk                                                    ║
+  ║    trainer_id uuid fk → trainers.id                             ║
+  ║    type text  (Class/Meeting/Calibration/1-on-1/Session inicio/ ║
+  ║               Other)                                             ║
+  ║    title text                                                     ║
+  ║    date date                                                      ║
+  ║    start_time time                                               ║
+  ║    duration_minutes int                                           ║
+  ║    student_ids uuid[]                                            ║
+  ║    meet_link text                                                 ║
+  ║    notes text                                                     ║
+  ║    created_by text                                               ║
+  ║    created_at timestamptz default now()                          ║
+  ║                                                                  ║
+  ║  blocks  (unavailable time)                                      ║
+  ║    id uuid pk                                                    ║
+  ║    trainer_id uuid fk → trainers.id                             ║
+  ║    date date                                                      ║
+  ║    start_time time                                               ║
+  ║    duration_minutes int                                           ║
+  ║    reason text                                                    ║
+  ║    created_at timestamptz default now()                          ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║  API CALLS TO REPLACE (marked with TODO in JS below):           ║
+  ║  - fetchTrainers()  →  GET /trainers                            ║
+  ║  - fetchSessions(weekStart, weekEnd)  →  GET /sessions          ║
+  ║  - fetchBlocks(weekStart, weekEnd)  →  GET /blocks              ║
+  ║  - saveSession(payload)  →  POST /sessions                      ║
+  ║  - saveBlock(payload)  →  POST /blocks                          ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+
+<style>
+:root {
+  --bg: #f8f7f4;
+  --surface: #ffffff;
+  --surface1: #f1efe8;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --text: #1a1a18;
+  --text2: #5f5e5a;
+  --text3: #888780;
+  --accent: #185fa5;
+  --accent-bg: #e6f1fb;
+  --accent-border: #b5d4f4;
+  --success: #3b6d11;
+  --success-bg: #eaf3de;
+  --success-border: #c0dd97;
+  --danger: #a32d2d;
+  --danger-bg: #fcebeb;
+  --danger-border: #f7c1c1;
+  --warning: #854f0b;
+  --warning-bg: #faeeda;
+  --warning-border: #fac775;
+  --pro: #3c3489;
+  --pro-bg: #eeedfe;
+  --pro-border: #cecbf6;
+  --radius: 6px;
+  --purple: #7C3AED;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); min-height: 100vh; }
+
+/* ── LAYOUT ── */
+.shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.topbar { background: #1e3a5f; color: #fff; padding: 0 16px; height: 50px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 12px; }
+.logo { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.logo-sym { color: #a78bfa; font-size: 20px; }
+.view-tabs { display: flex; gap: 4px; }
+.vtab { font-size: 11px; font-weight: 500; padding: 5px 11px; border-radius: var(--radius); border: 0.5px solid rgba(255,255,255,0.2); cursor: pointer; background: transparent; color: rgba(255,255,255,0.65); transition: all .12s; }
+.vtab:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.vtab.on { background: rgba(255,255,255,0.18); color: #fff; border-color: rgba(255,255,255,0.4); }
+.top-right { display: flex; gap: 6px; margin-left: auto; }
+.btn { font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.btn:hover { background: var(--surface1); }
+.btn.accent { border-color: var(--accent-border); color: var(--accent); background: var(--accent-bg); }
+.btn.danger { border-color: var(--danger-border); color: var(--danger); }
+.btn.small { font-size: 10px; padding: 3px 7px; }
+
+/* ── BODY ── */
+.body { display: grid; grid-template-columns: 260px 1fr; flex: 1; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar { background: var(--surface); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.sb-hdr { padding: 9px 12px; font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.trainer-list { overflow-y: auto; flex: 1; }
+.tc { padding: 9px 12px; border-bottom: 0.5px solid var(--border); cursor: pointer; border-left: 2px solid transparent; transition: background .1s; }
+.tc:hover { background: var(--surface1); }
+.tc.active { background: var(--accent-bg); border-left-color: var(--accent); }
+.tc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.tc-name { font-size: 12px; font-weight: 500; }
+.tc-role { font-size: 10px; color: var(--text2); }
+.tc-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 500; }
+.chip-b { background: var(--accent-bg); color: var(--accent); }
+.chip-g { background: var(--success-bg); color: var(--success); }
+.chip-w { background: var(--warning-bg); color: var(--warning); }
+.chip-r { background: var(--danger-bg); color: var(--danger); }
+.chip-p { background: var(--pro-bg); color: var(--pro); }
+
+/* ── MAIN AREA ── */
+.main { display: flex; flex-direction: column; overflow: hidden; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 0.5px solid var(--border); background: var(--surface); flex-shrink: 0; gap: 10px; }
+.cal-title { font-size: 13px; font-weight: 500; }
+.arrow { width: 26px; height: 26px; border-radius: var(--radius); border: 0.5px solid var(--border); background: var(--surface1); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; }
+.arrow:hover { background: var(--surface); }
+.week-wrap { flex: 1; overflow-y: auto; }
+.week-grid { display: grid; grid-template-columns: 54px repeat(5, 1fr); }
+.day-hdr { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 6px 4px; text-align: center; position: sticky; top: 0; z-index: 2; border-right: 0.5px solid var(--border); }
+.day-hdr:last-child { border-right: none; }
+.dhn { font-size: 9px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.dhd { font-size: 15px; font-weight: 500; margin-top: 1px; }
+.dhd.today { background: var(--accent-bg); color: var(--accent); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 2px auto 0; }
+.time-col { background: var(--surface); border-right: 0.5px solid var(--border); position: relative; }
+.day-col { border-right: 0.5px solid var(--border); position: relative; }
+.day-col:last-child { border-right: none; }
+.hour-mark { position: absolute; left: 0; right: 0; border-top: 0.5px solid var(--border); pointer-events: none; }
+.time-lbl { font-size: 9px; color: var(--text3); padding: 2px 4px 0; white-space: nowrap; }
+.sblock { position: absolute; left: 2px; right: 2px; border-radius: 4px; padding: 3px 5px; font-size: 10px; font-weight: 500; cursor: pointer; overflow: hidden; line-height: 1.35; border-left: 2px solid; transition: filter .1s; }
+.sblock:hover { filter: brightness(.93); }
+.sblock-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sblock-sub { font-size: 9px; opacity: .8; white-space: nowrap; overflow: hidden; }
+.sblock.sc { background: var(--accent-bg); color: var(--accent); border-left-color: var(--accent); }
+.sblock.sm { background: var(--success-bg); color: var(--success); border-left-color: var(--success); }
+.sblock.scal { background: var(--pro-bg); color: var(--pro); border-left-color: var(--pro); }
+.sblock.s1 { background: var(--warning-bg); color: var(--warning); border-left-color: var(--warning); }
+.sblock.su { background: var(--danger-bg); color: var(--danger); border-left-color: var(--danger); opacity: .6; }
+
+/* ── LEGEND ── */
+.legend { display: flex; gap: 12px; padding: 7px 14px; border-top: 0.5px solid var(--border); background: var(--surface); flex-wrap: wrap; flex-shrink: 0; }
+.leg { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text2); }
+.ld { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ── DETAIL PANEL ── */
+.detail-panel { display: none; border-top: 0.5px solid var(--border); background: var(--surface1); overflow-y: auto; max-height: 240px; flex-shrink: 0; }
+.detail-panel.open { display: block; }
+.dp-inner { padding: 12px 14px; }
+.dp-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.dp-name { font-size: 14px; font-weight: 500; }
+.dp-close { font-size: 18px; cursor: pointer; color: var(--text3); background: none; border: none; line-height: 1; }
+.dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.df { font-size: 11px; }
+.dl { color: var(--text2); font-size: 10px; margin-bottom: 1px; }
+.dv { font-weight: 500; }
+.dv a { color: var(--accent); }
+.stu-list { border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+.stu-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 9px; border-bottom: 0.5px solid var(--border); font-size: 11px; }
+.stu-row:last-child { border-bottom: none; }
+.block-quick { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 11px; }
+.bq-title { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+.bq-row { display: flex; gap: 6px; align-items: center; margin-bottom: 5px; }
+.bq-row label { font-size: 10px; color: var(--text2); width: 60px; flex-shrink: 0; }
+.bq-row input, .bq-row select { font-size: 11px; padding: 3px 6px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); flex: 1; }
+
+/* ── MODALS ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.38); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 0.5px solid var(--border-strong); border-radius: 12px; padding: 18px; width: 380px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,.12); }
+.modal-title { font-size: 14px; font-weight: 500; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { font-size: 18px; cursor: pointer; color: var(--text3); background: none; border: none; }
+.fr { margin-bottom: 9px; }
+.fr-lbl { font-size: 10px; color: var(--text2); margin-bottom: 3px; display: block; }
+.fr-lbl + input, .fr-lbl + select, .fr-lbl + textarea { width: 100%; font-size: 12px; padding: 6px 8px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); }
+.fr-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dur-row { display: flex; gap: 6px; }
+.dur-row input[type=number] { width: 65px; font-size: 12px; padding: 6px 8px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); text-align: center; }
+.dur-row select { flex: 1; font-size: 12px; padding: 6px 8px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); }
+.dur-preview { font-size: 11px; color: var(--accent); font-weight: 500; margin-top: 4px; }
+.hint { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.err-msg { font-size: 10px; color: var(--danger); margin-top: 4px; display: none; }
+.err-msg.show { display: block; }
+.modal-btns { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 0.5px solid var(--accent-border); border-radius: var(--radius); padding: 7px 16px; font-size: 12px; color: var(--accent); display: none; z-index: 200; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+.toast.show { display: block; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <span class="logo-sym">∞</span>
+    Studio Infinity CR — Scheduler
+  </div>
+  <div class="view-tabs">
+    <div class="vtab on" onclick="setView('all',this)">All</div>
+    <div class="vtab" onclick="setView('Class',this)">Classes</div>
+    <div class="vtab" onclick="setView('Meeting',this)">Meetings</div>
+    <div class="vtab" onclick="setView('Calibration',this)">Calibrations</div>
+    <div class="vtab" onclick="setView('1-on-1',this)">1-on-1</div>
+  </div>
+  <div class="top-right">
+    <button class="btn accent" onclick="openNew()">
+      <i class="ti ti-plus" aria-hidden="true"></i> New session
+    </button>
+    <button class="btn danger" onclick="openBlock()">
+      <i class="ti ti-ban" aria-hidden="true"></i> Block time
+    </button>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-hdr">
+      Trainers
+      <!-- TODO: wire to Supabase POST /trainers -->
+      <button class="btn small" onclick="toast('Add trainer — connect to Supabase POST /trainers')">
+        <i class="ti ti-plus" aria-hidden="true"></i> Add
+      </button>
+    </div>
+    <div class="trainer-list" id="trainer-list">
+      <!-- TODO: replace with fetchTrainers() from Supabase -->
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="cal-nav">
+      <div style="display:flex;gap:5px;align-items:center;">
+        <div class="arrow" onclick="changeWeek(-1)" aria-label="Previous week">
+          <i class="ti ti-chevron-left" aria-hidden="true"></i>
+        </div>
+        <div class="arrow" onclick="changeWeek(1)" aria-label="Next week">
+          <i class="ti ti-chevron-right" aria-hidden="true"></i>
+        </div>
+        <button class="btn small" onclick="changeWeek(0,true)" style="margin-left:4px;">Today</button>
+      </div>
+      <div class="cal-title" id="cal-title"></div>
+      <div style="font-size:10px;color:var(--text3);">
+        8:00 AM – 9:30 PM &nbsp;·&nbsp; Free time input &nbsp;·&nbsp; 1.5 hr default slot
+      </div>
+    </div>
+
+    <div class="week-wrap">
+      <div class="week-grid" id="week-grid">
+        <!-- rendered by renderCal() -->
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="leg"><div class="ld" style="background:var(--accent);"></div> Class</div>
+      <div class="leg"><div class="ld" style="background:var(--success);"></div> Meeting</div>
+      <div class="leg"><div class="ld" style="background:var(--pro);"></div> Calibration</div>
+      <div class="leg"><div class="ld" style="background:var(--warning);"></div> 1-on-1</div>
+      <div class="leg"><div class="ld" style="background:var(--danger);opacity:.6;"></div> Unavailable</div>
+    </div>
+
+    <div class="detail-panel" id="detail-panel">
+      <!-- rendered by renderDetail() -->
+    </div>
+  </div>
+</div>
+
+<!-- NEW SESSION MODAL -->
+<div class="modal-overlay" id="new-modal">
+  <div class="modal">
+    <div class="modal-title">
+      Schedule session
+      <button class="modal-close" onclick="closeModal('new-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Type</label>
+      <select id="ns-type">
+        <option>Class</option>
+        <option>Meeting</option>
+        <option>Calibration</option>
+        <option>1-on-1</option>
+        <option>Session inicio</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Trainer</label>
+      <!-- TODO: populated by fetchTrainers() -->
+      <select id="ns-trainer"></select>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Date</label>
+      <input type="date" id="ns-date">
+    </div>
+    <div class="fr fr-2">
+      <div>
+        <label class="fr-lbl">Start time</label>
+        <input type="time" id="ns-start" value="08:00" onchange="updatePreview()">
+        <div class="hint">Any time — not limited to slots</div>
+      </div>
+      <div>
+        <label class="fr-lbl">Duration</label>
+        <div class="dur-row">
+          <input type="number" id="ns-dur-n" value="1" min="0.5" max="8" step="0.5" oninput="updatePreview()">
+          <select id="ns-dur-unit" onchange="updatePreview()">
+            <option value="60">hour(s)</option>
+            <option value="30">half-hour(s)</option>
+            <option value="90" selected>1.5 hr slot(s)</option>
+          </select>
+        </div>
+        <div class="dur-preview" id="ns-preview">Ends at 09:30</div>
+      </div>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Students (optional)</label>
+      <!-- TODO: multiselect from students table -->
+      <input type="text" id="ns-stu" placeholder="Rivera, Solano, Chen...">
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Meet link (optional)</label>
+      <input type="text" id="ns-link" placeholder="https://meet.google.com/...">
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Notes (optional)</label>
+      <input type="text" id="ns-notes" placeholder="Special instructions, topic, materials...">
+    </div>
+    <div class="err-msg" id="ns-err">Please complete all required fields.</div>
+    <div class="modal-btns">
+      <!-- TODO: wire to Supabase POST /sessions -->
+      <button class="btn accent" onclick="saveNew()">Save session</button>
+      <button class="btn" onclick="closeModal('new-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCK TIME MODAL -->
+<div class="modal-overlay" id="block-modal">
+  <div class="modal">
+    <div class="modal-title">
+      Block unavailable time
+      <button class="modal-close" onclick="closeModal('block-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Trainer</label>
+      <select id="bl-trainer"></select>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Date</label>
+      <input type="date" id="bl-date">
+    </div>
+    <div class="fr fr-2">
+      <div>
+        <label class="fr-lbl">From</label>
+        <input type="time" id="bl-start" value="14:00" onchange="updateBlockPreview()">
+        <div class="hint">Any time</div>
+      </div>
+      <div>
+        <label class="fr-lbl">Duration</label>
+        <div class="dur-row">
+          <input type="number" id="bl-dur-n" value="2" min="0.5" max="12" step="0.5" oninput="updateBlockPreview()">
+          <select id="bl-dur-unit" onchange="updateBlockPreview()">
+            <option value="60" selected>hour(s)</option>
+            <option value="30">half-hour(s)</option>
+            <option value="90">1.5 hr slot(s)</option>
+          </select>
+        </div>
+        <div class="dur-preview" id="bl-preview">Ends at 16:00</div>
+      </div>
+    </div>
+    <div class="fr">
+      <label class="fr-lbl">Reason (optional)</label>
+      <input type="text" id="bl-reason" placeholder="Personal, travel, medical, training...">
+    </div>
+    <div class="modal-btns">
+      <!-- TODO: wire to Supabase POST /blocks -->
+      <button class="btn danger" onclick="saveBlock()">Block time</button>
+      <button class="btn" onclick="closeModal('block-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ════════════════════════════════════════════════
+   CONSTANTS
+   ════════════════════════════════════════════════ */
+const DAY_START_MIN = 480;   // 8:00 AM
+const DAY_END_MIN   = 1290;  // 9:30 PM
+const TOTAL_MIN     = DAY_END_MIN - DAY_START_MIN;
+const PX_PER_MIN    = 1.3;
+const TOTAL_PX      = TOTAL_MIN * PX_PER_MIN;
+
+const DAYS  = ['Mon','Tue','Wed','Thu','Fri'];
+const TYPE_CLS = {
+  'Class':          'sc',
+  'Meeting':        'sm',
+  'Calibration':    'scal',
+  '1-on-1':         's1',
+  'Session inicio': 'sm',
+  'Other':          'sm',
+  'unavail':        'su',
+};
+
+/* ════════════════════════════════════════════════
+   SEED DATA — replace with Supabase fetch calls
+   ════════════════════════════════════════════════ */
+
+// TODO: replace TRAINERS with → fetchTrainers() from Supabase table 'trainers'
+const TRAINERS = [
+  {
+    id: 1, name: 'Ana Rodríguez', initials: 'AR', role: 'Senior Trainer',
+    bg: '#e6f1fb', fg: '#185fa5',
+    email: 'ana@studioinfinitycr.com', phone: '+506 8821 4410',
+    meet: 'https://meet.google.com/ana-infinity',
+    chips: ['Corporate','BPO','VIP'],
+    avail: 'Mon–Fri 8 AM–8 PM · Sat 8 AM–12 PM',
+    students: [
+      { n: 'Carlos Méndez',   s: 'Mon/Wed 8:00 AM' },
+      { n: 'Valeria Rojas',   s: 'Tue/Thu 5:00 PM' },
+      { n: 'Diego Mora',      s: 'Sat 9:30 AM'     },
+      { n: 'Sofía Alvarado',  s: 'Mon/Wed 12:30 PM'},
+    ]
+  },
+  {
+    id: 2, name: 'Marco Solano', initials: 'MS', role: 'Trainer',
+    bg: '#eaf3de', fg: '#3b6d11',
+    email: 'marco@studioinfinitycr.com', phone: '+506 8744 3321',
+    meet: 'https://meet.google.com/marco-infinity',
+    chips: ['Survival','Emerging','1-on-1'],
+    avail: 'Mon–Fri 8 AM–6:30 PM · Sat 8 AM–11 AM',
+    students: [
+      { n: 'Andrés Vargas',  s: 'Tue/Thu 8:00 AM'    },
+      { n: 'Lucía Herrera',  s: 'Mon/Wed/Fri 5:00 PM' },
+      { n: 'Mariana Castro', s: 'Sat 8:00 AM'         },
+    ]
+  },
+  {
+    id: 3, name: 'Valeria Méndez', initials: 'VM', role: 'Trainer + Evaluator',
+    bg: '#eeedfe', fg: '#3c3489',
+    email: 'valeria@studioinfinitycr.com', phone: '+506 8633 9900',
+    meet: 'https://meet.google.com/valeria-infinity',
+    chips: ['Advanced','Alice','Nexora'],
+    avail: 'Mon–Fri 8 AM–8 PM · No weekends',
+    students: [
+      { n: 'Isabel Quesada', s: 'Mon/Wed 8:00 AM' },
+      { n: 'Fernando Arias', s: 'Tue/Thu 6:30 PM' },
+      { n: 'Ricardo León',   s: 'Fri 5:00 PM'     },
+    ]
+  },
+  {
+    id: 4, name: 'Diego Arias', initials: 'DA', role: 'Trainer',
+    bg: '#faeeda', fg: '#854f0b',
+    email: 'diego@studioinfinitycr.com', phone: '+506 8512 7780',
+    meet: 'https://meet.google.com/diego-infinity',
+    chips: ['Functional','Medical','Legal'],
+    avail: 'Mon–Sat 8 AM–8 PM',
+    students: [
+      { n: 'Paola Méndez',   s: 'Mon/Wed/Fri 8:00 AM' },
+      { n: 'Emilio Sanchez', s: 'Tue/Thu 12:30 PM'     },
+      { n: 'Natalia Cruz',   s: 'Sat 9:30 AM'          },
+      { n: 'Luis Herrera',   s: 'Mon 5:00 PM'          },
+    ]
+  },
+];
+
+// TODO: replace SESSIONS with → fetchSessions(weekStart, weekEnd) from Supabase table 'sessions'
+// startMin = minutes from midnight (e.g. 8:00 AM = 480, 5:30 PM = 1050)
+// durMin   = duration in minutes (e.g. 90 = 1.5 hrs, 60 = 1 hr)
+const SESSIONS = [
+  { tid:1, type:'Class',       title:'Corporate L2 — Méndez, Alvarado',   day:0, startMin:480,  durMin:90  },
+  { tid:1, type:'Meeting',     title:'Weekly trainer sync',                 day:0, startMin:570,  durMin:60  },
+  { tid:1, type:'Class',       title:'Conversatorio prep — Rojas, Mora',   day:1, startMin:480,  durMin:90  },
+  { tid:1, type:'Class',       title:'Corporate L2 — Wed group',           day:2, startMin:480,  durMin:90  },
+  { tid:1, type:'1-on-1',      title:'1-on-1 — Valeria Rojas',            day:2, startMin:1020, durMin:60  },
+  { tid:1, type:'Calibration', title:'Alice calibration — Méndez',         day:3, startMin:660,  durMin:90  },
+  { tid:1, type:'Class',       title:'Saturday conversatorio',              day:4, startMin:570,  durMin:120 },
+  { tid:1, type:'unavail',     title:'Blocked — personal',                 day:2, startMin:780,  durMin:120 },
+  { tid:2, type:'Class',       title:'Survival A — Vargas, Castro',        day:0, startMin:480,  durMin:90  },
+  { tid:2, type:'Class',       title:'Emerging L1 — Herrera, Vargas',      day:1, startMin:930,  durMin:90  },
+  { tid:2, type:'1-on-1',      title:'1-on-1 — Andrés Vargas',            day:2, startMin:480,  durMin:60  },
+  { tid:2, type:'Class',       title:'Emerging L1 — Wed',                  day:2, startMin:930,  durMin:90  },
+  { tid:2, type:'unavail',     title:'Blocked — medical',                  day:3, startMin:840,  durMin:240 },
+  { tid:3, type:'Calibration', title:'Alice calibration — Quesada',        day:0, startMin:480,  durMin:90  },
+  { tid:3, type:'Class',       title:'Advanced L3 — Arias, León',          day:1, startMin:480,  durMin:90  },
+  { tid:3, type:'Meeting',     title:'Nexora scenario review',              day:2, startMin:660,  durMin:60  },
+  { tid:3, type:'Class',       title:'Nexora prep — León',                 day:3, startMin:1110, durMin:90  },
+  { tid:3, type:'Class',       title:'Advanced L3 — Fri group',            day:4, startMin:1020, durMin:90  },
+  { tid:4, type:'Class',       title:'Functional — Méndez, Cruz',          day:0, startMin:480,  durMin:90  },
+  { tid:4, type:'Class',       title:'Medical English sim — Sanchez',       day:1, startMin:750,  durMin:60  },
+  { tid:4, type:'Class',       title:'Functional — Mon PM — Herrera',      day:0, startMin:1020, durMin:90  },
+  { tid:4, type:'1-on-1',      title:'1-on-1 — Paola Méndez',             day:2, startMin:480,  durMin:60  },
+  { tid:4, type:'Class',       title:'Legal English sim — Sanchez',         day:3, startMin:750,  durMin:120 },
+  { tid:4, type:'Class',       title:'Functional Fri — Cruz, Herrera',      day:4, startMin:480,  durMin:90  },
+];
+
+/* ════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════ */
+let activeTr   = null;
+let viewFilter = 'all';
+let weekOff    = 0;
+
+/* ════════════════════════════════════════════════
+   UTILS
+   ════════════════════════════════════════════════ */
+function minToDisplay(m) {
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hh = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return `${hh}:${String(min).padStart(2,'0')} ${ampm}`;
+}
+function timeStrToMin(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function addMinToTime(timeStr, mins) {
+  const total = timeStrToMin(timeStr) + mins;
+  const h = Math.floor(total / 60) % 24;
+  const m = total % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function getDurMins(nId, unitId) {
+  const n    = parseFloat(document.getElementById(nId).value) || 1;
+  const unit = parseInt(document.getElementById(unitId).value) || 90;
+  return Math.round(n * unit);
+}
+function durLabel(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}min`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+}
+function getWeekDates() {
+  // Base week: Aug 18–22, 2026 (Monday). weekOff shifts by 7-day increments.
+  // TODO: in production, calculate from real current date
+  const base = [18,19,20,21,22];
+  return base.map(d => d + weekOff * 7);
+}
+
+/* ════════════════════════════════════════════════
+   RENDER TRAINERS SIDEBAR
+   ════════════════════════════════════════════════ */
+function renderTrainers() {
+  document.getElementById('trainer-list').innerHTML = TRAINERS.map(t => `
+    <div class="tc ${activeTr === t.id ? 'active' : ''}" onclick="selectTrainer(${t.id})">
+      <div class="tc-top">
+        <div class="av" style="background:${t.bg};color:${t.fg};">${t.initials}</div>
+        <div>
+          <div class="tc-name">${t.name}</div>
+          <div class="tc-role">${t.role}</div>
+        </div>
+      </div>
+      <div class="tc-chips">
+        ${t.chips.map(c => `<span class="chip chip-b">${c}</span>`).join('')}
+        <span class="chip chip-g">${t.students.length} students</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectTrainer(id) {
+  activeTr = activeTr === id ? null : id;
+  renderTrainers();
+  renderCal();
+  if (activeTr) renderDetail(activeTr);
+  else closeDetail();
+}
+
+/* ════════════════════════════════════════════════
+   RENDER TRAINER DETAIL PANEL
+   ════════════════════════════════════════════════ */
+function renderDetail(id) {
+  const t = TRAINERS.find(x => x.id === id);
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = `
+    <div class="dp-inner">
+      <div class="dp-hdr">
+        <div>
+          <div class="dp-name">${t.name}</div>
+          <div style="font-size:10px;color:var(--text2);">${t.role} · ${t.avail}</div>
+        </div>
+        <button class="dp-close" onclick="closeDetail()" aria-label="Close">×</button>
+      </div>
+      <div class="dp-grid">
+        <div class="df"><div class="dl">Email</div><div class="dv"><a href="mailto:${t.email}">${t.email}</a></div></div>
+        <div class="df"><div class="dl">Phone</div><div class="dv">${t.phone}</div></div>
+        <div class="df"><div class="dl">Meet</div><div class="dv"><a href="${t.meet}" target="_blank" rel="noopener">Open link</a></div></div>
+        <div class="df"><div class="dl">Specialties</div><div class="dv">${t.chips.join(' · ')}</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Students & schedules</div>
+      <div class="stu-list">
+        ${t.students.map(s => `
+          <div class="stu-row">
+            <span style="font-weight:500;">${s.n}</span>
+            <span class="chip chip-b">${s.s}</span>
+          </div>`).join('')}
+      </div>
+      <div class="block-quick">
+        <div class="bq-title">Block unavailable time — ${t.name}</div>
+        <div class="bq-row"><label>Date</label><input type="date" id="qd-${t.id}" value="2026-08-20"></div>
+        <div class="bq-row"><label>From</label><input type="time" id="qf-${t.id}" value="14:00" onchange="updateQPreview(${t.id})"></div>
+        <div class="bq-row" style="gap:5px;">
+          <label>Duration</label>
+          <input type="number" id="qn-${t.id}" value="2" min="0.5" max="12" step="0.5" style="width:55px;font-size:11px;padding:3px 5px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);color:var(--text);" oninput="updateQPreview(${t.id})">
+          <select id="qu-${t.id}" style="flex:1;font-size:11px;padding:3px 5px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);color:var(--text);" onchange="updateQPreview(${t.id})">
+            <option value="60" selected>hour(s)</option>
+            <option value="30">half-hour(s)</option>
+            <option value="90">1.5hr slot(s)</option>
+          </select>
+        </div>
+        <div class="dur-preview" id="qp-${t.id}" style="margin-bottom:5px;">Ends at 16:00</div>
+        <div class="bq-row"><label>Reason</label><input type="text" id="qr-${t.id}" placeholder="Optional..."></div>
+        <!-- TODO: POST to Supabase /blocks -->
+        <button class="btn danger" style="width:100%;margin-top:5px;" onclick="saveQuickBlock(${t.id},'${t.name}')">
+          Save block
+        </button>
+      </div>
+    </div>
+  `;
+  panel.classList.add('open');
+}
+
+function closeDetail() {
+  activeTr = null;
+  renderTrainers();
+  document.getElementById('detail-panel').classList.remove('open');
+  renderCal();
+}
+
+function updateQPreview(tid) {
+  const from = document.getElementById(`qf-${tid}`).value;
+  const n    = parseFloat(document.getElementById(`qn-${tid}`).value) || 1;
+  const unit = parseInt(document.getElementById(`qu-${tid}`).value) || 60;
+  const dur  = Math.round(n * unit);
+  const end  = addMinToTime(from, dur);
+  const el   = document.getElementById(`qp-${tid}`);
+  if (el) el.textContent = `${durLabel(dur)} — ends at ${end}`;
+}
+
+/* ════════════════════════════════════════════════
+   RENDER CALENDAR
+   ════════════════════════════════════════════════ */
+function renderCal() {
+  const grid = document.getElementById('week-grid');
+  const dates = getWeekDates();
+
+  let sessions = SESSIONS;
+  if (activeTr)           sessions = sessions.filter(s => s.tid === activeTr);
+  if (viewFilter !== 'all') sessions = sessions.filter(s => s.type === viewFilter);
+
+  document.getElementById('cal-title').textContent =
+    `Aug ${dates[0]}–${dates[4]}, 2026`;
+
+  // Hour marks to draw (every 30 min for granularity)
+  const marks = [];
+  for (let m = DAY_START_MIN; m <= DAY_END_MIN; m += 30) marks.push(m);
+
+  let html = '';
+
+  // Day headers
+  html += `<div class="day-hdr" style="position:sticky;top:0;z-index:3;"></div>`;
+  DAYS.forEach((d, i) => {
+    const isToday = i === 2 && weekOff === 0;
+    html += `<div class="day-hdr">
+      <div class="dhn">${d}</div>
+      <div class="${isToday ? 'dhd today' : 'dhd'}">${dates[i]}</div>
+    </div>`;
+  });
+
+  // Time column
+  html += `<div class="time-col" style="height:${TOTAL_PX}px;position:relative;">`;
+  marks.filter((_, i) => i % 2 === 0).forEach(m => {
+    const top = (m - DAY_START_MIN) * PX_PER_MIN;
+    html += `<div class="hour-mark" style="top:${top}px;">
+      <span class="time-lbl">${minToDisplay(m)}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Day columns
+  for (let d = 0; d < 5; d++) {
+    html += `<div class="day-col" style="height:${TOTAL_PX}px;position:relative;">`;
+
+    // Hour lines
+    marks.forEach(m => {
+      const top = (m - DAY_START_MIN) * PX_PER_MIN;
+      const style = m % 60 === 0
+        ? 'border-top:0.5px solid var(--border);'
+        : 'border-top:0.5px dashed rgba(0,0,0,.04);';
+      html += `<div class="hour-mark" style="top:${top}px;${style}"></div>`;
+    });
+
+    // Sessions
+    sessions.filter(s => s.day === d).forEach(s => {
+      const top  = (s.startMin - DAY_START_MIN) * PX_PER_MIN;
+      const h    = Math.max(s.durMin * PX_PER_MIN - 2, 16);
+      const cls  = TYPE_CLS[s.type] || 'sc';
+      const tr   = TRAINERS.find(t => t.id === s.tid);
+      const endM = s.startMin + s.durMin;
+      const info = `${s.type}: ${s.title} · ${tr ? tr.name : ''} · ${minToDisplay(s.startMin)}–${minToDisplay(endM)}`;
+      html += `<div class="sblock ${cls}" style="top:${top}px;height:${h}px;" onclick="toast('${info.replace(/'/g, '&apos;')}')">
+        <div class="sblock-title">${s.title}</div>
+        ${h > 24 ? `<div class="sblock-sub">${minToDisplay(s.startMin)}–${minToDisplay(endM)}${tr ? ' · ' + tr.initials : ''}</div>` : ''}
+      </div>`;
+    });
+
+    html += `</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function setView(v, el) {
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  viewFilter = v;
+  renderCal();
+}
+
+function changeWeek(dir, reset = false) {
+  if (reset) weekOff = 0; else weekOff += dir;
+  renderCal();
+}
+
+/* ════════════════════════════════════════════════
+   MODAL — NEW SESSION
+   ════════════════════════════════════════════════ */
+function openNew() {
+  // Populate trainer select
+  const sel = document.getElementById('ns-trainer');
+  sel.innerHTML = TRAINERS.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  // Set today's date
+  document.getElementById('ns-date').value = '2026-08-20';
+  updatePreview();
+  document.getElementById('new-modal').classList.add('open');
+}
+
+function updatePreview() {
+  const start = document.getElementById('ns-start').value;
+  const dur   = getDurMins('ns-dur-n', 'ns-dur-unit');
+  const end   = addMinToTime(start, dur);
+  document.getElementById('ns-preview').textContent = `${durLabel(dur)} — ends at ${end}`;
+}
+
+function saveNew() {
+  const type  = document.getElementById('ns-type').value;
+  const tid   = parseInt(document.getElementById('ns-trainer').value);
+  const tr    = TRAINERS.find(t => t.id === tid);
+  const date  = document.getElementById('ns-date').value;
+  const start = document.getElementById('ns-start').value;
+  const dur   = getDurMins('ns-dur-n', 'ns-dur-unit');
+  const stu   = document.getElementById('ns-stu').value;
+  const link  = document.getElementById('ns-link').value;
+  const notes = document.getElementById('ns-notes').value;
+
+  // Validation
+  if (!date || !start) {
+    document.getElementById('ns-err').classList.add('show');
+    return;
+  }
+  document.getElementById('ns-err').classList.remove('show');
+
+  const end = addMinToTime(start, dur);
+
+  // TODO: POST to Supabase
+  // await supabase.from('sessions').insert({
+  //   trainer_id: tid,
+  //   type, title: type + (stu ? ' — ' + stu : ''),
+  //   date, start_time: start,
+  //   duration_minutes: dur,
+  //   meet_link: link, notes
+  // })
+
+  closeModal('new-modal');
+  toast(`Saved: ${type} — ${tr.name} · ${start}–${end} (${durLabel(dur)})`);
+}
+
+/* ════════════════════════════════════════════════
+   MODAL — BLOCK TIME
+   ════════════════════════════════════════════════ */
+function openBlock() {
+  const sel = document.getElementById('bl-trainer');
+  sel.innerHTML = TRAINERS.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  document.getElementById('bl-date').value = '2026-08-20';
+  updateBlockPreview();
+  document.getElementById('block-modal').classList.add('open');
+}
+
+function updateBlockPreview() {
+  const start = document.getElementById('bl-start').value;
+  const dur   = getDurMins('bl-dur-n', 'bl-dur-unit');
+  const end   = addMinToTime(start, dur);
+  document.getElementById('bl-preview').textContent = `${durLabel(dur)} — ends at ${end}`;
+}
+
+function saveBlock() {
+  const tid    = parseInt(document.getElementById('bl-trainer').value);
+  const tr     = TRAINERS.find(t => t.id === tid);
+  const date   = document.getElementById('bl-date').value;
+  const start  = document.getElementById('bl-start').value;
+  const dur    = getDurMins('bl-dur-n', 'bl-dur-unit');
+  const reason = document.getElementById('bl-reason').value;
+  const end    = addMinToTime(start, dur);
+
+  // TODO: POST to Supabase
+  // await supabase.from('blocks').insert({
+  //   trainer_id: tid, date, start_time: start,
+  //   duration_minutes: dur, reason
+  // })
+
+  closeModal('block-modal');
+  toast(`Blocked: ${tr.name} · ${start}–${end}${reason ? ' (' + reason + ')' : ''}`);
+}
+
+function saveQuickBlock(tid, name) {
+  const from   = document.getElementById(`qf-${tid}`).value;
+  const n      = parseFloat(document.getElementById(`qn-${tid}`).value) || 1;
+  const unit   = parseInt(document.getElementById(`qu-${tid}`).value) || 60;
+  const dur    = Math.round(n * unit);
+  const end    = addMinToTime(from, dur);
+  const reason = document.getElementById(`qr-${tid}`).value;
+  const date   = document.getElementById(`qd-${tid}`).value;
+
+  // TODO: POST to Supabase
+  // await supabase.from('blocks').insert({
+  //   trainer_id: tid, date, start_time: from,
+  //   duration_minutes: dur, reason
+  // })
+
+  toast(`Blocked: ${name} · ${from}–${end}${reason ? ' (' + reason + ')' : ''}`);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ════════════════════════════════════════════════
+   TOAST
+   ════════════════════════════════════════════════ */
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+/* ════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════ */
+renderTrainers();
+renderCal();
+updatePreview();
+updateBlockPreview();
+</script>
+</body>
+</html>

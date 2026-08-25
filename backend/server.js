@@ -1285,6 +1285,10 @@ function normalizeCompanionEnabled(student) {
 
 function studentAccessFlags(student) {
   if (!student) return {};
+  const sim = student.infinitySimulation || {};
+  const simOn = sim.enabled === true || sim.enabled === 'true' || sim.enabled === 1
+    || sim.crmEnabled === true || sim.crmEnabled === 'true' || sim.crmEnabled === 1
+    || student.simulationEnabled === true;
   return {
     status: student.status || 'active',
     nexoraEnabled: isNexoraEnabledForStudent(student),
@@ -1297,7 +1301,11 @@ function studentAccessFlags(student) {
     jillProEnabled: student.jillProEnabled === true,
     companionEnabled: normalizeCompanionEnabled(student),
     claireEnabled: student.claireEnabled === true,
-    simulationEnabled: student.simulationEnabled === true
+    simulationEnabled: !!simOn,
+    infinitySimulation: {
+      enabled: !!simOn,
+      crmEnabled: !!simOn
+    }
   };
 }
 

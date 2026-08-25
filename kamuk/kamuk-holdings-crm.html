@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#2B7EC1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Kamuk Holdings — Corporate Banking Desk</title>
+<title>Infinity Holdings Inc — Support Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -15,14 +15,14 @@
 
 <div class="gate" id="gate">
   <div class="spin"></div>
-  <h1>Kamuk Holdings — Corporate Banking Desk</h1>
+  <h1>Infinity Holdings Inc — Support Desk</h1>
   <p id="gate-msg">Opening your desk from the Training Book session…</p>
 </div>
 
 <div class="shell hidden" id="app">
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:8px;">
-    <div class="topbar-logo">Kamuk Holdings</div>
+    <div class="topbar-logo">Infinity Holdings Inc</div>
     <div class="topbar-sub" id="topbar-sub">Corporate Banking Desk · 8/10+ gana bono de producción</div>
   </div>
   <div class="topbar-right">
@@ -95,6 +95,7 @@
     <div class="transcript-area">
       <div class="tr-lbl">CASE BRIEF</div>
       <div id="v1-desc" style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:10px;"></div>
+      <div id="v1-playbook" style="display:none;margin-bottom:10px;"></div>
       <div class="tr-lbl">TRANSCRIPT</div>
       <div id="v1-transcript"></div>
     </div>
@@ -129,6 +130,7 @@
       <button class="act danger" data-danger="close|Close account|This action is irreversible.">Close acct</button>
       <button class="act" id="btn-site"><i class="ti ti-world"></i> Website</button>
       <button class="act" id="btn-email"><i class="ti ti-mail"></i> Email</button>
+      <button class="act" id="btn-chat" style="display:none;"><i class="ti ti-message"></i> Chat</button>
       <button class="act" id="btn-call"><i class="ti ti-phone"></i> Call</button>
       <button class="act solid" id="btn-resolve" style="margin-left:auto;"><i class="ti ti-flag-check"></i> Resolve case <span id="action-count">(0)</span></button>
     </div>
@@ -153,6 +155,7 @@
 
       <!-- OVERVIEW -->
       <div id="pane-ov" class="pane on">
+        <div id="ov-playbook" style="display:none;margin-bottom:10px;"></div>
         <div class="metrics" id="ov-metrics"></div>
         <div class="two-col">
           <div>
@@ -314,7 +317,7 @@
           <button class="act" id="site-send"><i class="ti ti-mail-forward"></i> Send this page</button>
         </div>
         <div class="site-frame">
-          <div class="site-brand"><span class="site-logo">Kamuk Holdings</span><nav class="site-nav" id="site-nav"></nav></div>
+          <div class="site-brand"><span class="site-logo">Infinity Holdings Inc</span><nav class="site-nav" id="site-nav"></nav></div>
           <div class="site-page" id="site-page"></div>
         </div>
         <div class="sec">Co-browsing script — say it like this</div>
@@ -473,9 +476,35 @@
   </div>
 </div>
 
+<!-- CHAT CONSOLE · Nexora live -->
+<div class="modal-overlay" id="chat-console">
+  <div class="chat-console">
+    <div class="chat-console-hdr">
+      <div>
+        <div class="chat-presence online" id="chat-presence">online</div>
+        <h2 id="chat-client-name">Client</h2>
+        <p>Mood: <strong id="chat-mood">—</strong> · Accent profile: <strong id="chat-accent">—</strong></p>
+      </div>
+      <button class="modal-close" data-close="chat-console" type="button">×</button>
+    </div>
+    <div class="chat-thread" id="chat-thread"></div>
+    <div class="chat-compose">
+      <textarea id="chat-reply-txt" rows="2" placeholder="Reply in English. Wait for typing to finish. AMR + clock time. Never ask for a PIN."></textarea>
+      <div class="chat-compose-actions">
+        <button class="call-control" id="chat-send" type="button">Send</button>
+        <button class="call-control hangup" id="chat-end" type="button">End chat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://studioinfinitycr.com/infinity-auth.js"></script>
-<script src="js/kamuk-holdings-call.js?v=20260818call"></script>
-<script src="js/kamuk-desk-english.js?v=20260818call"></script>
-<script src="js/kamuk-holdings-crm.js?v=20260818call"></script>
+<script src="https://studioinfinitycr.com/nexora-profile.js?v=20260825nxlive"></script>
+<script src="js/infinity-holdings-config.js?v=20260825sched"></script>
+<script src="js/infinity-holdings-nexora-live.js?v=20260825sched"></script>
+<script src="js/simulation-crm-bridge.js?v=20260825sched"></script>
+<script src="js/kamuk-holdings-call.js?v=20260825nxlive"></script>
+<script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
+<script src="js/kamuk-holdings-crm.js?v=20260825nxlive"></script>
 </body>
 </html>

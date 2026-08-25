@@ -6,20 +6,22 @@ var NEXORA_INDUSTRY = (function () {
   'use strict';
 
   var ENGINE = {
-    corporate:   { pool: 'corporate',   crm: 'Corporate',   label: 'Corporate/Business' },
-    tech:        { pool: 'technology',  crm: 'Technology',  label: 'Technology' },
-    technology:  { pool: 'technology',  crm: 'Technology',  label: 'Technology' },
-    healthcare:  { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare' },
-    health:      { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare' },
-    medical:     { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare' },
-    education:   { pool: 'education',   crm: 'Education',   label: 'Education' },
-    finance:     { pool: 'finance',     crm: 'Finance',     label: 'Finance/Banking' },
-    banking:     { pool: 'finance',     crm: 'Finance',     label: 'Finance/Banking' },
-    hospitality: { pool: 'tourism',     crm: 'Tourism',     label: 'Hospitality/Tourism' },
-    tourism:     { pool: 'tourism',     crm: 'Tourism',     label: 'Hospitality/Tourism' },
-    retail:      { pool: 'retail',      crm: 'Retail',      label: 'Retail/Sales' },
-    telecom:     { pool: 'telecom',     crm: 'Telecom',     label: 'Telecom' },
-    bpo:         { pool: 'corporate',   crm: 'Corporate',   label: 'BPO/Corporate' }
+    finance:     { pool: 'finance',     crm: 'Finance',     label: 'Finance/Banking', holdings: 'banking' },
+    banking:     { pool: 'finance',     crm: 'Finance',     label: 'Finance/Banking', holdings: 'banking' },
+    healthcare:  { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare', holdings: 'medical' },
+    health:      { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare', holdings: 'medical' },
+    medical:     { pool: 'healthcare',  crm: 'Healthcare',  label: 'Healthcare', holdings: 'medical' },
+    legal:       { pool: 'legal',       crm: 'Legal',       label: 'Legal Services', holdings: 'legal' },
+    law:         { pool: 'legal',       crm: 'Legal',       label: 'Legal Services', holdings: 'legal' },
+    hospitality: { pool: 'tourism',     crm: 'Tourism',     label: 'Hospitality/Tourism', holdings: 'banking' },
+    tourism:     { pool: 'tourism',     crm: 'Tourism',     label: 'Hospitality/Tourism', holdings: 'banking' },
+    retail:      { pool: 'retail',      crm: 'Retail',      label: 'Retail/Sales', holdings: 'banking' },
+    telecom:     { pool: 'telecom',     crm: 'Telecom',     label: 'Telecom', holdings: 'banking' },
+    bpo:         { pool: 'corporate',   crm: 'Corporate',   label: 'BPO/Corporate', holdings: 'banking' },
+    corporate:   { pool: 'corporate',   crm: 'Corporate',   label: 'Corporate/Business', holdings: 'banking' },
+    tech:        { pool: 'technology',  crm: 'Technology',  label: 'Technology', holdings: 'banking' },
+    technology:  { pool: 'technology',  crm: 'Technology',  label: 'Technology', holdings: 'banking' },
+    education:   { pool: 'education',   crm: 'Education',   label: 'Education', holdings: 'banking' }
   };
 
   function engineKey(nxConfig) {
@@ -66,12 +68,33 @@ var NEXORA_INDUSTRY = (function () {
     { value: 'corporate',   label: 'Corporate / Business' },
     { value: 'tech',        label: 'Technology' },
     { value: 'healthcare',  label: 'Healthcare / Medical' },
+    { value: 'legal',       label: 'Legal Services' },
     { value: 'education',   label: 'Education' },
     { value: 'finance',     label: 'Finance / Banking' },
     { value: 'hospitality', label: 'Hospitality / Tourism' },
     { value: 'retail',      label: 'Retail / Sales' },
     { value: 'telecom',     label: 'Telecom / Cable & Internet' }
   ];
+
+  function holdingsPackFor(nxConfig) {
+    if (nxConfig && nxConfig.holdingsPack) {
+      var hp = String(nxConfig.holdingsPack).toLowerCase();
+      if (hp === 'banking' || hp === 'legal' || hp === 'medical') return hp;
+    }
+    var resolved = resolve(nxConfig);
+    return resolved.holdings || 'banking';
+  }
+
+  function normalizeSkills(raw) {
+    var list = [];
+    if (Array.isArray(raw)) list = raw;
+    else if (typeof raw === 'string') list = raw.split(/[,|\s]+/);
+    var out = [];
+    ['email', 'phone', 'chat'].forEach(function (s) {
+      if (list.some(function (x) { return String(x).toLowerCase().trim() === s; })) out.push(s);
+    });
+    return out.length ? out : ['email', 'phone', 'chat'];
+  }
 
   function industryAffectsScenarioPool(type) {
     return type === 'customer_service' || type === 'problem_solving' || type === 'mock_interview';
@@ -129,6 +152,8 @@ var NEXORA_INDUSTRY = (function () {
     industryAffectsScenarioPool: industryAffectsScenarioPool,
     labelForEngineValue: labelForEngineValue,
     populateEngineIndustrySelect: populateEngineIndustrySelect,
-    describeSelection: describeSelection
+    describeSelection: describeSelection,
+    holdingsPackFor: holdingsPackFor,
+    normalizeSkills: normalizeSkills
   };
 })();

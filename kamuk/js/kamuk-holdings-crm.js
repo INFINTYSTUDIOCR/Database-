@@ -2,7 +2,14 @@
   'use strict';
 
   const API = typeof INFINITY_API !== 'undefined' ? INFINITY_API : 'https://alice-by-infinity.onrender.com';
-  const PACK_URL = 'data/kamuk-holdings-crm-pack-v1.json';
+  const params = new URLSearchParams(location.search);
+  const deskMode = (window.InfinityHoldings && window.InfinityHoldings.parseDeskMode)
+    ? window.InfinityHoldings.parseDeskMode(params)
+    : { industry: 'banking', nexoraPractice: params.get('nexora') === '1', preview: params.get('preview') === '1', unscored: params.get('nexora') === '1' || params.get('preview') === '1', skills: ['email', 'phone', 'chat'], brand: { name: 'Infinity Holdings Inc' }, meta: { packUrl: 'data/kamuk-holdings-crm-pack-v1.json', deskSubtitle: 'Support Desk' } };
+  const PACK_URL = (window.InfinityHoldings && window.InfinityHoldings.packUrl)
+    ? window.InfinityHoldings.packUrl(deskMode.industry)
+    : (deskMode.meta && deskMode.meta.packUrl) || 'data/kamuk-holdings-crm-pack-v1.json';
+  const BRAND = (deskMode.brand && deskMode.brand.name) || 'Infinity Holdings Inc';
   const CHART_COLORS = ['#155694', '#33610e', '#a06216', '#4a3f9c', '#932727', '#2d7d8f'];
 
   const state = {
@@ -12,10 +19,14 @@
     leaderboard: null, weekKey: null,
     pendingSyncs: [],
     pendingDanger: null, pendingEvidence: null, pendingDisposition: null, editTarget: null, preview: false,
+    nexoraPractice: !!deskMode.nexoraPractice,
+    unscored: !!deskMode.unscored,
+    industry: deskMode.industry || 'banking',
+    skills: deskMode.skills || ['email', 'phone', 'chat'],
     identityVerified: false, verificationSource: null, revealedCards: {}, cardEvents: [], sitePath: '/', siteHistory: [],
-    simulation: new URLSearchParams(location.search).get('simulation') === '1',
+    simulation: params.get('simulation') === '1',
     product: (function () {
-      const requested = new URLSearchParams(location.search).get('product');
+      const requested = params.get('product');
       if (requested === 'infinity') return 'infinity';
       return 'kamuk';
     })()
@@ -155,7 +166,7 @@
   }
 
   async function loadLeaderboard() {
-    if (state.preview) return;
+    if (state.preview || state.nexoraPractice) return;
     const data = await api(crmPath('/leaderboard'));
     state.leaderboard = data.me || null;
     state.weekKey = data.weekKey || state.weekKey;
@@ -175,11 +186,22 @@
       return toast(`Finish or disposition ${state.active.id} before returning to the queue.`, true);
     }
     state.filter = filter;
-    document.querySelectorAll('.filter-btn').forEach((b) => b.classList.toggle('on', b.dataset.filter === filter));
-    const source = state.preview ? state.cases : state.pool;
-    const pool = filter === 'All' ? source : source.filter((c) => c.sector === filter);
-    state.queue = (state.preview && !pool.length && filter !== 'All' ? source : pool).slice();
-    if (state.preview) state.queue.sort(() => Math.random() - 0.5);
+    document.querySelectorAll('.filter-btn').forEach((b) => {
+      const on = state.nexoraPractice
+        ? (b.dataset.nxCh || b.dataset.filter) === filter
+        : b.dataset.filter === filter;
+      b.classList.toggle('on', on);
+    });
+    let source = (state.preview || state.nexoraPractice) ? (state.pool || state.cases) : state.pool;
+    if (state.nexoraPractice && filter && filter !== 'All') {
+      const ch = filter === 'phone' ? 'call' : filter;
+      source = (source || []).filter((c) => String(c.channel || '').toLowerCase() === ch);
+    }
+    const pool = (state.nexoraPractice || filter === 'All')
+      ? source
+      : source.filter((c) => c.sector === filter);
+    state.queue = ((state.preview || state.nexoraPractice) && !pool.length && filter !== 'All' ? (state.pool || state.cases) : pool).slice();
+    if (state.preview || state.nexoraPractice) state.queue.sort(() => Math.random() - 0.5);
     else state.queue.sort((a, b) => (Number(b.touchNumber) > 1) - (Number(a.touchNumber) > 1));
     renderQueue();
     if (state.queue[0] && (options.selectFirst || !state.queue.some((item) => queueKey(item) === state.selected))) {
@@ -197,9 +219,14 @@
     $('queue-list').innerHTML = visibleCases.map((c) => {
       const wait = `${pad(Math.floor(Math.random() * 40 + 2))}:${pad(Math.floor(Math.random() * 59))}`;
       const followUp = Number(c.touchNumber) > 1 ? `<span class="follow-up-chip">Follow-up T${esc(c.touchNumber)}</span>` : '';
+      const ch = String(c.channel || '').toLowerCase();
+      const chChip = state.nexoraPractice && ch
+        ? `<div class="nx-ch nx-ch-${esc(ch)}">${ch === 'email' ? '<i class="ti ti-mail"></i> Email inbound' : ch === 'chat' ? '<i class="ti ti-message"></i> Live chat' : '<i class="ti ti-phone"></i> Inbound call'}</div>`
+        : '';
       return `<div class="qi${queueKey(state.active) === queueKey(c) || state.selected === queueKey(c) ? ' active' : ''}${state.active ? ' locked' : ''}" data-case="${esc(queueKey(c))}">
         <div class="qi-top"><span class="qi-name"><span class="dot ${dotClass[c.priority] || 'dot-g'}"></span>${esc(c.client.name.split(' ').slice(-1)[0])}</span><span class="qi-time${c.priority === 'P1' ? ' hot' : ''}">${wait}</span></div>
         <div class="qi-desc">${esc(c.title.length > 34 ? c.title.slice(0, 34) + '…' : c.title)} ${followUp}</div>
+        ${chChip}
         ${state.active ? '<div class="qi-lock"><i class="ti ti-lock"></i> Work in progress</div>' : ''}
       </div>`;
     }).join('');
@@ -225,6 +252,9 @@
     $('v1-client').textContent = `${c.client.name} · ${c.client.company}`;
     $('v1-focus').textContent = c.focus;
     $('v1-desc').textContent = c.brief;
+    if (window.SimulationCrmBridge && typeof window.SimulationCrmBridge.renderHint === 'function') {
+      window.SimulationCrmBridge.renderHint($('v1-playbook'), c.type);
+    }
     const history = (c.history || []).flatMap((touch) => {
       const heading = `<div class="turn prior"><div class="turn-role ex">T${esc(touch.touchNumber || '?')}</div><div class="turn-text"><strong>${esc(touch.disposition || 'Prior interaction')}</strong>${touch.completedAt ? ` · ${esc(new Date(touch.completedAt).toLocaleString('en-US'))}` : ''}${touch.studentName ? ` · ${esc(touch.studentName)}` : ''}</div></div>`;
       const notes = (touch.notes || []).map((note) => `<div class="turn prior"><div class="turn-role ex">Note</div><div class="turn-text">${esc(note.text || note.detail || '')}</div></div>`);
@@ -336,7 +366,7 @@
     if (!c) return;
     $('accept-btn').disabled = true;
     try {
-      if (!state.preview && !state.guide) {
+      if (!state.preview && !state.guide && !state.nexoraPractice) {
         const response = c.workItemId
           ? await api(crmPath('/case/claim'), { method: 'POST', body: { workItemId: c.workItemId } })
           : await api(crmPath('/case/start'), { method: 'POST', body: { caseId: c.id } });
@@ -345,8 +375,13 @@
       }
       enterActiveCase(c, { acceptedAt: c.acceptedAt });
       addLog('ti-user-check', 'pro', `Case accepted — ${c.id}`, `${state.employee.name} · ${state.employee.id}`);
-      toast(state.guide ? 'Práctica aceptada. Este caso no entra al queue semanal.' : 'Case accepted. Your supervisor can now see this assignment.');
+      toast(state.nexoraPractice
+        ? ('Case accepted · channel: ' + String(c.channel || 'email').toUpperCase() + ' · unscored practice')
+        : (state.guide ? 'Práctica aceptada. Este caso no entra al queue semanal.' : 'Case accepted. Your supervisor can now see this assignment.'));
       deskGuideMark('accept');
+      if (state.nexoraPractice && state.nexoraLive && typeof state.nexoraLive.startChannelAfterAccept === 'function') {
+        setTimeout(() => state.nexoraLive.startChannelAfterAccept(c), 280);
+      }
     } catch (error) {
       toast(error.message, true);
     } finally {
@@ -355,7 +390,7 @@
   }
 
   async function resumeActiveCase() {
-    if (state.preview) return;
+    if (state.preview || state.nexoraPractice) return;
     const data = await api(crmPath('/case/state'));
     if (data.metrics) state.metrics = data.metrics;
     if (!data.active?.caseId) return;
@@ -382,6 +417,9 @@
   function renderClient360() {
     const c = state.active, cl = c.client, p = state.profile;
     const used = Math.max(0, Number(cl.creditLimit || 0) - Number(cl.available || 0));
+    if (window.SimulationCrmBridge && typeof window.SimulationCrmBridge.renderHint === 'function') {
+      window.SimulationCrmBridge.renderHint($('ov-playbook'), c.type);
+    }
     $('v2-av').textContent = cl.initials;
     $('v2-name').textContent = cl.name;
     $('v2-sub').innerHTML = `${esc(cl.id)} · ${esc(cl.segment)} · ${esc(cl.relationshipYears)} yrs · Accepted by ${esc(state.employee.name)} · ${esc(state.employee.id)} · <span id="v2-elapsed">00:00</span> elapsed`;
@@ -702,7 +740,7 @@
       const b = p.billing[idx]; if (!b) return;
       d = {
         title: b.description, status: b.status, ref: b.id, date: `Due ${b.due}`,
-        merchant: 'Kamuk Holdings', category: 'Corporate billing', account: state.active.client.id,
+        merchant: BRAND, category: 'Corporate billing', account: state.active.client.id,
         rows: (b.taxLines || []).map((line) => [line.label, money(line.amount)]),
         total: `${money(b.amount)} ${b.status.toLowerCase()}`, tone: b.status === 'Paid' ? 'success' : 'warning',
         note: b.note || 'Corporate invoice.'
@@ -711,7 +749,7 @@
       const fee = p.fees[idx]; if (!fee) return;
       d = {
         title: fee.type, status: fee.status, ref: fee.id, date: fee.detail,
-        merchant: 'Kamuk Holdings', category: 'Fee or penalty', account: state.active.client.id,
+        merchant: BRAND, category: 'Fee or penalty', account: state.active.client.id,
         rows: [['Fee amount', money(fee.amount)], ['Liability', fee.liability || 'Not specified']],
         total: money(fee.amount), tone: fee.amount ? 'danger' : 'success', note: fee.detail
       };
@@ -1042,7 +1080,7 @@
         const brand = cardBrand(card);
         return `<div class="wallet-card">
           <div class="wallet-face ${cardTone(card)}">
-            <div class="wf-top"><span class="wf-bank">Kamuk Holdings</span><span class="wf-tier">${esc(card.name || 'Corporate card')}</span></div>
+            <div class="wf-top"><span class="wf-bank">${esc(BRAND)}</span><span class="wf-tier">${esc(card.name || 'Corporate card')}</span></div>
             <div class="wf-chip-row"><span class="wf-chip"></span><i class="ti ti-wifi wf-nfc"></i></div>
             <div class="wf-number">${revealed ? `•••• •••• ••${esc(tail.slice(0, 2))} ${esc(tail.slice(2))}` : '•••• •••• •••• ••••'}</div>
             <div class="wf-bottom">
@@ -1200,7 +1238,7 @@
     const page = sitePage(state.sitePath);
     showTab('emails');
     startCompose();
-    $('compose-subject').value = `Kamuk Holdings — ${page.label}`;
+    $('compose-subject').value = `${BRAND} — ${page.label}`;
     $('compose-txt').value = '';
     $('compose-txt').placeholder = `Type the email yourself. Include this page: ${SITE_ORIGIN}${page.path}`;
     toast('Website page selected. Write the email in your own words.');
@@ -1317,7 +1355,7 @@
           }
         }
       }
-      if (state.preview || finishingGuide) {
+      if (state.preview || finishingGuide || state.nexoraPractice || state.unscored) {
         evaluation = localEvaluation(payload);
       } else {
         if (state.pendingSyncs.length) await Promise.all(state.pendingSyncs.slice());
@@ -1339,7 +1377,7 @@
       if (finishingGuide) {
         deskGuideMark('close-submit');
         await completePracticeCase();
-      } else if (state.preview) buildQueue(state.filter, { selectFirst: true });
+      } else if (state.preview || state.nexoraPractice) buildQueue(state.filter, { selectFirst: true });
       else {
         await Promise.all([loadPool(), loadLeaderboard().catch(() => {})]);
       }
@@ -1461,6 +1499,8 @@
 
   function bind() {
     $('queue-filters').addEventListener('click', (e) => {
+      const nx = e.target.closest('[data-nx-ch]');
+      if (nx) return buildQueue(nx.dataset.nxCh, { selectFirst: true });
       const btn = e.target.closest('[data-filter]');
       if (btn) buildQueue(btn.dataset.filter);
     });
@@ -1506,6 +1546,15 @@
       showTab('emails');
       startCompose();
     });
+    const chatBtn = $('btn-chat');
+    if (chatBtn) {
+      chatBtn.addEventListener('click', () => {
+        if (!state.active) return toast('Accept a case before opening chat.', true);
+        if (state.nexoraLive && typeof state.nexoraLive.openChatForCase === 'function') {
+          state.nexoraLive.openChatForCase(state.active);
+        }
+      });
+    }
     $('btn-call').addEventListener('click', () => {
       if (!state.active) return toast('Accept a case before calling the client.', true);
       if (state.identityVerified && /^Authenticated channel/.test(state.verificationSource || '')) {
@@ -1523,6 +1572,12 @@
         || localStorage.getItem('infinity_auth_token')
         || sessionStorage.getItem('infinity_auth_token')
         || '';
+      const persona = state.nexoraLive && typeof state.nexoraLive.ensurePersona === 'function'
+        ? state.nexoraLive.ensurePersona(state.active)
+        : null;
+      if (persona && window.KamukHoldingsCall?.setPreferredVoice) {
+        window.KamukHoldingsCall.setPreferredVoice(persona);
+      }
       window.KamukHoldingsCall?.start({
         caseId: state.active.id,
         caseTitle: state.active.title,
@@ -1531,6 +1586,9 @@
         mood: state.profile?.personality?.baselineMood || state.active.mood || 'neutral',
         employee: state.employee,
         preview: state.preview,
+        nexoraPractice: !!state.nexoraPractice,
+        voiceId: persona?.voiceId || '',
+        voiceAccent: persona?.voiceAccent || '',
         product: state.product,
         apiRoot: API,
         authToken: token,
@@ -1931,10 +1989,12 @@
     bind();
     setInterval(() => { state.sessionSec++; $('sess').textContent = clock(state.sessionSec); }, 1000);
     try {
+      if (window.InfinityHoldings && window.InfinityHoldings.applyBrandDom) window.InfinityHoldings.applyBrandDom(document);
       if (state.product === 'kamuk') document.documentElement.classList.add('kamuk-desk');
       const host = location.hostname;
-      state.preview = new URLSearchParams(location.search).get('preview') === '1'
-        || host === 'localhost' || host === '127.0.0.1' || location.protocol === 'file:';
+      state.preview = params.get('preview') === '1'
+        || (!state.nexoraPractice && (host === 'localhost' || host === '127.0.0.1' || location.protocol === 'file:'));
+      if (state.preview || state.nexoraPractice) state.unscored = true;
       let deskGuideCompleted = false;
       if (state.preview) {
         state.auth = { role: 'student', studentId: state.product === 'kamuk' ? 'KAM-PREVIEW' : 'IS-PREVIEW', name: 'Preview Executive' };
@@ -1953,22 +2013,46 @@
         state.deskGuideDone = Array.isArray(presence.deskGuideDone) ? presence.deskGuideDone : [];
       }
       const response = await fetch(PACK_URL, { cache: 'no-store' });
-      if (!response.ok) throw new Error('The corporate case pack could not be loaded.');
+      if (!response.ok) throw new Error('The case pack could not be loaded.');
       state.pack = await response.json();
       state.cases = state.pack.cases || [];
-      if (!state.cases.length) throw new Error('The corporate case pack is empty.');
+      if (!state.cases.length) throw new Error('The case pack is empty.');
 
       const sectors = ['All', ...new Set(state.cases.map((c) => c.sector))];
       $('queue-filters').innerHTML = sectors.map((s, i) => `<button class="filter-btn${i === 0 ? ' on' : ''}" data-filter="${esc(s)}">${esc(s.replace(' Banking', '').replace(' Services', ''))}</button>`).join('');
 
-      $('topbar-sub').textContent = `Corporate Banking Desk · ${state.employee.name} · ${state.employee.id} · Team ${state.employee.team}`;
+      const deskSub = (deskMode.meta && deskMode.meta.deskSubtitle) || 'Support Desk';
+      const modeTag = state.nexoraPractice ? 'Nexora practice · unscored' : (state.preview ? 'Preview' : 'Production');
+      $('topbar-sub').textContent = `${BRAND} · ${deskSub} · ${modeTag} · ${state.employee.name} · ${state.employee.id}`;
       $('st-display').textContent = state.employee.name;
       $('st-id').textContent = state.employee.id;
       $('st-team').textContent = state.employee.team;
       updateMetrics();
+      ensureNexoraBanner();
+      applySkillsGate();
       $('gate').classList.add('hidden');
       $('app').classList.remove('hidden');
-      if (state.preview) {
+      if (state.nexoraPractice) {
+        if (window.InfinityHoldingsNexoraLive) {
+          const Live = window.InfinityHoldingsNexoraLive;
+          state.cases = Live.assignChannels(state.cases, state.skills);
+          state.pool = state.cases.slice();
+          state.nexoraLive = Live.attachToDesk({
+            state,
+            buildQueue,
+            toast,
+            showTab,
+            renderEmails: typeof renderEmails === 'function' ? renderEmails : null,
+            recordAction: typeof recordAction === 'function' ? recordAction : null,
+            queueKey
+          });
+        } else {
+          state.pool = state.cases.slice();
+        }
+        renderNexoraChannelFilters();
+        buildQueue('All', { selectFirst: true });
+        toast('Nexora practice: take one item from Email / Chat / Call queue. Unscored.');
+      } else if (state.preview) {
         startDeskGuide([]);
       } else {
         await resumeActiveCase();
@@ -1984,6 +2068,65 @@
         ? 'Finish the Nesting section in your Training Book before entering the Case Floor.'
         : error.message;
       document.querySelector('.gate .spin').style.display = 'none';
+    }
+  }
+
+  function renderNexoraChannelFilters() {
+    if (!state.nexoraPractice) return;
+    const host = $('queue-filters');
+    if (!host) return;
+    const Live = window.InfinityHoldingsNexoraLive;
+    const channels = Live ? Live.skillsToChannels(state.skills) : ['email', 'chat', 'call'];
+    const icons = { email: 'ti-mail', chat: 'ti-message', call: 'ti-phone', All: 'ti-list' };
+    const labels = { email: 'Email', chat: 'Chat', call: 'Calls', All: 'All' };
+    const keys = ['All'].concat(channels);
+    host.innerHTML = keys.map((k, i) => (
+      `<button type="button" class="filter-btn${i === 0 ? ' on' : ''}" data-nx-ch="${esc(k)}"><i class="ti ${icons[k] || 'ti-circle'}"></i> ${labels[k] || k}</button>`
+    )).join('');
+  }
+
+  function ensureNexoraBanner() {
+    if (!state.nexoraPractice) return;
+    if (document.getElementById('nexora-practice-banner')) return;
+    const bar = document.createElement('div');
+    bar.id = 'nexora-practice-banner';
+    bar.style.cssText = 'background:#fff7ed;border-bottom:1px solid #fdba74;color:#9a3412;padding:8px 14px;font:700 12px Inter,Arial,sans-serif;';
+    bar.innerHTML = '<i class="ti ti-sparkles"></i> Nexora practice · Infinity Holdings Inc · Industry: <b>'
+      + esc(state.industry) + '</b> · Skills: ' + esc((state.skills || []).join(', '))
+      + ' · <b>Does not impact weekly score / Q&amp;A grade</b>';
+    const app = $('app');
+    if (app && app.firstChild) app.insertBefore(bar, app.firstChild);
+    else if (app) app.appendChild(bar);
+  }
+
+  function applySkillsGate() {
+    const skills = state.skills || ['email', 'phone', 'chat'];
+    const allowEmail = skills.indexOf('email') >= 0;
+    const allowPhone = skills.indexOf('phone') >= 0;
+    const allowChat = skills.indexOf('chat') >= 0;
+    const emailBtn = $('btn-email');
+    const callBtn = $('btn-call');
+    const chatBtn = $('btn-chat');
+    if (emailBtn) {
+      emailBtn.style.display = allowEmail ? '' : 'none';
+      emailBtn.disabled = !allowEmail;
+      if (!allowEmail) emailBtn.title = 'Email skill no activado por el trainer (Infinity Engine)';
+    }
+    if (callBtn) {
+      callBtn.style.display = allowPhone ? '' : 'none';
+      callBtn.disabled = !allowPhone;
+      if (!allowPhone) callBtn.title = 'Phone skill no activado por el trainer (Infinity Engine)';
+    }
+    if (chatBtn) {
+      chatBtn.style.display = (state.nexoraPractice && allowChat) ? '' : (allowChat && state.nexoraPractice ? '' : 'none');
+      if (!state.nexoraPractice) chatBtn.style.display = 'none';
+      chatBtn.disabled = !allowChat;
+      if (!allowChat) chatBtn.title = 'Chat skill no activado por el trainer (Infinity Engine)';
+    }
+    const tabs = document.getElementById('tabs');
+    if (tabs) {
+      const emailTab = tabs.querySelector('[data-tab="emails"]');
+      if (emailTab) emailTab.style.display = allowEmail ? '' : 'none';
     }
   }
 

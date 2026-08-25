@@ -1,0 +1,74 @@
+{
+  "version": "legal-v1",
+  "industry": "legal",
+  "label": "Infinity Holdings Inc — Legal Support",
+  "cases": [
+    {
+      "id": "IH-L-1001",
+      "type": "Operational Complaint",
+      "sector": "Legal Services",
+      "priority": "P1",
+      "slaMinutes": 30,
+      "title": "Missing filing confirmation — court deadline today",
+      "focus": "Locate docket evidence and give a timed next step without over-promising.",
+      "brief": "Client says the filing confirmation was never emailed. Deadline is today 4:00 p.m. Prior contact promised a callback that did not happen. Verify identity, check case file / statements-equivalent records, escalate to Paralegal Ops if outside authority.",
+      "clientStatement": "This is the third time I call. Where is my filing confirmation? Court is today.",
+      "mood": "frustrated",
+      "client": {
+        "id": "LG-204",
+        "name": "Elena Vargas",
+        "company": "Vargas & Associates",
+        "email": "elena.vargas@example.com",
+        "initials": "EV",
+        "segment": "Corporate Legal",
+        "status": "Active",
+        "relationshipYears": 4,
+        "relationshipGrade": "A",
+        "riskTier": "Standard",
+        "balance": 12000,
+        "creditLimit": 50000,
+        "available": 38000,
+        "creditScore": 720,
+        "transactions": [
+          { "date": "2026-08-24", "description": "Court filing fee — District Court", "amount": -450, "status": "Posted" },
+          { "date": "2026-08-23", "description": "Document courier", "amount": -85, "status": "Posted" },
+          { "date": "2026-08-22", "description": "Retainer credit", "amount": 2000, "status": "Posted" }
+        ]
+      },
+      "history": []
+    },
+    {
+      "id": "IH-L-1002",
+      "type": "Concierge Request",
+      "sector": "Legal Services",
+      "priority": "P2",
+      "slaMinutes": 45,
+      "title": "Notary appointment — wrong venue on file",
+      "focus": "Correct venue data, confirm entitlement, never invent availability.",
+      "brief": "Client needs a same-day notary. CRM shows downtown venue; client is at airport. Verify identity, update itinerary notes, route to Concierge/Legal Ops with owner + time.",
+      "clientStatement": "Your system still shows downtown. I am at the airport. Fix this.",
+      "mood": "urgent",
+      "client": {
+        "id": "LG-318",
+        "name": "Marcus Chen",
+        "company": "Chen Holdings Ltd",
+        "email": "m.chen@example.com",
+        "initials": "MC",
+        "segment": "VIP Legal",
+        "status": "Active",
+        "relationshipYears": 6,
+        "relationshipGrade": "A+",
+        "riskTier": "Low",
+        "balance": 42000,
+        "creditLimit": 100000,
+        "available": 88000,
+        "creditScore": 780,
+        "transactions": [
+          { "date": "2026-08-24", "description": "Notary reservation hold", "amount": -120, "status": "Pending" },
+          { "date": "2026-08-20", "description": "Contract review fee", "amount": -900, "status": "Posted" }
+        ]
+      },
+      "history": []
+    }
+  ]
+}

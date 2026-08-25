@@ -20,6 +20,12 @@
   let mood = 'neutral';
   let score = 40;
   let voiceId = '';
+  let preferredPersona = null;
+
+  function setPreferredVoice(persona) {
+    preferredPersona = persona || null;
+    if (persona && persona.voiceId) voiceId = persona.voiceId;
+  }
 
   function setStatus(text) {
     const node = document.querySelector('#call-console .call-status');
@@ -166,13 +172,20 @@
   }
 
   async function startPreviewFallback(opening) {
-    setStatus('Preview · simulated audio');
+    setStatus(session?.nexoraPractice ? 'Connected · Nexora practice' : 'Preview · simulated audio');
     startedAt = Date.now();
     timer = setInterval(tickDuration, 1000);
-    pushTurn('agent', opening || localOpening());
+    const line = opening || localOpening();
+    // Ring + answer feel
+    setStatus('Ringing…');
+    await new Promise((r) => setTimeout(r, 900 + Math.random() * 800));
+    setStatus(session?.nexoraPractice ? 'Connected · Nexora practice' : 'Preview · simulated audio');
+    pushTurn('agent', line);
+    await playClientAudio(line);
     await postEvent('call-start', {
       conversationId: `PREVIEW-${Date.now()}`,
       mood,
+      voiceAccent: preferredPersona?.voiceAccent || '',
       at: new Date().toISOString()
     });
   }
@@ -181,16 +194,21 @@
     const spoken = String(text || '').trim();
     if (!spoken) return;
     if (!fromVoice) pushTurn('user', spoken);
-    if (session.preview) {
+    if (session.preview || session.nexoraPractice || session.scriptedPractice) {
       const lower = spoken.toLowerCase();
-      const good = /understand|you mentioned|i will/.test(lower) && /(today|p\.m\.|a\.m\.)/.test(lower);
-      const next = good ? 'calming' : (/\bpin\b/.test(lower) ? 'furious' : 'impatient');
+      const good = /understand|you mentioned|i will|i hear|just to make sure/.test(lower) && /(today|p\.m\.|a\.m\.|tomorrow|\d{1,2}:\d{2})/.test(lower);
+      const askedPin = /\bpin\b/.test(lower) && !/never|cannot|won't|will not/.test(lower);
+      const next = askedPin ? 'furious' : (good ? 'calming' : (/\bsorry\b/.test(lower) ? 'impatient' : 'frustrated'));
       setMood(next);
-      const reply = good
-        ? 'That is the first useful update. Confirm the next step and do not miss the time.'
-        : 'Who owns this, and when do I get a real update?';
+      await new Promise((r) => setTimeout(r, 700 + Math.random() * 900));
+      const reply = askedPin
+        ? 'Why are you asking for my PIN on a recorded line? That is not acceptable. Give me a safe next step with a time.'
+        : (good
+          ? 'That is the first useful update. Confirm the next step and do not miss the time.'
+          : 'Who owns this, and when do I get a real update? I have been waiting.');
       pushTurn('agent', reply);
-      setCoach(good ? [] : ['AMR Acknowledge → Mirror → Respond with a clock time. Never ask for a PIN.']);
+      await playClientAudio(reply);
+      setCoach(good && !askedPin ? [] : ['AMR Acknowledge → Mirror → Respond with a clock time. Never ask for a PIN.']);
       return;
     }
     try {
@@ -217,7 +235,7 @@
     muted = false;
     conversation = null;
     score = 40;
-    voiceId = session.personality?.voiceId || '';
+    voiceId = session.voiceId || preferredPersona?.voiceId || session.personality?.voiceId || '';
     renderTranscript();
     setMood(session.mood || session.personality?.baselineMood || 'neutral');
     setCoach([]);
@@ -225,8 +243,16 @@
     if ($('call-reply-txt')) $('call-reply-txt').value = '';
     $('call-console')?.classList.add('open');
     setStatus('Connecting…');
+    const accentHint = preferredPersona?.voiceAccent || session.voiceAccent || '';
+    if (accentHint && $('call-mood')) {
+      const moodNode = $('call-mood');
+      if (moodNode && moodNode.parentElement) {
+        moodNode.parentElement.innerHTML = 'Mood: <strong id="call-mood">' + (session.mood || 'neutral')
+          + '</strong> · Voice: <strong>' + String(accentHint).replace(/</g, '') + '</strong>';
+      }
+    }
 
-    if (session.preview) {
+    if (session.preview && !session.nexoraPractice) {
       await startPreviewFallback();
       session.toast?.('Preview call. Live ElevenLabs / Nexora voices require desk login.');
       return;
@@ -235,7 +261,12 @@
     try {
       const token = await session.api(session.path('/call/token'), {
         method: 'POST',
-        body: { caseId: session.caseId }
+        body: {
+          caseId: session.caseId,
+          voiceId: voiceId || undefined,
+          voiceAccent: accentHint || undefined,
+          nexoraPractice: !!session.nexoraPractice
+        }
       });
       session.firstMessage = token.firstMessage;
       voiceId = token.voiceId || voiceId;
@@ -260,6 +291,16 @@
         setStatus('No client call');
         $('call-transcript').innerHTML = '<p>Internal-only case. Do not contact the client. File the report and escalate.</p>';
         session.toast?.(error.message || 'Do not call this client.', true);
+        return;
+      }
+      // Nexora practice: stay on desk with human scripted turns + TTS when token available
+      if (session.nexoraPractice || session.preview) {
+        session.scriptedPractice = true;
+        await startPreviewFallback(session.firstMessage);
+        session.toast?.(
+          (accentHint ? ('Nexora call · ' + accentHint + '. ') : '')
+            + 'Client on the line (practice). AMR in English — mood follows your service.'
+        );
         return;
       }
       setStatus('Call failed');
@@ -340,5 +381,5 @@
     bindReply();
   });
 
-  window.KamukHoldingsCall = { start, hangup, end };
+  window.KamukHoldingsCall = { start, hangup, end, setPreferredVoice };
 })();

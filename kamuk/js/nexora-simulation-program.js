@@ -239,7 +239,19 @@ var NEXORA_SIM_PROGRAM = (function () {
       obstacle: input.obstacle || '',
       measurableClose: input.measurableClose || '',
       issueType: input.issueType || '',
-      justification: input.justification || ''
+      justification: input.justification || '',
+      holdingsPack: (function () {
+        var hp = String(input.holdingsPack || '').toLowerCase();
+        if (hp === 'banking' || hp === 'legal' || hp === 'medical') return hp;
+        if (typeof NEXORA_INDUSTRY !== 'undefined' && NEXORA_INDUSTRY.holdingsPackFor) {
+          return NEXORA_INDUSTRY.holdingsPackFor({ industry: industry, industryLabel: industryLabel });
+        }
+        return 'banking';
+      })(),
+      skills: (typeof NEXORA_INDUSTRY !== 'undefined' && NEXORA_INDUSTRY.normalizeSkills)
+        ? NEXORA_INDUSTRY.normalizeSkills(input.skills)
+        : (Array.isArray(input.skills) && input.skills.length ? input.skills : ['email', 'phone', 'chat']),
+      useHoldingsCrm: input.useHoldingsCrm !== false
     };
     if (typeof NEXORA_INDUSTRY !== 'undefined' && NEXORA_INDUSTRY.scenarioPoolKey) {
       program.poolKey = NEXORA_INDUSTRY.scenarioPoolKey(program);
@@ -265,6 +277,9 @@ var NEXORA_SIM_PROGRAM = (function () {
       diff: program.difficulty || 3,
       industry: program.industryLabel || program.industry,
       crmIndustry: program.industryLabel || program.industry,
+      holdingsPack: program.holdingsPack || 'banking',
+      skills: program.skills || ['email', 'phone', 'chat'],
+      useHoldingsCrm: program.useHoldingsCrm !== false,
       company: program.company || program.industryLabel || 'Regional Employer',
       candidateRole: program.targetRole || '',
       interviewer: lead.name,
@@ -339,6 +354,30 @@ var NEXORA_SIM_PROGRAM = (function () {
     set(ids.objectives, (program.objectives || []).join('\n'));
     set(ids.passScore, String(program.passScore || 70));
     set(ids.justify, program.justification || '');
+    if (ids.holdingsPack) set(ids.holdingsPack, program.holdingsPack || 'banking');
+    var skills = program.skills || ['email', 'phone', 'chat'];
+    ['email', 'phone', 'chat'].forEach(function (sk) {
+      var el = document.getElementById(ids['skill' + sk.charAt(0).toUpperCase() + sk.slice(1)] || ('nexora-skill-' + sk));
+      if (ids.skillsPrefix) el = document.getElementById(ids.skillsPrefix + sk);
+      if (!el && ids.skillEmail) {
+        el = document.getElementById(sk === 'email' ? ids.skillEmail : (sk === 'phone' ? ids.skillPhone : ids.skillChat));
+      }
+      if (el && el.type === 'checkbox') el.checked = skills.indexOf(sk) >= 0;
+    });
+  }
+
+  function readSkillsFromForm(ids) {
+    var picked = [];
+    var map = [
+      { id: ids.skillEmail || 'nexora-skill-email', key: 'email' },
+      { id: ids.skillPhone || 'nexora-skill-phone', key: 'phone' },
+      { id: ids.skillChat || 'nexora-skill-chat', key: 'chat' }
+    ];
+    map.forEach(function (m) {
+      var el = document.getElementById(m.id);
+      if (el && el.checked) picked.push(m.key);
+    });
+    return picked.length ? picked : ['email', 'phone', 'chat'];
   }
 
   function readEngineForm(ids, meta) {
@@ -351,6 +390,10 @@ var NEXORA_SIM_PROGRAM = (function () {
     var industryLabel = (typeof NEXORA_INDUSTRY !== 'undefined' && NEXORA_INDUSTRY.labelForEngineValue)
       ? NEXORA_INDUSTRY.labelForEngineValue(industry)
       : industry;
+    var holdingsPack = get(ids.holdingsPack) || '';
+    if (!holdingsPack && typeof NEXORA_INDUSTRY !== 'undefined' && NEXORA_INDUSTRY.holdingsPackFor) {
+      holdingsPack = NEXORA_INDUSTRY.holdingsPackFor({ industry: industry });
+    }
     return buildProgram({
       simulationId: (meta && meta.simulationId) || undefined,
       type: type,
@@ -366,7 +409,10 @@ var NEXORA_SIM_PROGRAM = (function () {
       passScore: parseInt(get(ids.passScore), 10) || 70,
       justification: get(ids.justify),
       setBy: (meta && meta.setBy) || '',
-      company: get(ids.company) || industryLabel
+      company: get(ids.company) || industryLabel,
+      holdingsPack: holdingsPack || 'banking',
+      skills: readSkillsFromForm(ids),
+      useHoldingsCrm: true
     });
   }
 

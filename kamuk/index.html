@@ -897,7 +897,7 @@ body.inf-arcade-fs-lock,body.inf-arcade-lobby-lock{overflow:hidden;}
   <div class="portal-nav-item active" data-tab="progreso" onclick="switchPortalTab('progreso')"><i class="ti ti-chart-radar"></i><span class="nav-full">Progreso</span><span class="nav-short">Prog.</span></div>
   <div class="portal-nav-item" data-tab="trainingbook" onclick="switchPortalTab('trainingbook')"><i class="ti ti-dumbbell"></i><span class="nav-full">Training Book</span><span class="nav-short">Book</span></div>
   <div class="portal-nav-item" data-tab="recursos" onclick="switchPortalTab('recursos')"><i class="ti ti-folder"></i>Recursos</div>
-  <div class="portal-nav-item" data-tab="simulation" onclick="switchPortalTab('simulation');setTimeout(mountKamukSimulation,0)"><i class="ti ti-headset"></i>Simulation</div>
+  <div class="portal-nav-item" data-tab="simulation" onclick="switchPortalTab('simulation');setTimeout(function(){ mountKamukSimulation(); renderSimulationNexoraPanel(window._currentStudent||CURRENT_STUDENT); },0)"><i class="ti ti-headset"></i>Simulation</div>
   <div class="portal-nav-item" data-tab="news" onclick="switchPortalTab('news')"><i class="ti ti-news"></i>News</div>
   <div class="portal-nav-item" data-tab="jill" id="nav-jill" style="display:none;" onclick="switchPortalTab('jill')"><i class="ti ti-message-circle"></i>Jill</div>
   <div class="portal-nav-item" data-tab="alice" id="nav-alice" style="display:none;" onclick="switchPortalTab('alice')"><i class="ti ti-robot"></i>Alice</div>
@@ -1564,24 +1564,15 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK ─────────────────────────────────────
-  var trainingBookHtml = '<div class="card"><div class="card-title"><i class="ti ti-dumbbell"></i>Mi Training Book</div>'
-    +(tb.length ? tb.map(function(ex){
-        return '<div style="border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;">'
-          +'<div style="background:var(--navy);padding:8px 12px;display:flex;align-items:center;gap:8px;">'
-          +(ex.kpi?'<span class="badge" style="background:rgba(255,255,255,0.2);color:white;">'+ex.kpi+'</span>':'')
-          +'<span style="font-size:13px;font-weight:700;color:white;flex:1;">'+ex.title+'</span>'
-          +'</div>'
-          +'<div style="padding:10px 12px;">'
-          +'<div style="font-size:13px;color:var(--text);line-height:1.7;">'+(ex.studentTask || 'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div>'
-          +(ex.freq?'<div style="font-size:11px;color:var(--t3);margin-top:6px;"><i class="ti ti-repeat"></i> '+ex.freq+'</div>':'')
-          +'</div></div>';
-      }).join('')
-      : (exercises.length?exercises.map(function(ex){ return '<div style="background:var(--gray);border-radius:var(--r);padding:1rem;margin-bottom:8px;">'
-          +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">'+ex.title+'</div>'
-          +'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;">'+ex.kpi+'</div>'
-          +'<div style="font-size:12px;color:var(--text);line-height:1.6;">'+((ex.steps&&ex.steps.length)?ex.steps.slice(0,2).join(' '):'Tu trainer te va a explicar la dinámica de este ejercicio en la próxima sesión.')+'</div></div>'; }).join('')
-        :'<div style="font-size:13px;color:var(--t3);">Tu trainer todavía no asignó ejercicios.</div>'))
+  // ── TRAINING BOOK (digital book; Simulation stays in its own tab) ──
+  var trainingBookHtml = ''
+    +'<div class="card" style="padding:0;overflow:hidden;">'
+    +'<div class="card-title" style="padding:12px 14px 8px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'
+    +'<span><i class="ti ti-book-2"></i> Training Book digital</span>'
+    +'<a href="training-book/mac/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
+    +'</div>'
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Manual Infinity — versión digital. Leé acá o abrí en pantalla completa.</p>'
+    +'<iframe title="Training Book digital" src="training-book/mac/index.html" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
     +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
@@ -1620,8 +1611,14 @@ function showPortal(s){
     + arcadeGate
     +'</div>';
 
-  // ── SIMULATION — Kamuk Holdings nesting ───────────────
-  var simulationHtml = '<div id="simulation-onboarding-root"></div>';
+  // ── SIMULATION — Foundation + Nexora (trainer-gated) ───────────────
+  var simulationHtml = ''
+    +'<div id="simulation-onboarding-root"></div>'
+    +'<div id="simulation-nexora-panel" class="card" style="margin-top:16px;">'
+    +'<div class="card-title"><i class="ti ti-sparkles"></i> Nexora · Practice lab</div>'
+    +'<p style="font-size:13px;line-height:1.55;color:var(--t2);margin:0 0 12px;">Misma experiencia que producción con <strong>Infinity Holdings Inc</strong>. Práctica real (voz / email / chat según lo que active tu trainer). <strong>No impacta</strong> tu score semanal ni la nota de Q&amp;A.</p>'
+    +'<div id="simulation-nexora-body"></div>'
+    +'</div>';
 
   var newsHtml = '<div class="card"><div class="card-title"><i class="ti ti-news"></i>News — Kamuk</div>'
     +'<div style="font-size:13px;line-height:1.7;">'+getPortalInfinityNewsHtml()+'</div></div>';
@@ -1662,6 +1659,7 @@ function showPortal(s){
 
   // Foundation onboarding for every Kamuk student profile
   setTimeout(mountKamukSimulation, 0);
+  setTimeout(function(){ renderSimulationNexoraPanel(s); }, 0);
 
   // Verificar si el trainer habilitó Nexora
   loadNexoraConfig(s);
@@ -1686,6 +1684,71 @@ function mountKamukSimulation(){
     crmEnabled: !CURRENT_STUDENT || CURRENT_STUDENT.simulationEnabled !== false
   });
 }
+
+function nexoraIndustryFromConfig(nx){
+  if(nx && nx.holdingsPack){
+    var hp=String(nx.holdingsPack).toLowerCase();
+    if(hp==='banking'||hp==='legal'||hp==='medical') return hp;
+  }
+  if(window.NEXORA_INDUSTRY && window.NEXORA_INDUSTRY.holdingsPackFor){
+    return window.NEXORA_INDUSTRY.holdingsPackFor(nx||{});
+  }
+  if(window.InfinityHoldings && window.InfinityHoldings.normalizeIndustry){
+    var raw = (nx && (nx.industry || nx.industryLabel || nx.vertical)) || 'banking';
+    return window.InfinityHoldings.normalizeIndustry(raw);
+  }
+  var t = String((nx && (nx.industry || nx.industryLabel)) || 'banking').toLowerCase();
+  if(/legal|law/.test(t)) return 'legal';
+  if(/medic|health/.test(t)) return 'medical';
+  if(/bank|financ/.test(t)) return 'banking';
+  return 'banking';
+}
+
+function openInfinityHoldingsNexoraPractice(){
+  var student = window._currentStudent || CURRENT_STUDENT;
+  if(!studentNexoraOn(student)){
+    showToast('Nexora no está activo. Pedí a tu trainer.','err');
+    return;
+  }
+  var nx = window._nexoraConfig || {};
+  var industry = nexoraIndustryFromConfig(nx);
+  var skills = [];
+  if(nx.skills && nx.skills.length){
+    skills = nx.skills.slice();
+  } else {
+    var ch = String(nx.channel || nx.channels || '').toLowerCase();
+    ['email','phone','chat'].forEach(function(s){ if(ch.indexOf(s) >= 0) skills.push(s); });
+  }
+  if(window.NEXORA_INDUSTRY && window.NEXORA_INDUSTRY.normalizeSkills){
+    skills = window.NEXORA_INDUSTRY.normalizeSkills(skills.length ? skills : ['email','phone','chat']);
+  } else if(!skills.length) skills = ['email','phone','chat'];
+  var href = (window.InfinityHoldings && window.InfinityHoldings.holdingsCrmHref)
+    ? window.InfinityHoldings.holdingsCrmHref({ product:'kamuk', nexora:true, industry:industry, skills:skills })
+    : ('kamuk-holdings-crm.html?product=kamuk&nexora=1&industry=' + encodeURIComponent(industry) + '&skills=' + encodeURIComponent(skills.join(',')));
+  window.open(href, '_blank', 'noopener');
+}
+
+function renderSimulationNexoraPanel(s){
+  var body = document.getElementById('simulation-nexora-body');
+  if(!body) return;
+  var on = studentNexoraOn(s);
+  var nx = window._nexoraConfig;
+  if(!on){
+    body.innerHTML = '<div style="padding:12px;border-radius:10px;background:#f8fafc;border:1px dashed #cbd5e1;font-size:13px;color:#64748b;">'
+      +'<i class="ti ti-lock"></i> Nexora está en Simulation, pero <strong>bloqueado</strong> hasta que tu trainer lo active.</div>';
+    return;
+  }
+  var industry = nexoraIndustryFromConfig(nx || {});
+  var typeLabel = (nx && nx.type) ? String(nx.type) : 'practice';
+  body.innerHTML = ''
+    +'<div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Activo · industria <strong>'+industry+'</strong> · programa <strong>'+typeLabel+'</strong></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<button type="button" class="btn-primary" onclick="openInfinityHoldingsNexoraPractice()"><i class="ti ti-building-bank"></i> Abrir Infinity Holdings Inc (práctica)</button>'
+    +'<button type="button" class="btn-secondary" onclick="openNexoraLab()"><i class="ti ti-sparkles"></i> Lab completo (STAR / oratoria / PDF)</button>'
+    +'</div>'
+    +'<div style="margin-top:10px;font-size:11px;color:#9a3412;">CRM practice = mismo desk de producción, sin impacto en score. Lab completo = entrevistas STAR, oratoria y stakeholder PDF.</div>';
+}
+
 // ── TYPING TEST — WPM / Accuracy / Coordination ──────────
 // Un pasaje completo por ronda (puntos, comas, apóstrofes, dos puntos, etc.)
 var TYPING_TEST_PASSAGES = [
@@ -2842,12 +2905,24 @@ function syncJillNavLabel(s){
 
 async function checkNexoraAccess(s){
   var nexoraNav = document.getElementById('nav-nexora');
-  if(!nexoraNav) return;
-  if(!studentPortalAccessOk(s) || !studentNexoraOn(s)){
-    nexoraNav.style.display='none';
-    return;
+  if(nexoraNav){
+    // Nexora lives under Simulation; keep top nav as shortcut when enabled
+    if(!studentPortalAccessOk(s) || !studentNexoraOn(s)){
+      nexoraNav.style.display='none';
+    } else {
+      nexoraNav.style.display='flex';
+      nexoraNav.onclick = function(){
+        switchPortalTab('simulation');
+        setTimeout(function(){
+          mountKamukSimulation();
+          renderSimulationNexoraPanel(s);
+          var panel = document.getElementById('simulation-nexora-panel');
+          if(panel) panel.scrollIntoView({ behavior:'smooth', block:'start' });
+        }, 50);
+      };
+    }
   }
-  nexoraNav.style.display='flex';
+  renderSimulationNexoraPanel(s);
 }
 
 async function savePortalTypingResult(result){
@@ -9744,9 +9819,12 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
-<script src="js/kamuk-desk-english.js?v=20260818call"></script>
+<script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
 <script src="js/kamuk-recursos-library.js?v=20260818fmtE"></script>
-<script src="js/simulation-onboarding.js?v=20260818audit"></script>
+<script src="js/infinity-holdings-config.js?v=20260825sched"></script>
+<script src="js/simulation-formato-e.js?v=20260825sched"></script>
+<script src="js/simulation-crm-bridge.js?v=20260825sched"></script>
+<script src="js/simulation-onboarding.js?v=20260825sched"></script>
 <script src="https://studioinfinitycr.com/js/infinity-arcade-lil-games.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/infinity-casino-floor.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/infinity-modern-games.js?v=20260814refresh"></script>

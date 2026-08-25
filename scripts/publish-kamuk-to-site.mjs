@@ -21,9 +21,10 @@ const EXTRA_HTML = [
 ];
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260818audit';
-const CRM_V = '20260818call';
+const SIM_V = '20260825sched';
+const CRM_V = '20260825nxlive';
 const RECURSOS_V = '20260818fmtE';
+const SCHED_V = '20260825sched';
 
 mkdirSync(DEST, { recursive: true });
 
@@ -41,8 +42,12 @@ function prep(html, kind) {
     '$1?v=' + CASINO_FLOOR_V + '"'
   );
   html = html.replace(
-    /(src="js\/simulation-(?:onboarding|access|supervisor)\.js)(\?v=[^"]*)?"/g,
+    /(src="js\/(?:simulation-(?:onboarding|access|supervisor|crm-bridge|formato-e)|infinity-holdings-config|infinity-holdings-nexora-live|infinity-scheduler)\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + SIM_V + '"'
+  );
+  html = html.replace(
+    /(href="css\/infinity-scheduler\.css)(\?v=[^"]*)?"/g,
+    '$1?v=' + SCHED_V + '"'
   );
   html = html.replace(
     /(src="js\/kamuk-holdings-crm\.js)(\?v=[^"]*)?"/g,
@@ -129,11 +134,18 @@ const checks = [
   ['Nexora excludes Infinity Supabase', !nexora.includes('rxruvpfdpgowmpvydacd.supabase.co')],
   ['Nexora excludes Infinity student table', !nexora.includes('infinity_students')],
   ['simulation onboarding published', existsSync(join(DEST, 'js/simulation-onboarding.js'))],
+  ['simulation crm bridge published', existsSync(join(DEST, 'js/simulation-crm-bridge.js'))],
+  ['simulation formato e published', existsSync(join(DEST, 'js/simulation-formato-e.js'))],
+  ['infinity holdings config published', existsSync(join(DEST, 'js/infinity-holdings-config.js'))],
+  ['legal pack published', existsSync(join(DEST, 'data/infinity-holdings-pack-legal-v1.json'))],
+  ['medical pack published', existsSync(join(DEST, 'data/infinity-holdings-pack-medical-v1.json'))],
   ['simulation access published', existsSync(join(DEST, 'js/simulation-access.js'))],
   ['CRM page published', existsSync(join(DEST, 'kamuk-holdings-crm.html'))],
   ['CRM pack published', existsSync(join(DEST, 'data/kamuk-holdings-crm-pack-v1.json'))],
   ['CRM css published', existsSync(join(DEST, 'css/kamuk-holdings-crm.css'))],
   ['portal loads simulation onboarding', portal.includes('js/simulation-onboarding.js?v=' + SIM_V)],
+  ['portal loads simulation crm bridge', portal.includes('js/simulation-crm-bridge.js?v=' + SIM_V)],
+  ['portal loads simulation formato e', portal.includes('js/simulation-formato-e.js?v=' + SIM_V)],
   ['portal loads recursos library', portal.includes('js/kamuk-recursos-library.js?v=' + RECURSOS_V)],
   ['iOS login form submit', portal.includes('id="login-form"') && portal.includes('autocapitalize="none"')],
   ['kamuk PWA manifest', portal.includes('href="manifest.webmanifest"')],
