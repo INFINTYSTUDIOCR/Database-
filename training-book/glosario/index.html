@@ -4,19 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Infinity Holdings — glosario de nesting</title>
+  <link rel="stylesheet" href="../../css/infinity-training-glossary.css?v=20260825gloss" />
   <style>
     :root {
       --blue: #3178C6;
       --blue-deep: #1e5a9a;
-      --blue-soft: #E8F2FB;
-      --blue-tint: #F3F8FD;
       --blue-border: #B7D4EE;
       --text: #1a2b3c;
       --muted: #5b6f82;
-      --muted2: #8a9aab;
-      --white: #ffffff;
-      --r: 16px;
-      --r-pill: 999px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
@@ -68,7 +63,7 @@
       border-color: transparent;
     }
     .tb-card {
-      background: var(--white);
+      background: #fff;
       border: 1.5px solid var(--blue-border);
       border-radius: 20px;
       padding: 18px 16px 16px;
@@ -79,14 +74,14 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
     .tb-icon {
       flex: 0 0 auto;
       width: 36px;
       height: 36px;
       border-radius: 12px;
-      background: var(--blue-soft);
+      background: #E8F2FB;
       color: var(--blue);
       display: grid;
       place-items: center;
@@ -105,184 +100,26 @@
       line-height: 1.55;
       color: var(--muted);
     }
-
-    /* Soft-blue glossary chrome (matches Training Book screenshot) */
-    .kh-lib { font-family: inherit; }
-    .kh-lib-lead { display: none; }
-    .kh-lib-search {
-      width: 100%;
-      min-height: 48px;
-      font-size: 15px;
-      padding: 12px 18px;
-      border: 1.5px solid #D5E4F2;
-      border-radius: var(--r-pill);
-      font-family: inherit;
-      margin: 12px 0 12px;
-      background: #FBFCFD;
-      color: var(--text);
-      -webkit-appearance: none;
-      appearance: none;
+    /* Page already has brand lead — hide library duplicate */
+    #glossary-root .inf-tb-lead,
+    #glossary-root .kh-lib-lead { display: none; }
+    #glossary-root.inf-tb-shell {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
     }
-    .kh-lib-search::placeholder { color: var(--muted2); }
-    .kh-lib-search:focus {
-      outline: none;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(49,120,198,0.18);
-      background: #fff;
-    }
-    .kh-lib-cats {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 4px;
-      margin-bottom: 10px;
-      scrollbar-width: none;
-    }
-    .kh-lib-cats::-webkit-scrollbar { display: none; }
-    .kh-lib-cat {
-      flex: 0 0 auto;
-      min-height: 40px;
-      padding: 9px 16px;
-      border-radius: var(--r-pill);
-      border: 1.5px solid var(--blue-border);
-      background: #fff;
-      color: var(--blue);
-      font: 700 12.5px/1 inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .kh-lib-cat.is-on {
-      background: var(--blue);
-      border-color: var(--blue);
-      color: #fff;
-    }
-    .kh-lib-count {
-      font-size: 11px;
-      color: var(--muted2);
-      margin: 0 0 10px;
-      font-weight: 600;
-    }
-    .kh-lib-chips {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 10px;
-      max-height: none;
-      overflow: visible;
-    }
-    .kh-lib-chip {
-      min-height: 64px;
-      text-align: left;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1.5px solid #D7E6F4;
-      background: #fff;
-      cursor: pointer;
-      touch-action: manipulation;
-      font: inherit;
-      transition: border-color .15s, background .15s, box-shadow .15s;
-    }
-    .kh-lib-chip:hover {
-      border-color: var(--blue-border);
-      background: var(--blue-tint);
-    }
-    .kh-lib-chip b {
-      display: block;
-      font-size: 13.5px;
-      color: var(--blue-deep);
-      line-height: 1.25;
-    }
-    .kh-lib-chip small {
-      display: block;
-      margin-top: 4px;
-      font-size: 11.5px;
-      color: var(--muted);
-      font-weight: 600;
-      line-height: 1.35;
-    }
-    .kh-lib-chip.is-on {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 2px rgba(49,120,198,.22);
-      background: var(--blue-soft);
-    }
-    .kh-lib-panel {
-      margin-top: 14px;
-      min-height: 140px;
-      border-radius: 16px;
-      background: var(--blue-soft);
-      border: 1.5px solid var(--blue-border);
-      padding: 16px 16px 14px;
-    }
-    .kh-lib-panel h4 {
-      margin: 0 0 6px;
-      font-size: 17px;
-      color: var(--blue-deep);
-    }
-    .kh-lib-es {
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .kh-lib-how {
-      font-size: 13.5px;
-      line-height: 1.55;
-      color: var(--text);
-      margin: 0 0 10px;
-    }
-    .kh-lib-forms { margin: 0 0 10px; }
-    .kh-lib-forms b {
-      display: block;
-      font-size: 10px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted2);
-      margin-bottom: 4px;
-    }
-    .kh-lib-ex {
-      margin: 0;
-      padding-left: 18px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: var(--blue-deep);
-    }
-    .kh-lib-ex li { margin-bottom: 4px; }
-    .kh-lib-empty {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 0;
-    }
-    .kh-read-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
+    #glossary-root .inf-tb-grid { max-height: min(48vh, 360px); }
     @media (min-width: 520px) {
-      .kh-read-grid { grid-template-columns: 1fr 1fr; }
       .tb-card { padding: 22px 22px 18px; }
       .tb-title { font-size: 20px; }
     }
-    .kh-read-card {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-height: 88px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid var(--blue-border);
-      background: #fff;
-      text-decoration: none;
-      color: inherit;
-    }
-    .kh-read-card strong { font-size: 13px; color: var(--blue-deep); }
-    .kh-read-card span { font-size: 12px; line-height: 1.45; color: var(--muted); }
-    .kh-read-go { margin-top: auto; font-size: 12px; font-weight: 800; color: var(--blue); }
   </style>
 </head>
 <body>
   <div class="tb-shell">
     <div class="tb-top">
-      <div class="tb-top-brand">∞ Infinity · Training Book</div>
+      <div class="tb-top-brand">∞ Infinity Holdings · Training Book</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="primary" href="../mac/machote-curso.pdf" target="_blank" rel="noopener">PDF del curso</a>
         <a href="../mac/machote-curso.pdf" download>Descargar PDF</a>
@@ -312,9 +149,9 @@
       var root = document.getElementById('glossary-root');
       var lib = window.InfinityRecursosLibrary || window.KamukRecursosLibrary;
       if (root && lib && typeof lib.mountGlossary === 'function') {
-        lib.mountGlossary(root);
+        lib.mountGlossary(root, { brand: 'infinity', hideLead: true });
       } else if (root) {
-        root.innerHTML = '<p class="kh-lib-empty">No se pudo cargar el glosario. Recargá la página.</p>';
+        root.innerHTML = '<p class="inf-tb-empty">No se pudo cargar el glosario. Recargá la página.</p>';
       }
     })();
   </script>
