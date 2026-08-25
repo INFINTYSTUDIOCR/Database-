@@ -1758,8 +1758,19 @@
 
   /* ─────────────── 10 GUIDED PRACTICE CASES (real desk, off weekly floor) ─────────────── */
 
-  const EMAIL_MODEL = 'Formato E (escribilo en inglés, no copies): E1 Encabezado Dear/Hello/Hi + nombre. E2 Empatía (understand / thank you for writing). E3 Explicación: 2 conectores + 1 método linker. E4 Ejecución: qué YA hiciste en el CRM (I reviewed / I escalated). E5 Encierro: I will + today/4:30 p.m. + Kind regards. Ejemplo de escritorio: “Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account restriction because two payments declined. However I will not lift every control. In other words, I escalated to Operations and I have documented Previous contacts. I will call you today before 4:30 p.m. Kind regards.” Mínimo 55 palabras. Sin pegar.';
-  const NOTE_MODEL = 'Nota AMR (inglés): Acknowledge el impacto · Mirror (you said / you mentioned / just to make sure) · Respond (I will + hora). Ejemplo: “I understand payroll is frozen. You mentioned two supplier ACH declines. Just to make sure, the Operating Account is restricted and the card stays active. I will follow up with Operations today before 4:30 p.m.”';
+  const EMAIL_MODEL = 'QUÉ ES Formato E / EC (Estructura del Correo al cliente — NO es la nota interna):\n'
+    + 'E1 Encabezado = Hello/Dear + nombre del case.\n'
+    + 'E2 Empatía = reconocé el IMPACTO (understand / thank you for writing).\n'
+    + 'E3 Explicación = NESTING: 2 conectores + 1 método linker + evidencia del CRM.\n'
+    + 'E4 Ejecución = qué YA hiciste (I reviewed / I escalated) — no promesas.\n'
+    + 'E5 Encierro = I will + hora + Kind/Best regards. Mínimo 55 palabras. Sin pegar.\n'
+    + 'Ejemplo de estructura (estudiá, no copies): “Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account restriction because two payments declined. However I will not lift every control. In other words, I escalated to Operations and I have documented Previous contacts. I will call you today before 4:30 p.m. Kind regards.”';
+  const NOTE_MODEL = 'QUÉ ES AMR (nota INTERNA — el cliente no la ve):\n'
+    + 'A = Acknowledge: nombrá el impacto.\n'
+    + 'M = Mirror: repetí el hecho (you said / you mentioned / just to make sure).\n'
+    + 'R = Respond: I will + dueño + hora.\n'
+    + 'EVIDENCIA: basá la nota en lo que miraste en el CRM (Statements, contacts…).\n'
+    + 'Ejemplo: “I understand payroll is frozen. You mentioned two supplier ACH declines. Just to make sure, the Operating Account is restricted and the card stays active. I will follow up with Operations today before 4:30 p.m.”';
 
   function openPracticeSteps() {
     return [
@@ -1772,12 +1783,12 @@
   function closePracticeSteps(dispositionHint) {
     return [
       { action: 'tab-emails', title: 'Tab que debés usar: Emails', body: 'El tab rojo es Emails. Ahí sale el correo al cliente — evidencia de cierre.', target: '[data-tab="emails"]', kind: 'click' },
-      { action: 'compose', title: 'Dónde click: Compose', body: 'Abrí el compositor real. El modelo en rojo es la estructura, no un texto para copiar.', target: '#email-compose', kind: 'click', model: EMAIL_MODEL },
-      { action: 'email', title: 'Escribí y enviá el correo', body: 'Formato E: Encabezado, Empatía, Explicación (2 conectores + 1 método linker), Ejecución, Encierro. Send solo pasa si cumple.', target: '#compose-send', kind: 'click', model: EMAIL_MODEL },
-      { action: 'tab-contacts', title: 'Tab: Previous contacts', body: 'Notas internas. El banco las ve; el cliente no. Documentá evidencia y dueño.', target: '[data-tab="contacts"]', kind: 'click' },
-      { action: 'note-open', title: 'Dónde click: Add note', body: 'Tocá Add note (rojo). Nota AMR: Acknowledge → Mirror → Respond.', target: '#note-add', kind: 'click' },
-      { action: 'note', title: 'Guardá la nota', body: 'Save note cierra la evidencia interna. AMR obligatorio en práctica.', target: '#note-save', kind: 'click', model: NOTE_MODEL },
-      { action: 'resolve', title: 'Cómo cerrar el caso', body: dispositionHint || 'Resolve case (rojo). Email + note son la evidencia. AA o PSA si falta trabajo; Resolved si ya cerraste.', target: '#btn-resolve', kind: 'click' },
+      { action: 'compose', title: 'Dónde click: Compose', body: 'Abrí el compositor. Abajo en amarillo se explica QUÉ ES Formato E/EC (correo al cliente). El modelo rojo es estructura para estudiar, no texto para copiar.', target: '#email-compose', kind: 'click', model: EMAIL_MODEL },
+      { action: 'email', title: 'Escribí y enviá el correo', body: 'Formato E/EC = E1 Encabezado, E2 Empatía, E3 Nesting (2 conectores+1 método), E4 Ejecución (evidencia YA hecha), E5 Encierro con hora. Send solo si cumple.', target: '#compose-send', kind: 'click', model: EMAIL_MODEL },
+      { action: 'tab-contacts', title: 'Tab: Previous contacts', body: 'Notas internas (el cliente NO las ve). Acá va AMR + evidencia. El correo Formato E va en Emails.', target: '[data-tab="contacts"]', kind: 'click' },
+      { action: 'note-open', title: 'Dónde click: Add note', body: 'AMR = Acknowledge (impacto) → Mirror (hecho) → Respond (I will + hora). Tocá Add note.', target: '#note-add', kind: 'click' },
+      { action: 'note', title: 'Guardá la nota', body: 'Save note guarda la evidencia interna. Sin AMR completo no pasa. Leé la explicación AMR en el recuadro amarillo.', target: '#note-save', kind: 'click', model: NOTE_MODEL },
+      { action: 'resolve', title: 'Cómo cerrar el caso', body: dispositionHint || 'Resolve: cerrás con evidencia (email Formato E + note AMR). AA/PSA si falta trabajo; Resolved si ya cerraste.', target: '#btn-resolve', kind: 'click' },
       { action: 'close-submit', title: 'Disposition + Submit', body: 'Subrayado en rojo: disposition, summary y next step. Submit to Alice QA cierra el caso con evidencia.', look: ['#res-disp', '#res-summary', '#res-next'], target: '#res-submit', kind: 'click' }
     ];
   }

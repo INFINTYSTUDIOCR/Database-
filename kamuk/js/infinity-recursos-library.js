@@ -11,6 +11,7 @@
   }
 
   var GLOSS_CATS = [
+    { id: 'base', label: 'Fundamentos' },
     { id: 'email', label: 'Email' },
     { id: 'phone', label: 'Phone' },
     { id: 'metodo', label: 'Método' },
@@ -91,6 +92,123 @@
   }
 
   var GLOSS_ITEMS = [
+    item('base', 'AMR', 'Acknowledge → Mirror → Respond',
+      'AMR es la estructura obligatoria de la LLAMADA y de la NOTA INTERNA (Previous contacts). No es el correo al cliente. Primero reconocés el impacto (Acknowledge), después repetís el hecho clave para confirmar (Mirror), y al final prometés una acción con dueño y hora (Respond: I will + today / 4:30 p.m.). Si falta una de las tres piezas, la nota no pasa el grader del desk.',
+      'I understand payroll is frozen. You mentioned two supplier ACH declined. I will review Statements and call you today before 4:30 p.m.',
+      'Thank you for waiting. I hear this is the third call. Just to make sure, the decline was at the Lisbon hotel. I will check travel notice and MCC now.',
+      {
+        why: 'AMR protege al cliente (se siente escuchado) y al bank (queda audit trail claro). Es el estándar de phone + note en Infinity Holdings.',
+        steps: [
+          'Acknowledge: I understand / I hear / thank you for waiting + el impacto concreto del case.',
+          'Mirror: you said / you mentioned / so you / just to make sure / what happened was + UN hecho (monto, merchant, cuenta).',
+          'Respond: I will + qué vas a hacer vos + marca de tiempo.',
+          'Guardá la nota en Previous contacts con el mismo AMR.'
+        ],
+        avoid: [
+          'Empezar con política o “según el sistema…” sin reconocer el impacto.',
+          'Mirror vacío (“entiendo”) sin repetir el hecho.',
+          'Respond sin hora (“I will call you soon”).'
+        ],
+        c: 'I understand the urgency. You mentioned the $18,400 ACH. I will escalate to Operations and follow up within two business days.'
+      }),
+    item('base', 'Evidencia', 'Prueba en el CRM antes de hablar',
+      'Evidencia = lo que VOS miraste o documentaste en el CRM antes de explicar o cerrar. No es “lo que el cliente dijo de memoria”. Ejemplos: Statements, Card transactions, Previous contacts, travel notice, MCC block, identity data points, case brief. Sin evidencia, tu Explicación (E3) y tu Ejecución (E4) suenan a plantilla. En práctica guiada, los tabs rojos te dicen DÓNDE ir a buscarla.',
+      'I reviewed Statements and Previous contacts before I wrote the note.',
+      'I verified identity on the recorded line and I checked Card transactions for the Miami decline.',
+      {
+        why: 'El Training Book mide lo que hacés con el inglés en el desk real: evidencia + estructura. Alice QA y el Resolve miran si hay prueba.',
+        steps: [
+          'Leé el case brief / quote.',
+          'Abrí los tabs del Desk playbook (Overview, Statements, Cards & PIN, etc.).',
+          'Anotá 1–3 hechos concretos (montos, flags, dates).',
+          'Usá esos hechos en AMR (nota) y en Formato E (correo).'
+        ],
+        avoid: [
+          'Escribir el correo sin abrir Statements.',
+          'Inventar un “I reviewed…” que no hiciste.',
+          'Pedir PIN o PAN completo “para investigar”.'
+        ],
+        c: 'Evidence on file: Operating Account Restricted; two ACH declines; Obsidian card still Active.'
+      }),
+    item('base', 'Nesting', 'Inglés anidado de escritorio',
+      'Nesting es el método de inglés del Training Book: no frases sueltas. Anidás ideas con conectores (because, however, therefore…) + método linkers (in other words, even though, as well as, which means…) + phrasals + prefijos/sufijos cuando ayudan. También es la etapa “Nesting” del portal: 10 casos escritos + práctica en el desk. En el correo, el nesting vive sobre todo en E3 Explicación.',
+      'I reviewed the restriction because two ACH payments declined. However I will not lift every control. In other words, Operations owns the restore.',
+      'Even though the card is Active, the Operating Account is Restricted, which means payroll is still blocked.',
+      {
+        why: 'Nesting demuestra que podés explicar política con claridad profesional — no IELTS dump ni español traducido palabra por palabra.',
+        steps: [
+          'Elegí 2 conectores de escritorio (because / however / therefore…).',
+          'Sumá 1 método linker (in other words / even though / which means…).',
+          'Pegá un hecho de evidencia del CRM en la misma explicación.',
+          'Practicá más chips en Método, Conectores y Phrasals.'
+        ],
+        avoid: [
+          'Tirar cinco conectores seguidos sin evidencia.',
+          'Explicar en español en el desk EN.',
+          'Copiar el gold sample sin adaptar el case.'
+        ],
+        c: 'The refund posted; therefore I will withdraw the dispute. On the other hand, we can reopen within 10 days if it reverses.'
+      }),
+    item('base', 'Formato E (EC)', 'Estructura del correo al cliente',
+      'Formato E (también dicho EC = Estructura del Correo) es el estándar del EMAIL al cliente. El botón Send lo gradea. Son 5 bloques: E1 Encabezado (Hello/Dear + nombre), E2 Empatía (impacto), E3 Explicación (2 conectores + 1 método), E4 Ejecución (qué YA hiciste en el CRM), E5 Encierro (I will + hora + Kind/Best regards). Mínimo 55 palabras. No es la nota interna (eso es AMR).',
+      'Hello Marta, thank you for writing. I understand the payroll freeze is blocking supplier ACH. I reviewed the Operating Account because two payments declined. However I will not lift every control. In other words, Operations owns the restore. I escalated to Operations. I will call you today before 4:30 p.m. Kind regards',
+      'Hello Daniel, I hear the Miami hotel declined your card. I verified identity because we were on a recorded line. However there was no travel notice. In other words, the decline was a control. I set a travel notice. I will confirm by call today before 5:00 p.m. Kind regards',
+      {
+        why: 'El cliente ve el correo; el bank audita Formato E. Soft Skills dan tono; Formato E da la estructura que el desk exige.',
+        steps: [
+          'Abrí Emails → Compose.',
+          'Escribí E1→E5 en inglés (sin pegar).',
+          'Revisá: nombre, empatía con impacto, 2 conectores + 1 método, acciones YA hechas, I will + hora, regards, 55+ palabras.',
+          'Send solo cuando el coach esté en verde.'
+        ],
+        avoid: [
+          'Dear Client / sin nombre.',
+          'Correo corto sin E3/E4.',
+          'Copiar el modelo rojo del desk word-for-word en otro case.'
+        ],
+        gloss: 'EC = Formato E',
+        c: 'Tocá Email en este glosario para ver E1–E6 con explicación completa y ejemplos.'
+      }),
+    item('base', 'AML', 'Anti-Money Laundering (a veces escrito ANL)',
+      'AML = Anti-Money Laundering (prevención de lavado de dinero). En el desk es un tipo de case / alerta de compliance. Si ves AML Alert o un wire/payroll en hold de compliance: NO tip-off (nunca digas “we are investigating you for money laundering”), NO limpies el flag vos, SÍ documentá evidencia y escalá a Compliance / el dueño del proceso con next step timed. Los fondos pueden seguir intactos aunque estén en hold.',
+      'I understand the payroll wire is on a compliance hold and the funds are still intact. I reviewed Statements and I routed the case to Compliance. I will call you tomorrow before noon with the outcome.',
+      'According to policy this stays with Compliance. I will not clear the flag myself. I documented Previous contacts and I set AA until Compliance replies.',
+      {
+        why: 'AML protege al cliente y al bank. Un tip-off o un “clear” improvisado es fail grave de compliance.',
+        steps: [
+          'Reconocé el impacto sin tip-off.',
+          'Revisá Statements / brief (evidencia).',
+          'Documentá nota AMR + disposition correcta (suele ser AA / pending Compliance).',
+          'Encierro con hora: quién llama y cuándo.'
+        ],
+        avoid: [
+          'Tip-off: “we suspect money laundering”.',
+          'Prometer que vos liberás el wire hoy.',
+          'Pedir al cliente que “explique el origen de fondos” de forma acusatoria en chat abierto.'
+        ],
+        gloss: 'Si leés ANL en apuntes, casi siempre es AML',
+        c: 'I cannot release the hold from this desk. Compliance owns the review; I own the callback tomorrow before noon.'
+      }),
+    item('base', 'Cómo se usan juntos', 'Orden del caso en el desk',
+      'Orden de estudiante (acordate de esto en cada PRACTICE): 1) Buscá EVIDENCIA en los tabs del CRM. 2) Si es llamada/nota → AMR. 3) Si es correo al cliente → Formato E (EC) con NESTING en la Explicación. 4) Si el case es AML → misma estructura, sin tip-off. 5) Resolve / Submit solo cuando email + note + disposition cierran el caso.',
+      'Evidence → AMR note → Formato E email → Resolve with AA/PSA/Resolved.',
+      'Queue → Accept → Statements (evidencia) → Emails Compose (Formato E) → Previous contacts (AMR) → Resolve → Submit.',
+      {
+        why: 'No son cinco temas sueltos: son una sola rutina de escritorio. El Training Book y el desk rojo te guían en ese orden.',
+        steps: [
+          'Accept el caso PRACTICE.',
+          'Leé evidencia (tabs).',
+          'Compose Formato E.',
+          'Add note AMR.',
+          'Resolve + Submit.'
+        ],
+        avoid: [
+          'Mandar correo sin evidencia.',
+          'Nota sin AMR.',
+          'Resolve sin email ni note.'
+        ],
+        c: 'Práctica 1/10: el recuadro amarillo te dice el paso; los rojos te dicen dónde click.'
+      }),
     item('email', 'E1 Encabezado', 'Hello / Dear + nombre',
       'El encabezado es la primera línea del correo al cliente. Abrí Emails → Compose. Escribí Dear / Hello / Hi + el first name del case (Marta, Daniel). Nunca “Dear Client” ni “Dear Sir/Madam”. Sin E1, Send no pasa el grader de Formato E.',
       'Hello Marta,',
@@ -515,7 +633,7 @@
       return 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.';
     }
     var desk = brand === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings';
-    return 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de ' + desk + ' (queue, Emails/Compose/Send, notes, Resolve).';
+    return 'Empezá por Fundamentos (AMR, Evidencia, Nesting, Formato E/EC, AML). Después Email, Phone y Método. Todo está explicado para estudiantes del desk de ' + desk + '.';
   }
 
   function ensureIds(items) {
@@ -534,12 +652,12 @@
 
     ensureIds(items);
     if (kind === 'gloss') {
-      cat = 'email';
-      var e2 = null;
+      cat = 'base';
+      var first = null;
       for (var i = 0; i < items.length; i++) {
-        if (items[i].en === 'E2 Empatía') { e2 = items[i]; break; }
+        if (items[i].cat === 'base' && items[i].en === 'AMR') { first = items[i]; break; }
       }
-      if (e2) openId = e2._id;
+      if (first) openId = first._id;
     }
 
     function filtered() {
