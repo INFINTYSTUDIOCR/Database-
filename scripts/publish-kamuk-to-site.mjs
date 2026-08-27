@@ -71,7 +71,7 @@ const IRRIGATE_FROM_INF = [
 const CASINO_FLOOR_V = '20260814refresh';
 const SIM_V = '20260825sched';
 const CRM_V = '20260825nxlive';
-const RECURSOS_V = '20260825gloss';
+const RECURSOS_V = '20260827nest';
 const SCHED_V = '20260825sched';
 
 mkdirSync(DEST, { recursive: true });

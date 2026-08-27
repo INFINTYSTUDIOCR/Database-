@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Glosario y Training Book</title>
-  <link rel="stylesheet" href="../../css/infinity-training-glossary.css?v=20260825method" />
+  <title>Infinity Holdings — glosario de nesting</title>
+  <link rel="stylesheet" href="../../css/infinity-training-glossary.css?v=20260827nest" />
   <style>
     :root {
       --blue: #3178C6;
@@ -68,13 +68,13 @@
       border-radius: 20px;
       padding: 18px 16px 16px;
       box-shadow: 0 10px 30px rgba(30, 90, 154, 0.08);
+      flex: 1;
     }
-    .tb-card.flex { flex: 1; }
     .tb-head {
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .tb-icon {
       flex: 0 0 auto;
@@ -94,95 +94,24 @@
       color: var(--blue-deep);
       line-height: 1.25;
     }
-    .tb-sub {
-      margin: 4px 0 0;
-      font-size: 12.5px;
-      line-height: 1.55;
-      color: var(--muted);
-    }
-    .tb-method {
-      background: linear-gradient(165deg, #F0F7FD 0%, #fff 55%);
-      border: 1.5px solid var(--blue-border);
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      margin: 0 0 14px;
-    }
-    .tb-method h2 {
-      margin: 0 0 8px;
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--blue-deep);
-    }
-    .tb-method p {
-      margin: 0 0 8px;
-      font-size: 12.5px;
-      line-height: 1.55;
-      color: var(--text);
-    }
-    .tb-method p:last-child { margin-bottom: 0; }
-    .tb-method .pattern {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-      margin: 10px 0;
-      font-weight: 800;
-      font-size: 13px;
-      color: var(--blue-deep);
-    }
-    .tb-method .pattern span {
-      background: #fff;
-      border: 1px solid var(--blue-border);
-      border-radius: 999px;
-      padding: 5px 10px;
-    }
-    .tb-method .pattern em {
-      font-style: normal;
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 11px;
-    }
-    .tb-method .compare {
-      display: grid;
-      gap: 8px;
-      margin: 10px 0 0;
-    }
-    @media (min-width: 560px) {
-      .tb-method .compare { grid-template-columns: 1fr 1fr; }
-    }
-    .tb-method .bad, .tb-method .good {
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .tb-method .bad {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
-      color: #9f1239;
-    }
-    .tb-method .good {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #14532d;
-    }
-    .tb-method .bad b, .tb-method .good b {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    #glossary-root .inf-tb-lead,
-    #glossary-root .kh-lib-lead { display: none; }
     #glossary-root.inf-tb-shell {
       border: 0;
       padding: 0;
       background: transparent;
       border-radius: 0;
     }
-    #glossary-root .inf-tb-grid { max-height: min(28vh, 220px); }
+    #glossary-root .inf-tb-grid { max-height: min(34vh, 260px); }
     #glossary-root .inf-tb-panel.is-rich { max-height: min(48vh, 480px); }
+    .tb-pdf-note {
+      margin: 12px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .tb-pdf-note a {
+      color: var(--blue-deep);
+      font-weight: 700;
+    }
     @media (min-width: 520px) {
       .tb-card { padding: 22px 22px 18px; }
       .tb-title { font-size: 20px; }
@@ -192,14 +121,14 @@
 <body>
   <div class="tb-shell">
     <div class="tb-top">
-      <div class="tb-top-brand" id="tb-brand">Glosario y Training Book</div>
+      <div class="tb-top-brand" id="tb-brand">Infinity Holdings · Glosario</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="primary" href="../mac/index.html">Manual completo</a>
-        <a href="../mac/machote-curso.pdf" target="_blank" rel="noopener">Abrir PDF</a>
+        <a href="../mac/machote-curso.pdf" target="_blank" rel="noopener">PDF (secundario)</a>
       </div>
     </div>
 
-    <section class="tb-card flex" aria-label="Glosario y Training Book">
+    <section class="tb-card" aria-label="Glosario de nesting">
       <div class="tb-head">
         <div class="tb-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -208,41 +137,34 @@
           </svg>
         </div>
         <div>
-          <h1 class="tb-title">Glosario y Training Book</h1>
-          <p class="tb-sub">Pronombres, verbos, tiempos, conectores, expresiones, phrasals, prefijos y sufijos. Tocá una tarjeta para la explicación completa y ejemplos en inglés.</p>
+          <h1 class="tb-title" id="tb-title">Infinity Holdings — glosario de nesting</h1>
         </div>
-      </div>
-
-      <div class="tb-method" id="tb-method">
-        <h2>Por qué funciona nuestro método · Idea + Linker + Idea</h2>
-        <p><strong>El problema:</strong> una sola oración suelta no es conversación. El cerebro del oyente recibe un ladrillo… y se queda esperando la pared. Por eso “I studied yesterday.” suena incompleto: hay hecho, pero no hay puente hacia la siguiente idea.</p>
-        <p><strong>El concepto:</strong> el Training Book no te pide “más vocabulario suelto”. Te instala un hábito de <em>nesting</em> (anidar): cada idea nueva se engancha a la anterior con un <strong>linker</strong> (because, however, therefore, although, in addition…). Así el discurso avanza con lógica, no con lista.</p>
-        <div class="pattern" aria-label="Patrón Idea Linker Idea">
-          <span>Idea</span><em>→</em><span>Linker</span><em>→</em><span>Idea</span><em>→</em><span>Linker</span><em>→</em><span>Idea</span>
-        </div>
-        <p><strong>Analogía — el tren:</strong> cada idea es un vagón. El linker es el enganche. Sin enganche, los vagones se quedan en el patio y nadie llega a destino. Con enganche, el tren se mueve: causa, contraste, resultado, secuencia. Por eso el método funciona: no memorizás párrafos enteros; automatizás el <em>enganche</em> hasta que expandir se vuelve reflejo (menos de un segundo de duda).</p>
-        <p><strong>Analogía — ladrillo y cemento:</strong> las ideas son ladrillos; los linkers son el cemento. Una pila de ladrillos se cae. Una pared anidada sostiene peso (explicación, empatía, siguiente paso).</p>
-        <div class="compare">
-          <div class="bad"><b>Sin método</b>“I studied yesterday. It was hard. I was tired.” — Tres ladrillos sueltos. No hay puente.</div>
-          <div class="good"><b>Con Idea + Linker + Idea</b>“I studied yesterday because I had an exam. However, I still reviewed in the morning. As a result, I felt ready.”</div>
-        </div>
-        <p style="margin-top:10px;">Por eso entrenamos pronombres, tiempos, conectores, phrasals y prefijos/sufijos juntos: son las piezas del mismo tren. Abajo están las listas — usalas para llenar los vagones; el patrón de arriba es la vía.</p>
       </div>
 
       <div id="glossary-root"></div>
+
+      <p class="tb-pdf-note">
+        Experiencia principal: chips + búsqueda + detalle.
+        El <a href="../mac/machote-curso.pdf" target="_blank" rel="noopener">PDF del Training Book</a> queda como referencia secundaria.
+      </p>
     </section>
   </div>
 
-  <script src="../../js/infinity-recursos-library.js?v=20260825method"></script>
+  <script src="../../js/infinity-recursos-library.js?v=20260827nest"></script>
   <script>
     (function () {
       var isKamuk = /\/kamuk\//i.test(location.pathname || '');
+      var desk = isKamuk ? 'Kamuk Holdings' : 'Infinity Holdings';
       var brandEl = document.getElementById('tb-brand');
-      if (brandEl) brandEl.textContent = (isKamuk ? 'Kamuk' : 'Infinity') + ' · Glosario y Training Book';
+      var titleEl = document.getElementById('tb-title');
+      if (brandEl) brandEl.textContent = desk + ' · Glosario';
+      if (titleEl) titleEl.textContent = desk + ' — glosario de nesting';
+      document.title = desk + ' — glosario de nesting';
+
       var root = document.getElementById('glossary-root');
       var lib = window.InfinityRecursosLibrary || window.KamukRecursosLibrary;
       if (root && lib && typeof lib.mountGlossary === 'function') {
-        lib.mountGlossary(root, { brand: isKamuk ? 'kamuk' : 'infinity', hideLead: true });
+        lib.mountGlossary(root, { brand: isKamuk ? 'kamuk' : 'infinity' });
       } else if (root) {
         root.innerHTML = '<p class="inf-tb-empty">No se pudo cargar el glosario. Recargá la página.</p>';
       }

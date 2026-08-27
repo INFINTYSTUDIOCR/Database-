@@ -45,6 +45,7 @@
 <script src="https://studioinfinitycr.com/js/claire-toeic-board.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-calibration.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-foundations.js?v=20260814refresh"></script>
+<script src="../js/jill-tutor-path.js?v=20260825path1"></script>
 <script src="https://studioinfinitycr.com/js/trainer-drill-engine.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-f0-gate.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-structure-drill.js?v=20260814refresh"></script>
@@ -1564,15 +1565,18 @@ function showPortal(s){
         +'</div>';
     })();
 
-  // ── TRAINING BOOK (digital book; Simulation stays in its own tab) ──
+  // ── TRAINING BOOK (interactive glossary primary; PDF secondary) ──
   var trainingBookHtml = ''
     +'<div class="card" style="padding:0;overflow:hidden;">'
     +'<div class="card-title" style="padding:12px 14px 8px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'
-    +'<span><i class="ti ti-book-2"></i> Glosario y Training Book</span>'
+    +'<span><i class="ti ti-book-2"></i> Kamuk Holdings — glosario de nesting</span>'
+    +'<span style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<a href="training-book/mac/machote-curso.pdf" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-file-type-pdf"></i> PDF</a>'
     +'<a href="training-book/glosario/index.html" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Pantalla completa</a>'
+    +'</span>'
     +'</div>'
-    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Glosario y Training Book — método Idea + Linker + Idea, listas y ejemplos. Leé acá o abrí en pantalla completa.</p>'
-    +'<iframe title="Glosario y Training Book" src="training-book/glosario/index.html?v=20260825method" style="width:100%;height:min(72vh,720px);border:0;display:block;background:#132840;"></iframe>'
+    +'<p style="font-size:12px;color:var(--t2);line-height:1.5;margin:0 14px 10px;">Buscá Encabezado, AMR, however o PIN. Chips Email / Phone / Método / Expresiones / Conectores / Phrasals. El PDF del manual es referencia secundaria.</p>'
+    +'<iframe title="Kamuk Holdings — glosario de nesting" src="training-book/glosario/index.html?v=20260827nest" style="width:100%;height:min(78vh,820px);border:0;display:block;background:#EAF3FB;"></iframe>'
     +'</div>';
 
   // ── RECURSOS ──────────────────────────────────────────
@@ -1604,6 +1608,16 @@ function showPortal(s){
     +'</button>'
     +'</div>'
     +(lastTt?'<div class="inf-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.persona?' · '+lastTt.persona:'')+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
+    +'</div>'
+
+    +'<div class="inf-skill" style="background:linear-gradient(165deg,#F0F9FF,#fff);">'
+    +'<h3><i class="ti ti-grid-dots"></i> Word Lab</h3>'
+    +'<p class="inf-skill-lead">Crucigramas, sopas y Find the Word — toggle niveles, 14+ palabras, rachas y premios XP/coins. Ronda aleatoria incluida.</p>'
+    +'<button type="button" class="inf-action" onclick="openWordPuzzleLab()" style="width:100%;">'
+    +'<span class="inf-action-kicker">3 modos · 8 categorías · 14+ palabras</span>'
+    +'<span class="inf-action-title"><i class="ti ti-search"></i> Abrir Word Lab</span>'
+    +'<span class="inf-action-sub">Glosario · trainer-drills · Jill modules</span>'
+    +'</button>'
     +'</div>'
 
     +'<div class="inf-skill" style="background:linear-gradient(165deg,#E8F4FC,#fff);">'
@@ -8986,7 +9000,29 @@ function jillStartModuleMiniKaboom(moduleId){
           passed: !!result.passed,
           at: new Date().toISOString()
         };
+        if(!s.jillModuleProgress) s.jillModuleProgress = {};
+        s.jillModuleProgress[mid] = {
+          bestScore: Math.max((s.jillModuleProgress[mid] && s.jillModuleProgress[mid].bestScore) || 0, result.score || 0),
+          passed: !!result.passed,
+          lastAt: new Date().toISOString()
+        };
         if(s.id && typeof dbSet === 'function') dbSet('kamuk_students', s.id, s).catch(function(){});
+        if(result.passed && (result.score || 0) >= 80){
+          var api = (typeof API !== 'undefined' ? API : '') + '/jill/tutor-path/module-pass';
+          fetch(api, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (typeof getToken === 'function' ? getToken() : '') },
+            body: JSON.stringify({ student: s, moduleId: mid, score: result.score || 0 })
+          }).then(function(r){ return r.json(); }).then(function(data){
+            if(data.ok && data.snapshot){
+              s.jillTutorPath = s.jillTutorPath || {};
+              s.jillTutorPath.currentStepId = data.snapshot.currentStepId;
+              s.jillTutorPath.completedSteps = data.snapshot.completedSteps;
+              if(typeof dbSet === 'function') dbSet('kamuk_students', s.id, s).catch(function(){});
+              if(typeof showToast === 'function') showToast('Paso de ruta completado — avanzás al siguiente','ok');
+            }
+          }).catch(function(){});
+        }
         var st = document.getElementById('jill-status');
         if(st) st.textContent = result.passed
           ? ('✅ ' + mid + ' aprobado (' + result.score + '%)')
@@ -9067,6 +9103,7 @@ function renderJill(){
     +'</div>'
     +(!_jillState.sessionActive ? renderJillStart() : renderJillSession())
     +'</div>';
+  if(!_jillState.sessionActive) mountJillPathPanel();
   if(_jillState.sessionActive){
     _jillSpeakEnabled = true;
     warmInfinityApi();
@@ -9148,9 +9185,10 @@ function renderJillStart(){
   var challengeDrillBtn = '';
   var jillBlock = jillOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(61,220,151,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.88);line-height:1.75;">'
-      +'<strong>Modo Tutor</strong> — Foundations guiado: pronombres, tiempos, preposiciones, gerundio, preguntas, negaciones, estructura MSI (P|M|V|C) y conectores básicos. Jill explica como clase, te hace producir y confirma que lo implementás.'
+      +'<strong>Ruta oficial Jill Tutor</strong> — <em>todos empiezan en el Paso 1</em> (abecedario). Un tema por turno: pronombres → tiempos → preposiciones → P|M|V|C → anécdota 15 min → método 15+10. Jill explica como clase, te hace producir y confirma que lo implementás.'
       +'</div>'
-      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'tutor\')"><i class="ti ti-player-play"></i> Iniciar sesión con Jill</button>'
+      +'<div id="jill-path-mount"></div>'
+      +'<button type="button" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0a5c3c,#16a34a);border:2px solid rgba(61,220,151,0.5);color:white;font-weight:800;font-size:16px;padding:16px 32px;border-radius:14px;cursor:pointer;box-shadow:0 6px 24px rgba(61,220,151,0.4);width:100%;justify-content:center;margin-bottom:10px;" onclick="startJillSessionClick(\'tutor\')"><i class="ti ti-player-play"></i> Iniciar sesión — Paso activo</button>'
     : '';
   var proBlock = proOn
     ? '<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(167,139,250,0.35);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.9);line-height:1.75;">'
@@ -9177,6 +9215,17 @@ function renderJillStart(){
     + (showTutor ? tutorDrillBtn : '')
     + (showPro ? challengeDrillBtn : '')
     +'</div></div>';
+}
+
+function mountJillPathPanel(){
+  var s = CURRENT_STUDENT;
+  if(!s || _jillState.sessionActive || !studentJillOn(s) || jillCompanionUiActive()) return;
+  if(typeof JillTutorPath === 'undefined') return;
+  JillTutorPath.load().then(function(){
+    JillTutorPath.ensureProgress(s);
+    var mount = document.getElementById('jill-path-mount');
+    if(mount) mount.outerHTML = JillTutorPath.renderPanel(s);
+  });
 }
 
 function renderJillSession(){
@@ -9827,7 +9876,8 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
-<script src="js/kamuk-recursos-library.js?v=20260825gloss"></script>
+<script src="js/kamuk-recursos-library.js?v=20260827nest"></script>
+<script src="../js/infinity-word-puzzles.js?v=20260825word4"></script>
 <script src="js/simulation-corporate-learn.js?v=20260825lang3"></script>
 <script src="js/infinity-holdings-config.js?v=20260825sched"></script>
 <script src="js/simulation-formato-e.js?v=20260825sched"></script>

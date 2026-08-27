@@ -10,19 +10,20 @@
     return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
+  // Desk-first chips (screenshot order), then language architecture.
   var GLOSS_CATS = [
+    { id: 'email', label: 'Email' },
+    { id: 'phone', label: 'Phone' },
+    { id: 'metodo', label: 'Método' },
+    { id: 'natural', label: 'Expresiones' },
+    { id: 'extra', label: 'Conectores' },
+    { id: 'phrasals', label: 'Phrasals' },
     { id: 'base', label: 'Fundamentos' },
     { id: 'pronouns', label: 'Pronombres' },
     { id: 'verbs', label: 'Verbos' },
     { id: 'tenses', label: 'Tiempos' },
     { id: 'prep', label: 'Preposiciones' },
     { id: 'articles', label: 'Artículos' },
-    { id: 'email', label: 'Email' },
-    { id: 'phone', label: 'Phone' },
-    { id: 'metodo', label: 'Método' },
-    { id: 'extra', label: 'Conectores' },
-    { id: 'natural', label: 'Expresiones' },
-    { id: 'phrasals', label: 'Phrasals' },
     { id: 'affix', label: 'Prefijos' },
     { id: 'suffix', label: 'Sufijos' },
     { id: 'tech', label: 'Technicismos' },
@@ -740,7 +741,7 @@
       return 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.';
     }
     var desk = brand === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings';
-    return 'Empezá por Pronombres, Verbos, Tiempos y Preposiciones (Fase 1). Después Fundamentos del desk, Conectores, Expresiones y Phrasals. Todo del Training Book completo — sin recortes — para el desk de ' + desk + '.';
+    return 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de ' + desk + ' (queue, Emails/Compose/Send, notes, Resolve).';
   }
 
   function ensureIds(items) {
@@ -759,12 +760,17 @@
 
     ensureIds(items);
     if (kind === 'gloss') {
-      cat = 'pronouns';
-      var first = null;
+      cat = 'email';
+      var pick = null;
       for (var i = 0; i < items.length; i++) {
-        if (items[i].cat === 'pronouns') { first = items[i]; break; }
+        if (items[i].cat === 'email' && /E2\s*Empat/i.test(items[i].en || '')) { pick = items[i]; break; }
       }
-      if (first) openId = first._id;
+      if (!pick) {
+        for (var j = 0; j < items.length; j++) {
+          if (items[j].cat === 'email') { pick = items[j]; break; }
+        }
+      }
+      if (pick) openId = pick._id;
     }
 
     function filtered() {
@@ -800,7 +806,7 @@
       var leadClass = opts.hideLead ? 'inf-tb-lead kh-lib-lead' : 'inf-tb-lead kh-lib-lead';
       var leadStyle = opts.hideLead ? ' style="display:none"' : '';
       el.innerHTML = '<p class="' + leadClass + '"' + leadStyle + '>' + brandLead(kind, brand) + '</p>'
-        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: however, -tion, look into, will, because…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
+        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
         + '<div class="inf-tb-cats kh-lib-cats">' + cats.map(function (c) {
           return '<button type="button" class="inf-tb-cat kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
         }).join('') + '</div>'
