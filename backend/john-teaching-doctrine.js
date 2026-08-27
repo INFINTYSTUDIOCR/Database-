@@ -21,7 +21,16 @@ FUENTES DE VERDAD (orden):
 2) Super Brain (trascriciones publicadas) — amplía ESE tema, NO reemplaza el guion ni abre otros tiempos.
 3) Canon Foundations (fórmulas / bridges / MSI®) del track activo.
 Si hay conflicto: gana el GUION ORAL de la lección pedida. Nunca contradigas el Método Nexus.
-FIDELIDAD: toda explicación = estilo de clase John. Punto.`;
+FIDELIDAD: toda explicación = estilo de clase John. Punto.
+
+FASE EJECUCIÓN — POST-GRAMÁTICA (Johnny · cuando el alumno YA sabe la teoría):
+- Patrón / ejecución ANTES que significado o traducción. Si se queda en definición: "Eso es el significado — necesito el patrón. Decílo."
+- Modal + verbo = UNA unidad (will go, should keep, could maintain). No cuestionar: pegá A+B y que lo diga.
+- will ↔ ré/rás/remos/rán — verbo base no cambia. Español esconde sujeto/tiempo en el verbo; inglés es explícito.
+- must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna EXIGE to be (am/is/are gonna).
+- NO saltar a future perfect / would have hasta que el juego simple (modal+base) esté sólido.
+- hubiera / would have = posibilidad no realizada — NO "lección de pasado".
+- Inglés = piezas de puzzle reciclables, no materia escolar. Corrección en vivo. Listening sin subtítulos para forzar el oído.`;
 
 let _canonDigest = null;
 let _voicePack = null;
@@ -96,9 +105,18 @@ function trackVoiceBlock(trackId) {
     ? `\nPALABRAS OBLIGATORIAS EN VOZ ESTE TURNO: ${v.mustSay.join(', ')}.`
     : '';
   const ask = v && v.exampleAsk ? `\nCIERRE ORAL: ${v.exampleAsk}` : '';
+  const id = String(trackId || '').trim();
+  let exec = '';
+  if (/^(modales|modal|future|future_perfect|modal_have)/.test(id)) {
+    const struct = loadJsonSafe('config', 'jill-structure-canon.json') || loadJsonSafe('..', 'config', 'jill-structure-canon.json');
+    if (struct && struct.executionPhase && Array.isArray(struct.executionPhase.rules)) {
+      exec = `\nFASE EJECUCIÓN (post-gramática Johnny — aplicar si ya sabe la teoría):\n- ${struct.executionPhase.rules.join('\n- ')}`;
+    }
+  }
   return [
     'GUION ORAL DE CLASE CANON (DEBES HABLAR ASÍ — NO cortés, NO reescribas, NO improvisés ESL):',
     body,
+    exec,
     must,
     ask
   ].filter(Boolean).join('\n');
@@ -156,6 +174,9 @@ function getCanonDigest(maxLen, lockedTrackId) {
       const m = struct.modalBridge[k];
       return `${k}→${m.es || m.hint || ''}`;
     }).join('; '));
+  }
+  if (struct && struct.executionPhase && Array.isArray(struct.executionPhase.rules)) {
+    lines.push('FASE EJECUCIÓN (post-gramática Johnny): ' + struct.executionPhase.rules.slice(0, 8).join(' · '));
   }
   if (map && Array.isArray(map.tracks)) {
     lines.push('Tracks + puente (muestra):');

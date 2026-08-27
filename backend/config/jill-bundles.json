@@ -300,27 +300,31 @@
       "title": "Modales — Can · Could · Should · Would · Must · May · Might",
       "level": "Emerging",
       "foundationsSection": "Modales",
-      "doctrine": "Modales modifican la estructura base sin romper la Mecánica Estructural Infinity®. Combinables con Have + To Be + ING.",
+      "doctrine": "Modales = P + M + V + C sin romper MSI®. WILL↔RÉ/RÁS/REMOS · WOULD↔RÍA. Instalación: puente ES→EN. Post-teoría = FASE EJECUCIÓN: patrón antes que significado; modal+verbo = UNA pieza; corrección en vivo; must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be; no future perfect/would have hasta juego simple sólido; hubiera = posibilidad no realizada (no 'pasado escolar'); piezas reciclables; forzar habla; listening sin subtítulos.",
       "kpis": [
         "k3",
         "k11",
         "k12"
       ],
       "topics": [
+        "WILL ↔ ré/rás/remos (promesa / futuro real)",
         "Ability can/could",
-        "Advice should",
+        "Advice should (sugerencia)",
         "Hypothesis would",
-        "Obligation must",
-        "Possibility may/might"
+        "Obligation must (orden)",
+        "Gonna + to be",
+        "Possibility may/might",
+        "Fase ejecución post-gramática"
       ],
       "whiteboard": [
-        "I can / I should / I must",
-        "I should have been…",
-        "Could you…?"
+        "will go / should keep / could maintain",
+        "I am gonna… (to be obligatorio)",
+        "must = orden · should = sugerencia"
       ],
       "structures": [
-        "Pronoun + Modal + base verb",
-        "Modal + Have + participle"
+        "Pronoun + Modal + base verb (UNA unidad)",
+        "am/is/are + gonna + base",
+        "Modal + Have + participle (solo tras dominio simple)"
       ],
       "images": [
         "modal-scale"

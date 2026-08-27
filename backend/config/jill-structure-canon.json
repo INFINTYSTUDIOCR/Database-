@@ -38,11 +38,30 @@
     { "id": "qty-count", "sigla": "QTY-C", "notation": "P + V + many/few/several/a lot of + plural", "example": "I have many books / few students / several meetings", "whiteboard": "I | have | several meetings" }
   ],
   "modalBridge": {
-    "will": { "es": "-RE (futuro)", "hint": "caminarÉ → I WILL walk", "example": "I will walk" },
-    "would": { "es": "-RÍA (condicional)", "hint": "caminarÍA → I WOULD walk", "example": "I would walk" },
-    "should": { "es": "debería", "hint": "debería → I SHOULD + verbo base", "example": "I should study" },
-    "can": { "es": "poder (presente)", "hint": "puedo → I CAN + base", "example": "I can work" },
-    "could": { "es": "podría", "hint": "podría → I COULD + base", "example": "I could help" }
+    "will": { "es": "-RE / -RÁS / -REMOS / -RÁN (futuro real · promesa)", "hint": "caminaré → I WILL walk — modal+verbo = UNA pieza; verbo base no cambia", "example": "I will walk", "force": "promise" },
+    "would": { "es": "-RÍA (hipotético)", "hint": "caminaría → I WOULD walk", "example": "I would walk", "force": "hypothesis" },
+    "should": { "es": "debería (sugerencia)", "hint": "sugerencia → I SHOULD + verbo base — NO orden", "example": "I should study", "force": "suggestion" },
+    "can": { "es": "poder (presente)", "hint": "puedo → I CAN + base", "example": "I can work", "force": "ability" },
+    "could": { "es": "podría (probabilidad / hipotético)", "hint": "probabilidad → I COULD + base", "example": "I could help", "force": "probability" },
+    "must": { "es": "orden / obligación fuerte", "hint": "orden → I MUST + base — NO sugerencia", "example": "I must finish", "force": "order" },
+    "gonna": { "es": "futuro conversacional", "hint": "EXIGE to be: am/is/are gonna + base — sin to be no hay gonna", "example": "I am gonna go", "force": "going-to" },
+    "wouldHave": { "es": "hubiera (posibilidad no realizada)", "hint": "NO es lección de pasado — unrealized possibility; solo tras dominar modal+base simple", "example": "I would have gone", "force": "unrealized" }
+  },
+  "executionPhase": {
+    "title": "Fase Ejecución — post-gramática (Johnny)",
+    "when": "Estudiante ya conoce la teoría de modales — puro patrón, pegue A+B, corrección en vivo.",
+    "rules": [
+      "Patrón / ejecución ANTES que significado o traducción",
+      "Modal + verbo = UNA unidad (will go, should keep, could maintain)",
+      "will ↔ terminaciones españolas ré/rás/remos/rán — verbo base no cambia en inglés",
+      "Español esconde sujeto/tiempo en el verbo; inglés es explícito — fuente de confusión",
+      "must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be",
+      "No saltar a future perfect / would have hasta que el juego simple esté sólido",
+      "hubiera/would have = posibilidad no realizada, NO lección de pasado",
+      "Inglés = piezas de puzzle reciclables, no materia escolar",
+      "Forzar habla: no cuestionar — pegar A+B — decirlo",
+      "Listening: analizar y ver sin subtítulos para forzar el oído"
+    ]
   },
   "coinMethod": {
     "title": "Método de la Moneda",

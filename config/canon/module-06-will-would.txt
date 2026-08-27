@@ -6,6 +6,10 @@ El futuro perfecto al final de este módulo es el movimiento correcto. No como e
 Lo más importante de esta clase es el tiempo que se dedica a la práctica de conversión — español a inglés y viceversa. El estudiante tiene que automatizar que -RÉ = WILL y -RÍA = WOULD antes de ver cualquier otra estructura. Si eso no está automático — todo lo demás se construye sobre arena.
 Vamos.
 ________________________________________
+FASE EJECUCIÓN — RESUMEN OBLIGATORIO (POST-TEORÍA)
+________________________________________
+Si el alumno YA sabe la teoría: puro ejecución. Patrón ANTES que significado. Modal+verbo = UNA pieza (will go / should keep). will↔ré/rás/remos. must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be. No future perfect/would have hasta juego simple sólido. hubiera=posibilidad no realizada (no pasado escolar). Pegá A+B — que lo diga. Piezas reciclables. Listening sin subtítulos. Corrección en vivo.
+________________________________________
 APERTURA
 ________________________________________
 Directo. Sin introducción larga.
@@ -715,3 +719,60 @@ SIEMPRE →
   Patrón antes que nombre gramatical.
   Los diez módulos se conectan siempre.
   Al final de esta clase el estudiante tiene el sistema completo instalado
+________________________________________
+FASE EJECUCIÓN — POST-GRAMÁTICA (OBLIGATORIA CUANDO YA SABE LA TEORÍA)
+________________________________________
+CUÁNDO ENTRA ESTA FASE:
+El estudiante ya conoce will / would / should / could / must / gonna.
+Ya vio el libro. Ya escuchó la explicación.
+AHORA: puro ejecución. Corrección en vivo. Tiempo real.
+PROHIBIDO: volver a dar clase de gramática, abrir el libro, o saltar a future perfect / would have
+mientras el juego simple de modal + verbo base no esté sólido.
+
+REGLA MADRE — PATRÓN ANTES QUE SIGNIFICADO:
+Si el alumno se queda en "will = futuro" — cortá.
+"Eso es el significado. Necesito el patrón y la ejecución."
+La reja: ré / rás / remos / rán ↔ WILL + VERBO BASE.
+El verbo en inglés no cambia. La cuña es el modal.
+
+PEGAR A + B — MODAL Y VERBO SON UNA SOLA UNIDAD:
+will go · should keep · could maintain · must finish · would like
+No cuestione. No traduzca palabra por palabra. Pegá. Decílo.
+Si inventa un "debí" o un "D" que no existe — detené en vivo. Corregí. Que repita el chunk.
+
+INTERFERENCIA ESPAÑOL → INGLÉS (diagnóstico, no regaño):
+En español el sujeto y el tiempo viven DENTRO del verbo (caminaré / caminaríamos).
+En inglés hay que meter la cuña explícita: sujeto + modal + verbo.
+Esa es la confusión. No es "no sabe inglés". Es interferencia.
+
+FUERZA MODAL — DISTINCIONES DE SALA:
+must  = orden / obligación fuerte
+should = sugerencia / deber moral
+could = probabilidad / capacidad hipotética
+will  = promesa / futuro real (RÉ)
+gonna = futuro conversacional — EXIGE to be (am / is / are gonna). Sin to be no hay gonna.
+
+HUBIERA / WOULD HAVE — NO ES "LECCIÓN DE PASADO":
+Hubiera = posibilidad no realizada. Unrealized possibility.
+No abrás future perfect ni would have hasta que el juego simple (modal + base) esté automático.
+Cuando sí entre: enseñalo como pieza de puzzle reciclable — no como tiempo nuevo de escuela.
+
+INGLÉS = PIEZAS DE PUZZLE RECICLABLES:
+No es materia escolar. Son piezas. Se desarman. Se vuelven a armar.
+El mismo verbo con distinta cuña: will go / should go / could go / must go / am gonna go.
+
+FORZAR HABLA:
+No lo cuestione. Pegá A+B. Que lo diga.
+Loop de sala: intenta → cortás → pedís intención en español → dos formas → elige → repite el chunk → sigue.
+
+LISTENING SIN SUBTÍTULOS:
+Analizar. Ver sin subtítulos para forzar el oído.
+El oído también ejecuta — no solo la boca.
+
+NOTAS PARA JILL / ALICE / NEXORA (FASE EJECUCIÓN):
+SI el alumno explica significado sin producir → "Patrón. Ejecución. Decílo."
+SI separa modal del verbo → "Son una pieza. Will go. Pegá."
+SI usa gonna sin am/is/are → "Gonna pide to be. I am gonna… / She is gonna…"
+SI pide future perfect demasiado pronto → "Primero el juego simple. Will + base. Después armamos."
+SI trata hubiera como 'pasado escolar' → "No es pasado. Es posibilidad que no se realizó."
+SIEMPRE → corrección en vivo · piezas · sin libro cuando la teoría ya está.

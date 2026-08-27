@@ -128,7 +128,7 @@ function lessonQualityScore(lesson) {
   const content = String(lesson?.content || '');
   let score = 0;
   if (/DOCTRINA:/i.test(content)) score += 45;
-  if (/Método|método|chunk|linker|0\/0\/0|MSI|fluidez|estructura|recovery|Idea\s*\+\s*Linker/i.test(content)) score += 18;
+  if (/Método|método|chunk|linker|0\/0\/0|MSI|fluidez|estructura|recovery|Idea\s*\+\s*Linker|ejecuci[oó]n|modal\+verbo|patr[oó]n antes|peg[aá]/i.test(content)) score += 18;
   score += Math.min(content.replace(/#\w+/g, '').trim().length / 40, 25);
   if (/^TikTok\s*[·\-]\s*(#\w+\s*)+$/i.test(title.trim())) score -= 55;
   const hashInTitle = (title.match(/#\w+/g) || []).length;
@@ -153,6 +153,7 @@ function topicBucket(lesson) {
     ['fluidez', /\bfluidez|fluency/],
     ['000', /\b0\s*\/\s*0\s*\/\s*0|metodo\s*0/],
     ['msi', /\bmsi\b|have\s*participio/],
+    ['modales', /\bmodal|will\s*\+|would|should|could|must|gonna|ejecuci[oó]n/],
     ['estructura', /\bestructur/],
     ['recovery', /\brecovery|rephrase|reformul/],
     ['star', /\bstar\b/]
@@ -566,7 +567,8 @@ function buildStructureCanonText() {
     '- Teach and evaluate by SLOTS (ranuras): P | M | V | C | (Linker when anecdote).',
     '- Siglas: PR=presente P+V+C; PS=pasado; PC=P+To Be+V+ing; PRP=P+Have+PP; MOD=P+M+V; MP=P+M+HAVE+PP; MC=P+M+HAVE+BEEN+V+ing.',
     '- F0 progression: PR → PS → PC → PRP → PPC → MOD → MP → MC. Gate 100% before advance.',
-    '- Will=-RE (caminarÉ→I WILL walk); Would=-RÍA (caminarÍA→I WOULD walk); Should=debería+I SHOULD+base.',
+    '- Will=-RE/-RÁS/-REMOS (caminaré→I WILL walk · promesa); Would=-RÍA; Should=sugerencia; Must=orden; Could=probabilidad; Gonna EXIGE to be (am/is/are gonna).',
+    '- Modal+verbo = UNA unidad (will go / should keep). Post-teoría = FASE EJECUCIÓN: patrón antes que significado; pegá A+B; corrección en vivo; no future perfect hasta juego simple sólido; hubiera=posibilidad no realizada (no pasado escolar); piezas reciclables; listening sin subtítulos.',
     '- Coin method: verb LEFT of pronoun = question; verb RIGHT = answer (WH-/imperative exceptions).',
     '- 16 core verbs + 3rd person -s in PR. Table format: I seem / He seems with Spanish bridge.',
     '- Articles/prepositions inside C; numbers 11-99 pattern after ten.',
@@ -575,6 +577,9 @@ function buildStructureCanonText() {
   ];
   if (cfg && Array.isArray(cfg.formulas)) {
     lines.push('- FORMULAS: ' + cfg.formulas.map(f => `${f.sigla}:${f.notation}`).join(' | '));
+  }
+  if (cfg && cfg.executionPhase && Array.isArray(cfg.executionPhase.rules)) {
+    lines.push('- EXECUTION PHASE: ' + cfg.executionPhase.rules.slice(0, 6).join(' · '));
   }
   return lines.join('\n');
 }

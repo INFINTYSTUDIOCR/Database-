@@ -88,18 +88,19 @@
       "exampleAsk": "Antes de conjugar: ¿Es He, She o It? Luego Rapid Fire: She / go → She goes."
     },
     "future": {
-      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir. Post-teoría: FASE EJECUCIÓN — patrón antes que significado; will+verbo = una pieza; ré/rás/remos.",
       "mustSay": [
         "will",
         "would",
         "ré",
         "ría",
-        "by"
+        "patrón",
+        "pegá"
       ],
-      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
+      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA. Si ya sabe la teoría: no expliques — pegá modal+verbo y que lo diga."
     },
     "future_perfect": {
-      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir. Gate: NO abrir future perfect hasta que modal+base esté sólido.",
       "mustSay": [
         "will",
         "would",
@@ -107,18 +108,21 @@
         "ría",
         "by"
       ],
-      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
+      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA. Si el juego simple no está sólido: volvé a will+base — no avances a will have."
     },
     "modales": {
-      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt. El sistema inyecta el canon completo; no cortar ni reescribir.",
+      "say": "CANON MÓDULO 6 / Clase 010 — guion íntegro en config/canon/module-06-will-would.txt (incluye FASE EJECUCIÓN). Instalación: WILL↔RÉ · WOULD↔RÍA. Si ya sabe teoría: patrón antes que significado; modal+verbo UNA unidad; must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be; no cuestionar — pegá y que lo diga; hubiera = posibilidad no realizada (no pasado escolar).",
       "mustSay": [
         "will",
         "would",
         "ré",
         "ría",
-        "by"
+        "must",
+        "should",
+        "gonna",
+        "pegá"
       ],
-      "exampleAsk": "Antes de construir: ¿va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA."
+      "exampleAsk": "¿Va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA. Si se queda en significado: 'Patrón. Ejecución. Decí will + verbo.'"
     },
     "modal": {
       "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",
