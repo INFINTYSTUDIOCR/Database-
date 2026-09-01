@@ -56,6 +56,14 @@ body{
 .btn:active{transform:translateY(2px)}
 .btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1200;box-shadow:0 6px 20px rgba(245,166,35,.35);width:100%}
 .btn-hot{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 6px 20px rgba(239,68,68,.35);width:100%}
+.btn-hot.sticky-start{
+  position:sticky;bottom:max(12px,env(safe-area-inset-bottom));z-index:40;
+  margin-top:16px;box-shadow:0 -4px 24px rgba(0,0,0,.45),0 6px 20px rgba(239,68,68,.35);
+}
+@media(max-width:520px){
+  .setup-grid{grid-template-columns:1fr}
+  .wrap{padding-bottom:max(80px,env(safe-area-inset-bottom))}
+}
 .btn-ghost{background:rgba(255,255,255,.08);color:#e9d5ff;border:1px solid rgba(255,255,255,.2)}
 .btn-sm{padding:10px 14px;font-size:12px;border-radius:12px}
 .btn-a{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff}
@@ -178,7 +186,9 @@ body{
       <div class="field"><label>MIN PREGUNTAS RIVAL</label><select id="qa-min"><option value="2">2 min</option><option value="3" selected>3 min</option><option value="5">5 min</option></select></div>
     </div>
     <div class="field" style="margin-top:12px"><label>MODO TEMA</label><select id="topic-mode"><option value="bank">Banco Kamuk (sortear)</option><option value="custom">Tema + pregunta custom</option><option value="groups">Cada grupo propone su tema</option></select></div>
-    <button type="button" class="btn btn-hot" style="margin-top:16px" id="btn-start"><i class="ti ti-flame"></i> INICIAR CONCURSO</button>
+    <button type="button" class="btn btn-hot sticky-start" id="btn-start"><i class="ti ti-flame"></i> INICIAR CONCURSO</button>
+    <p style="font-size:11px;text-align:center;color:rgba(255,255,255,.5);margin-top:8px">Si no ves el juego: Ctrl+F5 · URL directa abajo</p>
+    <p style="font-size:10px;text-align:center;color:var(--purple2);margin-top:4px;word-break:break-all">studioinfinitycr.com/kamuk/games/topic-duel/</p>
   </section>
 
   <!-- GAME -->
