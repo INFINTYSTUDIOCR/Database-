@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Modal Battle — Kamuk · Infinity Studio</title>
+<meta name="theme-color" content="#1a0a3a">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&display=swap');
+:root{
+  --gold:#F5A623; --gold2:#FFD700; --purple:#7c3aed; --purple2:#a78bfa;
+  --navy:#0F3A5C; --ink:#07061a; --a:#38bdf8; --b:#f472b6;
+  --ok:#4ade80; --warn:#fbbf24;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;min-height:100dvh}
+body{
+  font-family:Outfit,system-ui,sans-serif;
+  background:
+    radial-gradient(ellipse at 20% 0%,rgba(124,58,237,.35) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 100%,rgba(245,166,35,.15) 0%,transparent 40%),
+    linear-gradient(165deg,#07061a 0%,#0F3A5C 45%,#1a0a3a 100%);
+  color:#fff; line-height:1.45;
+}
+.wrap{max-width:920px;margin:0 auto;padding:16px 14px 32px;padding-top:max(16px,env(safe-area-inset-top))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.brand-left{display:flex;align-items:center;gap:10px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:900;color:#1a1200;font-size:18px;box-shadow:0 4px 16px rgba(245,166,35,.35)}
+.brand h1{font-size:clamp(18px,4vw,24px);font-weight:900;letter-spacing:.04em}
+.brand h1 span{display:block;font-size:11px;font-weight:700;color:var(--purple2);letter-spacing:.14em;margin-top:2px}
+.back-link{font-size:12px;font-weight:800;color:var(--purple2);text-decoration:none;border:1px solid rgba(167,139,250,.35);padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.06)}
+.back-link:hover{background:rgba(255,255,255,.1)}
+
+.panel{background:rgba(8,12,28,.72);border:1px solid rgba(167,139,250,.25);border-radius:18px;padding:18px 16px;backdrop-filter:blur(12px);box-shadow:0 12px 32px rgba(0,0,0,.28)}
+.panel-title{font-size:12px;font-weight:900;letter-spacing:.16em;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* Setup */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:520px){.setup-grid{grid-template-columns:1fr}}
+.field label{display:block;font-size:11px;font-weight:800;color:rgba(255,255,255,.65);margin-bottom:6px;letter-spacing:.06em}
+.field input,.field select{
+  width:100%;border:1px solid rgba(255,255,255,.18);border-radius:12px;
+  background:rgba(0,0,0,.35);color:#fff;padding:12px 14px;font:inherit;font-size:15px;font-weight:700;
+}
+.field input:focus,.field select:focus{outline:2px solid rgba(245,166,35,.45);border-color:var(--gold)}
+.opts{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:rgba(255,255,255,.85);cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--gold)}
+
+.btn{
+  appearance:none;border:none;border-radius:14px;padding:14px 18px;font:inherit;
+  font-weight:900;font-size:14px;cursor:pointer;transition:transform .12s,box-shadow .12s;
+}
+.btn:active{transform:translateY(2px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1200;box-shadow:0 6px 20px rgba(245,166,35,.35);width:100%}
+.btn-ghost{background:rgba(255,255,255,.08);color:#e9d5ff;border:1px solid rgba(255,255,255,.2)}
+.btn-sm{padding:10px 14px;font-size:12px;border-radius:12px}
+
+/* Scoreboard */
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px}
+.team-card{border-radius:16px;padding:14px 12px;text-align:center;border:2px solid transparent;transition:border-color .2s,box-shadow .2s}
+.team-card.a{background:linear-gradient(145deg,rgba(56,189,248,.18),rgba(8,12,28,.8));border-color:rgba(56,189,248,.35)}
+.team-card.b{background:linear-gradient(145deg,rgba(244,114,182,.18),rgba(8,12,28,.8));border-color:rgba(244,114,182,.35)}
+.team-card.lead{box-shadow:0 0 24px rgba(245,166,35,.35);border-color:var(--gold)!important}
+.team-name{font-size:13px;font-weight:800;letter-spacing:.08em;opacity:.85;margin-bottom:4px}
+.team-score{font-size:clamp(36px,10vw,56px);font-weight:900;line-height:1}
+.vs{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:.12em}
+
+.meta-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.pill{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(255,255,255,.8)}
+.pill.timer-on{color:var(--warn);border-color:rgba(251,191,36,.4)}
+.pill.timer-warn{color:#f87171;border-color:rgba(248,113,113,.5);animation:pulse .8s ease infinite}
+@keyframes pulse{50%{opacity:.65}}
+
+/* Challenge */
+.challenge{background:linear-gradient(165deg,rgba(15,58,92,.6),rgba(26,10,58,.85));border:1px solid rgba(245,166,35,.3);border-radius:16px;padding:18px 16px;margin-bottom:14px;text-align:center}
+.challenge-type{font-size:10px;font-weight:900;letter-spacing:.18em;color:var(--gold);margin-bottom:10px}
+.challenge-prompt{font-size:clamp(18px,4.5vw,26px);font-weight:800;line-height:1.35;margin-bottom:8px}
+.challenge-hint{font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;max-width:520px;margin:0 auto}
+.challenge-slots{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.slot{background:rgba(0,0,0,.4);border:1px dashed rgba(167,139,250,.45);border-radius:10px;padding:8px 14px;font-size:14px;font-weight:800;color:var(--purple2)}
+.slot.filled{border-style:solid;border-color:var(--gold);color:var(--gold)}
+
+.host-panel{margin-top:14px}
+.host-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.host-grid .btn-a{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff}
+.host-grid .btn-b{background:linear-gradient(135deg,#ec4899,#db2777);color:#fff}
+.host-row{display:flex;flex-wrap:wrap;gap:8px}
+.host-row .btn{flex:1;min-width:120px}
+
+.hidden{display:none!important}
+
+/* Winner overlay */
+.overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,6,26,.88);backdrop-filter:blur(8px);padding:20px}
+.overlay.show{display:flex}
+.overlay-card{max-width:420px;width:100%;text-align:center;padding:28px 22px;border-radius:20px;background:linear-gradient(165deg,#1a0a3a,#0F3A5C);border:2px solid var(--gold);box-shadow:0 0 60px rgba(245,166,35,.25)}
+.overlay-card h2{font-size:28px;font-weight:900;color:var(--gold);margin-bottom:8px}
+.overlay-card p{font-size:15px;color:rgba(255,255,255,.8);margin-bottom:18px}
+.tips{font-size:12px;color:rgba(255,255,255,.55);margin-top:16px;line-height:1.55;text-align:left}
+.tips strong{color:var(--purple2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div class="brand-left">
+      <div class="logo">MB</div>
+      <h1>MODAL BATTLE<span>KAMUK · MODALES ESPEJO · EVEN · EJECUCIÓN</span></h1>
+    </div>
+    <a class="back-link" href="../../"><i class="ti ti-arrow-left"></i> Portal</a>
+  </header>
+
+  <!-- SETUP -->
+  <section id="screen-setup" class="panel">
+    <div class="panel-title"><i class="ti ti-users"></i> CONFIGURAR COMPETICIÓN</div>
+    <div class="setup-grid">
+      <div class="field">
+        <label>EQUIPO A</label>
+        <input type="text" id="team-a-name" value="Equipo A" maxlength="24">
+      </div>
+      <div class="field">
+        <label>EQUIPO B</label>
+        <input type="text" id="team-b-name" value="Equipo B" maxlength="24">
+      </div>
+    </div>
+    <div class="setup-grid">
+      <div class="field">
+        <label>RONDAS</label>
+        <select id="rounds-count">
+          <option value="8">8 rondas</option>
+          <option value="10" selected>10 rondas</option>
+          <option value="12">12 rondas</option>
+          <option value="15">15 rondas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>TIMER (opcional)</label>
+        <select id="timer-secs">
+          <option value="0">Sin timer</option>
+          <option value="30">30 segundos</option>
+          <option value="45">45 segundos</option>
+          <option value="60">60 segundos</option>
+        </select>
+      </div>
+    </div>
+    <div class="opts">
+      <label class="chk"><input type="checkbox" id="shuffle-rounds" checked> Mezclar retos</label>
+      <label class="chk"><input type="checkbox" id="sound-fx" checked> Sonidos</label>
+    </div>
+    <button type="button" class="btn btn-gold" id="btn-start"><i class="ti ti-player-play"></i> INICIAR BATALLA</button>
+    <div class="tips" style="margin-top:16px">
+      <strong>Cómo usar en clase:</strong> Johnny lee el reto → un representante de cada equipo ejecuta en voz alta (modal + verbo, espejo, even) → vos otorgás el punto al que pegue la pieza. No es gramática — es ejecución bajo presión.
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="hidden">
+    <div class="scoreboard">
+      <div class="team-card a" id="card-a">
+        <div class="team-name" id="disp-a-name">Equipo A</div>
+        <div class="team-score" id="score-a">0</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="team-card b" id="card-b">
+        <div class="team-name" id="disp-b-name">Equipo B</div>
+        <div class="team-score" id="score-b">0</div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <span class="pill" id="round-pill">Ronda 1 / 10</span>
+      <span class="pill" id="timer-pill" style="display:none">⏱ 0:45</span>
+      <span class="pill" id="streak-pill" style="display:none">🔥 Racha</span>
+    </div>
+
+    <div class="challenge" id="challenge-box">
+      <div class="challenge-type" id="ch-type">EJECUCIÓN · MODAL + VERBO</div>
+      <div class="challenge-prompt" id="ch-prompt">Ellos tendrán la respuesta.</div>
+      <div class="challenge-hint" id="ch-hint">Decilo en inglés con la pieza modal correcta. Una ranura. Una oración.</div>
+      <div class="challenge-slots" id="ch-slots"></div>
+    </div>
+
+    <div class="panel host-panel">
+      <div class="panel-title"><i class="ti ti-device-gamepad-2"></i> CONTROLES DEL HOST</div>
+      <div class="host-grid">
+        <button type="button" class="btn btn-a" id="btn-point-a"><i class="ti ti-plus"></i> Punto Equipo A</button>
+        <button type="button" class="btn btn-b" id="btn-point-b"><i class="ti ti-plus"></i> Punto Equipo B</button>
+      </div>
+      <div class="host-row">
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-skip"><i class="ti ti-arrow-right"></i> Sin punto · Siguiente</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-reveal"><i class="ti ti-eye"></i> Revelar respuesta</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-timer"><i class="ti ti-refresh"></i> Reset timer</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-game"><i class="ti ti-reload"></i> Reiniciar</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="overlay-win">
+  <div class="overlay-card">
+    <h2 id="win-title">🏆 ¡Ganadores!</h2>
+    <p id="win-msg">Equipo A gana con 7 puntos.</p>
+    <button type="button" class="btn btn-gold" id="btn-play-again">Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var ROUNDS = [];
+  var state = {
+    teamA: 'Equipo A',
+    teamB: 'Equipo B',
+    scoreA: 0,
+    scoreB: 0,
+    round: 0,
+    totalRounds: 10,
+    timerSecs: 0,
+    timerLeft: 0,
+    timerId: null,
+    shuffle: true,
+    sound: true,
+    revealed: false
+  };
+
+  /* ── Question bank: modales espejo / even / Johnny method ── */
+  var BANK = [
+    {
+      type: 'EJECUCIÓN · MODAL + VERBO',
+      prompt: '«¿Ellos tendrán la respuesta?»',
+      hint: 'Género 1 · will = pedacito antes del verbo. Ejecutá la afirmación.',
+      answer: 'They will have the answer.',
+      slots: ['P: They', 'M: will', 'V: have', 'C: the answer']
+    },
+    {
+      type: 'ESPEJO · PREGUNTA ↔ AFIRMACIÓN',
+      prompt: '«She should go.» → Convertí a PREGUNTA (modal a la izquierda).',
+      hint: 'Método moneda: modal izquierda = pregunta.',
+      answer: 'Should she go?',
+      slots: ['M: Should', 'P: she', 'V: go']
+    },
+    {
+      type: 'ESPEJO · PREGUNTA ↔ AFIRMACIÓN',
+      prompt: '«Could we help?» → Convertí a AFIRMACIÓN.',
+      hint: 'Modal a la derecha del pronombre = afirmación.',
+      answer: 'We could help.',
+      slots: ['P: We', 'M: could', 'V: help']
+    },
+    {
+      type: 'EVEN · SIQUIERA',
+      prompt: '«Ni siquiera debería ir.»',
+      hint: 'Patrón: modal + NOT + even + verbo base.',
+      answer: "She shouldn't even go.",
+      slots: ['P: She', 'M: shouldn\'t', 'even', 'V: go']
+    },
+    {
+      type: 'EVEN · MÍNIMO / AT LEAST',
+      prompt: '«Tan siquiera debería llamar.»',
+      hint: 'Sin negación + even = at least / mínimo.',
+      answer: 'He should even call.',
+      slots: ['P: He', 'M: should', 'even', 'V: call']
+    },
+    {
+      type: 'EJECUCIÓN · WOULD (GÉNERO 1)',
+      prompt: '«Yo iría mañana si pudiera.» — solo la parte con would.',
+      hint: 'would = ría · pegado antes del verbo base.',
+      answer: 'I would go tomorrow.',
+      slots: ['P: I', 'M: would', 'V: go', 'C: tomorrow']
+    },
+    {
+      type: 'EJECUCIÓN · SHOULD (GÉNERO 2)',
+      prompt: '«Deberías confirmar el ticket.»',
+      hint: 'should = palabra completa · NO hace falta have.',
+      answer: 'You should confirm the ticket.',
+      slots: ['P: You', 'M: should', 'V: confirm', 'C: the ticket']
+    },
+    {
+      type: 'EJECUCIÓN · COULD (GÉNERO 2)',
+      prompt: '«¿Podríamos revisar los logs?» → Afirmación.',
+      answer: 'We could review the logs.',
+      hint: 'could + verbo base · educado / capacidad.',
+      slots: ['P: We', 'M: could', 'V: review', 'C: the logs']
+    },
+    {
+      type: 'ESPEJO · WILL',
+      prompt: '«Will they have?» → Afirmación.',
+      hint: 'Will a la derecha = afirmación.',
+      answer: 'They will have.',
+      slots: ['P: They', 'M: will', 'V: have']
+    },
+    {
+      type: 'PROHIBIDO · CORRECCIÓN',
+      prompt: '❌ «She should came» — ¿Qué está mal y cómo se dice bien?',
+      hint: 'NO mezclar modal con pasado. Verbo BASE después del modal.',
+      answer: 'She should come. (not *should came)',
+      slots: ['M: should', 'V: come ✓', '✗ came']
+    },
+    {
+      type: 'EJECUCIÓN · MUST',
+      prompt: '«Debo escalar de inmediato.»',
+      hint: 'must = obligación fuerte · palabra completa.',
+      answer: 'I must escalate immediately.',
+      slots: ['P: I', 'M: must', 'V: escalate', 'C: immediately']
+    },
+    {
+      type: 'EVEN · NEGACIÓN FUERTE',
+      prompt: '«No podría ni siquiera ayudar.»',
+      hint: 'couldn\'t even + verbo base.',
+      answer: "He couldn't even help.",
+      slots: ['P: He', 'M: couldn\'t', 'even', 'V: help']
+    },
+    {
+      type: 'PUENTE PROFESIONAL',
+      prompt: '«¿Debería ir o no debería ir?» — estructurá la duda.',
+      hint: 'Decisión real con modales · no traduzcas palabra por palabra.',
+      answer: 'Should I go or should I not?',
+      slots: ['M: Should', 'P: I', 'V: go', 'or…']
+    },
+    {
+      type: 'EJECUCIÓN · MAY',
+      prompt: '«Puede que llueva mañana.» (probabilidad formal)',
+      hint: 'may = permiso / posibilidad formal.',
+      answer: 'It may rain tomorrow.',
+      slots: ['P: It', 'M: may', 'V: rain', 'C: tomorrow']
+    },
+    {
+      type: 'HAVE + PARTICIPIO',
+      prompt: '«Debería haber ido ayer.»',
+      hint: 'Solo entra HAVE cuando hay participio: should HAVE + gone.',
+      answer: 'I should have gone yesterday.',
+      slots: ['P: I', 'M: should', 'have', 'V: gone']
+    }
+  ];
+
+  function $(id) { return document.getElementById(id); }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = (Math.random() * (i + 1)) | 0;
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function playTick(kind) {
+    if (!state.sound) return;
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = kind === 'point' ? 880 : kind === 'win' ? 660 : 440;
+      g.gain.setValueAtTime(0.08, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      o.start(); o.stop(ctx.currentTime + 0.15);
+    } catch (e) { /* silent */ }
+  }
+
+  function buildRoundList() {
+    var list = BANK.slice();
+    if (state.shuffle) list = shuffle(list);
+    while (list.length < state.totalRounds) {
+      list = list.concat(shuffle(BANK.slice()));
+    }
+    ROUNDS = list.slice(0, state.totalRounds);
+  }
+
+  function formatTime(s) {
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function stopTimer() {
+    if (state.timerId) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+    }
+  }
+
+  function startTimer() {
+    stopTimer();
+    var pill = $('timer-pill');
+    if (!state.timerSecs) {
+      pill.style.display = 'none';
+      return;
+    }
+    state.timerLeft = state.timerSecs;
+    pill.style.display = '';
+    pill.className = 'pill timer-on';
+    pill.textContent = '⏱ ' + formatTime(state.timerLeft);
+    state.timerId = setInterval(function () {
+      state.timerLeft--;
+      pill.textContent = '⏱ ' + formatTime(state.timerLeft);
+      if (state.timerLeft <= 10) pill.className = 'pill timer-warn';
+      if (state.timerLeft <= 0) {
+        stopTimer();
+        pill.textContent = '⏱ ¡TIEMPO!';
+        playTick('time');
+      }
+    }, 1000);
+  }
+
+  function updateScoreboard() {
+    $('score-a').textContent = state.scoreA;
+    $('score-b').textContent = state.scoreB;
+    $('disp-a-name').textContent = state.teamA;
+    $('disp-b-name').textContent = state.teamB;
+    var ca = $('card-a');
+    var cb = $('card-b');
+    ca.classList.remove('lead');
+    cb.classList.remove('lead');
+    if (state.scoreA > state.scoreB) ca.classList.add('lead');
+    else if (state.scoreB > state.scoreA) cb.classList.add('lead');
+  }
+
+  function renderRound() {
+    state.revealed = false;
+    var r = ROUNDS[state.round];
+    if (!r) return;
+    $('round-pill').textContent = 'Ronda ' + (state.round + 1) + ' / ' + state.totalRounds;
+    $('ch-type').textContent = r.type;
+    $('ch-prompt').textContent = r.prompt;
+    $('ch-hint').textContent = state.revealed ? ('✅ ' + r.answer) : r.hint;
+    var slotsEl = $('ch-slots');
+    slotsEl.innerHTML = '';
+    if (r.slots && r.slots.length) {
+      r.slots.forEach(function (s) {
+        var sp = document.createElement('span');
+        sp.className = 'slot' + (state.revealed ? ' filled' : '');
+        sp.textContent = s;
+        slotsEl.appendChild(sp);
+      });
+    }
+    startTimer();
+  }
+
+  function revealAnswer() {
+    state.revealed = true;
+    var r = ROUNDS[state.round];
+    if (!r) return;
+    $('ch-hint').innerHTML = '<strong style="color:var(--ok)">✅ ' + r.answer + '</strong>';
+    var slots = $('ch-slots').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) slots[i].classList.add('filled');
+  }
+
+  function awardPoint(team) {
+    if (team === 'a') state.scoreA++;
+    else state.scoreB++;
+    playTick('point');
+    updateScoreboard();
+    nextRound();
+  }
+
+  function nextRound() {
+    stopTimer();
+    state.round++;
+    if (state.round >= state.totalRounds) {
+      endGame();
+      return;
+    }
+    renderRound();
+  }
+
+  function endGame() {
+    stopTimer();
+    var title, msg;
+    if (state.scoreA === state.scoreB) {
+      title = '🤝 ¡Empate!';
+      msg = state.teamA + ' y ' + state.teamB + ' empataron con ' + state.scoreA + ' puntos cada uno.';
+    } else if (state.scoreA > state.scoreB) {
+      title = '🏆 ¡' + state.teamA + ' gana!';
+      msg = state.teamA + ' vence ' + state.scoreB + ' · ' + state.scoreA + ' – ' + state.scoreB;
+    } else {
+      title = '🏆 ¡' + state.teamB + ' gana!';
+      msg = state.teamB + ' vence ' + state.teamA + ' · ' + state.scoreB + ' – ' + state.scoreA;
+    }
+    $('win-title').textContent = title;
+    $('win-msg').textContent = msg;
+    $('overlay-win').classList.add('show');
+    playTick('win');
+  }
+
+  function startGame() {
+    state.teamA = ($('team-a-name').value || 'Equipo A').trim();
+    state.teamB = ($('team-b-name').value || 'Equipo B').trim();
+    state.totalRounds = parseInt($('rounds-count').value, 10) || 10;
+    state.timerSecs = parseInt($('timer-secs').value, 10) || 0;
+    state.shuffle = $('shuffle-rounds').checked;
+    state.sound = $('sound-fx').checked;
+    state.scoreA = 0;
+    state.scoreB = 0;
+    state.round = 0;
+    buildRoundList();
+    $('screen-setup').classList.add('hidden');
+    $('screen-game').classList.remove('hidden');
+    $('overlay-win').classList.remove('show');
+    updateScoreboard();
+    renderRound();
+  }
+
+  function resetGame() {
+    stopTimer();
+    $('screen-game').classList.add('hidden');
+    $('screen-setup').classList.remove('hidden');
+    $('overlay-win').classList.remove('show');
+  }
+
+  $('btn-start').addEventListener('click', startGame);
+  $('btn-point-a').addEventListener('click', function () { awardPoint('a'); });
+  $('btn-point-b').addEventListener('click', function () { awardPoint('b'); });
+  $('btn-skip').addEventListener('click', nextRound);
+  $('btn-reveal').addEventListener('click', revealAnswer);
+  $('btn-reset-timer').addEventListener('click', startTimer);
+  $('btn-reset-game').addEventListener('click', resetGame);
+  $('btn-play-again').addEventListener('click', resetGame);
+})();
+</script>
+</body>
+</html>
