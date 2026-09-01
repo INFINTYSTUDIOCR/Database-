@@ -128,6 +128,16 @@ body{
 .topic-card h4{font-size:14px;font-weight:800;margin-bottom:6px;color:var(--gold2)}
 .topic-card p{font-size:12px;color:rgba(255,255,255,.7);line-height:1.4}
 
+.roster{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center}
+.roster-chip{
+  padding:10px 14px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;
+  border:2px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);transition:.15s;
+}
+.roster-chip.pending{opacity:.55}
+.roster-chip.active{border-color:var(--gold);background:rgba(245,166,35,.15);box-shadow:0 0 16px rgba(245,166,35,.25)}
+.roster-chip.done{border-color:var(--ok);background:rgba(74,222,128,.12);opacity:1}
+.roster-chip.done::after{content:' ✓';color:var(--ok)}
+
 .hidden{display:none!important}
 .overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,6,26,.9);backdrop-filter:blur(10px);padding:20px}
 .overlay.show{display:flex}
@@ -148,7 +158,7 @@ body{
 
   <div class="prize-banner" id="prize-banner">
     <i class="ti ti-trophy"></i>
-    <div><strong id="prize-text">Premio: —</strong><br><span>2 grupos · investigan · debaten · un portavoz responde · rúbrica en vivo</span></div>
+    <div><strong id="prize-text">Premio: —</strong><br><span>Reciben pregunta → investigan en web → analizan → <strong>todos exponen</strong> en inglés → el otro grupo pregunta</span></div>
   </div>
 
   <!-- SETUP -->
@@ -160,8 +170,12 @@ body{
     </div>
     <div class="field" style="margin-top:12px"><label>PREMIO EN JUEGO</label><input type="text" id="prize-input" value="Cena grupal / día libre / $20 en efectivo" maxlength="80"></div>
     <div class="setup-grid" style="margin-top:12px">
-      <div class="field"><label>MIN INVESTIGACIÓN</label><select id="research-min"><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option></select></div>
-      <div class="field"><label>SEG PRESENTACIÓN</label><select id="present-sec"><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">120 s</option></select></div>
+      <div class="field"><label>INTEGRANTES POR GRUPO</label><select id="members-count"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+      <div class="field"><label>MIN INVESTIGACIÓN (web)</label><select id="research-min"><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option></select></div>
+    </div>
+    <div class="setup-grid" style="margin-top:12px">
+      <div class="field"><label>SEG POR PERSONA (exponer)</label><select id="present-sec"><option value="45">45 s</option><option value="60" selected>60 s</option><option value="90">90 s</option></select></div>
+      <div class="field"><label>MIN PREGUNTAS RIVAL</label><select id="qa-min"><option value="2">2 min</option><option value="3" selected>3 min</option><option value="5">5 min</option></select></div>
     </div>
     <div class="field" style="margin-top:12px"><label>MODO TEMA</label><select id="topic-mode"><option value="bank">Banco Kamuk (sortear)</option><option value="custom">Tema + pregunta custom</option><option value="groups">Cada grupo propone su tema</option></select></div>
     <button type="button" class="btn btn-hot" style="margin-top:16px" id="btn-start"><i class="ti ti-flame"></i> INICIAR CONCURSO</button>
@@ -176,10 +190,12 @@ body{
         <div class="team-card b" id="card-b"><div class="team-name" id="disp-b">Grupo B</div><div class="team-score" id="score-b">0</div><div class="team-topic" id="topic-b"></div></div>
       </div>
       <div class="phase-bar">
-        <div class="phase" data-ph="topic">TEMA</div>
-        <div class="phase" data-ph="research">INVESTIGAR</div>
-        <div class="phase" data-ph="present-a">GRUPO A</div>
-        <div class="phase" data-ph="present-b">GRUPO B</div>
+        <div class="phase" data-ph="topic">PREGUNTA</div>
+        <div class="phase" data-ph="research">WEB</div>
+        <div class="phase" data-ph="present-a">EXPONEN A</div>
+        <div class="phase" data-ph="qa-b">PREG. B→A</div>
+        <div class="phase" data-ph="present-b">EXPONEN B</div>
+        <div class="phase" data-ph="qa-a">PREG. A→B</div>
         <div class="phase" data-ph="score">RÚBRICA</div>
       </div>
     </div>
@@ -205,22 +221,24 @@ body{
         <div class="question" id="live-question">—</div>
       </div>
       <ul class="rules-mini">
-        <li>Gracioso permitido — <strong>pero la respuesta debe resolver la pregunta</strong></li>
-        <li>Un solo portavoz por grupo · inglés obligatorio</li>
-        <li>Mínimo 2 linkers · 1 phrasal verb · 1 prefijo o sufijo</li>
+        <li><strong>1.</strong> Reciben la pregunta → la analizan → investigan en la web</li>
+        <li><strong>2.</strong> Arman su análisis en grupo (notas, fuentes, argumentos)</li>
+        <li><strong>3.</strong> <strong>Todos deben exponer</strong> en inglés — nadie se queda callado</li>
+        <li><strong>4.</strong> El otro grupo les hace preguntas en inglés — deben responder</li>
+        <li>Gracioso OK · foco en la pregunta · mín. 2 linkers · 1 phrasal · 1 prefijo/sufijo</li>
       </ul>
       <button type="button" class="btn btn-gold" style="margin-top:12px" id="btn-lock-topic">CONFIRMAR TEMA → INVESTIGAR</button>
     </div>
 
     <!-- RESEARCH -->
     <div id="phase-research" class="panel hidden">
-      <div class="panel-title"><i class="ti ti-search"></i> FASE 2 — INVESTIGACIÓN</div>
+      <div class="panel-title"><i class="ti ti-world-search"></i> FASE 2 — ANALIZAR · INVESTIGAR EN WEB · ARMAR ANÁLISIS</div>
       <div class="topic-box"><div class="topic" id="research-topic">—</div><div class="question" id="research-question">—</div></div>
       <div class="timer-hero">
-        <div class="timer-label">TIEMPO PARA INVESTIGAR · CELULAR OK · NOTAS OK</div>
+        <div class="timer-label">TIEMPO GRUPO · CELULAR · INTERNET · NOTAS · ANALICEN JUNTOS</div>
         <div class="timer-display" id="timer-research">15:00</div>
       </div>
-      <p style="font-size:13px;text-align:center;color:rgba(255,255,255,.7)">Armen la respuesta en grupo. Elijan portavoz. Prepárense para defender en inglés.</p>
+      <p style="font-size:13px;text-align:center;color:rgba(255,255,255,.75);line-height:1.55">Lean la pregunta. Busquen datos, opiniones, ejemplos reales. Armen quién dice qué — <strong>todos van a exponer</strong>. Repartan partes del análisis.</p>
       <div class="host-actions">
         <button type="button" class="btn btn-ghost btn-sm" id="btn-pause-research">Pausar</button>
         <button type="button" class="btn btn-gold btn-sm" id="btn-skip-research">Saltar → Presentación</button>
@@ -229,27 +247,61 @@ body{
 
     <!-- PRESENT A -->
     <div id="phase-present-a" class="panel hidden">
-      <div class="panel-title"><i class="ti ti-microphone"></i> GRUPO A — PORTAVOZ EN VIVO</div>
+      <div class="panel-title"><i class="ti ti-users"></i> GRUPO A — TODOS EXPONEN EN INGLÉS</div>
+      <p style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:10px">Cada integrante expone su parte del análisis. Marca ✓ cuando hable. <strong>Obligatorio: todos participan.</strong></p>
+      <div id="roster-a" class="roster"></div>
       <div class="timer-hero">
-        <div class="timer-label" id="present-a-label">LOS INTRÉPIDOS · RESPONDE EN INGLÉS</div>
-        <div class="timer-display" id="timer-present-a">1:30</div>
+        <div class="timer-label" id="present-a-label">TURNO ACTUAL · INGLÉS OBLIGATORIO</div>
+        <div class="timer-display" id="timer-present-a">1:00</div>
       </div>
       <div class="host-actions">
-        <button type="button" class="btn btn-a" id="btn-start-a">▶ Iniciar timer A</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-done-a">Listo → Grupo B</button>
+        <button type="button" class="btn btn-a" id="btn-start-a">▶ Timer persona actual</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-next-a">Siguiente persona →</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-done-a">Grupo A listo → Preguntas B</button>
+      </div>
+    </div>
+
+    <!-- Q&A B asks A -->
+    <div id="phase-qa-b" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-message-question"></i> GRUPO B PREGUNTA → GRUPO A RESPONDE</div>
+      <p style="font-size:13px;color:rgba(255,255,255,.75);margin-bottom:12px;line-height:1.5">El <strong>Grupo B</strong> hace preguntas en inglés sobre el análisis del A. El A responde — pueden rotar quién responde. Presión real.</p>
+      <div class="timer-hero">
+        <div class="timer-label" id="qa-b-label">PREGUNTAS DEL RIVAL</div>
+        <div class="timer-display" id="timer-qa-b">3:00</div>
+      </div>
+      <div class="host-actions">
+        <button type="button" class="btn btn-b btn-sm" id="btn-start-qa-b">▶ Iniciar Q&A</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-done-qa-b">Listo → Exponen Grupo B</button>
       </div>
     </div>
 
     <!-- PRESENT B -->
     <div id="phase-present-b" class="panel hidden">
-      <div class="panel-title"><i class="ti ti-microphone"></i> GRUPO B — PORTAVOZ EN VIVO</div>
+      <div class="panel-title"><i class="ti ti-users"></i> GRUPO B — TODOS EXPONEN EN INGLÉS</div>
+      <p style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:10px">Cada integrante expone su parte. Marca ✓ cuando hable. <strong>Todos participan.</strong></p>
+      <div id="roster-b" class="roster"></div>
       <div class="timer-hero">
-        <div class="timer-label" id="present-b-label">LOS AUDACES · RESPONDE EN INGLÉS</div>
-        <div class="timer-display" id="timer-present-b">1:30</div>
+        <div class="timer-label" id="present-b-label">TURNO ACTUAL · INGLÉS OBLIGATORIO</div>
+        <div class="timer-display" id="timer-present-b">1:00</div>
       </div>
       <div class="host-actions">
-        <button type="button" class="btn btn-b" id="btn-start-b">▶ Iniciar timer B</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-done-b">Listo → Rúbrica</button>
+        <button type="button" class="btn btn-b" id="btn-start-b">▶ Timer persona actual</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-next-b">Siguiente persona →</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-done-b">Grupo B listo → Preguntas A</button>
+      </div>
+    </div>
+
+    <!-- Q&A A asks B -->
+    <div id="phase-qa-a" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-message-question"></i> GRUPO A PREGUNTA → GRUPO B RESPONDE</div>
+      <p style="font-size:13px;color:rgba(255,255,255,.75);margin-bottom:12px;line-height:1.5">El <strong>Grupo A</strong> interroga al B. Preguntas en inglés — respuestas en inglés. Sin escapar.</p>
+      <div class="timer-hero">
+        <div class="timer-label" id="qa-a-label">PREGUNTAS DEL RIVAL</div>
+        <div class="timer-display" id="timer-qa-a">3:00</div>
+      </div>
+      <div class="host-actions">
+        <button type="button" class="btn btn-a btn-sm" id="btn-start-qa-a">▶ Iniciar Q&A</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-done-qa-a">Listo → Rúbrica</button>
       </div>
     </div>
 
@@ -281,35 +333,82 @@ body{
   var $ = function(id){ return document.getElementById(id); };
 
   var TOPIC_BANK = [
-    { topic:'Remote work vs return to office', question:'Should companies force employees back to the office? Defend your group\'s position in 90 seconds — funny OK, but stay on topic.', vibe:'debate' },
-    { topic:'Double charge on customer account', question:'A client was charged twice and wants a refund TODAY. How does your team handle this call in English? Step by step.', vibe:'bpo' },
-    { topic:'Why hire YOU for bilingual customer service', question:'Give your group\'s best interview pitch: Why should we hire your representative?', vibe:'employability' },
-    { topic:'Deadline moved up 3 days', question:'Your supervisor moved the deadline up with no notice. What do you say and what\'s your plan?', vibe:'desk' },
-    { topic:'Layoffs in Costa Rica — tech sector', question:'Summarize what happened, why it matters, and what workers should do right now. 90 seconds.', vibe:'news' },
-    { topic:'TikTok vs studying English', question:'Is watching English content with subtitles helping or hurting? Your group must take a side and defend it.', vibe:'funny' },
-    { topic:'The worst boss ever (fiction OK)', question:'Describe the worst boss and how your group would deal with them professionally — in English, with humor.', vibe:'funny' },
-    { topic:'Open English / Hello Brete rejection', question:'You didn\'t get the scholarship. What\'s your comeback plan? Motivate the audience — real talk.', vibe:'conversatorio' },
-    { topic:'AI will replace call center agents', question:'True or false? Your group debates. Winner = clearest argument + best English.', vibe:'debate' },
-    { topic:'Monday morning energy', question:'Convince the room why Mondays are actually the BEST day to learn English. Be creative — stay coherent.', vibe:'funny' }
+    { topic:'Remote work vs return to office', question:'Should companies force employees back to the office? Your group researches, analyzes, and EVERY member presents part of the argument in English.', vibe:'debate' },
+    { topic:'Double charge on customer account', question:'A client was charged twice and wants a refund TODAY. How does your team handle this? Research best practices — each member explains one step in English.', vibe:'bpo' },
+    { topic:'Why hire YOU for bilingual customer service', question:'Why should we hire someone from your group? Each person gives one reason — interview style, in English.', vibe:'employability' },
+    { topic:'Deadline moved up 3 days', question:'Supervisor moved the deadline with no notice. Research how professionals handle this — present your group plan. Everyone speaks.', vibe:'desk' },
+    { topic:'Layoffs in Costa Rica — tech sector', question:'Research what is happening. Each member covers one angle: facts, impact, advice for workers. English only.', vibe:'news' },
+    { topic:'TikTok vs studying English', question:'Does watching English with subtitles help or hurt? Take a side, research it, defend it — all members present.', vibe:'funny' },
+    { topic:'The worst boss ever (fiction OK)', question:'Describe the worst boss and how to deal with them — funny OK, but everyone must add one professional tip in English.', vibe:'funny' },
+    { topic:'Open English / Hello Brete rejection', question:'You did not get the scholarship. Research alternatives. Each member shares one part of the comeback plan — motivate the room.', vibe:'conversatorio' },
+    { topic:'AI will replace call center agents', question:'True or false? Research both sides. Each member presents evidence. Rival group will ask hard questions.', vibe:'debate' },
+    { topic:'Monday morning energy', question:'Convince the room why Mondays are the BEST day to learn English — creative, funny, coherent. Everyone speaks.', vibe:'funny' }
   ];
 
   var CRITERIA = [
+    { id:'participation', label:'Participación — todos expusieron', pts:2 },
     { id:'clarity', label:'Claridad del mensaje', pts:2 },
-    { id:'duration', label:'Duración (dentro del rango)', pts:1 },
-    { id:'coherence', label:'Coherencia (inicio → cierre)', pts:2 },
-    { id:'linkers', label:'Linkers / connectors (mín. 2)', pts:2 },
+    { id:'coherence', label:'Coherencia del análisis', pts:2 },
+    { id:'linkers', label:'Linkers / connectors (mín. 2)', pts:1 },
     { id:'phrasal', label:'Phrasal verbs usados', pts:1 },
     { id:'affix', label:'Prefijos / sufijos', pts:1 },
+    { id:'qa', label:'Respuestas a preguntas rivales', pts:2 },
     { id:'accuracy', label:'Accuracy — responde la pregunta', pts:1 }
   ];
 
   var state = {
     teamA:'Los Intrépidos', teamB:'Los Audaces', prize:'',
-    researchSec:900, presentSec:90, topicMode:'bank',
+    researchSec:900, presentSec:60, qaSec:180, members:3, topicMode:'bank',
     scoreA:0, scoreB:0, round:1,
     topic:'', question:'',
+    rosterA:[], rosterB:[], idxA:0, idxB:0,
     rubric:{}, timers:{}
   };
+
+  function buildRoster(team){
+    var n = state.members;
+    var arr = [];
+    for(var i=0;i<n;i++) arr.push({ name: 'Persona '+(i+1), spoke:false });
+    return arr;
+  }
+
+  function renderRoster(team){
+    var roster = team === 'a' ? state.rosterA : state.rosterB;
+    var idx = team === 'a' ? state.idxA : state.idxB;
+    var box = $(team === 'a' ? 'roster-a' : 'roster-b');
+    box.innerHTML = '';
+    roster.forEach(function(p,i){
+      var chip = document.createElement('div');
+      chip.className = 'roster-chip';
+      if(p.spoke) chip.classList.add('done');
+      else if(i === idx) chip.classList.add('active');
+      else chip.classList.add('pending');
+      chip.textContent = p.name;
+      chip.onclick = function(){
+        if(team === 'a') state.idxA = i; else state.idxB = i;
+        renderRoster(team);
+        var label = team === 'a' ? $('present-a-label') : $('present-b-label');
+        var teamName = team === 'a' ? state.teamA : state.teamB;
+        label.textContent = teamName + ' · ' + roster[i].name + ' · EXPONE AHORA';
+      };
+      box.appendChild(chip);
+    });
+  }
+
+  function markSpoke(team){
+    var roster = team === 'a' ? state.rosterA : state.rosterB;
+    var idx = team === 'a' ? state.idxA : state.idxB;
+    if(roster[idx]) roster[idx].spoke = true;
+    if(idx < roster.length - 1){
+      if(team === 'a') state.idxA++; else state.idxB++;
+    }
+    renderRoster(team);
+  }
+
+  function allSpoke(team){
+    var roster = team === 'a' ? state.rosterA : state.rosterB;
+    return roster.every(function(p){ return p.spoke; });
+  }
 
   function fmt(sec){
     var m = Math.floor(sec/60), s = sec % 60;
@@ -317,19 +416,23 @@ body{
   }
 
   function setPhase(ph){
-    ['topic','research','present-a','present-b','score'].forEach(function(p){
+    var order = ['topic','research','present-a','qa-b','present-b','qa-a','score'];
+    order.forEach(function(p){
       var el = document.querySelector('.phase[data-ph="'+p+'"]');
       if(!el) return;
       el.classList.remove('active','done');
-      var order = ['topic','research','present-a','present-b','score'];
       var ci = order.indexOf(ph), pi = order.indexOf(p);
       if(pi < ci) el.classList.add('done');
       if(p === ph) el.classList.add('active');
     });
-    ['phase-topic','phase-research','phase-present-a','phase-present-b','phase-score'].forEach(function(id){
+    ['phase-topic','phase-research','phase-present-a','phase-qa-b','phase-present-b','phase-qa-a','phase-score'].forEach(function(id){
       $(id).classList.add('hidden');
     });
-    var map = { topic:'phase-topic', research:'phase-research', 'present-a':'phase-present-a', 'present-b':'phase-present-b', score:'phase-score' };
+    var map = {
+      topic:'phase-topic', research:'phase-research',
+      'present-a':'phase-present-a', 'qa-b':'phase-qa-b',
+      'present-b':'phase-present-b', 'qa-a':'phase-qa-a', score:'phase-score'
+    };
     $(map[ph]).classList.remove('hidden');
     updateLead();
   }
@@ -390,6 +493,7 @@ body{
     setPhase('research');
     startTimer('research', state.researchSec, $('timer-research'), function(){
       setPhase('present-a');
+      renderRoster('a');
     });
   }
 
@@ -458,6 +562,9 @@ body{
     $('score-a').textContent = state.scoreA;
     $('score-b').textContent = state.scoreB;
     state.round++;
+    state.rosterA = buildRoster('a');
+    state.rosterB = buildRoster('b');
+    state.idxA = state.idxB = 0;
     buildRubric();
     if(state.topicMode === 'bank') renderTopicBank();
     setPhase('topic');
@@ -487,13 +594,24 @@ body{
     state.prize = ($('prize-input').value || 'Premio').trim();
     state.researchSec = parseInt($('research-min').value,10) * 60;
     state.presentSec = parseInt($('present-sec').value,10);
+    state.qaSec = parseInt($('qa-min').value,10) * 60;
+    state.members = parseInt($('members-count').value,10);
     state.topicMode = $('topic-mode').value;
     state.scoreA = state.scoreB = 0;
     state.round = 1;
+    state.rosterA = buildRoster('a');
+    state.rosterB = buildRoster('b');
+    state.idxA = state.idxB = 0;
     $('disp-a').textContent = state.teamA;
     $('disp-b').textContent = state.teamB;
-    $('present-a-label').textContent = state.teamA + ' · RESPONDE EN INGLÉS';
-    $('present-b-label').textContent = state.teamB + ' · RESPONDE EN INGLÉS';
+    $('present-a-label').textContent = state.teamA + ' · Persona 1 · EXPONE AHORA';
+    $('present-b-label').textContent = state.teamB + ' · Persona 1 · EXPONE AHORA';
+    $('qa-b-label').textContent = state.teamB + ' pregunta → ' + state.teamA + ' responde';
+    $('qa-a-label').textContent = state.teamA + ' pregunta → ' + state.teamB + ' responde';
+    $('timer-present-a').textContent = fmt(state.presentSec);
+    $('timer-present-b').textContent = fmt(state.presentSec);
+    $('timer-qa-b').textContent = fmt(state.qaSec);
+    $('timer-qa-a').textContent = fmt(state.qaSec);
     $('score-a').textContent = '0';
     $('score-b').textContent = '0';
     $('prize-text').textContent = 'Premio: ' + state.prize;
@@ -519,20 +637,55 @@ body{
   $('btn-skip-research').onclick = function(){
     clearInterval(state.timers.research);
     setPhase('present-a');
+    renderRoster('a');
   };
 
   $('btn-start-a').onclick = function(){
-    startTimer('present-a', state.presentSec, $('timer-present-a'), function(){});
+    startTimer('present-a', state.presentSec, $('timer-present-a'), function(){
+      markSpoke('a');
+    });
+  };
+  $('btn-next-a').onclick = function(){
+    clearInterval(state.timers['present-a']);
+    markSpoke('a');
+    startTimer('present-a', state.presentSec, $('timer-present-a'), function(){ markSpoke('a'); });
   };
   $('btn-done-a').onclick = function(){
     clearInterval(state.timers['present-a']);
-    setPhase('present-b');
+    if(!allSpoke('a') && !confirm('Grupo A: no todos han expuesto. ¿Continuar igual?')) return;
+    setPhase('qa-b');
   };
+
+  $('btn-start-qa-b').onclick = function(){
+    startTimer('qa-b', state.qaSec, $('timer-qa-b'), function(){});
+  };
+  $('btn-done-qa-b').onclick = function(){
+    clearInterval(state.timers['qa-b']);
+    setPhase('present-b');
+    renderRoster('b');
+  };
+
   $('btn-start-b').onclick = function(){
-    startTimer('present-b', state.presentSec, $('timer-present-b'), function(){});
+    startTimer('present-b', state.presentSec, $('timer-present-b'), function(){
+      markSpoke('b');
+    });
+  };
+  $('btn-next-b').onclick = function(){
+    clearInterval(state.timers['present-b']);
+    markSpoke('b');
+    startTimer('present-b', state.presentSec, $('timer-present-b'), function(){ markSpoke('b'); });
   };
   $('btn-done-b').onclick = function(){
     clearInterval(state.timers['present-b']);
+    if(!allSpoke('b') && !confirm('Grupo B: no todos han expuesto. ¿Continuar igual?')) return;
+    setPhase('qa-a');
+  };
+
+  $('btn-start-qa-a').onclick = function(){
+    startTimer('qa-a', state.qaSec, $('timer-qa-a'), function(){});
+  };
+  $('btn-done-qa-a').onclick = function(){
+    clearInterval(state.timers['qa-a']);
     setPhase('score');
   };
 
