@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Topic Duel — Kamuk · Infinity Studio</title>
+<meta name="theme-color" content="#1a0a3a">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&display=swap');
+:root{
+  --gold:#F5A623;--gold2:#FFD700;--purple:#7c3aed;--purple2:#a78bfa;
+  --navy:#0F3A5C;--ink:#07061a;--a:#38bdf8;--b:#f472b6;
+  --ok:#4ade80;--warn:#fbbf24;--hot:#ef4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;min-height:100dvh}
+body{
+  font-family:Outfit,system-ui,sans-serif;
+  background:
+    radial-gradient(ellipse at 15% 0%,rgba(239,68,68,.22) 0%,transparent 45%),
+    radial-gradient(ellipse at 85% 100%,rgba(245,166,35,.18) 0%,transparent 40%),
+    linear-gradient(165deg,#07061a 0%,#0F3A5C 45%,#1a0a3a 100%);
+  color:#fff;line-height:1.45;
+}
+.wrap{max-width:960px;margin:0 auto;padding:16px 14px 36px;padding-top:max(16px,env(safe-area-inset-top))}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.brand-left{display:flex;align-items:center;gap:10px}
+.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ef4444,var(--gold));display:flex;align-items:center;justify-content:center;font-weight:900;color:#1a1200;font-size:16px;box-shadow:0 4px 18px rgba(239,68,68,.4)}
+.brand h1{font-size:clamp(17px,4vw,24px);font-weight:900;letter-spacing:.04em}
+.brand h1 span{display:block;font-size:10px;font-weight:700;color:var(--purple2);letter-spacing:.14em;margin-top:2px}
+.back-link{font-size:12px;font-weight:800;color:var(--purple2);text-decoration:none;border:1px solid rgba(167,139,250,.35);padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.06)}
+.prize-banner{
+  background:linear-gradient(90deg,rgba(239,68,68,.25),rgba(245,166,35,.25));
+  border:1px solid rgba(245,166,35,.45);border-radius:14px;padding:12px 16px;margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.prize-banner i{font-size:28px;color:var(--gold2)}
+.prize-banner strong{font-size:15px;color:var(--gold)}
+.prize-banner span{font-size:13px;color:rgba(255,255,255,.75)}
+.panel{background:rgba(8,12,28,.75);border:1px solid rgba(167,139,250,.25);border-radius:18px;padding:18px 16px;backdrop-filter:blur(12px);box-shadow:0 12px 32px rgba(0,0,0,.28);margin-bottom:14px}
+.panel-title{font-size:11px;font-weight:900;letter-spacing:.16em;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.setup-grid{grid-template-columns:1fr}}
+.field label{display:block;font-size:11px;font-weight:800;color:rgba(255,255,255,.65);margin-bottom:6px;letter-spacing:.06em}
+.field input,.field select,.field textarea{
+  width:100%;border:1px solid rgba(255,255,255,.18);border-radius:12px;
+  background:rgba(0,0,0,.35);color:#fff;padding:12px 14px;font:inherit;font-size:14px;font-weight:600;
+}
+.field textarea{min-height:72px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid rgba(245,166,35,.45);border-color:var(--gold)}
+.btn{
+  appearance:none;border:none;border-radius:14px;padding:14px 18px;font:inherit;
+  font-weight:900;font-size:14px;cursor:pointer;transition:transform .12s,box-shadow .12s;
+}
+.btn:active{transform:translateY(2px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1200;box-shadow:0 6px 20px rgba(245,166,35,.35);width:100%}
+.btn-hot{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 6px 20px rgba(239,68,68,.35);width:100%}
+.btn-ghost{background:rgba(255,255,255,.08);color:#e9d5ff;border:1px solid rgba(255,255,255,.2)}
+.btn-sm{padding:10px 14px;font-size:12px;border-radius:12px}
+.btn-a{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff}
+.btn-b{background:linear-gradient(135deg,#ec4899,#db2777);color:#fff}
+
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.team-card{border-radius:16px;padding:14px 12px;text-align:center;border:2px solid transparent;transition:.2s}
+.team-card.a{background:linear-gradient(145deg,rgba(56,189,248,.18),rgba(8,12,28,.8));border-color:rgba(56,189,248,.35)}
+.team-card.b{background:linear-gradient(145deg,rgba(244,114,182,.18),rgba(8,12,28,.8));border-color:rgba(244,114,182,.35)}
+.team-card.lead{box-shadow:0 0 28px rgba(245,166,35,.4);border-color:var(--gold)!important}
+.team-name{font-size:13px;font-weight:800;letter-spacing:.08em;opacity:.85;margin-bottom:4px}
+.team-score{font-size:clamp(32px,9vw,52px);font-weight:900;line-height:1}
+.team-topic{font-size:11px;color:rgba(255,255,255,.55);margin-top:6px;line-height:1.3;max-height:2.6em;overflow:hidden}
+.vs{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:.12em}
+
+.phase-bar{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.phase{
+  flex:1;min-width:70px;text-align:center;padding:8px 6px;border-radius:10px;
+  font-size:10px;font-weight:800;letter-spacing:.06em;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.45);
+}
+.phase.active{background:rgba(245,166,35,.2);border-color:var(--gold);color:var(--gold)}
+.phase.done{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);color:var(--ok)}
+
+.timer-hero{text-align:center;padding:20px 12px;margin:12px 0;border-radius:16px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+.timer-label{font-size:11px;font-weight:900;letter-spacing:.18em;color:var(--purple2);margin-bottom:8px}
+.timer-display{font-size:clamp(48px,14vw,80px);font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.timer-display.warn{color:var(--warn)}
+.timer-display.danger{color:var(--hot);animation:pulse .7s ease infinite}
+@keyframes pulse{50%{opacity:.6}}
+
+.topic-box{
+  background:linear-gradient(165deg,rgba(15,58,92,.65),rgba(26,10,58,.9));
+  border:1px solid rgba(245,166,35,.35);border-radius:16px;padding:18px;margin:12px 0;text-align:center;
+}
+.topic-box .label{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--gold);margin-bottom:8px}
+.topic-box .topic{font-size:clamp(17px,4vw,22px);font-weight:800;line-height:1.35;margin-bottom:10px}
+.topic-box .question{font-size:14px;color:rgba(255,255,255,.75);line-height:1.5;font-style:italic}
+
+.rules-mini{font-size:12px;color:rgba(255,255,255,.65);line-height:1.55;margin-top:10px}
+.rules-mini li{margin:4px 0 4px 18px}
+
+.rubric{display:grid;gap:8px;margin-top:12px}
+.rubric-row{
+  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+  background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);
+}
+.rubric-row label{font-size:13px;font-weight:700}
+.rubric-row .pts{font-size:11px;color:var(--gold);font-weight:800}
+.rubric-btns{display:flex;gap:6px}
+.rubric-btns button{
+  width:36px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(0,0,0,.3);color:#fff;font-weight:900;font-size:14px;cursor:pointer;
+}
+.rubric-btns button.on-a{background:rgba(56,189,248,.5);border-color:var(--a)}
+.rubric-btns button.on-b{background:rgba(244,114,182,.5);border-color:var(--b)}
+.rubric-btns button.on-none{background:rgba(255,255,255,.08)}
+
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(245,166,35,.12);border-radius:12px;border:1px solid rgba(245,166,35,.3);margin-top:10px;font-weight:900}
+.host-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.host-actions .btn{flex:1;min-width:140px}
+
+.topic-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:520px){.topic-pick{grid-template-columns:1fr}}
+.topic-card{
+  padding:14px;border-radius:14px;border:2px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.25);cursor:pointer;transition:.15s;text-align:left;
+}
+.topic-card:hover,.topic-card.selected{border-color:var(--gold);background:rgba(245,166,35,.1)}
+.topic-card h4{font-size:14px;font-weight:800;margin-bottom:6px;color:var(--gold2)}
+.topic-card p{font-size:12px;color:rgba(255,255,255,.7);line-height:1.4}
+
+.hidden{display:none!important}
+.overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,6,26,.9);backdrop-filter:blur(10px);padding:20px}
+.overlay.show{display:flex}
+.overlay-card{max-width:440px;width:100%;text-align:center;padding:28px 22px;border-radius:20px;background:linear-gradient(165deg,#1a0a3a,#0F3A5C);border:2px solid var(--gold);box-shadow:0 0 60px rgba(245,166,35,.3)}
+.overlay-card h2{font-size:26px;font-weight:900;color:var(--gold);margin-bottom:8px}
+.overlay-card p{font-size:15px;color:rgba(255,255,255,.85);margin-bottom:18px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div class="brand-left">
+      <div class="logo">TD</div>
+      <h1>TOPIC DUEL<span>KAMUK · CONCURSO DE GRUPOS · PREMIO EN JUEGO</span></h1>
+    </div>
+    <a class="back-link" href="../../"><i class="ti ti-arrow-left"></i> Portal</a>
+  </header>
+
+  <div class="prize-banner" id="prize-banner">
+    <i class="ti ti-trophy"></i>
+    <div><strong id="prize-text">Premio: —</strong><br><span>2 grupos · investigan · debaten · un portavoz responde · rúbrica en vivo</span></div>
+  </div>
+
+  <!-- SETUP -->
+  <section id="screen-setup" class="panel">
+    <div class="panel-title"><i class="ti ti-settings"></i> CONFIGURAR CONCURSO</div>
+    <div class="setup-grid">
+      <div class="field"><label>GRUPO A</label><input type="text" id="team-a-name" value="Los Intrépidos" maxlength="28"></div>
+      <div class="field"><label>GRUPO B</label><input type="text" id="team-b-name" value="Los Audaces" maxlength="28"></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>PREMIO EN JUEGO</label><input type="text" id="prize-input" value="Cena grupal / día libre / $20 en efectivo" maxlength="80"></div>
+    <div class="setup-grid" style="margin-top:12px">
+      <div class="field"><label>MIN INVESTIGACIÓN</label><select id="research-min"><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option></select></div>
+      <div class="field"><label>SEG PRESENTACIÓN</label><select id="present-sec"><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">120 s</option></select></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>MODO TEMA</label><select id="topic-mode"><option value="bank">Banco Kamuk (sortear)</option><option value="custom">Tema + pregunta custom</option><option value="groups">Cada grupo propone su tema</option></select></div>
+    <button type="button" class="btn btn-hot" style="margin-top:16px" id="btn-start"><i class="ti ti-flame"></i> INICIAR CONCURSO</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="hidden">
+    <div class="panel">
+      <div class="scoreboard">
+        <div class="team-card a" id="card-a"><div class="team-name" id="disp-a">Grupo A</div><div class="team-score" id="score-a">0</div><div class="team-topic" id="topic-a"></div></div>
+        <div class="vs">VS</div>
+        <div class="team-card b" id="card-b"><div class="team-name" id="disp-b">Grupo B</div><div class="team-score" id="score-b">0</div><div class="team-topic" id="topic-b"></div></div>
+      </div>
+      <div class="phase-bar">
+        <div class="phase" data-ph="topic">TEMA</div>
+        <div class="phase" data-ph="research">INVESTIGAR</div>
+        <div class="phase" data-ph="present-a">GRUPO A</div>
+        <div class="phase" data-ph="present-b">GRUPO B</div>
+        <div class="phase" data-ph="score">RÚBRICA</div>
+      </div>
+    </div>
+
+    <!-- TOPIC PHASE -->
+    <div id="phase-topic" class="panel">
+      <div class="panel-title"><i class="ti ti-bulb"></i> FASE 1 — TEMA Y PREGUNTA</div>
+      <div id="topic-bank-ui" class="topic-pick"></div>
+      <div id="topic-custom-ui" class="hidden">
+        <div class="field"><label>TEMA</label><textarea id="custom-topic" placeholder="Ej: Remote work vs office return"></textarea></div>
+        <div class="field" style="margin-top:10px"><label>PREGUNTA / PROBLEMA (en inglés)</label><textarea id="custom-question" placeholder="Ej: Should companies force employees back to the office? Defend your group's position."></textarea></div>
+      </div>
+      <div id="topic-groups-ui" class="hidden">
+        <div class="setup-grid">
+          <div class="field"><label>TEMA GRUPO A</label><input type="text" id="group-topic-a" placeholder="Propone Grupo A"></div>
+          <div class="field"><label>TEMA GRUPO B</label><input type="text" id="group-topic-b" placeholder="Propone Grupo B"></div>
+        </div>
+        <div class="field" style="margin-top:10px"><label>PREGUNTA COMÚN (host)</label><textarea id="group-question" placeholder="Ej: Which side has the stronger argument for getting hired in a BPO?"></textarea></div>
+      </div>
+      <div class="topic-box hidden" id="topic-reveal">
+        <div class="label">TEMA EN JUEGO</div>
+        <div class="topic" id="live-topic">—</div>
+        <div class="question" id="live-question">—</div>
+      </div>
+      <ul class="rules-mini">
+        <li>Gracioso permitido — <strong>pero la respuesta debe resolver la pregunta</strong></li>
+        <li>Un solo portavoz por grupo · inglés obligatorio</li>
+        <li>Mínimo 2 linkers · 1 phrasal verb · 1 prefijo o sufijo</li>
+      </ul>
+      <button type="button" class="btn btn-gold" style="margin-top:12px" id="btn-lock-topic">CONFIRMAR TEMA → INVESTIGAR</button>
+    </div>
+
+    <!-- RESEARCH -->
+    <div id="phase-research" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-search"></i> FASE 2 — INVESTIGACIÓN</div>
+      <div class="topic-box"><div class="topic" id="research-topic">—</div><div class="question" id="research-question">—</div></div>
+      <div class="timer-hero">
+        <div class="timer-label">TIEMPO PARA INVESTIGAR · CELULAR OK · NOTAS OK</div>
+        <div class="timer-display" id="timer-research">15:00</div>
+      </div>
+      <p style="font-size:13px;text-align:center;color:rgba(255,255,255,.7)">Armen la respuesta en grupo. Elijan portavoz. Prepárense para defender en inglés.</p>
+      <div class="host-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-pause-research">Pausar</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-skip-research">Saltar → Presentación</button>
+      </div>
+    </div>
+
+    <!-- PRESENT A -->
+    <div id="phase-present-a" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-microphone"></i> GRUPO A — PORTAVOZ EN VIVO</div>
+      <div class="timer-hero">
+        <div class="timer-label" id="present-a-label">LOS INTRÉPIDOS · RESPONDE EN INGLÉS</div>
+        <div class="timer-display" id="timer-present-a">1:30</div>
+      </div>
+      <div class="host-actions">
+        <button type="button" class="btn btn-a" id="btn-start-a">▶ Iniciar timer A</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-done-a">Listo → Grupo B</button>
+      </div>
+    </div>
+
+    <!-- PRESENT B -->
+    <div id="phase-present-b" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-microphone"></i> GRUPO B — PORTAVOZ EN VIVO</div>
+      <div class="timer-hero">
+        <div class="timer-label" id="present-b-label">LOS AUDACES · RESPONDE EN INGLÉS</div>
+        <div class="timer-display" id="timer-present-b">1:30</div>
+      </div>
+      <div class="host-actions">
+        <button type="button" class="btn btn-b" id="btn-start-b">▶ Iniciar timer B</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-done-b">Listo → Rúbrica</button>
+      </div>
+    </div>
+
+    <!-- RUBRIC -->
+    <div id="phase-score" class="panel hidden">
+      <div class="panel-title"><i class="ti ti-list-check"></i> RÚBRICA — MARCA QUIÉN GANÓ CADA CRITERIO</div>
+      <p style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:10px">Johnny/trainers: ¿Quién cumplió mejor? Divertido OK — pero sin perder el foco en la pregunta.</p>
+      <div class="rubric" id="rubric"></div>
+      <div class="total-row"><span>TOTAL RONDA</span><span><span id="round-a">0</span> — <span id="round-b">0</span></span></div>
+      <div class="host-actions">
+        <button type="button" class="btn btn-gold" id="btn-apply-round">APLICAR PUNTOS · SIGUIENTE RONDA</button>
+        <button type="button" class="btn btn-hot" id="btn-finish">🏆 ENTREGAR PREMIO</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-reset">Reiniciar</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <h2 id="overlay-title">🏆 GANADORES</h2>
+    <p id="overlay-msg">—</p>
+    <button type="button" class="btn btn-gold" id="btn-overlay-close">Nueva competición</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  var TOPIC_BANK = [
+    { topic:'Remote work vs return to office', question:'Should companies force employees back to the office? Defend your group\'s position in 90 seconds — funny OK, but stay on topic.', vibe:'debate' },
+    { topic:'Double charge on customer account', question:'A client was charged twice and wants a refund TODAY. How does your team handle this call in English? Step by step.', vibe:'bpo' },
+    { topic:'Why hire YOU for bilingual customer service', question:'Give your group\'s best interview pitch: Why should we hire your representative?', vibe:'employability' },
+    { topic:'Deadline moved up 3 days', question:'Your supervisor moved the deadline up with no notice. What do you say and what\'s your plan?', vibe:'desk' },
+    { topic:'Layoffs in Costa Rica — tech sector', question:'Summarize what happened, why it matters, and what workers should do right now. 90 seconds.', vibe:'news' },
+    { topic:'TikTok vs studying English', question:'Is watching English content with subtitles helping or hurting? Your group must take a side and defend it.', vibe:'funny' },
+    { topic:'The worst boss ever (fiction OK)', question:'Describe the worst boss and how your group would deal with them professionally — in English, with humor.', vibe:'funny' },
+    { topic:'Open English / Hello Brete rejection', question:'You didn\'t get the scholarship. What\'s your comeback plan? Motivate the audience — real talk.', vibe:'conversatorio' },
+    { topic:'AI will replace call center agents', question:'True or false? Your group debates. Winner = clearest argument + best English.', vibe:'debate' },
+    { topic:'Monday morning energy', question:'Convince the room why Mondays are actually the BEST day to learn English. Be creative — stay coherent.', vibe:'funny' }
+  ];
+
+  var CRITERIA = [
+    { id:'clarity', label:'Claridad del mensaje', pts:2 },
+    { id:'duration', label:'Duración (dentro del rango)', pts:1 },
+    { id:'coherence', label:'Coherencia (inicio → cierre)', pts:2 },
+    { id:'linkers', label:'Linkers / connectors (mín. 2)', pts:2 },
+    { id:'phrasal', label:'Phrasal verbs usados', pts:1 },
+    { id:'affix', label:'Prefijos / sufijos', pts:1 },
+    { id:'accuracy', label:'Accuracy — responde la pregunta', pts:1 }
+  ];
+
+  var state = {
+    teamA:'Los Intrépidos', teamB:'Los Audaces', prize:'',
+    researchSec:900, presentSec:90, topicMode:'bank',
+    scoreA:0, scoreB:0, round:1,
+    topic:'', question:'',
+    rubric:{}, timers:{}
+  };
+
+  function fmt(sec){
+    var m = Math.floor(sec/60), s = sec % 60;
+    return m + ':' + (s<10?'0':'') + s;
+  }
+
+  function setPhase(ph){
+    ['topic','research','present-a','present-b','score'].forEach(function(p){
+      var el = document.querySelector('.phase[data-ph="'+p+'"]');
+      if(!el) return;
+      el.classList.remove('active','done');
+      var order = ['topic','research','present-a','present-b','score'];
+      var ci = order.indexOf(ph), pi = order.indexOf(p);
+      if(pi < ci) el.classList.add('done');
+      if(p === ph) el.classList.add('active');
+    });
+    ['phase-topic','phase-research','phase-present-a','phase-present-b','phase-score'].forEach(function(id){
+      $(id).classList.add('hidden');
+    });
+    var map = { topic:'phase-topic', research:'phase-research', 'present-a':'phase-present-a', 'present-b':'phase-present-b', score:'phase-score' };
+    $(map[ph]).classList.remove('hidden');
+    updateLead();
+  }
+
+  function updateLead(){
+    $('card-a').classList.toggle('lead', state.scoreA > state.scoreB);
+    $('card-b').classList.toggle('lead', state.scoreB > state.scoreA);
+    if(state.scoreA === state.scoreB){ $('card-a').classList.remove('lead'); $('card-b').classList.remove('lead'); }
+  }
+
+  function renderTopicBank(){
+    var box = $('topic-bank-ui');
+    box.innerHTML = '';
+    TOPIC_BANK.forEach(function(t,i){
+      var d = document.createElement('div');
+      d.className = 'topic-card';
+      d.innerHTML = '<h4>'+t.topic+'</h4><p>'+t.question+'</p><small style="opacity:.5">'+t.vibe+'</small>';
+      d.onclick = function(){
+        box.querySelectorAll('.topic-card').forEach(function(c){ c.classList.remove('selected'); });
+        d.classList.add('selected');
+        state.topic = t.topic;
+        state.question = t.question;
+      };
+      box.appendChild(d);
+    });
+    var rnd = TOPIC_BANK[Math.floor(Math.random()*TOPIC_BANK.length)];
+    state.topic = rnd.topic;
+    state.question = rnd.question;
+    box.children[TOPIC_BANK.indexOf(rnd)] && box.children[TOPIC_BANK.indexOf(rnd)].classList.add('selected');
+  }
+
+  function showTopicUI(){
+    var mode = state.topicMode;
+    $('topic-bank-ui').classList.toggle('hidden', mode !== 'bank');
+    $('topic-custom-ui').classList.toggle('hidden', mode !== 'custom');
+    $('topic-groups-ui').classList.toggle('hidden', mode !== 'groups');
+    if(mode === 'bank') renderTopicBank();
+  }
+
+  function lockTopic(){
+    if(state.topicMode === 'custom'){
+      state.topic = ($('custom-topic').value || '').trim();
+      state.question = ($('custom-question').value || '').trim();
+    } else if(state.topicMode === 'groups'){
+      var ta = ($('group-topic-a').value || '').trim();
+      var tb = ($('group-topic-b').value || '').trim();
+      state.topic = ta + ' vs ' + tb;
+      state.question = ($('group-question').value || '').trim();
+      $('topic-a').textContent = ta || '—';
+      $('topic-b').textContent = tb || '—';
+    }
+    if(!state.topic || !state.question){ alert('Tema y pregunta requeridos.'); return; }
+    $('live-topic').textContent = state.topic;
+    $('live-question').textContent = state.question;
+    $('topic-reveal').classList.remove('hidden');
+    $('research-topic').textContent = state.topic;
+    $('research-question').textContent = state.question;
+    setPhase('research');
+    startTimer('research', state.researchSec, $('timer-research'), function(){
+      setPhase('present-a');
+    });
+  }
+
+  function startTimer(name, sec, el, onDone){
+    clearInterval(state.timers[name]);
+    var left = sec;
+    el.textContent = fmt(left);
+    el.classList.remove('warn','danger');
+    state.timers[name] = setInterval(function(){
+      left--;
+      el.textContent = fmt(left);
+      if(left <= 10) el.classList.add('danger');
+      else if(left <= 30) el.classList.add('warn');
+      if(left <= 0){
+        clearInterval(state.timers[name]);
+        el.classList.remove('warn','danger');
+        if(onDone) onDone();
+      }
+    }, 1000);
+  }
+
+  function buildRubric(){
+    var box = $('rubric');
+    box.innerHTML = '';
+    state.rubric = {};
+    CRITERIA.forEach(function(c){
+      state.rubric[c.id] = null;
+      var row = document.createElement('div');
+      row.className = 'rubric-row';
+      row.innerHTML = '<label>'+c.label+'</label><span class="pts">'+c.pts+' pt'+(c.pts>1?'s':'')+'</span><div class="rubric-btns" data-id="'+c.id+'"></div>';
+      var btns = row.querySelector('.rubric-btns');
+      ['a','b','—'].forEach(function(who){
+        var b = document.createElement('button');
+        b.textContent = who === 'a' ? 'A' : who === 'b' ? 'B' : '—';
+        b.type = 'button';
+        b.onclick = function(){
+          btns.querySelectorAll('button').forEach(function(x){ x.className = ''; });
+          state.rubric[c.id] = who === '—' ? null : who;
+          if(who === 'a') b.classList.add('on-a');
+          else if(who === 'b') b.classList.add('on-b');
+          else b.classList.add('on-none');
+          updateRoundTotals();
+        };
+        btns.appendChild(b);
+      });
+      box.appendChild(row);
+    });
+  }
+
+  function updateRoundTotals(){
+    var a = 0, b = 0;
+    CRITERIA.forEach(function(c){
+      var w = state.rubric[c.id];
+      if(w === 'a') a += c.pts;
+      if(w === 'b') b += c.pts;
+    });
+    $('round-a').textContent = a;
+    $('round-b').textContent = b;
+    return { a:a, b:b };
+  }
+
+  function applyRound(){
+    var t = updateRoundTotals();
+    state.scoreA += t.a;
+    state.scoreB += t.b;
+    $('score-a').textContent = state.scoreA;
+    $('score-b').textContent = state.scoreB;
+    state.round++;
+    buildRubric();
+    if(state.topicMode === 'bank') renderTopicBank();
+    setPhase('topic');
+    $('topic-reveal').classList.add('hidden');
+  }
+
+  function finishGame(){
+    var title, msg;
+    if(state.scoreA > state.scoreB){
+      title = '🏆 ' + state.teamA + ' SE LLEVAN EL PREMIO';
+      msg = state.teamA + ' vence ' + state.scoreB + ' – ' + state.scoreA + '. Premio: ' + state.prize;
+    } else if(state.scoreB > state.scoreA){
+      title = '🏆 ' + state.teamB + ' SE LLEVAN EL PREMIO';
+      msg = state.teamB + ' vence ' + state.scoreA + ' – ' + state.scoreB + '. Premio: ' + state.prize;
+    } else {
+      title = '🤝 EMPATE — DESEMPATE';
+      msg = 'Ambos en ' + state.scoreA + '. Una ronda más o dividen el premio.';
+    }
+    $('overlay-title').textContent = title;
+    $('overlay-msg').textContent = msg;
+    $('overlay').classList.add('show');
+  }
+
+  $('btn-start').onclick = function(){
+    state.teamA = ($('team-a-name').value || 'Grupo A').trim();
+    state.teamB = ($('team-b-name').value || 'Grupo B').trim();
+    state.prize = ($('prize-input').value || 'Premio').trim();
+    state.researchSec = parseInt($('research-min').value,10) * 60;
+    state.presentSec = parseInt($('present-sec').value,10);
+    state.topicMode = $('topic-mode').value;
+    state.scoreA = state.scoreB = 0;
+    state.round = 1;
+    $('disp-a').textContent = state.teamA;
+    $('disp-b').textContent = state.teamB;
+    $('present-a-label').textContent = state.teamA + ' · RESPONDE EN INGLÉS';
+    $('present-b-label').textContent = state.teamB + ' · RESPONDE EN INGLÉS';
+    $('score-a').textContent = '0';
+    $('score-b').textContent = '0';
+    $('prize-text').textContent = 'Premio: ' + state.prize;
+    $('screen-setup').classList.add('hidden');
+    $('screen-game').classList.remove('hidden');
+    showTopicUI();
+    buildRubric();
+    setPhase('topic');
+  };
+
+  $('topic-mode').onchange = function(){ state.topicMode = this.value; showTopicUI(); };
+
+  $('btn-lock-topic').onclick = lockTopic;
+
+  $('btn-pause-research').onclick = function(){
+    clearInterval(state.timers.research);
+    $('btn-pause-research').textContent = 'Reanudar';
+    $('btn-pause-research').onclick = function(){
+      startTimer('research', parseInt($('timer-research').textContent.split(':')[0])*60 + parseInt($('timer-research').textContent.split(':')[1]), $('timer-research'), function(){ setPhase('present-a'); });
+      $('btn-pause-research').textContent = 'Pausar';
+    };
+  };
+  $('btn-skip-research').onclick = function(){
+    clearInterval(state.timers.research);
+    setPhase('present-a');
+  };
+
+  $('btn-start-a').onclick = function(){
+    startTimer('present-a', state.presentSec, $('timer-present-a'), function(){});
+  };
+  $('btn-done-a').onclick = function(){
+    clearInterval(state.timers['present-a']);
+    setPhase('present-b');
+  };
+  $('btn-start-b').onclick = function(){
+    startTimer('present-b', state.presentSec, $('timer-present-b'), function(){});
+  };
+  $('btn-done-b').onclick = function(){
+    clearInterval(state.timers['present-b']);
+    setPhase('score');
+  };
+
+  $('btn-apply-round').onclick = applyRound;
+  $('btn-finish').onclick = finishGame;
+  $('btn-reset').onclick = function(){ location.reload(); };
+  $('btn-overlay-close').onclick = function(){ location.reload(); };
+})();
+</script>
+</body>
+</html>
