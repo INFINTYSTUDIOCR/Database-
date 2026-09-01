@@ -30,7 +30,16 @@ FASE EJECUCIÓN — POST-GRAMÁTICA (Johnny · cuando el alumno YA sabe la teor�
 - must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna EXIGE to be (am/is/are gonna).
 - NO saltar a future perfect / would have hasta que el juego simple (modal+base) esté sólido.
 - hubiera / would have = posibilidad no realizada — NO "lección de pasado".
-- Inglés = piezas de puzzle reciclables, no materia escolar. Corrección en vivo. Listening sin subtítulos para forzar el oído.`;
+- Inglés = piezas de puzzle reciclables, no materia escolar. Corrección en vivo. Listening sin subtítulos para forzar el oído.
+
+CONFIRMACIÓN MODALES (Clase 010-B · post module-06):
+- Dos géneros: pedacitos will/would (ré/ría) vs palabras completas should/could/must/may/might.
+- should=debería · could=podría · must=obligación · may/might=puede que.
+- Have NO obligatorio con modal+base; solo con participio (should have gone).
+- PROHIBIDO modal+verbo pasado (should came / will went).
+- Método espejo/moneda (~90%): modal IZQUIERDA del pronombre = pregunta; DERECHA = afirmación.
+- even: con negación = ni siquiera (shouldn't even go); sin negación = tan siquiera/at least (should even call).
+- Pieza + pieza — no oración eterna. Overthinking → cortar y repetir chunk.`;
 
 let _canonDigest = null;
 let _voicePack = null;
@@ -73,6 +82,8 @@ function loadModuleCanonTranscript(trackId) {
     progressive: 'module-05-gerundio.txt',
     gerund_prep: 'module-05-gerundio.txt',
     modales: 'module-06-will-would.txt',
+    modales_espejo: 'module-06b-modales-espejo-even.txt',
+    modales_confirmacion: 'module-06b-modales-espejo-even.txt',
     future: 'module-06-will-would.txt',
     future_perfect: 'module-06-will-would.txt',
     prepositions: 'module-07-preposiciones.txt',
@@ -107,7 +118,7 @@ function trackVoiceBlock(trackId) {
   const ask = v && v.exampleAsk ? `\nCIERRE ORAL: ${v.exampleAsk}` : '';
   const id = String(trackId || '').trim();
   let exec = '';
-  if (/^(modales|modal|future|future_perfect|modal_have)/.test(id)) {
+  if (/^(modales|modales_espejo|modales_confirmacion|modal|future|future_perfect|modal_have)/.test(id)) {
     const struct = loadJsonSafe('config', 'jill-structure-canon.json') || loadJsonSafe('..', 'config', 'jill-structure-canon.json');
     if (struct && struct.executionPhase && Array.isArray(struct.executionPhase.rules)) {
       exec = `\nFASE EJECUCIÓN (post-gramática Johnny — aplicar si ya sabe la teoría):\n- ${struct.executionPhase.rules.join('\n- ')}`;
@@ -157,7 +168,7 @@ function getCanonDigest(maxLen, lockedTrackId) {
   const lines = ['CANON LOCAL (Foundations — siempre disponible aunque Super Brain falle):'];
   if (pack.globalVoice) lines.push('VOZ GLOBAL: ' + pack.globalVoice);
   // Guiones orales primero (prioridad: no se cortan por maxLen)
-  const critical = ['gerundio', 'progressive', 'gerund_prep', 'past', 'modales', 'there', 'negations', 'prepositions'];
+  const critical = ['gerundio', 'progressive', 'gerund_prep', 'past', 'modales', 'modales_espejo', 'there', 'negations', 'prepositions'];
   lines.push('GUIONES ORALES CLAVE (clase John — DEBES HABLAR ASÍ — SOLO el tema pedido del turno):');
   if (pack.lessons && pack.lessons.getItStraightIng && (pack.lessons.getItStraightIng.say || pack.lessons.getItStraightIng.full)) {
     lines.push('LECCION CANONICA ING (solo si pidieron gerundio/ING — sin nombres internos): ' + String(pack.lessons.getItStraightIng.full || pack.lessons.getItStraightIng.say).slice(0, 900));

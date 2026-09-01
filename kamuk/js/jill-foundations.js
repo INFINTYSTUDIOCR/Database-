@@ -175,6 +175,8 @@
     future_perfect: { id: 'will-would', path: 'assets/canon/will-would.svg', title: 'Clase 010 · WILL + HAVE + PP' },
     modal: { id: 'moneda', path: 'assets/canon/moneda.svg', title: 'Metodo moneda (inversion)' },
     modales: { id: 'modales', path: 'assets/canon/modales.svg', title: 'Pronombre + Modal + Verbo' },
+    modales_espejo: { id: 'modales_espejo', path: 'assets/canon/moneda.svg', title: 'Clase 010-B · Espejo modal + even' },
+    modales_confirmacion: { id: 'modales_espejo', path: 'assets/canon/moneda.svg', title: 'Clase 010-B · Confirmación modales' },
     modal_have_been: { id: 'modal-have-been-ing', path: 'assets/canon/modal-have-been-ing.svg', title: 'Pronombre + Modal + Have Been + Verbo ING' },
     modal_have_pp: { id: 'modal-have-pp', path: 'assets/canon/modal-have-pp.svg', title: 'Modal + Have + Participio' },
     there: { id: 'there-existencial', path: 'assets/canon/there-existencial.svg', title: 'There is / There are / To Have / Exist' },

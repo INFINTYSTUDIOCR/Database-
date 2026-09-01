@@ -650,6 +650,42 @@
       "bridge": "Puente Módulo 6 / Clase 010: WILL=RÉ (va a pasar de verdad); WOULD=RÍA (hipotético). Todos los modales van con verbo base sin TO. El sistema culmina en WILL + HAVE + PARTICIPIO, con BY como momento límite."
     },
     {
+      "id": "modales_espejo",
+      "svg": "assets/canon/moneda.svg",
+      "title": "Clase 010-B — Confirmación modales espejo / even",
+      "formula": "pedacitos will/would vs palabras completas should/could/must · modal izq=pregunta · der=afirmación · even=siquiera",
+      "example": "Should she go? / She should go. / I shouldn't even go.",
+      "never": [
+        "reinstalar will/ré desde cero (eso es module-06)",
+        "future perfect / would have antes de gate",
+        "modal + verbo pasado (should came)",
+        "have sin participio con should/could",
+        "cortar o reescribir el guion canon module-06b"
+      ],
+      "aliases": [
+        "modales espejo",
+        "confirmacion modales",
+        "confirmación modales",
+        "metodo espejo modal",
+        "moneda modal",
+        "modal a la izquierda",
+        "even siquiera",
+        "ni siquiera",
+        "tan siquiera",
+        "dos generos modales",
+        "dos géneros modales",
+        "pedacitos modales",
+        "palabras completas modales",
+        "clase 010b",
+        "clase 10b",
+        "modulo 6b",
+        "módulo 6b",
+        "should even",
+        "shouldn't even"
+      ],
+      "bridge": "Puente Módulo 6-B: post-teoría — confirmar dominio. Pedacitos will/would (ré/ría) vs palabras completas should/could/must/may/might. Moneda modal (~90%): modal ANTES del pronombre = pregunta; DESPUÉS = afirmación. even + NOT = ni siquiera; even sin NOT = tan siquiera/at least. Have solo con participio. Prohibido modal+pasado."
+    },
+    {
       "id": "modal",
       "svg": "assets/canon/moneda.svg",
       "title": "Metodo moneda (inversion)",

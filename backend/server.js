@@ -343,6 +343,8 @@ const SuperBrain = require('./super-brain');
 const JillDrillBrain = require('./jill-drill-brain');
 const InfinityVictory = require('./infinity-victory');
 const JohnDoctrine = require('./john-teaching-doctrine');
+const MethodRouter = require('./method-router');
+const JillTutorPath = require('./jill-tutor-path');
 const SharedLearner = require('./shared-learner');
 const KpiHistory = require('./kpi-history');
 const ProductUsage = require('./product-usage-store');
@@ -3098,7 +3100,7 @@ TABLERO VISUAL (el portal lo dibuja — NUNCA leas las etiquetas [[...]] en voz)
 Cuando ENSEÑES estructura, ELEGÍ el tablero que coincide con ESTA explicación y al final en líneas nuevas:
 [[CTYPE:whiteboard]]
 [[BOARD:track_id]]
-Tracks válidos: present, past, progressive, perfect, combined, future, future_perfect, modal, modales, modal_have_been, modal_have_pp, there, if_was_were, irregular_verbs, prepositions, prepositions_time, gerundio, gerund_prep, negations, comparatives, articles, have_had, pronouns, overview.
+Tracks válidos: present, past, progressive, perfect, combined, future, future_perfect, modal, modales, modales_espejo, modales_confirmacion, modal_have_been, modal_have_pp, there, if_was_were, irregular_verbs, prepositions, prepositions_time, gerundio, gerund_prep, negations, comparatives, articles, have_had, pronouns, overview.
 Si el track no encaja, DISEÑÁ el pizarrón:
 [[BOARD_DESIGN:Título corto|Fórmula clara|Ejemplo bueno|Error típico ✗|Tu turno]]
 Podés cambiar de tablero cuando cambie el tema del turno. NO leás el pizarrón fila por fila en voz.`;
@@ -3132,17 +3134,23 @@ function jillProWantsExplain(message) {
 }
 /**
  * Portal canonTrackId is sticky across practice turns.
- * Inventing a track from casual English (will/have/go) floods the chat with unsolicited lessons.
+ * Method Router also reads Training Book when no explicit topic switch.
  */
-function resolveJillLockedTrackId(message, canonTrackId, stickyTopic) {
-  if (canonTrackId) return String(canonTrackId);
-  if (!jillIsExplicitTeachTurn(message)) return null;
+function resolveJillLockedTrackId(message, canonTrackId, stickyTopic, student) {
   try {
-    if (JillCanonRouter.resolveAskId) {
-      return JillCanonRouter.resolveAskId(message, stickyTopic || '') || null;
-    }
+    JillTutorPath.ensureProgress(student);
+    JillTutorPath.syncBundleFromPath(student);
   } catch (_) { /* ignore */ }
-  return null;
+  const lock = MethodRouter.resolveLockedTrackId({
+    message,
+    canonTrackId,
+    stickyTopic,
+    student,
+    persona: 'jill',
+    explicitTeach: jillIsExplicitTeachTurn(message),
+    isCompanion: false
+  });
+  return lock.id;
 }
 function buildJillHardTrackLock(lockedTrack, fullTeach) {
   if (!lockedTrack) return '';
@@ -3493,7 +3501,10 @@ async function prepareNexoraRequest(body, req) {
   }
   const hist = (history || []).slice(-14);
   const msgs = buildTutorChatMessages(hist, message, 14);
-  const sharedBrain = await loadSuperBrainContextFast(msgStr, student, 'nexora');
+  const sharedBrain = await loadSuperBrainContextFast(msgStr, student, 'nexora', {
+    explicitTeach: false,
+    isCompanion: false
+  });
   const learnerNote = SharedLearner.buildSharedLearnerNote(student);
   const finalPrompt = [prompt, sharedBrain.prompt, learnerNote].filter(Boolean).join('');
   return {
@@ -5142,9 +5153,20 @@ React, one follow-up. Mini-lesson only if they ask or structure breaks.`
         : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Key connectors: however, on top of that, even though, therefore, besides, so far, in other words, rather than, figure out, as long as. Help students use these naturally — give examples, show them how.\n\n${ALICE_COACHING_RULES}`;
 
+    const aliceChatExplicit = companion
+      ? (companionPhase === 'doubt_explain' || Companion.isEnglishDoubtRequest(message))
+      : true;
     const sharedBrain = companion
-      ? await loadSuperBrainContextFast(message, student, 'alice', { timeoutMs: 800 })
-      : await loadSuperBrainContext(message, student, 'alice');
+      ? await loadSuperBrainContextFast(message, student, 'alice', {
+        timeoutMs: 800,
+        isCompanion: true,
+        explicitTeach: aliceChatExplicit,
+        stickyTopic: topicHint || ''
+      })
+      : await loadSuperBrainContext(message, student, 'alice', {
+        explicitTeach: true,
+        stickyTopic: topicHint || ''
+      });
     const knowledgeSlice = sharedBrain.prompt;
 
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
@@ -5698,14 +5720,25 @@ app.post('/jill', requireProductAuth, async (req, res) => {
             : null)
           : null)
         || null)
-      : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '');
+      : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '', student);
     const lockedTrackChat = lockedTrackIdChat && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackIdChat)
       : null;
     const hardLockChat = buildJillHardTrackLock(lockedTrackChat, explicitTeachChat);
+    const methodRouteChat = MethodRouter.buildRoute({
+      student,
+      persona: 'jill',
+      message,
+      canonTrackId: lockedTrackIdChat,
+      stickyTopic: companionTopic || topicHint || '',
+      explicitTeach: explicitTeachChat,
+      isCompanion: isJillCompanion
+    });
     const sharedBrain = await loadSuperBrainContext(message, student, 'jill', {
       canonTrackId: lockedTrackIdChat,
-      allowPickTrack: explicitTeachChat
+      stickyTopic: companionTopic || topicHint || '',
+      explicitTeach: explicitTeachChat,
+      isCompanion: isJillCompanion
     });
     const doctrineChat = sharedBrain.prompt;
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}:sb:${sharedBrain.revision}`);
@@ -5753,8 +5786,11 @@ app.post('/jill', requireProductAuth, async (req, res) => {
     const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
     const parsed = parseJillResponse(raw);
     if (brain.hash && parsed?.reply) await Brain.brainSetLLM(brain.hash, 'jill', 'chat', message, raw, levelExtra);
+    const methodScore = MethodRouter.scoreTurn(parsed?.reply || raw, methodRouteChat);
+    res.set('X-Method-Score', String(methodScore.score));
+    res.set('X-Method-Track', methodScore.lockedTrackId || '');
     res.set('X-Brain-LLM', 'MISS');
-    return res.json(parsed);
+    return res.json({ ...parsed, methodScore });
 
   } catch (err) {
     console.error('Jill error:', err.message, err.status);
@@ -5763,7 +5799,7 @@ app.post('/jill', requireProductAuth, async (req, res) => {
 });
 
 // ── STREAMING HELPER ─────────────────────────────────────────
-async function streamAnthropicSSE(res, { model, max_tokens, system, messages, brainMeta }) {
+async function streamAnthropicSSE(res, { model, max_tokens, system, messages, brainMeta, onComplete }) {
   res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -5838,6 +5874,9 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
       brainMeta.extra
     ).catch(() => {});
   }
+  if (typeof onComplete === 'function') {
+    try { onComplete(fullText); } catch (_) { /* ignore */ }
+  }
   res.end();
 }
 
@@ -5867,11 +5906,20 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
             : null)
           : null)
         || null)
-      : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '');
+      : resolveJillLockedTrackId(message, canonTrackId, companionTopic || topicHint || '', student);
     const lockedTrack = lockedTrackId && JillCanonRouter.trackById
       ? JillCanonRouter.trackById(lockedTrackId)
       : null;
     const hardTrackLock = buildJillHardTrackLock(lockedTrack, explicitTeach);
+    const methodRouteStream = MethodRouter.buildRoute({
+      student,
+      persona: 'jill',
+      message,
+      canonTrackId: lockedTrackId,
+      stickyTopic: companionTopic || topicHint || '',
+      explicitTeach,
+      isCompanion: isJillCompanion
+    });
     const companionBlock = isJillCompanion
       ? '\n\n' + JillPro.buildJillProCoachBlock(student, topicHint) + hardTrackLock
       : hardTrackLock;
@@ -5928,7 +5976,9 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
     const msgs = buildTutorChatMessages(history, message, 20);
     const sharedBrain = await loadSuperBrainContextFast(message, student, 'jill', {
       canonTrackId: lockedTrackId,
-      allowPickTrack: explicitTeach
+      stickyTopic: companionTopic || topicHint || '',
+      explicitTeach,
+      isCompanion: isJillCompanion
     });
     const jillDoctrineSlice = sharedBrain.prompt;
     const levelExtra = brainScopeExtra(student, req, `${level}:${JILL_BRAIN_VER}${isJillCompanion ? ':' + JillPro.JILL_PRO_BRAIN_VER : ''}:sb:${sharedBrain.revision}`);
@@ -5981,7 +6031,15 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
         ? `${jillCompanionSystem}\n\n${teachInstr}${boardTail}\nAl final, línea nueva: ${explicitTeach ? '[[CTYPE:whiteboard]] y [[BOARD:…]] o [[BOARD_DESIGN:…]]' : '[[CTYPE:text]]'}. Jill Pro puede explicar TODO. NEVER cut off mid-sentence.`
         : `${jillCompanionSystem}\n\nFASE: tutor\n\n${teachInstr}${boardTail}\nAl final de tu respuesta, en una línea nueva: ${explicitTeach && lockedTrack ? '[[CTYPE:whiteboard]] + [[BOARD:' + lockedTrack.id + ']] (o BOARD_DESIGN si el SVG no aplica)' : '[[CTYPE:text]] o [[CTYPE:exercise]] o [[CTYPE:example]]'} según el turno. NEVER cut off mid-sentence.`,
       messages: msgs,
-      brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra }
+      brainMeta: { hash: brain.hash, tutor: 'jill', intent: 'stream', message, extra: levelExtra },
+      onComplete: (fullText) => {
+        try {
+          const methodScore = MethodRouter.scoreTurn(fullText, methodRouteStream);
+          if (methodScore && typeof methodScore.score === 'number') {
+            res.write(`\n[[METHOD_SCORE:${methodScore.score}]]`);
+          }
+        } catch (_) { /* ignore */ }
+      }
     });
   } catch (err) {
     console.error('Jill stream error:', err.message);
@@ -5998,48 +6056,70 @@ app.post('/jill/stream', requireProductAuth, async (req, res) => {
 async function loadSuperBrainContext(message, student, persona, opts) {
   const who = ['alice', 'jill', 'claire', 'nexora'].includes(persona) ? persona : 'alice';
   const options = opts && typeof opts === 'object' ? opts : {};
+  const route = MethodRouter.buildRoute({
+    student,
+    persona: who,
+    message,
+    canonTrackId: options.canonTrackId,
+    stickyTopic: options.stickyTopic || '',
+    explicitTeach: options.explicitTeach,
+    isCompanion: options.isCompanion
+  });
   const learner = SharedLearner.buildSharedLearnerNote(student);
   const autonomy = Autonomy.buildEnforceNote(student, who);
   const drillGlobal = await JillDrillBrain.getPropagatedDrillContext(600).catch(() => '');
   const drillStudent = student && who === 'jill' ? JillDrillBrain.getStudentDrillNote(student) : '';
-  let trackVoice = '';
-  let lockedId = options.canonTrackId || null;
-  if (who === 'jill') {
+  let tutorPathBlock = '';
+  if (who === 'jill' && !options.isCompanion && student) {
     try {
-      if (!lockedId && options.allowPickTrack) {
-        const hit = JillCanonRouter.pickTrack(String(message || ''));
-        if (hit) lockedId = hit.id;
-      }
-      if (lockedId) trackVoice = JohnDoctrine.trackVoiceBlock(lockedId) || '';
+      JillTutorPath.ensureProgress(student);
+      JillTutorPath.syncBundleFromPath(student);
+      tutorPathBlock = JillTutorPath.formatDeliveryBlock(student) || '';
+    } catch (_) { /* ignore */ }
+  }
+  const lockedId = route.lockedTrackId || options.canonTrackId || null;
+  let trackVoice = '';
+  if (who === 'jill' && lockedId) {
+    try {
+      trackVoice = JohnDoctrine.trackVoiceBlock(lockedId) || '';
     } catch (_) { /* ignore */ }
   }
   if (!SuperBrain.isSuperBrainEnabled()) {
-    const merged = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
+    const merged = [tutorPathBlock, route.deliveryBlock, trackVoice, drillStudent, drillGlobal, learner, autonomy]
+      .filter(Boolean).join('\n');
     return {
       prompt: JohnDoctrine.wrapKnowledgeSlice(
-        merged ? `LEARNER + DRILL BRAIN + GUION JOHN:\n${merged}` : '',
+        merged ? `METHOD ROUTER + LEARNER + DRILL + GUION JOHN:\n${merged}` : route.deliveryBlock,
         who,
         lockedId
       ),
-      revision: 'disabled'
+      revision: 'disabled',
+      methodRoute: route.meta
     };
   }
   try {
-    const snapshot = await SuperBrain.getPropagatedContextSnapshot(String(message || '').slice(0, 400), 4500);
+    const snapshot = await SuperBrain.getPropagatedContextSnapshot(route.superBrainQuery, 4500);
     let body = snapshot.context.trim()
       ? `INSTITUTIONAL KNOWLEDGE (Nexus Super Brain — one feed shared by Alice, Jill, Claire and Nexora):\nJOHNNY 3-LAYER RULE: Use published pedagogy, delivery and structures while keeping the ${who.toUpperCase()} identity, voice and role unchanged.\nPROACTIVE RULE: Prefer published class doctrine language. Local john-voice-scripts win on Foundations tracks. Si hay TRACK LOCK: SOLO ese tema — no panorama F0.\n${snapshot.context}`
       : '';
     if (who === 'jill' && body) body = filterJillSuperBrainContext(body, lockedId);
-    const extras = [trackVoice, drillStudent, drillGlobal, learner, autonomy].filter(Boolean).join('\n');
+    const extras = [tutorPathBlock, route.deliveryBlock, trackVoice, drillStudent, drillGlobal, learner, autonomy]
+      .filter(Boolean).join('\n\n');
     if (extras) body = [body, extras].filter(Boolean).join('\n\n');
     return {
       prompt: JohnDoctrine.wrapKnowledgeSlice(body, who, lockedId),
-      revision: snapshot.revision
+      revision: snapshot.revision,
+      methodRoute: route.meta
     };
   } catch {
     return {
-      prompt: JohnDoctrine.wrapKnowledgeSlice([trackVoice, learner, autonomy].filter(Boolean).join('\n') || '', who, lockedId),
-      revision: 'unavailable'
+      prompt: JohnDoctrine.wrapKnowledgeSlice(
+        [tutorPathBlock, route.deliveryBlock, trackVoice, learner, autonomy].filter(Boolean).join('\n') || route.deliveryBlock,
+        who,
+        lockedId
+      ),
+      revision: 'unavailable',
+      methodRoute: route.meta
     };
   }
 }
@@ -6047,30 +6127,46 @@ async function loadSuperBrainContext(message, student, persona, opts) {
 async function loadSuperBrainContextFast(message, student, persona, opts) {
   const who = ['alice', 'jill', 'claire', 'nexora'].includes(persona) ? persona : 'alice';
   const options = opts && typeof opts === 'object' ? opts : {};
-  let lockedId = options.canonTrackId || null;
-  if (who === 'jill' && !lockedId && options.allowPickTrack) {
-    try {
-      const hit = JillCanonRouter.pickTrack(String(message || ''));
-      if (hit) lockedId = hit.id;
-    } catch (_) { /* ignore */ }
-  }
+  const route = MethodRouter.buildRoute({
+    student,
+    persona: who,
+    message,
+    canonTrackId: options.canonTrackId,
+    stickyTopic: options.stickyTopic || '',
+    explicitTeach: options.explicitTeach,
+    isCompanion: options.isCompanion
+  });
+  const lockedId = route.lockedTrackId || options.canonTrackId || null;
   const learner = SharedLearner.buildSharedLearnerNote(student) || '';
   const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 2500;
   try {
     return await Promise.race([
-      loadSuperBrainContext(message, student, who, { ...options, canonTrackId: lockedId }),
+      loadSuperBrainContext(message, student, who, {
+        ...options,
+        canonTrackId: lockedId
+      }),
       new Promise((resolve) => setTimeout(
         () => resolve({
-          prompt: JohnDoctrine.fastFallbackBlock(who, lockedId, learner),
-          revision: `timeout-${Date.now()}`
+          prompt: JohnDoctrine.fastFallbackBlock(
+            who,
+            lockedId,
+            [route.deliveryBlock, learner].filter(Boolean).join('\n')
+          ),
+          revision: `timeout-${Date.now()}`,
+          methodRoute: route.meta
         }),
         timeoutMs
       ))
     ]);
   } catch {
     return {
-      prompt: JohnDoctrine.fastFallbackBlock(who, lockedId, learner),
-      revision: 'unavailable'
+      prompt: JohnDoctrine.fastFallbackBlock(
+        who,
+        lockedId,
+        [route.deliveryBlock, learner].filter(Boolean).join('\n')
+      ),
+      revision: 'unavailable',
+      methodRoute: route.meta
     };
   }
 }
@@ -6136,11 +6232,24 @@ STORY topics (horror/mystery/adventure/tales): tell it with atmosphere; finish t
 React, one follow-up. Mini-lesson only if they ask or structure breaks.`
         : `${ALICE_COMPANION_RULES}\n\n${Companion.buildCompanionCoachBlock(student, companionCfg, topicHint)}`)
       : `METHOD — NEXUS: Idea + Linker + Idea. Connectors: however, on top of that, even though, therefore, besides, so far, in other words.\n${ALICE_COACHING_RULES}`;
+    const aliceExplicitTeach = companion
+      ? (companionPhase === 'doubt_explain' || Companion.isEnglishDoubtRequest(message))
+      : true;
+    const methodRouteAlice = MethodRouter.buildRoute({
+      student,
+      persona: 'alice',
+      message,
+      stickyTopic: topicHint || '',
+      explicitTeach: aliceExplicitTeach,
+      isCompanion: companion
+    });
     const sharedBrain = await loadSuperBrainContextFast(
       message,
       student,
       'alice',
-      companion ? { timeoutMs: 800 } : undefined
+      companion
+        ? { timeoutMs: 800, isCompanion: true, explicitTeach: aliceExplicitTeach, stickyTopic: topicHint || '' }
+        : { explicitTeach: true, stickyTopic: topicHint || '' }
     );
     const knowledgeSlice = sharedBrain.prompt;
     const storyMood = /^(horror|mystery|adventure|stories|romance|entertainment)$/i.test(String(topicHint || ''));
@@ -6187,11 +6296,20 @@ EXERCISES:\n${tb || '(none yet)'}${sceneNote}${knowledgeSlice}`;
     const levelExtra = brainScopeExtra(student, req, `${student?.level || 'Functional'}:${ALICE_BRAIN_VER}:${companion ? Companion.COMPANION_BRAIN_VER : 'practice'}${companionFast ? ':fast' : ''}:sb:${sharedBrain.revision}`);
     const brain = await Brain.brainGetLLM('alice', 'stream', message, levelExtra);
     if (brain.hit) return Brain.writeBrainSSE(res, plainBrainReply(brain.reply));
+    res.set('X-Method-Track', methodRouteAlice.meta?.lockedTrackId || methodRouteAlice.meta?.primaryKpi || '');
     await streamAnthropicSSE(res, {
       max_tokens: companionFast ? companionFastTokens : 1200,
       system,
       messages: msgs,
-      brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra }
+      brainMeta: { hash: brain.hash, tutor: 'alice', intent: 'stream', message, extra: levelExtra },
+      onComplete: (fullText) => {
+        try {
+          const methodScore = MethodRouter.scoreTurn(fullText, methodRouteAlice);
+          if (methodScore && typeof methodScore.score === 'number') {
+            res.write(`\n[[METHOD_SCORE:${methodScore.score}]]`);
+          }
+        } catch (_) { /* ignore */ }
+      }
     });
   } catch (err) {
     console.error('Alice stream error:', err.message);
@@ -6365,7 +6483,10 @@ app.post('/claire', optionalAuth, async (req, res) => {
     const activeLock = claireDetectPartId(message, null) || (boardLock && /^toeic_/i.test(String(boardLock)) ? String(boardLock) : 'toeic_r5');
     const lockNote = `\nPART LOCK ACTIVO: ${clairePartLabel(activeLock)} (id=${activeLock}). No cambies de part ni mezcles Listening/Reading/Vocab hasta pedido explícito del estudiante.\n`;
 
-    const sharedBrain = await loadSuperBrainContextFast(message, claireStudent, 'claire');
+    const sharedBrain = await loadSuperBrainContextFast(message, claireStudent, 'claire', {
+      explicitTeach: false,
+      isCompanion: false
+    });
     const claireBrainExtra = `web:sb:${sharedBrain.revision}`;
     const brain = await Brain.brainGetLLM('claire', 'toeic-direct-v1', message, claireBrainExtra);
     if (brain.hit) {
@@ -6575,6 +6696,76 @@ app.post('/jill/drill/complete', requireProductAuth, async (req, res) => {
   } catch (err) {
     console.error('jill/drill/complete:', err.message);
     return res.status(500).json({ error: 'Drill complete failed' });
+  }
+});
+
+app.get('/jill/tutor-path', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    if (!student) return;
+    JillTutorPath.ensureProgress(student);
+    JillTutorPath.syncBundleFromPath(student);
+    await persistStudentLearningState(student);
+    return res.json({ ok: true, snapshot: JillTutorPath.snapshot(student) });
+  } catch (err) {
+    console.error('jill/tutor-path:', err.message);
+    return res.status(500).json({ error: 'Tutor path unavailable' });
+  }
+});
+
+app.post('/jill/tutor-path/advance', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, req.body?.student || null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    if (!student) return;
+    const stepId = req.body?.stepId
+      || JillTutorPath.getCurrentStep(student)?.id
+      || JillTutorPath.loadMap().startStepId;
+    const result = JillTutorPath.completeStep(student, stepId, {
+      force: !!req.body?.force,
+      anecdoteText: req.body?.anecdoteText || null
+    });
+    if (!result.ok) {
+      return res.status(400).json({ ok: false, error: result.error, checklist: result.checklist || null });
+    }
+    await persistStudentLearningState(student);
+    return res.json({
+      ok: true,
+      snapshot: JillTutorPath.snapshot(student),
+      nextStepId: result.nextStepId,
+      completedStepId: result.completedStepId
+    });
+  } catch (err) {
+    console.error('jill/tutor-path/advance:', err.message);
+    return res.status(500).json({ error: 'Tutor path advance failed' });
+  }
+});
+
+app.post('/jill/tutor-path/module-pass', requireProductAuth, async (req, res) => {
+  try {
+    let student = await loadStudentRecordForAuth(req, req.body?.student || null);
+    if (!student?.id) return res.status(403).json({ error: 'Student not found' });
+    student = await assertStudentTutorAccess(req, res, 'jill', student);
+    if (!student) return;
+    const moduleId = String(req.body?.moduleId || '').toUpperCase();
+    const score = Number(req.body?.score) || 0;
+    if (!/^M\d{3}$/.test(moduleId)) {
+      return res.status(400).json({ ok: false, error: 'moduleId inválido' });
+    }
+    JillTutorPath.recordModulePass(student, moduleId, score);
+    await persistStudentLearningState(student);
+    return res.json({
+      ok: true,
+      snapshot: JillTutorPath.snapshot(student),
+      moduleId,
+      score
+    });
+  } catch (err) {
+    console.error('jill/tutor-path/module-pass:', err.message);
+    return res.status(500).json({ error: 'Module pass failed' });
   }
 });
 
@@ -7405,7 +7596,10 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
 
     const msgs = buildTutorChatMessages(history, message, 14);
 
-    const sharedBrain = await loadSuperBrainContextFast(msgStr, scopedStudent, 'nexora');
+    const sharedBrain = await loadSuperBrainContextFast(msgStr, scopedStudent, 'nexora', {
+      explicitTeach: false,
+      isCompanion: false
+    });
     const learnerNote = SharedLearner.buildSharedLearnerNote(scopedStudent);
     if (sharedBrain.prompt) systemPrompt += sharedBrain.prompt;
     if (learnerNote) systemPrompt += learnerNote;

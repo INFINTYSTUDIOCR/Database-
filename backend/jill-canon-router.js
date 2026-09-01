@@ -160,6 +160,9 @@ function resolvePieceTrack(userAsk, stickyTopic) {
     if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
     return trackById('have_had') || trackById('perfect');
   }
+  if (/\b(espejo|siquiera|ni\s+siquiera|confirmaci[oó]n\s*modal|moneda\s*modal|even\s+go|dos\s+g[eé]neros|pedacitos|palabras\s*completas|010b|6b)\b/i.test(blob)) {
+    return trackById('modales_espejo') || trackById('modales');
+  }
   if (/\b(will|would|should|could|can|must)\b/.test(n)) return trackById('modales');
   if (/\b(do|does|did)\b/.test(n)) return trackById('negations') || trackById('modal');
   if (/\b(get|got|gotten)\b/.test(n)) return trackById('irregular_verbs');
@@ -222,6 +225,8 @@ function loadModuleCanonTranscript(trackId) {
     progressive: 'module-05-gerundio.txt',
     gerund_prep: 'module-05-gerundio.txt',
     modales: 'module-06-will-would.txt',
+    modales_espejo: 'module-06b-modales-espejo-even.txt',
+    modales_confirmacion: 'module-06b-modales-espejo-even.txt',
     future: 'module-06-will-would.txt',
     future_perfect: 'module-06-will-would.txt',
     prepositions: 'module-07-preposiciones.txt',
@@ -245,6 +250,13 @@ function loadVoiceScript(trackId) {
   const fromFile = loadModuleCanonTranscript(trackId);
   if (fromFile) {
     const id = String(trackId || '').trim();
+    if (id === 'modales_espejo' || id === 'modales_confirmacion') {
+      return {
+        say: fromFile,
+        mustSay: ['pedacitos', 'palabras completas', 'moneda', 'espejo', 'even', 'siquiera', 'debería', 'podría'],
+        exampleAsk: 'Invertí la moneda: They should go. → Should they go? Even: shouldn\'t even go = ni siquiera.'
+      };
+    }
     if (id === 'modales' || id === 'future' || id === 'future_perfect') {
       return {
         say: fromFile,
@@ -373,6 +385,18 @@ function formatLock(track) {
       'SOLO WILL/WOULD + modales de ESTA clase. PROHIBIDO panorama F0 de todos los tiempos.',
       'WILL=RÉ real; WOULD=RÍA hipotético; modal + verbo base sin TO; WILL+HAVE+PP; BY marca el límite.',
       'SEGUÍ EL GUION CANON module-06-will-would ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+    ],
+    modales_espejo: [
+      'ANTIMEZCLA — MÓDULO 6-B / CLASE 010-B CONFIRMACIÓN MODALES:',
+      'SOLO confirmación: dos géneros, moneda modal, even/siquiera, puente profesional.',
+      'Pedacitos will/would vs palabras completas should/could/must/may/might.',
+      'Modal izquierda=pregunta · derecha=afirmación. even+NOT=ni siquiera · sin NOT=tan siquiera.',
+      'PROHIBIDO modal+pasado (should came). Have solo con participio.',
+      'SEGUÍ EL GUION CANON module-06b-modales-espejo-even ÍNTEGRO SIN CORTAR NI REESCRIBIR.'
+    ],
+    modales_confirmacion: [
+      'ANTIMEZCLA — MÓDULO 6-B — mismo guion module-06b-modales-espejo-even.',
+      'Confirmación de dominio modales — no reinstalar will/ré desde cero.'
     ],
     modal: [
       'ANTIMEZCLA: moneda — AUX delante = pregunta.',

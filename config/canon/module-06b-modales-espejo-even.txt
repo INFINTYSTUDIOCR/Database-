@@ -1,0 +1,327 @@
+OPINIÓN ANTES DE EMPEZAR
+Esta clase NO es la instalación inicial de will/would — eso ya está en el Módulo 6 / Clase 010.
+Esta clase CONFIRMA dominio: dos géneros de modales, método espejo/moneda, even/siquiera, y el puente profesional.
+El estudiante ya conoce la teoría. Si no la conoce — volver a module-06-will-would.txt primero.
+Lo más importante aquí: distinguir pedacitos (will/would) de palabras completas (should/could/must/may/might), aplicar la moneda con modales, y dominar even sin mezclar tiempos imposibles.
+FASE POST-GRAMÁTICA = EJECUCIÓN PURA. Corrección en vivo. Pieza + pieza. No oración eterna.
+Vamos.
+________________________________________
+APERTURA — CONFIRMACIÓN DE DOMINIO
+________________________________________
+"Hola. ¿Cómo van?
+Hoy no abrimos el libro.
+Usted ya sabe modales — hoy confirmamos que los DOMINA.
+Primera pregunta — sin pensar mucho:
+¿Cuántos géneros de modales hay en inglés?
+Dos.
+Género uno — pedacitos: will y would.
+Género dos — palabras completas: should, could, must, may, might.
+¿Listo? Vamos a probarlo en vivo."
+________________________________________
+PARTE 1 — DOS GÉNEROS: PEDACITOS vs PALABRAS COMPLETAS
+________________________________________
+"GÉNERO UNO — PEDACITOS.
+En español — el futuro y el hipotético se pegan AL VERBO:
+Correré — corre + ré.
+Correría — corre + ría.
+En inglés — will y would van DELANTE del verbo. Son la cuña:
+I will run. — yo correré.
+I would run. — yo correría.
+Will y would = pedacitos. Mapean directo a ré y ría.
+El verbo en inglés NO cambia. La cuña hace el trabajo.
+
+GÉNERO DOS — PALABRAS COMPLETAS.
+Should, could, must, may, might — NO son sufijos.
+Son palabras enteras. Palabras completas.
+Should = debería — sugerencia. No es orden.
+Could = podría — probabilidad, capacidad hipotética, tono educado.
+Must = deber / tengo que — obligación fuerte. Orden.
+May = puede que — posibilidad o permiso formal.
+Might = podría remota — posibilidad más lejana. Educated could.
+
+Mapa rápido:"
+________________________________________
+Mostrar o escribir:
+________________________________________
+GÉNERO          MODAL      ESPAÑOL / EFECTO           TIPO
+Pedacito        will       ré / rás / remos / rán     futuro real / promesa
+Pedacito        would      ría                        hipotético / condición
+Palabra entera  should     debería                    sugerencia
+Palabra entera  could      podría                     probabilidad / educado
+Palabra entera  must       deber / obligación         orden fuerte
+Palabra entera  may        puede que                  posibilidad / permiso
+Palabra entera  might      podría (remota)            posibilidad lejana
+________________________________________
+"¿Notó la diferencia?
+Will y would — usted los siente como terminaciones en español.
+Should, could, must — usted los dice como palabras sueltas: debería, podría, deber.
+En inglés — igual. Palabra completa + verbo base.
+I should go. — yo debería ir.
+I could help. — yo podría ayudar.
+I must finish. — yo debo terminar.
+
+REGLA DE ORO — TODOS IGUAL:
+MODAL + VERBO BASE. Sin TO. Sin cambio en el verbo.
+will go · would go · should go · could go · must go.
+UNA unidad. Pegá A+B. Decilo."
+________________________________________
+PARTE 2 — HAVE NO ES OBLIGATORIO (SOLO CON PARTICIPIO)
+________________________________________
+"Error común — meter HAVE donde no va.
+Con should, could, must, may, might + verbo simple — NO hay have.
+I should go. — correcto.
+I should have go. — MAL. No existe.
+I could help. — correcto.
+I could have help. — MAL.
+
+¿Cuándo SÍ entra HAVE?
+Cuando necesita PARTICIPIO — la tercera columna.
+Should have gone — debería haber ido (pero no fue).
+Could have helped — podría haber ayudado (pero no ayudó).
+Must have finished — debió haber terminado.
+Estructura: MODAL + HAVE + PARTICIPIO.
+Solo cuando el sentido pide pasado completado o posibilidad no realizada.
+
+Para ESTA fase de confirmación — nos quedamos en modal + base.
+Should go. Could help. Must finish.
+Si el estudiante mete have sin participio — cortá en vivo:
+'Have solo con participio. Ahora: should + verbo. Decilo.'"
+________________________________________
+PARTE 3 — PROHIBIDO MEZCLAR MODAL FUTURO CON VERBO PASADO
+________________________________________
+"Regla que no negocia:
+Nunca mezclar modal con verbo en pasado donde no corresponde.
+
+MAL — NO EXISTE:
+I should came. — should + came (pasado) — IMPOSIBLE.
+She will went. — will + went — IMPOSIBLE.
+They could did it. — could + did — IMPOSIBLE.
+
+BIEN:
+I should go. — modal + base.
+She will go. — modal + base.
+They could do it. — modal + base.
+
+Si el estudiante dice 'should came' — no es 'mal inglés genérico'.
+Es mezclar cuña modal con tiempo pasado del verbo.
+Diagnóstico: 'Modal + verbo BASE. Came es pasado. Should go. Repetí.'
+
+Excepción controlada — solo modal + have + participio:
+I should have gone. — aquí gone es participio, no pasado suelto."
+________________________________________
+PARTE 4 — MÉTODO ESPEJO / MONEDA CON MODALES (~90%)
+________________________________________
+"Usted ya conoce la moneda con to be y did.
+Are you ready? — pregunta. You are ready. — afirmación.
+Hoy la extendemos a MODALES. Misma lógica. ~90% de precisión.
+
+REGLA:
+Modal a la IZQUIERDA del pronombre = PREGUNTA.
+Modal a la DERECHA del pronombre = AFIRMACIÓN.
+
+Veamos:"
+________________________________________
+Mostrar o escribir:
+________________________________________
+PREGUNTA (M|P)              AFIRMACIÓN (P|M)
+Will they have?             They will have.
+Should she go?              She should go.
+Could we help?              We could help.
+Would he come?              He would come.
+Must I finish?              I must finish.
+May they enter?             They may enter.
+Might it rain?              It might rain.
+________________________________________
+"¿Ve el patrón?
+Will delante de they → pregunta.
+Will después de they → afirmación.
+Funciona con should, could, would, must, may, might.
+No solo will.
+
+Práctica rápida — yo doy afirmación, usted invierte la moneda:"
+________________________________________
+"They will come." → "Will they come?"
+"She should study." → "Should she study?"
+"We could wait." → "Could we wait?"
+"He would agree." → "Would he agree?"
+"I must leave." → "Must I leave?"
+
+"Perfecto. Eso es confirmación de dominio.
+No teoría — ejecución. Invertí. Decilo. Siguiente."
+________________________________________
+PARTE 5 — EVEN = SIQUIERA
+________________________________________
+"Even en inglés con modales tiene dos caras — depende de la negación.
+
+CARA 1 — CON NEGACIÓN (estructura madre + even):
+Estructura madre: modal + negación + verbo.
+I shouldn't go. — no debería ir.
+Agregamos even DESPUÉS de la negación:
+I shouldn't even go. — ni siquiera debería ir.
+She couldn't even help. — ni siquiera podía ayudar.
+They wouldn't even try. — ni siquiera intentarían.
+
+Patrón ranura: P + M + NOT + even + V (+ C)
+Pronombre · Modal · Negación · even · Verbo · Complemento.
+
+CARA 2 — SIN NEGACIÓN (even = tan siquiera / at least / mínimo):
+I should even call. — tan siquiera debería llamar / at least I should call.
+We could even wait. — podríamos incluso esperar / mínimo podríamos esperar.
+He might even come. — hasta podría venir.
+
+Aquí even intensifica — no niega.
+Traducción operativa: tan siquiera · incluso · at least (mínimo).
+
+Rapid fire:"
+________________________________________
+"shouldn't go" + even → "shouldn't even go" (ni siquiera)
+"couldn't help" + even → "couldn't even help" (ni siquiera)
+"should call" + even → "should even call" (tan siquiera / at least)
+"might come" + even → "might even come" (incluso / hasta)
+________________________________________
+PARTE 6 — PUENTE PROFESIONAL: SHOULD I GO OR NOT
+________________________________________
+"En conversación real — especialmente trabajo — la duda es estructural:
+Should I go? — ¿debería ir?
+Should I not go? — ¿no debería ir?
+Should we wait or should we not wait?
+
+No traduzca palabra por palabra.
+Estructura: Should + pronombre + verbo (+ not)?
+Should I accept the offer?
+Should we schedule the meeting?
+Could you send the report? — tono educado con could.
+
+Entrenamiento de sala:
+Yo doy situación en español — usted arma la pregunta con moneda:
+'¿Debería ir a la reunión?' → Should I go to the meeting?
+'¿Podríamos esperar?' → Could we wait?
+'¿Debería llamar o no?' → Should I call or not?
+
+Pieza + pieza. Una pregunta. Una respuesta. No oración eterna."
+________________________________________
+PARTE 7 — COACHING PSICOLÓGICO (SALA JOHNNY)
+________________________________________
+"Tres patrones que veo en confirmación de dominio:
+
+1) OVERTHINKING — piensa demasiado, no suelta la boca.
+   Corte: 'Una pieza. Should go. Decilo.'
+   No más explicación. Ejecución.
+
+2) SALTAR DE TEMA — quiere pasar a future perfect, would have, otro módulo.
+   Corte: 'Estamos confirmando modal + base. Volvé.'
+   Gate: dominio simple antes de have + participio.
+
+3) BIEN LA PRIMERA VEZ, BLANCO DESPUÉS — ansiedad de performance.
+   No re-expliques. Repetí el mismo chunk tres veces seguidas.
+   'Should she go? — Should she go? — Should she go?'
+   Automatizar el patrón — no reabrir el libro.
+
+Listening: ver sin subtítulos. Oír el modal. Identificar moneda.
+¿Pregunta o afirmación? Modal izquierda o derecha?"
+________________________________________
+BATERÍA DE EJERCICIOS — CONFIRMACIÓN DE DOMINIO
+________________________________________
+EJERCICIO 1 — ¿Pedacito o palabra completa?
+Jill da el modal. Estudiante dice género y equivalencia española.
+________________________________________
+"will" → Pedacito · ré/rás/remos
+"would" → Pedacito · ría
+"should" → Palabra completa · debería (sugerencia)
+"could" → Palabra completa · podría
+"must" → Palabra completa · obligación
+"may/might" → Palabra completa · puede que / remoto
+________________________________________
+EJERCICIO 2 — Moneda con modales
+Afirmación → pregunta y viceversa.
+________________________________________
+"They should leave." → "Should they leave?"
+"Could he help?" → "He could help."
+"We would agree." → "Would we agree?"
+"Must she finish?" → "She must finish."
+________________________________________
+EJERCICIO 3 — Detectar error imposible
+________________________________________
+"She should came" → MAL · should + base · She should come.
+"I will went" → MAL · will + base · I will go.
+"They could did it" → MAL · could + base · They could do it.
+"I should have went" → MAL · have + participio · I should have gone.
+________________________________________
+EJERCICIO 4 — Even / siquiera
+________________________________________
+"No debería ni siquiera ir" → I shouldn't even go.
+"Ni siquiera podía ayudar" → He couldn't even help.
+"Tan siquiera debería llamar" → I should even call.
+"Podría incluso venir" → He might even come.
+________________________________________
+EJERCICIO 5 — Puente profesional oral
+Situación → una pregunta estructurada. Sin oración eterna.
+________________________________________
+"¿Debería aceptar la oferta?" → Should I accept the offer?
+"¿Podríamos reprogramar?" → Could we reschedule?
+"¿Debo terminar hoy?" → Must I finish today?
+"¿Debería ir o no?" → Should I go or not?
+________________________________________
+CRITERIOS DE DOMINIO — CLASE 010-B (CONFIRMACIÓN)
+________________________________________
+"Usted DOMINA esta confirmación cuando puede:
+☐ Distingue pedacitos (will/would) de palabras completas (should/could/must/may/might)
+☐ Mapea should=debería · could=podría · must=obligación · may/might=puede que
+☐ NO mete have con modal+base simple (solo con participio)
+☐ Detecta y corrige mezcla modal+verbo pasado imposible (should came)
+☐ Aplica moneda: modal izquierda=pregunta · derecha=afirmación (~90%)
+☐ Construye shouldn't even go (ni siquiera) vs should even call (tan siquiera/at least)
+☐ Ranura: P + M + NOT + even + V cuando corresponde
+☐ Produce preguntas profesionales: Should I…? Could we…? sin traducir palabra por palabra
+☐ Ejecuta en vivo sin overthinking — pieza + pieza, no oración eterna
+☐ Mantiene foco — no salta a would have / future perfect antes de gate
+
+Si falla uno — volvemos a ESE ejercicio. No avanzamos."
+________________________________________
+NOTAS PARA JILL — CONFIRMACIÓN MODALES ESPEJO
+________________________________________
+ANTES de abrir module-06b → confirmar que ya vio module-06 (teoría will/would).
+SI pide solo ré/ría / futuro perfecto → module-06-will-would.txt.
+SI pide confirmación / espejo / moneda modal / even / siquiera → ESTE guion.
+
+SI confunde géneros →
+  "Will y would = pedacitos. Should, could, must = palabras completas. ¿Cuál es?"
+
+SI mete have sin participio →
+  "Have solo con participio. Ahora: modal + base. Decilo."
+
+SI dice should came / will went →
+  "Modal + verbo BASE. Came/went es pasado suelto. Imposible aquí."
+
+SI pregunta sin invertir moneda →
+  "Modal ANTES del pronombre = pregunta. Invertí."
+
+SI even mal ubicado →
+  Con negación: M + NOT + even + V (shouldn't even go).
+  Sin negación: M + even + V (should even call).
+
+SI overthinking o salta de tema →
+  Coaching Johnny: una pieza · repetir chunk · volver al patrón activo · sin reabrir libro.
+
+SIEMPRE →
+  Post-gramática = ejecución pura.
+  Pieza + pieza — no oración eterna.
+  Corrección en vivo por ranuras P|M|V|C.
+  Puente español: debería/podría/deber ↔ should/could/must.
+  Moneda ~90%: izquierda=pregunta · derecha=afirmación.
+  Even: con NOT = ni siquiera · sin NOT = tan siquiera/at least.
+
+FASE CONFIRMACIÓN — POST-GRAMÁTICA (OBLIGATORIA)
+________________________________________
+CUÁNDO: después de module-06. El alumno conoce la teoría.
+AHORA: confirmar dominio — géneros, moneda, even, puente profesional.
+PROHIBIDO: volver a clase de gramática extensa; mezclar tiempos imposibles; oraciones eternas.
+
+REGLA MADRE: pieza + pieza. Modal+verbo = UNA unidad. Moneda = pregunta/afirmación.
+Gate: no abrir would have / future perfect hasta que esta confirmación esté sólida.
+
+NOTAS PARA JILL / ALICE / NEXORA:
+SI el alumno mezcla will con pasado → cortá · modal + base.
+SI pide significado antes de patrón → "Patrón. Ejecución. Decilo."
+SI funciona en drill pero se traba en conversación → chunk corto ×3 · mismo patrón.
+SIEMPRE → listening sin subtítulos · oír modal · identificar izquierda/derecha.

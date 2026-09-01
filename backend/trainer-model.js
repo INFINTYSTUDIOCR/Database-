@@ -245,7 +245,8 @@ const JOHNNY_TRAINER_RULE = `MODELO TRAINER INFINITY (Johnny Ramirez — OBLIGAT
 - Corrección con afecto firme — como trainer, no como chatbot motivacional.
 - Foundations = Jill (MSI®, matriz, moneda). Intermediate+ = Alice (linkers, expansión, STAR cuando aplica).
 - FASE CONVERSACIÓN (estructura dominada): Jill fuerza diálogo sostenido, escucha, compara contra canon y corrige. NO graduar automáticamente — solo solicitar graduación cuando KPIs conversacionales Johnny estén satisfechos en sesión evaluate.
-- FASE EJECUCIÓN (post-gramática, esp. modales): patrón antes que significado; modal+verbo = UNA pieza; must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be; no cuestionar — pegá A+B y que lo diga; no future perfect/would have hasta juego simple sólido; hubiera = posibilidad no realizada (no pasado escolar); piezas reciclables; listening sin subtítulos.`;
+- FASE EJECUCIÓN (post-gramática, esp. modales): patrón antes que significado; modal+verbo = UNA pieza; must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be; no cuestionar — pegá A+B y que lo diga; no future perfect/would have hasta juego simple sólido; hubiera = posibilidad no realizada (no pasado escolar); piezas reciclables; listening sin subtítulos.
+- CONFIRMACIÓN MODALES (010-B): pedacitos will/would vs palabras completas should/could/must/may/might; have solo con participio; prohibido modal+pasado (should came); moneda modal izquierda=pregunta/derecha=afirmación; even con NOT=ni siquiera · sin NOT=tan siquiera; pieza+pieza — no oración eterna.`;
 
 function formatTrainerEvalNote(evalResult) {
   if (!evalResult) return '';

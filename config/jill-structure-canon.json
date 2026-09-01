@@ -38,11 +38,78 @@
     { "id": "qty-count", "sigla": "QTY-C", "notation": "P + V + many/few/several/a lot of + plural", "example": "I have many books / few students / several meetings", "whiteboard": "I | have | several meetings" }
   ],
   "modalBridge": {
-    "will": { "es": "-RE (futuro)", "hint": "caminarÉ → I WILL walk", "example": "I will walk" },
-    "would": { "es": "-RÍA (condicional)", "hint": "caminarÍA → I WOULD walk", "example": "I would walk" },
-    "should": { "es": "debería", "hint": "debería → I SHOULD + verbo base", "example": "I should study" },
-    "can": { "es": "poder (presente)", "hint": "puedo → I CAN + base", "example": "I can work" },
-    "could": { "es": "podría", "hint": "podría → I COULD + base", "example": "I could help" }
+    "will": { "es": "-RE / -RÁS / -REMOS / -RÁN (futuro real · promesa)", "hint": "caminaré → I WILL walk — modal+verbo = UNA pieza; verbo base no cambia", "example": "I will walk", "force": "promise" },
+    "would": { "es": "-RÍA (hipotético)", "hint": "caminaría → I WOULD walk", "example": "I would walk", "force": "hypothesis" },
+    "should": { "es": "debería (sugerencia)", "hint": "sugerencia → I SHOULD + verbo base — NO orden", "example": "I should study", "force": "suggestion" },
+    "can": { "es": "poder (presente)", "hint": "puedo → I CAN + base", "example": "I can work", "force": "ability" },
+    "could": { "es": "podría (probabilidad / hipotético)", "hint": "probabilidad → I COULD + base", "example": "I could help", "force": "probability" },
+    "must": { "es": "orden / obligación fuerte", "hint": "orden → I MUST + base — NO sugerencia", "example": "I must finish", "force": "order" },
+    "may": { "es": "puede que / permiso formal", "hint": "posibilidad → It MAY rain", "example": "It may rain", "force": "possibility" },
+    "might": { "es": "podría remota / educated could", "hint": "posibilidad lejana → It MIGHT rain", "example": "It might rain", "force": "remote-possibility" },
+    "gonna": { "es": "futuro conversacional", "hint": "EXIGE to be: am/is/are gonna + base — sin to be no hay gonna", "example": "I am gonna go", "force": "going-to" },
+    "wouldHave": { "es": "hubiera (posibilidad no realizada)", "hint": "NO es lección de pasado — unrealized possibility; solo tras dominar modal+base simple", "example": "I would have gone", "force": "unrealized" }
+  },
+  "modalGenres": {
+    "title": "Dos géneros de modales — confirmación de dominio",
+    "suffixPieces": {
+      "label": "Pedacitos (sufijos ES → cuñas EN)",
+      "modals": ["will", "would"],
+      "es": "ré / rás / remos / rán · ría",
+      "rule": "Se ponen ANTES del verbo. Verbo base no cambia."
+    },
+    "completeWords": {
+      "label": "Palabras completas",
+      "modals": ["should", "could", "must", "may", "might"],
+      "es": "debería · podría · deber/obligación · puede que · podría remota",
+      "rule": "Palabra entera + verbo base. Have NO obligatorio salvo con participio."
+    },
+    "haveRule": "Modal + base: sin have. Modal + have + participio: should have gone · could have helped.",
+    "forbidden": "PROHIBIDO modal + verbo pasado suelto: should came · will went — NO EXISTE."
+  },
+  "modalCoinMethod": {
+    "title": "Método espejo/moneda con modales (~90%)",
+    "rule": "Modal a la IZQUIERDA del pronombre = PREGUNTA. Modal a la DERECHA del pronombre = AFIRMACIÓN.",
+    "examples": [
+      { "type": "question", "text": "Will they have?", "note": "Will (M) antes de they (P)" },
+      { "type": "answer", "text": "They will have.", "note": "will después de they" },
+      { "type": "question", "text": "Should she go?", "note": "Should antes de she" },
+      { "type": "answer", "text": "She should go.", "note": "should después de she" },
+      { "type": "question", "text": "Could we help?", "note": "Could antes de we" },
+      { "type": "answer", "text": "We could help.", "note": "could después de we" }
+    ],
+    "appliesTo": ["will", "would", "should", "could", "must", "may", "might"],
+    "canonModule": "module-06b-modales-espejo-even.txt"
+  },
+  "evenPattern": {
+    "title": "even = siquiera (con modales)",
+    "withNegation": {
+      "pattern": "P + M + NOT + even + V (+ C)",
+      "es": "ni siquiera",
+      "examples": ["I shouldn't even go.", "He couldn't even help.", "They wouldn't even try."]
+    },
+    "withoutNegation": {
+      "pattern": "P + M + even + V (+ C)",
+      "es": "tan siquiera / at least / incluso",
+      "examples": ["I should even call.", "We could even wait.", "He might even come."]
+    },
+    "motherStructure": "modal + negación primero (shouldn't go) — even amplifica después de NOT"
+  },
+  "executionPhase": {
+    "title": "Fase Ejecución — post-gramática (Johnny)",
+    "when": "Estudiante ya conoce la teoría de modales — puro patrón, pegue A+B, corrección en vivo.",
+    "rules": [
+      "Patrón / ejecución ANTES que significado o traducción",
+      "Modal + verbo = UNA unidad (will go, should keep, could maintain)",
+      "will ↔ terminaciones españolas ré/rás/remos/rán — verbo base no cambia en inglés",
+      "Español esconde sujeto/tiempo en el verbo; inglés es explícito — fuente de confusión",
+      "must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be",
+      "No saltar a future perfect / would have hasta que el juego simple esté sólido",
+      "hubiera/would have = posibilidad no realizada, NO lección de pasado",
+      "Inglés = piezas de puzzle reciclables, no materia escolar",
+      "Forzar habla: no cuestionar — pegar A+B — decirlo",
+      "Listening: analizar y ver sin subtítulos para forzar el oído",
+      "Confirmación 010-B: pedacitos vs palabras completas; moneda modal izq=pregunta/der=afirmación; even con NOT=ni siquiera; pieza+pieza sin oración eterna"
+    ]
   },
   "coinMethod": {
     "title": "Método de la Moneda",

@@ -153,6 +153,7 @@ function topicBucket(lesson) {
     ['fluidez', /\bfluidez|fluency/],
     ['000', /\b0\s*\/\s*0\s*\/\s*0|metodo\s*0/],
     ['msi', /\bmsi\b|have\s*participio/],
+    ['modales_espejo', /\bespejo|moneda\s*modal|confirmaci[oó]n\s*modal|even\s*siquiera|ni\s*siquiera|dos\s*g[eé]neros|pedacitos|palabras\s*completas/],
     ['modales', /\bmodal|will\s*\+|would|should|could|must|gonna|ejecuci[oó]n/],
     ['estructura', /\bestructur/],
     ['recovery', /\brecovery|rephrase|reformul/],
@@ -569,7 +570,10 @@ function buildStructureCanonText() {
     '- F0 progression: PR → PS → PC → PRP → PPC → MOD → MP → MC. Gate 100% before advance.',
     '- Will=-RE/-RÁS/-REMOS (caminaré→I WILL walk · promesa); Would=-RÍA; Should=sugerencia; Must=orden; Could=probabilidad; Gonna EXIGE to be (am/is/are gonna).',
     '- Modal+verbo = UNA unidad (will go / should keep). Post-teoría = FASE EJECUCIÓN: patrón antes que significado; pegá A+B; corrección en vivo; no future perfect hasta juego simple sólido; hubiera=posibilidad no realizada (no pasado escolar); piezas reciclables; listening sin subtítulos.',
-    '- Coin method: verb LEFT of pronoun = question; verb RIGHT = answer (WH-/imperative exceptions).',
+    '- Dos géneros modales: pedacitos will/would (ré/ría) vs palabras completas should/could/must/may/might. Have solo con participio (should have gone). PROHIBIDO modal+verbo pasado (should came).',
+    '- Modal coin (~90%): modal LEFT of pronoun = question (Will they have?); modal RIGHT = statement (They will have). Works with should/could/would/must/may/might.',
+    '- even/siquiera: shouldn\'t even go = ni siquiera; should even call = tan siquiera/at least. Ranura P+M+NOT+even+V.',
+    '- Coin method (to be/did): verb LEFT of pronoun = question; verb RIGHT = answer (WH-/imperative exceptions).',
     '- 16 core verbs + 3rd person -s in PR. Table format: I seem / He seems with Spanish bridge.',
     '- Articles/prepositions inside C; numbers 11-99 pattern after ten.',
     '- Notebook anecdote 15min → read → grammar+structure+coherence+pronunciation coaching.',
@@ -894,6 +898,12 @@ async function seedCanonTeachingModules() {
       canonKey: 'module-06-will-would',
       title: 'Jill Foundations M014 — Clase 010 WILL / WOULD',
       file: 'module-06-will-would.txt',
+      category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-06b-modales-espejo-even',
+      title: 'Jill Foundations M014-B — Confirmación modales espejo / even',
+      file: 'module-06b-modales-espejo-even.txt',
       category: 'jill-foundations'
     },
     {

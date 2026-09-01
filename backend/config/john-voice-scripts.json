@@ -124,6 +124,30 @@
       ],
       "exampleAsk": "¿Va a pasar de verdad o es hipotético? Real → WILL/RÉ; hipotético → WOULD/RÍA. Si se queda en significado: 'Patrón. Ejecución. Decí will + verbo.'"
     },
+    "modales_espejo": {
+      "say": "CANON MÓDULO 6-B / Clase 010-B — guion íntegro en config/canon/module-06b-modales-espejo-even.txt. CONFIRMACIÓN post-teoría: dos géneros (pedacitos will/would vs palabras completas should/could/must/may/might); have solo con participio; prohibido modal+pasado (should came); método espejo/moneda — modal izquierda=pregunta · derecha=afirmación; even con NOT=ni siquiera · sin NOT=tan siquiera/at least; pieza+pieza — no oración eterna.",
+      "mustSay": [
+        "pedacitos",
+        "palabras completas",
+        "moneda",
+        "espejo",
+        "even",
+        "siquiera",
+        "debería",
+        "podría"
+      ],
+      "exampleAsk": "Invertí la moneda: They should go. → ¿Pregunta? Should they go? Even: shouldn't even go = ni siquiera."
+    },
+    "modales_confirmacion": {
+      "say": "CANON MÓDULO 6-B — mismo guion module-06b-modales-espejo-even.txt. Confirmación de dominio modales: géneros, espejo, even, puente profesional Should I go or not.",
+      "mustSay": [
+        "confirmación",
+        "dominio",
+        "moneda",
+        "even"
+      ],
+      "exampleAsk": "¿Pedacito o palabra completa? ¿Modal a la izquierda o derecha del pronombre?"
+    },
     "modal": {
       "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",
       "mustSay": [

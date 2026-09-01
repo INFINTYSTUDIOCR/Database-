@@ -45,3 +45,4 @@ PARA JILL / ALICE / NEXORA
 - Preferí chunks orales cortos sobre explicación larga.
 - Corrección en vivo por ranura M|V: si el modal está, el verbo debe pegarse; si falta to be en gonna, nombralo.
 - Canon local: module-06-will-would.txt (sección FASE EJECUCIÓN) + modalBridge en jill-structure-canon.json.
+- Confirmación de dominio (Clase 010-B): module-06b-modales-espejo-even.txt + doctrine-modales-espejo-even.md — dos géneros, moneda modal, even/siquiera.

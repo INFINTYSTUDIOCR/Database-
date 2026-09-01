@@ -81,7 +81,9 @@
     preposiciones: 'prepositions',
     prepositions: 'prepositions',
     modales: 'modales',
-    // coin-method modal (separate from will/would class track "modales")
+    modales_espejo: 'modales_espejo',
+    modales_confirmacion: 'modales_espejo',
+    // coin-method to be/did (separate from will/would class track "modales")
     modal: 'modal',
     moneda: 'modal',
     irregular: 'irregular_verbs',
