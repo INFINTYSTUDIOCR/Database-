@@ -83,6 +83,9 @@
     modales: 'modales',
     modales_espejo: 'modales_espejo',
     modales_confirmacion: 'modales_espejo',
+    conversacion_libre: 'conversacion_libre',
+    free_talk: 'conversacion_libre',
+    conversatorio: 'conversacion_libre',
     // coin-method to be/did (separate from will/would class track "modales")
     modal: 'modal',
     moneda: 'modal',

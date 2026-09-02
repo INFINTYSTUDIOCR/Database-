@@ -54,6 +54,7 @@ const TB_TRACK_BLOB = [
   ['combined', /\b(have\s+been|had\s+been|been\s+\+\s*ing)\b/i],
   ['gerundio', /\b(gerundio|gerund|ing\b|ando|endo|to\s+be\s+\+\s*ing)\b/i],
   ['progressive', /\b(present\s+continuous|continuo|progressive)\b/i],
+  ['conversacion_libre', /\b(conversaci[oó]n\s*libre|free\s*talk|emoci[oó]n\s*real|conversatorio|tema\s*emocional|empat[ií]a|module\s*8|m016|012)\b/i],
   ['modales_espejo', /\b(espejo|siquiera|confirmaci[oó]n\s*modal|moneda\s*modal|even\s+go|010b|6b)\b/i],
   ['modales', /\b(modal|will|would|should|could|can|must|futuro)\b/i],
   ['future', /\b(future|futuro|will\s+have)\b/i],

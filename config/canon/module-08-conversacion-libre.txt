@@ -1,0 +1,119 @@
+OPINIÓN ANTES DE EMPEZAR
+Esta clase NO instala gramática nueva desde cero.
+Esta clase pone en BATALLA REAL las piezas que el estudiante ya tiene: modales, even, connectores, if were, vocabulario bajo presión.
+El tema es REAL — emoción, familia, salud, dinero, miedo. El inglés es el vehículo.
+FASE POST-GRAMÁTICA = conversación libre + corrección en vivo SIN matar el hilo.
+Ideal para Conversatorio / Topic Duel / soft skills BPO.
+Vamos.
+________________________________________
+APERTURA — INGLÉS COMO VEHÍCULO
+________________________________________
+"Hola. Hoy no abrimos el libro.
+Usted ya tiene piezas. Hoy las usa en una conversación REAL.
+Hablamos en inglés. Si se traba — una palabra en español, yo le doy la pieza, usted la dice, y seguimos el tema.
+No vamos a convertir su historia en una lección de pizarra.
+¿Qué le está pasando? Conteme — en inglés."
+________________________________________
+PARTE 1 — EL TEMA MANDA · USTED HABLA
+________________________________________
+"Primera regla: el tema es suyo.
+Familia, mascota, trabajo, plata, salud — lo que esté vivo hoy.
+Segunda regla: yo escucho y afilo.
+Si dice 'his age' y es 'her' — corto: her. Digalo. Seguimos.
+Si no encuentra la palabra — scaffold breve: ¿qué quiere decir? Yo le doy pee / bleed / veterinarian / kidney stones. Usted lo dice. Seguimos.
+
+NO:
+- Parar la conversación para dar 20 minutos de teoría.
+- Dejar que se quede 3 minutos en español sin volver a inglés.
+- Inventar escenarios peores por ella.
+
+SÍ:
+- Una corrección. Una pieza. De vuelta al hilo.
+- Empatía + precisión."
+________________________________________
+PARTE 2 — VOCABULARIO EN CONTEXTO (EJEMPLO: SALUD / MASCOTA)
+________________________________________
+"Cuando el tema es salud o una mascota enferma — estas piezas salen solos:
+
+pee / urine — orina
+bleed / bleeding — sangrar / sangrado
+kidney stones — piedras en el riñón
+veterinarian / vet — veterinario
+surgery / operation — cirugía
+appetite — apetito
+charity / free clinic — ayuda gratuita / campaña
+
+Ejercicio en vivo:
+Usted describe el problema en inglés — 4 oraciones.
+Yo marco solo las piezas rotas.
+Usted las repara y continúa."
+________________________________________
+PARTE 3 — PIEZAS QUE YA VIO · AHORA EN COMBATE
+________________________________________
+"EVEN / NI SIQUIERA
+Cuando niega que algo exista o sea posible:
+It doesn't even exist here.
+She can't even walk without pain.
+
+IF SHE WERE… (HIPOTÉTICO)
+Cuando proyecta un escenario:
+If she were a younger dog, maybe she could stand the surgery.
+If I were you, I would take her today.
+
+EITHER WAY
+Cuando el resultado es el mismo:
+Either way, the answer is going to be the same.
+
+BESIDES / IN ADDITION
+Cuando quiere decir 'además':
+Besides, we don't have the money.
+In addition, she still has a good appetite.
+
+THERE'S NOTHING WE CAN DO / DON'T MAKE UP SCENARIOS
+Aceptación sin inventar catástrofes:
+Don't start making scenarios in your head. Give it time.
+There's nothing else we can do right now except take her to the vet.
+
+Pegá la pieza. Digala. Volvé al tema."
+________________________________________
+PARTE 4 — COACHING HUMANO (PARTE DEL MÉTODO)
+________________________________________
+"Usted no es un chatbot de gramática.
+Cuando el alumno está asustado:
+1) Validá: I understand. Pets are family.
+2) Cortá la espiral: Don't invent the worst case before the doctor speaks.
+3) Hechos: Is she in pain? Appetite? How much bleeding?
+4) Acción clara: Take her to a veterinarian when you can. Look for charity options if money is tight.
+5) Inglés siempre: cada consejo se dice y se repite en inglés.
+
+El alumno sale con:
+- Claridad emocional
+- Piezas nuevas en el cuerpo
+- No solo catarsis"
+________________________________________
+PARTE 5 — PUENTE EMPLEABILIDAD / BPO
+________________________________________
+"Misma mecánica que una llamada difícil:
+Listen → Clarify → Options → Don't invent doom.
+Vocabulario preciso bajo emoción = desk English.
+Si puede hablar de su perra con claridad, puede hablar con un cliente enojado.
+That is the point."
+________________________________________
+CIERRE — CHECK-IN
+________________________________________
+"Antes de terminar:
+¿Cómo están los conectores hoy — un poco mejor?
+¿Pudo mantener el inglés cuando se emocionó?
+¿Qué pieza nueva se lleva? even / if she were / either way / veterinarian — diga una.
+
+Mañana o el sábado: Conversatorio o Topic Duel — mismo músculo, público.
+Gracias. Vamos."
+________________________________________
+NOTAS PARA EL TRAINER / IA
+________________________________________
+- Track: conversacion_libre
+- Canon: module-08-conversacion-libre.txt
+- Doctrina: doctrine-conversacion-libre.md
+- NO reinstalar will/ré desde cero aquí — si hace falta, apuntar a module-06 / 06b y volver al hilo.
+- Corrección: una pieza a la vez. Scaffold ES→EN. Empatía + precisión.
+- Relación Topic Duel / Conversatorio: esta clase es el ADN del live — gente hablando de verdad.

@@ -686,6 +686,39 @@
       "bridge": "Puente Módulo 6-B: post-teoría — confirmar dominio. Pedacitos will/would (ré/ría) vs palabras completas should/could/must/may/might. Moneda modal (~90%): modal ANTES del pronombre = pregunta; DESPUÉS = afirmación. even + NOT = ni siquiera; even sin NOT = tan siquiera/at least. Have solo con participio. Prohibido modal+pasado."
     },
     {
+      "id": "conversacion_libre",
+      "svg": "assets/canon/moneda.svg",
+      "title": "Clase 012 — Conversación libre / emoción real",
+      "formula": "tema real → habla EN → corrección 1 pieza → vuelve al hilo → check-in conectores",
+      "example": "She's bleeding a lot. / It doesn't even exist here. / If she were younger, maybe she could stand the surgery.",
+      "never": [
+        "convertir el tema emocional en lección de pizarra de 20 minutos",
+        "dejar al alumno 3+ minutos solo en español sin volver a inglés",
+        "reinstalar will/ré desde cero (apuntar a module-06 y volver al hilo)",
+        "inventar escenarios peores por el alumno",
+        "cortar o reescribir el guion canon module-08"
+      ],
+      "aliases": [
+        "conversacion libre",
+        "conversación libre",
+        "free talk",
+        "emocion real",
+        "emoción real",
+        "conversatorio",
+        "tema emocional",
+        "empatia pedagogica",
+        "empatía pedagógica",
+        "modulo 8",
+        "módulo 8",
+        "clase 012",
+        "clase 12",
+        "m016",
+        "mascota enferma",
+        "either way"
+      ],
+      "bridge": "Puente Módulo 8: post-teoría — conversación libre. Tema manda; inglés=vehículo. Corrección sin matar el hilo. Piezas en combate: even, if she were, either way, besides. Empatía+precisión. ADN Conversatorio / Topic Duel."
+    },
+    {
       "id": "modal",
       "svg": "assets/canon/moneda.svg",
       "title": "Metodo moneda (inversion)",

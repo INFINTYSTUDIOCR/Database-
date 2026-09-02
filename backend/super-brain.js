@@ -153,6 +153,7 @@ function topicBucket(lesson) {
     ['fluidez', /\bfluidez|fluency/],
     ['000', /\b0\s*\/\s*0\s*\/\s*0|metodo\s*0/],
     ['msi', /\bmsi\b|have\s*participio/],
+    ['conversacion_libre', /\bconversaci[oó]n\s*libre|free\s*talk|emoci[oó]n\s*real|conversatorio|tema\s*emocional|empat[ií]a\s*pedag/],
     ['modales_espejo', /\bespejo|moneda\s*modal|confirmaci[oó]n\s*modal|even\s*siquiera|ni\s*siquiera|dos\s*g[eé]neros|pedacitos|palabras\s*completas/],
     ['modales', /\bmodal|will\s*\+|would|should|could|must|gonna|ejecuci[oó]n/],
     ['estructura', /\bestructur/],
@@ -910,6 +911,12 @@ async function seedCanonTeachingModules() {
       canonKey: 'module-07-preposiciones',
       title: 'Jill Foundations M015 — Clase 011 IN / ON / AT + Preposiciones',
       file: 'module-07-preposiciones.txt',
+      category: 'jill-foundations'
+    },
+    {
+      canonKey: 'module-08-conversacion-libre',
+      title: 'Jill Foundations M016 — Conversación libre / emoción real',
+      file: 'module-08-conversacion-libre.txt',
       category: 'jill-foundations'
     }
   ];

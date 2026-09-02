@@ -160,6 +160,9 @@ function resolvePieceTrack(userAsk, stickyTopic) {
     if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
     return trackById('have_had') || trackById('perfect');
   }
+  if (/\b(conversaci[oó]n\s*libre|free\s*talk|emoci[oó]n\s*real|conversatorio|tema\s*emocional|empat[ií]a\s*pedag|module\s*8|m016)\b/i.test(blob)) {
+    return trackById('conversacion_libre');
+  }
   if (/\b(espejo|siquiera|ni\s+siquiera|confirmaci[oó]n\s*modal|moneda\s*modal|even\s+go|dos\s+g[eé]neros|pedacitos|palabras\s*completas|010b|6b)\b/i.test(blob)) {
     return trackById('modales_espejo') || trackById('modales');
   }
@@ -227,6 +230,9 @@ function loadModuleCanonTranscript(trackId) {
     modales: 'module-06-will-would.txt',
     modales_espejo: 'module-06b-modales-espejo-even.txt',
     modales_confirmacion: 'module-06b-modales-espejo-even.txt',
+    conversacion_libre: 'module-08-conversacion-libre.txt',
+    free_talk: 'module-08-conversacion-libre.txt',
+    conversatorio: 'module-08-conversacion-libre.txt',
     future: 'module-06-will-would.txt',
     future_perfect: 'module-06-will-would.txt',
     prepositions: 'module-07-preposiciones.txt',
@@ -255,6 +261,13 @@ function loadVoiceScript(trackId) {
         say: fromFile,
         mustSay: ['pedacitos', 'palabras completas', 'moneda', 'espejo', 'even', 'siquiera', 'debería', 'podría'],
         exampleAsk: 'Invertí la moneda: They should go. → Should they go? Even: shouldn\'t even go = ni siquiera.'
+      };
+    }
+    if (id === 'conversacion_libre' || id === 'free_talk' || id === 'conversatorio') {
+      return {
+        say: fromFile,
+        mustSay: ['vehículo', 'hilo', 'even', 'if she were', 'either way', 'empatía', 'conectores'],
+        exampleAsk: 'Contame un tema real en inglés. Yo corrijo una pieza y seguimos el hilo.'
       };
     }
     if (id === 'modales' || id === 'future' || id === 'future_perfect') {
@@ -397,6 +410,21 @@ function formatLock(track) {
     modales_confirmacion: [
       'ANTIMEZCLA — MÓDULO 6-B — mismo guion module-06b-modales-espejo-even.',
       'Confirmación de dominio modales — no reinstalar will/ré desde cero.'
+    ],
+    conversacion_libre: [
+      'ANTIMEZCLA — MÓDULO 8 / CONVERSACIÓN LIBRE:',
+      'Tema real/emocional. Inglés = vehículo. Corrección SIN matar el hilo.',
+      'Piezas en combate: even · if she were · either way · besides.',
+      'Empatía + precisión. NO convertir en lección de pizarra.',
+      'SEGUÍ EL GUION CANON module-08-conversacion-libre ÍNTEGRO.'
+    ],
+    free_talk: [
+      'ANTIMEZCLA — MÓDULO 8 — mismo guion module-08-conversacion-libre.',
+      'Free talk / emoción real — corrección en vivo dentro del hilo.'
+    ],
+    conversatorio: [
+      'ANTIMEZCLA — MÓDULO 8 — Conversatorio ADN: gente hablando de verdad.',
+      'Mismo guion module-08-conversacion-libre.'
     ],
     modal: [
       'ANTIMEZCLA: moneda — AUX delante = pregunta.',

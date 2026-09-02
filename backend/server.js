@@ -3100,7 +3100,7 @@ TABLERO VISUAL (el portal lo dibuja — NUNCA leas las etiquetas [[...]] en voz)
 Cuando ENSEÑES estructura, ELEGÍ el tablero que coincide con ESTA explicación y al final en líneas nuevas:
 [[CTYPE:whiteboard]]
 [[BOARD:track_id]]
-Tracks válidos: present, past, progressive, perfect, combined, future, future_perfect, modal, modales, modales_espejo, modales_confirmacion, modal_have_been, modal_have_pp, there, if_was_were, irregular_verbs, prepositions, prepositions_time, gerundio, gerund_prep, negations, comparatives, articles, have_had, pronouns, overview.
+Tracks válidos: present, past, progressive, perfect, combined, future, future_perfect, modal, modales, modales_espejo, modales_confirmacion, conversacion_libre, free_talk, conversatorio, modal_have_been, modal_have_pp, there, if_was_were, irregular_verbs, prepositions, prepositions_time, gerundio, gerund_prep, negations, comparatives, articles, have_had, pronouns, overview.
 Si el track no encaja, DISEÑÁ el pizarrón:
 [[BOARD_DESIGN:Título corto|Fórmula clara|Ejemplo bueno|Error típico ✗|Tu turno]]
 Podés cambiar de tablero cuando cambie el tema del turno. NO leás el pizarrón fila por fila en voz.`;

@@ -148,6 +148,36 @@
       ],
       "exampleAsk": "¿Pedacito o palabra completa? ¿Modal a la izquierda o derecha del pronombre?"
     },
+    "conversacion_libre": {
+      "say": "CANON MÓDULO 8 / Clase 012 — guion íntegro en config/canon/module-08-conversacion-libre.txt. CONVERSACIÓN LIBRE: tema real/emocional; inglés=vehículo; corrección SIN matar el hilo; even / if she were / either way / besides en combate; empatía+precisión; check-in de conectores; puente BPO.",
+      "mustSay": [
+        "vehículo",
+        "hilo",
+        "even",
+        "either way",
+        "empatía",
+        "conectores"
+      ],
+      "exampleAsk": "Contame un tema real en inglés. Yo corrijo UNA pieza y seguimos el hilo."
+    },
+    "free_talk": {
+      "say": "CANON MÓDULO 8 — mismo guion module-08-conversacion-libre.txt. Free talk / emoción real.",
+      "mustSay": [
+        "free talk",
+        "hilo",
+        "corrección"
+      ],
+      "exampleAsk": "Speak about something real. I'll fix one piece — then continue."
+    },
+    "conversatorio": {
+      "say": "CANON MÓDULO 8 — Conversatorio ADN. Mismo guion module-08-conversacion-libre.txt. Gente hablando de verdad.",
+      "mustSay": [
+        "conversatorio",
+        "vehículo",
+        "hilo"
+      ],
+      "exampleAsk": "Opiná en inglés. El otro grupo puede preguntar — vos respondés."
+    },
     "modal": {
       "say": "Método moneda: el auxiliar ANTES del pronombre = pregunta. Are you ready? DESPUÉS = respuesta. You are ready. Invertís la moneda y sale la pregunta.",
       "mustSay": [

@@ -111,6 +111,20 @@
       "Confirmación 010-B: pedacitos vs palabras completas; moneda modal izq=pregunta/der=afirmación; even con NOT=ni siquiera; pieza+pieza sin oración eterna"
     ]
   },
+  "freeTalkPhase": {
+    "title": "Conversación libre / emoción real (Johnny)",
+    "when": "Post-teoría: piezas ya instaladas salen en tema personal/emocional.",
+    "rules": [
+      "El tema manda — inglés es el vehículo, no la materia",
+      "Corrección en vivo SIN matar el hilo: una pieza → digala → seguí",
+      "Scaffold ES→EN breve cuando se traba — no 20 min de teoría",
+      "Piezas en combate: even/ni siquiera · if she were · either way · besides",
+      "Empatía + precisión: validá sentimiento, cortá escenarios inventados, pedí hechos",
+      "Cierre con check-in de conectores/fluidez",
+      "Puente BPO: listen → clarify → options → don't invent doom"
+    ],
+    "canonModule": "module-08-conversacion-libre.txt"
+  },
   "coinMethod": {
     "title": "Método de la Moneda",
     "rule": "Verbo a la IZQUIERDA del pronombre → generalmente PREGUNTA. Verbo a la DERECHA del pronombre → generalmente RESPUESTA/Afirmación.",

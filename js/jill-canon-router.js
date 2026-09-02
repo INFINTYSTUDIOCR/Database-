@@ -959,6 +959,12 @@
       if (/\b(perfecto|perfect|participio|prp)\b/.test(blob)) return trackById('perfect') || trackById('have_had');
       return trackById('have_had') || trackById('perfect');
     }
+    if (/\b(conversaci[oó]n\s*libre|free\s*talk|emoci[oó]n\s*real|conversatorio|tema\s*emocional|empat[ií]a|module\s*8|m016)\b/i.test(blob)) {
+      return trackById('conversacion_libre');
+    }
+    if (/\b(conversaci[oó]n\s*libre|free\s*talk|emoci[oó]n\s*real|conversatorio|tema\s*emocional|empat[ií]a|module\s*8|m016)\b/i.test(blob)) {
+      return trackById('conversacion_libre');
+    }
     if (/\b(espejo|siquiera|ni\s+siquiera|confirmaci[oó]n\s*modal|moneda\s*modal|even\s+go|dos\s+g[eé]neros|pedacitos|palabras\s*completas|010b|6b)\b/i.test(blob)) {
       return trackById('modales_espejo') || trackById('modales');
     }
