@@ -58,6 +58,9 @@ const IRRIGATE_FROM_INF = [
   'js/kamuk-recursos-library.js',
   'js/infinity-recursos-library.js',
   'js/infinity-scheduler.js',
+  'js/ptt-mic.js',
+  'js/tts-chunks.js',
+  'js/alice-stable-mic.js',
   'css/infinity-scheduler.css',
   'css/infinity-training-glossary.css',
   'training-book/glosario/index.html',
@@ -73,6 +76,7 @@ const SIM_V = '20260825sched';
 const CRM_V = '20260825nxlive';
 const RECURSOS_V = '20260827nest';
 const SCHED_V = '20260825sched';
+const ALICE_VOICE_V = '20260904stable';
 
 mkdirSync(DEST, { recursive: true });
 
@@ -120,6 +124,10 @@ function prep(html, kind) {
   html = html.replace(
     /(href="css\/infinity-training-glossary\.css)(\?v=[^"]*)?"/g,
     '$1?v=' + RECURSOS_V + '"'
+  );
+  html = html.replace(
+    /(src="(?:https:\/\/studioinfinitycr\.com\/)?js\/(?:ptt-mic|tts-chunks|alice-stable-mic)\.js)(\?v=[^"]*)?"/g,
+    '$1?v=' + ALICE_VOICE_V + '"'
   );
   if (kind === 'engine') {
     html = html.replace(

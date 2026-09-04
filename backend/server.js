@@ -6551,6 +6551,73 @@ app.post('/claire-tts', optionalAuth, async (req, res) => {
   }
 });
 
+/** Alice product STT — MediaRecorder audio → Whisper/Scribe (Infinity master). */
+const aliceSttUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^(audio\/|video\/webm)/i.test(file.mimetype || '')
+      || /\.(webm|mp3|m4a|wav|ogg|mpeg|mp4)$/i.test(file.originalname || '');
+    cb(ok ? null : new Error('Solo audio'), ok);
+  }
+}).single('audio');
+
+function aliceSttUploadMw(req, res, next) {
+  const ct = String(req.headers['content-type'] || '');
+  if (!ct.includes('multipart/form-data')) return next();
+  aliceSttUpload(req, res, (err) => {
+    if (err) return res.status(400).json({ error: 'Audio upload failed', detail: err.message });
+    next();
+  });
+}
+
+app.post('/alice/stt', requireProductAuth, aliceSttUploadMw, async (req, res) => {
+  try {
+    const sessionType = req.body?.sessionType || null;
+    const ok = await assertStudentTutorAccess(req, res, 'alice', null, {
+      allowCompanionProduct: true,
+      sessionType: sessionType === 'companion' ? 'companion' : sessionType
+    });
+    if (req.auth.role === 'student' && !ok) return;
+
+    let buffer = null;
+    let mimeType = 'audio/webm';
+    let filename = 'alice-ptt.webm';
+    if (req.file && req.file.buffer && req.file.buffer.length) {
+      buffer = req.file.buffer;
+      mimeType = req.file.mimetype || mimeType;
+      filename = req.file.originalname || filename;
+    } else {
+      const b64 = String(req.body?.audioB64 || '').trim();
+      if (b64.length > 80) {
+        const raw = b64.replace(/^data:[^;]+;base64,/, '');
+        buffer = Buffer.from(raw, 'base64');
+        mimeType = String(req.body?.mime || mimeType).split(';')[0];
+        filename = String(req.body?.filename || filename);
+      }
+    }
+    if (!buffer || !buffer.length) {
+      return res.status(400).json({ error: 'Falta audio (FormData field "audio")' });
+    }
+    if (buffer.length < 200) {
+      return res.status(422).json({ error: 'Audio demasiado corto', code: 'AUDIO_TOO_SHORT' });
+    }
+
+    const { text, provider } = await JillClassAnalyzer.transcribeAudio(buffer, mimeType, filename);
+    const cleaned = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!cleaned) {
+      return res.status(422).json({ error: 'Transcripción vacía', code: 'EMPTY_TRANSCRIPT', provider });
+    }
+    return res.json({ ok: true, text: cleaned, provider });
+  } catch (err) {
+    console.error('Alice STT error:', err.message);
+    if (/not configured|API key|OPENAI|ELEVEN/i.test(err.message || '')) {
+      return res.status(503).json({ error: 'STT no configurado', code: 'STT_KEY_MISSING' });
+    }
+    return res.status(500).json({ error: 'STT failed', detail: String(err.message || '').slice(0, 200) });
+  }
+});
+
 app.post('/alice-tts', requireProductAuth, async (req, res) => {
   try {
     const sessionType = req.body?.sessionType || null;

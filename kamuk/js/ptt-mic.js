@@ -375,7 +375,8 @@ var PttMic = (function () {
     }
 
     var maxHoldTimer = null;
-    var MAX_HOLD_MS = Number(opts.maxHoldMs) || 45000;
+    // Default 90s — students often hold longer than 45s mid-sentence.
+    var MAX_HOLD_MS = Number(opts.maxHoldMs) || 90000;
 
     function clearMaxHold() {
       clearTimeout(maxHoldTimer);
@@ -491,17 +492,13 @@ var PttMic = (function () {
       if (holding || active || rec) stop(true);
     }
 
-    function onPointerLeave(e) {
-      // Touch: only pointerup ends the take — leaving the button must not cut off speech.
-      if (isTouchPointer(e)) return;
-      if (holding && e.pointerType === 'mouse') stop(true);
-    }
+    // Do NOT end on pointerleave — mouse slip off the button was cutting mid-sentence.
+    // pointerup / pointercancel / lostpointercapture still finish the take.
 
     btn.addEventListener('pointerdown', onPointerDown);
     btn.addEventListener('pointerup', onPointerUp);
     btn.addEventListener('pointercancel', onPointerCancel);
     btn.addEventListener('lostpointercapture', onLostPointerCapture);
-    btn.addEventListener('pointerleave', onPointerLeave);
     btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     var inst = {
@@ -522,7 +519,6 @@ var PttMic = (function () {
         btn.removeEventListener('pointerup', onPointerUp);
         btn.removeEventListener('pointercancel', onPointerCancel);
         btn.removeEventListener('lostpointercapture', onLostPointerCapture);
-        btn.removeEventListener('pointerleave', onPointerLeave);
         delInst(btn);
         btn._pttBound = false;
         try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (eCls2) {}

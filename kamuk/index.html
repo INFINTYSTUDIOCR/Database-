@@ -59,9 +59,10 @@
 <script src="https://studioinfinitycr.com/js/jill-foundations-modules.js?v=20260814refresh"></script>
 <script src="games/_shared/infinity-arcade-run.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-quiz.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260814refresh"></script>
+<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260814refresh"></script>
+<script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
+<script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20260904stable"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -5003,7 +5004,11 @@ function pauseAliceMedia(){
   _aliceState.listening = false;
   _aliceState.micRunning = false;
   aliceClearSilenceTimer();
-  if(typeof PttMic !== 'undefined') PttMic.reset(document.getElementById('alice-mic-btn'));
+  var pauseMic = document.getElementById('alice-mic-btn');
+  if(pauseMic && pauseMic._aliceStableApi && pauseMic._aliceStableApi.stop){
+    try { pauseMic._aliceStableApi.stop(); } catch(ePs) {}
+  }
+  if(typeof PttMic !== 'undefined') PttMic.reset(pauseMic);
   saveAliceRuntimeStorage();
 }
 
@@ -5879,7 +5884,11 @@ async function sendAliceMessage(micText){
     if(statusEl) statusEl.textContent = 'Tardó demasiado — intentá de nuevo o escribí tu respuesta.';
   }, 38000);
   aliceCancelSpeech();
-  if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('alice-mic-btn'));
+  var _sendMicBtn = document.getElementById('alice-mic-btn');
+  if(_sendMicBtn && _sendMicBtn._aliceStableApi && _sendMicBtn._aliceStableApi.stop){
+    try { _sendMicBtn._aliceStableApi.stop(); } catch(eStop) {}
+  }
+  if(typeof PttMic !== 'undefined') PttMic.stop(_sendMicBtn);
   aliceStopMic();
   _aliceMicText = '';
   if(input) input.value = '';
@@ -5929,7 +5938,7 @@ async function sendAliceMessage(micText){
   var alicePrefetchState = {};
   var aliceTurnSpoke = false;
   var ctrl = new AbortController();
-  var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
+  var tid = setTimeout(function(){ ctrl.abort(); }, 90000);
 
   try {
     var resp = await infinityFetch('/alice/stream', {
@@ -6196,26 +6205,16 @@ var _aliceLastSpokenText = '';
 function aliceNormalizeMicTranscript(raw){
   var text = String(raw || '').replace(/\s+/g, ' ').trim();
   if(!text) return '';
-  // Collapse 3+ identical words in a row: "hello hello hello" → "hello"
   text = text.replace(/\b([\w']+)(?:\s+\1\b){2,}/gi, '$1');
-  // Collapse 3+ identical short phrases (1–6 words)
   text = text.replace(/\b((?:[\w']+\s+){0,5}[\w']+)(?:\s+\1\b){2,}/gi, '$1');
   text = text.replace(/\s+/g, ' ').trim();
   var last = String(_aliceLastSpokenText || '').replace(/\s+/g, ' ').trim().toLowerCase();
   var now = text.toLowerCase();
-  var recent = (Date.now() - (_aliceLastSpokenAt || 0)) < 12000;
+  var recent = (Date.now() - (_aliceLastSpokenAt || 0)) < 8000;
+  // Only drop near-exact echoes of Alice's last line — never eat a real student turn
   if(recent && last && now){
     if(now === last) return '';
-    if(last.indexOf(now) >= 0 && now.length >= 4) return '';
-    if(now.indexOf(last) >= 0 && last.length >= 12 && now.length < last.length * 1.35) return '';
-    // Heavy overlap with last Alice line → treat as echo
-    var a = now.split(/\s+/).filter(Boolean);
-    var b = last.split(/\s+/).filter(Boolean);
-    if(a.length >= 2 && b.length >= 2){
-      var hit = 0;
-      a.forEach(function(w){ if(b.indexOf(w) >= 0) hit++; });
-      if(hit / a.length >= 0.85) return '';
-    }
+    if(now.length >= 16 && last.indexOf(now) >= 0 && now.length / last.length >= 0.9) return '';
   }
   return text;
 }
@@ -6314,68 +6313,103 @@ function aliceSpeak(text){
   aliceQueueFullReply(spoken);
 }
 
-// PTT mic for Alice — hold to speak, release to send
+// PTT mic for Alice — prefer MediaRecorder + /alice/stt; fallback to Web Speech
 function bindAlicePttMic(){
   var btn = document.getElementById('alice-mic-btn');
-  if(!btn || typeof PttMic === 'undefined') return;
-  if(btn._pttBound) return;
+  if(!btn) return;
   var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  function aliceMicCanStart(){
+    if(!_aliceState.sessionActive) return false;
+    if(_aliceSending){
+      var stBusy = document.getElementById('alice-status');
+      if(stBusy) stBusy.textContent = 'Esperá a que Alice termine de responder…';
+      return false;
+    }
+    return true;
+  }
+  function aliceMicBeforeStart(){
+    if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+    aliceInterruptSpeaking();
+    aliceStopMic();
+    btn.classList.remove('ptt-busy');
+  }
+  function aliceMicNormalize(raw){
+    var cleaned = aliceNormalizeMicTranscript(raw);
+    if(!cleaned && String(raw || '').trim()){
+      var stEcho = document.getElementById('alice-status');
+      if(stEcho) stEcho.textContent = 'No se captó bien — intentá de nuevo o escribí.';
+    }
+    return cleaned;
+  }
+  function aliceMicUi(listening){
+    var b = document.getElementById('alice-mic-btn');
+    var statusEl = document.getElementById('alice-status');
+    var th = aliceTheme();
+    if(b){
+      b.classList.toggle('ptt-active', !!listening);
+      if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
+      else { b.style.background='rgba('+th.rgb+',0.12)'; b.style.borderColor='rgba('+th.rgb+',0.35)'; b.style.color=th.accent; }
+    }
+    if(statusEl) statusEl.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
+  }
+  function aliceMicError(code){
+    btn.classList.remove('ptt-active','ptt-busy');
+    var st = document.getElementById('alice-status');
+    if(!st) return;
+    if(code === 'not-allowed' || code === 'service-not-allowed'){
+      st.textContent = 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.';
+    } else if(code === 'audio-capture'){
+      st.textContent = 'No se encontró micrófono (o está ocupado) — revisá el dispositivo o escribí tu respuesta.';
+    } else if(code === 'no-sr' || code === 'start-failed' || code === 'network'){
+      st.textContent = isMobile
+        ? 'Voz no disponible ahora — escribí tu respuesta abajo.'
+        : 'Micrófono no disponible — reintentá o escribí tu respuesta.';
+    } else {
+      st.textContent = 'Micrófono interrumpido — mantené presionado de nuevo o escribí tu respuesta.';
+    }
+  }
+  function aliceMicEmpty(){
+    var st = document.getElementById('alice-status');
+    if(st) st.textContent = 'No se escuchó audio — mantené más tiempo o hablá más cerca.';
+  }
+
+  // Clean rebind: destroy prior stable + Web Speech bindings
+  if(btn._aliceStableApi && btn._aliceStableApi.destroy){
+    try { btn._aliceStableApi.destroy(); } catch(eD) {}
+    btn._aliceStableApi = null;
+  }
+  if(typeof PttMic !== 'undefined') PttMic.destroy(btn);
+
+  if(typeof AliceStableMic !== 'undefined' && AliceStableMic.canUse()){
+    var api = AliceStableMic.bind({
+      btn: btn,
+      canStart: aliceMicCanStart,
+      onBeforeStart: aliceMicBeforeStart,
+      normalizeTranscript: aliceMicNormalize,
+      onUi: aliceMicUi,
+      onSend: function(text){ if(text) sendAliceMessage(text); },
+      onError: aliceMicError,
+      onEmpty: aliceMicEmpty
+    });
+    if(api){
+      btn._aliceStableApi = api;
+      return;
+    }
+  }
+
+  if(typeof PttMic === 'undefined') return;
   PttMic.bind({
     btn: btn,
-    // Accent selector affects TTS only — STT must stay English or Chrome mangles speech
     lang: 'en-US',
     settleMs: 280,
-    canStart: function(){
-      if(!_aliceState.sessionActive) return false;
-      if(_aliceSending){
-        var st = document.getElementById('alice-status');
-        if(st) st.textContent = 'Esperá a que Alice termine de responder…';
-        return false;
-      }
-      return true;
-    },
-    onBeforeStart: function(){
-      if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
-      aliceInterruptSpeaking();
-      aliceStopMic();
-      btn.classList.remove('ptt-busy');
-    },
-    normalizeTranscript: function(raw){
-      var cleaned = aliceNormalizeMicTranscript(raw);
-      if(!cleaned && String(raw || '').trim()){
-        var st = document.getElementById('alice-status');
-        if(st) st.textContent = 'Eso sonó como eco de Alice — hablá de nuevo cuando ella termine.';
-      }
-      return cleaned;
-    },
-    onUi: function(listening){
-      var b = document.getElementById('alice-mic-btn');
-      var statusEl = document.getElementById('alice-status');
-      var th = aliceTheme();
-      if(b){
-        b.classList.toggle('ptt-active', !!listening);
-        if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
-        else { b.style.background='rgba('+th.rgb+',0.12)'; b.style.borderColor='rgba('+th.rgb+',0.35)'; b.style.color=th.accent; }
-      }
-      if(statusEl) statusEl.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
-    },
+    maxHoldMs: 90000,
+    canStart: aliceMicCanStart,
+    onBeforeStart: aliceMicBeforeStart,
+    normalizeTranscript: aliceMicNormalize,
+    onUi: aliceMicUi,
     onSend: function(text){ if(text) sendAliceMessage(text); },
-    onError: function(code){
-      btn.classList.remove('ptt-active','ptt-busy');
-      var st = document.getElementById('alice-status');
-      if(!st) return;
-      if(code === 'not-allowed' || code === 'service-not-allowed'){
-        st.textContent = 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.';
-      } else if(code === 'audio-capture'){
-        st.textContent = 'No se encontró micrófono (o está ocupado) — revisá el dispositivo o escribí tu respuesta.';
-      } else if(code === 'no-sr' || code === 'start-failed'){
-        st.textContent = isMobile
-          ? 'Voz no disponible en este navegador — escribí tu respuesta abajo.'
-          : 'Usá Chrome o Edge para voz, o escribí tu respuesta.';
-      } else {
-        st.textContent = 'Micrófono interrumpido — mantené presionado de nuevo o escribí tu respuesta.';
-      }
-    }
+    onError: aliceMicError
   });
 }
 
@@ -6871,6 +6905,9 @@ function aliceUnlockMicAndSend(clearStatus){
   _aliceSpeakEnabled = true;
   var btn = document.getElementById('alice-mic-btn');
   if(btn){ btn.classList.remove('ptt-busy','ptt-active'); }
+  if(btn && btn._aliceStableApi && btn._aliceStableApi.stop){
+    try { btn._aliceStableApi.stop(); } catch(eUs) {}
+  }
   if(typeof PttMic !== 'undefined'){
     if(btn) PttMic.reset(btn);
     else PttMic.resetAll();
@@ -6878,7 +6915,7 @@ function aliceUnlockMicAndSend(clearStatus){
   aliceStopMic();
   if(clearStatus !== false){
     var st = document.getElementById('alice-status');
-    if(st && (st.textContent.indexOf('Escuchando') >= 0 || st.textContent.indexOf('pensando') >= 0 || st.textContent.indexOf('conecta') >= 0)) st.textContent = '';
+    if(st && (st.textContent.indexOf('Escuchando') >= 0 || st.textContent.indexOf('pensando') >= 0 || st.textContent.indexOf('conecta') >= 0 || st.textContent.indexOf('Transcribiendo') >= 0)) st.textContent = '';
   }
 }
 
@@ -8540,14 +8577,8 @@ function _aliceTTSFlush(){
     if(fallbackStarted || finished) return;
     if(!_aliceSpeakEnabled || gen !== _aliceSpeakGen){ _aliceTTSBusy=false; clearTimeout(_aliceTtsWatchdog); _aliceState.speaking=_aliceTTSQueue.length>0; _aliceTTSFlush(); return; }
     if(!b){
-      _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-      if(_aliceTtsRetry[clean] < 3){
-        _aliceTTSQueue.unshift(text);
-        finishAliceLine();
-        return;
-      }
+      // Do NOT re-queue the same line (caused dialogue repeats). Browser TTS once, then finish.
       delete _aliceTtsRetry[clean];
-      // ElevenLabs down / 401 / empty — still speak (browser) so Companion never goes mute
       fallbackStarted = true;
       if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
       finishAliceLine();
@@ -8560,12 +8591,7 @@ function _aliceTTSFlush(){
       onError: function(){
         window._aliceAudio = null;
         clearTimeout(_aliceTtsWatchdog);
-        _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-        if(_aliceTtsRetry[clean] < 3){
-          _aliceTTSQueue.unshift(text);
-          finishAliceLine();
-          return;
-        }
+        // Blob decode/play fail → browser TTS once; never unshift the same line
         delete _aliceTtsRetry[clean];
         fallbackStarted = true;
         if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
@@ -8606,20 +8632,11 @@ function _aliceTTSFlush(){
   .then(playBlob)
   .catch(function(){
     clearTimeout(_aliceTtsWatchdog);
-    _aliceTtsRetry[clean] = (_aliceTtsRetry[clean] || 0) + 1;
-    if(_aliceTtsRetry[clean] < 3){
-      _aliceTTSQueue.unshift(text);
-      _aliceTTSBusy=false;
-      _aliceState.speaking=_aliceTTSQueue.length>0;
-      setTimeout(_aliceTTSFlush, 40);
-      return;
-    }
+    // Network fail → browser TTS once; never re-queue (avoids dialogue repeats)
     delete _aliceTtsRetry[clean];
     fallbackStarted = true;
     if(alicePlayBrowserTts(clean, finishAliceLine, finishAliceLine)) return;
-    _aliceTTSBusy=false;
-    _aliceState.speaking=_aliceTTSQueue.length>0;
-    setTimeout(_aliceTTSFlush, 40);
+    finishAliceLine();
   });
 }
 
