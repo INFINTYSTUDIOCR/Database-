@@ -1528,8 +1528,8 @@ function showPortal(s){
   var simulationHtml = ''
     +'<div id="simulation-onboarding-root"></div>'
     +'<div id="simulation-nexora-panel" class="card" style="margin-top:16px;">'
-    +'<div class="card-title"><i class="ti ti-sparkles"></i> Nexora · Practice lab</div>'
-    +'<p style="font-size:13px;line-height:1.55;color:var(--t2);margin:0 0 12px;">Misma experiencia que producción con <strong>Infinity Holdings Inc</strong>. Práctica real (voz / email / chat según lo que active tu trainer). <strong>No impacta</strong> tu score semanal ni la nota de Q&amp;A.</p>'
+    +'<div class="card-title"><i class="ti ti-sparkles"></i> Simulation · Practice options</div>'
+    +'<p style="font-size:13px;line-height:1.55;color:var(--t2);margin:0 0 12px;"><strong>Infinity Holdings</strong> = desk nuevo (producción). <strong>Nexora Legacy</strong> = motor clásico stand-alone. Ninguno impacta tu score semanal ni Q&amp;A.</p>'
     +'<div id="simulation-nexora-body"></div>'
     +'</div>';
 
@@ -5837,30 +5837,28 @@ async function sendAliceMessage(micText){
 }
 
 
-function openNexoraLab(){
+function openNexoraLegacy(){
   var student = window._currentStudent || window._portalStudent || CURRENT_STUDENT;
   if(!studentNexoraOn(student)){
     if(student && !studentPortalAccessOk(student)){
       handleStudentSuspended();
     } else {
-      showToast('Nexora no está activo en tu cuenta. Pedí a tu trainer.','err');
+      showToast('Nexora Legacy no está activo. Pedí a tu trainer.','err');
     }
     return;
   }
   var nxConfig = window._nexoraConfig;
   if(!nxConfig || !nxConfig.type){
-    showToast('No hay simulación programada. Pedí a tu trainer que asigne un escenario en Engine.','err');
-    return;
-  }
-  // Upgrade legacy pool-only configs into a pinned program when the helper is available.
-  if(typeof NEXORA_SIM_PROGRAM!=='undefined' && !nxConfig.simulationId){
+    nxConfig = {type:'customer_service',industry:'corporate',difficulty:5,typeLabel:'Nexora Legacy',industryLabel:'Corporate',standalone:true};
+  } else if(typeof NEXORA_SIM_PROGRAM!=='undefined' && !nxConfig.simulationId && !nxConfig.standalone){
     nxConfig=NEXORA_SIM_PROGRAM.buildProgram(Object.assign({},nxConfig));
   }
   localStorage.setItem('nexora_scenario', JSON.stringify(nxConfig));
-  if(typeof NEXORA_SIM_PROGRAM!=='undefined'){
+  if(nxConfig.standalone){
+    try{ localStorage.removeItem('nexora_force_scenario'); }catch(e){}
+  } else if(typeof NEXORA_SIM_PROGRAM!=='undefined'){
     localStorage.setItem('nexora_force_scenario', JSON.stringify(NEXORA_SIM_PROGRAM.programToScenario(nxConfig)));
   } else if(nxConfig.simulationId || nxConfig.pinned){
-    // Lab will resolve from the program itself.
     try{ localStorage.removeItem('nexora_force_scenario'); }catch(e){}
   }
   localStorage.setItem('nexora_agent', nexoraAgentName(student));
@@ -5872,8 +5870,9 @@ function openNexoraLab(){
       ));
     }catch(e){}
   }
-  window.open('nexora.html','_blank');
+  window.open('nexora-legacy.html','_blank');
 }
+function openNexoraLab(){ return openNexoraLegacy(); }
 
 
 var _kbFiles = [];
@@ -6873,7 +6872,7 @@ function renderNexoraTab(s, force){
     +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">'+(typeLabels[nxConfig.type]||'Nexora Simulation')+'</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,0.92);margin-bottom:1rem;">Industria: '+(nxConfig.industryLabel||nxConfig.industry||'Corporate')+' · Dificultad '+nxConfig.difficulty+'/5</div>'
     +'<p style="font-size:13px;color:#FFFFFF;line-height:1.7;margin-bottom:1.25rem;">Nexora simula el escenario configurado por tu trainer. Tu trabajo es responder en inglés con profesionalismo. El cliente solo usará datos que aparecen en pantalla.</p>'
-    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);margin-bottom:10px;"><i class="ti ti-phone-incoming"></i>Abrir Nexora Lab</button>'
+    +'<button onclick="openNexoraLab()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);margin-bottom:10px;"><i class="ti ti-phone-incoming"></i>Abrir Nexora Legacy</button>'
     +'<button onclick="openNexoraFinancialRoiScenario()" style="width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);color:#FFFFFF;padding:12px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-chart-bar"></i>Análisis financiero + ROI (stakeholder)</button>'
     +'<p style="font-size:11px;color:rgba(255,255,255,0.85);margin:8px 0 0;line-height:1.5;">Subí tu documento en el lab. El stakeholder evalúa cómo explicás el ROI y decide aprobar o rechazar.</p>'
     +'</div>';

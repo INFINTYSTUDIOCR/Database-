@@ -32,7 +32,8 @@ const ASSET_DIRS = ['js', 'games', 'css', 'data', 'training-book'];
 // Extra HTML pages that live next to the portal (CRM desk + supervisor).
 const EXTRA_HTML = [
   'kamuk-holdings-crm.html',
-  'kamuk-holdings-supervisor.html'
+  'kamuk-holdings-supervisor.html',
+  'nexora-legacy.html'
 ];
 const TWIN_HTML = [
   'index.html',
@@ -176,7 +177,7 @@ function prepTwinHtml() {
         ? 'portal'
         : name === 'Kamuk_Engine.html'
           ? 'engine'
-          : name === 'nexora.html'
+          : name === 'nexora.html' || name === 'nexora-legacy.html'
             ? 'nexora'
             : name;
     const html = prep(readFileSync(join(DEST, name), 'utf8'), kind);
@@ -219,6 +220,7 @@ writeFileSync(
     '',
     '- Student portal: ' + SITE + '/kamuk/',
     '- Engine: ' + SITE + '/kamuk/Kamuk_Engine.html',
+    '- Nexora Legacy lab: ' + SITE + '/kamuk/nexora-legacy.html',
     '- Simulation CRM: ' + SITE + '/kamuk/kamuk-holdings-crm.html',
     '- Official login gate: ' + SITE + '/portal-access.html',
     '',
@@ -245,6 +247,9 @@ const checks = [
   ['portal opens Companion Hub', portal.includes('Abrir Companion Hub')],
   ['no arcade cabinet entry', !portal.includes('Abrir Infinity Arcade')],
   ['Nexora published', existsSync(join(DEST, 'nexora.html'))],
+  ['Nexora Legacy published', existsSync(join(DEST, 'nexora-legacy.html'))],
+  ['Nexora Legacy standalone', readFileSync(join(DEST, 'nexora-legacy.html'), 'utf8').includes('NEXORA_LEGACY_STANDALONE')],
+  ['Nexora Legacy portal entry', portal.includes('openNexoraLegacy') && portal.includes('Nexora Legacy')],
   ['Nexora keeps local TTS helper', nexora.includes('src="js/tts-chunks.js')],
   ['Nexora keeps local PTT helper', nexora.includes('src="js/ptt-mic.js')],
   ['Nexora uses Kamuk Supabase', nexora.includes('lbspgbeqtcnjrbhiuucu.supabase.co')],

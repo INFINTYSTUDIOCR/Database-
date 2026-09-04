@@ -2,6 +2,7 @@
 
 - Student portal: https://studioinfinitycr.com/kamuk/
 - Engine: https://studioinfinitycr.com/kamuk/Kamuk_Engine.html
+- Nexora Legacy lab: https://studioinfinitycr.com/kamuk/nexora-legacy.html
 - Simulation CRM: https://studioinfinitycr.com/kamuk/kamuk-holdings-crm.html
 - Official login gate: https://studioinfinitycr.com/portal-access.html
 
