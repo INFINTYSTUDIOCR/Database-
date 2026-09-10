@@ -369,11 +369,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
       <div id="sh-stakes" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
   </div>
-  <div id="sh-pdf-section" style="display:none;background:rgba(255,255,255,0.05);margin:0 1.5rem;border-radius:12px;padding:12px;margin-bottom:8px;">
-    <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;"><i class="ti ti-file-upload"></i> Subí tu análisis financiero (PDF/TXT). El stakeholder lo lee y decide si aprueba el ROI:</div>
-    <input type="file" accept=".pdf,.txt,.md,.csv" onchange="uploadPDFForNexora(this,'sh-pdf-status')" style="font-size:12px;color:rgba(255,255,255,0.7);">
-    <div id="sh-pdf-status" style="font-size:11px;margin-top:4px;color:rgba(255,255,255,0.5);"></div>
-  </div>
   <div style="background:#161b22;padding:10px 1.5rem;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.08);">
     <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="sh-status"></div>
     <div style="margin-left:auto;display:flex;gap:8px;">
@@ -589,48 +584,15 @@ function getNexoraDemoSessionId(){
   try{return localStorage.getItem('nexora_demo_session')||'';}catch(e){return '';}
 }
 
-function showNexoraAccessGate(message){
-  var gate = document.createElement('div');
-  gate.style.cssText = 'position:fixed;inset:0;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
-  gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso no disponible</h2><p style="opacity:.85;max-width:380px;line-height:1.6;">'
-    + (message || 'Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.')
-    + '</p></div>';
-  document.body.appendChild(gate);
-}
-
-async function verifyNexoraStudentAccess(){
-  if(isNexoraPublicDemo()) return true;
-  if(typeof getAuthToken !== 'function' || !getAuthToken()){
-    showNexoraAccessGate('Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.');
-    return false;
-  }
-  try{
-    var r = await infinityFetch('/auth/verify');
-    var d = {};
-    try{ d = await r.json(); }catch(e){}
-    if(!r.ok || d.ok === false){
-      if(typeof clearAuthToken === 'function') clearAuthToken();
-      var msg = (d && d.code === 'NEXORA_DISABLED')
-        ? 'Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.'
-        : 'Tu acceso ha sido suspendido o cerró la sesión. Volvé al Portal del Estudiante.';
-      showNexoraAccessGate(msg);
-      return false;
-    }
-    if(d.role === 'student' && d.nexoraEnabled === false){
-      showNexoraAccessGate('Nexora no está activo en tu cuenta. Pedí a tu trainer que lo habilite.');
-      return false;
-    }
-    return true;
-  }catch(e){
-    showNexoraAccessGate('No se pudo verificar tu acceso. Volvé al Portal del Estudiante e intentá de nuevo.');
-    return false;
-  }
-}
-
 document.addEventListener('DOMContentLoaded', function(){
   clearNexoraDemoFlagsIfPortal();
   if(isNexoraPublicDemo()) return;
-  verifyNexoraStudentAccess();
+  if(typeof getAuthToken === 'function' && !getAuthToken()){
+    var gate = document.createElement('div');
+    gate.style.cssText = 'position:fixed;inset:0;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;z-index:99999;padding:2rem;text-align:center;font-family:Inter,system-ui,sans-serif;';
+    gate.innerHTML = '<div><h2 style="margin-bottom:12px;">Acceso requerido</h2><p style="opacity:.85;max-width:360px;line-height:1.6;">Ingresá al Portal del Estudiante primero. Nexora usa tu sesión segura — una copia guardada del HTML no funciona sin login.</p></div>';
+    document.body.appendChild(gate);
+  }
 });
 
 var ENGINE_TYPE_MAP={
@@ -693,8 +655,17 @@ function resetCRMTabs(){
   }
 }
 
+function nexoraStandaloneDefaultConfig(){
+  return {type:'customer_service',industry:'corporate',difficulty:5,typeLabel:'Nexora',industryLabel:'Corporate',standalone:true};
+}
 function loadNexoraEngineConfig(){
-  try{return JSON.parse(localStorage.getItem('nexora_scenario')||'null');}catch(e){return null;}
+  try{
+    var cfg=JSON.parse(localStorage.getItem('nexora_scenario')||'null');
+    if(cfg&&cfg.type) return cfg;
+  }catch(e){}
+  var d=nexoraStandaloneDefaultConfig();
+  try{localStorage.setItem('nexora_scenario',JSON.stringify(d));}catch(e){}
+  return d;
 }
 
 function invalidateNexoraLabIfConfigChanged(){
@@ -708,16 +679,9 @@ function invalidateNexoraLabIfConfigChanged(){
 }
 
 function pickScenarioFromConfig(nxConfig,prevId){
-  try{
-    var forced=JSON.parse(localStorage.getItem('nexora_force_scenario')||'null');
-    if(forced&&forced.id&&forced.type){
-      localStorage.removeItem('nexora_force_scenario');
-      return mergeEngineConfig(forced,nxConfig||{type:forced.type,industry:forced.industry||'Corporate',difficulty:forced.diff||5});
-    }
-  }catch(e){}
   if(!nxConfig){
-    showToast('No Nexora config — trainer must activate a session first');
-    return null;
+    nxConfig=nexoraStandaloneDefaultConfig();
+    try{localStorage.setItem('nexora_scenario',JSON.stringify(nxConfig));}catch(e){}
   }
   var pool=NEXORA_SCENARIO_BANK.getPool(nxConfig);
   if(!pool.length){
@@ -1405,26 +1369,18 @@ function endCorporate(){
   stopMic(); generateQA(false);
 }
 
-async function uploadPDFForNexora(input, statusId){
+async function uploadPDFForNexora(input){
   var file = input.files[0];
   if(!file) return;
-  var st = document.getElementById(statusId || 'corp-pdf-status') || document.getElementById('sh-pdf-status');
-  if(st){ st.style.color='rgba(255,255,255,0.5)'; st.textContent = 'Reading document...'; }
-  var text = '';
-  try{
-    text = await new Promise(function(res, rej){
-      var reader = new FileReader();
-      reader.onload = function(e){ res(e.target.result || ''); };
-      reader.onerror = function(){ rej(new Error('read_failed')); };
-      reader.readAsText(file);
-    });
-  }catch(e){
-    if(st){ st.style.color='#EF4444'; st.textContent = 'No se pudo leer el archivo. Usá TXT/MD o PDF de texto.'; }
-    return;
-  }
-  window._nxPDFContent = String(text).slice(0, 6000);
-  if(st){ st.style.color='#34a853'; st.textContent = 'Documento cargado — el stakeholder lo usará para evaluar el ROI.'; }
-  showToast('Documento listo para la simulación');
+  var st = document.getElementById('corp-pdf-status');
+  if(st) st.textContent = 'Reading PDF...';
+  var text = await new Promise(function(res){
+    var reader = new FileReader();
+    reader.onload = function(e){ res(e.target.result); };
+    reader.readAsText(file);
+  });
+  window._nxPDFContent = text.slice(0, 4000);
+  if(st){ st.style.color='#34a853'; st.textContent = 'PDF loaded — Alice will use this content.'; }
 }
 
 // ── STAKEHOLDER DISPLAY ───────────────────────────────────────
@@ -1459,9 +1415,6 @@ function showStakeholderDisplay(sc){
     }).join('');
   }
 
-  var shPdf = document.getElementById('sh-pdf-section');
-  if(shPdf) shPdf.style.display = sc.allowPDF ? 'block' : 'none';
-
   _nx.callStart = Date.now(); _nx.active = true;
   _nx.callTimer = setInterval(function(){
     if(!_nx.onHold) _nx.talkSecs++;
@@ -1476,10 +1429,7 @@ function showStakeholderDisplay(sc){
     aliceEnterMode(sc, 'sh-status', personName, 'START_STAKEHOLDER', {
       stakes: sc.stakes || [],
       participants: sc.participants,
-      role: sc.role,
-      company: sc.company,
-      pdfContent: window._nxPDFContent || null,
-      pdfPrompt: sc.pdfPrompt || null
+      role: sc.role
     });
   }, 2000);
 }
@@ -2023,7 +1973,7 @@ async function nexoraDemoMessageFallback(payload){
   try{data=JSON.parse(text);}catch(e){throw new Error('demo_message_unavailable');}
   if(!r.ok){
     if(data.error==='limit') showToast('Daily demo limit reached.');
-    else if(data.error==='Session expired'||r.status===404) showToast('Session expired — reopen from the student portal or request a demo at hablemos.html.');
+    else if(data.error==='Session expired'||r.status===404) showToast('Session expired — reopen from try-nexora.html.');
     throw new Error(data.message||data.error||'demo_message_failed');
   }
   return String(data.reply||'').trim();

@@ -660,7 +660,7 @@ textarea.inp{resize:vertical;min-height:80px;}
     <div class="modal-title"><i class="ti ti-sparkles" style="color:#79B9E8;"></i>Programar simulación Nexora</div>
     <input type="hidden" id="nexora-sid">
     <input type="hidden" id="nexora-simulation-id">
-    <div class="ib ib-navy">Nexora ejecuta <strong>exactamente</strong> este programa. Plantilla por tipo — editá roles, preguntas y criterios antes de guardar.</div>
+    <div class="ib ib-navy">Nexora = lab Operational Simulation (versión anterior al 8 de julio). El botón <strong>Nexora ON/OFF</strong> solo enciende o apaga el acceso.</div>
     <div class="form-group">
       <label class="form-label">Tipo de simulación</label>
       <select class="inp" id="nexora-type" onchange="nexoraEngineApplyTemplate()">
@@ -678,7 +678,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <select class="inp" id="nexora-industry" onchange="nexoraEngineApplyTemplate();nexoraEngineSyncHoldingsPack()"></select>
       <div id="nexora-industry-hint" style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.5;"></div>
     </div>
-    <div class="form-group" id="nexora-holdings-group" style="background:rgba(31,106,168,0.08);border:1px solid rgba(31,106,168,0.25);border-radius:12px;padding:12px;">
+    <div class="form-group" id="nexora-holdings-group" style="display:none !important;">
       <label class="form-label" style="color:#1F6AA8;">Infinity Holdings Inc · CRM pack (Infinity manda)</label>
       <select class="inp" id="nexora-holdings-pack">
         <option value="banking">Banking — pack financiero</option>
@@ -5219,7 +5219,7 @@ function previewNexoraFromModal(){
   localStorage.setItem('nexora_scenario', JSON.stringify(program));
   localStorage.setItem('nexora_force_scenario', JSON.stringify(sc));
   localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
-  window.open('nexora-legacy.html?v=20260910july','NexoraPreview','width=1200,height=800,resizable=yes');
+  window.open('nexora.html?v=20260702restore','NexoraPreview','width=1200,height=800,resizable=yes');
 }
 
 
@@ -7571,7 +7571,7 @@ function previewNexora(s){
     localStorage.setItem('nexora_force_scenario', JSON.stringify(NEXORA_SIM_PROGRAM.programToScenario(cfg)));
   }
   localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
-  window.open('nexora-legacy.html?v=20260910july','NexoraPreview','width=1200,height=800,resizable=yes');
+  window.open('nexora.html?v=20260702restore','NexoraPreview','width=1200,height=800,resizable=yes');
 }
 
 // ── FEATURE 1: KB UPLOAD — Archivos e imágenes ────────────
