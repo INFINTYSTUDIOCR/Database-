@@ -15,10 +15,10 @@
 <nav>
   <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR — Operational Communication Systems" class="nav-logo-page"></a>
   <div class="nav-links">
-    <a href="index.html#about">About</a>
-    <a href="index.html#programs">Programs</a>
-    <a href="index.html#contact" class="active">Contact</a>
-    <a href="#consulta" class="nav-cta">Consulta gratis</a>
+    <a href="index.html#offer">Tu camino</a>
+    <a href="pricing.html">Precios</a>
+    <a href="index.html#contact" class="active">Contacto</a>
+    <a href="#consulta" class="nav-cta">Diagnóstico gratis</a>
   </div>
 </nav>
 
@@ -26,7 +26,7 @@
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="index.html">Inicio</a> <span>/</span> Hablemos</div>
     <h1 class="page-title">Hablemos</h1>
-    <p class="page-lead">¿No sabés cuál programa es para vos? Contanos tu situación y te orientamos — sin compromiso, respuesta rápida.</p>
+    <p class="page-lead">¿No sabés por dónde empezar? Contanos tu caso — te decimos Foundations, ORT o solo práctica. Sin compromiso.</p>
     <div id="demo-request-banner" class="content-block" style="display:none;margin-top:1.25rem;padding:14px 18px;background:#EDE9FE;border:1px solid rgba(91,33,182,0.2);border-radius:12px;">
       <strong id="demo-request-title" style="color:#5B21B6;">Solicitar demo</strong>
       <p id="demo-request-text" style="margin:8px 0 0;font-size:14px;color:#4A4A6A;line-height:1.6;">Completá el formulario y te contactamos para agendar tu demo guiada.</p>
@@ -38,14 +38,14 @@
   <div class="page-main">
     <div class="content-block">
       <h2>Consulta personalizada</h2>
-      <p>En Infinity Studio CR no vendemos paquetes genéricos. Primero entendemos tu perfil, tu meta laboral, si necesitás TOEIC y tu nivel operacional. Después te recomendamos el camino: Claire TOEIC, Conversatorio, Job Finder, Foundations, ORT o el ecosistema completo.</p>
+      <p>Primero entendemos tu caso. Después te decimos: <strong>Foundations</strong>, <strong>ORT</strong>, solo práctica con IA, o TOEIC — sin menú de 9 productos.</p>
     </div>
     <div class="content-block">
       <h2>Cómo funciona</h2>
       <div class="feature-row">
         <div class="feature-chip"><i class="ti ti-message-circle"></i> 1. Nos escribís</div>
-        <div class="feature-chip"><i class="ti ti-user-search"></i> 2. Evaluamos perfil</div>
-        <div class="feature-chip"><i class="ti ti-route"></i> 3. Te damos ruta clara</div>
+        <div class="feature-chip"><i class="ti ti-user-search"></i> 2. Diagnóstico</div>
+        <div class="feature-chip"><i class="ti ti-route"></i> 3. Camino claro</div>
         <div class="feature-chip"><i class="ti ti-calendar"></i> 4. Agendás si querés</div>
       </div>
     </div>
@@ -75,12 +75,12 @@
       <div class="form-group">
         <label class="form-label" for="en-schedule">¿Qué te interesa?</label>
         <select class="form-input" id="en-schedule">
-          <option value="">No estoy seguro/a</option>
-          <option>El Conversatorio</option>
-          <option>Job Finder</option>
-          <option>Preparación TOEIC con Claire</option>
-          <option>Foundations / ORT</option>
-          <option>Ecosistema completo Infinity</option>
+          <option value="">No estoy seguro/a — ayúdenme</option>
+          <option>Casi no sé inglés — Foundations</option>
+          <option>Me trabo al hablar — ORT</option>
+          <option>Necesito el TOEIC</option>
+          <option>Ya hablo — quiero más práctica (Nexora / Alice)</option>
+          <option>Empresa / equipo</option>
         </select>
       </div>
       <div class="form-group">
@@ -91,7 +91,7 @@
         <i class="ti ti-send"></i> Enviar consulta por WhatsApp
       </button>
     </div>
-    <a href="index.html#programs" class="btn-secondary"><i class="ti ti-arrow-left"></i> Ver todos los programas</a>
+    <a href="index.html#offer" class="btn-secondary"><i class="ti ti-arrow-left"></i> Ver los 2 caminos</a>
   </div>
 
   <aside class="visual-card">
@@ -134,10 +134,10 @@
 <script>
 (function () {
   var map = {
-    jill: { title: 'Solicitar demo Jill', note: 'Demo guiada de Jill — tutora Fundamentos estructurales (Foundations).', select: 'Foundations / ORT' },
-    nexora: { title: 'Solicitar demo Nexora', note: 'Demo guiada de Nexora — simulaciones STAR y atención al cliente con voz.', select: 'Ecosistema completo Infinity' },
-    claire: { title: 'Solicitar Claire TOEIC', note: 'Preparación TOEIC con Claire — práctica directa de Listening, Reading, vocabulario y corrección.', select: 'Preparación TOEIC con Claire' },
-    'alice-coach': { title: 'Solicitar demo Alice Modo Tutor', note: 'Demo guiada de Alice Modo Tutor — coaching Nexus alineado a KPIs y Training Book.', select: 'Ecosistema completo Infinity' }
+    jill: { title: 'Solicitar demo Jill', note: 'Demo de Jill — tutora desde cero (Foundations).', select: 'Casi no sé inglés — Foundations' },
+    nexora: { title: 'Solicitar demo Nexora', note: 'Demo de Nexora — simulaciones de entrevista y llamadas.', select: 'Ya hablo — quiero más práctica (Nexora / Alice)' },
+    claire: { title: 'Solicitar Claire TOEIC', note: 'Preparación TOEIC con Claire — Listening y Reading bajo presión.', select: 'Necesito el TOEIC' },
+    'alice-coach': { title: 'Solicitar demo Alice Tutor', note: 'Demo de Alice Tutor — coaching al hablar, flujo y corrección.', select: 'Me trabo al hablar — ORT' }
   };
   var key = (new URLSearchParams(location.search).get('solicitar') || '').toLowerCase();
   var cfg = map[key];

@@ -1528,7 +1528,7 @@ function showPortal(s){
   var simulationHtml = ''
     +'<div id="simulation-onboarding-root"></div>'
     +'<div id="simulation-nexora-panel" class="card" style="margin-top:16px;">'
-    +'<div class="card-title"><i class="ti ti-sparkles"></i> Nexora Legacy</div>'
+    +'<div class="card-title"><i class="ti ti-sparkles"></i> Nexora</div>'
     +'<p style="font-size:13px;line-height:1.55;color:var(--t2);margin:0 0 12px;"><strong>Motor clásico de simulación (CRM lab + llamadas). <strong>No es</strong> Infinity Holdings. Sin score semanal.</p>'
     +'<div id="simulation-nexora-body"></div>'
     +'</div>';
@@ -1661,13 +1661,13 @@ function renderSimulationNexoraPanel(s){
   var on = studentNexoraOn(s);
   if(!on){
     body.innerHTML = '<div style="padding:12px;border-radius:10px;background:#f8fafc;border:1px dashed #cbd5e1;font-size:13px;color:#64748b;">'
-      +'<i class="ti ti-lock"></i> <strong>Nexora Legacy</strong> bloqueado hasta que tu trainer lo active en Engine.</div>';
+      +'<i class="ti ti-lock"></i> <strong>Nexora</strong> bloqueado hasta que tu trainer lo active en Engine.</div>';
     return;
   }
   body.innerHTML = ''
     +'<div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Lab clásico · interfaz original (CRM + phone search). Sin Holdings.</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<button type="button" class="btn-primary" onclick="openNexoraLegacy()"><i class="ti ti-sparkles"></i> Abrir Nexora Legacy</button>'
+    +'<button type="button" class="btn-primary" onclick="openNexoraLegacy()"><i class="ti ti-sparkles"></i> Abrir Nexora</button>'
     +'</div>';
 }
 
@@ -5840,13 +5840,13 @@ function openNexoraLegacy(){
     if(student && !studentPortalAccessOk(student)){
       handleStudentSuspended();
     } else {
-      showToast('Nexora Legacy no está activo. Pedí a tu trainer.','err');
+      showToast('Nexora no está activo. Pedí a tu trainer.','err');
     }
     return;
   }
   var nxConfig = window._nexoraConfig;
   if(!nxConfig || !nxConfig.type){
-    nxConfig = {type:'customer_service',industry:'corporate',difficulty:5,typeLabel:'Nexora Legacy',industryLabel:'Corporate',standalone:true};
+    nxConfig = {type:'customer_service',industry:'corporate',difficulty:5,typeLabel:'Nexora',industryLabel:'Corporate',standalone:true};
   } else if(typeof NEXORA_SIM_PROGRAM!=='undefined' && !nxConfig.simulationId && !nxConfig.standalone){
     nxConfig=NEXORA_SIM_PROGRAM.buildProgram(Object.assign({},nxConfig));
   }
@@ -5867,7 +5867,7 @@ function openNexoraLegacy(){
       ));
     }catch(e){}
   }
-  window.open('nexora-legacy.html?v=20260910july','_blank');
+  window.open('nexora-legacy.html?v=20260910nexora','_blank');
 }
 function openNexoraLab(){ return openNexoraLegacy(); }
 
@@ -6856,16 +6856,16 @@ function renderNexoraTab(s, force){
   }
   if(!studentNexoraOn(s)){
     root.innerHTML = '<div style="background:#0f172a;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1.25rem;margin-top:1rem;text-align:center;">'
-      +'<div style="font-size:13px;color:#FFFFFF;line-height:1.7;">Nexora Legacy no está activo. Pedí a tu trainer.</div></div>';
+      +'<div style="font-size:13px;color:#FFFFFF;line-height:1.7;">Nexora no está activo. Pedí a tu trainer.</div></div>';
     return;
   }
   fetch(INFINITY_API+'/').catch(function(){});
   nexoraWarmApi();
   root.innerHTML = '<div style="background:linear-gradient(135deg,#0a0a0f,#1a1a28);border:1px solid rgba(245,166,35,0.25);border-radius:14px;padding:1.25rem;margin-top:1rem;">'
-    +'<div style="font-size:11px;font-weight:700;color:#F5A623;letter-spacing:0.1em;margin-bottom:6px;">NEXORA LEGACY · LAB CLÁSICO</div>'
+    +'<div style="font-size:11px;font-weight:700;color:#F5A623;letter-spacing:0.1em;margin-bottom:6px;">NEXORA · OPERATIONAL LAB</div>'
     +'<div style="font-size:18px;font-weight:800;color:#FFFFFF;margin-bottom:4px;">Operational Simulation Lab</div>'
     +'<p style="font-size:13px;color:rgba(255,255,255,0.88);line-height:1.7;margin-bottom:1.25rem;">Interfaz original: buscá el teléfono en el CRM, tomá la llamada y resolvé en inglés. No abre Infinity Holdings.</p>'
-    +'<button onclick="openNexoraLegacy()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora Legacy</button>'
+    +'<button onclick="openNexoraLegacy()" style="width:100%;background:#FFFFFF;border:none;color:#F5A623;padding:14px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,0.12);"><i class="ti ti-phone-incoming"></i>Abrir Nexora</button>'
     +'</div>';
   root.setAttribute('data-nx-init', '1');
   setTimeout(function(){ openNexoraLegacy(); }, 0);

@@ -2,13 +2,10 @@ OPINIÓN ANTES DE EMPEZAR
 Esta clase cierra el círculo del sistema completo.
 El estudiante ya tiene los cimientos — pronombres, 16 verbos, presente, pasado, perfecto, gerundio. Ahora instala los interruptores.
 La analogía del -RÉ y el -RÍA es la más poderosa del método porque convierte algo que parece gramática avanzada en algo que el estudiante ya hace todos los días en español sin pensar. Nadie le enseñó a un costarricense que "correría" tiene dos partes. Pero las tiene. Y cuando lo ve — todo encaja.
-El futuro perfecto al final de este módulo es el movimiento correcto. No como estructura nueva — sino como la última pieza LEGO que completa el sistema. WILL + HAVE + PARTICIPIO. El estudiante ya conoce las tres piezas. Solo las combina de una forma nueva.
 Lo más importante de esta clase es el tiempo que se dedica a la práctica de conversión — español a inglés y viceversa. El estudiante tiene que automatizar que -RÉ = WILL y -RÍA = WOULD antes de ver cualquier otra estructura. Si eso no está automático — todo lo demás se construye sobre arena.
+FASE POST-GRAMÁTICA = EJECUCIÓN PURA. Cuando el estudiante YA sabe la teoría (will/would/should/could/must), NO se vuelve al libro ni a más explicación. Se fuerza patrón, pegamento modal+verbo, corrección en vivo y producción oral. El inglés se ve como piezas de puzzle reciclables — no como materia de colegio.
+El futuro perfecto / would have / hubiera NO se abren hasta que el juego simple de modales esté sólido. Si se abre temprano, se enseña como posibilidad no realizada — NUNCA como "lección de pasado".
 Vamos.
-________________________________________
-FASE EJECUCIÓN — RESUMEN OBLIGATORIO (POST-TEORÍA)
-________________________________________
-Si el alumno YA sabe la teoría: puro ejecución. Patrón ANTES que significado. Modal+verbo = UNA pieza (will go / should keep). will↔ré/rás/remos. must=orden · should=sugerencia · could=probabilidad · will=promesa · gonna exige to be. No future perfect/would have hasta juego simple sólido. hubiera=posibilidad no realizada (no pasado escolar). Pegá A+B — que lo diga. Piezas reciclables. Listening sin subtítulos. Corrección en vivo.
 ________________________________________
 APERTURA
 ________________________________________
@@ -226,65 +223,85 @@ I would — I'd — yo +
 She would — She'd — ella +
 He would — He'd — él +"
 ________________________________________
-PARTE 6 — LOS OTROS MODALES
+PARTE 6 — LOS OTROS MODALES + PEGAMENTO
 ________________________________________
 "WILL y WOULD son los más importantes.
 Pero no son los únicos.
 Hay otros modales — y todos funcionan exactamente igual.
-Modal + verbo en infinitivo. Sin TO. Sin cambio.
-Vamos a verlos:
+REGLA DE ORO — PEGAMENTO:
+Modal + verbo son UNA sola unidad.
+will go. should keep. could maintain. must finish.
+No se piensa el modal solo. No se traduce palabra por palabra.
+Se pegan. Se dicen juntos. A + B. Sin preguntar — ejecutar.
+Interferencia del español (diagnóstico en vivo):
+En español el verbo ESCONDE el sujeto y el tiempo (iré / irás / iremos / irán).
+En inglés el sujeto y el modal van EXPLÍCITOS — el verbo base NO cambia.
+I will go. You will go. We will go. They will go.
+WILL mapea a las terminaciones RÉ / RÁS / REMOS / RÁN.
+La base del verbo en inglés se queda igual. Siempre.
+Mapa operativo (fase ejecución — significado corto, no tratado de gramática):
+WILL — promesa / futuro real / decisión (efecto RÉ).
+WOULD — hipotético / condición (efecto RÍA).
+SHOULD — sugerencia (no orden).
+MUST — orden / obligación fuerte.
+COULD — probabilidad / posibilidad (también capacidad pasada o educada).
+CAN — capacidad ahora.
+MAY / MIGHT — posibilidad (might más remota).
+GONNA — requiere TO BE: am / is / are gonna + verbo.
+Nunca 'I gonna'. Siempre 'I am gonna' / 'I'm gonna'.
+Vamos a verlos en voz:
 CAN — poder — capacidad actual.
 I can run — yo puedo correr.
-She can work — ella puede trabajar.
-En español — puedo, podés, puede.
-COULD — poder — capacidad pasada o hipotético educado.
-I could run — yo podía correr / yo podría correr.
-She could work — ella podía trabajar / ella podría trabajar.
-En español — podía, podría.
-¿Notó?
-CAN — capacidad real.
-COULD — capacidad pasada o hipotética.
-Igual que WILL y WOULD.
-CAN = puedo ahora.
-COULD = podía antes — o podría si...
-SHOULD — deber — obligación moral o recomendación.
-I should go — debería ir.
-She should work — ella debería trabajar.
-En español — debería, deberías.
-MUST — tener que — obligación fuerte.
-I must go — tengo que ir. Obligatorio.
-She must work — ella tiene que trabajar.
-En español — tengo que, debo.
-MAY — poder — posibilidad o permiso formal.
-It may rain — puede que llueva.
-May I go? — ¿Puedo ir? — formal.
-En español — puede que, quizás, ¿puedo?
-MIGHT — poder — posibilidad más remota.
-It might rain — podría llover — menos seguro que may.
-En español — podría, tal vez, quizás.
+COULD — probabilidad / podía / podría.
+I could maintain that — podría mantener eso.
+SHOULD — sugerencia.
+I should keep going — debería seguir.
+MUST — orden.
+You must finish — tenés que terminar. Obligatorio.
+MAY — posibilidad o permiso formal.
+It may rain.
+MIGHT — posibilidad más remota.
+It might rain.
 SHALL — futuro formal — principalmente en preguntas.
-Shall we go? — ¿Nos vamos? — formal.
-Shall I help? — ¿Le ayudo? — formal.
+Shall we go?
 Todos funcionan igual:
 MODAL + VERBO EN INFINITIVO.
-Sin TO. Sin cambio. Igual para todos los pronombres."
+Sin TO. Sin cambio. Igual para todos los pronombres.
+Excepto GONNA — que pide to be delante."
 ________________________________________
 Mostrar o escribir:
 ________________________________________
-MODAL    ESPAÑOL              TIPO
-will     RÉ — futuro real     Certeza futura
-would    RÍA — hipotético     Condición / deseo
-can      puedo               Capacidad actual
-could    podía / podría      Capacidad pasada / hipotético
-should   debería             Recomendación / deber moral
-must     tengo que           Obligación fuerte
-may      puede que           Posibilidad / permiso formal
-might    podría              Posibilidad remota
-shall    ¿nos...? / haré     Formal / ofrecimiento
+MODAL    ESPAÑOL / EFECTO       TIPO (ejecución)
+will     RÉ / RÁS / REMOS / RÁN Promesa / futuro real
+would    RÍA                    Hipotético / condición
+can      puedo                  Capacidad actual
+could    podría / probabilidad  Probabilidad / pasada / educado
+should   debería                Sugerencia
+must     tengo que / orden      Orden / obligación fuerte
+gonna    voy a (con TO BE)      am/is/are gonna + verbo
+may      puede que              Posibilidad / permiso formal
+might    podría (remoto)        Posibilidad remota
+shall    ¿nos...? / haré        Formal / ofrecimiento
+________________________________________
+PARTE 6-B — FASE DE EJECUCIÓN PURA (POST-GRAMÁTICA)
+________________________________________
+"Si usted YA sabe la teoría — cerramos el libro.
+No más gramática. No más 'explíqueme otra vez'.
+Ahora es patrón → pegamento → decirlo → corregir en vivo.
+Reglas de esta fase:
+1) Patrón y ejecución ANTES de significado o traducción.
+2) No preguntar — pegar A+B y decirlo. will + go = will go.
+3) Corrección en tiempo real: cortar el error, devolver la ranura, repetir la estructura.
+4) El inglés = piezas de puzzle. Las mismas piezas se reciclan en otra combinación.
+5) Listening: analizar el oído. Ver / escuchar SIN subtítulos para forzar la oreja.
+6) Si falla el español de interferencia (esconde sujeto/tiempo) → diagnóstico corto y de vuelta al pegamento.
+NO saltar a would have / future perfect / hubiera hasta que este juego simple esté sólido."
 ________________________________________
 PARTE 7 — EL FUTURO PERFECTO — WILL + HAVE + PARTICIPIO
 ________________________________________
-"Y ahora — la última pieza.
+"GATE: solo si el juego simple de modales (will/would/should/could/must + verbo) ya está automático.
+Si aún duda en will go / should keep — NO abrimos esta parte.
+Y ahora — la última pieza.
 El futuro perfecto.
 No es nada nuevo.
 Son tres piezas que usted ya conoce.
@@ -687,8 +704,25 @@ ________________________________________
 NOTAS PARA JILL
 ANTES de cualquier construcción con modal →
   "¿Esto va a pasar de verdad — o es condicional/imaginario?"
-  Real → WILL → RÉ.
+  Real → WILL → RÉ / RÁS / REMOS / RÁN.
   Imaginario → WOULD → RÍA.
+
+SI YA DOMINA LA TEORÍA (fase post-gramática) →
+  Cerrar el libro. Ejecución pura.
+  Pegamento modal+verbo. Corrección en vivo. Forzar hablar.
+  "No pregunte. Péguelo. Dígalo."
+
+SI traduce o busca significado antes de armar →
+  "Primero el patrón. Después el sentido."
+  Modal + verbo = UNA unidad. will go / should keep / could maintain.
+
+SI el español esconde sujeto/tiempo y el inglés queda incompleto →
+  Diagnóstico: "En español el verbo esconde; en inglés hay que mostrarlo."
+  Devolver: sujeto + modal + verbo base sin cambiar.
+
+MAPA CORTO DE MODALES (ejecución):
+  must = orden | should = sugerencia | could = probabilidad
+  will = promesa / RÉ | gonna = am/is/are gonna (exige to be)
 
 SI el estudiante cambia el verbo con He/She/It después de WILL o WOULD →
   "WILL y WOULD — ¿cambian con algún pronombre?"
@@ -697,10 +731,15 @@ SI el estudiante cambia el verbo con He/She/It después de WILL o WOULD →
 SI el estudiante pone TO después del modal →
   "¿Los modales necesitan TO?"
   Nunca. Modal + verbo directo. Sin TO.
+  (Excepción oral: gonna sí pide to be delante — I'm gonna go.)
 
 SI el estudiante usa dos modales juntos →
   "¿Pueden ir dos modales juntos?"
   Nunca. Uno solo. Reformular con 'be able to' si necesario.
+
+SI pide future perfect / would have / hubiera ANTES de solidificar el juego simple →
+  Gate. Volver a will/would/should/could/must + verbo base.
+  Cuando se abra: hubiera / would have = posibilidad NO realizada — NO "clase de pasado".
 
 SI el estudiante confunde WILL HAVE con WILL HAS →
   "WILL bloquea el cambio de have. ¿Cuál viene después de WILL HAVE?"
@@ -714,11 +753,16 @@ SI el estudiante olvida integrar pronombres de módulos anteriores →
   Detener. Pedir que agregue el tipo faltante.
   No reiniciar. Continuar desde donde paró.
 
+LISTENING →
+  Sin subtítulos cuando el objetivo es forzar el oído.
+  Analizar lo que se oyó; no leer la respuesta.
+
 SIEMPRE →
-  Español como puente — RÉ y RÍA.
-  Patrón antes que nombre gramatical.
-  Los diez módulos se conectan siempre.
-  Al final de esta clase el estudiante tiene el sistema completo instalado
+  Español como puente — RÉ / RÁS / REMOS / RÁN y RÍA.
+  Patrón y ejecución antes que nombre gramatical o traducción.
+  Piezas de puzzle: reciclar las mismas piezas en otra combinación.
+  Los módulos se conectan siempre.
+  Al final de esta clase el estudiante tiene el sistema completo instalado.
 ________________________________________
 FASE EJECUCIÓN — POST-GRAMÁTICA (OBLIGATORIA CUANDO YA SABE LA TEORÍA)
 ________________________________________
