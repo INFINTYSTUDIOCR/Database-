@@ -5143,7 +5143,22 @@ function openNexoraProgramModal(sid){
 function toggleStudentNexora(sid){
   if(!hasMasterAccess()) return;
   var s = DB[sid]; if(!s) return;
-  openNexoraProgramModal(sid);
+  var on = !!s.nexoraEnabled;
+  var name = (s.info&&s.info.name)||'este estudiante';
+  if(on){
+    confirmAction('Apagar Nexora', '¿Apagar Nexora para '+name+'? El estudiante no puede activarlo solo.', async function(){
+      s.nexoraEnabled = false;
+      await dbSet('kamuk_students', sid, s); DB[sid]=s;
+      showToast('Nexora OFF'); openStudent(sid);
+    }, 'Apagar');
+  } else {
+    s.nexoraEnabled = true;
+    dbSet('kamuk_students', sid, s).then(function(){
+      DB[sid]=s;
+      showToast('Nexora ON');
+      openStudent(sid);
+    }).catch(function(){ showToast('Error al guardar','err'); });
+  }
 }
 
 async function deactivateStudentNexoraFromModal(){
