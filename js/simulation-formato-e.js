@@ -247,7 +247,7 @@
     }
 
     function renderLearn() {
-      return '<p class="fe-lead">Formato E is the client email standard on the Holdings desk. Soft Skills teach tone; this module teaches the five blocks the Send button actually grades.</p>'
+      return '<p class="fe-lead"><strong>Email composition training</strong> is the client email standard on the Holdings desk (E1–E5). Soft Skills teach tone; this module teaches the five blocks the Send button actually grades.</p>'
         + '<div class="fe-grid">' + PARTS.map(function (p) {
           return '<div class="fe-card"><b>' + p.code + ' · ' + esc(p.title) + '</b><span>' + esc(p.tip) + '</span></div>';
         }).join('') + '</div>'
@@ -305,8 +305,8 @@
       if (!state.certDraft) state.certDraft = {};
       var done = certPassed(state);
       return (done
-        ? '<div class="fe-cert"><i class="ti ti-rosette-discount-check"></i><div><b>Formato E certified</b><span>You passed both certification emails · attempt ' + (state.attempts || 1) + '</span></div></div>'
-        : '<p class="fe-lead">Certification: write two new emails without copying the gold sample. Both must pass Formato E (E1–E5 + 55 words). Retries allowed — coaching shows what is missing.</p>')
+        ? '<div class="fe-cert"><i class="ti ti-rosette-discount-check"></i><div><b>Email composition training certified</b><span>You passed both certification emails · attempt ' + (state.attempts || 1) + '</span></div></div>'
+        : '<p class="fe-lead">Certification: write two new emails without copying the gold sample. Both must pass Email composition training (E1–E5 + 55 words). Retries allowed — coaching shows what is missing.</p>')
         + CERT.map(function (c) { return writeBlock(c, state.cert, 'cert', 'fe-cert'); }).join('')
         + '<div class="fe-foot">'
         + (done

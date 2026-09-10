@@ -4,7 +4,7 @@
   var PROGRAM = {
     label: 'Foundation 01 · Corporate e-learning',
     title: 'Welcome to Infinity Holdings Inc',
-    intro: 'Complete each corporate module (learn → practice → quiz 80%), Formato E certification, the final exam, then Guided CRM mock, Desk map and nesting on Infinity Holdings Inc.'
+    intro: 'Complete each corporate module (learn → practice → quiz 80%), Email composition training certification, the final exam, then Guided CRM mock, Desk map and nesting on Infinity Holdings Inc.'
   };
 
   var CORP_STEPS = [
@@ -23,7 +23,7 @@
   ].concat(CORP_STEPS).concat([
     { id: 'products', label: 'Products', icon: 'briefcase', mins: 10 },
     { id: 'resolution', label: 'Resolution', icon: 'clipboard-check', mins: 8 },
-    { id: 'formatoe', label: 'Formato E', icon: 'mail', mins: 15 },
+    { id: 'formatoe', label: 'Email composition training', icon: 'mail', mins: 15 },
     { id: 'final', label: 'Final exam', icon: 'certificate', mins: 12 },
     { id: 'mock', label: 'Guided CRM', icon: 'device-desktop', mins: 7 },
     { id: 'deskmap', label: 'Desk map', icon: 'map-2', mins: 6 },
@@ -576,20 +576,20 @@
 
     function formatoePanel() {
       if (!moduleReady('resolution')) {
-        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish Resolution before Formato E training.</p></div></div>';
+        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish Resolution before Email composition training.</p></div></div>';
       }
       var ready = moduleReady('formatoe');
-      return panelShell('Formato E — professional client email', 15, 'Learn E1–E5, spot broken emails, write graded drills, then certify. The grader is the same one the live desk uses on Send.',
+      return panelShell('Email composition training — professional client email', 15, 'Learn E1–E5, spot broken emails, write graded drills, then certify. The grader is the same one the live desk uses on Send.',
         '<div id="ob-formato-e"></div>'
         + (ready ? continueBtn('final', true, 'Continue to final exam') : '<div class="ob-foot"><span class="ob-msg">Complete Learn → Spot → Drills → Certification above.</span></div>'));
     }
 
     function finalPanel() {
       if (!BEFORE_FINAL.every(moduleReady)) {
-        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish every corporate module and Formato E before the final exam.</p></div></div>';
+        return '<div class="ob-panel"><div class="ob-locked"><i class="ti ti-lock"></i><p>Finish every corporate module and Email composition training before the final exam.</p></div></div>';
       }
       var ready = moduleReady('final');
-      return panelShell('Final exam — all modules', 12, '20 questions covering Empathy, Rapport, Q&A/KPIs, Verification, Anti-fraud, AML, Identity theft, Phishing and Formato E. Minimum 80%.',
+      return panelShell('Final exam — all modules', 12, '20 questions covering Empathy, Rapport, Q&A/KPIs, Verification, Anti-fraud, AML, Identity theft, Phishing and Email composition training. Minimum 80%.',
         '<div id="ob-final-exam"></div>'
         + (ready ? continueBtn('mock', true, 'Continue to Guided CRM') : '<div class="ob-foot"><span class="ob-msg">Submit the final exam at 80%+ to unlock Guided CRM.</span></div>'));
     }
@@ -757,7 +757,7 @@
         });
         return;
       }
-      slot.innerHTML = '<div class="ob-msg err">Formato E module missing. Reload the portal (simulation-formato-e.js + kamuk-desk-english.js).</div>';
+      slot.innerHTML = '<div class="ob-msg err">Email composition training module missing. Reload the portal (simulation-formato-e.js + kamuk-desk-english.js).</div>';
     }
 
     function mountBridgeIfNeeded() {

@@ -1006,7 +1006,7 @@
         save();
       }
       var passed = !!state.certifiedAt || score() >= PASS && Object.keys(state.answers).length >= state.order.length;
-      var html = '<div class="cl"><p class="cl-lead">Final certification covers Empathy, Rapport, Q&amp;A/KPIs, Account Verification, Anti-Fraud, AML, Identity Theft, Phishing and Formato E standards. Minimum 80%.</p>';
+      var html = '<div class="cl"><p class="cl-lead">Final certification covers Empathy, Rapport, Q&amp;A/KPIs, Account Verification, Anti-Fraud, AML, Identity Theft, Phishing and Email composition training standards. Minimum 80%.</p>';
       if (state.certifiedAt) {
         html += '<div class="cl-cert"><i class="ti ti-rosette-discount-check"></i><div><b>Foundation final certified</b><span>' + Math.round((state.lastScore || score()) * 100) + '% · attempt ' + (state.attempts || 1) + '</span></div></div>';
       }
@@ -1120,7 +1120,7 @@
             onContinue: backHub
           });
         } else {
-          slot.innerHTML = '<div class="cl-msg err">Formato E module missing. Reload the portal.</div>';
+          slot.innerHTML = '<div class="cl-msg err">Email composition training module missing. Reload the portal.</div>';
         }
         return;
       }
@@ -1141,7 +1141,7 @@
         : false;
       cards += '<button type="button" class="cl-hub-card' + (formatoDone ? ' done' : '') + '" data-formato="1">'
         + '<div class="cl-hub-kicker">Email standard · desk</div>'
-        + '<div class="cl-hub-title">Formato E</div>'
+        + '<div class="cl-hub-title">Email composition training</div>'
         + '<div class="cl-hub-meta">Training · Drills · Certification</div>'
         + (formatoDone ? '<span class="cl-hub-badge">Certified</span>' : '')
         + '</button>';

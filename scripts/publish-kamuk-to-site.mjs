@@ -83,7 +83,7 @@ const IRRIGATE_FROM_INF = [
 
 // Bumped on publish so returning students never keep a cached Companion Hub bundle.
 const CASINO_FLOOR_V = '20260814refresh';
-const SIM_V = '20260825sched';
+const SIM_V = '20260910email';
 const CRM_V = '20260825nxlive';
 const RECURSOS_V = '20260827nest';
 const SCHED_V = '20260825sched';
@@ -105,7 +105,7 @@ function prep(html, kind) {
     '$1?v=' + CASINO_FLOOR_V + '"'
   );
   html = html.replace(
-    /(src="js\/(?:simulation-(?:onboarding|access|supervisor|crm-bridge|formato-e)|infinity-holdings-config|infinity-holdings-nexora-live|infinity-scheduler)\.js)(\?v=[^"]*)?"/g,
+    /(src="js\/(?:simulation-(?:onboarding|access|supervisor|crm-bridge|formato-e|corporate-learn)|infinity-holdings-config|infinity-holdings-nexora-live|infinity-scheduler)\.js)(\?v=[^"]*)?"/g,
     '$1?v=' + SIM_V + '"'
   );
   html = html.replace(
