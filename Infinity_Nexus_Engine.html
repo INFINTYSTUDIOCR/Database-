@@ -5436,7 +5436,7 @@ function previewNexoraFromModal(){
   localStorage.setItem('nexora_scenario', JSON.stringify(program));
   localStorage.setItem('nexora_force_scenario', JSON.stringify(sc));
   localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
-  window.open('nexora.html','NexoraPreview','width=1200,height=800,resizable=yes');
+  window.open('nexora-legacy.html?v=20260910july','NexoraPreview','width=1200,height=800,resizable=yes');
 }
 
 
@@ -7788,7 +7788,7 @@ function previewNexora(s){
     localStorage.setItem('nexora_force_scenario', JSON.stringify(NEXORA_SIM_PROGRAM.programToScenario(cfg)));
   }
   localStorage.setItem('nexora_agent', SESSION.name||'Trainer');
-  window.open('nexora.html','NexoraPreview','width=1200,height=800,resizable=yes');
+  window.open('nexora-legacy.html?v=20260910july','NexoraPreview','width=1200,height=800,resizable=yes');
 }
 
 // ── FEATURE 1: KB UPLOAD — Archivos e imágenes ────────────

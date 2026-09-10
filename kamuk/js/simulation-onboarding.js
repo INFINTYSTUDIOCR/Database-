@@ -255,7 +255,7 @@
     var accent = product === 'kamuk' ? '#2B7EC1' : '#5B21B6';
     var kamukDesk = 'https://studioinfinitycr.com/kamuk/kamuk-holdings-crm.html';
     var launchUrl = String(config.launchUrl || (product === 'kamuk' ? kamukDesk : 'infinity-holdings-crm.html'));
-    if (product === 'kamuk' && (!launchUrl || /github\.io|nexora|infinity-holdings/i.test(launchUrl) || launchUrl === 'kamuk-holdings-crm.html')) {
+    if (product === 'kamuk' && (!launchUrl || /github\.io|infinity-holdings/i.test(launchUrl) || launchUrl === 'kamuk-holdings-crm.html')) {
       launchUrl = kamukDesk;
     }
     var studentId = String(config.studentId || '').trim();
