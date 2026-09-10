@@ -5,13 +5,28 @@
 (function (global) {
   'use strict';
 
-  var CONFIG_VER = '20260825word4';
+  var CONFIG_VER = '20260910play';
   var MIN_WORDS = 14;
   var _extraPool = null;
   var _extraLoad = null;
   var _level = 'ort';
   var _stylesInjected = false;
   var _round = null;
+
+  var WORD_HIT_COLORS = [
+    { bg: 'linear-gradient(145deg,#86efac,#22c55e)', fg: '#14532d', chip: '#86efac', border: 'rgba(34,197,94,.55)' },
+    { bg: 'linear-gradient(145deg,#93c5fd,#3b82f6)', fg: '#1e3a8a', chip: '#93c5fd', border: 'rgba(59,130,246,.55)' },
+    { bg: 'linear-gradient(145deg,#fcd34d,#f59e0b)', fg: '#78350f', chip: '#fcd34d', border: 'rgba(245,158,11,.55)' },
+    { bg: 'linear-gradient(145deg,#f9a8d4,#ec4899)', fg: '#831843', chip: '#f9a8d4', border: 'rgba(236,72,153,.55)' },
+    { bg: 'linear-gradient(145deg,#c4b5fd,#8b5cf6)', fg: '#4c1d95', chip: '#c4b5fd', border: 'rgba(139,92,246,.55)' },
+    { bg: 'linear-gradient(145deg,#67e8f9,#06b6d4)', fg: '#164e63', chip: '#67e8f9', border: 'rgba(6,182,212,.55)' },
+    { bg: 'linear-gradient(145deg,#fdba74,#f97316)', fg: '#7c2d12', chip: '#fdba74', border: 'rgba(249,115,22,.55)' },
+    { bg: 'linear-gradient(145deg,#bef264,#84cc16)', fg: '#365314', chip: '#bef264', border: 'rgba(132,204,22,.55)' },
+    { bg: 'linear-gradient(145deg,#fda4af,#f43f5e)', fg: '#881337', chip: '#fda4af', border: 'rgba(244,63,94,.55)' },
+    { bg: 'linear-gradient(145deg,#a5b4fc,#6366f1)', fg: '#312e81', chip: '#a5b4fc', border: 'rgba(99,102,241,.55)' },
+    { bg: 'linear-gradient(145deg,#5eead4,#14b8a6)', fg: '#134e4a', chip: '#5eead4', border: 'rgba(20,184,166,.55)' },
+    { bg: 'linear-gradient(145deg,#e9d5ff,#d946ef)', fg: '#701a75', chip: '#e9d5ff', border: 'rgba(217,70,239,.55)' }
+  ];
 
   /** Randomizer interno — todo el Word Lab pasa por acá. */
   var RNG = (function () {
@@ -70,8 +85,10 @@
   ];
 
   var GAME_TYPES = [
-    { id: 'wordsearch', label: 'Sopa de letras', desc: '14+ palabras · arrastrá para marcar', icon: 'ti-grid-dots' },
+    { id: 'wordsearch', label: 'Sopa de letras', desc: 'Colores que se quedan · arrastrá para marcar', icon: 'ti-grid-dots' },
     { id: 'findword', label: 'Find the Word', desc: '14 pistas · buscá en la grilla', icon: 'ti-search' },
+    { id: 'hangman', label: 'Ahorcado', desc: 'Completá la palabra letra por letra', icon: 'ti-writing' },
+    { id: 'wordrush', label: 'Word Rush', desc: 'Modo agresivo · vidas + timer', icon: 'ti-flame' },
     { id: 'crossword', label: 'Crucigrama', desc: '14 entradas cruzadas · pistas numeradas', icon: 'ti-layout-grid' }
   ];
 
@@ -257,7 +274,7 @@
 
   function initRound(catId, gameType, totalWords) {
     RNG.reseed(Date.now() ^ RNG.int(1, 999999));
-    var titles = { wordsearch: 'Sopa', findword: 'Find', crossword: 'Crucigrama' };
+    var titles = { wordsearch: 'Sopa', findword: 'Find', hangman: 'Ahorcado', wordrush: 'Word Rush', crossword: 'Crucigrama' };
     _round = {
       mode: 'wordlab-' + gameType,
       modeTitle: 'Word Lab · ' + (titles[gameType] || gameType),
@@ -273,7 +290,8 @@
   }
 
   function injectStyles() {
-    if (_stylesInjected) return;
+    var styleId = 'iwp-styles-' + CONFIG_VER;
+    if (document.getElementById(styleId)) return;
     _stylesInjected = true;
     var css = ''
       + '.iwp-shell{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;'
@@ -296,44 +314,67 @@
       + '.iwp-lv{flex:1;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:11px;font-weight:800;padding:10px 8px;border-radius:10px;cursor:pointer;text-align:center;line-height:1.25;}'
       + '.iwp-lv small{display:block;font-weight:600;font-size:9px;opacity:.75;margin-top:2px;}'
       + '.iwp-lv.is-on{background:linear-gradient(135deg,rgba(91,33,182,.55),rgba(124,58,237,.4));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);}'
-      + '.iwp-card{text-align:left;border:1px solid rgba(167,139,250,.18);background:rgba(255,255,255,.04);border-radius:14px;padding:14px;cursor:pointer;width:100%;transition:background .15s,border-color .15s;}'
-      + '.iwp-card:hover{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.35);}'
+      + '.iwp-card{text-align:left;border:1px solid rgba(167,139,250,.18);background:rgba(255,255,255,.04);border-radius:14px;padding:14px;cursor:pointer;width:100%;transition:background .15s,border-color .15s,transform .15s;}'
+      + '.iwp-card:hover{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.35);transform:translateY(-1px);}'
       + '.iwp-card-title{font-weight:800;color:#e9d5ff;font-size:14px;}'
       + '.iwp-card-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.45;}'
       + '.iwp-grid-wrap{overflow:auto;padding:12px;background:rgba(0,0,0,.35);border-radius:16px;border:1px solid rgba(167,139,250,.12);margin-bottom:14px;}'
       + '.iwp-grid{display:inline-grid;gap:3px;user-select:none;}'
       + '.iwp-cell{width:30px;height:30px;border-radius:6px;border:1px solid rgba(167,139,250,.2);'
       + 'background:linear-gradient(145deg,#faf8ff,#ede9fe);font-weight:800;font-size:12px;color:#3b0764;cursor:pointer;padding:0;'
-      + 'box-shadow:inset 0 -1px 0 rgba(91,33,182,.08);touch-action:none;}'
-      + '.iwp-cell.iwp-hit{background:linear-gradient(145deg,#86efac,#3ddc97)!important;color:#064e3b;border-color:rgba(61,220,151,.5);}'
-      + '.iwp-cell.iwp-sel{background:linear-gradient(145deg,#c4b5fd,#a78bfa)!important;color:#1e1b4b;}'
+      + 'box-shadow:inset 0 -1px 0 rgba(91,33,182,.08);touch-action:none;transition:transform .18s ease,box-shadow .18s ease,background .2s;}'
+      + '.iwp-cell.iwp-hit{background:var(--iwp-hit-bg,linear-gradient(145deg,#86efac,#3ddc97))!important;color:var(--iwp-hit-fg,#064e3b)!important;border-color:var(--iwp-hit-bd,rgba(61,220,151,.5))!important;}'
+      + '.iwp-cell.iwp-sel{background:linear-gradient(145deg,#c4b5fd,#a78bfa)!important;color:#1e1b4b;transform:scale(1.06);}'
+      + '.iwp-cell.iwp-pop{animation:iwpPop .45s cubic-bezier(.2,1.4,.4,1);}'
+      + '@keyframes iwpPop{0%{transform:scale(.86)}55%{transform:scale(1.18)}100%{transform:scale(1)}}'
+      + '@keyframes iwpShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}'
+      + '@keyframes iwpPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.45)}50%{box-shadow:0 0 0 10px rgba(248,113,113,0)}}'
       + '.iwp-xword{width:28px;height:28px;text-align:center;border:1px solid rgba(167,139,250,.35);border-radius:5px;'
       + 'font-weight:800;font-size:11px;text-transform:uppercase;background:#faf8ff;color:#3b0764;padding:0;}'
       + '.iwp-xvoid{width:28px;height:28px;background:rgba(91,33,182,.12);border-radius:4px;}'
       + '.iwp-chip{display:inline-block;margin:3px 5px 3px 0;padding:5px 11px;border-radius:999px;font-size:10px;font-weight:800;'
-      + 'background:rgba(167,139,250,.15);color:#ddd6fe;border:1px solid rgba(167,139,250,.25);}'
-      + '.iwp-chip.done{text-decoration:line-through;opacity:.45;}'
+      + 'background:rgba(167,139,250,.15);color:#ddd6fe;border:1px solid rgba(167,139,250,.25);transition:background .25s,color .25s,transform .25s;}'
+      + '.iwp-chip.done{text-decoration:none;opacity:1;color:#0f172a!important;background:var(--iwp-chip-bg,#86efac)!important;border-color:transparent;transform:scale(1.04);}'
       + '.iwp-status{font-size:12px;font-weight:700;color:#86efac;margin-bottom:12px;letter-spacing:.02em;}'
       + '.iwp-meta{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.5;}'
       + '.iwp-back{border:none;background:transparent;color:#a78bfa;font-weight:700;font-size:12px;cursor:pointer;margin-bottom:12px;padding:0;}'
       + '.iwp-btn{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#5b21b6,#7c3aed);'
       + 'color:#fff;font-weight:800;font-size:13px;cursor:pointer;margin-top:12px;box-shadow:0 8px 24px rgba(91,33,182,.35);}'
       + '.iwp-btn:hover{filter:brightness(1.06);}'
-      + '.iwp-clue{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.1);margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.85);line-height:1.45;}'
-      + '.iwp-clue strong{color:#c4b5fd;margin-right:6px;}'
-      + '.iwp-progress{font-size:11px;font-weight:800;color:#a78bfa;margin-bottom:10px;}'
-      + '.iwp-hint-box{background:rgba(91,33,182,.12);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:14px;margin-bottom:14px;}'
-      + '.iwp-reward{background:linear-gradient(135deg,rgba(61,220,151,.18),rgba(91,33,182,.22));border:1px solid rgba(61,220,151,.35);border-radius:14px;padding:14px;margin-bottom:14px;}'
-      + '.iwp-reward-title{font-size:14px;font-weight:900;color:#86efac;margin-bottom:8px;}'
-      + '.iwp-reward-row{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;font-weight:800;color:#e9d5ff;}'
-      + '.iwp-reward-prizes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}'
-      + '.iwp-prize-chip{font-size:10px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.3);color:#fcd34d;border:1px solid rgba(252,211,77,.3);}'
-      + '.iwp-random-btn{background:linear-gradient(135deg,#0e7490,#5b21b6)!important;margin-bottom:14px;}'
-      + '.iwp-streak-bar{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;}';;
-    var el = document.createElement('style');
-    el.id = 'iwp-styles';
-    el.textContent = css;
-    document.head.appendChild(el);
+      + '.iwp-btn:disabled{opacity:.45;cursor:not-allowed;filter:none;}'
+      + '.iwp-btn.danger{background:linear-gradient(135deg,#b91c1c,#ef4444);box-shadow:0 8px 24px rgba(239,68,68,.35);}'
+      + '.iwp-progress{font-size:13px;font-weight:800;color:#e9d5ff;margin-bottom:8px;}'
+      + '.iwp-clue{font-size:12px;color:rgba(255,255,255,.72);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);line-height:1.45;}'
+      + '.iwp-hint-box{padding:12px 14px;border-radius:14px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);margin-bottom:12px;}'
+      + '.iwp-streak-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;font-size:11px;font-weight:700;color:#ddd6fe;}'
+      + '.iwp-streak-bar span{background:rgba(255,255,255,.06);border:1px solid rgba(167,139,250,.18);padding:6px 10px;border-radius:999px;}'
+      + '.iwp-reward{margin-bottom:14px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(61,220,151,.18),rgba(91,33,182,.25));border:1px solid rgba(134,239,172,.35);}'
+      + '.iwp-reward-title{font-weight:900;color:#ecfdf5;margin-bottom:8px;}'
+      + '.iwp-reward-row{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;font-weight:700;color:#bbf7d0;}'
+      + '.iwp-reward-prizes{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}'
+      + '.iwp-prize-chip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.25);color:#fef3c7;}'
+      + '.iwp-random-btn{margin-bottom:14px;}'
+      + '.iwp-hang-wrap{text-align:center;padding:8px 0 16px;}'
+      + '.iwp-hang-word{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:18px 0 22px;min-height:52px;}'
+      + '.iwp-hang-slot{min-width:34px;height:44px;border-bottom:3px solid rgba(233,213,255,.55);display:flex;align-items:center;justify-content:center;'
+      + 'font-size:22px;font-weight:900;color:#f5f3ff;letter-spacing:.02em;}'
+      + '.iwp-hang-slot.filled{border-bottom-color:#86efac;color:#86efac;animation:iwpPop .35s ease;}'
+      + '.iwp-hang-meta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;font-weight:800;color:#e9d5ff;}'
+      + '.iwp-hang-meta span{padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(167,139,250,.2);}'
+      + '.iwp-hang-meta .danger{color:#fecaca;border-color:rgba(248,113,113,.45);animation:iwpPulse 1.2s infinite;}'
+      + '.iwp-keys{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:420px;margin:0 auto;}'
+      + '.iwp-key{width:34px;height:38px;border-radius:9px;border:1px solid rgba(167,139,250,.28);background:rgba(255,255,255,.08);'
+      + 'color:#f5f3ff;font-weight:800;font-size:13px;cursor:pointer;}'
+      + '.iwp-key:hover:not(:disabled){background:rgba(167,139,250,.25);}'
+      + '.iwp-key.used{opacity:.35;cursor:default;}'
+      + '.iwp-key.good{background:rgba(34,197,94,.35);border-color:rgba(134,239,172,.55);}'
+      + '.iwp-key.bad{background:rgba(239,68,68,.35);border-color:rgba(252,165,165,.55);}'
+      + '.iwp-rush.shake{animation:iwpShake .35s ease;}'
+      + '.iwp-clue-big{font-size:15px;font-weight:700;color:#ddd6fe;line-height:1.5;margin:8px 0 4px;}';
+    var st = document.createElement('style');
+    st.id = styleId;
+    st.textContent = css;
+    document.head.appendChild(st);
   }
 
   function renderLevelToggle(onclickFn) {
@@ -729,14 +770,26 @@
 
   function bindWordSearch(puzzle) {
     var found = {};
+    var colorByWord = {};
+    var colorN = 0;
     var cells = document.querySelectorAll('.iwp-cell');
     var selecting = false;
     var path = [];
 
+    function paintHit(el, color) {
+      if (!el || !color) return;
+      el.classList.add('iwp-hit');
+      el.style.setProperty('--iwp-hit-bg', color.bg);
+      el.style.setProperty('--iwp-hit-fg', color.fg);
+      el.style.setProperty('--iwp-hit-bd', color.border);
+      el.classList.remove('iwp-pop');
+      void el.offsetWidth;
+      el.classList.add('iwp-pop');
+    }
+
     function highlightPath() {
       cells.forEach(function (el) {
-        el.classList.remove('iwp-sel', 'iwp-hit');
-        if (found[el.textContent]) el.classList.add('iwp-hit');
+        el.classList.remove('iwp-sel');
       });
       path.forEach(function (p) { p.classList.add('iwp-sel'); });
     }
@@ -748,8 +801,18 @@
       if (pr) pr.textContent = n + ' / ' + total + ' palabras';
       if (n >= total) {
         var st = document.getElementById('iwp-status');
-        if (st) st.textContent = 'Ronda completada — ' + total + ' palabras';
+        if (st) st.textContent = 'Ronda completada — ' + total + ' colores en la grilla';
         onRoundComplete(n, total);
+      }
+    }
+
+    function markPlacedWord(entry, color) {
+      if (!entry) return;
+      for (var i = 0; i < entry.word.length; i++) {
+        var rr = entry.r + entry.dr * i;
+        var cc = entry.c + entry.dc * i;
+        var el = document.querySelector('.iwp-cell[data-r="' + rr + '"][data-c="' + cc + '"]');
+        paintHit(el, color);
       }
     }
 
@@ -763,12 +826,23 @@
         if (letters === w.word || rev === w.word) {
           found[w.word] = true;
           hit = true;
+          var color = WORD_HIT_COLORS[colorN % WORD_HIT_COLORS.length];
+          colorByWord[w.word] = color;
+          colorN++;
           if (_round) {
             _round.wordStreak = (_round.wordStreak || 0) + 1;
             _round.bestWordStreak = Math.max(_round.bestWordStreak || 0, _round.wordStreak);
           }
+          var placed = (puzzle.placed || []).find(function (p) { return p.word === w.word; });
+          if (placed) markPlacedWord(placed, color);
+          else path.forEach(function (el) { paintHit(el, color); });
           var chip = document.getElementById('iwp-word-' + w.word);
-          if (chip) chip.classList.add('done');
+          if (chip) {
+            chip.classList.add('done');
+            chip.style.setProperty('--iwp-chip-bg', color.chip);
+          }
+          var st = document.getElementById('iwp-status');
+          if (st) st.textContent = '✓ ' + w.word + ' · color ' + colorN + ' se queda';
           updateProgress();
         }
       });
@@ -805,6 +879,177 @@
       }, { passive: false });
       el.addEventListener('touchend', onEnd);
     });
+  }
+
+  function alphabetKeysHtml() {
+    return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (ch) {
+      return '<button type="button" class="iwp-key" data-letter="' + ch + '">' + ch + '</button>';
+    }).join('');
+  }
+
+  function pickLetterGameWords(catId, cfg, n) {
+    var pool = filterByLevel(buildPool(catId), cfg).filter(function (w) {
+      var nw = normWord(w.word || w.label || w);
+      return nw.length >= Math.max(4, cfg.wordMin || 4) && nw.length <= Math.min(12, cfg.wordMax || 12);
+    });
+    return pick(pool.length ? pool : filterByLevel(buildPool(catId), cfg), n).map(function (w) {
+      return {
+        word: normWord(w.word || w.label || w),
+        clue: w.clue || w.label || clueFromItem(w) || 'Complete the word',
+        label: w.label || w.word
+      };
+    }).filter(function (w) { return w.word.length >= 3; });
+  }
+
+  function renderHangman(catId) {
+    var cfg = levelCfg();
+    var queue = pickLetterGameWords(catId, cfg, Math.max(8, Math.min(12, MIN_WORDS - 2)));
+    if (!queue.length) queue = [{ word: 'PRACTICE', clue: 'What we do every day' }];
+    initRound(catId, 'hangman', queue.length);
+    var body = renderLevelToggle('InfinityWordPuzzles.setLevelAndRestart')
+      + '<button type="button" class="iwp-back" onclick="InfinityWordPuzzles.pickCat(\'' + catId + '\')">← Modos</button>'
+      + '<div id="iwp-reward-slot"></div>'
+      + '<div class="iwp-progress" id="iwp-progress">Palabra 1 / ' + queue.length + '</div>'
+      + '<div class="iwp-status" id="iwp-status">Ahorcado · tocá letras para completar la palabra</div>'
+      + '<div class="iwp-hang-wrap" id="iwp-hang-root"></div>'
+      + '<button type="button" class="iwp-btn" onclick="InfinityWordPuzzles.start(\'' + catId + '\',\'hangman\')">Nueva ronda</button>';
+    mountOverlay(shell('Ahorcado · ' + cfg.label, body));
+    setTimeout(function () { bindHangmanGame(queue, { maxWrong: 6, aggressive: false, title: 'Ahorcado' }); }, 30);
+  }
+
+  function renderWordRush(catId) {
+    var cfg = levelCfg();
+    var queue = pickLetterGameWords(catId, cfg, Math.max(10, MIN_WORDS));
+    if (!queue.length) queue = [{ word: 'PRESSURE', clue: 'What Rush mode feels like' }];
+    initRound(catId, 'wordrush', queue.length);
+    var body = renderLevelToggle('InfinityWordPuzzles.setLevelAndRestart')
+      + '<button type="button" class="iwp-back" onclick="InfinityWordPuzzles.pickCat(\'' + catId + '\')">← Modos</button>'
+      + '<div id="iwp-reward-slot"></div>'
+      + '<div class="iwp-progress" id="iwp-progress">Palabra 1 / ' + queue.length + '</div>'
+      + '<div class="iwp-status" id="iwp-status">Word Rush · 3 vidas · 40s por palabra · sin piedad</div>'
+      + '<div class="iwp-hang-wrap iwp-rush" id="iwp-hang-root"></div>'
+      + '<button type="button" class="iwp-btn danger" onclick="InfinityWordPuzzles.start(\'' + catId + '\',\'wordrush\')">Reiniciar Rush</button>';
+    mountOverlay(shell('Word Rush · ' + cfg.label, body));
+    setTimeout(function () { bindHangmanGame(queue, { maxWrong: 3, aggressive: true, seconds: 40, title: 'Word Rush' }); }, 30);
+  }
+
+  function bindHangmanGame(queue, opts) {
+    opts = opts || {};
+    var maxWrong = opts.maxWrong || 6;
+    var aggressive = !!opts.aggressive;
+    var seconds = opts.seconds || 0;
+    var idx = 0;
+    var solved = 0;
+    var timer = null;
+    var root = document.getElementById('iwp-hang-root');
+    if (!root) return;
+
+    function clearTimer() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    function paintWord(entry, guessed) {
+      return entry.word.split('').map(function (ch) {
+        var show = guessed[ch];
+        return '<div class="iwp-hang-slot' + (show ? ' filled' : '') + '">' + (show ? esc(ch) : '') + '</div>';
+      }).join('');
+    }
+
+    function startWord() {
+      clearTimer();
+      if (idx >= queue.length) {
+        root.innerHTML = '<div class="iwp-status">Completaste ' + solved + ' / ' + queue.length + ' palabras</div>';
+        onRoundComplete(solved, queue.length);
+        return;
+      }
+      var entry = queue[idx];
+      var guessed = {};
+      var wrong = 0;
+      var left = seconds;
+      var pr = document.getElementById('iwp-progress');
+      if (pr) pr.textContent = 'Palabra ' + (idx + 1) + ' / ' + queue.length + (aggressive ? ' · Rush' : '');
+      var st = document.getElementById('iwp-status');
+      if (st) st.textContent = (aggressive ? 'Rush · ' : '') + 'Completá: ' + entry.word.length + ' letras';
+
+      function render() {
+        var livesLeft = maxWrong - wrong;
+        root.innerHTML = ''
+          + '<div class="iwp-clue-big">' + esc(entry.clue || entry.label || 'Guess the word') + '</div>'
+          + '<div class="iwp-hang-meta">'
+          + '<span>Vidas ' + livesLeft + '/' + maxWrong + '</span>'
+          + (aggressive ? '<span class="' + (left <= 10 ? 'danger' : '') + '" id="iwp-rush-clock">⏱ ' + left + 's</span>' : '')
+          + '<span>Resueltas ' + solved + '</span>'
+          + '</div>'
+          + '<div class="iwp-hang-word">' + paintWord(entry, guessed) + '</div>'
+          + '<div class="iwp-keys">' + alphabetKeysHtml() + '</div>';
+
+        root.querySelectorAll('.iwp-key').forEach(function (btn) {
+          var ch = btn.getAttribute('data-letter');
+          if (guessed[ch] === 'good') { btn.classList.add('used', 'good'); btn.disabled = true; }
+          if (guessed[ch] === 'bad') { btn.classList.add('used', 'bad'); btn.disabled = true; }
+          btn.addEventListener('click', function () { guess(ch, btn); });
+        });
+      }
+
+      function failWord(msg) {
+        clearTimer();
+        if (st) st.textContent = msg || ('Fallaste · era ' + entry.word);
+        root.classList.add('shake');
+        setTimeout(function () { root.classList.remove('shake'); }, 400);
+        if (_round) _round.wordStreak = 0;
+        idx++;
+        setTimeout(startWord, aggressive ? 700 : 900);
+      }
+
+      function winWord() {
+        clearTimer();
+        solved++;
+        if (_round) {
+          _round.wordStreak = (_round.wordStreak || 0) + 1;
+          _round.bestWordStreak = Math.max(_round.bestWordStreak || 0, _round.wordStreak);
+        }
+        if (st) st.textContent = '✓ ' + entry.word + (aggressive ? ' · ¡seguí!' : '');
+        idx++;
+        setTimeout(startWord, aggressive ? 450 : 700);
+      }
+
+      function guess(ch, btn) {
+        if (guessed[ch]) return;
+        if (entry.word.indexOf(ch) >= 0) {
+          guessed[ch] = 'good';
+          if (btn) { btn.classList.add('used', 'good'); btn.disabled = true; }
+          render();
+          var done = entry.word.split('').every(function (c) { return guessed[c] === 'good'; });
+          if (done) winWord();
+        } else {
+          guessed[ch] = 'bad';
+          wrong++;
+          if (btn) { btn.classList.add('used', 'bad'); btn.disabled = true; }
+          if (aggressive) {
+            left = Math.max(0, left - 5);
+            root.classList.add('shake');
+            setTimeout(function () { root.classList.remove('shake'); }, 350);
+          }
+          if (wrong >= maxWrong) failWord(aggressive ? 'Sin vidas · ' + entry.word : 'Ahorcado · ' + entry.word);
+          else render();
+        }
+      }
+
+      render();
+      if (aggressive && seconds > 0) {
+        timer = setInterval(function () {
+          left--;
+          var clock = document.getElementById('iwp-rush-clock');
+          if (clock) {
+            clock.textContent = '⏱ ' + left + 's';
+            if (left <= 10) clock.classList.add('danger');
+          }
+          if (left <= 0) failWord('Tiempo · ' + entry.word);
+        }, 1000);
+      }
+    }
+
+    startWord();
   }
 
   function bindCrossword() {
@@ -848,7 +1093,7 @@
       + '<button type="button" class="iwp-back" onclick="InfinityWordPuzzles.pickCat(\'' + catId + '\')">← Modos</button>'
       + '<div id="iwp-reward-slot"></div>'
       + '<div class="iwp-progress" id="iwp-progress">0 / ' + placed + ' palabras</div>'
-      + '<div class="iwp-status" id="iwp-status">Arrastrá sobre las letras · ' + placed + ' palabras en la grilla</div>'
+      + '<div class="iwp-status" id="iwp-status">Arrastrá · cada palabra queda de un color distinto</div>'
       + '<div class="iwp-grid-wrap">' + renderGridHtml(puzzle) + '</div>'
       + (showWords ? '<div style="margin-bottom:12px;">' + list + '</div>' : '')
       + '<div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:#a78bfa;margin-bottom:8px;">PISTAS</div>'
@@ -955,6 +1200,8 @@
     loadExtraPool().then(function () {
       if (gameType === 'crossword') renderCrossword(catId);
       else if (gameType === 'findword') renderFindWord(catId);
+      else if (gameType === 'hangman') renderHangman(catId);
+      else if (gameType === 'wordrush') renderWordRush(catId);
       else renderWordSearch(catId);
     });
   }
