@@ -7164,6 +7164,15 @@ async function renderOpsOverview(m){
     +'</div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-brand-whatsapp"></i>Cola WA (outbox)</div><div id="ops-outbox">'+outboxHtml+'</div>'
     +'<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="refreshOpsOutbox()"><i class="ti ti-refresh"></i>Actualizar cola</button></div>'
+    +'<div class="card"><div class="card-title"><i class="ti ti-messages"></i>WA Q&amp;A (auto-respuesta)</div>'
+    +'<div style="font-size:12px;color:var(--t3);margin-bottom:8px;">Enseñá al bot: editá preguntas/respuestas. Se guarda en Supabase <code>WA-FAQ-V1</code>.</div>'
+    +'<div id="ops-wa-faq" style="font-size:13px;color:var(--t3);">Cargando Q&amp;A…</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="refreshOpsWaFaq()"><i class="ti ti-refresh"></i>Recargar</button>'
+    +'<button type="button" class="btn btn-green btn-sm" onclick="saveOpsWaFaq()"><i class="ti ti-device-floppy"></i>Guardar Q&amp;A</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="addOpsWaFaqEntry()"><i class="ti ti-plus"></i>Nueva entrada</button>'
+    +'<button type="button" class="btn btn-outline btn-sm" onclick="resetOpsWaFaq()"><i class="ti ti-restore"></i>Reset semilla</button>'
+    +'</div></div>'
     +'<div class="card"><div class="card-title"><i class="ti ti-user-exclamation"></i>Leads WA (pidieron agente)</div>'
     +(leads.length ? '<table class="tbl"><thead><tr><th>Tel</th><th>Nombre</th><th>Último texto</th><th>Cuándo</th></tr></thead><tbody>'
       +leads.map(function(l){
@@ -7172,6 +7181,123 @@ async function renderOpsOverview(m){
     +'</div></div>';
 
   refreshOpsOutbox();
+  refreshOpsWaFaq();
+}
+
+var OPS_WA_FAQ = null;
+
+function escOwAttr(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function renderOpsWaFaqEditor(note){
+  var el = document.getElementById('ops-wa-faq');
+  if(!el) return;
+  var entries = (OPS_WA_FAQ && OPS_WA_FAQ.entries) || [];
+  el.innerHTML = '<div style="font-size:11px;margin-bottom:8px;color:var(--t3);">'+(note||('Entradas: '+entries.length))+'</div>'
+    +'<div style="max-height:360px;overflow:auto;">'
+    + entries.map(function(e, i){
+        return '<div class="ops-wa-faq-row" data-i="'+i+'" style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff;">'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+          +'<label style="font-size:11px;font-weight:700;">ID<br><input class="form-input owf-id" value="'+escOwAttr(e.id)+'" style="font-size:12px;padding:6px;"></label>'
+          +'<label style="font-size:11px;font-weight:700;">Categoría<br><input class="form-input owf-cat" value="'+escOwAttr(e.category||'ops')+'" style="font-size:12px;padding:6px;"></label>'
+          +'</div>'
+          +'<label style="font-size:11px;font-weight:700;display:block;margin-top:6px;">Pregunta<br><input class="form-input owf-q" value="'+escOwAttr(e.q)+'" style="font-size:12px;padding:6px;"></label>'
+          +'<label style="font-size:11px;font-weight:700;display:block;margin-top:6px;">Intents (coma)<br><input class="form-input owf-intents" value="'+escOwAttr((e.intents||[]).join(', '))+'" style="font-size:12px;padding:6px;"></label>'
+          +'<label style="font-size:11px;font-weight:700;display:block;margin-top:6px;">Respuesta<br><textarea class="form-input owf-a" rows="3" style="font-size:12px;padding:6px;">'+escOwAttr(e.a)+'</textarea></label>'
+          +'<button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;" data-i="'+i+'" onclick="removeOpsWaFaqEntry(this.dataset.i)">Quitar</button>'
+          +'</div>';
+      }).join('')
+    +'</div>';
+}
+
+function refreshOpsWaFaq(){
+  var el = document.getElementById('ops-wa-faq');
+  if(!el) return;
+  el.innerHTML = '<div style="font-size:13px;color:var(--t3);">Cargando…</div>';
+  waOpsFetch('/agent/whatsapp/faq', { method: 'GET' }).then(function(data){
+    OPS_WA_FAQ = (data && data.faq) || { meta: {}, entries: [] };
+    var src = (data && data.source) || 'file';
+    var metaAt = (OPS_WA_FAQ.meta && OPS_WA_FAQ.meta.updatedAt) || OPS_WA_FAQ.updatedAt || '—';
+    renderOpsWaFaqEditor('Fuente: <strong>'+src+'</strong> · '+(OPS_WA_FAQ.entries||[]).length+' entradas · act. '+metaAt);
+  }).catch(function(e){
+    el.innerHTML = '<div class="ib ib-amber">No pude cargar Q&amp;A ('+(e.message||e)+'). Revisá WA_BRIDGE_SECRET / Render.</div>';
+  });
+}
+
+function collectOpsWaFaqFromDom(){
+  var el = document.getElementById('ops-wa-faq');
+  if(!el) return null;
+  var rows = el.querySelectorAll('.ops-wa-faq-row');
+  var entries = [];
+  rows.forEach(function(row){
+    var id = (row.querySelector('.owf-id')||{}).value || '';
+    var a = (row.querySelector('.owf-a')||{}).value || '';
+    if(!id.trim() || !a.trim()) return;
+    var intentsRaw = (row.querySelector('.owf-intents')||{}).value || '';
+    entries.push({
+      id: id.trim(),
+      category: ((row.querySelector('.owf-cat')||{}).value || 'ops').trim(),
+      lang: 'es',
+      priority: 30,
+      q: ((row.querySelector('.owf-q')||{}).value || '').trim(),
+      intents: intentsRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+      a: a.trim()
+    });
+  });
+  return {
+    version: (OPS_WA_FAQ && OPS_WA_FAQ.version) || 'engine',
+    id: 'WA-FAQ-V1',
+    meta: (OPS_WA_FAQ && OPS_WA_FAQ.meta) || {},
+    entries: entries
+  };
+}
+
+async function saveOpsWaFaq(){
+  var faq = collectOpsWaFaqFromDom();
+  if(!faq || !faq.entries.length){ showToast('Nada para guardar','err'); return; }
+  try{
+    await waOpsFetch('/agent/whatsapp/faq', { method: 'PUT', body: JSON.stringify({ faq: faq }) });
+    showToast('Q&A WhatsApp guardado ('+faq.entries.length+')');
+    await logAction('Actualizó WA FAQ', faq.entries.length+' entradas');
+    refreshOpsWaFaq();
+  }catch(e){
+    showToast('Error guardando Q&A: '+(e.message||e),'err');
+  }
+}
+
+function addOpsWaFaqEntry(){
+  var draft = collectOpsWaFaqFromDom() || { meta: {}, entries: [], version: 'engine' };
+  draft.entries.push({
+    id: 'nueva-'+(draft.entries.length+1),
+    category: 'ops',
+    lang: 'es',
+    priority: 30,
+    intents: ['palabra clave'],
+    q: 'Nueva pregunta',
+    a: 'Respuesta corta para WhatsApp.'
+  });
+  OPS_WA_FAQ = draft;
+  renderOpsWaFaqEditor('Borrador local · '+draft.entries.length+' entradas (guardá para publicar)');
+}
+
+function removeOpsWaFaqEntry(i){
+  var draft = collectOpsWaFaqFromDom();
+  if(!draft) return;
+  draft.entries.splice(parseInt(i,10), 1);
+  OPS_WA_FAQ = draft;
+  renderOpsWaFaqEditor('Borrador local · '+draft.entries.length+' entradas');
+}
+
+async function resetOpsWaFaq(){
+  if(!confirm('¿Resetear Q&A a la semilla del servidor (config/wa-faq.json)?')) return;
+  try{
+    await waOpsFetch('/agent/whatsapp/faq/reset', { method: 'POST', body: '{}' });
+    showToast('Q&A reseteado a semilla');
+    refreshOpsWaFaq();
+  }catch(e){
+    showToast('Reset falló: '+(e.message||e),'err');
+  }
 }
 
 async function refreshOpsOutbox(){

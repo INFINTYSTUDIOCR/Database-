@@ -1,0 +1,290 @@
+{
+  "version": "20260910qa1",
+  "id": "WA-FAQ-V1",
+  "meta": {
+    "brand": "Infinity Studio CR",
+    "persona": "Recepción Infinity — cercana, directa, sin relleno. Mensajes cortos (máx. 4 líneas). Vos/ustedes según el tono del lead. No inventés precios ni promesas.",
+    "phone": "50660060981",
+    "sinpe": "6006-0981",
+    "email": "info@studioinfinitycr.com",
+    "site": "https://studioinfinitycr.com",
+    "pricingUrl": "https://studioinfinitycr.com/pricing.html",
+    "tryAliceUrl": "https://studioinfinitycr.com/try-alice.html",
+    "ctaDiagnostico": "Agendá tu diagnóstico gratis (90 min): te decimos si vas a Foundations o ORT. Escribí \"diagnóstico\" y te guío.",
+    "handoffMessage": "Perfecto — en un momento te atiende el equipo de Infinity. Si es urgente, llamá o escribí de nuevo y lo priorizamos.",
+    "currency": "CRC",
+    "updatedAt": "2026-09-10"
+  },
+  "entries": [
+    {
+      "id": "greet",
+      "category": "ops",
+      "lang": "es",
+      "priority": 10,
+      "intents": ["hola", "buenas", "buen dia", "buenos dias", "buenas tardes", "buenas noches", "hey", "hi", "hello"],
+      "q": "Saludo",
+      "a": "¡Hola! Soy la recepción de Infinity Studio CR.\nTe ayudo con precios, programas (Foundations/ORT, Alice, Jill, Nexora) o a agendar el diagnóstico gratis de 90 min.\n¿Qué necesitás?"
+    },
+    {
+      "id": "titles",
+      "category": "method",
+      "lang": "es",
+      "priority": 20,
+      "intents": ["titulo", "titulos", "certificado", "certificados", "diploma"],
+      "q": "¿Infinity da títulos o certificados?",
+      "a": "No. Las empresas contratan gente que puede hablar el primer día. Acá ves avance semanal — y lo podés demostrar en vivo."
+    },
+    {
+      "id": "cefr",
+      "category": "method",
+      "lang": "es",
+      "priority": 20,
+      "intents": ["cefr", "a1", "a2", "b1", "b2", "c1", "marco comun", "nivel europeo", "niveles europeos"],
+      "q": "¿Trabajan con CEFR A1–B2?",
+      "a": "No. Un B2 en papel no garantiza que puedas hablar en una llamada. Medimos si generás ideas, te recuperás si te trabás y respondés bajo presión — cada semana, en tu portal."
+    },
+    {
+      "id": "duration",
+      "category": "method",
+      "lang": "es",
+      "priority": 25,
+      "intents": ["cuanto dura", "duracion", "cuanto tiempo", "meses", "plazos", "cuanto tarda"],
+      "q": "¿Cuánto dura el programa?",
+      "a": "Depende de tu punto de partida.\n• Desde cero (Foundations): meses hasta base firme.\n• Si ya entendés pero te trabás (ORT): a menudo cambios notables en semanas.\nEl diagnóstico te da una fecha realista — no vendemos plazos fijos a ciegas."
+    },
+    {
+      "id": "beginner",
+      "category": "products",
+      "lang": "es",
+      "priority": 30,
+      "intents": ["basico", "cero", "principiante", "no se ingles", "muy basico", "empezar de cero", "foundations"],
+      "q": "¿Qué pasa si mi inglés es muy básico?",
+      "a": "Es el punto de partida que más trabajamos. Jill te construye desde cero — sin examen, sin presión de salón. Foundations + profe está pensado para eso.\nNadie está demasiado lejos para empezar."
+    },
+    {
+      "id": "vs-academy",
+      "category": "method",
+      "lang": "es",
+      "priority": 25,
+      "intents": ["academia", "reemplaza", "tradicional", "instituto", "curso normal"],
+      "q": "¿Esto reemplaza una academia tradicional?",
+      "a": "No reemplaza — arregla lo que la academia no pudo. Entendés, leés, escribís… y te congelás al hablar. Eso se arregla practicando bajo presión, no con más gramática."
+    },
+    {
+      "id": "combine",
+      "category": "method",
+      "lang": "es",
+      "priority": 20,
+      "intents": ["combinar", "junto con", "otra academia", "ya estudio", "complementar"],
+      "q": "¿Puedo combinar Infinity con lo que ya estudio?",
+      "a": "Sí. Jill refuerza estructura entre clases de tu academia. Muchos suman Alice Libre para hablar sin cortes."
+    },
+    {
+      "id": "ip",
+      "category": "ops",
+      "lang": "es",
+      "priority": 15,
+      "intents": ["propiedad", "de quien", "materiales", "plataforma", "derechos"],
+      "q": "¿De quién son la plataforma y las IAs?",
+      "a": "La plataforma Infinity Engine, las IAs Alice, Jill y Nexora, y los materiales son propiedad de Infinity Studio CR. El acceso vale mientras tu programa esté activo."
+    },
+    {
+      "id": "pricing-general",
+      "category": "pricing",
+      "lang": "es",
+      "priority": 50,
+      "intents": ["precio", "precios", "cuesta", "costo", "cuanto vale", "cuanto cuesta", "tarifa", "mensualidad", "colon", "colones"],
+      "q": "¿Cuánto cuesta?",
+      "a": "Con profe (Foundations u ORT): promo ₡67.500/mes (lista más alta · sujeto a cupos).\nSolo IA: Jill ₡12.500 · Alice Tutor ₡18.500 · Alice Libre ₡24.500 · Nexora ₡28.500 · Alice+ ₡49.500.\nTOEIC: se define en el diagnóstico.\nDetalle: studioinfinitycr.com/pricing.html"
+    },
+    {
+      "id": "pricing-teacher",
+      "category": "pricing",
+      "lang": "es",
+      "priority": 45,
+      "intents": ["con profe", "profesor", "profe", "67500", "67.500", "75000", "clases 1 a 1", "uno a uno"],
+      "q": "Precio con profe",
+      "a": "Foundations u ORT con profe: promo ₡67.500/mes (regular ₡75.000 · lista más alta según plan).\nIncluye horas 1:1 + IA entre clases (Jill / Alice / Nexora según el camino).\n¿Querés diagnóstico gratis para ver cuál te corresponde?"
+    },
+    {
+      "id": "pricing-ia",
+      "category": "pricing",
+      "lang": "es",
+      "priority": 45,
+      "intents": ["solo ia", "sin profe", "practica sola", "12500", "18500", "24500", "28500", "49500"],
+      "q": "Precios solo IA",
+      "a": "Jill ₡12.500 · Alice Tutor ₡18.500 · Alice Libre ₡24.500 · Nexora ₡28.500 · Alice+ (Tutor+Libre+Nexora) ₡49.500 — todo /mes en colones.\nPodés probar Alice en la web: studioinfinitycr.com/try-alice.html"
+    },
+    {
+      "id": "alice-modes",
+      "category": "products",
+      "lang": "es",
+      "priority": 40,
+      "intents": ["alice tutor", "alice libre", "alice+", "alice plus", "diferencia alice", "modos alice", "tutor o libre"],
+      "q": "¿Alice Tutor, Libre o Alice+?",
+      "a": "Alice Tutor — te entrena al hablar (flujo, estructura, corrección).\nAlice Libre — charla por voz de lo que quieras, 24/7.\nAlice+ — Tutor + Libre + Nexora (₡49.500).\nNexora sola (simulaciones entrevista/llamada): ₡28.500."
+    },
+    {
+      "id": "jill",
+      "category": "products",
+      "lang": "es",
+      "priority": 35,
+      "intents": ["jill", "desde cero", "tutora", "gramatica", "estructura"],
+      "q": "¿Qué es Jill?",
+      "a": "Jill es la tutora desde cero: estructura, confianza y base para hablar — sin examen de salón. ₡12.500/mes sola, o incluida entre clases en Foundations."
+    },
+    {
+      "id": "nexora",
+      "category": "products",
+      "lang": "es",
+      "priority": 35,
+      "intents": ["nexora", "simulacion", "entrevista", "call center", "llamada real"],
+      "q": "¿Qué es Nexora?",
+      "a": "Nexora simula entrevistas y llamadas reales bajo presión — para call center, entrevistas y trabajo. ₡28.500/mes sola, o dentro de ORT / Alice+."
+    },
+    {
+      "id": "toeic",
+      "category": "products",
+      "lang": "es",
+      "priority": 35,
+      "intents": ["toeic", "claire", "examen", "listening", "reading", "preparacion toeic"],
+      "q": "¿Preparan para TOEIC?",
+      "a": "Sí. Claire TOEIC entrena Listening, Reading, tiempo y distractores bajo presión — no es un banco de preguntas pasivo. El plan y precio se definen en el diagnóstico."
+    },
+    {
+      "id": "ort-vs-foundations",
+      "category": "products",
+      "lang": "es",
+      "priority": 40,
+      "intents": ["ort", "foundations", "cual camino", "que programa", "diferencia ort", "me trabo"],
+      "q": "¿Foundations u ORT?",
+      "a": "Foundations — casi no sabés inglés / base desde cero.\nORT — entendés pero te trabás al hablar (entrevistas, calls).\nAmbos con profe a promo ₡67.500/mes. El diagnóstico de 90 min te dice cuál."
+    },
+    {
+      "id": "diagnostico",
+      "category": "onboarding",
+      "lang": "es",
+      "priority": 55,
+      "intents": ["diagnostico", "gratis", "agendar", "cita", "sesion gratis", "90 min", "evaluacion", "prueba"],
+      "q": "¿Cómo agendo el diagnóstico?",
+      "a": "El diagnóstico es gratis (90 min): vemos si vas a Foundations u ORT, sin compromiso.\nPasame tu nombre + 2–3 horarios que te sirvan esta semana y te confirmamos.\nO escribí a wa.me/50660060981 desde el sitio."
+    },
+    {
+      "id": "payment-sinpe",
+      "category": "payment",
+      "lang": "es",
+      "priority": 50,
+      "intents": ["sinpe", "pagar", "pago", "transferencia", "cuenta", "6006", "60060981", "comprobante"],
+      "q": "¿Cómo pago?",
+      "a": "Pagás en colones por SINPE Móvil al 6006-0981 (Infinity Studio CR).\nCuando pagues, enviá el comprobante por este chat y activamos tu acceso al portal.\nExtranjeros: PayPal (te pasamos el dato al confirmar)."
+    },
+    {
+      "id": "activation",
+      "category": "onboarding",
+      "lang": "es",
+      "priority": 40,
+      "intents": ["activar", "activacion", "portal", "acceso", "usuario", "contrasena", "login"],
+      "q": "¿Cómo activo el portal?",
+      "a": "Pagás → enviás comprobante → el equipo te activa y te manda el link del portal con usuario/clave.\nAlice se puede probar antes en studioinfinitycr.com/try-alice.html"
+    },
+    {
+      "id": "hours",
+      "category": "ops",
+      "lang": "es",
+      "priority": 30,
+      "intents": ["horario", "horarios", "cuando atienden", "disponibilidad", "que dias", "fin de semana"],
+      "q": "¿Horarios?",
+      "a": "Las clases 1:1 se agenda según cupos del trainer (suele ser entre semana).\nLas IAs (Jill/Alice/Nexora) están 24/7 en el portal.\nPara diagnóstico, pasame tus ventanas de horario."
+    },
+    {
+      "id": "corporate",
+      "category": "ops",
+      "lang": "es",
+      "priority": 35,
+      "intents": ["empresa", "corporate", "equipo", "grupo", "b2b", "companeros", "staff"],
+      "q": "¿Trabajan con empresas?",
+      "a": "Sí — equipos y empresas. Armamos plan según roles (calls, interviews, soporte).\nPasame nombre de la empresa, tamaño del equipo y meta, y te conectamos con Armando."
+    },
+    {
+      "id": "location",
+      "category": "ops",
+      "lang": "es",
+      "priority": 20,
+      "intents": ["donde", "ubicacion", "presencial", "online", "virtual", "zoom", "costa rica"],
+      "q": "¿Dónde están / es presencial?",
+      "a": "Entrenamiento online (Costa Rica y afuera). Clases y práctica por portal + Zoom según el plan. Todo en colones vía SINPE si estás en CR."
+    },
+    {
+      "id": "contact",
+      "category": "ops",
+      "lang": "es",
+      "priority": 25,
+      "intents": ["correo", "email", "contacto", "telefono", "whatsapp"],
+      "q": "Datos de contacto",
+      "a": "WhatsApp: +506 6006 0981\nEmail: info@studioinfinitycr.com\nWeb: studioinfinitycr.com"
+    },
+    {
+      "id": "handoff",
+      "category": "ops",
+      "lang": "es",
+      "priority": 60,
+      "intents": ["humano", "asesor", "armando", "persona", "agente", "hablar con alguien", "llamar", "call me", "quiero hablar con"],
+      "q": "Quiero hablar con una persona",
+      "a": "Perfecto — en un momento te atiende el equipo de Infinity. Si es urgente, escribí de nuevo y lo priorizamos."
+    },
+    {
+      "id": "en-pricing",
+      "category": "pricing",
+      "lang": "en",
+      "priority": 40,
+      "intents": ["price", "pricing", "how much", "cost", "monthly"],
+      "q": "How much does it cost?",
+      "a": "With a coach (Foundations or ORT): promo ₡67,500/mo.\nAI-only: Jill ₡12,500 · Alice Tutor ₡18,500 · Alice Libre ₡24,500 · Nexora ₡28,500 · Alice+ ₡49,500.\nFree 90-min diagnostic. Details: studioinfinitycr.com/pricing.html"
+    },
+    {
+      "id": "en-diagnostic",
+      "category": "onboarding",
+      "lang": "en",
+      "priority": 40,
+      "intents": ["diagnostic", "free session", "book", "schedule", "appointment"],
+      "q": "How do I book a diagnostic?",
+      "a": "Free 90-min diagnostic — we tell you Foundations vs ORT, no commitment.\nSend your name + 2–3 time windows this week and we’ll confirm."
+    },
+    {
+      "id": "en-alice",
+      "category": "products",
+      "lang": "en",
+      "priority": 35,
+      "intents": ["what is alice", "alice tutor", "alice free", "alice+"],
+      "q": "What is Alice?",
+      "a": "Alice Tutor coaches you while you speak. Alice Libre is open voice chat 24/7. Alice+ = Tutor + Libre + Nexora (₡49,500). Try: studioinfinitycr.com/try-alice.html"
+    },
+    {
+      "id": "trial",
+      "category": "onboarding",
+      "lang": "es",
+      "priority": 35,
+      "intents": ["probar", "demo", "prueba", "gratis alice", "try alice"],
+      "q": "¿Puedo probar antes de pagar?",
+      "a": "Sí: Alice en la web sin tarjeta → studioinfinitycr.com/try-alice.html\nY el diagnóstico de 90 min es gratis antes de elegir plan."
+    },
+    {
+      "id": "hours-included",
+      "category": "products",
+      "lang": "es",
+      "priority": 30,
+      "intents": ["cuantas horas", "12 horas", "horas al mes", "frecuencia"],
+      "q": "¿Cuántas horas con profe?",
+      "a": "Los planes con profe incluyen práctica 1:1 mensual (alrededor de 12 h/mes según el paquete activo) + IA entre clases.\nEl detalle exacto te lo confirmamos en el diagnóstico según cupos."
+    },
+    {
+      "id": "kamuk",
+      "category": "ops",
+      "lang": "es",
+      "priority": 15,
+      "intents": ["kamuk", "kamuk school"],
+      "q": "¿Kamuk?",
+      "a": "Kamuk School es parte del ecosistema Infinity. Para programas Infinity (Alice, Jill, Nexora, Foundations/ORT) te atiendo acá. Si tu consulta es solo Kamuk, pedí handoff y te pasamos."
+    }
+  ]
+}

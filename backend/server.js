@@ -13,6 +13,7 @@ const Billing = require('./stripe-billing');
 const JillBilling = require('./jill-billing');
 const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
 const { registerSimulationAccess } = require('./simulation-access');
+const WaFaq = require('./wa-faq');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -97,7 +98,7 @@ app.use(cors({
     console.warn('CORS blocked:', origin);
     return callback(new Error('CORS not allowed'));
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Bridge-Secret'],
   maxAge: 86400
 }));
@@ -2961,6 +2962,88 @@ function bridgeAuthorized(req) {
   const expected = process.env.WA_BRIDGE_SECRET || process.env.ANALYZE_SECRET || '';
   return !!(expected && secret === expected);
 }
+
+function waAutoReplyEnabled() {
+  if (process.env.WA_AUTO_REPLY === '0') return false;
+  if (process.env.WA_AUTO_REPLY === '1') return true;
+  return !!(WHATSAPP_TOKEN && WHATSAPP_PHONE_NUMBER_ID);
+}
+
+async function sendWhatsAppCloudText(to, body) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    return { ok: false, error: 'whatsapp_not_configured' };
+  }
+  const r = await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body: String(body || '').slice(0, 4000) }
+    })
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    console.error('WA Cloud send failed:', r.status, t.slice(0, 200));
+    return { ok: false, error: 'send_failed', status: r.status };
+  }
+  return { ok: true };
+}
+
+app.get('/agent/whatsapp/faq', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const faq = await WaFaq.loadFaq(sbGetOne);
+    const sourceRow = await sbGetOne('infinity_sessions', WaFaq.FAQ_SESSION_ID);
+    return res.json({
+      ok: true,
+      source: sourceRow?.data?.entries?.length ? 'supabase' : 'file',
+      faq
+    });
+  } catch (err) {
+    console.error('WA FAQ get error:', err.message);
+    return res.status(500).json({ error: 'faq_get_failed' });
+  }
+});
+
+app.put('/agent/whatsapp/faq', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const body = req.body?.faq || req.body;
+    const check = WaFaq.validateFaqPayload(body);
+    if (!check.ok) return res.status(400).json(check);
+    const seed = WaFaq.seedFromFile();
+    const faq = WaFaq.normalizeFaq({
+      version: body.version || seed.version,
+      id: WaFaq.FAQ_SESSION_ID,
+      meta: Object.assign({}, seed.meta, body.meta || {}),
+      entries: body.entries,
+      updatedAt: new Date().toISOString()
+    });
+    faq.meta.updatedAt = faq.updatedAt;
+    const saved = await sbSet('infinity_sessions', WaFaq.FAQ_SESSION_ID, faq);
+    if (!saved) return res.status(500).json({ error: 'faq_save_failed' });
+    return res.json({ ok: true, faq });
+  } catch (err) {
+    console.error('WA FAQ put error:', err.message);
+    return res.status(500).json({ error: 'faq_put_failed', message: err.message });
+  }
+});
+
+app.post('/agent/whatsapp/faq/reset', async (req, res) => {
+  try {
+    if (!bridgeAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
+    const faq = WaFaq.seedFromFile();
+    faq.updatedAt = new Date().toISOString();
+    faq.meta = Object.assign({}, faq.meta, { updatedAt: faq.updatedAt });
+    await sbSet('infinity_sessions', WaFaq.FAQ_SESSION_ID, faq);
+    return res.json({ ok: true, faq });
+  } catch (err) {
+    console.error('WA FAQ reset error:', err.message);
+    return res.status(500).json({ error: 'faq_reset_failed' });
+  }
+});
 
 /**
  * Manual activation (activar.html or admin).
@@ -8175,9 +8258,9 @@ app.post('/admin/prune-sessions', requireMasterOrAnalyzeSecret, async (req, res)
   }
 });
 
-// ── WHATSAPP WEBHOOK ──────────────────────────────────────────
+// ── WHATSAPP WEBHOOK (Meta Cloud API — recepción FAQ) ────────
 app.get('/webhook', (req, res) => {
-  if (req.query['hub.mode']==='subscribe' && req.query['hub.verify_token']===VERIFY_TOKEN)
+  if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === VERIFY_TOKEN)
     return res.status(200).send(req.query['hub.challenge']);
   return res.sendStatus(403);
 });
@@ -8191,27 +8274,63 @@ app.post('/webhook', async (req, res) => {
     const from = msg.from;
     const text = msg.text.body;
 
+    if (!waAutoReplyEnabled()) {
+      console.log('WA auto-reply off — ack only', from);
+      return res.sendStatus(200);
+    }
+
+    const faq = await WaFaq.loadFaq(sbGetOne);
     const convRow = await sbGetOne('infinity_sessions', `WA-${from}`);
     let conv = convRow?.data || { history: [] };
-    conv.history.push({ role:'user', content:text });
+    conv.history = Array.isArray(conv.history) ? conv.history : [];
+    conv.history.push({ role: 'user', content: text });
     if (conv.history.length > 20) conv.history = conv.history.slice(-20);
 
-    const resp = await claudeCall({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
-      system: `Eres Claire, entrenadora TOEIC y de desempeño en inglés operacional de Infinity Studio CR. Directa, exigente, precisa y autónoma. Mensajes cortos: máximo 3 líneas. Hablás de usted. No vendés programas ni precios. Tu filosofía: no enseñás inglés, entrenás desempeño. Empezás con práctica bajo presión, corregís un error principal y cerrás con métrica o siguiente repetición. No derivás a canales externos.\n\n${CLAIRE_KB}`,
-      messages: conv.history.slice(-10)
-    });
-    const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    conv.history.push({ role:'assistant', content:reply });
+    const matched = WaFaq.matchFaq(text, faq);
+    const handoff = WaFaq.shouldHandoff(text, matched.entry);
+    let reply = '';
+    let source = 'none';
+
+    if (handoff) {
+      reply = WaFaq.handoffMessage(faq);
+      source = 'handoff';
+      conv.handoff = true;
+      conv.handoffAt = new Date().toISOString();
+      conv.lastText = text;
+      await sbSet('infinity_sessions', `WA-LEAD-${from}`, {
+        phone: from,
+        status: 'needs_human',
+        lastText: String(text).slice(0, 500),
+        at: new Date().toISOString(),
+        studentName: conv.studentName || null
+      });
+    } else if (matched.hit && matched.entry) {
+      reply = matched.entry.a;
+      source = 'faq:' + matched.entry.id;
+    } else {
+      const resp = await claudeCall({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 280,
+        system: WaFaq.buildSystemPrompt(faq),
+        messages: conv.history.slice(-10)
+      });
+      reply = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+      source = 'claude';
+      if (!reply) {
+        reply = (faq.meta && faq.meta.ctaDiagnostico)
+          || 'Puedo ayudarte con precios, Alice/Jill/Nexora o agendar el diagnóstico gratis. ¿Qué necesitás?';
+        source = 'fallback';
+      }
+    }
+
+    conv.history.push({ role: 'assistant', content: reply });
+    conv.lastReplySource = source;
+    conv.updatedAt = new Date().toISOString();
     await sbSet('infinity_sessions', `WA-${from}`, conv);
 
-    await fetch(`https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-      method: 'POST',
-      headers: { Authorization:`Bearer ${WHATSAPP_TOKEN}`, 'Content-Type':'application/json' },
-      body: JSON.stringify({ messaging_product:'whatsapp', to:from, type:'text', text:{ body:reply } })
-    });
+    await sendWhatsAppCloudText(from, reply);
     return res.sendStatus(200);
-  } catch(err) {
+  } catch (err) {
     console.error('Webhook error:', err.message);
     return res.sendStatus(500);
   }
