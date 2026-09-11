@@ -190,6 +190,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 
 @keyframes pd{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
 </style>
+<link rel="stylesheet" href="css/nexora-desk.css?v=nexoranext2">
+
 </head>
 <body>
 
@@ -211,7 +213,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <div class="search-bar">
   <div class="phone-wrap">
     <i class="ti ti-phone"></i>
-    <input class="phone-inp" id="phone-inp" placeholder="Enter customer phone number..." onkeydown="if(event.key==='Enter')searchPhone();">
+    <input class="phone-inp" id="phone-inp" placeholder="Customer phone / ANI..." onkeydown="if(event.key==='Enter')searchPhone();">
   </div>
   <button class="btn btn-navy" onclick="searchPhone()"><i class="ti ti-search"></i>Search</button>
   <div class="call-badge" id="call-badge"><div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pd 1s infinite;"></div>Call active</div>
@@ -250,11 +252,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <!-- CONTENT -->
   <div class="content">
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('services',this)"><i class="ti ti-apps"></i>Services</div>
-      <div class="tab" onclick="switchTab('billing',this)"><i class="ti ti-receipt"></i>Billing</div>
-      <div class="tab" onclick="switchTab('payments',this)"><i class="ti ti-credit-card"></i>Payment methods</div>
-      <div class="tab" onclick="switchTab('notes',this)"><i class="ti ti-notes"></i>Notes <span class="tab-badge" id="notes-badge" style="display:none;">0</span></div>
-      <div class="tab" onclick="switchTab('changes',this)"><i class="ti ti-history"></i>Changes</div>
+      <div class="tab active" onclick="switchTab('services',this)" data-tab="services"><i class="ti ti-apps"></i>Services</div>
+      <div class="tab" onclick="switchTab('billing',this)" data-tab="billing"><i class="ti ti-receipt"></i>Billing</div>
+      <div class="tab" onclick="switchTab('payments',this)" data-tab="payments"><i class="ti ti-credit-card"></i>Payments</div>
+      <div class="tab" onclick="switchTab('notes',this)" data-tab="notes"><i class="ti ti-notes"></i>Contacts <span class="tab-badge" id="notes-badge" style="display:none;">0</span></div>
+      <div class="tab" onclick="switchTab('changes',this)" data-tab="changes"><i class="ti ti-history"></i>Activity</div>
     </div>
     <div class="tab-content">
       <div class="tab-pane active" id="tab-services">
@@ -286,8 +288,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <!-- EMPTY STATE -->
 <div id="empty-state" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--t3);">
   <i class="ti ti-phone-incoming" style="font-size:48px;opacity:0.3;"></i>
-  <div style="font-size:16px;font-weight:600;color:var(--t2);">Enter customer phone number</div>
-  <div style="font-size:13px;">Type the phone number and press Search or Enter</div>
+  <div style="font-size:16px;font-weight:600;color:var(--t2);">Locate customer account</div>
+  <div style="font-size:13px;">Enter the inbound ANI / phone and press Search — account data loads to match the case</div>
 </div>
 
 
@@ -384,7 +386,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <!-- CALL OVERLAY (floating) -->
 <div class="call-overlay" id="call-overlay">
   <div class="co-header">
-    <div class="co-avatar">🤖</div>
+    <div class="co-avatar">AG</div>
     <div>
       <div class="co-name" id="co-name">—</div>
       <div class="co-status" id="co-status">Connecting...</div>
@@ -395,7 +397,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
   <div class="co-status-text" id="co-status-text"></div>
   <div class="co-mic-row">
     <button class="co-mic-btn" id="co-mic-btn" data-ptt-mic="1"><i class="ti ti-microphone"></i></button>
-    <div class="co-voice-note">🎙 Mantené presionado el micrófono (PTT) para responder</div>
+    <div class="co-voice-note">Hold mic to talk (push-to-talk)</div>
   </div>
   <div class="co-buttons">
     <button class="co-btn co-btn-hold" id="co-hold-btn" onclick="toggleHold()"><i class="ti ti-player-pause"></i>Hold</button>
@@ -408,7 +410,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--off);color:var(--
 <!-- INCOMING CALL -->
 <div class="incoming-overlay" id="incoming-overlay">
   <div class="incoming-card">
-    <div class="incoming-ring">📞</div>
+    <div class="incoming-ring"><i class="ti ti-phone-incoming"></i></div>
     <div class="incoming-name" id="inc-name">—</div>
     <div class="incoming-phone" id="inc-phone">—</div>
     <div class="incoming-reason" id="inc-reason"></div>
@@ -2605,5 +2607,6 @@ window.addEventListener('pageshow', function(){
   if(_nx.active) resumeNexoraLab();
 });
 </script>
+<script src="js/nexora-desk-skin.js?v=nexoranext2"></script>
 </body>
 </html>

@@ -4,8 +4,6 @@ Copia aislada del lab + engine de simulaciones de Nexora. **No toca** `nexora.ht
 
 ## Abrir
 
-Serví la raíz del repo (o abrí los HTML en local) y entrá a:
-
 | Pieza | URL relativa |
 |-------|----------------|
 | Engine (programar sim) | [`engine.html`](engine.html) |
@@ -13,17 +11,20 @@ Serví la raíz del repo (o abrí los HTML en local) y entrá a:
 
 Flujo: **Engine → Guardar simulación → Abrir lab sandbox**.
 
+## Experiencia de escritorio (v2)
+
+El lab usa skin **Holdings-like** (`css/nexora-desk.css` + `js/nexora-desk-skin.js`):
+
+- Densidad y tipografía tipo Support Desk (Inter, radius 6px, paneles planos)
+- Case header + acciones operativas (Verify / Billing / Escalate / Freeze)
+- Tabs: Overview · Services · Billing · Payments · Contacts · Activity (+ Security cuando el escenario lo pide)
+- Overview muestra métricas, foco del caso y flags alineados al escenario
+- Consola de llamada sobria (sin look de juego)
+
 ## Aislamiento
 
-- Scripts propios bajo `nexora-next/js/` (+ profile/characters en esta carpeta).
-- Auth/TTS/mic compartidos solo por lectura: `../infinity-auth.js`, `../js/tts-chunks.js`, `../js/ptt-mic.js`.
-- Storage con prefijo `nexora_next_*` (no pisa `nexora_scenario` de prod).
+- Scripts propios bajo `nexora-next/js/`
+- Storage `nexora_next_*`
+- Auth/TTS/mic por lectura desde `../`
 
-## Qué editar acá
-
-- UI / flujo del lab → `lab.html`
-- Programación de escenarios → `engine.html`
-- Bancos / industria / rotate → `js/*`
-- Voces → `config/nexora-voices.json`
-
-Cuando esta versión reemplace a Nexora, se promociona por separado; hasta entonces prod queda intacta.
+Cuando esta versión reemplace a Nexora, se promociona por separado.
