@@ -1,0 +1,26 @@
+{
+  "male": [
+    { "id": "bfGb7JTLUnZebZRiFYyq", "accent": "American Male" },
+    { "id": "eVKQybPTL0poBPxBa8L6", "accent": "British Male" },
+    { "id": "8WqHCYyrnUqoK70Px5EJ", "accent": "Indian Male" },
+    { "id": "b4XCIIupgo5eH7TxhBNk", "accent": "German Male" },
+    { "id": "Xh5OictnmgRO4dff7pLm", "accent": "Russian Male" },
+    { "id": "NIkIuJZ8oQMuKZqwKtnm", "accent": "Chinese Male" },
+    { "id": "IP2syKL31S2JthzSSfZH", "accent": "Latino Male" }
+  ],
+  "female": [
+    { "id": "r1KmysJdVYZjJCm4mL3b", "accent": "American Female" },
+    { "id": "NoOVOzCQFLOvtsMoNcdT", "accent": "American Female" },
+    { "id": "KeMlo4IJd6GMKdqA5lLY", "accent": "British Female" },
+    { "id": "NyZqLdjqUb8SpOUKIlWT", "accent": "Indian Female" },
+    { "id": "ztyYYqlYMny7nllhThgo", "accent": "German Female" },
+    { "id": "J60xcCIM7ET7HMi7hMZu", "accent": "Russian Female" },
+    { "id": "1a0nAYA3FcNQcMMfbddY", "accent": "Chinese Female" },
+    { "id": "k6aNMn2EN3T8vpJSBhQw", "accent": "Latina Female" }
+  ],
+  "fallbackIds": [
+    "bfGb7JTLUnZebZRiFYyq",
+    "r1KmysJdVYZjJCm4mL3b",
+    "NoOVOzCQFLOvtsMoNcdT"
+  ]
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexora Next — Engine (sandbox)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="js/nexora-industry-map.js?v=nexoranext1"></script>
+<script src="js/nexora-scenario-bank-data.js?v=nexoranext1"></script>
+<script src="js/nexora-scenario-bank.js?v=nexoranext1"></script>
+<script src="js/nexora-simulation-program.js?v=nexoranext1"></script>
+<style>
+  :root{
+    --navy:#0f172a;--accent:#0d9488;--bg:#f1f5f9;--card:#fff;--line:#e2e8f0;
+    --text:#0f172a;--muted:#64748b;--r:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#ecfeff,#f8fafc 40%,#f1f5f9);color:var(--text);min-height:100vh}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 18px 48px}
+  .banner{background:#134e4a;color:#ccfbf1;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:18px}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.5}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+  label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+  select,textarea,input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:14px;background:#fff}
+  textarea{min-height:72px;resize:vertical}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
+  .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:11px 16px;font-weight:800;font-size:13px;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-outline{background:#fff;border:1.5px solid var(--line);color:var(--navy);text-decoration:none}
+  .preview{margin-top:18px;padding:14px;border-radius:12px;background:#f8fafc;border:1px dashed #94a3b8;font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .toast{position:fixed;bottom:20px;right:20px;background:#0f172a;color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;display:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="banner">SANDBOX · Nexora Next — no escribe en el Engine de producción ni en nexora.html</div>
+    <h1>Nexora Next · Engine</h1>
+    <p class="sub">Programá el tipo de simulación, industria y dificultad. Se guarda en <code>localStorage.nexora_next_scenario</code> y el lab sandbox la lee al abrir.</p>
+
+    <div class="card">
+      <label for="nx-type">Tipo de simulación</label>
+      <select id="nx-type" onchange="syncUI()">
+        <option value="mock_interview">STAR Mock Interview</option>
+        <option value="customer_service">Customer Service</option>
+        <option value="team_meeting">Team Meeting / Presentation</option>
+        <option value="problem_solving">Problem Solving</option>
+        <option value="presentation">Executive Presentation</option>
+        <option value="negotiation">Negotiation</option>
+        <option value="stakeholder">Stakeholder Discussion</option>
+      </select>
+
+      <label for="nx-industry">Industria / contexto</label>
+      <select id="nx-industry" onchange="syncUI()"></select>
+      <div class="hint" id="nx-hint"></div>
+
+      <label for="nx-difficulty">Dificultad</label>
+      <select id="nx-difficulty">
+        <option value="1">1 — Básico</option>
+        <option value="2">2 — Elemental</option>
+        <option value="3" selected>3 — Intermedio</option>
+        <option value="4">4 — Avanzado</option>
+        <option value="5">5 — Desafiante</option>
+      </select>
+
+      <label for="nx-note">Nota / justificación (opcional)</label>
+      <textarea id="nx-note" placeholder="Por qué este escenario — solo sandbox"></textarea>
+
+      <div class="row">
+        <button type="button" class="btn btn-primary" onclick="saveProgram()"><i class="ti ti-device-floppy"></i> Guardar simulación</button>
+        <a class="btn btn-outline" href="lab.html" target="_blank" rel="noopener"><i class="ti ti-player-play"></i> Abrir lab sandbox</a>
+        <button type="button" class="btn btn-outline" onclick="loadCurrent()">Recargar guardado</button>
+      </div>
+
+      <div class="preview" id="nx-preview">Sin programa cargado.</div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'nexora_next_scenario';
+  var TYPE_LABELS = {
+    mock_interview: 'STAR Mock Interview',
+    customer_service: 'Customer Service',
+    team_meeting: 'Team Meeting',
+    problem_solving: 'Problem Solving',
+    presentation: 'Executive Presentation',
+    negotiation: 'Negotiation',
+    stakeholder: 'Stakeholder Discussion'
+  };
+
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function () { el.style.display = 'none'; }, 2200);
+  }
+
+  function syncUI() {
+    var typeEl = document.getElementById('nx-type');
+    var indEl = document.getElementById('nx-industry');
+    var hintEl = document.getElementById('nx-hint');
+    if (typeof NEXORA_INDUSTRY !== 'undefined' && indEl.options.length === 0) {
+      NEXORA_INDUSTRY.populateEngineIndustrySelect(indEl);
+    }
+    var type = typeEl.value;
+    var industry = indEl.value || 'corporate';
+    if (hintEl && typeof NEXORA_INDUSTRY !== 'undefined') {
+      hintEl.textContent = NEXORA_INDUSTRY.describeSelection(type, industry);
+    }
+    renderPreview(buildConfig());
+  }
+
+  function buildConfig() {
+    var type = document.getElementById('nx-type').value;
+    var industry = document.getElementById('nx-industry').value || 'corporate';
+    var difficulty = parseInt(document.getElementById('nx-difficulty').value, 10) || 3;
+    var note = document.getElementById('nx-note').value.trim();
+    var cfg = {
+      type: type,
+      typeLabel: TYPE_LABELS[type] || type,
+      industry: industry,
+      industryLabel: (typeof NEXORA_INDUSTRY !== 'undefined'
+        ? NEXORA_INDUSTRY.labelForEngineValue(industry)
+        : industry),
+      difficulty: difficulty,
+      poolKey: (typeof NEXORA_INDUSTRY !== 'undefined'
+        ? NEXORA_INDUSTRY.scenarioPoolKey({ type: type, industry: industry })
+        : null),
+      note: note || undefined,
+      sandbox: true,
+      setAt: new Date().toISOString(),
+      setBy: 'nexora-next-engine'
+    };
+    if (typeof NEXORA_SIM_PROGRAM !== 'undefined' && NEXORA_SIM_PROGRAM.buildProgram) {
+      try {
+        var prog = NEXORA_SIM_PROGRAM.buildProgram({
+          type: type,
+          industry: industry,
+          difficulty: difficulty,
+          simulationId: 'nxnext-' + Date.now().toString(36)
+        });
+        if (prog) {
+          cfg.simulationId = prog.simulationId;
+          cfg.program = prog;
+        }
+      } catch (e) {}
+    }
+    return cfg;
+  }
+
+  function renderPreview(cfg) {
+    var poolLen = 0;
+    try {
+      if (typeof NEXORA_SCENARIO_BANK !== 'undefined') {
+        poolLen = (NEXORA_SCENARIO_BANK.getPool(cfg) || []).length;
+      }
+    } catch (e) {}
+    document.getElementById('nx-preview').textContent =
+      'Tipo: ' + (cfg.typeLabel || cfg.type) + '\n'
+      + 'Industria: ' + (cfg.industryLabel || cfg.industry) + '\n'
+      + 'Dificultad: ' + cfg.difficulty + '/5\n'
+      + 'Pool key: ' + (cfg.poolKey || '—') + '\n'
+      + 'Escenarios en pool: ' + poolLen + '\n'
+      + (cfg.simulationId ? ('simulationId: ' + cfg.simulationId + '\n') : '')
+      + (cfg.note ? ('Nota: ' + cfg.note) : '');
+  }
+
+  function saveProgram() {
+    var cfg = buildConfig();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+    renderPreview(cfg);
+    toast('Guardado en ' + STORAGE_KEY);
+  }
+
+  function loadCurrent() {
+    try {
+      var cfg = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (!cfg || !cfg.type) {
+        toast('Nada guardado aún');
+        syncUI();
+        return;
+      }
+      document.getElementById('nx-type').value = cfg.type;
+      syncUI();
+      if (cfg.industry) document.getElementById('nx-industry').value = cfg.industry;
+      if (cfg.difficulty) document.getElementById('nx-difficulty').value = String(cfg.difficulty);
+      document.getElementById('nx-note').value = cfg.note || '';
+      syncUI();
+      toast('Cargado desde localStorage');
+    } catch (e) {
+      toast('Error al leer programa');
+    }
+  }
+
+  window.syncUI = syncUI;
+  window.saveProgram = saveProgram;
+  window.loadCurrent = loadCurrent;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    syncUI();
+    loadCurrent();
+  });
+})();
+</script>
+</body>
+</html>
