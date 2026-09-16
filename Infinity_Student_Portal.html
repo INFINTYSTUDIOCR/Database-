@@ -5499,6 +5499,10 @@ async function startAliceSession(sessionType, opts){
     renderAlice();
     return;
   }
+  // Companion-only profiles must stay on companion for every TTS request
+  if(studentCompanionOn(CURRENT_STUDENT) && !studentAliceOn(CURRENT_STUDENT)){
+    _aliceState.sessionType = 'companion';
+  }
   if(opts.continueTopic) _aliceState.companionTopic = String(opts.continueTopic).slice(0, 80);
   else _aliceState.companionTopic = '';
   var startMood = aliceInferCompanionTopic(_aliceState.companionTopic);
