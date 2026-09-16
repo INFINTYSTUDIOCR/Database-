@@ -6033,10 +6033,18 @@ function aliceNormalizeMicTranscript(raw){
 }
 
 function aliceTtsRequestBody(text){
+  // Companion-only students (aliceEnabled=false) must never send sessionType=practice
+  // or TTS/auth can fail silently while the UI looks "on".
+  var st = (_aliceState && _aliceState.sessionType) || 'practice';
+  if(typeof studentCompanionOn === 'function' && studentCompanionOn(CURRENT_STUDENT)
+    && (typeof studentAliceOn !== 'function' || !studentAliceOn(CURRENT_STUDENT))){
+    st = 'companion';
+  }
+  if(typeof aliceCompanionUiActive === 'function' && aliceCompanionUiActive()) st = 'companion';
   return JSON.stringify({
     text: text,
     lang: 'en-US',
-    sessionType: (_aliceState && _aliceState.sessionType) || 'practice'
+    sessionType: st
   });
 }
 
@@ -6044,16 +6052,17 @@ function aliceClearTtsStatus(){
   var st = document.getElementById('alice-status');
   if(!st) return;
   var t = st.textContent || '';
-  if(t.indexOf('ElevenLabs') >= 0 || t.indexOf('Voz no disponible') >= 0 || t.indexOf('navegador') >= 0) st.textContent = '';
+  if(t.indexOf('ElevenLabs') >= 0 || t.indexOf('Voz no disponible') >= 0 || t.indexOf('navegador') >= 0 || t.indexOf('Sesión expirada') >= 0 || t.indexOf('Voz bloqueada') >= 0) st.textContent = '';
 }
 
 function aliceShowTtsError(status){
   var st = document.getElementById('alice-status');
-  if(!st) return;
-  if(status === 401) st.textContent = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
-  else if(status === 403) st.textContent = 'Voz bloqueada — pedí a tu trainer que active Companion.';
-  else if(status === 500 || status === 503) st.textContent = 'Voz Alice no disponible — reintentá en unos segundos.';
-  else st.textContent = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
+  var msg = 'Voz no disponible ('+status+'). Reintentá en unos segundos.';
+  if(status === 401) msg = 'Sesión expirada — salí y volvé a ingresar para activar la voz.';
+  else if(status === 403) msg = 'Voz bloqueada — pedí a tu trainer que reactive Companion y tocá Actualizar (↻).';
+  else if(status === 500 || status === 503) msg = 'Voz Alice no disponible — reintentá en unos segundos.';
+  if(st) st.textContent = msg;
+  if(typeof showToast === 'function') showToast(msg, 'err');
 }
 
 function aliceBrowserTtsLang(){
