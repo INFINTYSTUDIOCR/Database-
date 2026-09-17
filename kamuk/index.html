@@ -62,7 +62,7 @@
 <script src="https://studioinfinitycr.com/js/jill-foundations-modules.js?v=20260814refresh"></script>
 <script src="games/_shared/infinity-arcade-run.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-quiz.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260904stable"></script>
+<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260917ttsfix"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20260904stable"></script>
@@ -5816,6 +5816,7 @@ function cancelAliceSession(){
 
 var _aliceMicText = '';
 var _aliceSending = false;
+var _aliceStreamCtrl = null;
 
 function aliceFormatMessageHtml(m){
   var isAlice = m.role==='assistant';
@@ -5859,7 +5860,10 @@ function aliceRenderHistoryMessages(){
 }
 
 async function sendAliceMessage(micText){
-  if(_aliceSending) return;
+  if(_aliceSending){
+    try{ if(_aliceStreamCtrl) _aliceStreamCtrl.abort(); }catch(eAbortPrev){}
+    aliceUnlockMicAndSend(false);
+  }
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var input = document.getElementById('alice-input');
   var text = (micText || (input ? input.value : '') || '').trim();
@@ -5872,7 +5876,7 @@ async function sendAliceMessage(micText){
   var unwatchAlice = voiceSendWatchdog(function(){ return _aliceSending; }, function(){
     aliceUnlockMicAndSend(false);
     if(statusEl) statusEl.textContent = 'Tardó demasiado — intentá de nuevo o escribí tu respuesta.';
-  }, 38000);
+  }, 180000);
   aliceCancelSpeech();
   var _sendMicBtn = document.getElementById('alice-mic-btn');
   if(_sendMicBtn && _sendMicBtn._aliceStableApi && _sendMicBtn._aliceStableApi.stop){
@@ -5928,7 +5932,8 @@ async function sendAliceMessage(micText){
   var alicePrefetchState = {};
   var aliceTurnSpoke = false;
   var ctrl = new AbortController();
-  var tid = setTimeout(function(){ ctrl.abort(); }, 90000);
+  _aliceStreamCtrl = ctrl;
+  var tid = setTimeout(function(){ ctrl.abort(); }, 180000);
 
   try {
     var resp = await infinityFetch('/alice/stream', {
@@ -5995,6 +6000,16 @@ async function sendAliceMessage(micText){
       if(statusEl) statusEl.textContent = '';
       return;
     }
+    var partialAlice = aliceExtractReply(fullText);
+    if(partialAlice && partialAlice.trim().length > 4){
+      _aliceState.history[streamIdx] = { role:'assistant', content: partialAlice.trim() };
+      aliceQueueFullReply(partialAlice.trim());
+      aliceTurnSpoke = true;
+      aliceRenderHistoryMessages();
+      saveAliceRuntimeStorage();
+      if(statusEl) statusEl.textContent = '';
+      return;
+    }
     if(typeof NexoraStreamVoice !== 'undefined') NexoraStreamVoice.cancelTurn();
     try {
       var fbCatch = await alicePostFallbackReply(text, _aliceState.history.slice(0, streamIdx).slice(-10));
@@ -6014,6 +6029,7 @@ async function sendAliceMessage(micText){
     if(statusEl) statusEl.textContent = 'Sin respuesta — intentá otra vez o escribí tu mensaje.';
   } finally {
     clearTimeout(tid);
+    _aliceStreamCtrl = null;
     unwatchAlice();
     aliceUnlockMicAndSend(false);
   }
@@ -6310,15 +6326,11 @@ function bindAlicePttMic(){
 
   function aliceMicCanStart(){
     if(!_aliceState.sessionActive) return false;
-    if(_aliceSending){
-      var stBusy = document.getElementById('alice-status');
-      if(stBusy) stBusy.textContent = 'Esperá a que Alice termine de responder…';
-      return false;
-    }
     return true;
   }
   function aliceMicBeforeStart(){
     if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+    try{ if(typeof _aliceStreamCtrl !== 'undefined' && _aliceStreamCtrl) _aliceStreamCtrl.abort(); }catch(eAbortMic){}
     aliceInterruptSpeaking();
     aliceStopMic();
     btn.classList.remove('ptt-busy');
@@ -6757,6 +6769,7 @@ function aliceQueueFullReply(text){
   ttsSpeakLines(main, 1200).forEach(function(line){
     if(line && line.length >= 3) aliceQueueSpeak(line);
   });
+  aliceUnlockMicAndSend(false);
   try { aliceActivateVisualStage(main); } catch(eVis) {}
 }
 
@@ -7407,7 +7420,7 @@ function nexoraSendToAlice(text){
 
   var ctrl = new AbortController();
   _nxStreamCtrl = ctrl;
-  var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
+  var tid = setTimeout(function(){ ctrl.abort(); }, 180000);
 
   infinityFetch('/nexora/stream', {
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -7619,11 +7632,11 @@ function bindNexoraPttMic(){
     lang: 'en-US',
     canStart: function(){
       if(!_nxState.active) return false;
-      if(!_nxSending) return true;
-      return nexoraIsSpeaking();
+      return true;
     },
     onBeforeStart: function(){
       if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+      try{ if(_nxStreamCtrl) _nxStreamCtrl.abort(); }catch(eNxAbort){}
       nexoraPauseSpeech();
     },
     onUi: function(listening){
@@ -7902,13 +7915,9 @@ window.addEventListener('beforeunload',function(){
 });
 document.addEventListener('visibilitychange', function(){
   if(document.hidden){
-    if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
-      alicePauseAudio();
-    } else {
-      alicePauseAudio();
-    }
+    try{ if(window._aliceAudio && !window._aliceAudio.paused) window._aliceAudio.pause(); }catch(eA){}
+    try{ if(window._nxAudio && !window._nxAudio.paused) window._nxAudio.pause(); }catch(eN){}
     jillPauseAudio();
-    if(window._nxAudio) try{ window._nxAudio.pause(); }catch(e){}
     if(typeof PttMic !== 'undefined') PttMic.resetAll();
     aliceStopMic();
   } else {
@@ -7923,7 +7932,13 @@ document.addEventListener('visibilitychange', function(){
       }
       try { bindAlicePttMic(); } catch(e) {}
     }
-    if(window._activePortalTab === 'nexora' && _nxState.active) resumeNexoraRuntime();
+    if(window._activePortalTab === 'nexora' && _nxState.active){
+      if(window._nxAudio && window._nxAudio.paused){
+        var resumeNx = window._nxAudio.play();
+        if(resumeNx && typeof resumeNx.catch === 'function') resumeNx.catch(function(){});
+      }
+      resumeNexoraRuntime();
+    }
     if(window._activePortalTab === 'jill'){
       _jillSpeakEnabled = true;
       _jillSending = false;
@@ -9670,7 +9685,7 @@ async function sendJillMsg(micText, sendOpts){
   var jillPrefetchState = {};
   var ctrl = new AbortController();
   _jillStreamCtrl = ctrl;
-  var tid = setTimeout(function(){ ctrl.abort(); }, 55000);
+  var tid = setTimeout(function(){ ctrl.abort(); }, 180000);
 
   if(drillEval && drillEval.forcedReply){
     clearTimeout(tid);

@@ -7770,10 +7770,11 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
       }
     }
 
-    const openingTokens = (scType === 'star_interview' || scType === 'interview') ? 420 : 200;
+    const openingTokens = (scType === 'star_interview' || scType === 'interview') ? 900 : 500;
+    const replyTokens = (scType === 'star_interview' || scType === 'interview') ? 900 : 700;
     const resp = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: isOpening ? openingTokens : 200,
+      max_tokens: isOpening ? openingTokens : replyTokens,
       system: systemPrompt,
       messages: msgs
     });
@@ -7824,10 +7825,11 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
       const fixed = finishNexoraReply(brain.reply, ctx.p, ctx.scType);
       return Brain.writeBrainSSE(res, fixed);
     }
+    const streamTokens = (ctx.scType === 'star_interview' || ctx.scType === 'interview') ? 1200 : 900;
     await streamAnthropicSSE(res, {
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 320,
-      system: ctx.systemPrompt + (ctx.scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_LATENCY_RULE) + '\nNEVER cut off mid-sentence. Always finish the spoken line completely.',
+      max_tokens: streamTokens,
+      system: ctx.systemPrompt + (ctx.scType === 'star_interview' ? NEXORA_PROFESSIONAL_PACE_RULE : TUTOR_LATENCY_RULE) + '\nNEVER cut off mid-sentence. Always finish the spoken line completely. Do not truncate your reply.',
       messages: ctx.msgs,
       brainMeta: { hash: brain.hash, tutor: 'nexora', intent: 'stream', message: req.body?.message, extra: nexoraExtra }
     });

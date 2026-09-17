@@ -397,10 +397,11 @@ function ttsSpeakLines(text, maxLen) {
   return splitTtsChunks(line, maxLen);
 }
 
-/** Watchdog ms so long audio is never cut mid-playback (~12 chars/sec + buffer). */
+/** Watchdog budget for long audio — slow estimate, high ceiling (never ~2min hard kill). */
 function ttsWatchdogMs(textLen) {
   var n = Math.max(40, Number(textLen) || 0);
-  return Math.min(180000, Math.max(75000, Math.ceil(n / 10) * 1000 + 20000));
+  // ~7.5 chars/sec speaking + 45s buffer; cap at 12 minutes for long Companion / Nexora lines
+  return Math.min(720000, Math.max(120000, Math.ceil(n / 7.5) * 1000 + 45000));
 }
 
 /** How long to wait for a TTS blob before falling back to another voice. */
@@ -468,7 +469,7 @@ function armTtsPlaybackWatchdog(opts) {
   opts = opts || {};
   if (typeof opts.clearTimer === 'function') opts.clearTimer();
   var textLen = opts.textLen || 0;
-  var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 120000;
+  var ms = typeof ttsWatchdogMs === 'function' ? ttsWatchdogMs(textLen) : 720000;
   // Waiting for the blob is not the same as playing it. The playback budget is
   // sized for long audio; reusing it for a hung fetch left students in silence
   // for over a minute.
@@ -485,6 +486,10 @@ function armTtsPlaybackWatchdog(opts) {
     }
   }
 
+  var lastProgressAt = t0;
+  var lastProgressPos = -1;
+  var synthFallback = false;
+
   function tick() {
     if (typeof opts.getBusy === 'function' && !opts.getBusy()) return;
     var a = typeof opts.getAudio === 'function' ? opts.getAudio() : null;
@@ -496,15 +501,32 @@ function armTtsPlaybackWatchdog(opts) {
         schedule(tick, 1000);
         return;
       }
-      // Prefer saying the line with any available voice over going mute.
-      if (typeof opts.onFetchStall === 'function' && opts.onFetchStall()) return;
+      // Browser TTS fallback: keep ticking until busy clears (onend) — never freeze queue
+      if (!synthFallback && typeof opts.onFetchStall === 'function' && opts.onFetchStall()) {
+        synthFallback = true;
+        schedule(tick, 2000);
+        return;
+      }
+      if (synthFallback) {
+        // speechSynthesis can hang without onend; give long lines room then advance
+        if (elapsed < Math.max(ms, 180000)) {
+          schedule(tick, 2000);
+          return;
+        }
+      }
       if (typeof opts.setBusy === 'function') opts.setBusy(false);
       if (typeof opts.onAdvance === 'function') opts.onAdvance();
       return;
     }
 
+    var curNow = Number(a.currentTime) || 0;
+    if (curNow > lastProgressPos + 0.04) {
+      lastProgressPos = curNow;
+      lastProgressAt = Date.now();
+    }
+
     // Paused mid-play — try to resume (fullscreen / OS interrupts)
-    if (!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 16) {
+    if (!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 24) {
       stallChecks += 1;
       try {
         var p = a.play();
@@ -526,14 +548,22 @@ function armTtsPlaybackWatchdog(opts) {
       }
     }
 
-    // Still speaking
+    // Still speaking — NEVER hard-kill while playback is advancing
     if (!a.ended && !a.paused) {
       var dur = Number(a.duration) || 0;
-      var cur = Number(a.currentTime) || 0;
-      var leftMs = dur > 0 && isFinite(dur)
-        ? Math.max(4000, Math.ceil((dur - cur) * 1000) + 5000)
-        : Math.max(8000, ms - elapsed);
-      schedule(tick, Math.min(leftMs, 25000));
+      var cur = curNow;
+      if (dur > 0 && isFinite(dur)) {
+        // Extend budget to full remaining duration + cushion; do not cut early
+        var leftMs = Math.max(8000, Math.ceil((dur - cur) * 1000) + 20000);
+        schedule(tick, Math.min(leftMs, 30000));
+        return;
+      }
+      // Unknown duration but still progressing — keep waiting
+      if (Date.now() - lastProgressAt < 45000) {
+        schedule(tick, 5000);
+        return;
+      }
+      schedule(tick, 5000);
       return;
     }
 
@@ -545,8 +575,9 @@ function armTtsPlaybackWatchdog(opts) {
       return;
     }
 
-    // Hard budget only
-    if (elapsed >= ms) {
+    // Only abandon if truly stuck (no progress) past budget — never cut live audio
+    var stuck = (Date.now() - lastProgressAt) > 60000;
+    if (elapsed >= ms && stuck) {
       if (typeof opts.setBusy === 'function') opts.setBusy(false);
       try { if (a) a.pause(); } catch (e) { /* ignore */ }
       if (typeof opts.setAudio === 'function') opts.setAudio(null);

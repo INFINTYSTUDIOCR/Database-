@@ -10,7 +10,7 @@
 <script src="https://studioinfinitycr.com/nexora-profile.js?v=20260702restore"></script>
 <script src="js/nexora-voice-lock.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/nexora-characters.js?v=20260702restore"></script>
-<script src="js/tts-chunks.js?v=20260904stable"></script>
+<script src="js/tts-chunks.js?v=20260917ttsfix"></script>
 <script src="https://studioinfinitycr.com/js/nexora-industry-map.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-scenario-bank-data.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-scenario-bank.js?v=20260702restore"></script>
@@ -2032,7 +2032,7 @@ async function nexoraAuthStreamReply(payload, onPartial){
   var nxPrefetchState={};
   var ctrl=new AbortController();
   _nxStreamCtrl=ctrl;
-  var tid=setTimeout(function(){ ctrl.abort(); }, 55000);
+  var tid=setTimeout(function(){ ctrl.abort(); }, 180000);
   var resp;
   try{
     resp=await infinityFetch('/nexora/stream',{
@@ -2377,11 +2377,11 @@ function bindAllNexoraPttMics(){
         lang: 'en-US',
         canStart: function(){
           if(!_nx.active) return false;
-          if(!_nxSending) return true;
-          return nexoraIsSpeaking();
+          return true;
         },
         onBeforeStart: function(){
           if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+          try{ if(_nxStreamCtrl) _nxStreamCtrl.abort(); }catch(eNxAbort){}
           nexoraPauseSpeech();
         },
         onUi: function(listening){
