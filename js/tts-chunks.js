@@ -525,13 +525,20 @@ function armTtsPlaybackWatchdog(opts) {
       lastProgressAt = Date.now();
     }
 
-    // Paused mid-play — try to resume (fullscreen / OS interrupts)
-    if (!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 24) {
+    // Paused mid-play — unlock + resume (OS / another tab may have suspended AudioContext)
+    if (!a.ended && a.paused && a.currentTime > 0.02 && stallChecks < 60) {
       stallChecks += 1;
-      try {
-        var p = a.play();
-        if (p && typeof p.catch === 'function') p.catch(function () {});
-      } catch (ePlay) { /* ignore */ }
+      var resumePlay = function () {
+        try {
+          var p = a.play();
+          if (p && typeof p.catch === 'function') p.catch(function () {});
+        } catch (ePlay) { /* ignore */ }
+      };
+      if (typeof unlockTtsAudio === 'function') {
+        unlockTtsAudio().finally(resumePlay);
+      } else {
+        resumePlay();
+      }
       schedule(tick, 900);
       return;
     }

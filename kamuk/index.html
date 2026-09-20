@@ -62,7 +62,7 @@
 <script src="https://studioinfinitycr.com/js/jill-foundations-modules.js?v=20260814refresh"></script>
 <script src="games/_shared/infinity-arcade-run.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-quiz.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260917ttsfix"></script>
+<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260920ttskeep"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20260904stable"></script>
@@ -7915,18 +7915,28 @@ window.addEventListener('beforeunload',function(){
 });
 document.addEventListener('visibilitychange', function(){
   if(document.hidden){
-    try{ if(window._aliceAudio && !window._aliceAudio.paused) window._aliceAudio.pause(); }catch(eA){}
-    try{ if(window._nxAudio && !window._nxAudio.paused) window._nxAudio.pause(); }catch(eN){}
-    jillPauseAudio();
-    if(typeof PttMic !== 'undefined') PttMic.resetAll();
-    aliceStopMic();
+    // CRITICAL (PC): NEVER pause Companion/Alice/Jill TTS on tab blur — Chrome blocks resume.
+    try{ if(typeof PttMic !== 'undefined') PttMic.resetAll(); }catch(eP){}
+    try{ aliceStopMic(); }catch(eM){}
   } else {
+    if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+    try{
+      if(window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }catch(eS){}
     if(window._activePortalTab === 'alice' && _aliceState.sessionActive){
       _aliceSpeakEnabled = true;
       aliceUnlockMicAndSend(false);
       if(window._aliceAudio && window._aliceAudio.paused){
         var resumeP = window._aliceAudio.play();
-        if(resumeP && typeof resumeP.catch === 'function') resumeP.catch(function(){});
+        if(resumeP && typeof resumeP.catch === 'function'){
+          resumeP.catch(function(){
+            if(typeof unlockTtsAudio === 'function'){
+              unlockTtsAudio().finally(function(){
+                try{ window._aliceAudio && window._aliceAudio.play(); }catch(eR){}
+              });
+            }
+          });
+        }
       } else if(_aliceTTSQueue.length && !_aliceTTSBusy){
         _aliceTTSFlush();
       }
@@ -7942,6 +7952,20 @@ document.addEventListener('visibilitychange', function(){
     if(window._activePortalTab === 'jill'){
       _jillSpeakEnabled = true;
       _jillSending = false;
+      if(_jillState.audio && _jillState.audio.paused){
+        var resumeJ = _jillState.audio.play();
+        if(resumeJ && typeof resumeJ.catch === 'function'){
+          resumeJ.catch(function(){
+            if(typeof unlockTtsAudio === 'function'){
+              unlockTtsAudio().finally(function(){
+                try{ _jillState.audio && _jillState.audio.play(); }catch(eJ){}
+              });
+            }
+          });
+        }
+      } else if(typeof _jillTTSQueue !== 'undefined' && _jillTTSQueue.length && !_jillTTSBusy && typeof _jillTTSFlush === 'function'){
+        _jillTTSFlush();
+      }
       try { bindJillPttMic(); } catch(e) {}
     }
   }
