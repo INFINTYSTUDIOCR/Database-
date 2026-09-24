@@ -692,37 +692,30 @@
   ];
 
   var READ_CATS = [
-    { id: 'learn', label: 'Aprendizaje' },
-    { id: 'enlit', label: 'Literatura EN' },
-    { id: 'sclit', label: 'Literatura escocesa' },
-    { id: 'news', label: 'Noticias UK-Scotland' }
+    { id: 'listen', label: 'Listening' },
+    { id: 'speak', label: 'Interacción / Speaking' },
+    { id: 'read', label: 'Reading TOEIC' },
+    { id: 'vocab', label: 'Vocabulario' }
   ];
 
   var READ_ITEMS = [
-    { cat: 'learn', title: 'BBC Learning English', why: 'Gratis. Home de noticias y series para estudiantes.', url: 'https://www.bbc.co.uk/learningenglish' },
-    { cat: 'learn', title: 'BBC Lingohack', why: 'Noticias reales de la BBC con vocabulario de apoyo.', url: 'https://www.bbc.co.uk/learningenglish/english/features/lingohack' },
-    { cat: 'learn', title: 'BBC 6 Minute English', why: 'Audio corto, transcripción libre, sin suscripción.', url: 'https://www.bbc.co.uk/learningenglish/english/features/6-minute-english' },
-    { cat: 'learn', title: 'VOA Learning English', why: 'Noticias lentas y claras. Gratis.', url: 'https://learningenglish.voanews.com/' },
-    { cat: 'learn', title: 'British Council — Reading', why: 'Lecturas por nivel, sin paywall de curso.', url: 'https://learnenglish.britishcouncil.org/skills/reading' },
-    { cat: 'learn', title: 'La Nación — El Mundo', why: 'Resumí un titular en inglés (PR/PC). Portada libre.', url: 'https://www.nacion.com/el-mundo/' },
-    { cat: 'enlit', title: 'Pride and Prejudice — Austen', why: 'Novela completa en Gutenberg, lectura en el navegador.', url: 'https://www.gutenberg.org/cache/epub/1342/pg1342-images.html' },
-    { cat: 'enlit', title: 'Jane Eyre — Charlotte Brontë', why: 'Texto público, sin descarga rara.', url: 'https://www.gutenberg.org/cache/epub/1260/pg1260-images.html' },
-    { cat: 'enlit', title: 'Alice in Wonderland — Carroll', why: 'Corto y claro para 5–10 min de lectura.', url: 'https://www.gutenberg.org/cache/epub/11/pg11-images.html' },
-    { cat: 'enlit', title: 'Frankenstein — Shelley', why: 'Clásico EN; HTML verificado 200.', url: 'https://www.gutenberg.org/cache/epub/84/pg84-images.html' },
-    { cat: 'enlit', title: 'A Christmas Carol — Dickens', why: 'Relato corto, inglés de escritorio narrativo.', url: 'https://www.gutenberg.org/cache/epub/46/pg46-images.html' },
-    { cat: 'enlit', title: 'Standard Ebooks — catálogo', why: 'Ediciones limpias, sin DRM. Gratis.', url: 'https://standardebooks.org/' },
-    { cat: 'sclit', title: 'Robert Burns — Complete Works', why: 'Poesía escocesa de dominio público (Gutenberg).', url: 'https://www.gutenberg.org/cache/epub/18500/pg18500-images.html' },
-    { cat: 'sclit', title: 'Treasure Island — Stevenson', why: 'Escocia → aventura. Lectura online verificada.', url: 'https://www.gutenberg.org/cache/epub/120/pg120-images.html' },
-    { cat: 'sclit', title: 'Kidnapped — Stevenson', why: 'Novela escocesa completa, HTML 200.', url: 'https://www.gutenberg.org/cache/epub/421/pg421-images.html' },
-    { cat: 'sclit', title: 'Dr Jekyll and Mr Hyde — Stevenson', why: 'Corto. Edición Standard Ebooks de una página.', url: 'https://standardebooks.org/ebooks/robert-louis-stevenson/the-strange-case-of-dr-jekyll-and-mr-hyde/text/single-page' },
-    { cat: 'sclit', title: 'Sherlock Holmes — Conan Doyle', why: 'Autor escocés; cuentos completos en Gutenberg.', url: 'https://www.gutenberg.org/cache/epub/1661/pg1661-images.html' },
-    { cat: 'sclit', title: 'The Thirty-Nine Steps — Buchan', why: 'Thriller escocés, dominio público.', url: 'https://www.gutenberg.org/cache/epub/558/pg558-images.html' },
-    { cat: 'sclit', title: 'Scottish Poetry Library', why: 'Poemas para leer en el sitio, sin suscripción.', url: 'https://www.scottishpoetrylibrary.org.uk/' },
-    { cat: 'news', title: 'BBC News', why: 'Portada libre de la BBC.', url: 'https://www.bbc.co.uk/news' },
-    { cat: 'news', title: 'BBC News UK', why: 'Sección Reino Unido, sin muro duro.', url: 'https://www.bbc.co.uk/news/uk' },
-    { cat: 'news', title: 'BBC News Scotland', why: 'Escocia. URL verificada 200.', url: 'https://www.bbc.co.uk/news/scotland' },
-    { cat: 'news', title: 'STV News', why: 'TV escocesa, noticias libres en el sitio.', url: 'https://news.stv.tv/' },
-    { cat: 'news', title: 'CBBC Newsround', why: 'Noticias más simples, ideales para práctica.', url: 'https://www.bbc.co.uk/newsround' }
+    { cat: 'listen', title: 'Claire TOEIC — Listening Part 2', why: 'Práctica en el portal: chip Listening. Pregunta corta + respuesta.', url: '#claire-listening', portalTab: 'claire' },
+    { cat: 'listen', title: 'British Council — Listening', why: 'Audios por nivel, gratis. Ideal como complemento de Claire.', url: 'https://learnenglish.britishcouncil.org/skills/listening' },
+    { cat: 'listen', title: 'ESL Lab — Easy Listening', why: 'Dictados y quizzes de comprensión oral.', url: 'https://www.esl-lab.com/' },
+    { cat: 'listen', title: 'ELLLO — English Listening Lesson Library', why: 'Diálogos cortos + transcript. Bueno para ritmo y acentos.', url: 'https://www.elllo.org/' },
+    { cat: 'speak', title: 'Claire — Describe (escena laboral)', why: 'Describí oficina, gráfico o proceso en 3–5 oraciones. Inglés profesional.', url: '#claire-describe', portalTab: 'claire' },
+    { cat: 'speak', title: 'Claire — Speaking profesional', why: 'Explicá un proceso o problema de trabajo en voz alta (mic PTT).', url: '#claire-speak', portalTab: 'claire' },
+    { cat: 'speak', title: 'Claire TOEIC — Pronunciación', why: 'Shadowing + tip de claridad oral (registro de oficina).', url: '#claire-pron', portalTab: 'claire' },
+    { cat: 'speak', title: 'Alice — práctica por voz', why: 'Conversación guiada en el portal (si Greco la tiene ON).', url: '#alice', portalTab: 'alice' },
+    { cat: 'speak', title: 'British Council — Speaking', why: 'Tareas orales y tips de interacción profesional.', url: 'https://learnenglish.britishcouncil.org/skills/speaking' },
+    { cat: 'speak', title: 'Shadowing: English Central', why: 'Repetí en voz alta tras el audio (ritmo + pronunciación).', url: 'https://www.englishcentral.com/videos' },
+    { cat: 'read', title: 'Claire TOEIC — Reading Part 5', why: 'Cloze / gramática en el portal (chip Part 5).', url: '#claire-r5', portalTab: 'claire' },
+    { cat: 'read', title: 'Claire TOEIC — Reading Part 7', why: 'Pasaje corto + pregunta (chip Part 7).', url: '#claire-r7', portalTab: 'claire' },
+    { cat: 'read', title: 'British Council — Reading', why: 'Lecturas por nivel, sin muro de curso.', url: 'https://learnenglish.britishcouncil.org/skills/reading' },
+    { cat: 'read', title: 'TOEIC Reading practice (Exam English)', why: 'Ítems tipo test para complementar Claire.', url: 'https://www.examenglish.com/TOEIC/toeic_reading.htm' },
+    { cat: 'vocab', title: 'Claire TOEIC — Vocabulario laboral', why: 'Chip Vocabulario en Claire: palabras en contexto.', url: '#claire-vocab', portalTab: 'claire' },
+    { cat: 'vocab', title: 'British Council — Vocabulary', why: 'Listas y ejercicios por tema.', url: 'https://learnenglish.britishcouncil.org/vocabulary' },
+    { cat: 'vocab', title: 'Quizlet — Business English (search)', why: 'Flashcards rápidas; buscá “TOEIC vocabulary”.', url: 'https://quizlet.com/subject/toeic-vocabulary/' }
   ];
 
   function resolveBrand(opts) {
@@ -738,7 +731,7 @@
 
   function brandLead(kind, brand) {
     if (kind !== 'gloss') {
-      return 'Después de Jill, leé 5–10 min. Solo sitios libres verificados (sin 404, sin muro duro). Abrí en una pestaña nueva.';
+      return 'Práctica TOEIC profesional: Listening, hablar, describir escenas laborales, Reading y vocab. Preferí Claire; links externos = refuerzo.';
     }
     var desk = brand === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings';
     return 'Buscá Encabezado, AMR, however o PIN. Cada chip es un ejemplo para el desk de ' + desk + ' (queue, Emails/Compose/Send, notes, Resolve).';
@@ -792,6 +785,9 @@
         }).join('');
       } else {
         chips = list.map(function (it) {
+          if (it.portalTab) {
+            return '<button type="button" class="inf-tb-read-card kh-read-card" data-portal-tab="' + esc(it.portalTab) + '" style="text-align:left;width:100%;font:inherit;cursor:pointer;"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="inf-tb-read-go kh-read-go">Abrir en portal →</span></button>';
+          }
           return '<a class="inf-tb-read-card kh-read-card" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(it.title) + '</strong><span>' + esc(it.why) + '</span><span class="inf-tb-read-go kh-read-go">Abrir ↗</span></a>';
         }).join('');
       }
@@ -806,11 +802,11 @@
       var leadClass = opts.hideLead ? 'inf-tb-lead kh-lib-lead' : 'inf-tb-lead kh-lib-lead';
       var leadStyle = opts.hideLead ? ' style="display:none"' : '';
       el.innerHTML = '<p class="' + leadClass + '"' + leadStyle + '>' + brandLead(kind, brand) + '</p>'
-        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Burns, BBC Scotland, Austen…') + '" value="' + esc(q) + '">'
+        + '<input class="inf-tb-search kh-lib-search" type="search" enterkeyhint="search" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' + (kind === 'gloss' ? 'Buscá: Encabezado, AMR, however, PIN, AA…' : 'Buscá: Listening, Speaking, Part 5, vocab…') + '" value="' + esc(q) + '">'
         + '<div class="inf-tb-cats kh-lib-cats">' + cats.map(function (c) {
           return '<button type="button" class="inf-tb-cat kh-lib-cat' + (c.id === cat ? ' is-on' : '') + '" data-cat="' + c.id + '">' + esc(c.label) + '</button>';
         }).join('') + '</div>'
-        + '<div class="inf-tb-count kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' lecturas') + (q ? ' · filtro activo' : '') + '</div>'
+        + '<div class="inf-tb-count kh-lib-count">' + list.length + (kind === 'gloss' ? ' expresiones' : ' prácticas') + (q ? ' · filtro activo' : '') + '</div>'
         + (kind === 'gloss' ? '<div class="inf-tb-grid kh-lib-chips">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>' + panel
           : '<div class="inf-tb-read-grid kh-read-grid">' + (chips || '<p class="inf-tb-empty kh-lib-empty">Nada con esa búsqueda.</p>') + '</div>');
       var search = el.querySelector('.inf-tb-search') || el.querySelector('.kh-lib-search');
@@ -822,6 +818,13 @@
 
     el.className = (el.className + ' inf-tb-shell kh-lib').replace(/\s+/g, ' ').trim();
     el.addEventListener('click', function (ev) {
+      var portalBtn = ev.target.closest('[data-portal-tab]');
+      if (portalBtn) {
+        var tab = portalBtn.getAttribute('data-portal-tab');
+        if (tab && typeof global.switchPortalTab === 'function') global.switchPortalTab(tab);
+        else if (tab && typeof switchPortalTab === 'function') switchPortalTab(tab);
+        return;
+      }
       var c = ev.target.closest('[data-cat]');
       if (c) { cat = c.getAttribute('data-cat'); q = ''; openId = ''; render(); return; }
       var chip = ev.target.closest('[data-id]');

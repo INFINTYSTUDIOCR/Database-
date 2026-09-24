@@ -1656,25 +1656,20 @@ function showPortal(s){
   if(toeicSeniors){
     recursosHtml = '<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
       +'<div class="card-title" style="color:#722F37;"><i class="ti ti-school"></i> E-learning — Cómo usar Claire TOEIC</div>'
-      +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Solo cohorte Seniors: pantallas, dónde clickear, Listening / Reading / Vocabulario y micrófono PTT. Sin e-learning de Kamuk regular ni Infinity Holdings.</p>'
+      +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Pantallas, dónde clickear, Listening / Reading / Vocabulario / Pronunciación y micrófono PTT.</p>'
       +'<a href="training-book/como-usar/index.html?v=20260924claire" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;background:#722F37;border-color:#5C1F28;"><i class="ti ti-player-play"></i> Abrir e-learning Claire</a>'
       +'</div>'
       +'<div class="card" style="background:linear-gradient(165deg,#1a0a2e,#2d1b4e);border:1px solid rgba(192,132,252,.45);color:#f5f3ff;">'
       +'<div class="card-title" style="color:#e9d5ff;"><i class="ti ti-headphones"></i> Claire TOEIC</div>'
-      +'<p style="font-size:13px;line-height:1.55;margin:0 0 12px;color:rgba(255,255,255,.82);">Listening Part 2 · Reading Part 5 · Reading Part 7 · Vocabulario laboral. Corrección inmediata A/B/C/D.</p>'
+      +'<p style="font-size:13px;line-height:1.55;margin:0 0 12px;color:rgba(255,255,255,.82);">Listening · Reading · Vocab · <strong>Hablar y describir</strong> (inglés de oficina). Tutora suave, criterio certificado.</p>'
       +(studentClaireOn(s)
         ? '<button type="button" class="btn btn-navy" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;" onclick="switchPortalTab(\'claire\')"><i class="ti ti-player-play"></i> Ir a Claire ahora</button>'
-        : '<div style="font-size:12px;color:#fca5a5;">Claire aún no está ON en tu cuenta — pedíselo a Robert Greco.</div>')
+        : '<div style="font-size:12px;color:#fca5a5;">Claire aún no está ON — pedíselo a Robert Greco.</div>')
       +'</div>'
       +'<div class="card">'
-      +'<div class="card-title"><i class="ti ti-list-check"></i> Prácticas TOEIC recomendadas</div>'
-      +'<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:var(--t2);">'
-      +'<li><strong>Listening</strong> — chip Listening en Claire (Part 2).</li>'
-      +'<li><strong>Reading Part 5</strong> — gramática / cloze.</li>'
-      +'<li><strong>Reading Part 7</strong> — pasaje + preguntas.</li>'
-      +'<li><strong>Vocabulario</strong> — palabras en contexto laboral.</li>'
-      +'</ul>'
-      +'<p style="font-size:12px;color:var(--t3);margin:10px 0 0;">Alice (voz) queda en su pestaña si Greco la tiene ON — no es el hub Infinity Holdings.</p>'
+      +'<div class="card-title"><i class="ti ti-link"></i> Links de práctica — Listening, interacción y más</div>'
+      +'<p style="font-size:12px;color:var(--t2);line-height:1.55;margin:0 0 10px;">Sin BBC/noticias. Solo práctica TOEIC: oral, listening, reading y vocab (Claire + refuerzo externo).</p>'
+      +'<div id="kamuk-toeic-practice-root"></div>'
       +'</div>';
   } else {
     recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
@@ -1756,6 +1751,9 @@ function showPortal(s){
 
   document.getElementById('portal-content').innerHTML = html;
   switchPortalTab(opts.tab || 'progreso');
+  if(isToeicSeniorsCohort(s) && window.KamukRecursosLibrary){
+    window.KamukRecursosLibrary.mountReadings(document.getElementById('kamuk-toeic-practice-root'), { brand: 'kamuk' });
+  }
   if(!isToeicSeniorsCohort(s) && window.KamukRecursosLibrary){
     window.KamukRecursosLibrary.mountReadings(document.getElementById('kamuk-readings-root'));
   }
@@ -4565,7 +4563,7 @@ function claireTheme(){
     btnGrad: 'linear-gradient(135deg,#2B7EC1,#1F6AA8)',
     btnShadow: '0 4px 16px rgba(192,132,252,0.4)',
     headline: 'CLAIRE',
-    subtitle: 'TOEIC — Listening, Reading y vocabulario',
+    subtitle: 'TOEIC Pro — Listening, Reading, hablar y describir (oficina)',
     badgeBg: 'rgba(192,132,252,0.07)',
     msgBg: 'rgba(192,132,252,0.1)'
   };
@@ -4667,10 +4665,10 @@ function renderClaireStart(){
   var th = claireTheme();
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba('+th.rgb+',0.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
-    +'<strong>Claire TOEIC</strong> — práctica directa. Entrás, respondés un ejercicio y recibís corrección inmediata. Sin entrevista previa.'
+    +'<strong>Claire TOEIC</strong> — práctica profesional: Listening, Reading, vocab, <strong>hablar</strong> y <strong>describir</strong> escenas laborales. Corrección suave, registro de oficina.'
     +'</div>'
     +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
-    +'<button type="button" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:default;background:rgba(192,132,252,0.25);border:2px solid #79B9E8;color:#79B9E8;">Modo TOEIC</button>'
+    +'<button type="button" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:default;background:rgba(192,132,252,0.25);border:2px solid #79B9E8;color:#79B9E8;">Modo TOEIC Pro</button>'
     +'</div>'
     +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
     +'</div>';
@@ -4683,6 +4681,9 @@ function renderClaireSession(){
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Reading Part 5.\')">Reading Part 5</button>'
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una mini práctica TOEIC Reading Part 7.\')">Reading Part 7</button>'
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de vocabulario TOEIC en contexto laboral.\')">Vocabulario</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de pronunciación TOEIC: shadowing de una frase corta en inglés americano profesional.\')">Pronunciación</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica Describe / Speaking profesional TOEIC: describe a workplace scene in 3 to 5 clear sentences. Ask me to speak or write. Give one pronunciation tip after.\')">Describe</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance speaking profesional TOEIC: I must explain a process or problem at work in clear American English. Coach me like a certified TOEIC tutor — soft, not forced.\')">Speaking</button>'
     +'</div>';
   return '<div id="claire-session-main">'
     + chips
@@ -10006,7 +10007,7 @@ if(document.readyState === 'loading'){
 </div>
 
 <script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
-<script src="js/kamuk-recursos-library.js?v=20260827nest"></script>
+<script src="js/kamuk-recursos-library.js?v=20260924speak"></script>
 <script src="../js/infinity-word-puzzles.js?v=20260910play"></script>
 <script src="js/simulation-corporate-learn.js?v=20260910email"></script>
 <script src="js/infinity-holdings-config.js?v=20260910email"></script>
