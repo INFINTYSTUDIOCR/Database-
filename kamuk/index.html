@@ -62,7 +62,7 @@
 <script src="https://studioinfinitycr.com/js/jill-foundations-modules.js?v=20260814refresh"></script>
 <script src="games/_shared/infinity-arcade-run.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-quiz.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260920ttskeep"></script>
+<script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20260904stable"></script>
@@ -1198,6 +1198,11 @@ async function doLogin(ev){
     var today = new Date().toISOString().split('T')[0];
     var paId = 'PORTALACCESS-'+student.id+'_'+today;
     await dbSet('kamuk_sessions', paId, { studentId: student.id, date: today, time: new Date().toISOString() });
+    try{
+      student.lastPortalAccess = new Date().toISOString();
+      student.portalAccessCount = (Number(student.portalAccessCount)||0) + 1;
+      await dbSet('kamuk_students', student.id, student);
+    }catch(eAcc){}
 
     showPortal(student);
     maybeShowPortalTermsGate(student);
@@ -1516,6 +1521,45 @@ async function respondPortalTerms(agreed){
   afterPortalReady(s);
 }
 
+function applyKamukBookTheme(s){
+  var root = document.documentElement;
+  var theme = (s && (s.bookTheme || (s.info && s.info.bookTheme))) || '';
+  var accent = (s && (s.bookAccent || (s.info && s.info.bookAccent))) || '';
+  var tags = (s && (s.tags || (s.info && s.info.tags))) || [];
+  if(typeof tags === 'string') tags = [tags];
+  var isSeniors = tags.indexOf('Seniors') >= 0 || (s.info && s.info.tag === 'Seniors') || theme === 'wine';
+  var badge = document.getElementById('tb-cohort-tag');
+  if(!badge){
+    var wrap = document.querySelector('.tb-left') || document.getElementById('topbar');
+    if(wrap){
+      badge = document.createElement('span');
+      badge.id = 'tb-cohort-tag';
+      badge.style.cssText = 'display:none;margin-left:8px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;';
+      wrap.appendChild(badge);
+    }
+  }
+  if(theme === 'wine' || isSeniors){
+    var wine = accent || '#722F37';
+    root.style.setProperty('--purple', wine);
+    root.style.setProperty('--pm', '#5C1F28');
+    root.style.setProperty('--pb', '#F5E6E8');
+    root.style.setProperty('--navy', '#4A1C24');
+    if(badge){
+      badge.style.display = 'inline-flex';
+      badge.style.background = '#722F37';
+      badge.style.border = '1px solid #5C1F28';
+      badge.style.color = '#F5E6E8';
+      badge.textContent = 'Seniors';
+    }
+  } else {
+    root.style.removeProperty('--purple');
+    root.style.removeProperty('--pm');
+    root.style.removeProperty('--pb');
+    root.style.removeProperty('--navy');
+    if(badge){ badge.style.display = 'none'; badge.textContent = ''; }
+  }
+}
+
 function showPortal(s){
   var opts = arguments.length > 1 ? (arguments[1] || {}) : {};
   if(typeof AiProfile !== 'undefined' && s){
@@ -1527,6 +1571,7 @@ function showPortal(s){
   document.getElementById('topbar').style.display='flex';
   document.getElementById('portal-nav').style.display='flex';
   document.getElementById('tb-user').textContent=(s.info&&s.info.name)||'—';
+  applyKamukBookTheme(s);
 
   var score=getScore(s); var level=getLevel(score); var phase=parseInt((s.info||{}).phase)||1;
   var kpis=(s.kpis||{}).phase1||{};

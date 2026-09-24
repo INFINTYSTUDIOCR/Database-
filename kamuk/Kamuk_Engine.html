@@ -897,8 +897,8 @@ async function loadUsers(){
       await dbSet('kamuk_users','USR-MASTER-001',master);
       TRAINERS['trainer@infinity.cr']=master;
     }
-    if(!TRAINERS['robert.grego@kamuk.cr']){
-      var grego = {id:'USR-KAM-GREGO',email:'robert.grego@kamuk.cr',pass:'KmRg#8d2c4a',name:'Robert Grego',role:'trainer',department:'training',status:'active',kamukAudit:true};
+    if(!TRAINERS['robert.grego@kamuk.cr'] || TRAINERS['robert.grego@kamuk.cr'].role !== 'master'){
+      var grego = {id:'USR-KAM-GREGO',email:'robert.grego@kamuk.cr',pass:'KmRg#8d2c4a',name:'Robert Grego',role:'master',department:'training',status:'active',kamukAudit:true,fullEngagement:true,canViewPractice:true,canViewConnectionTime:true};
       await dbSet('kamuk_users','USR-KAM-GREGO',grego);
       TRAINERS['robert.grego@kamuk.cr']=grego;
     }
@@ -2548,24 +2548,73 @@ function renderMyStudents(m){
   m.innerHTML = '<div class="fade">'
     +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;">Mis estudiantes ('+students.length+')</h2>'
+    +'<button class="btn btn-navy btn-sm" onclick="renderEngagement(document.getElementById(\'main-content\'))"><i class="ti ti-activity"></i> Práctica & conexión</button>'
     +'</div>'
-    +(students.length ? '<table class="tbl"><thead><tr><th>Nombre</th><th>Score</th><th>Nivel</th><th>Fase</th><th>KPI débil</th><th>Acciones</th></tr></thead><tbody>'
+    +(students.length ? '<table class="tbl"><thead><tr><th>Nombre</th><th>Tag</th><th>Score</th><th>Práctica</th><th>Conexiones</th><th>Último acceso</th><th>Acciones</th></tr></thead><tbody>'
       +students.map(function(s){
-        var score=getScore(s); var level=getLevelForStudent(score,s); var wk=getWeakKPI(s); var kpis=(s.kpis||{}).phase1||{};
+        var score=getScore(s); var level=getLevelForStudent(score,s);
+        var mins = Number(s.nexoraPracticeMinutes||0) + Number(s.practiceMinutes||0);
+        var sessions = Number(s.nexoraSessionCount||0) + Number(s.portalAccessCount||0);
+        var last = s.lastPortalAccess || s.lastLoginAt || ((s.info&&s.info.lastAccess)||'');
+        var tag = ((s.tags&&s.tags[0]) || (s.info&&s.info.tag) || '');
         return '<tr data-sid="'+s.id+'" onclick="openStudent(this.dataset.sid)">'
           +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong><div style="font-size:11px;color:var(--t3);">'+((s.info&&s.info.email)||'')+'</div></td>'
-          +'<td><strong style="color:'+scoreHeatColor(score,s)+';">'+fmtScore(score,s)+'</strong></td>'
-          +'<td>'+getLevelBadge(level)+'</td>'
-          +'<td>'+getPhaseBadge(parseInt((s.info||{}).phase)||1)+'</td>'
-          +'<td>'+(wk?'<span class="badge" style="background:var(--rb);color:var(--rm);">'+wk+':'+((kpis[wk])||'?')+'</span>':'<span style="color:var(--t3);font-size:11px;">—</span>')+'</td>'
+          +'<td>'+(tag?'<span class="badge" style="background:#F5E6E8;color:#722F37;border:1px solid #D4A5AB;">'+tag+'</span>':'—')+'</td>'
+          +'<td><strong style="color:'+scoreHeatColor(score,s)+';">'+fmtScore(score,s)+'</strong> '+getLevelBadge(level)+'</td>'
+          +'<td><strong>'+mins+'</strong> min</td>'
+          +'<td>'+sessions+'</td>'
+          +'<td style="font-size:11px;color:var(--t2);">'+(last?fmtDate(last):'—')+'</td>'
           +'<td onclick="event.stopPropagation();" style="display:flex;gap:4px;">'
           +'<button data-sid="'+s.id+'" class="btn btn-navy btn-sm" onclick="openStudent(this.dataset.sid)"><i class="ti ti-eye"></i></button>'
           +'<button data-sid="'+s.id+'" class="btn btn-green btn-sm" onclick="openCalibrate(this.dataset.sid)"><i class="ti ti-refresh"></i></button>'
-          +'<button data-sid="'+s.id+'" class="btn btn-outline btn-sm" onclick="openAssignExModal(this.dataset.sid)"><i class="ti ti-dumbbell"></i></button>'
           +'</td></tr>';
       }).join('')+'</tbody></table>'
     : '<div class="ib ib-amber">No tenés estudiantes asignados aún. El Master Trainer debe asignarte estudiantes.</div>')
     +'</div>';
+}
+
+async function renderEngagement(m){
+  m = m || document.getElementById('main-content');
+  m.innerHTML = '<div class="fade"><div class="ib ib-navy">Cargando accesos al portal…</div></div>';
+  var students = hasMasterAccess() ? allStudents() : getMyStudents();
+  var accessRows = [];
+  try{
+    accessRows = await dbQuery('kamuk_sessions?select=id,data&id=like.PORTALACCESS-*');
+  }catch(e){ accessRows = []; }
+  var byStudent = {};
+  accessRows.forEach(function(r){
+    var d = r.data || {};
+    var sid = d.studentId || '';
+    if(!sid) return;
+    if(!byStudent[sid]) byStudent[sid] = { days:0, last:null, times:[] };
+    byStudent[sid].days++;
+    byStudent[sid].times.push(d.time || d.date);
+    if(!byStudent[sid].last || String(d.time||'') > String(byStudent[sid].last)) byStudent[sid].last = d.time || d.date;
+  });
+  // Estimate connected minutes: portal days * ~15 baseline + practice minutes tracked
+  m.innerHTML = '<div class="fade">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;">Práctica & tiempo conectado</h2>'
+    +'<button class="btn btn-outline btn-sm" onclick="showView(\'my-students\',null)">← Mis estudiantes</button>'
+    +'</div>'
+    +'<div class="ib ib-navy">Minutos de práctica (Nexora/Alice) + días con acceso al portal (login). Trainer: ver quién practica y cuánto se conecta.</div>'
+    +'<table class="tbl"><thead><tr><th>Estudiante</th><th>Sección</th><th>Práctica (min)</th><th>Sesiones Nexora</th><th>Días conectado</th><th>Último acceso</th><th>Est. tiempo</th></tr></thead><tbody>'
+    +students.map(function(s){
+      var mins = Number(s.nexoraPracticeMinutes||0) + Number(s.practiceMinutes||0);
+      var nx = Number(s.nexoraSessionCount||0);
+      var acc = byStudent[s.id] || { days:0, last:null };
+      var estMin = mins + (acc.days * 12);
+      return '<tr>'
+        +'<td><strong>'+((s.info&&s.info.name)||'—')+'</strong></td>'
+        +'<td>'+((s.info&&s.info.section)||'—')+'</td>'
+        +'<td><strong>'+mins+'</strong></td>'
+        +'<td>'+nx+'</td>'
+        +'<td>'+acc.days+'</td>'
+        +'<td style="font-size:11px;">'+(acc.last?fmtDate(acc.last):'—')+'</td>'
+        +'<td>~'+estMin+' min</td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>';
 }
 
 // ── TRAINER: MI PERFIL ────────────────────────────────────

@@ -1185,6 +1185,106 @@ app.get('/campaign/oe50/mail/campaign/:id', requireMasterOrAnalyzeSecret, async 
   }
 });
 
+// ── Kamuk credential mail (info@studioinfinitycr.com · same SMTP as OE50) ──
+app.post('/kamuk/mail/credentials', requireMasterOrAnalyzeSecret, async (req, res) => {
+  try {
+    if (!oe50MailConfigured()) {
+      return res.status(503).json({ error: 'Correo no configurado. Agregá OE50_SMTP_APP_PASSWORD en Render.' });
+    }
+    const recipients = Array.isArray(req.body?.recipients) ? req.body.recipients : [];
+    if (!recipients.length) return res.status(400).json({ error: 'Sin destinatarios.' });
+    if (recipients.length > OE50_MAIL_MAX_RECIPIENTS) {
+      return res.status(400).json({ error: `Máximo ${OE50_MAIL_MAX_RECIPIENTS} destinatarios.` });
+    }
+    const confirmCount = Number(req.body?.confirmCount);
+    if (confirmCount !== recipients.length) {
+      return res.status(400).json({ error: 'Confirmá la cantidad exacta de destinatarios.' });
+    }
+    const result = await sendKamukCredentialRecipients(recipients);
+    return res.json({ ok: true, from: OE50_SMTP_USER, sent: result.sent.length, failed: result.failed.length, sentEmails: result.sent, failures: result.failed });
+  } catch (err) {
+    console.error('kamuk mail credentials:', err.message);
+    return res.status(500).json({ error: err.message || 'No se pudieron enviar las credenciales.' });
+  }
+});
+
+async function sendKamukCredentialRecipients(recipients) {
+  const transport = createOe50MailTransport();
+  const sent = [];
+  const failed = [];
+  for (const raw of recipients) {
+    const email = String(raw?.email || '').trim().toLowerCase();
+    const name = String(raw?.name || '').trim() || email;
+    const user = String(raw?.user || '').trim();
+    const pass = String(raw?.pass || '').trim();
+    const section = String(raw?.section || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !user || !pass) {
+      failed.push({ email: email || '(missing)', error: 'invalid_recipient' });
+      continue;
+    }
+    const portal = 'https://studioinfinitycr.com/kamuk/';
+    const subject = 'Kamuk TOEIC Seniors — tus credenciales de acceso';
+    const text =
+      `Kamuk School · TOEIC Seniors\n\nHola ${name},\n\n` +
+      'Ya tenés acceso a tu Training Book (tema vino · tag Seniors) con Alice y Claire TOEIC.\n' +
+      'Trainer: Robert Grego\n\n' +
+      `Portal: ${portal}\nUsuario: ${user}\nContraseña: ${pass}\n\n` +
+      `Sección: ${section}\n— Kamuk School · ${OE50_SMTP_USER}`;
+    const html =
+      '<div style="font-family:Inter,Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#1e1e2e;">' +
+      '<div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#722F37;margin-bottom:12px;">Kamuk School · TOEIC Seniors</div>' +
+      `<h1 style="font-size:22px;margin:0 0 12px;color:#722F37;">Bienvenido/a, ${oe50MailEscapeHtml(name)}</h1>` +
+      '<p style="line-height:1.55;font-size:15px;">Ya tenés acceso a tu Training Book Kamuk (tema <strong>vino</strong> · tag <strong>Seniors</strong>) con tutores <strong>Alice</strong> y <strong>Claire TOEIC</strong>. Tu trainer es <strong>Robert Grego</strong>.</p>' +
+      '<div style="background:#F5E6E8;border:1px solid #D4A5AB;border-radius:12px;padding:16px;margin:18px 0;">' +
+      '<div style="font-size:12px;font-weight:700;color:#722F37;margin-bottom:8px;">TUS CREDENCIALES</div>' +
+      `<p style="margin:0 0 6px;font-size:15px;"><strong>Portal:</strong> <a href="${portal}">${portal}</a></p>` +
+      `<p style="margin:0 0 6px;font-size:15px;"><strong>Usuario:</strong> ${oe50MailEscapeHtml(user)}</p>` +
+      `<p style="margin:0;font-size:15px;"><strong>Contraseña:</strong> ${oe50MailEscapeHtml(pass)}</p>` +
+      '</div>' +
+      `<p style="font-size:13px;color:#6b7280;">Sección: ${oe50MailEscapeHtml(section)}</p>` +
+      '<hr style="border:none;border-top:1px solid #e5e7eb;margin:22px 0;">' +
+      `<p style="margin:0;font-size:12px;color:#6b7280;">Kamuk School · ${oe50MailEscapeHtml(OE50_SMTP_USER)}</p></div>`;
+    try {
+      await sendOe50MailOne(transport, { to: email, subject, text, html });
+      sent.push(email);
+    } catch (err) {
+      failed.push({ email, error: String(err.message || err).slice(0, 240) });
+    }
+    await sleepMs(OE50_MAIL_SEND_GAP_MS);
+  }
+  return { sent, failed };
+}
+
+async function processPendingKamukCredentialMailJobs() {
+  if (!oe50MailConfigured()) return { skipped: true, reason: 'smtp_not_configured' };
+  const row = await sbGetOne('kamuk_sessions', 'KAMUK-MAIL-JOB-TOEIC-SENIORS');
+  const job = row?.data;
+  if (!job || job.type !== 'kamuk-credential-mail' || job.status !== 'pending') {
+    return { skipped: true, reason: 'no_pending_job' };
+  }
+  job.status = 'sending';
+  job.startedAt = new Date().toISOString();
+  await sbSet('kamuk_sessions', 'KAMUK-MAIL-JOB-TOEIC-SENIORS', job);
+  const result = await sendKamukCredentialRecipients(Array.isArray(job.recipients) ? job.recipients : []);
+  job.status = result.failed.length && !result.sent.length ? 'failed' : 'completed';
+  job.completedAt = new Date().toISOString();
+  job.sent = result.sent;
+  job.failed = result.failed;
+  await sbSet('kamuk_sessions', 'KAMUK-MAIL-JOB-TOEIC-SENIORS', job);
+  console.log('[kamuk-mail] job done sent=', result.sent.length, 'failed=', result.failed.length);
+  return { ok: true, sent: result.sent.length, failed: result.failed.length };
+}
+
+app.post('/kamuk/mail/process-pending', requireMasterOrAnalyzeSecret, async (_req, res) => {
+  try {
+    const out = await processPendingKamukCredentialMailJobs();
+    return res.json({ ok: true, ...out, from: OE50_SMTP_USER });
+  } catch (err) {
+    console.error('kamuk mail process-pending:', err.message);
+    return res.status(500).json({ error: err.message || 'No se pudo procesar el job de correo.' });
+  }
+});
+
 async function runOe50MailCampaign(campaignId) {
   if (oe50MailCampaignLocks.has(campaignId)) return;
   oe50MailCampaignLocks.add(campaignId);
@@ -8351,6 +8451,13 @@ app.listen(PORT, () => {
   setTimeout(() => {
     warmDemoBufferTts().catch((e) => console.warn('Demo TTS warm error:', e.message));
   }, 4000);
+  setTimeout(() => {
+    processPendingKamukCredentialMailJobs()
+      .then((out) => {
+        if (out && !out.skipped) console.log('[kamuk-mail] startup process:', JSON.stringify(out));
+      })
+      .catch((err) => console.warn('[kamuk-mail] startup process failed:', err.message));
+  }, 8000);
   const tiktokHours = parseInt(process.env.TIKTOK_SYNC_INTERVAL_HOURS || '0', 10);
   if (tiktokHours > 0 && TikTokJill.isConfigured()) {
     const ms = tiktokHours * 3600000;
