@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>E-learning · Claire TOEIC — Cómo usar la interfaz</title>
+  <style>
+    :root {
+      --wine: #722F37; --wine-deep: #5C1F28; --wine-soft: #F5E6E8; --wine-line: #D4A5AB;
+      --ink: #1f1215; --muted: #6b4a50; --ok: #157a4b; --claire: #7c3aed; --claire2: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink);
+      background: radial-gradient(900px 420px at 8% -8%, rgba(114,47,55,.2), transparent 55%),
+        radial-gradient(700px 380px at 100% 0%, rgba(124,58,237,.12), transparent 50%),
+        linear-gradient(180deg, #F8EEF0 0%, #FFF9F8 50%, #F3E4E7 100%);
+    }
+    .shell { max-width: 900px; margin: 0 auto; padding: 16px 12px 56px; }
+    .brand { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--wine); }
+    h1 { margin: 6px 0 8px; font-size: clamp(22px, 4vw, 30px); color: var(--wine-deep); line-height: 1.15; }
+    .lead { margin: 0 0 14px; color: var(--muted); line-height: 1.55; font-size: 14px; }
+    .progress {
+      height: 8px; background: #ead5d8; border-radius: 999px; overflow: hidden; margin-bottom: 14px;
+    }
+    .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--wine), var(--claire)); width: 0%; transition: width .25s; }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; font-weight: 700; color: var(--wine-deep); }
+    .meta span { background: var(--wine-soft); border: 1px solid var(--wine-line); border-radius: 999px; padding: 5px 10px; }
+    .lesson {
+      display: none; background: #fff; border: 1px solid var(--wine-line); border-radius: 16px; padding: 16px; margin-bottom: 12px;
+    }
+    .lesson.on { display: block; }
+    .lesson h2 { margin: 0 0 8px; font-size: 18px; color: var(--wine-deep); }
+    .lesson p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: var(--ink); }
+    .lesson ul { margin: 0 0 12px; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+    .shot {
+      position: relative; margin: 12px 0 8px; border-radius: 14px; overflow: hidden;
+      border: 1px solid #3b2468; background: #140a28; box-shadow: 0 12px 28px rgba(40,10,30,.18);
+    }
+    .shot-label {
+      position: absolute; top: 8px; left: 8px; z-index: 3; font-size: 10px; font-weight: 800;
+      letter-spacing: .08em; text-transform: uppercase; background: rgba(114,47,55,.92); color: #fff;
+      padding: 4px 8px; border-radius: 6px;
+    }
+    .callout {
+      position: absolute; z-index: 4; max-width: 160px; font-size: 11px; font-weight: 800; line-height: 1.3;
+      background: #FFD700; color: #1a1200; padding: 6px 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    }
+    .callout::after {
+      content: ""; position: absolute; width: 10px; height: 10px; background: #FFD700; transform: rotate(45deg);
+    }
+    .callout.bl::after { left: 12px; bottom: -4px; }
+    .callout.br::after { right: 12px; bottom: -4px; }
+    .callout.tl::after { left: 12px; top: -4px; }
+    .pulse {
+      position: absolute; z-index: 3; width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid #FFD700; box-shadow: 0 0 0 6px rgba(255,215,0,.25); animation: pulse 1.4s ease infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 12px rgba(255,215,0,.05); } }
+    /* Mock: portal chrome */
+    .mock-portal { display: flex; min-height: 280px; }
+    .mock-nav {
+      width: 64px; background: #4A1C24; display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 48px 4px 12px; flex-shrink: 0;
+    }
+    .mock-nav .ni {
+      width: 90%; text-align: center; color: rgba(255,255,255,.55); font-size: 8px; font-weight: 700;
+      padding: 6px 2px; border-radius: 8px;
+    }
+    .mock-nav .ni i { display: block; font-size: 14px; margin-bottom: 2px; }
+    .mock-nav .ni.on { background: rgba(245,166,35,.2); color: #F5A623; }
+    .mock-main { flex: 1; background: #f7f0f1; padding: 12px; }
+    .mock-top { height: 36px; background: #722F37; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; padding: 0 10px; gap: 8px; }
+    .mock-top .tag { font-size: 9px; font-weight: 800; background: rgba(255,255,255,.15); color: #F5E6E8; padding: 3px 8px; border-radius: 999px; }
+    .mock-card { background: #fff; border: 1px solid #D4A5AB; border-radius: 10px; padding: 10px; font-size: 11px; color: #5C1F28; margin-bottom: 8px; }
+    /* Mock: Claire */
+    .mock-claire { padding: 14px; color: #fff; min-height: 300px; background: linear-gradient(165deg,#1a0a2e,#2d1b4e); }
+    .mock-claire .kicker { font-size: 9px; letter-spacing: .2em; color: #c4b5fd; font-weight: 800; }
+    .mock-claire .title { font-size: 22px; font-weight: 900; color: #e9d5ff; margin: 2px 0 4px; }
+    .mock-claire .sub { font-size: 10px; color: rgba(255,255,255,.75); margin-bottom: 12px; }
+    .mock-claire .start-box {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(192,132,252,.25); border-radius: 12px;
+      padding: 12px; font-size: 11px; line-height: 1.55; color: rgba(255,255,255,.8); margin-bottom: 12px; text-align: center;
+    }
+    .mock-btn-start {
+      display: block; width: 100%; text-align: center; background: linear-gradient(135deg,#7c3aed,#5b21b6);
+      border: none; color: #fff; font-weight: 800; font-size: 13px; padding: 12px; border-radius: 12px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .chip {
+      background: rgba(192,132,252,.14); border: 1px solid rgba(192,132,252,.38); color: #e9d5ff;
+      font-size: 10px; font-weight: 800; padding: 7px 10px; border-radius: 20px;
+    }
+    .chip.hi { background: rgba(255,215,0,.2); border-color: #FFD700; color: #FFD700; }
+    .badge { background: rgba(192,132,252,.12); border: 1px solid rgba(192,132,252,.4); border-radius: 8px; padding: 6px 10px; font-size: 10px; color: #c4b5fd; margin-bottom: 10px; }
+    .msg { background: rgba(255,255,255,.07); border-radius: 10px; padding: 8px 10px; font-size: 11px; line-height: 1.45; margin-bottom: 8px; color: #f5f3ff; }
+    .dock { display: flex; gap: 6px; align-items: center; }
+    .dock input {
+      flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(192,132,252,.28); color: #fff;
+      border-radius: 10px; padding: 8px 10px; font-size: 11px;
+    }
+    .dock .ico {
+      width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(192,132,252,.15); border: 1px solid rgba(192,132,252,.35); color: #c4b5fd; font-size: 14px;
+    }
+    .dock .ico.send { background: linear-gradient(135deg,#7c3aed,#5b21b6); border: none; color: #fff; }
+    .dock .ico.mic-hot { background: rgba(255,92,92,.35); border-color: #FF5C5C; color: #fff; }
+    .board {
+      border: 1px solid rgba(192,132,252,.35); border-radius: 12px; background: rgba(15,10,40,.85);
+      padding: 10px; margin-bottom: 8px; font-size: 11px;
+    }
+    .board .part { font-size: 9px; letter-spacing: .12em; font-weight: 800; color: #79B9E8; margin-bottom: 6px; }
+    .board .stem { font-weight: 700; margin: 6px 0; }
+    .board .opt { display: flex; gap: 8px; background: rgba(192,132,252,.1); border: 1px solid rgba(192,132,252,.28); border-radius: 8px; padding: 6px 8px; margin-top: 5px; }
+    .board .key { min-width: 18px; height: 18px; border-radius: 5px; background: rgba(192,132,252,.4); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
+    .nav-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .btn {
+      border: none; border-radius: 10px; padding: 11px 16px; font-weight: 800; font-size: 13px; cursor: pointer;
+    }
+    .btn-primary { background: var(--wine); color: #fff; }
+    .btn-ghost { background: #fff; color: var(--wine-deep); border: 1px solid var(--wine-line); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .check { margin-top: 10px; }
+    .check label {
+      display: block; padding: 9px 11px; border: 1px solid #ead5d8; border-radius: 10px; margin-bottom: 6px; cursor: pointer; font-size: 13px;
+    }
+    .check label:has(input:checked) { border-color: var(--wine); background: var(--wine-soft); }
+    .result { margin-top: 10px; font-weight: 800; min-height: 1.3em; }
+    .result.ok { color: var(--ok); }
+    .result.bad { color: var(--wine); }
+    .track-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+    .track-toggle button {
+      border: 1px solid var(--wine-line); background: #fff; border-radius: 999px; padding: 8px 12px; font-weight: 800; font-size: 12px; cursor: pointer; color: var(--wine-deep);
+    }
+    .track-toggle button.on { background: var(--wine); color: #fff; border-color: var(--wine); }
+    .links { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .links a {
+      text-decoration: none; font-size: 13px; font-weight: 800; padding: 10px 14px; border-radius: 10px;
+      border: 1px solid var(--wine-line); background: #fff; color: var(--wine-deep);
+    }
+    .links a.primary { background: var(--wine); color: #fff; border-color: var(--wine); }
+    .tip { background: var(--wine-soft); border: 1px solid var(--wine-line); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: var(--wine-deep); margin: 8px 0 0; }
+    .hidden { display: none !important; }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+</head>
+<body>
+  <div class="shell">
+    <div class="brand">Kamuk · TOEIC Seniors · E-learning</div>
+    <h1>Cómo usar Claire TOEIC</h1>
+    <p class="lead">Curso completo de interfaz: dónde clickear, cómo interactuar y cómo usar Listening, Reading y Vocabulario. Recursos del portal Seniors = <strong>solo TOEIC</strong> (sin e-learning Infinity / Kamuk regular).</p>
+
+    <div class="track-toggle">
+      <button type="button" class="on" id="trk-stu" data-t="stu">Estudiante</button>
+      <button type="button" id="trk-tr" data-t="tr">Trainer Greco</button>
+    </div>
+
+    <div class="meta">
+      <span id="meta-step">Lección 1 / 7</span>
+      <span>~12 min</span>
+      <span>Quiz final</span>
+    </div>
+    <div class="progress"><span id="bar"></span></div>
+
+    <!-- L1 Portal nav -->
+    <section class="lesson on" data-i="0" data-track="stu,tr">
+      <h2>1. Entrar y menú lateral</h2>
+      <p>Abrí <strong>studioinfinitycr.com/kamuk/</strong>. Con tag <strong>Seniors</strong> el Training Book se ve vino. El menú izquierdo cambia de pestaña.</p>
+      <div class="shot">
+        <div class="shot-label">Screenshot · Portal</div>
+        <div class="callout bl" style="left:70px;top:70px;">Click acá → Claire</div>
+        <div class="pulse" style="left:22px;top:178px;"></div>
+        <div class="mock-portal">
+          <div class="mock-nav">
+            <div class="ni"><i class="ti ti-chart-radar"></i>Prog.</div>
+            <div class="ni"><i class="ti ti-dumbbell"></i>Book</div>
+            <div class="ni"><i class="ti ti-folder"></i>Rec.</div>
+            <div class="ni"><i class="ti ti-robot"></i>Alice</div>
+            <div class="ni on"><i class="ti ti-headphones"></i>Claire</div>
+          </div>
+          <div class="mock-main">
+            <div class="mock-top"><span class="tag">Seniors</span><span style="color:#F5E6E8;font-size:11px;font-weight:700;">Tu Training Book</span></div>
+            <div class="mock-card"><strong>Recursos (Seniors)</strong><br>Solo e-learning Claire TOEIC + prácticas Listening / Reading / Vocab. Sin Holdings corporate.</div>
+            <div class="mock-card" style="opacity:.7;">Progreso · KPIs · horario con Greco</div>
+          </div>
+        </div>
+      </div>
+      <div class="tip">Si no ves Claire en el menú: Greco debe tener Claire TOEIC ✓ ON en tu perfil.</div>
+    </section>
+
+    <!-- L2 Recursos TOEIC only -->
+    <section class="lesson" data-i="1" data-track="stu,tr">
+      <h2>2. Recursos = solo TOEIC</h2>
+      <p>En <strong>Recursos</strong> de Seniors no aparecen e-learning Infinity Holdings, Typing Lab call-center, Word Lab Holdings ni Infinity Hub. Solo:</p>
+      <ul>
+        <li>E-learning Cómo usar Claire TOEIC (este curso)</li>
+        <li>Acceso directo a Claire</li>
+        <li>Lista de prácticas TOEIC</li>
+      </ul>
+      <div class="shot">
+        <div class="shot-label">Screenshot · Recursos Seniors</div>
+        <div class="callout br" style="right:16px;top:90px;">Abrí este e-learning</div>
+        <div class="pulse" style="right:40px;top:150px;"></div>
+        <div class="mock-portal">
+          <div class="mock-nav">
+            <div class="ni"><i class="ti ti-folder"></i>Rec.</div>
+            <div class="ni on" style="background:rgba(245,166,35,.2);color:#F5A623;"><i class="ti ti-folder"></i>Rec.</div>
+          </div>
+          <div class="mock-main">
+            <div class="mock-top"><span class="tag">Seniors</span></div>
+            <div class="mock-card" style="border-color:#722F37;"><strong style="color:#722F37;">E-learning — Cómo usar Claire TOEIC</strong><br><span style="display:inline-block;margin-top:6px;background:#722F37;color:#fff;padding:6px 10px;border-radius:8px;font-weight:800;font-size:10px;">Abrir e-learning Claire</span></div>
+            <div class="mock-card" style="background:#2d1b4e;color:#e9d5ff;border-color:#7c3aed;"><strong>Claire TOEIC</strong> · Ir a Claire ahora</div>
+            <div class="mock-card"><strong>Prácticas:</strong> Listening · Part 5 · Part 7 · Vocabulario</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- L3 Start Claire -->
+    <section class="lesson" data-i="2" data-track="stu,tr">
+      <h2>3. Iniciar sesión Claire</h2>
+      <p>En la pestaña <strong>Claire</strong> ves el encabezado STUDIO INFINITY CR + Claire TOEIC. Tocá el botón grande <strong>Iniciar sesión</strong>.</p>
+      <div class="shot">
+        <div class="shot-label">Screenshot · Claire inicio</div>
+        <div class="callout bl" style="left:24px;bottom:52px;">Click: Iniciar sesión</div>
+        <div class="pulse" style="left:50%;bottom:28px;transform:translateX(-50%);"></div>
+        <div class="mock-claire">
+          <div style="display:flex;justify-content:space-between;">
+            <div>
+              <div class="kicker">STUDIO INFINITY CR</div>
+              <div class="title">CLAIRE TOEIC</div>
+              <div class="sub">TOEIC — Listening, Reading y vocabulario</div>
+            </div>
+            <div style="font-size:9px;color:rgba(255,255,255,.7);">Acento ▾ American</div>
+          </div>
+          <div class="start-box"><strong>Claire TOEIC</strong> — práctica directa. Entrás, respondés y recibís corrección inmediata. Sin entrevista previa.<br><br><span style="display:inline-block;margin-top:6px;padding:5px 10px;border-radius:8px;border:2px solid #79B9E8;color:#79B9E8;font-weight:800;font-size:10px;">Modo TOEIC</span></div>
+          <div class="mock-btn-start">▶ Iniciar sesión</div>
+        </div>
+      </div>
+      <div class="tip">Podés cambiar el acento (American, etc.) arriba a la derecha antes de iniciar.</div>
+    </section>
+
+    <!-- L4 Chips -->
+    <section class="lesson" data-i="3" data-track="stu,tr">
+      <h2>4. Elegir tipo de práctica (chips)</h2>
+      <p>Después de iniciar aparecen chips. Cada uno lanza un prompt TOEIC distinto:</p>
+      <ul>
+        <li><strong>Listening</strong> — Part 2 (pregunta-respuesta oral)</li>
+        <li><strong>Reading Part 5</strong> — cloze / gramática</li>
+        <li><strong>Reading Part 7</strong> — pasaje + preguntas</li>
+        <li><strong>Vocabulario</strong> — palabras en contexto laboral</li>
+      </ul>
+      <div class="shot">
+        <div class="shot-label">Screenshot · chips Claire</div>
+        <div class="callout tl" style="left:18px;top:78px;">Tocá un chip</div>
+        <div class="pulse" style="left:48px;top:118px;"></div>
+        <div class="mock-claire">
+          <div class="kicker">STUDIO INFINITY CR</div>
+          <div class="title" style="font-size:18px;">CLAIRE TOEIC</div>
+          <div class="chips">
+            <span class="chip hi">Listening</span>
+            <span class="chip">Reading Part 5</span>
+            <span class="chip">Reading Part 7</span>
+            <span class="chip">Vocabulario</span>
+          </div>
+          <div class="badge">🎧 Claire TOEIC · Práctica directa</div>
+          <div class="msg">Claire: The manager asked the team to submit the report ___ Friday.<br>A) in &nbsp; B) on &nbsp; C) by &nbsp; D) at</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- L5 Answer + mic -->
+    <section class="lesson" data-i="4" data-track="stu,tr">
+      <h2>5. Responder: teclado o micrófono PTT</h2>
+      <p>Escribí <strong>A / B / C / D</strong> (o la respuesta) y tocá enviar, o <strong>mantené presionado</strong> el micrófono (Push-to-Talk) y soltá al terminar.</p>
+      <div class="shot">
+        <div class="shot-label">Screenshot · dock de control</div>
+        <div class="callout br" style="right:14px;bottom:70px;">Mantener = hablar</div>
+        <div class="pulse" style="right:58px;bottom:28px;"></div>
+        <div class="mock-claire">
+          <div class="msg">Claire: … Responda A, B, C o D.</div>
+          <div class="dock">
+            <input readonly value="C" />
+            <div class="ico mic-hot">🎙</div>
+            <div class="ico send">➤</div>
+          </div>
+          <div style="margin-top:8px;text-align:center;font-size:10px;color:#86EFAC;border:1px solid rgba(134,239,172,.25);border-radius:8px;padding:8px;">✓ Terminar práctica</div>
+        </div>
+      </div>
+      <div class="tip">No sueltes el mic a mitad de la frase. Esperá la corrección de Claire antes del siguiente ítem.</div>
+    </section>
+
+    <!-- L6 Board -->
+    <section class="lesson" data-i="5" data-track="stu,tr">
+      <h2>6. Tablero visual (Reading / opciones)</h2>
+      <p>Cuando Claire muestra un ejercicio en tablero, aparece arriba del chat. Leé el stem y las opciones A–D. Podés <strong>Cerrar tablero</strong> si tapara el chat.</p>
+      <div class="shot">
+        <div class="shot-label">Screenshot · tablero TOEIC</div>
+        <div class="callout bl" style="left:20px;top:40px;">Leé Part + stem</div>
+        <div class="mock-claire">
+          <div style="text-align:right;font-size:9px;margin-bottom:4px;"><span style="border:1px solid rgba(192,132,252,.45);padding:3px 8px;border-radius:6px;color:#e9d5ff;">Cerrar tablero</span></div>
+          <div class="board">
+            <div class="part">READING · PART 5</div>
+            <div class="stem">The manager asked the team to submit the report ___ Friday.</div>
+            <div class="opt"><span class="key">A</span> in</div>
+            <div class="opt"><span class="key">B</span> on</div>
+            <div class="opt" style="border-color:#FFD700;"><span class="key">C</span> by</div>
+            <div class="opt"><span class="key">D</span> at</div>
+          </div>
+          <div class="msg" style="font-size:10px;">Escribí C y enviá — Claire confirma y explica.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- L7 Trainer -->
+    <section class="lesson" data-i="6" data-track="stu,tr">
+      <h2>7. Para Robert Greco (trainer)</h2>
+      <p>En el Engine: <strong>Mis estudiantes</strong> → <strong>Práctica & conexión</strong> para ver quién practica y cuánto se conecta. Claire ON/OFF por estudiante. Pediles este e-learning (quiz ≥ 80%).</p>
+      <ul>
+        <li>Engine: studioinfinitycr.com/kamuk/Kamuk_Engine.html</li>
+        <li>Usuario: robert.grego@kamuk.cr</li>
+        <li>Asigná ejercicios TOEIC al Training Book (no Holdings corporate)</li>
+      </ul>
+      <div class="tip">Los Seniors solo ven Recursos TOEIC. No les pidan el e-learning de Infinity Holdings.</div>
+    </section>
+
+    <!-- Quiz -->
+    <section class="lesson" data-i="7" data-track="stu,tr">
+      <h2>Certificación rápida</h2>
+      <p>Respondé las 5. Necesitás 4/5 (80%).</p>
+      <div class="check" id="quiz">
+        <div class="q" data-a="1"><p style="font-weight:800;margin:0 0 6px;">1. ¿Dónde abrís Claire?</p>
+          <label><input type="radio" name="q1" value="0"> Solo en Recursos → Infinity Hub</label>
+          <label><input type="radio" name="q1" value="1"> Menú lateral → Claire (si Greco la tiene ON)</label>
+          <label><input type="radio" name="q1" value="2"> Solo por email</label>
+        </div>
+        <div class="q" data-a="0"><p style="font-weight:800;margin:0 0 6px;">2. Recursos Seniors incluye:</p>
+          <label><input type="radio" name="q2" value="0"> E-learning Claire TOEIC + prácticas Listening/Reading/Vocab</label>
+          <label><input type="radio" name="q2" value="1"> Corporate Holdings + Email composition Infinity</label>
+          <label><input type="radio" name="q2" value="2"> Solo Topic Duel</label>
+        </div>
+        <div class="q" data-a="2"><p style="font-weight:800;margin:0 0 6px;">3. Para hablar con el mic:</p>
+          <label><input type="radio" name="q3" value="0"> Un click y olvidarte</label>
+          <label><input type="radio" name="q3" value="1"> Gritar al teléfono</label>
+          <label><input type="radio" name="q3" value="2"> Mantener presionado (PTT) y soltar al terminar</label>
+        </div>
+        <div class="q" data-a="1"><p style="font-weight:800;margin:0 0 6px;">4. Reading Part 5 en Claire se lanza con:</p>
+          <label><input type="radio" name="q4" value="0"> El botón Terminar práctica</label>
+          <label><input type="radio" name="q4" value="1"> El chip “Reading Part 5”</label>
+          <label><input type="radio" name="q4" value="2"> El glosario Holdings</label>
+        </div>
+        <div class="q" data-a="0"><p style="font-weight:800;margin:0 0 6px;">5. Después de un ítem A/B/C/D:</p>
+          <label><input type="radio" name="q5" value="0"> Enviás la letra y Claire corrige</label>
+          <label><input type="radio" name="q5" value="1"> Cerrás el navegador</label>
+          <label><input type="radio" name="q5" value="2"> Cambias a Simulation Holdings</label>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button type="button" class="btn btn-primary" id="grade">Calificar</button>
+        <button type="button" class="btn btn-ghost" id="reset-q">Reiniciar quiz</button>
+      </div>
+      <div class="result" id="quiz-out"></div>
+    </section>
+
+    <div class="nav-btns">
+      <button type="button" class="btn btn-ghost" id="prev" disabled>← Anterior</button>
+      <button type="button" class="btn btn-primary" id="next">Siguiente →</button>
+    </div>
+
+    <div class="links">
+      <a class="primary" href="../../index.html">Volver al portal</a>
+      <a href="../../Kamuk_Engine.html">Engine trainer</a>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var lessons = [].slice.call(document.querySelectorAll('.lesson'));
+      var i = 0;
+      var track = 'stu';
+      var bar = document.getElementById('bar');
+      var meta = document.getElementById('meta-step');
+      var prev = document.getElementById('prev');
+      var next = document.getElementById('next');
+
+      function visible() {
+        return lessons.filter(function (el) {
+          var t = (el.getAttribute('data-track') || 'stu,tr').split(',');
+          return t.indexOf(track) >= 0;
+        });
+      }
+      function show() {
+        var v = visible();
+        if (i >= v.length) i = v.length - 1;
+        if (i < 0) i = 0;
+        lessons.forEach(function (el) { el.classList.remove('on'); });
+        v[i].classList.add('on');
+        meta.textContent = 'Lección ' + (i + 1) + ' / ' + v.length;
+        bar.style.width = Math.round(((i + 1) / v.length) * 100) + '%';
+        prev.disabled = i === 0;
+        next.textContent = i === v.length - 1 ? 'Fin' : 'Siguiente →';
+        try { localStorage.setItem('kamuk_claire_elearn_step', String(i)); } catch (e) {}
+      }
+      document.getElementById('trk-stu').onclick = function () {
+        track = 'stu'; this.classList.add('on'); document.getElementById('trk-tr').classList.remove('on'); i = 0; show();
+      };
+      document.getElementById('trk-tr').onclick = function () {
+        track = 'tr'; this.classList.add('on'); document.getElementById('trk-stu').classList.remove('on'); i = 0; show();
+      };
+      if (new URLSearchParams(location.search).get('track') === 'trainer') {
+        document.getElementById('trk-tr').click();
+      }
+      prev.onclick = function () { i--; show(); };
+      next.onclick = function () {
+        var v = visible();
+        if (i < v.length - 1) { i++; show(); }
+        else window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      };
+      document.getElementById('grade').onclick = function () {
+        var qs = document.querySelectorAll('#quiz .q');
+        var score = 0, n = 0;
+        qs.forEach(function (q) {
+          var p = q.querySelector('input:checked');
+          if (!p) return;
+          n++;
+          if (String(p.value) === String(q.getAttribute('data-a'))) score++;
+        });
+        var out = document.getElementById('quiz-out');
+        if (n < 5) { out.className = 'result bad'; out.textContent = 'Completá las 5 preguntas.'; return; }
+        var ok = score >= 4;
+        out.className = 'result ' + (ok ? 'ok' : 'bad');
+        out.textContent = ok
+          ? 'Certificado: ' + score + '/5. Ya sabés usar Claire TOEIC y Recursos Seniors.'
+          : score + '/5 — repasá las lecciones (mínimo 4/5).';
+        try {
+          localStorage.setItem('kamuk_claire_elearn_cert', JSON.stringify({ score: score, ok: ok, at: new Date().toISOString() }));
+        } catch (e) {}
+      };
+      document.getElementById('reset-q').onclick = function () {
+        document.querySelectorAll('#quiz input').forEach(function (x) { x.checked = false; });
+        var out = document.getElementById('quiz-out'); out.className = 'result'; out.textContent = '';
+      };
+      try {
+        var saved = parseInt(localStorage.getItem('kamuk_claire_elearn_step') || '0', 10);
+        if (!isNaN(saved) && saved > 0) i = saved;
+      } catch (e) {}
+      show();
+    })();
+  </script>
+</body>
+</html>

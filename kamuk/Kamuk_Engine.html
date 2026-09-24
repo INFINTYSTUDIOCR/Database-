@@ -2546,6 +2546,10 @@ function getMyStudents(){
 function renderMyStudents(m){
   var students = getMyStudents();
   m.innerHTML = '<div class="fade">'
+    +'<div class="ib ib-navy" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    +'<span style="flex:1;"><strong>E-learning Claire TOEIC</strong> — interfaz con pantallas + Recursos solo TOEIC para Seniors.</span>'
+    +'<a href="training-book/como-usar/index.html?track=trainer&v=20260924claire" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="text-decoration:none;"><i class="ti ti-school"></i> Abrir e-learning</a>'
+    +'</div>'
     +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">'
     +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);flex:1;">Mis estudiantes ('+students.length+')</h2>'
     +'<button class="btn btn-navy btn-sm" onclick="renderEngagement(document.getElementById(\'main-content\'))"><i class="ti ti-activity"></i> Práctica & conexión</button>'

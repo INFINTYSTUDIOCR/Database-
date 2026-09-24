@@ -1521,6 +1521,18 @@ async function respondPortalTerms(agreed){
   afterPortalReady(s);
 }
 
+function isToeicSeniorsCohort(s){
+  if(!s) return false;
+  if(s.path_custom === 'toeic-undecimo') return true;
+  if(s.bookTheme === 'wine' || (s.info && s.info.bookTheme === 'wine')) return true;
+  var tags = s.tags || (s.info && s.info.tags) || [];
+  if(typeof tags === 'string') tags = [tags];
+  if(tags.indexOf('Seniors') >= 0 || (s.info && s.info.tag === 'Seniors')) return true;
+  var program = String((s.info && s.info.program) || '');
+  var cohort = String((s.info && s.info.cohort) || '');
+  return /TOEIC/i.test(program) || /TOEIC/i.test(cohort) || String(s.id || '').indexOf('KAM-T11') === 0;
+}
+
 function applyKamukBookTheme(s){
   var root = document.documentElement;
   var theme = (s && (s.bookTheme || (s.info && s.info.bookTheme))) || '';
@@ -1639,48 +1651,70 @@ function showPortal(s){
       + '<div id="portal-quiz-container" style="display:none;"></div>'
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
-  var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
-    +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
-
-    +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
-    +'<p style="font-size:12px;color:var(--t2);line-height:1.55;margin:0 0 10px;">Cada módulo: <strong>Training</strong> → <strong>Mini quiz</strong> → <strong>Certification</strong> (80%). Incluye Email composition training y el examen final.</p>'
-    +'<div id="kamuk-elearn-root"></div></div>'
-
-    +'<div class="inf-skill">'
-    +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
-    +'<p class="inf-skill-lead">Un solo lab: adentro elegís texto/audio, idioma y escenario (Call Center, 911, Grandma).</p>'
-    +'<div id="portal-typing-container">'
-    +'<button type="button" class="inf-action" onclick="openTypingLab({})" style="width:100%;">'
-    +'<span class="inf-action-kicker">60 segundos · EN / ES · escenarios</span>'
-    +'<span class="inf-action-title"><i class="ti ti-keyboard"></i> Abrir Typing Lab</span>'
-    +'<span class="inf-action-sub">Modo, Alice y vocabulario — todo adentro</span>'
-    +'</button>'
-    +'</div>'
-    +(lastTt?'<div class="inf-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.persona?' · '+lastTt.persona:'')+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
-    +'</div>'
-
-    +'<div class="inf-skill" style="background:linear-gradient(165deg,#F0F9FF,#fff);">'
-    +'<h3><i class="ti ti-grid-dots"></i> Word Lab</h3>'
-    +'<p class="inf-skill-lead">Crucigramas, sopas y Find the Word — toggle niveles, 14+ palabras, rachas y premios XP/coins. Ronda aleatoria incluida.</p>'
-    +'<button type="button" class="inf-action" onclick="openWordPuzzleLab()" style="width:100%;">'
-    +'<span class="inf-action-kicker">3 modos · 8 categorías · 14+ palabras</span>'
-    +'<span class="inf-action-title"><i class="ti ti-search"></i> Abrir Word Lab</span>'
-    +'<span class="inf-action-sub">Glosario · trainer-drills · Jill modules</span>'
-    +'</button>'
-    +'</div>'
-
-    +'<div class="inf-skill" style="background:linear-gradient(165deg,#3a0a0a 0%,#2B1055 55%,#0F3A5C 100%);border:1px solid rgba(239,68,68,.4);">'
-    +'<h3 style="color:#FFD700;"><i class="ti ti-flame"></i> Topic Duel — Concurso de Grupos</h3>'
-    +'<p class="inf-skill-lead" style="color:rgba(255,255,255,.82);">Reciben pregunta → investigan en web → analizan → <strong>todos exponen</strong> en inglés → el otro grupo pregunta. Premio en juego.</p>'
-    +'<a href="games/topic-duel/index.html?v=20260901" target="_blank" rel="noopener" style="display:block;width:100%;text-align:center;text-decoration:none;margin-top:10px;padding:14px 16px;border-radius:14px;font-weight:900;font-size:15px;color:#fff;background:linear-gradient(135deg,#ef4444,#F5A623);box-shadow:0 8px 22px rgba(239,68,68,.35);">'
-    +'<i class="ti ti-trophy"></i> Abrir Topic Duel</a>'
-    +'</div>'
-
-    +'<div class="inf-skill" style="background:linear-gradient(165deg,#E8F4FC,#fff);">'
-    +'<h3><i class="ti ti-cards"></i> Infinity Hub</h3>'
-    +'<p class="inf-skill-lead">Hub gaming con personajes: Boss Call, STAR Arena, Speed Listen y más — paleta Infinity, LINK · IDEA · LINK.</p>'
-    + arcadeGate
-    +'</div>';
+  var toeicSeniors = isToeicSeniorsCohort(s);
+  var recursosHtml;
+  if(toeicSeniors){
+    recursosHtml = '<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
+      +'<div class="card-title" style="color:#722F37;"><i class="ti ti-school"></i> E-learning — Cómo usar Claire TOEIC</div>'
+      +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Solo cohorte Seniors: pantallas, dónde clickear, Listening / Reading / Vocabulario y micrófono PTT. Sin e-learning de Kamuk regular ni Infinity Holdings.</p>'
+      +'<a href="training-book/como-usar/index.html?v=20260924claire" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;background:#722F37;border-color:#5C1F28;"><i class="ti ti-player-play"></i> Abrir e-learning Claire</a>'
+      +'</div>'
+      +'<div class="card" style="background:linear-gradient(165deg,#1a0a2e,#2d1b4e);border:1px solid rgba(192,132,252,.45);color:#f5f3ff;">'
+      +'<div class="card-title" style="color:#e9d5ff;"><i class="ti ti-headphones"></i> Claire TOEIC</div>'
+      +'<p style="font-size:13px;line-height:1.55;margin:0 0 12px;color:rgba(255,255,255,.82);">Listening Part 2 · Reading Part 5 · Reading Part 7 · Vocabulario laboral. Corrección inmediata A/B/C/D.</p>'
+      +(studentClaireOn(s)
+        ? '<button type="button" class="btn btn-navy" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;" onclick="switchPortalTab(\'claire\')"><i class="ti ti-player-play"></i> Ir a Claire ahora</button>'
+        : '<div style="font-size:12px;color:#fca5a5;">Claire aún no está ON en tu cuenta — pedíselo a Robert Greco.</div>')
+      +'</div>'
+      +'<div class="card">'
+      +'<div class="card-title"><i class="ti ti-list-check"></i> Prácticas TOEIC recomendadas</div>'
+      +'<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:var(--t2);">'
+      +'<li><strong>Listening</strong> — chip Listening en Claire (Part 2).</li>'
+      +'<li><strong>Reading Part 5</strong> — gramática / cloze.</li>'
+      +'<li><strong>Reading Part 7</strong> — pasaje + preguntas.</li>'
+      +'<li><strong>Vocabulario</strong> — palabras en contexto laboral.</li>'
+      +'</ul>'
+      +'<p style="font-size:12px;color:var(--t3);margin:10px 0 0;">Alice (voz) queda en su pestaña si Greco la tiene ON — no es el hub Infinity Holdings.</p>'
+      +'</div>';
+  } else {
+    recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
+      +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
+      +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
+      +'<p style="font-size:12px;color:var(--t2);line-height:1.55;margin:0 0 10px;">Cada módulo: <strong>Training</strong> → <strong>Mini quiz</strong> → <strong>Certification</strong> (80%). Incluye Email composition training y el examen final.</p>'
+      +'<div id="kamuk-elearn-root"></div></div>'
+      +'<div class="inf-skill">'
+      +'<h3><i class="ti ti-keyboard"></i> Typing Lab</h3>'
+      +'<p class="inf-skill-lead">Un solo lab: adentro elegís texto/audio, idioma y escenario (Call Center, 911, Grandma).</p>'
+      +'<div id="portal-typing-container">'
+      +'<button type="button" class="inf-action" onclick="openTypingLab({})" style="width:100%;">'
+      +'<span class="inf-action-kicker">60 segundos · EN / ES · escenarios</span>'
+      +'<span class="inf-action-title"><i class="ti ti-keyboard"></i> Abrir Typing Lab</span>'
+      +'<span class="inf-action-sub">Modo, Alice y vocabulario — todo adentro</span>'
+      +'</button>'
+      +'</div>'
+      +(lastTt?'<div class="inf-skill-meta">Último: '+lastTt.wpm+' WPM · '+lastTt.accuracy+'% · Coord '+lastTt.coordination+(lastTt.persona?' · '+lastTt.persona:'')+(lastTt.mode==='transcription'?' · audio':'')+' · '+fmtDate(lastTt.date)+'</div>':'')
+      +'</div>'
+      +'<div class="inf-skill" style="background:linear-gradient(165deg,#F0F9FF,#fff);">'
+      +'<h3><i class="ti ti-grid-dots"></i> Word Lab</h3>'
+      +'<p class="inf-skill-lead">Crucigramas, sopas y Find the Word — toggle niveles, 14+ palabras, rachas y premios XP/coins. Ronda aleatoria incluida.</p>'
+      +'<button type="button" class="inf-action" onclick="openWordPuzzleLab()" style="width:100%;">'
+      +'<span class="inf-action-kicker">3 modos · 8 categorías · 14+ palabras</span>'
+      +'<span class="inf-action-title"><i class="ti ti-search"></i> Abrir Word Lab</span>'
+      +'<span class="inf-action-sub">Glosario · trainer-drills · Jill modules</span>'
+      +'</button>'
+      +'</div>'
+      +'<div class="inf-skill" style="background:linear-gradient(165deg,#3a0a0a 0%,#2B1055 55%,#0F3A5C 100%);border:1px solid rgba(239,68,68,.4);">'
+      +'<h3 style="color:#FFD700;"><i class="ti ti-flame"></i> Topic Duel — Concurso de Grupos</h3>'
+      +'<p class="inf-skill-lead" style="color:rgba(255,255,255,.82);">Reciben pregunta → investigan en web → analizan → <strong>todos exponen</strong> en inglés → el otro grupo pregunta. Premio en juego.</p>'
+      +'<a href="games/topic-duel/index.html?v=20260901" target="_blank" rel="noopener" style="display:block;width:100%;text-align:center;text-decoration:none;margin-top:10px;padding:14px 16px;border-radius:14px;font-weight:900;font-size:15px;color:#fff;background:linear-gradient(135deg,#ef4444,#F5A623);box-shadow:0 8px 22px rgba(239,68,68,.35);">'
+      +'<i class="ti ti-trophy"></i> Abrir Topic Duel</a>'
+      +'</div>'
+      +'<div class="inf-skill" style="background:linear-gradient(165deg,#E8F4FC,#fff);">'
+      +'<h3><i class="ti ti-cards"></i> Infinity Hub</h3>'
+      +'<p class="inf-skill-lead">Hub gaming con personajes: Boss Call, STAR Arena, Speed Listen y más — paleta Infinity, LINK · IDEA · LINK.</p>'
+      + arcadeGate
+      +'</div>';
+  }
 
   // ── SIMULATION — Foundation + Nexora (trainer-gated) ───────────────
   var simulationHtml = ''
@@ -1722,15 +1756,18 @@ function showPortal(s){
 
   document.getElementById('portal-content').innerHTML = html;
   switchPortalTab(opts.tab || 'progreso');
-  if(window.KamukRecursosLibrary){
+  if(!isToeicSeniorsCohort(s) && window.KamukRecursosLibrary){
     window.KamukRecursosLibrary.mountReadings(document.getElementById('kamuk-readings-root'));
   }
-  if(window.SimulationCorporateLearn && window.SimulationCorporateLearn.mountHub){
-    window.SimulationCorporateLearn.mountHub(document.getElementById('kamuk-elearn-root'), {
-      product: 'kamuk',
-      studentId: (s && (s.id || s.code)) || '',
-      accent: '#2B7EC1'
-    });
+  if(!isToeicSeniorsCohort(s) && window.SimulationCorporateLearn && window.SimulationCorporateLearn.mountHub){
+    var elearnRoot = document.getElementById('kamuk-elearn-root');
+    if(elearnRoot){
+      window.SimulationCorporateLearn.mountHub(elearnRoot, {
+        product: 'kamuk',
+        studentId: (s && (s.id || s.code)) || '',
+        accent: '#2B7EC1'
+      });
+    }
   }
   // Arcade lobby opens on demand (fullscreen) — not embedded small.
 

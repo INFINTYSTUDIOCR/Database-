@@ -1180,6 +1180,35 @@ function startApp(){
     document.getElementById('nav-transcripts').style.display='none';
   }
   showView('dashboard', document.querySelector('.sb-item'));
+  try{
+    var _am = new URLSearchParams(location.search);
+    if(_am.get('amanda')==='newUser' && hasMasterAccess()){
+      var _nm=(_am.get('name')||'').trim();
+      setTimeout(function(){
+        openNewUser();
+        if(_nm){
+          var parts=_nm.split(/\s+/);
+          document.getElementById('nu-name').value=_nm;
+          if(parts.length>=2){
+            var emailGuess=(parts[0]+'.'+parts[parts.length-1]+'@infinity.cr').toLowerCase().replace(/[^a-z0-9.@_-]/g,'');
+            document.getElementById('nu-email').value=emailGuess;
+          }
+        }
+        showToast('Amanda: completar y guardar usuario');
+      }, 600);
+    } else if(_am.get('amanda')==='newStudent'){
+      var _sn=(_am.get('name')||'').trim();
+      setTimeout(function(){
+        openNewStudentModal();
+        if(_sn){
+          var p=_sn.split(/\s+/);
+          document.getElementById('ns-fname').value=p[0]||'';
+          document.getElementById('ns-lname').value=p.slice(1).join(' ')||'';
+        }
+        showToast('Amanda: completar y guardar estudiante');
+      }, 600);
+    }
+  }catch(_e){}
   maybeShowEngineTermsGate();
   var termsEl = document.getElementById('modal-infinity-terms');
   if(!termsEl || !termsEl.classList.contains('show')) queueEngineDailyInspiration();
