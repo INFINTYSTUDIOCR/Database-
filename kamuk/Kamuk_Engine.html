@@ -897,11 +897,10 @@ async function loadUsers(){
       await dbSet('kamuk_users','USR-MASTER-001',master);
       TRAINERS['trainer@infinity.cr']=master;
     }
-    if(!TRAINERS['robert.grego@kamuk.cr'] || TRAINERS['robert.grego@kamuk.cr'].role !== 'master'){
-      var grego = {id:'USR-KAM-GREGO',email:'robert.grego@kamuk.cr',pass:'KmRg#8d2c4a',name:'Robert Grego',role:'master',department:'training',status:'active',kamukAudit:true,fullEngagement:true,canViewPractice:true,canViewConnectionTime:true};
-      await dbSet('kamuk_users','USR-KAM-GREGO',grego);
-      TRAINERS['robert.grego@kamuk.cr']=grego;
-    }
+    // Robert Grego = trainer (never master — only Johnny/superadmin)
+    var grego = {id:'USR-KAM-GREGO',email:'robert.grego@kamuk.cr',pass:'KmRg#8d2c4a',name:'Robert Grego',role:'trainer',department:'training',status:'active',kamukAudit:true,fullEngagement:true,canViewPractice:true,canViewConnectionTime:true};
+    await dbSet('kamuk_users','USR-KAM-GREGO',grego);
+    TRAINERS['robert.grego@kamuk.cr']=grego;
   }catch(e){ console.error('loadUsers error',e); }
 }
 

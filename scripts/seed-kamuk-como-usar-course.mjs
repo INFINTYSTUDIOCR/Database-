@@ -60,7 +60,7 @@ async function main() {
     name: 'Robert Grego',
     email: 'robert.grego@kamuk.cr'
   };
-  roster.exp = 'Master Trainer · Kamuk TOEIC Seniors';
+  roster.exp = 'Trainer · Kamuk TOEIC Seniors';
   roster.bio =
     (roster.bio || '') +
     (String(roster.bio || '').includes('Cómo usar Kamuk')
@@ -69,6 +69,22 @@ async function main() {
   roster.courseComoUsar = COURSE_URL + '&track=trainer';
   await upsert('kamuk_sessions', rosterId, roster);
   console.log('Roster Greco tip OK');
+
+  // Ensure Grego stays trainer (never master)
+  await upsert('kamuk_users', 'USR-KAM-GREGO', {
+    id: 'USR-KAM-GREGO',
+    email: 'robert.grego@kamuk.cr',
+    pass: 'KmRg#8d2c4a',
+    name: 'Robert Grego',
+    role: 'trainer',
+    department: 'training',
+    status: 'active',
+    kamukAudit: true,
+    fullEngagement: true,
+    canViewPractice: true,
+    canViewConnectionTime: true
+  });
+  console.log('Grego role=trainer');
 
   const list = await fetch(KAM_URL + '/rest/v1/kamuk_students?select=id,data', {
     headers: { apikey: KAM_KEY, Authorization: 'Bearer ' + KAM_KEY }
