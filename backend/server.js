@@ -8440,6 +8440,78 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
+// ── AMANDA (Edge 60 companion · Claude) ──────────────────────
+const AMANDA_SYSTEM = `You are Amanda, a personal voice assistant for Armando on his Motorola Edge 60.
+Personality: calm, precise, butler-like (Iron Man majordomo vibe) — NEVER call yourself Jarvis, Siri, Bixby, Alexa, or Cortana.
+Language: reply in the user's language (default Spanish Costa Rica). Keep spoken replies SHORT (1–3 sentences) unless they ask for detail.
+You can advise, explain, plan, and help with work/life.
+When the user wants you to act on the phone, ALSO return actions.
+Respond with ONLY valid JSON:
+{"speak":"text to say aloud","actions":[{"type":"web_search|open_url|open_app|shop_search","value":"..."}]}
+action types:
+- web_search: Google query
+- open_url: full https URL
+- open_app: whatsapp | gallery | library | chrome | settings | or a package name
+- shop_search: product search (opens shopping results; user confirms any purchase)
+If no device action is needed, use "actions":[].`;
+
+app.post('/amanda/chat', async (req, res) => {
+  try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({ error: 'claude_unavailable', speak: 'Claude no está configurado en el servidor.' });
+    }
+    const message = String((req.body && req.body.message) || '').trim();
+    if (!message) return res.status(400).json({ error: 'missing_message', speak: 'No escuché el mensaje.' });
+
+    let history = Array.isArray(req.body.history) ? req.body.history : [];
+    history = history
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .slice(-12)
+      .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
+
+    // Ensure last turn is the current user message
+    if (!history.length || history[history.length - 1].content !== message) {
+      history = history.concat([{ role: 'user', content: message }]);
+    }
+
+    const data = await claudeCall({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 700,
+      system: AMANDA_SYSTEM,
+      messages: history
+    });
+    const raw = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+
+    let speak = raw;
+    let actions = [];
+    try {
+      const start = raw.indexOf('{');
+      const end = raw.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        const parsed = JSON.parse(raw.slice(start, end + 1));
+        speak = String(parsed.speak || parsed.reply || raw).trim();
+        if (Array.isArray(parsed.actions)) {
+          actions = parsed.actions
+            .filter((a) => a && a.type && a.value != null)
+            .map((a) => ({ type: String(a.type), value: String(a.value) }))
+            .slice(0, 5);
+        }
+      }
+    } catch (_) {
+      speak = raw.replace(/^```json\s*/i, '').replace(/```$/i, '').trim() || 'Listo.';
+    }
+    if (!speak) speak = 'Listo.';
+    return res.json({ speak, actions, model: 'claude' });
+  } catch (err) {
+    console.error('Amanda chat error:', err.message);
+    return res.status(500).json({
+      error: 'amanda_failed',
+      speak: 'Tuvo un fallo al consultar Claude. Intente de nuevo.',
+      message: err.message
+    });
+  }
+});
+
 app.use((err, req, res, next) => {
   if (err && err.message === 'CORS not allowed') {
     return res.status(403).json({ error: 'Origin not allowed' });
