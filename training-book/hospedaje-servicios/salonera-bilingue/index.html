@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>E-learning · Salonera bilingüe · Karina Torres</title>
-  <link rel="stylesheet" href="../hospedaje.css?v=20260925kt" />
+  <link rel="stylesheet" href="../hospedaje.css?v=20260925alice" />
 </head>
 <body>
   <div class="shell">
     <div class="brand">Infinity · Hospedaje y Servicios · Karina Torres</div>
     <h1>Salonera bilingüe</h1>
-    <p class="lead">Servicio de mesa en inglés y español: tomar órdenes, alergias, recomendaciones, cuenta y guests difíciles — con registro profesional.</p>
+    <p class="lead">Servicio de mesa en inglés y español: tomar órdenes, alergias, recomendaciones, cuenta y guests difíciles — más práctica oral con Alice (quiz interactivo dentro del e-learning).</p>
     <div class="progress"><span id="bar"></span></div>
     <div class="meta"><span id="meta-step">Lección</span><span>Certificación 80%</span></div>
 
@@ -113,6 +113,35 @@
     </section>
 
     <section class="lesson">
+      <h2>8. Alice Interactive Quiz · Table service</h2>
+      <p>
+        <strong>Alice es la guest</strong> (no es Companion ni Jill). Pide en inglés; vos respondés como salonera;
+        ella escucha, corrige y al final evalúa. Micrófono en Chrome/Edge.
+      </p>
+      <div class="ap-wrap" id="alice-practice">
+        <div class="ap-head">
+          <span class="ap-badge">Alice · Guest</span>
+          <span id="ap-step">Turno — / 6</span>
+        </div>
+        <div class="ap-alice-box">
+          <div class="ap-label">Alice dice</div>
+          <div id="ap-alice">Tocá “Empezar práctica” para que Alice pida en la mesa.</div>
+        </div>
+        <div class="ap-heard" id="ap-heard"></div>
+        <div class="ap-feedback" id="ap-feedback"></div>
+        <div class="ap-status" id="ap-status"></div>
+        <div class="nav-btns">
+          <button type="button" class="btn btn-primary" id="ap-start">Empezar práctica</button>
+          <button type="button" class="btn btn-ghost" id="ap-replay">Repetir pedido de Alice</button>
+          <button type="button" class="btn btn-mic" id="ap-mic" disabled>🎤 Hablar (vos = salonera)</button>
+          <button type="button" class="btn btn-primary" id="ap-next" disabled>Siguiente turno →</button>
+        </div>
+        <div class="ap-eval" id="ap-eval"></div>
+        <div class="tip">Flujo: Alice habla → vos respondés → corrección → 6 turnos → evaluación final (80%).</div>
+      </div>
+    </section>
+
+    <section class="lesson">
       <h2>Certificación — salonera</h2>
       <p>Respondé las 5. Necesitás 4/5 (80%).</p>
       <div class="check" id="quiz">
@@ -158,12 +187,14 @@
       <a class="secondary" href="../glosario/index.html">Glosario</a>
     </div>
   </div>
-  <script src="../elearn-shell.js?v=20260925kt"></script>
+  <script src="../elearn-shell.js?v=20260925alice"></script>
+  <script src="../alice-salonera-practice.js?v=20260925alice"></script>
   <script>
     HospedajeElearn.mount({
       storageKey: 'inf_kt_salonera',
       passMsg: 'Servicio de mesa listo — practicá los check-backs en voz alta.'
     });
+    if (window.AliceSaloneraPractice) AliceSaloneraPractice.mount();
   </script>
 </body>
 </html>
