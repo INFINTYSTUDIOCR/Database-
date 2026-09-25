@@ -8440,12 +8440,12 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// ── AMANDA (Edge 60 companion · Claude) ──────────────────────
-const AMANDA_SYSTEM = `You are Amanda, a personal voice assistant for Armando on his Motorola Edge 60.
-Personality: calm, precise, butler-like (Iron Man majordomo vibe) — NEVER call yourself Jarvis, Siri, Bixby, Alexa, or Cortana.
-Language: reply in the user's language (default Spanish Costa Rica). Keep spoken replies SHORT (1–3 sentences) unless they ask for detail.
-You can advise, explain, plan, and help with work/life.
-When the user wants you to act on the phone, ALSO return actions.
+// ── AMANDA (Edge 60 companion · Claude · Alice voice) ────────
+const AMANDA_SYSTEM = `You are Amanda, personal voice assistant for Johnny on his Motorola Edge 60.
+Address him as Johnny (never Armando). Personality: calm, precise, butler-like — NEVER call yourself Jarvis, Siri, Bixby, Alexa, Cortana, or Alice.
+Language: FULLY bilingual. Match Johnny's language each turn (English ↔ Spanish). If he mixes, reply in the language of his last sentence. Default Spanish (Costa Rica) only when unclear.
+Keep spoken replies SHORT (1–3 sentences) unless he asks for detail. You can advise, explain, plan, search, and help with work/life.
+When he wants a phone action, ALSO return actions.
 Respond with ONLY valid JSON:
 {"speak":"text to say aloud","actions":[{"type":"web_search|open_url|open_app|shop_search","value":"..."}]}
 action types:
@@ -8458,10 +8458,10 @@ If no device action is needed, use "actions":[].`;
 app.post('/amanda/chat', async (req, res) => {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(503).json({ error: 'claude_unavailable', speak: 'Claude no está configurado en el servidor.' });
+      return res.status(503).json({ error: 'claude_unavailable', speak: 'Claude is not configured.' });
     }
     const message = String((req.body && req.body.message) || '').trim();
-    if (!message) return res.status(400).json({ error: 'missing_message', speak: 'No escuché el mensaje.' });
+    if (!message) return res.status(400).json({ error: 'missing_message', speak: 'I did not catch that, Johnny.' });
 
     let history = Array.isArray(req.body.history) ? req.body.history : [];
     history = history
@@ -8469,7 +8469,6 @@ app.post('/amanda/chat', async (req, res) => {
       .slice(-12)
       .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
 
-    // Ensure last turn is the current user message
     if (!history.length || history[history.length - 1].content !== message) {
       history = history.concat([{ role: 'user', content: message }]);
     }
@@ -8501,14 +8500,30 @@ app.post('/amanda/chat', async (req, res) => {
       speak = raw.replace(/^```json\s*/i, '').replace(/```$/i, '').trim() || 'Listo.';
     }
     if (!speak) speak = 'Listo.';
-    return res.json({ speak, actions, model: 'claude' });
+    return res.json({ speak, actions, model: 'claude', voice: 'alice' });
   } catch (err) {
     console.error('Amanda chat error:', err.message);
     return res.status(500).json({
       error: 'amanda_failed',
-      speak: 'Tuvo un fallo al consultar Claude. Intente de nuevo.',
+      speak: 'I hit a snag with Claude. Try again, Johnny.',
       message: err.message
     });
+  }
+});
+
+/** Amanda speaks with Alice's ElevenLabs voice (same as portal Alice). */
+app.post('/amanda/tts', async (req, res) => {
+  try {
+    const text = String((req.body && req.body.text) || '').trim().slice(0, 2500);
+    if (!text) return res.status(400).json({ error: 'missing_text' });
+    return await synthesizeSpeech(req, res, {
+      text,
+      voiceId: ALICE_VOICE_ID,
+      label: 'Amanda/Alice'
+    });
+  } catch (err) {
+    console.error('Amanda TTS error:', err.message);
+    return res.status(500).json({ error: 'amanda_tts_failed', message: err.message });
   }
 });
 
