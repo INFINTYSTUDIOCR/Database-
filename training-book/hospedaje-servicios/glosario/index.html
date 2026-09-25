@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glosario · Hospedaje y Servicios · Karina Torres</title>
+  <link rel="stylesheet" href="../hospedaje.css?v=20260925kt" />
+</head>
+<body>
+  <div class="shell">
+    <div class="brand">Infinity · Hospedaje y Servicios · Karina Torres</div>
+    <h1>Glosario completo</h1>
+    <p class="lead">Vocabulario EN ↔ ES para recepción, salonera bilingüe y asistente de capitán. Buscá o filtrá por categoría.</p>
+
+    <input class="gloss-search" id="q" type="search" placeholder="Buscar: check-in, allergy, starboard, folio…" autocomplete="off" />
+    <div class="gloss-filters" id="filters">
+      <button type="button" class="on" data-cat="all">Todo</button>
+      <button type="button" data-cat="hotel">Hotel</button>
+      <button type="button" data-cat="restaurant">Restaurante</button>
+      <button type="button" data-cat="boat">Barco</button>
+      <button type="button" data-cat="service">Servicio / soft skills</button>
+    </div>
+    <div class="gloss-list" id="list"></div>
+
+    <div class="links" style="margin-top:20px;">
+      <a class="primary" href="../index.html">Hub Hospedaje</a>
+      <a class="secondary" href="../../../Infinity_Student_Portal.html">Portal</a>
+    </div>
+  </div>
+  <script>
+(function () {
+  var ITEMS = [
+    // Hotel
+    { cat: 'hotel', en: 'front desk / reception', es: 'recepción', ex: 'Please go to the front desk for your key cards.' },
+    { cat: 'hotel', en: 'check-in', es: 'registro de llegada', ex: 'Check-in starts at 3:00 p.m.' },
+    { cat: 'hotel', en: 'check-out', es: 'salida / check-out', ex: 'Checkout is at 11:00 a.m.' },
+    { cat: 'hotel', en: 'late checkout', es: 'salida tardía', ex: 'I can request a late checkout until noon.' },
+    { cat: 'hotel', en: 'reservation / booking', es: 'reserva', ex: 'May I have your reservation number?' },
+    { cat: 'hotel', en: 'confirmation number', es: 'número de confirmación', ex: 'Your confirmation number is 48219.' },
+    { cat: 'hotel', en: 'guaranteed reservation', es: 'reserva garantizada', ex: 'We hold guaranteed reservations until midnight.' },
+    { cat: 'hotel', en: 'walk-in', es: 'huésped sin reserva previa', ex: 'We still have walk-in availability tonight.' },
+    { cat: 'hotel', en: 'folio / bill', es: 'cuenta / folio', ex: 'Let’s review the folio line by line.' },
+    { cat: 'hotel', en: 'room rate', es: 'tarifa de habitación', ex: 'The room rate includes breakfast.' },
+    { cat: 'hotel', en: 'upgrade', es: 'mejora / upgrade', ex: 'Would you like an ocean-view upgrade?' },
+    { cat: 'hotel', en: 'king / queen / twin room', es: 'habitación king / queen / twin', ex: 'I have a king room available.' },
+    { cat: 'hotel', en: 'adjoining rooms', es: 'habitaciones contiguas', ex: 'We can offer adjoining rooms for your family.' },
+    { cat: 'hotel', en: 'key card', es: 'tarjeta llave', ex: 'Here are two key cards for your room.' },
+    { cat: 'hotel', en: 'amenities', es: 'amenidades / servicios', ex: 'Amenities include Wi-Fi, pool, and gym.' },
+    { cat: 'hotel', en: 'housekeeping', es: 'ama de llaves / limpieza', ex: 'Housekeeping will refresh the room.' },
+    { cat: 'hotel', en: 'turndown service', es: 'servicio de noche', ex: 'Would you like turndown service?' },
+    { cat: 'hotel', en: 'minibar', es: 'minibar', ex: 'Minibar charges appear on your folio.' },
+    { cat: 'hotel', en: 'incidentals hold', es: 'retención por consumos', ex: 'We place a hold for incidentals on your card.' },
+    { cat: 'hotel', en: 'wake-up call', es: 'llamada de despertador', ex: 'I can schedule a wake-up call for 5:00 a.m.' },
+    { cat: 'hotel', en: 'luggage / baggage', es: 'equipaje', ex: 'We’ll store your luggage after checkout.' },
+    { cat: 'hotel', en: 'bellhop / porter', es: 'botones', ex: 'The bellhop will take your bags upstairs.' },
+    { cat: 'hotel', en: 'concierge', es: 'conserje', ex: 'The concierge can book restaurant reservations.' },
+    { cat: 'hotel', en: 'no-show', es: 'no presentación', ex: 'A no-show may be charged one night.' },
+    { cat: 'hotel', en: 'overbooking', es: 'sobreventa', ex: 'Due to overbooking, we can relocate you to our sister hotel.' },
+    { cat: 'hotel', en: 'compensation / goodwill gesture', es: 'compensación / gesto comercial', ex: 'I’ll add a dining credit as a goodwill gesture.' },
+    { cat: 'hotel', en: 'vacant / occupied / out of order', es: 'libre / ocupada / fuera de servicio', ex: 'Room 214 is out of order tonight.' },
+    { cat: 'hotel', en: 'do not disturb (DND)', es: 'no molestar', ex: 'The DND light is on — we won’t enter.' },
+    { cat: 'hotel', en: 'early arrival', es: 'llegada temprana', ex: 'Early arrival depends on room readiness.' },
+    { cat: 'hotel', en: 'rollaway bed / crib', es: 'cama extra / cuna', ex: 'I can send a crib to your room.' },
+
+    // Restaurant
+    { cat: 'restaurant', en: 'host / hostess', es: 'anfitrión / anfitriona', ex: 'The hostess will seat you in a moment.' },
+    { cat: 'restaurant', en: 'server / waitress / waiter', es: 'mesero/a · salonera/o', ex: 'I’ll be your server tonight.' },
+    { cat: 'restaurant', en: 'menu', es: 'menú / carta', ex: 'Here is today’s menu.' },
+    { cat: 'restaurant', en: 'special of the day / catch of the day', es: 'especial / pescado del día', ex: 'The catch of the day is mahi-mahi.' },
+    { cat: 'restaurant', en: 'appetizer / starter', es: 'entrada', ex: 'Would you like an appetizer to share?' },
+    { cat: 'restaurant', en: 'main course / entrée', es: 'plato fuerte', ex: 'For the main course, I recommend the ribeye.' },
+    { cat: 'restaurant', en: 'side dish', es: 'acompañamiento', ex: 'Mashed potatoes or rice as a side?' },
+    { cat: 'restaurant', en: 'dessert', es: 'postre', ex: 'Save room for tres leches.' },
+    { cat: 'restaurant', en: 'beverage / soft drink', es: 'bebida / refresco', ex: 'Any beverages to start?' },
+    { cat: 'restaurant', en: 'still / sparkling water', es: 'agua sin gas / con gas', ex: 'Still or sparkling water?' },
+    { cat: 'restaurant', en: 'rare / medium-rare / medium / well-done', es: 'poco / medio poco / medio / bien cocido', ex: 'How would you like your steak cooked?' },
+    { cat: 'restaurant', en: 'allergy', es: 'alergia', ex: 'Do you have any food allergies?' },
+    { cat: 'restaurant', en: 'dairy-free / gluten-free / vegetarian / vegan', es: 'sin lácteos / sin gluten / vegetariano / vegano', ex: 'This pasta can be made dairy-free.' },
+    { cat: 'restaurant', en: 'cross-contamination', es: 'contaminación cruzada', ex: 'I’ll confirm no cross-contamination with the chef.' },
+    { cat: 'restaurant', en: 'on the house', es: 'de la casa / cortesía', ex: 'This dessert is on the house.' },
+    { cat: 'restaurant', en: 'check / bill', es: 'cuenta', ex: 'Whenever you’re ready, I can bring the check.' },
+    { cat: 'restaurant', en: 'separate checks', es: 'cuentas separadas', ex: 'Would you like separate checks?' },
+    { cat: 'restaurant', en: 'tip / gratuity', es: 'propina', ex: 'Tips are appreciated but never required.' },
+    { cat: 'restaurant', en: 'to go / takeout', es: 'para llevar', ex: 'Would you like the rest to go?' },
+    { cat: 'restaurant', en: 'refill', es: 'relleno / otra ronda', ex: 'Can I offer a refill on your water?' },
+    { cat: 'restaurant', en: 'pair with', es: 'maridar / combinar con', ex: 'This wine pairs well with the fish.' },
+    { cat: 'restaurant', en: 'cutlery / silverware', es: 'cubiertos', ex: 'I’ll bring clean silverware.' },
+    { cat: 'restaurant', en: 'napkin', es: 'servilleta', ex: 'Here’s a fresh napkin.' },
+    { cat: 'restaurant', en: 'high chair', es: 'silla alta', ex: 'Do you need a high chair for the child?' },
+    { cat: 'restaurant', en: 'kitchen / chef / line cook', es: 'cocina / chef / cocinero de línea', ex: 'Let me check with the chef.' },
+    { cat: 'restaurant', en: '86’d (sold out)', es: 'agotado', ex: 'We’re 86’d on the lobster tonight.' },
+    { cat: 'restaurant', en: 'comp (complimentary)', es: 'cortesía', ex: 'I’ll comp the incorrect steak.' },
+
+    // Boat
+    { cat: 'boat', en: 'captain', es: 'capitán', ex: 'Captain Morales is on the bridge.' },
+    { cat: 'boat', en: 'assistant to the captain / deck crew', es: 'asistente del capitán / tripulación de cubierta', ex: 'I’m the captain’s assistant today.' },
+    { cat: 'boat', en: 'bridge', es: 'puente de mando', ex: 'Please don’t enter the bridge without permission.' },
+    { cat: 'boat', en: 'deck / aft / bow / stern', es: 'cubierta / popa / proa / popa (stern)', ex: 'Gather on the aft deck for the briefing.' },
+    { cat: 'boat', en: 'port / starboard', es: 'babor / estribor', ex: 'Life jackets are on the starboard side.' },
+    { cat: 'boat', en: 'gangway', es: 'pasarela / planchada', ex: 'Hold the handrail on the gangway.' },
+    { cat: 'boat', en: 'cast off / departure', es: 'desatracar / zarpe', ex: 'We’ll cast off in five minutes.' },
+    { cat: 'boat', en: 'dock / marina / pier', es: 'muelle / marina / embarcadero', ex: 'We’ll return to the same dock.' },
+    { cat: 'boat', en: 'manifest / passenger list', es: 'manifiesto / lista de pasajeros', ex: 'I need your name for the manifest.' },
+    { cat: 'boat', en: 'headcount', es: 'conteo de personas', ex: 'Headcount is eighteen of eighteen.' },
+    { cat: 'boat', en: 'life jacket / PFD', es: 'chaleco salvavidas', ex: 'Life jackets are under your seats.' },
+    { cat: 'boat', en: 'safety briefing', es: 'charla / briefing de seguridad', ex: 'Please listen to the safety briefing.' },
+    { cat: 'boat', en: 'seasick / motion sickness', es: 'mareado / mareo', ex: 'If you feel seasick, tell a crew member.' },
+    { cat: 'boat', en: 'swell / waves / rough seas', es: 'oleaje / olas / mar picado', ex: 'Due to rough seas, snorkeling is canceled.' },
+    { cat: 'boat', en: 'itinerary', es: 'itinerario', ex: 'Here’s today’s itinerary.' },
+    { cat: 'boat', en: 'snorkeling', es: 'snorkel', ex: 'Snorkeling gear will be handed out on deck.' },
+    { cat: 'boat', en: 'man overboard', es: 'hombre al agua', ex: 'Man overboard — keep eyes on the person in the water.' },
+    { cat: 'boat', en: 'first-aid kit', es: 'botiquín', ex: 'Bring the first-aid kit to the aft deck.' },
+    { cat: 'boat', en: 'secure the lines', es: 'amarrar / asegurar cabos', ex: 'Remain seated until we secure the lines.' },
+    { cat: 'boat', en: 'affirmative / negative / stand by', es: 'afirmativo / negativo / en espera', ex: 'Affirmative, Captain — standing by.' },
+    { cat: 'boat', en: 'channel / traffic', es: 'canal / tráfico marítimo', ex: 'There’s traffic in the channel; brief delay.' },
+    { cat: 'boat', en: 'make-up tour / rebook', es: 'tour de reposición / reprogramar', ex: 'Your ticket is valid for a make-up tour.' },
+
+    // Service soft skills
+    { cat: 'service', en: 'How may I assist you?', es: '¿En qué le puedo ayudar?', ex: 'Good afternoon. How may I assist you?' },
+    { cat: 'service', en: 'Just to confirm…', es: 'Solo para confirmar…', ex: 'Just to confirm: two nights, king room.' },
+    { cat: 'service', en: 'I apologize for the inconvenience.', es: 'Lamento las molestias.', ex: 'I apologize for the inconvenience with your room.' },
+    { cat: 'service', en: 'Right away / Coming right up', es: 'Enseguida', ex: 'More bread — coming right up.' },
+    { cat: 'service', en: 'Is there anything else I can help you with?', es: '¿Hay algo más en lo que le pueda ayudar?', ex: 'Is there anything else I can help you with today?' },
+    { cat: 'service', en: 'Subject to availability', es: 'Sujeto a disponibilidad', ex: 'Late checkout is subject to availability.' },
+    { cat: 'service', en: 'I’ll look into that right away.', es: 'Lo reviso de inmediato.', ex: 'I’ll look into that charge right away.' },
+    { cat: 'service', en: 'Could you repeat that a little slower, please?', es: '¿Me lo puede repetir un poco más despacio?', ex: 'Could you repeat that a little slower, please?' },
+    { cat: 'service', en: 'Certainly / Of course / My pleasure', es: 'Por supuesto / Con gusto', ex: 'Certainly — I’ll arrange the taxi.' },
+    { cat: 'service', en: 'Please bear with me.', es: 'Un momento, por favor.', ex: 'Please bear with me while I check the system.' }
+  ];
+
+  var cat = 'all';
+  var list = document.getElementById('list');
+  var input = document.getElementById('q');
+
+  function fold(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function render() {
+    var q = fold(input.value);
+    list.innerHTML = ITEMS.filter(function (it) {
+      if (cat !== 'all' && it.cat !== cat) return false;
+      if (!q) return true;
+      return fold(it.en + ' ' + it.es + ' ' + it.ex).indexOf(q) >= 0;
+    }).map(function (it) {
+      return '<div class="gloss-item"><span class="cat">' + it.cat + '</span>'
+        + '<div class="en">' + it.en + '</div>'
+        + '<div class="es">' + it.es + '</div>'
+        + '<div class="ex">' + it.ex + '</div></div>';
+    }).join('') || '<p class="lead">Sin resultados.</p>';
+  }
+
+  document.getElementById('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-cat]');
+    if (!b) return;
+    cat = b.getAttribute('data-cat');
+    [].forEach.call(document.querySelectorAll('#filters button'), function (x) {
+      x.classList.toggle('on', x === b);
+    });
+    render();
+  });
+  input.addEventListener('input', render);
+  render();
+})();
+  </script>
+</body>
+</html>

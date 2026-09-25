@@ -1,0 +1,138 @@
+:root {
+  --blue: #3178C6;
+  --blue-deep: #1e5a9a;
+  --blue-soft: #E8F2FB;
+  --blue-line: #B7D4EE;
+  --ink: #1a2b3c;
+  --muted: #5b6f82;
+  --ok: #157a4b;
+  --bad: #b42318;
+  --gold: #C9A227;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 520px at 8% -10%, rgba(49,120,198,.2), transparent 55%),
+    radial-gradient(800px 420px at 100% 0%, rgba(91,33,182,.1), transparent 50%),
+    linear-gradient(180deg, #EAF3FB 0%, #F7FBFE 48%, #EEF5FB 100%);
+}
+.shell { max-width: 920px; margin: 0 auto; padding: 16px 12px 56px; }
+.brand {
+  font-size: 11px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--blue-deep);
+}
+h1 {
+  margin: 6px 0 8px; font-size: clamp(22px, 4vw, 30px);
+  color: var(--blue-deep); line-height: 1.15;
+}
+.lead { margin: 0 0 14px; color: var(--muted); line-height: 1.55; font-size: 14px; }
+.progress {
+  height: 8px; background: #d5e6f5; border-radius: 999px; overflow: hidden; margin-bottom: 14px;
+}
+.progress > span {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--blue), #5B21B6);
+  width: 0%; transition: width .25s;
+}
+.meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; font-weight: 700; color: var(--blue-deep); }
+.meta span {
+  background: var(--blue-soft); border: 1px solid var(--blue-line);
+  border-radius: 999px; padding: 5px 10px;
+}
+.lesson {
+  display: none; background: #fff; border: 1px solid var(--blue-line);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 10px 28px rgba(30,90,154,.07);
+}
+.lesson.on { display: block; }
+.lesson h2 { margin: 0 0 8px; font-size: 18px; color: var(--blue-deep); }
+.lesson p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; }
+.lesson ul, .lesson ol { margin: 0 0 12px; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+.tip {
+  background: #FFF8E7; border: 1px solid #E8D5A3; border-radius: 12px;
+  padding: 10px 12px; font-size: 13px; line-height: 1.5; margin: 10px 0;
+}
+.scenario {
+  background: var(--blue-soft); border: 1px solid var(--blue-line);
+  border-radius: 12px; padding: 12px; margin: 10px 0;
+}
+.scenario .tag {
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: #fff; background: var(--blue);
+  padding: 3px 8px; border-radius: 6px; margin-bottom: 6px;
+}
+.scenario .guest { font-weight: 800; color: var(--blue-deep); margin-bottom: 4px; }
+.say {
+  background: #132840; color: #EAF3FB; border-radius: 12px;
+  padding: 12px; font-size: 13px; line-height: 1.55; margin: 8px 0;
+}
+.say .label { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #9ec5ea; text-transform: uppercase; }
+.say .es { color: #B7D4EE; font-size: 12px; margin-top: 6px; }
+.nav-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn {
+  border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 800;
+  font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block;
+}
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-ghost { background: #fff; color: var(--blue-deep); border: 1px solid var(--blue-line); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.check .q { margin: 0 0 14px; }
+.check label {
+  display: block; background: #f7fbfe; border: 1px solid var(--blue-line);
+  border-radius: 10px; padding: 8px 10px; margin: 4px 0; font-size: 13px; cursor: pointer;
+}
+.result { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-weight: 700; font-size: 13px; }
+.result.ok { background: #e8f7ef; color: var(--ok); }
+.result.bad { background: #fdecec; color: var(--bad); }
+.links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.links a {
+  text-decoration: none; font-size: 13px; font-weight: 700;
+  padding: 10px 14px; border-radius: 10px;
+}
+.links a.primary { background: var(--blue); color: #fff; }
+.links a.secondary { background: #fff; color: var(--blue-deep); border: 1px solid var(--blue-line); }
+.hub-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 16px 0;
+}
+.hub-card {
+  background: #fff; border: 1.5px solid var(--blue-line); border-radius: 16px;
+  padding: 16px; text-decoration: none; color: inherit;
+  box-shadow: 0 10px 28px rgba(30,90,154,.07);
+  transition: transform .15s, border-color .15s;
+}
+.hub-card:hover { transform: translateY(-2px); border-color: var(--blue); }
+.hub-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--blue-deep); }
+.hub-card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.hub-card .kicker {
+  font-size: 10px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 6px;
+}
+.gloss-search {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--blue-line); font-size: 14px; margin-bottom: 12px;
+}
+.gloss-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.gloss-filters button {
+  border: 1px solid var(--blue-line); background: #fff; color: var(--blue-deep);
+  border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.gloss-filters button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.gloss-list { display: grid; gap: 8px; }
+.gloss-item {
+  background: #fff; border: 1px solid var(--blue-line); border-radius: 12px;
+  padding: 12px 14px;
+}
+.gloss-item .en { font-weight: 800; color: var(--blue-deep); font-size: 14px; }
+.gloss-item .es { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.gloss-item .ex { font-size: 12px; color: #132840; margin-top: 6px; font-style: italic; }
+.gloss-item .cat {
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; background: var(--blue-soft); color: var(--blue-deep);
+  padding: 2px 7px; border-radius: 6px; margin-bottom: 4px;
+}
+.hidden { display: none !important; }

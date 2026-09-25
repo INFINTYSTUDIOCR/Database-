@@ -1436,7 +1436,17 @@ function showPortal(s){
     || ((s.aliceSessions || []).length >= 1);
 
   // ── PROGRESO ──────────────────────────────────────────
-  var progresoHtml = (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
+  var hospedajeCardHome = studentHospedajeOn(s)
+    ? '<div class="card" style="border:1.5px solid #3178C6;background:linear-gradient(165deg,#EAF3FB,#fff);">'
+      +'<div class="card-title" style="color:#1e5a9a;"><i class="ti ti-building-skyscraper"></i> Práctica especial — Hospedaje y Servicios</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Recepción de hotel, salonera bilingüe y asistente de capitán — escenarios, e-learning y glosario.</p>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+      +'<a href="training-book/hospedaje-servicios/index.html?v=20260925kt" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir hub</a>'
+      +'<a href="training-book/hospedaje-servicios/glosario/index.html?v=20260925kt" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-book-2"></i> Glosario</a>'
+      +'</div></div>'
+    : '';
+  var progresoHtml = hospedajeCardHome
+    + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderTrackBadge(s) + ' ' : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderStudentFocus(s) : '')
     + (typeof NexusPortal !== 'undefined' ? NexusPortal.renderWeeklyPulseStudent(s) : '')
     + (typeof AliceProgress !== 'undefined' ? AliceProgress.renderProgressAddon(s) : '')
@@ -1488,7 +1498,18 @@ function showPortal(s){
       + '<div id="portal-quiz-container" style="display:none;"></div>'
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
-  var recursosHtml = '<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
+  var hospedajeCard = studentHospedajeOn(s)
+    ? '<div class="card" style="border:1.5px solid #3178C6;background:linear-gradient(165deg,#EAF3FB,#fff);">'
+      +'<div class="card-title" style="color:#1e5a9a;"><i class="ti ti-building-skyscraper"></i> Práctica especial — Hospedaje y Servicios</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Solo para vos, Karina: recepción de hotel, salonera bilingüe y asistente de capitán — escenarios, e-learning y glosario completo.</p>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+      +'<a href="training-book/hospedaje-servicios/index.html?v=20260925kt" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir hub</a>'
+      +'<a href="training-book/hospedaje-servicios/glosario/index.html?v=20260925kt" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-book-2"></i> Glosario</a>'
+      +'</div></div>'
+    : '';
+
+  var recursosHtml = hospedajeCard
+    +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
     +'<div id="infinity-readings-root"></div>'+vocabCard+'</div>'
 
     +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
@@ -2175,6 +2196,17 @@ function studentNexoraOn(s){
 function studentClaireOn(s){
   if(!s) return false;
   return studentPortalAccessOk(s) && s.claireEnabled === true;
+}
+/** Práctica especial Hospedaje y Servicios — solo Karina Torres. */
+function studentHospedajeOn(s){
+  if(!s || !studentPortalAccessOk(s)) return false;
+  var name = String((s.info && s.info.name) || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var user = String(s.portalUser || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var email = String((s.info && (s.info.email || s.info.mail)) || s.email || '').toLowerCase();
+  return (name.indexOf('karina') >= 0 && name.indexOf('torres') >= 0)
+    || user === 'karina.torres'
+    || (user.indexOf('karina') >= 0 && user.indexOf('torres') >= 0)
+    || (email.indexOf('karina') >= 0 && email.indexOf('torres') >= 0);
 }
 function studentAliceOn(s){
   if(!s) return false;
