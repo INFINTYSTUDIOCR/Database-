@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>E-learning · Alice Interactive Quiz · Kamuk</title>
+  <style>
+    :root {
+      --blue: #2B7EC1; --blue-deep: #1B5A8F; --blue-soft: #E7F1FA; --blue-line: #B5D3EC;
+      --ink: #14283B; --muted: #54697D; --ok: #157a4b; --bad: #b42318;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink);
+      background: radial-gradient(1000px 480px at 8% -10%, rgba(43,126,193,.2), transparent 55%),
+        linear-gradient(180deg, #EAF3FB 0%, #F7FBFE 50%, #EEF5FB 100%);
+    }
+    .shell { max-width: 900px; margin: 0 auto; padding: 16px 12px 56px; }
+    .brand { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--blue-deep); }
+    h1 { margin: 6px 0 8px; font-size: clamp(22px, 4vw, 30px); color: var(--blue-deep); line-height: 1.15; }
+    .lead { margin: 0 0 14px; color: var(--muted); line-height: 1.55; font-size: 14px; }
+    .progress { height: 8px; background: #d3e5f4; border-radius: 999px; overflow: hidden; margin-bottom: 14px; }
+    .progress > span { display: block; height: 100%; background: var(--blue); width: 0%; transition: width .25s; }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; font-weight: 700; color: var(--blue-deep); }
+    .meta span { background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: 999px; padding: 5px 10px; }
+    .lesson { display: none; background: #fff; border: 1px solid var(--blue-line); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 10px 28px rgba(27,90,143,.07); }
+    .lesson.on { display: block; }
+    .lesson h2 { margin: 0 0 8px; font-size: 18px; color: var(--blue-deep); }
+    .lesson p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; }
+    .lesson ul, .lesson ol { margin: 0 0 12px; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+    .say { background: #12263A; color: #EAF3FB; border-radius: 12px; padding: 12px; font-size: 13px; line-height: 1.55; margin: 8px 0; }
+    .say .label { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #9ec9ec; text-transform: uppercase; }
+    .say .es { color: #B5D3EC; font-size: 12px; margin-top: 6px; }
+    .tip { background: #FFF8E7; border: 1px solid #E8D5A3; border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.5; margin: 10px 0; }
+    .nav-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .btn { border: 0; border-radius: 10px; padding: 11px 14px; font-weight: 800; font-size: 13px; cursor: pointer; min-height: 44px; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-ghost { background: #fff; color: var(--blue-deep); border: 1px solid var(--blue-line); }
+    .btn-mic { background: var(--blue-deep); color: #fff; }
+    .btn-mic.listening { background: var(--bad); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .aq-wrap { background: linear-gradient(165deg, var(--blue-soft), #fff 60%); border: 1.5px solid var(--blue-line); border-radius: 14px; padding: 14px; }
+    .aq-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; font-weight: 800; color: var(--blue-deep); }
+    .aq-badge { background: var(--blue); color: #fff; border-radius: 999px; padding: 4px 10px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .aq-alice-box { background: #12263A; color: #EAF3FB; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; line-height: 1.55; font-size: 14px; }
+    .aq-alice-box .aq-label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #9ec9ec; margin-bottom: 6px; }
+    .aq-heard { font-size: 13px; color: var(--muted); min-height: 1.2em; margin: 6px 0; font-style: italic; }
+    .aq-feedback { display: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.5; font-weight: 600; margin: 8px 0; }
+    .aq-feedback.ok { display: block; background: #e8f7ef; color: var(--ok); }
+    .aq-feedback.fix { display: block; background: #FFF8E7; color: #8a6d1d; }
+    .aq-status { font-size: 12px; font-weight: 700; color: var(--blue-deep); min-height: 1.2em; margin: 4px 0 8px; }
+    .aq-eval { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.55; }
+    .aq-eval.ok { display: block; background: #e8f7ef; color: var(--ok); border: 1px solid #b7e4c7; }
+    .aq-eval.bad { display: block; background: #fdecec; color: var(--bad); border: 1px solid #f5c2c0; }
+    .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .links a { text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 14px; border-radius: 10px; background: var(--blue); color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="brand">Kamuk School · E-learning</div>
+    <h1>Alice Interactive Quiz — Inglés de oficina</h1>
+    <p class="lead">Tres lecciones cortas y después el quiz: Alice te habla en inglés, vos respondés con el micrófono, ella corrige cada respuesta y al final te evalúa. Independiente de Companion, Jill y Claire.</p>
+    <div class="progress"><span id="bar"></span></div>
+    <div class="meta"><span id="meta-step">Lección</span><span>Aprobación 80%</span><span>Chrome / Edge + micrófono</span></div>
+
+    <section class="lesson">
+      <h2>1. Llamadas y mensajes</h2>
+      <p>Contestá con saludo, nombre y oferta de ayuda. Si la persona no está, ofrecé tomar el mensaje y confirmá el número.</p>
+      <div class="say">
+        <div class="label">Say this · Phone</div>
+        Good morning, this is Johnny speaking. How can I help you?<br>
+        I'm sorry, she's in a meeting right now. May I take a message? Could I have your number, please?
+        <div class="es">Buenos días, habla Johnny. ¿En qué le puedo ayudar? Lo siento, está en una reunión. ¿Le tomo el mensaje?</div>
+      </div>
+    </section>
+
+    <section class="lesson">
+      <h2>2. Reuniones y horarios</h2>
+      <p>Proponé día y hora concretos, confirmá y ofrecé enviar la invitación.</p>
+      <div class="say">
+        <div class="label">Say this · Scheduling</div>
+        Would Thursday at ten work for you? I'll send you a calendar invitation right away.<br>
+        Unfortunately I can't make it on Monday. Could we move it to Tuesday afternoon?
+        <div class="es">¿Le sirve el jueves a las diez? Le mando la invitación. El lunes no puedo, ¿lo pasamos al martes en la tarde?</div>
+      </div>
+    </section>
+
+    <section class="lesson">
+      <h2>3. Problemas y soluciones</h2>
+      <p>Disculpate, explicá la causa en una frase y proponé una solución con fecha.</p>
+      <div class="say">
+        <div class="label">Say this · Problem solving</div>
+        I apologize for the delay. The shipment was held at customs, but it will arrive by Friday. I'll keep you updated.
+        <div class="es">Disculpe el atraso. El envío quedó en aduana, pero llega el viernes. Lo mantengo informado.</div>
+      </div>
+      <div class="tip">Fórmula: disculpa + causa corta + solución + fecha + seguimiento.</div>
+    </section>
+
+    <section class="lesson">
+      <h2>4. Alice Interactive Quiz</h2>
+      <p>Alice hace distintos papeles de oficina. Escuchá, respondé en inglés, recibí la corrección y seguí. Son 6 turnos y al final Alice te da la evaluación.</p>
+      <div class="aq-wrap">
+        <div class="aq-head">
+          <span class="aq-badge">Alice · Quiz</span>
+          <span id="aq-step">Turno — / 6</span>
+        </div>
+        <div class="aq-alice-box">
+          <div class="aq-label" id="aq-role">Alice</div>
+          <div id="aq-alice">Tocá “Empezar quiz” para que Alice te hable.</div>
+        </div>
+        <div class="aq-heard" id="aq-heard"></div>
+        <div class="aq-feedback" id="aq-feedback"></div>
+        <div class="aq-status" id="aq-status"></div>
+        <div class="nav-btns">
+          <button type="button" class="btn btn-primary" id="aq-start">Empezar quiz</button>
+          <button type="button" class="btn btn-ghost" id="aq-replay">Repetir a Alice</button>
+          <button type="button" class="btn btn-mic" id="aq-mic" disabled>🎤 Hablar</button>
+          <button type="button" class="btn btn-primary" id="aq-next" disabled>Siguiente turno →</button>
+        </div>
+        <div class="aq-eval" id="aq-eval"></div>
+      </div>
+    </section>
+
+    <div class="nav-btns">
+      <button type="button" class="btn btn-ghost" id="prev" disabled>← Anterior</button>
+      <button type="button" class="btn btn-primary" id="next">Siguiente →</button>
+    </div>
+    <div class="links">
+      <a href="../../index.html">Volver al portal</a>
+    </div>
+  </div>
+
+  <script src="alice-quiz.js?v=20260928"></script>
+  <script>
+    (function () {
+      var lessons = [].slice.call(document.querySelectorAll('.lesson'));
+      var i = 0;
+      var prev = document.getElementById('prev');
+      var next = document.getElementById('next');
+      function show() {
+        lessons.forEach(function (el, idx) { el.classList.toggle('on', idx === i); });
+        document.getElementById('meta-step').textContent = 'Lección ' + (i + 1) + ' / ' + lessons.length;
+        document.getElementById('bar').style.width = Math.round(((i + 1) / lessons.length) * 100) + '%';
+        prev.disabled = i === 0;
+        next.disabled = i === lessons.length - 1;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      prev.onclick = function () { if (i > 0) { i--; show(); } };
+      next.onclick = function () { if (i < lessons.length - 1) { i++; show(); } };
+      show();
+    })();
+
+    KamukAliceQuiz.mount({
+      storageKey: 'kamuk_alice_quiz_office',
+      turns: [
+        {
+          label: 'Phone', role: 'Alice · client on the phone',
+          alice: 'Hello, I need to speak with Ms. Rojas about my invoice. Is she available?',
+          need: ['greeting', 'not available', 'take a message', 'number'],
+          anyOf: [
+            ['good morning', 'good afternoon', 'hello', 'thank you for calling', 'speaking'],
+            ['meeting', 'not available', 'unavailable', 'out of the office', 'busy', 'sorry'],
+            ['message', 'call you back', 'call back'],
+            ['number', 'phone', 'contact', 'email']
+          ],
+          tip: 'Greet, say she is not available, offer to take a message and ask for a number.',
+          model: 'Good morning. I\'m sorry, Ms. Rojas is in a meeting. May I take a message? Could I have your number, please?'
+        },
+        {
+          label: 'Scheduling', role: 'Alice · your manager',
+          alice: 'We need to meet this week to review the budget. When are you free?',
+          need: ['day', 'time', 'confirm'],
+          anyOf: [
+            ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'tomorrow'],
+            ['morning', 'afternoon', 'o\'clock', 'ten', 'nine', 'eleven', 'two', 'three', 'four'],
+            ['invitation', 'invite', 'calendar', 'confirm', 'does that work', 'would that work', 'works for you']
+          ],
+          tip: 'Give a specific day and time, then confirm or offer a calendar invitation.',
+          model: 'Would Thursday at ten work for you? I\'ll send you a calendar invitation.'
+        },
+        {
+          label: 'Reschedule', role: 'Alice · a colleague',
+          alice: 'Can we keep our meeting on Monday at nine?',
+          need: ['can\'t', 'alternative', 'polite'],
+          anyOf: [
+            ['can\'t', 'cannot', 'unfortunately', 'not available', 'won\'t be able'],
+            ['move', 'change', 'reschedule', 'instead', 'how about', 'could we'],
+            ['sorry', 'please', 'thank', 'apologize']
+          ],
+          tip: 'Say you can\'t make it, apologize, and propose a new time.',
+          model: 'Unfortunately I can\'t make it on Monday. Could we move it to Tuesday afternoon, please?'
+        },
+        {
+          label: 'Complaint', role: 'Alice · upset customer',
+          alice: 'My order was supposed to arrive last week and I still don\'t have it. This is unacceptable.',
+          need: ['apology', 'reason', 'solution', 'follow-up'],
+          anyOf: [
+            ['sorry', 'apologize', 'apologies'],
+            ['because', 'delay', 'customs', 'shipment', 'problem', 'held'],
+            ['will arrive', 'by friday', 'tomorrow', 'send', 'refund', 'replace', 'solution'],
+            ['update', 'keep you', 'let you know', 'follow up', 'call you']
+          ],
+          tip: 'Apologize, give the reason, offer a solution with a date, and promise follow-up.',
+          model: 'I apologize for the delay. The shipment was held at customs, but it will arrive by Friday. I\'ll keep you updated.'
+        },
+        {
+          label: 'Describe', role: 'Alice · interviewer',
+          alice: 'Can you describe what you do at work on a typical day?',
+          need: ['routine', 'tasks', 'detail'],
+          anyOf: [
+            ['every day', 'usually', 'typically', 'in the morning', 'first'],
+            ['answer', 'emails', 'meetings', 'calls', 'reports', 'customers', 'team'],
+            ['then', 'after that', 'also', 'finally', 'because']
+          ],
+          tip: 'Use a routine word, name two or three tasks, and connect them with then / after that.',
+          model: 'Usually I start by answering emails. Then I have a team meeting, and after that I call customers and prepare reports.'
+        },
+        {
+          label: 'Request', role: 'Alice · your manager',
+          alice: 'Could you send me the sales report before the end of the day?',
+          need: ['agree', 'deadline', 'polite'],
+          anyOf: [
+            ['sure', 'of course', 'certainly', 'no problem', 'absolutely', 'yes'],
+            ['by', 'before', 'today', 'this afternoon', 'five', 'end of the day', 'in an hour'],
+            ['send', 'email', 'share', 'right away', 'will']
+          ],
+          tip: 'Agree politely, confirm when, and say how you will send it.',
+          model: 'Of course. I\'ll email you the sales report before five this afternoon.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>
