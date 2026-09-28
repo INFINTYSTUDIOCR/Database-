@@ -1659,9 +1659,17 @@ function showPortal(s){
       + '</div>'
     : '<div style="font-size:13px;color:var(--t3);">Activá Jill, Modo Libre o Alice para entrar al Arcade.</div>';
   var toeicSeniors = isToeicSeniorsCohort(s);
+  var aliceQuizCard = (toeicSeniors || isKamukOwnerStudent(s))
+    ? '<div class="card" style="border:1.5px solid #2B7EC1;background:linear-gradient(165deg,#E7F1FA,#fff);">'
+      +'<div class="card-title" style="color:#1B5A8F;"><i class="ti ti-school"></i> E-learning — Alice Interactive Quiz</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Inglés de oficina: Alice te habla, escucha tu respuesta, corrige y al final te evalúa.</p>'
+      +'<a href="training-book/alice-quiz/index.html?v=20260928" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
+      +'</div>'
+    : '';
   var recursosHtml;
   if(toeicSeniors){
-    recursosHtml = '<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
+    recursosHtml = aliceQuizCard
+      +'<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
       +'<div class="card-title" style="color:#722F37;"><i class="ti ti-school"></i> E-learning — Cómo usar Claire TOEIC</div>'
       +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Pantallas, dónde clickear, Listening / Reading / Vocabulario / Pronunciación y micrófono PTT.</p>'
       +'<a href="training-book/como-usar/index.html?v=20260924claire" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;background:#722F37;border-color:#5C1F28;"><i class="ti ti-player-play"></i> Abrir e-learning Claire</a>'
@@ -1679,13 +1687,7 @@ function showPortal(s){
       +'<div id="kamuk-toeic-practice-root"></div>'
       +'</div>';
   } else {
-    recursosHtml = (isKamukOwnerStudent(s)
-        ? '<div class="card" style="border:1.5px solid #2B7EC1;background:linear-gradient(165deg,#E7F1FA,#fff);">'
-          +'<div class="card-title" style="color:#1B5A8F;"><i class="ti ti-school"></i> E-learning — Alice Interactive Quiz</div>'
-          +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Inglés de oficina: Alice te habla, escucha tu respuesta, corrige y al final te evalúa.</p>'
-          +'<a href="training-book/alice-quiz/index.html?v=20260928" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
-          +'</div>'
-        : '')
+    recursosHtml = aliceQuizCard
       +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
       +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
       +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
