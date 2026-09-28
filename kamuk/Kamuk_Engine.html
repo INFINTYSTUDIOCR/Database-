@@ -1429,6 +1429,14 @@ function renderStudents(m){
     +'<input class="search-inp" style="width:200px;" placeholder="Buscar por nombre..." oninput="searchStudents(this.value)" id="search-inp" value="">'
     +'<button class="btn btn-navy btn-sm" onclick="openNewStudentModal()"><i class="ti ti-user-plus"></i>Nuevo</button>'
     +'</div>'
+    +(hasMasterAccess()
+      ? '<div class="ib ib-navy" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        +'<span style="flex:1;"><strong>TOEIC Seniors · vista trainer</strong> — cohorte 11avo con Claire TOEIC, práctica y tiempo conectado.</span>'
+        +'<a href="training-book/como-usar/index.html?track=trainer&v=20260924claire" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-school"></i> E-learning trainer</a>'
+        +'<button class="btn btn-navy btn-sm" onclick="showView(\'my-students\',null)"><i class="ti ti-users"></i> Seniors</button>'
+        +'<button class="btn btn-navy btn-sm" onclick="renderEngagement(document.getElementById(\'main-content\'))"><i class="ti ti-activity"></i> Práctica & conexión</button>'
+        +'</div>'
+      : '')
     +'<div id="students-table"></div>'
     +'</div>';
 
@@ -2536,9 +2544,20 @@ function deleteCalendarEvent(id){
 
 
 // ── TRAINER: MIS ESTUDIANTES ─────────────────────────────
+function isToeicSeniorsStudent(s){
+  if(!s) return false;
+  if(s.path_custom === 'toeic-undecimo') return true;
+  var program = String((s.info && s.info.program) || '');
+  var cohort = String((s.info && s.info.cohort) || '');
+  return /TOEIC/i.test(program) || /TOEIC/i.test(cohort) || String(s.id || '').indexOf('KAM-T11') === 0;
+}
+
 function getMyStudents(){
+  var me = (SESSION.name||'').trim().toLowerCase();
+  var master = hasMasterAccess();
   return allStudents().filter(function(s){
-    return ((s.info&&s.info.trainer)||'').trim().toLowerCase() === (SESSION.name||'').trim().toLowerCase();
+    if(master && isToeicSeniorsStudent(s)) return true;
+    return ((s.info&&s.info.trainer)||'').trim().toLowerCase() === me;
   }).sort(function(a,b){ return ((a.info&&a.info.name)||'').localeCompare((b.info&&b.info.name)||''); });
 }
 
