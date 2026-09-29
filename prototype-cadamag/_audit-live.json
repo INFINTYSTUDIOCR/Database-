@@ -1,0 +1,232 @@
+{
+  "audited": 1655,
+  "pageStatus": [
+    {
+      "page": "index.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "portal-access.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "Infinity_Student_Portal.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "Infinity_Nexus_Engine.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "light_lavender_bg"
+      ]
+    },
+    {
+      "page": "Infinity_Diagnostic_Tool (7).html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "light_lavender_bg"
+      ]
+    },
+    {
+      "page": "Infinity_Scheduler.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "Infinity_Training_Book.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "light_lavender_bg"
+      ]
+    },
+    {
+      "page": "try-alice.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "try-jill.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "try-nexora.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "try-demo.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "prototype-cadamag/index.html",
+      "status": "OK",
+      "fails": []
+    },
+    {
+      "page": "prototype-cadamag/diagnostico.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "light_lavender_bg"
+      ]
+    },
+    {
+      "page": "prototype-cadamag/portal-access.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "pages.css_only"
+      ]
+    },
+    {
+      "page": "prototype-cadamag/foundations.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "pages.css_only"
+      ]
+    },
+    {
+      "page": "prototype-cadamag/ort.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "pages.css_only"
+      ]
+    },
+    {
+      "page": "prototype-cadamag/pricing.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "pages.css_only"
+      ]
+    },
+    {
+      "page": "prototype-cadamag/hablemos.html",
+      "status": "NEEDS_WORK",
+      "fails": [
+        "pages.css_only"
+      ]
+    }
+  ],
+  "findings": {
+    "legacyHex": [
+      "prototype-cadamag/scripts/audit-brand-live.js"
+    ],
+    "spaceGrotesk": [
+      "prototype-cadamag/scripts/audit-brand-live.js"
+    ],
+    "oldLogoRefs": [
+      "prototype-cadamag/scripts/audit-brand-live.js",
+      "prototype-cadamag/scripts/validate-brand-pack.js",
+      "scripts/_archive_kamuk/build-kamuk-engine.js"
+    ],
+    "lightBgShell": [],
+    "missingBrandFavicon": [],
+    "missingBrandCssOnHtml": [],
+    "whiteChipRisk": [
+      "css/demo.css",
+      "css/infinity-brand-system.css",
+      "Infinity_Diagnostic_Tool (7).html",
+      "Infinity_Nexus_Engine.html",
+      "Infinity_Student_Portal.html",
+      "Infinity_Training_Book (1).html",
+      "Infinity_Training_Book.html",
+      "nexora-next/engine.html",
+      "prototype-cadamag/scripts/audit-brand-live.js"
+    ],
+    "pagesCssDependency": [
+      "advanced-path.html",
+      "casos-de-exito.html",
+      "conversatorio.html",
+      "foundations-path.html",
+      "foundations.html",
+      "gospanol.html",
+      "hablemos.html",
+      "ingles-operacional-latinoamerica.html",
+      "job-finder.html",
+      "off-the-clock.html",
+      "ort-path.html",
+      "ort.html",
+      "para-quien.html",
+      "portal-access.html",
+      "pricing.html",
+      "programa-50.html",
+      "prototype-cadamag/advanced-path.html",
+      "prototype-cadamag/alice.html",
+      "prototype-cadamag/casos-de-exito.html",
+      "prototype-cadamag/claire.html",
+      "prototype-cadamag/conversatorio.html",
+      "prototype-cadamag/foundations-path.html",
+      "prototype-cadamag/foundations.html",
+      "prototype-cadamag/hablemos.html",
+      "prototype-cadamag/ingles-operacional-latinoamerica.html",
+      "prototype-cadamag/jill.html",
+      "prototype-cadamag/job-finder.html",
+      "prototype-cadamag/nexora.html",
+      "prototype-cadamag/off-the-clock.html",
+      "prototype-cadamag/ort-path.html",
+      "prototype-cadamag/ort.html",
+      "prototype-cadamag/para-quien.html",
+      "prototype-cadamag/portal-access.html",
+      "prototype-cadamag/pricing.html",
+      "prototype-cadamag/training-book.html",
+      "try-alice.html",
+      "try-demo.html",
+      "try-jill.html"
+    ],
+    "binaryLegacyLogos": [
+      "assets/logos/infinity-engine.png",
+      "assets/logos/infinity-logo-improved.png",
+      "assets/logos/infinity-logo.png",
+      "assets/logos/infinity-studio-cr-logo.png",
+      "assets/logos/infinity-studio-cr-nav.png",
+      "assets/logos/infinity-studio-cr-nav@2x.png",
+      "assets/logos/infinity-studio-cr-transparent.png",
+      "assets/logos/infinity-studio-cr.png"
+    ]
+  },
+  "http": [
+    {
+      "u": "/index.html",
+      "status": 200
+    },
+    {
+      "u": "/prototype-cadamag/index.html",
+      "status": 200
+    },
+    {
+      "u": "/prototype-cadamag/diagnostico.html",
+      "status": 200
+    },
+    {
+      "u": "/prototype-cadamag/portal-access.html",
+      "status": 200
+    },
+    {
+      "u": "/portal-access.html",
+      "status": 200
+    },
+    {
+      "u": "/try-alice.html",
+      "status": 200
+    },
+    {
+      "u": "/Infinity_Student_Portal.html",
+      "status": 200
+    },
+    {
+      "u": "/css/infinity-brand-system.css",
+      "status": 200
+    },
+    {
+      "u": "/prototype-cadamag/assets/brand/png/infinity-logo-horizontal-light.png",
+      "status": 200
+    },
+    {
+      "u": "/prototype-cadamag/css/prototype.css",
+      "status": 200
+    }
+  ]
+}

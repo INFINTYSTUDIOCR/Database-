@@ -350,7 +350,7 @@
     if (!root) return;
     config = config || {};
     var product = config.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = product === 'kamuk' ? '#2B7EC1' : '#5B21B6';
+    var accent = product === 'kamuk' ? '#2B7EC1' : '#7B4DFF';
     styles(accent);
 
     root.innerHTML = '<div class="tr">'

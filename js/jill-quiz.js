@@ -9,10 +9,10 @@
   var MODE_LABEL = 'Rapid drill';
 
   var PULSE_OPTS = [
-    { bg: '#5B21B6', shape: '⬡' },
+    { bg: '#7B4DFF', shape: '⬡' },
     { bg: '#0a5c3c', shape: '⬢' },
     { bg: '#D97706', shape: '✦' },
-    { bg: '#7C3AED', shape: '◇' }
+    { bg: '#9B74FF', shape: '◇' }
   ];
 
   var KABOOM = PULSE_OPTS;
@@ -66,7 +66,7 @@
       + '.jill-rapid-tier-legend #jill-kaboom-inner{border:1px solid rgba(251,191,36,0.35);border-radius:16px;padding:4px}'
       + '.jill-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;margin-bottom:8px}'
       + '#jill-kaboom-inner{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}'
-      + '#jill-kaboom-next{display:block;width:100%;max-width:360px;margin:0 auto;box-shadow:0 8px 24px rgba(91,33,182,.45)}'
+      + '#jill-kaboom-next{display:block;width:100%;max-width:360px;margin:0 auto;box-shadow:0 8px 24px rgba(123,77,255,.45)}'
       + '.jill-rapid-fit-root{flex:1 1 auto;min-height:0;width:100%;max-width:820px;margin:0 auto;display:flex;flex-direction:column;height:100%;}'
       + '.jill-rapid-shell-fit{position:relative;flex:1 1 auto;min-height:0;height:100%;display:flex;flex-direction:column;background:rgba(88,28,135,.28);border:1px solid rgba(167,139,250,.4);border-radius:14px;padding:8px 10px;overflow:hidden;box-sizing:border-box;}'
       + '.jill-rapid-fit-hud{display:flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;font-size:11px;font-weight:800;color:#e9d5ff;margin-bottom:4px;flex-wrap:wrap;}'
@@ -966,7 +966,7 @@
           + '<div style="font-size:13px;font-weight:900;color:#fde68a;letter-spacing:.08em;">TURNO ABIERTO</div>'
           + '<div style="font-size:22px;font-weight:900;color:#e9d5ff;">' + (savedRun.idx + 1) + '/' + savedRun.quiz.length + ' · racha ' + (savedRun.streak || 0) + '</div>'
           + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:8px;">' + esc(Run.rivalLine('rapid')) + '</div>'
-          + '<button type="button" id="jill-rapid-continue" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:#fff;font-weight:900;font-size:16px;padding:14px 22px;border-radius:12px;cursor:pointer;width:100%;max-width:320px;">CONTINUAR</button>'
+          + '<button type="button" id="jill-rapid-continue" style="background:linear-gradient(135deg,#7B4DFF,#9B74FF);border:none;color:#fff;font-weight:900;font-size:16px;padding:14px 22px;border-radius:12px;cursor:pointer;width:100%;max-width:320px;">CONTINUAR</button>'
           + '<button type="button" id="jill-rapid-fresh" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#e2e8f0;font-weight:800;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;width:100%;max-width:320px;">NUEVO RETO</button>'
           + '</div>';
         var cont = document.getElementById('jill-rapid-continue');
@@ -1159,7 +1159,7 @@
         + head
         + '<div style="font-size:18px;font-weight:900;color:' + titleColor + ';margin-bottom:8px;">' + title + '</div>'
         + (q.explain ? '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;margin-bottom:16px;">' + esc(q.explain) + '</div>' : '')
-        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:16px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
+        + '<button type="button" id="jill-kaboom-next" style="background:linear-gradient(135deg,#7B4DFF,#9B74FF);border:none;color:white;font-weight:800;font-size:16px;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;">'
         + nextLabel
         + '</button>'
         + (opts.fitScreen ? '' : ('<div style="margin-top:12px;">'
@@ -1244,7 +1244,7 @@
           + (passed ? ('Módulo ' + esc(moduleId || '') + ' — ¡pasaste!') : ('Módulo ' + esc(moduleId || '') + ' — a reforzar'))
           + '</div>'
           + '<div style="font-size:14px;margin-bottom:14px;">' + state.correct + '/' + total + ' · ' + score + '% (meta ' + passPct + '%)</div>'
-          + '<button type="button" onclick="jillCloseMiniKaboom(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:14px;padding:12px 22px;border-radius:12px;cursor:pointer;">Volver a Jill</button>'
+          + '<button type="button" onclick="jillCloseMiniKaboom(true)" style="background:linear-gradient(135deg,#7B4DFF,#9B74FF);border:none;color:white;font-weight:800;font-size:14px;padding:12px 22px;border-radius:12px;cursor:pointer;">Volver a Jill</button>'
           + '</div>';
         if (typeof onDone === 'function') onDone(result);
         return;
@@ -1334,7 +1334,7 @@
         + (domain.length ? '<div style="font-size:11px;color:#86EFAC;margin-bottom:4px;">Dominio: ' + domain.map(kpiLabel).join(', ') + '</div>' : '')
         + (reinforce.length ? '<div style="font-size:11px;color:#fcd34d;margin-bottom:10px;">Sigue en refuerzo: ' + reinforce.map(kpiLabel).join(', ') + '</div>' : '')
         + '<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:16px;">+' + (rec.xp || 0) + ' XP · perfil guardado en el cerebro (cascada a tutores)</div>'
-        + '<button type="button" onclick="portalCloseRapidDrill(true)" style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
+        + '<button type="button" onclick="portalCloseRapidDrill(true)" style="background:linear-gradient(135deg,#7B4DFF,#9B74FF);border:none;color:white;font-weight:800;font-size:15px;padding:12px 28px;border-radius:12px;cursor:pointer;margin-right:8px;">Listo</button>'
         + '<button type="button" onclick="portalOpenRapidDrill()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(167,139,250,0.5);color:#e9d5ff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:12px;cursor:pointer;">Otra ronda Rapid drill</button>'
         + '</div>';
       if (typeof onDone === 'function') onDone({ correct: state.correct, total: state.quiz.length, score: score, xp: rec.xp });

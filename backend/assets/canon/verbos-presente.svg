@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-label="Modulo 2  16 verbos en presente · He/She/It">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-label="Modulo 2  16 verbos en presente ï¿½ He/She/It">
   <rect width="720" height="520" rx="14" fill="#f8f5ff"/>
-  <text x="360" y="26" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="700">MODULO 2  16 VERBOS EN PRESENTE</text>
-  <text x="360" y="44" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="11">He / She / It cambia · resto forma base · TO desaparece al conjugar</text>
+  <text x="360" y="26" text-anchor="middle" fill="#7B4DFF" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="700">MODULO 2  16 VERBOS EN PRESENTE</text>
+  <text x="360" y="44" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="11">He / She / It cambia ï¿½ resto forma base ï¿½ TO desaparece al conjugar</text>
 
-  <rect x="16" y="56" width="688" height="28" rx="6" fill="#5B21B6"/>
+  <rect x="16" y="56" width="688" height="28" rx="6" fill="#7B4DFF"/>
   <text x="90" y="75" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">VERBO</text>
   <text x="280" y="75" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">SIGNIFICADO</text>
   <text x="480" y="75" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">HE / SHE / IT</text>
   <text x="620" y="75" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">REGLA</text>
 
   <g font-family="Inter,Segoe UI,sans-serif" font-size="11">
-    <rect x="16" y="88" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="88" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="103" text-anchor="middle" fill="#D97706" font-weight="700">To be</text>
     <text x="280" y="103" text-anchor="middle" fill="#312e81">ser / estar</text>
     <text x="480" y="103" text-anchor="middle" fill="#db2777" font-weight="700">is</text>
-    <text x="620" y="103" text-anchor="middle" fill="#7c3aed">am / are / is</text>
+    <text x="620" y="103" text-anchor="middle" fill="#9B74FF">am / are / is</text>
 
     <rect x="16" y="110" width="688" height="22" fill="#f8f5ff"/>
     <text x="90" y="125" text-anchor="middle" fill="#D97706" font-weight="700">To have</text>
     <text x="280" y="125" text-anchor="middle" fill="#312e81">tener / haber</text>
     <text x="480" y="125" text-anchor="middle" fill="#db2777" font-weight="700">has</text>
-    <text x="620" y="125" text-anchor="middle" fill="#7c3aed">cambia a Has</text>
+    <text x="620" y="125" text-anchor="middle" fill="#9B74FF">cambia a Has</text>
 
-    <rect x="16" y="132" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="132" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="147" text-anchor="middle" fill="#D97706" font-weight="700">To go</text>
     <text x="280" y="147" text-anchor="middle" fill="#312e81">ir</text>
     <text x="480" y="147" text-anchor="middle" fill="#db2777" font-weight="700">goes</text>
-    <text x="620" y="147" text-anchor="middle" fill="#7c3aed">termina O ’ ES</text>
+    <text x="620" y="147" text-anchor="middle" fill="#9B74FF">termina O ï¿½ ES</text>
 
     <rect x="16" y="154" width="688" height="22" fill="#f8f5ff"/>
     <text x="90" y="169" text-anchor="middle" fill="#D97706" font-weight="700">To come</text>
@@ -35,7 +35,7 @@
     <text x="480" y="169" text-anchor="middle" fill="#059669" font-weight="700">comes</text>
     <text x="620" y="169" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="176" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="176" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="191" text-anchor="middle" fill="#D97706" font-weight="700">To get</text>
     <text x="280" y="191" text-anchor="middle" fill="#312e81">conseguir / llegar</text>
     <text x="480" y="191" text-anchor="middle" fill="#059669" font-weight="700">gets</text>
@@ -47,11 +47,11 @@
     <text x="480" y="213" text-anchor="middle" fill="#059669" font-weight="700">makes</text>
     <text x="620" y="213" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="220" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="220" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="235" text-anchor="middle" fill="#D97706" font-weight="700">To do</text>
     <text x="280" y="235" text-anchor="middle" fill="#312e81">hacer / actividad</text>
     <text x="480" y="235" text-anchor="middle" fill="#db2777" font-weight="700">does</text>
-    <text x="620" y="235" text-anchor="middle" fill="#7c3aed">termina O ’ ES</text>
+    <text x="620" y="235" text-anchor="middle" fill="#9B74FF">termina O ï¿½ ES</text>
 
     <rect x="16" y="242" width="688" height="22" fill="#f8f5ff"/>
     <text x="90" y="257" text-anchor="middle" fill="#D97706" font-weight="700">To take</text>
@@ -59,7 +59,7 @@
     <text x="480" y="257" text-anchor="middle" fill="#059669" font-weight="700">takes</text>
     <text x="620" y="257" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="264" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="264" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="279" text-anchor="middle" fill="#D97706" font-weight="700">To give</text>
     <text x="280" y="279" text-anchor="middle" fill="#312e81">dar</text>
     <text x="480" y="279" text-anchor="middle" fill="#059669" font-weight="700">gives</text>
@@ -71,7 +71,7 @@
     <text x="480" y="301" text-anchor="middle" fill="#059669" font-weight="700">puts</text>
     <text x="620" y="301" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="308" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="308" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="323" text-anchor="middle" fill="#D97706" font-weight="700">To cut</text>
     <text x="280" y="323" text-anchor="middle" fill="#312e81">cortar</text>
     <text x="480" y="323" text-anchor="middle" fill="#059669" font-weight="700">cuts</text>
@@ -83,7 +83,7 @@
     <text x="480" y="345" text-anchor="middle" fill="#059669" font-weight="700">lets</text>
     <text x="620" y="345" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="352" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="352" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="367" text-anchor="middle" fill="#D97706" font-weight="700">To keep</text>
     <text x="280" y="367" text-anchor="middle" fill="#312e81">mantener</text>
     <text x="480" y="367" text-anchor="middle" fill="#059669" font-weight="700">keeps</text>
@@ -95,7 +95,7 @@
     <text x="480" y="389" text-anchor="middle" fill="#059669" font-weight="700">sees</text>
     <text x="620" y="389" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="396" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="396" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="411" text-anchor="middle" fill="#D97706" font-weight="700">To say</text>
     <text x="280" y="411" text-anchor="middle" fill="#312e81">decir</text>
     <text x="480" y="411" text-anchor="middle" fill="#059669" font-weight="700">says</text>
@@ -107,13 +107,13 @@
     <text x="480" y="433" text-anchor="middle" fill="#059669" font-weight="700">sends</text>
     <text x="620" y="433" text-anchor="middle" fill="#6b7280">+ S</text>
 
-    <rect x="16" y="440" width="688" height="22" fill="#ede9fe"/>
+    <rect x="16" y="440" width="688" height="22" fill="rgba(123,77,255,0.16)"/>
     <text x="90" y="455" text-anchor="middle" fill="#D97706" font-weight="700">To seem</text>
     <text x="280" y="455" text-anchor="middle" fill="#312e81">parecer</text>
     <text x="480" y="455" text-anchor="middle" fill="#059669" font-weight="700">seems</text>
     <text x="620" y="455" text-anchor="middle" fill="#6b7280">+ S</text>
   </g>
 
-  <text x="360" y="490" text-anchor="middle" fill="#5B21B6" font-size="12" font-weight="600">He/She/It + S · Go/Do ’ ES · Have ’ Has · Be ’ is · TO = señal de infinitivo</text>
+  <text x="360" y="490" text-anchor="middle" fill="#7B4DFF" font-size="12" font-weight="600">He/She/It + S ï¿½ Go/Do ï¿½ ES ï¿½ Have ï¿½ Has ï¿½ Be ï¿½ is ï¿½ TO = seï¿½al de infinitivo</text>
   <text x="360" y="508" text-anchor="middle" fill="#6d28d9" font-size="10">Conecta con Modulo 1: sujeto + verbo + objeto / pos.adj / reflexivo</text>
 </svg>

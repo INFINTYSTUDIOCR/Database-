@@ -221,7 +221,7 @@
     if (!root) return;
     opts = opts || {};
     var product = opts.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#7B4DFF');
     var studentId = String(opts.studentId || '').trim();
     var state = readState(product, studentId);
     if (opts.done && !state.certifiedAt) {

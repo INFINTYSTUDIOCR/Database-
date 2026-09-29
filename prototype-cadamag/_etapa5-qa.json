@@ -1,0 +1,39 @@
+{
+  "etapa": 5,
+  "date": "2026-09-29",
+  "server": "http://127.0.0.1:57736",
+  "checked": [
+    "index.html (desktop + mobile 390)",
+    "foundations.html",
+    "pricing.html",
+    "diagnostico.html",
+    "programa-50.html",
+    "gospanol.html",
+    "Infinity_Student_Portal.html"
+  ],
+  "pass": [
+    "Dark shell #080B0F on commercial + hybrids + portal login",
+    "Brand purple CTA #7B4DFF / orange accents",
+    "Foundations lead contrast #E0E3ED",
+    "diagnostico.html live at root with form + KPI cards",
+    "GOSpanol logo aspect ~1024/682 (220×147 display)",
+    "Cadamag credit present",
+    "Static QA: 0 critical broken assets on checklist pages"
+  ],
+  "fixed_during_qa": [
+    {
+      "issue": "Nav/footer linked commercial pages via data-pages-base=prototype-cadamag/ → wrong diagnostico URLs",
+      "fix": "site-nav.js + site-footer.js resolve via data-nav-root; cleared data-pages-base on 21 root HTML; cache ?v=20260929qa5"
+    },
+    {
+      "issue": "Persona webps were ~1×1 placeholders (nexora/jill/claire failed to paint)",
+      "fix": "index.html + proto index + persona-avatar.js → .png"
+    }
+  ],
+  "minor_notes": [
+    "Holo scramble briefly shows decoding glyphs mid-cycle (expected)",
+    "Portal missing motion.js (N/A — app shell, not commercial motion)",
+    "Formal 6-viewport matrix not exhaustive; sampled desktop + 390 mobile"
+  ],
+  "ready_for_etapa_6": true
+}

@@ -12,3 +12,6 @@ backend/.env
 .DS_Store
 games/tense-raiders/_pack/
 games/tense-raiders/_*.ps1
+# Etapa 6 deploy exclusions — huge / duplicate media
+prototype-cadamag/assets/video/infinity-welcome-alpha.mov
+prototype-cadamag/assets/video/infinity-welcome-web - copia.webm

@@ -267,7 +267,7 @@
       + '<div style="background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.22);border-radius:12px;padding:10px 12px;text-align:center;">'
       + '<div style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:700;">HOY</div>'
       + '<div style="font-size:22px;font-weight:900;color:#C084FC;">' + todayMin + '<span style="font-size:11px;opacity:0.5;">/' + goal + 'm</span></div>'
-      + '<div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;margin-top:4px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#7C3AED,#C084FC);"></div></div>'
+      + '<div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;margin-top:4px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#9B74FF,#C084FC);"></div></div>'
       + '</div>'
       + '<div style="grid-column:1/-1;text-align:center;margin-top:2px;">'
       + (typeof AliceBadgesCefr !== 'undefined' ? AliceBadgesCefr.renderCefrPill(student, spoken) : '')

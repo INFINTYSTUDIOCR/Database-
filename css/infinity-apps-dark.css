@@ -1,0 +1,245 @@
+/**
+ * Infinity product apps — dark shell (Portal / Engine / Training Book / Diagnostic)
+ * Load LAST after page CSS + infinity-brand-system.css. No logic changes.
+ */
+:root {
+  --infinity-violet: #7B4DFF;
+  --infinity-orange: #FF8A00;
+  --infinity-black: #080B0F;
+  --infinity-graphite: #171C26;
+  --bg: #080B0F !important;
+  --surface: #171C26 !important;
+  --text: #E8EAF0 !important;
+  --t2: #C5C9D6 !important;
+  --t3: #8B92A8 !important;
+  --border: rgba(232, 234, 240, 0.12) !important;
+  --gray: #12161f !important;
+  --navy: #7B4DFF !important;
+  --nl: rgba(123, 77, 255, 0.16) !important;
+  --nm: #9B74FF !important;
+  --nd: #C4B5FD !important;
+  --purple: #7B4DFF !important;
+  --pb: rgba(123, 77, 255, 0.14) !important;
+  --pm: #9B74FF !important;
+  --gold: #FF8A00 !important;
+  --green: #34d399 !important;
+  --gb: rgba(52, 211, 153, 0.12) !important;
+  --gm: #6ee7b7 !important;
+  --amber: #FFA940 !important;
+  --ab: rgba(255, 138, 0, 0.12) !important;
+  --ad: #FFD08A !important;
+  --red: #f87171 !important;
+  --rb: rgba(248, 113, 113, 0.12) !important;
+  --rm: #fca5a5 !important;
+  --accent: #7B4DFF !important;
+  --accent-bg: rgba(123, 77, 255, 0.14) !important;
+  --accent-border: rgba(123, 77, 255, 0.35) !important;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #080B0F !important;
+  background-image:
+    radial-gradient(ellipse 50% 35% at 10% 0%, rgba(123, 77, 255, 0.16), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 95% 5%, rgba(255, 138, 0, 0.07), transparent 50%),
+    linear-gradient(180deg, #080B0F 0%, #0C1018 55%, #080B0F 100%) !important;
+  color: #E8EAF0 !important;
+}
+
+/* Chrome */
+.topbar {
+  background: #7B4DFF !important;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.sidebar,
+.student-card,
+.content,
+.main,
+.main-wrap,
+.app-wrap {
+  background: transparent;
+}
+
+.sidebar {
+  background: rgba(23, 28, 38, 0.96) !important;
+  border-right-color: rgba(232, 234, 240, 0.1) !important;
+}
+
+.main,
+.content {
+  background: transparent !important;
+}
+
+/* Surfaces that were white */
+.card,
+.login-card,
+.sel-card,
+.portal-section,
+.student-card,
+.kpi-block,
+.param,
+.gate-card,
+.panel,
+.modal-card,
+.ex-card,
+.ex-block,
+.drill-card,
+.report-card {
+  background: rgba(23, 28, 38, 0.94) !important;
+  border-color: rgba(123, 77, 255, 0.18) !important;
+  color: #E8EAF0 !important;
+}
+
+.card-title,
+.section-title,
+.sel-title,
+.login-title,
+.sc-name,
+.diag-page-title {
+  color: #C4B5FD !important;
+  font-family: "Sora", system-ui, sans-serif;
+}
+
+.login-sub,
+.sel-sub,
+.section-sub,
+.sc-meta,
+.kpi-block-desc {
+  color: #C5C9D6 !important;
+}
+
+/* Login / selector */
+.ltab {
+  background: rgba(8, 11, 15, 0.65) !important;
+  color: #C5C9D6 !important;
+  border-color: rgba(232, 234, 240, 0.12) !important;
+}
+
+.ltab.active {
+  background: #7B4DFF !important;
+  color: #fff !important;
+}
+
+.login-es-card {
+  background: linear-gradient(135deg, rgba(23, 28, 38, 0.98), rgba(8, 11, 15, 0.9)) !important;
+  border-color: rgba(123, 77, 255, 0.28) !important;
+}
+
+.login-es-card h3 {
+  color: #E8EAF0 !important;
+}
+
+.login-es-card p {
+  color: #C5C9D6 !important;
+}
+
+.btn-outline,
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #C5C9D6 !important;
+  border: 1px solid rgba(232, 234, 240, 0.16) !important;
+}
+
+.inp,
+.sel-input,
+.fg input,
+.fg select,
+.fg textarea,
+.kpi-obs,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background: rgba(8, 11, 15, 0.75) !important;
+  border-color: rgba(232, 234, 240, 0.14) !important;
+  color: #E8EAF0 !important;
+}
+
+.inp:disabled,
+input:disabled {
+  background: rgba(23, 28, 38, 0.8) !important;
+  color: #8B92A8 !important;
+}
+
+/* KPI scale buttons */
+.kpi-btn {
+  background: rgba(8, 11, 15, 0.7) !important;
+  border-color: rgba(232, 234, 240, 0.16) !important;
+  color: #C5C9D6 !important;
+}
+
+.kpi-btn:hover {
+  border-color: rgba(155, 116, 255, 0.55) !important;
+  color: #C4B5FD !important;
+}
+
+.param {
+  background: rgba(8, 11, 15, 0.45) !important;
+}
+
+.param:hover,
+.param.sel {
+  background: rgba(123, 77, 255, 0.14) !important;
+  border-color: rgba(155, 116, 255, 0.45) !important;
+}
+
+.param-text {
+  color: #E8EAF0 !important;
+}
+
+.param-sub {
+  color: #8B92A8 !important;
+}
+
+/* Sidebar nav */
+.sb-item,
+.nav-item {
+  color: #C5C9D6 !important;
+}
+
+.sb-item:hover,
+.nav-item:hover {
+  background: rgba(123, 77, 255, 0.1) !important;
+  color: #E8EAF0 !important;
+}
+
+.sb-item.active,
+.nav-item.active {
+  background: rgba(123, 77, 255, 0.16) !important;
+  color: #C4B5FD !important;
+}
+
+/* Soft white action chips → dark */
+.inf-action-soft {
+  background: rgba(23, 28, 38, 0.95) !important;
+  color: #C4B5FD !important;
+  border-color: rgba(123, 77, 255, 0.28) !important;
+}
+
+/* Kill remaining cream/white page panels in apps */
+.ex-script,
+.ex-trainer-script {
+  background: rgba(255, 138, 0, 0.12) !important;
+  color: #E8EAF0 !important;
+  border-left-color: #FF8A00 !important;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .sidebar,
+  .topbar {
+    display: none !important;
+  }
+  .card,
+  .portal-section {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #ddd !important;
+  }
+}

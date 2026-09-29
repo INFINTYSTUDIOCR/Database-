@@ -1,0 +1,142 @@
+/* PersonaAvatar — mentor identity for Infinity Core System */
+
+.persona-avatar {
+  --pa-size: 52px;
+  --pa-border: rgba(123, 77, 255, 0.35);
+  --pa-glow: rgba(123, 77, 255, 0.35);
+  --pa-fallback-bg: #171C26;
+  --pa-fallback-fg: #d4c4ff;
+
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--pa-size);
+  height: var(--pa-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  isolation: isolate;
+}
+
+.persona-avatar[data-accent="violet"] {
+  --pa-border: rgba(123, 77, 255, 0.35);
+  --pa-glow: rgba(123, 77, 255, 0.4);
+  --pa-fallback-bg: #171C26;
+  --pa-fallback-fg: #d8c7ff;
+}
+
+.persona-avatar[data-accent="amber"] {
+  --pa-border: rgba(123, 77, 255, 0.32);
+  --pa-glow: rgba(255, 138, 0, 0.28);
+  --pa-fallback-bg: #171C26;
+  --pa-fallback-fg: #e8d4b0;
+}
+
+.persona-avatar[data-accent="intense"] {
+  --pa-border: rgba(167, 139, 250, 0.4);
+  --pa-glow: rgba(123, 77, 255, 0.45);
+  --pa-fallback-bg: #171C26;
+  --pa-fallback-fg: #e9d5ff;
+}
+
+.persona-avatar[data-accent="cool"] {
+  --pa-border: rgba(121, 160, 255, 0.38);
+  --pa-glow: rgba(123, 77, 255, 0.35);
+  --pa-fallback-bg: #171C26;
+  --pa-fallback-fg: #b8d0f5;
+}
+
+.persona-avatar-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--pa-glow), transparent 68%);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease-premium, ease), transform 300ms var(--ease-premium, ease);
+}
+
+.persona-avatar-fallback,
+.persona-avatar-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid var(--pa-border);
+  box-sizing: border-box;
+  transition: transform 300ms var(--ease-premium, ease);
+}
+
+.persona-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.06), transparent 55%),
+    var(--pa-fallback-bg);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.persona-avatar-initial {
+  font-family: var(--font-display, "Sora", system-ui, sans-serif);
+  font-size: calc(var(--pa-size) * 0.38);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--pa-fallback-fg);
+  line-height: 1;
+  user-select: none;
+}
+
+.persona-avatar-img {
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+  background: #080B0F;
+  box-shadow: 0 0 18px var(--pa-glow);
+}
+
+.persona-avatar.is-loaded .persona-avatar-fallback {
+  display: none;
+}
+
+.persona-avatar.is-fallback .persona-avatar-img {
+  display: none;
+}
+
+/* Host card hover — driven by parent .eco-module */
+.eco-module:hover .persona-avatar .persona-avatar-img,
+.eco-module:hover .persona-avatar .persona-avatar-fallback,
+.eco-module.is-on .persona-avatar .persona-avatar-img,
+.eco-module.is-on .persona-avatar .persona-avatar-fallback,
+.eco-module:focus-visible .persona-avatar .persona-avatar-img,
+.eco-module:focus-visible .persona-avatar .persona-avatar-fallback {
+  transform: scale(1.05);
+}
+
+.eco-module:hover .persona-avatar-glow,
+.eco-module.is-on .persona-avatar-glow,
+.eco-module:focus-visible .persona-avatar-glow {
+  opacity: 0.9;
+  transform: scale(1.08);
+}
+
+@media (max-width: 768px) {
+  .persona-avatar {
+    --pa-size: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .persona-avatar-glow,
+  .persona-avatar-fallback,
+  .persona-avatar-img {
+    transition: none;
+  }
+
+  .eco-module:hover .persona-avatar .persona-avatar-img,
+  .eco-module:hover .persona-avatar .persona-avatar-fallback,
+  .eco-module.is-on .persona-avatar .persona-avatar-img,
+  .eco-module.is-on .persona-avatar .persona-avatar-fallback {
+    transform: none;
+  }
+}

@@ -1,6 +1,6 @@
 /* ── Pricing grid — Foundations · ORT · Nexora Pro ─────────── */
 .pricing-section {
-  background: linear-gradient(180deg, #fff 0%, var(--off-white, #F8F8FF) 100%);
+  background: linear-gradient(180deg, #fff 0%, var(--off-white, #12161f) 100%);
   padding: 100px 2rem;
 }
 
@@ -20,7 +20,7 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--purple, #5B21B6);
+  color: var(--purple, #7B4DFF);
 }
 
 .pricing-grid {
@@ -53,7 +53,7 @@
 }
 
 .pricing-card.featured {
-  border-color: var(--purple, #5B21B6);
+  border-color: var(--purple, #7B4DFF);
   box-shadow: 0 16px 48px rgba(91, 33, 182, 0.14);
 }
 
@@ -83,12 +83,12 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--purple, #5B21B6);
+  color: var(--purple, #7B4DFF);
   margin-bottom: 6px;
 }
 
 .pricing-tagline {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 1.05rem;
   font-weight: 800;
   line-height: 1.35;
@@ -109,10 +109,10 @@
 }
 
 .pricing-price {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 2.25rem;
   font-weight: 900;
-  color: var(--purple-dark, #3B0E8C);
+  color: var(--purple-dark, #5A2FE0);
   line-height: 1.1;
   margin-bottom: 8px;
 }
@@ -155,7 +155,7 @@
 .pricing-stack li:last-child { border-bottom: none; }
 
 .pricing-stack i {
-  color: var(--purple, #5B21B6);
+  color: var(--purple, #7B4DFF);
   font-size: 16px;
   margin-top: 2px;
   flex-shrink: 0;
@@ -167,9 +167,9 @@
   line-height: 1.65;
   margin-bottom: 1rem;
   padding: 10px 12px;
-  background: var(--off-white, #F8F8FF);
+  background: var(--off-white, #12161f);
   border-radius: var(--r, 8px);
-  border-left: 3px solid var(--purple, #5B21B6);
+  border-left: 3px solid var(--purple, #7B4DFF);
 }
 
 .pricing-kpis-title {
@@ -197,7 +197,7 @@
 }
 
 .pricing-kpis strong {
-  color: var(--purple, #5B21B6);
+  color: var(--purple, #7B4DFF);
   font-weight: 800;
   min-width: 1.6rem;
 }
@@ -226,19 +226,19 @@
 }
 
 .pricing-actions .btn-pricing-primary {
-  background: var(--purple, #5B21B6);
+  background: var(--purple, #7B4DFF);
   color: #fff;
   box-shadow: 0 4px 16px rgba(91, 33, 182, 0.28);
 }
 
 .pricing-actions .btn-pricing-primary:hover {
-  background: var(--purple-light, #7C3AED);
+  background: var(--purple-light, #9B74FF);
   transform: translateY(-1px);
 }
 
 .pricing-actions .btn-pricing-secondary {
   background: #fff;
-  color: var(--purple, #5B21B6);
+  color: var(--purple, #7B4DFF);
   border: 1.5px solid rgba(91, 33, 182, 0.35);
 }
 
@@ -267,7 +267,7 @@
 }
 
 .pricing-page-block h3 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 1.15rem;
   font-weight: 800;
   margin-bottom: 8px;
@@ -275,10 +275,10 @@
 }
 
 .pricing-page-block .pricing-inline-price {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 1.75rem;
   font-weight: 900;
-  color: var(--purple-dark, #3B0E8C);
+  color: var(--purple-dark, #5A2FE0);
   margin: 8px 0;
 }
 

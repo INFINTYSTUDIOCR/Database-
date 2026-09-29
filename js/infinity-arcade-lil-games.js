@@ -530,7 +530,7 @@
       icon: 'ti-stars',
       desc: 'Entrevista: armá Situation→Result con linkers.',
       category: 'star',
-      color: '#7c3aed',
+      color: '#9B74FF',
       difficulty: 2,
       stars: '★★ Pressure',
       build: true
@@ -633,7 +633,7 @@
       '.lil-progress-pip i{width:10px;height:10px;border-radius:50%;background:#cbd5e1;border:2px solid #111}' +
       '.lil-progress-pip i.on{background:#22c55e;box-shadow:0 0 8px #22c55e}' +
       '.arcade-diff-new{display:inline-block;margin-left:6px;font-size:9px;padding:2px 6px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:900}' +
-      '.lil-section-title{font-family:"Press Start 2P",monospace;font-size:8px;color:#7c3aed;margin:14px 0 8px;text-align:center;letter-spacing:.06em}';
+      '.lil-section-title{font-family:"Press Start 2P",monospace;font-size:8px;color:#9B74FF;margin:14px 0 8px;text-align:center;letter-spacing:.06em}';
     document.head.appendChild(st);
   }
 

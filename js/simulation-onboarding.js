@@ -252,7 +252,7 @@
     }
     config = config || {};
     var product = config.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = product === 'kamuk' ? '#2B7EC1' : '#5B21B6';
+    var accent = product === 'kamuk' ? '#2B7EC1' : '#7B4DFF';
     var kamukDesk = 'https://studioinfinitycr.com/kamuk/kamuk-holdings-crm.html';
     var launchUrl = String(config.launchUrl || (product === 'kamuk' ? kamukDesk : 'infinity-holdings-crm.html'));
     if (product === 'kamuk' && (!launchUrl || /github\.io|infinity-holdings/i.test(launchUrl) || launchUrl === 'kamuk-holdings-crm.html')) {

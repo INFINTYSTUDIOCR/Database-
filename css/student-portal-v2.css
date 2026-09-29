@@ -1,0 +1,466 @@
+/**
+ * Infinity Student Portal — Visual System v2
+ * Brand + dark premium chrome. Does NOT alter portal JS behavior.
+ * Load AFTER the portal's inline <style> block.
+ * Assets: prototype-cadamag/assets/brand/
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap");
+
+:root {
+  --infinity-violet: #7B4DFF;
+  --infinity-orange: #FF8A00;
+  --infinity-black: #080B0F;
+  --infinity-graphite: #171C26;
+  --infinity-smoke: #E8EAF0;
+  --infinity-white: #FFFFFF;
+
+  /* Remap legacy portal tokens → new identity (dark product UI) */
+  --navy: #7B4DFF;
+  --nl: rgba(123, 77, 255, 0.16);
+  --nm: #9B74FF;
+  --nd: #C4B5FD;
+  --purple: #7B4DFF;
+  --pb: rgba(123, 77, 255, 0.14);
+  --pm: #9B74FF;
+  --gold: #FF8A00;
+  --gray: #12161f;
+  --border: rgba(232, 234, 240, 0.12);
+  --text: #E8EAF0;
+  --t2: #C5C9D6;
+  --t3: #8B92A8;
+  --r: 10px;
+  --rl: 14px;
+
+  /* Semantic (readable on dark) */
+  --green: #34d399;
+  --gb: rgba(52, 211, 153, 0.12);
+  --gm: #6ee7b7;
+  --amber: #FFA940;
+  --ab: rgba(255, 138, 0, 0.12);
+  --ad: #FFD08A;
+  --red: #f87171;
+  --rb: rgba(248, 113, 113, 0.12);
+  --rm: #fca5a5;
+
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --portal-surface: rgba(23, 28, 38, 0.88);
+  --portal-surface-strong: #12161f;
+  --portal-glow-v: rgba(123, 77, 255, 0.2);
+  --portal-glow-o: rgba(255, 138, 0, 0.08);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body) !important;
+  background-color: var(--infinity-black) !important;
+  background-image:
+    radial-gradient(ellipse 60% 45% at 12% 0%, rgba(123, 77, 255, 0.22), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 92% 8%, rgba(255, 138, 0, 0.09), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 70% 100%, rgba(123, 77, 255, 0.06), transparent 55%),
+    linear-gradient(180deg, #080B0F 0%, #0C1018 50%, #080B0F 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--text) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* —— Topbar —— */
+.topbar {
+  background: rgba(8, 11, 15, 0.92) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(123, 77, 255, 0.2);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+.tb-logo,
+#tb-logo {
+  height: 32px !important;
+  width: auto !important;
+  max-width: min(168px, 42vw) !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+}
+
+.tb-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tb-sub {
+  color: rgba(232, 234, 240, 0.45) !important;
+}
+
+.tb-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.tb-btn:hover,
+.tb-btn:focus-visible {
+  background: rgba(123, 77, 255, 0.2) !important;
+  border-color: rgba(123, 77, 255, 0.45) !important;
+  outline: none;
+}
+
+.tb-role {
+  background: rgba(123, 77, 255, 0.2) !important;
+  color: #FFD08A !important;
+  border: 1px solid rgba(255, 138, 0, 0.35) !important;
+}
+
+/* —— Login —— */
+.login-wrap {
+  margin-top: max(3.5rem, 12vh) !important;
+}
+
+.login-card {
+  background: var(--portal-surface) !important;
+  border: 1px solid rgba(123, 77, 255, 0.22) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(123, 77, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.login-logo,
+#login-logo {
+  height: auto !important;
+  width: min(220px, 72vw) !important;
+  max-width: 220px !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.login-title {
+  font-family: var(--font-display) !important;
+  color: var(--infinity-smoke) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+.login-sub {
+  color: var(--t2) !important;
+}
+
+.inp,
+input.inp,
+textarea.inp,
+textarea,
+#l-user,
+#l-pass {
+  background: rgba(8, 11, 15, 0.65) !important;
+  border: 1.5px solid rgba(232, 234, 240, 0.14) !important;
+  color: var(--infinity-smoke) !important;
+  border-radius: 12px !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.inp::placeholder,
+#l-user::placeholder,
+#l-pass::placeholder {
+  color: var(--t3) !important;
+}
+
+.inp:focus,
+#l-user:focus,
+#l-pass:focus {
+  outline: none !important;
+  border-color: rgba(123, 77, 255, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(123, 77, 255, 0.2);
+}
+
+.inp:disabled {
+  background: rgba(23, 28, 38, 0.5) !important;
+  color: var(--t3) !important;
+}
+
+/* —— Buttons —— */
+.btn {
+  font-family: var(--font-body) !important;
+  border-radius: 12px !important;
+  transition: transform 160ms ease, box-shadow 180ms ease, opacity 160ms ease !important;
+}
+
+.btn:hover {
+  opacity: 1 !important;
+  transform: translateY(-1px);
+}
+
+.btn-navy,
+.btn-login {
+  background: linear-gradient(135deg, #9B74FF 0%, #7B4DFF 52%, #5A2FE0 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 8px 22px rgba(123, 77, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.btn-outline {
+  background: rgba(23, 28, 38, 0.7) !important;
+  color: var(--t2) !important;
+  border: 1px solid rgba(232, 234, 240, 0.16) !important;
+}
+
+.btn-outline:hover,
+.btn-outline:focus-visible {
+  border-color: rgba(123, 77, 255, 0.45) !important;
+  color: #fff !important;
+}
+
+@keyframes loginPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(123, 77, 255, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(123, 77, 255, 0); }
+}
+
+/* —— Side / bottom nav —— */
+.portal-nav {
+  background: rgba(8, 11, 15, 0.96) !important;
+  border-right: 1px solid rgba(123, 77, 255, 0.18);
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.25);
+}
+
+.portal-nav-item {
+  color: rgba(232, 234, 240, 0.5) !important;
+  border-radius: 12px !important;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.portal-nav-item:hover {
+  background: rgba(123, 77, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.portal-nav-item.active {
+  background: rgba(123, 77, 255, 0.22) !important;
+  color: #E9E0FF !important;
+  box-shadow: inset 0 0 0 1px rgba(123, 77, 255, 0.35);
+}
+
+#nav-alice.companion-nav.active {
+  background: linear-gradient(135deg, rgba(123, 77, 255, 0.25), rgba(255, 138, 0, 0.12)) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(123, 77, 255, 0.3) !important;
+}
+
+@media (max-width: 640px) {
+  .portal-nav {
+    border-right: 0 !important;
+    border-top: 1px solid rgba(123, 77, 255, 0.2);
+    background: rgba(8, 11, 15, 0.97) !important;
+  }
+}
+
+/* —— Cards / content —— */
+.card {
+  background: var(--portal-surface) !important;
+  border: 1px solid rgba(123, 77, 255, 0.16) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  color: #F0ECFF !important;
+  letter-spacing: -0.015em;
+}
+
+.portal-header {
+  background: linear-gradient(145deg, rgba(123, 77, 255, 0.35), rgba(23, 28, 38, 0.9)) !important;
+  border: 1px solid rgba(123, 77, 255, 0.25);
+  box-shadow: 0 0 40px rgba(123, 77, 255, 0.1);
+}
+
+.portal-name {
+  font-family: var(--font-display);
+}
+
+.kbar-bg {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.kbar-name,
+.kbar-val {
+  color: var(--text) !important;
+}
+
+.kpi-detail-panel {
+  background: var(--portal-surface-strong) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+@keyframes kpiDetailPulse {
+  0% { background: rgba(123, 77, 255, 0.18); }
+  100% { background: var(--portal-surface-strong); }
+}
+
+.ib-navy {
+  background: rgba(123, 77, 255, 0.12) !important;
+  border-left-color: var(--infinity-violet) !important;
+  color: #D4CCFF !important;
+}
+
+.ib-amber {
+  background: rgba(255, 138, 0, 0.1) !important;
+  border-left-color: var(--infinity-orange) !important;
+  color: #FFD08A !important;
+}
+
+.badge.b-survival {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #A8AEC4 !important;
+}
+
+.chart-wrap-bars {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* —— Modals / gates —— */
+#portal-terms-gate > div {
+  background: var(--portal-surface-strong) !important;
+  border: 1px solid rgba(123, 77, 255, 0.25);
+  color: var(--text) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+#portal-terms-gate > div > div:first-child {
+  color: #F0ECFF !important;
+  font-family: var(--font-display);
+}
+
+#portal-terms-body {
+  color: var(--t2) !important;
+}
+
+.pwa-ios-help-card {
+  background: var(--portal-surface-strong) !important;
+  border: 1px solid rgba(123, 77, 255, 0.22);
+  color: var(--text);
+}
+
+.pwa-ios-help-card h3 {
+  font-family: var(--font-display);
+  color: #F0ECFF;
+}
+
+.pwa-install-bar {
+  background: rgba(23, 28, 38, 0.95) !important;
+  border-top: 1px solid rgba(123, 77, 255, 0.25);
+  color: var(--text);
+}
+
+.pwa-install-btn {
+  background: linear-gradient(135deg, #9B74FF, #7B4DFF) !important;
+  color: #fff !important;
+  border-radius: 10px;
+}
+
+/* —— Toast —— */
+.toast {
+  background: #0F6E56 !important;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35) !important;
+}
+
+.toast.err {
+  background: #7f1d1d !important;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+/* —— Loading —— */
+.loading {
+  color: var(--t3) !important;
+}
+
+/* —— Focus visibility —— */
+.portal-nav-item:focus-visible,
+.tb-btn:focus-visible,
+.btn:focus-visible,
+.inp:focus-visible {
+  outline: 2px solid rgba(123, 77, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* Soft reveal for login only */
+.login-card {
+  animation: portalFadeUp 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes portalFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card,
+  .btn,
+  .tb-btn,
+  .portal-nav-item {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Cadamag credit — absolute bottom, discreet */
+.portal-cadamag-credit {
+  width: min(100% - 2rem, 700px);
+  margin: 2rem auto 1.5rem;
+  padding: 1rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #6B7280;
+}
+
+.portal-cadamag-credit a {
+  color: #8B92A8;
+  text-decoration: none;
+}
+
+.portal-cadamag-credit a:hover {
+  color: #C5C9D6;
+}
+
+.portal-cadamag-sep {
+  margin: 0 0.35rem;
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .portal-cadamag-credit {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .tb-logo,
+  #tb-logo {
+    max-width: min(132px, 38vw) !important;
+    height: 28px !important;
+  }
+}
+
+/* Soften common light inline panels inside portal content when class-based */
+#student-portal [style*="background:white"],
+#student-portal [style*="background: white"],
+#student-portal [style*="background:#fff"],
+#student-portal [style*="background:#FFF"],
+#student-portal [style*="background:#F8F"],
+#student-portal [style*="background:#171C26"],
+#student-portal [style*="background:#12161f"] {
+  /* Cannot override inline bg without !important attribute matching — handled selectively below */
+}
+
+#student-portal .card [style*="color:#7B4DFF"],
+#student-portal .card [style*="color: #7B4DFF"] {
+  color: #C4B5FD !important;
+}

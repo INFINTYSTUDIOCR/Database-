@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="prototype-cadamag/assets/brand/favicon/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
+
+<meta name="theme-color" content="#080B0F">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precios — Infinity Studio CR | Inglés para trabajar</title>
+<meta name="description" content="Foundations (desde cero) u ORT (si te trabás): ₡67.500/mes con profe. Práctica con IA desde ₡12.500. Diagnóstico gratis. Colones.">
+<link rel="canonical" href="https://studioinfinitycr.com/pricing.html">
+<meta property="og:title" content="Precios — Infinity Studio CR">
+<meta property="og:description" content="Dos caminos con profe a ₡67.500/mes. Práctica con IA desde ₡12.500. Diagnóstico gratis.">
+<meta property="og:url" content="https://studioinfinitycr.com/pricing.html">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/pages.css?v=20260929contrast1">
+<style>
+.price-section-title{font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:800;margin:2.25rem 0 0.5rem;color:var(--text);}
+.price-section-sub{font-size:14px;color:var(--t2);margin-bottom:1.25rem;line-height:1.6;max-width:42rem;}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.15rem;margin-bottom:1.5rem;}
+.price-card{background:white;border:1px solid rgba(123,77,255,0.12);border-radius:16px;padding:1.35rem 1.25rem;box-shadow:0 10px 28px rgba(123,77,255,0.08);display:flex;flex-direction:column;min-height:100%;}
+.price-card.featured{border:2px solid var(--purple);box-shadow:0 14px 36px rgba(123,77,255,0.16);position:relative;}
+.price-card.featured::before{content:attr(data-badge);position:absolute;top:-10px;left:16px;background:var(--purple);color:white;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;}
+.price-card h3{font-size:1.15rem;font-weight:800;margin:0 0 6px;color:var(--text);font-family:'Sora',sans-serif;}
+.price-card .price-tag{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.price-card .amount{font-family:'Sora',sans-serif;font-size:1.75rem;font-weight:800;color:var(--purple-dark);line-height:1.1;}
+.price-card .amount small{font-size:13px;font-weight:600;color:var(--t3);}
+.price-card .amount-note{font-size:12px;color:var(--t3);margin:0 0 10px;}
+.price-card .was{font-size:12px;color:var(--t3);text-decoration:line-through;margin-bottom:2px;}
+.price-card p{font-size:14px;color:var(--t2);line-height:1.55;margin:0 0 12px;flex:1;}
+.price-card ul{list-style:none;padding:0;margin:0 0 14px;font-size:13px;color:var(--t2);line-height:1.55;}
+.price-card ul li{padding:4px 0;display:flex;gap:6px;align-items:flex-start;}
+.price-card ul li i{color:var(--purple);margin-top:2px;flex-shrink:0;}
+.price-card .btn-mini{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;background:var(--purple);color:white;}
+.price-card .btn-mini.outline{background:white;color:var(--purple);border:2px solid var(--purple);}
+.price-markets{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1.75rem;}
+.price-market{background:white;border:1px solid rgba(123,77,255,0.12);border-radius:14px;padding:1.1rem 1.15rem;box-shadow:0 8px 22px rgba(123,77,255,0.07);}
+.price-market h3{font-size:0.95rem;font-weight:800;margin:0 0 6px;color:var(--text);}
+.price-market .market-price{font-family:'Sora',sans-serif;font-size:1.2rem;font-weight:800;color:var(--purple-dark);margin:0 0 6px;}
+.price-market p{font-size:13px;color:var(--t2);line-height:1.55;margin:0;}
+.howto{background:#12161f;border:2px solid rgba(123,77,255,0.18);border-radius:16px;padding:1.25rem 1.35rem;margin-bottom:1.75rem;}
+.howto h3{font-size:1rem;font-weight:800;margin:0 0 10px;color:var(--purple-dark);}
+.howto p{font-size:14px;color:var(--t2);line-height:1.55;margin:0 0 8px;}
+.howto p:last-child{margin:0;}
+.howto a{color:var(--purple);font-weight:700;}
+.ia-table{width:100%;border-collapse:separate;border-spacing:0;background:white;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(123,77,255,0.08);border:1px solid rgba(123,77,255,0.12);font-size:13px;margin-bottom:1.5rem;}
+.ia-table th,.ia-table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+.ia-table th{background:linear-gradient(135deg,rgba(123,77,255,0.16),#F5EEFF);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--purple-dark);}
+.ia-table tr:last-child td{border-bottom:none;}
+.ia-table strong{color:var(--purple-dark);}
+.ia-table a{color:var(--purple);font-weight:700;}
+@media(max-width:640px){.ia-table{font-size:12px;}.ia-table th,.ia-table td{padding:10px 8px;}}
+</style>
+<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="prototype-cadamag/assets/brand/png/infinity-logo-horizontal-light.png" alt="Infinity Studio CR" class="nav-logo-page"></a>
+  <div class="nav-links">
+    <a href="index.html#offer">Tu camino</a>
+    <a href="index.html#contact" class="nav-cta">Diagnóstico gratis</a>
+  </div>
+</nav>
+
+<header class="subpage-hero">
+  <div class="subpage-hero-inner">
+    <div class="section-tag">Precios · en colones</div>
+    <h1>Dos caminos con profe.<br>Práctica con IA si querés.</h1>
+    <p class="lead">Si necesitás inglés para <strong>conseguir o mantener un trabajo</strong>, acá está lo que pagás — sin menú de 9 productos.</p>
+  </div>
+</header>
+
+<main class="subpage-body">
+
+  <div class="howto">
+    <h3><i class="ti ti-help"></i> Empezá acá (gratis)</h3>
+    <p><strong>1.</strong> <a href="index.html#contact">Diagnóstico 90 min</a> — te decimos si vas a Foundations o a ORT.</p>
+    <p><strong>2.</strong> O <a href="try-alice.html">probá práctica por voz</a> en la web (sin tarjeta).</p>
+    <p style="margin:0;"><strong>Pagás después</strong> de entender tu caso. Todo en <strong>colones (₡)</strong>.</p>
+  </div>
+
+  <h2 class="price-section-title">Con profe · ₡67.500/mes</h2>
+  <p class="price-section-sub">Mismo precio. Distinto nivel. 12 horas al mes 1 a 1 + IA entre clases.</p>
+
+  <div class="price-grid">
+    <article class="price-card featured" data-badge="Desde cero">
+      <div class="price-tag">Casi no sé inglés</div>
+      <h3>Foundations</h3>
+      <div class="was">Lista ₡96.000</div>
+      <div class="amount">₡67.500 <small>/mes</small></div>
+      <div class="amount-note">Regular ₡75.000 · promo sujeta a cupos</div>
+      <p>Armás oraciones, confianza y base para hablar — sin saltarte pasos. Profe + Jill 24/7.</p>
+      <ul>
+        <li><i class="ti ti-check"></i> 12 h con tu profe</li>
+        <li><i class="ti ti-check"></i> Jill entre clases</li>
+        <li><i class="ti ti-check"></i> Avance semanal en tu portal</li>
+      </ul>
+      <a href="index.html#contact" class="btn-mini">Quiero Foundations</a>
+    </article>
+
+    <article class="price-card featured" data-badge="Si te trabás">
+      <div class="price-tag">Entendés · te congelás</div>
+      <h3>ORT</h3>
+      <div class="was">Lista ₡127.500</div>
+      <div class="amount">₡67.500 <small>/mes</small></div>
+      <div class="amount-note">Regular ₡75.000 · mismo precio, otro nivel</div>
+      <p>Para la entrevista, el call center y las llamadas. Entrenás bajo presión con Alice y Nexora.</p>
+      <ul>
+        <li><i class="ti ti-check"></i> 12 h con tu profe</li>
+        <li><i class="ti ti-check"></i> Alice (hablar con flujo)</li>
+        <li><i class="ti ti-check"></i> Nexora (simulaciones reales)</li>
+      </ul>
+      <a href="index.html#contact" class="btn-mini">Quiero ORT</a>
+    </article>
+  </div>
+
+  <h2 class="price-section-title">Solo práctica con IA · sin profe</h2>
+  <p class="price-section-sub">Puente mientras decidís, o complemento entre sesiones. No reemplaza el plan con profe si querés resultado rápido.</p>
+
+  <table class="ia-table">
+    <thead>
+      <tr>
+        <th>Qué es</th>
+        <th>Para quién</th>
+        <th>Precio</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Jill</strong> — tutora desde cero</td>
+        <td>Base débil · estructura</td>
+        <td>₡12.500/mes</td>
+        <td><a href="try-jill.html">Probar</a></td>
+      </tr>
+      <tr>
+        <td><strong>Alice Tutor</strong> — coaching al hablar</td>
+        <td>Flujo, estructura, corrección</td>
+        <td>₡18.500/mes</td>
+        <td><a href="hablemos.html?solicitar=alice-coach#consulta">Demo</a></td>
+      </tr>
+      <tr>
+        <td><strong>Alice Libre</strong> — charla por voz</td>
+        <td>Practicar cualquier tema 24/7</td>
+        <td>₡24.500/mes</td>
+        <td><a href="try-alice.html">Gratis en la web</a></td>
+      </tr>
+      <tr>
+        <td><strong>Nexora</strong> — simulaciones</td>
+        <td>Entrevistas y llamadas bajo presión</td>
+        <td>₡28.500/mes</td>
+        <td><a href="hablemos.html?solicitar=nexora#consulta">Demo</a></td>
+      </tr>
+      <tr>
+        <td><strong>Alice+</strong> — pack completo</td>
+        <td>Tutor + Libre + Nexora (sin profe)</td>
+        <td>₡49.500/mes</td>
+        <td><a href="https://wa.me/50660060981?text=Hola!%20Quiero%20Alice%2B" target="_blank" rel="noopener">WhatsApp</a></td>
+      </tr>
+      <tr>
+        <td><strong>Claire</strong> — TOEIC</td>
+        <td>Listening / Reading bajo presión</td>
+        <td>En el diagnóstico</td>
+        <td><a href="hablemos.html?solicitar=claire#consulta">Hablar de TOEIC</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="price-markets">
+    <div class="price-market">
+      <h3><i class="ti ti-map-pin"></i> Costa Rica</h3>
+      <div class="market-price">Colones · SINPE</div>
+      <p>Los precios de esta página son en ₡. Transferencia local.</p>
+    </div>
+    <div class="price-market">
+      <h3><i class="ti ti-world"></i> Resto de LATAM</h3>
+      <div class="market-price">TC + 8%</div>
+      <p>Convertimos al tipo de cambio del día (TC + 8%). Te decimos el monto exacto <strong>antes</strong> de cobrar.</p>
+    </div>
+  </div>
+
+  <div class="pricing-panel">
+    <p><strong>Una sola Alice, dos modos:</strong> Tutor (coaching al hablar) y Libre (charla por voz). Foundations u ORT = ₡67.500/mes con profe. IA sola = desde ₡12.500. Diagnóstico = gratis.</p>
+  </div>
+
+  <div class="cta-row">
+    <a href="https://wa.me/50660060981?text=Hola!%20Quiero%20agendar%20mi%20diagn%C3%B3stico%20gratis" class="cta-primary" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Diagnóstico gratis</a>
+    <a href="try-alice.html" class="cta-gold"><i class="ti ti-messages"></i> Probar práctica gratis</a>
+    <a href="index.html#offer" class="cta-secondary">Ver caminos en inicio</a>
+  </div>
+</main>
+
+<footer class="page-footer">Infinity Studio CR · <a href="index.html">studioinfinitycr.com</a> · <a href="https://wa.me/50660060981">+506 6006 0981</a></footer>
+
+
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+
+</body>
+</html>

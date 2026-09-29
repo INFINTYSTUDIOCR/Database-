@@ -1,0 +1,534 @@
+/* ============================================================
+   Studio Infinity — Global Cinematic Motion System
+   Central tokens + levels. Prefer discreet over dramatic.
+   ============================================================ */
+
+:root {
+  /* Timing — longer so travel reads while scrolling */
+  --motion-fast: 300ms;
+  --motion-micro: 280ms;
+  --motion-medium: 1050ms;
+  --motion-slow: 1250ms;
+  --motion-cinematic: 1450ms;
+  --motion-path: 1500ms;
+  --motion-ambient: 16s;
+  --motion-marquee: 34s;
+
+  /* Easing */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Reveal geometry — desplazamiento bien evidente al scrollear */
+  --reveal-distance: 120px;
+  --reveal-distance-soft: 100px;
+  --reveal-distance-feature: 160px;
+  --reveal-distance-left: 220px;
+  --reveal-distance-top: 160px;
+  --reveal-scale: 0.88;
+  --reveal-blur: 14px;
+  --reveal-blur-soft: 12px;
+  --reveal-blur-feature: 16px;
+
+  /* Stagger — cascade más legible */
+  --stagger-0: 0ms;
+  --stagger-1: 100ms;
+  --stagger-2: 200ms;
+  --stagger-3: 300ms;
+  --stagger-4: 400ms;
+  --stagger-5: 500ms;
+  --stagger-6: 600ms;
+
+  /* Compat aliases used across prototype */
+  --ease: var(--ease-premium);
+  --enter-ease: var(--ease-premium);
+}
+
+/* ---------- Level 1 — Micro interactions ---------- */
+.btn,
+.route-cta,
+.welcome-audio-btn,
+.cadamag-credit-link,
+.nav-center a,
+.lang-pill {
+  transition:
+    color var(--motion-micro) var(--ease-premium),
+    background var(--motion-micro) var(--ease-premium),
+    border-color var(--motion-micro) var(--ease-premium),
+    box-shadow var(--motion-micro) var(--ease-premium),
+    transform var(--motion-micro) var(--ease-premium);
+}
+
+.btn:hover,
+.route-cta:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active,
+.route-cta:active {
+  transform: translateY(0);
+}
+
+.route-path {
+  transition:
+    border-color var(--motion-fast) var(--ease-premium),
+    background var(--motion-fast) var(--ease-premium);
+}
+
+/* ---------- Shared reveal base — strong acople / desacople ---------- */
+.enter,
+.enter-person,
+.enter-dash,
+.enter-float,
+.enter-chip,
+.know-reveal,
+.routes-reveal,
+.results-reveal,
+[data-reveal] {
+  opacity: 0;
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateY(var(--reveal-distance-soft)) scale(var(--reveal-scale));
+  transition:
+    opacity var(--motion-medium) var(--ease-premium),
+    filter var(--motion-medium) var(--ease-premium),
+    transform var(--motion-medium) var(--ease-premium);
+  will-change: opacity, filter, transform;
+}
+
+.enter.is-in,
+.enter-person.is-in,
+.enter-dash.is-in,
+.enter-float.is-in,
+.enter-chip.is-in,
+.scene-know.is-in .know-reveal,
+.scene-routes.is-in .routes-reveal,
+.scene-results.is-in .results-reveal,
+[data-reveal].is-in {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateX(0) translateY(0) scale(1);
+}
+
+/* Level 2 — soft content (left / top emphatic) */
+[data-reveal="soft"] {
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateY(var(--reveal-distance-soft)) scale(var(--reveal-scale));
+  transition-duration: var(--motion-medium);
+}
+
+.know-reveal[data-know="lead"],
+.know-reveal[data-know="bridge"],
+.routes-reveal[data-routes="intro"],
+.routes-reveal[data-routes="closing"],
+.results-reveal[data-results="intro"],
+.results-reveal[data-results="legacy"] {
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateX(calc(-1 * var(--reveal-distance-left))) translateY(12px) scale(var(--reveal-scale));
+  transition-duration: var(--motion-medium);
+}
+
+.know-reveal[data-know="highlight"],
+.know-reveal[data-know="signals"],
+.routes-reveal[data-routes="converge"],
+.results-reveal[data-results="evidence"],
+.results-reveal[data-results="trust"] {
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateY(calc(-1 * var(--reveal-distance-top))) scale(var(--reveal-scale));
+  transition-duration: var(--motion-medium);
+}
+
+/* Level 3 — feature / visual */
+[data-reveal="cinematic"],
+.enter-person,
+.enter-dash {
+  filter: blur(var(--reveal-blur-feature));
+  transform: translateY(var(--reveal-distance-feature)) scale(0.9);
+  transition-duration: var(--motion-cinematic);
+}
+
+.know-reveal[data-know="visual"],
+.routes-reveal[data-routes="foundations"],
+.results-reveal[data-results="case"] {
+  filter: blur(var(--reveal-blur-feature));
+  transform: translateX(calc(-1 * var(--reveal-distance-left))) translateY(24px) scale(0.86);
+  transition-duration: var(--motion-cinematic);
+}
+
+.routes-reveal[data-routes="ort"] {
+  filter: blur(var(--reveal-blur-feature));
+  transform: translateY(calc(-1 * var(--reveal-distance-top))) scale(0.86);
+  transition-duration: var(--motion-cinematic);
+}
+
+.scene-know.is-in .know-reveal,
+.scene-routes.is-in .routes-reveal,
+.scene-results.is-in .results-reveal {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateX(0) translateY(0) scale(1);
+}
+
+[data-reveal="left"] {
+  transform: translateX(calc(-1 * var(--reveal-distance-left))) translateY(10px) scale(var(--reveal-scale));
+}
+[data-reveal="right"] {
+  transform: translateX(var(--reveal-distance-left)) translateY(10px) scale(var(--reveal-scale));
+}
+[data-reveal="top"],
+[data-reveal="up"] {
+  transform: translateY(calc(-1 * var(--reveal-distance-top))) scale(var(--reveal-scale));
+}
+[data-reveal="down"] {
+  transform: translateY(var(--reveal-distance-feature)) scale(var(--reveal-scale));
+}
+[data-reveal="left"].is-in,
+[data-reveal="right"].is-in,
+[data-reveal="top"].is-in,
+[data-reveal="up"].is-in,
+[data-reveal="down"].is-in {
+  transform: translateX(0) translateY(0) scale(1);
+}
+
+/* Stagger helpers — Camilo-style cascade on scroll */
+[data-reveal][data-delay="1"] { transition-delay: var(--stagger-1); }
+[data-reveal][data-delay="2"] { transition-delay: var(--stagger-2); }
+[data-reveal][data-delay="3"] { transition-delay: var(--stagger-3); }
+[data-reveal][data-delay="4"] { transition-delay: var(--stagger-4); }
+[data-reveal][data-delay="5"] { transition-delay: var(--stagger-5); }
+[data-reveal][data-delay="6"] { transition-delay: var(--stagger-6); }
+
+/* ---------- Hero entrance (approved composition, unified rhythm) ---------- */
+.enter-eyebrow {
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateY(10px);
+  transition-duration: var(--motion-medium);
+  transition-delay: var(--stagger-0);
+}
+
+.enter-title {
+  filter: blur(var(--reveal-blur-feature));
+  transform: translateY(12px);
+  transition-duration: var(--motion-slow);
+  transition-delay: var(--stagger-1);
+}
+
+.enter-sub {
+  filter: blur(var(--reveal-blur-soft));
+  transform: translateY(10px);
+  transition-duration: var(--motion-medium);
+  transition-delay: var(--stagger-2);
+}
+
+.enter-ctas {
+  filter: blur(0);
+  transform: translateY(8px);
+  transition-duration: var(--motion-medium);
+  transition-delay: var(--stagger-3);
+}
+
+.enter-person {
+  transition-delay: var(--stagger-4);
+}
+
+.enter-audio {
+  filter: blur(0);
+  transform: translateY(8px);
+  transition-duration: var(--motion-medium);
+  transition-delay: 300ms;
+}
+
+.enter-dash {
+  transition-delay: 320ms;
+}
+
+.enter-benefits {
+  filter: blur(0);
+  transform: translateY(8px);
+  transition-duration: var(--motion-medium);
+  transition-delay: var(--stagger-5);
+}
+
+.enter-float {
+  filter: blur(0);
+  transform: translateY(8px);
+  transition-duration: var(--motion-medium);
+  transition-delay: var(--stagger-6);
+}
+
+.enter-chip {
+  filter: blur(0);
+  transform: translateY(8px);
+  transition-duration: var(--motion-medium);
+}
+
+.kpi-chip.c1.enter-chip { transition-delay: 400ms; }
+.kpi-chip.c2.enter-chip { transition-delay: 430ms; }
+.kpi-chip.c3.enter-chip { transition-delay: 460ms; }
+
+.kpi-chip.c1.enter-chip.is-in { transform: translateX(0) translateY(0); }
+.kpi-chip.c2.enter-chip.is-in { transform: translateX(-12px) translateY(0); }
+.kpi-chip.c3.enter-chip.is-in { transform: translateX(-4px) translateY(0); }
+
+/* Section reveal delays — coordinated chapter entry */
+.scene-know.is-in [data-know="visual"] { transition-delay: var(--stagger-1); }
+.scene-know.is-in [data-know="lead"] { transition-delay: var(--stagger-2); }
+.scene-know.is-in [data-know="highlight"] { transition-delay: var(--stagger-3); }
+.scene-know.is-in [data-know="signals"] { transition-delay: 300ms; }
+.scene-know.is-in [data-know="bridge"] { transition-delay: var(--stagger-5); }
+
+.scene-routes.is-in [data-routes="intro"] { transition-delay: var(--stagger-0); }
+.scene-routes.is-in [data-routes="foundations"] { transition-delay: var(--stagger-2); }
+.scene-routes.is-in [data-routes="ort"] { transition-delay: var(--stagger-3); }
+.scene-routes.is-in [data-routes="converge"] { transition-delay: var(--stagger-5); }
+.scene-routes.is-in [data-routes="closing"] { transition-delay: var(--stagger-6); }
+
+/* Highlight line draw (once) */
+.scene-know.is-in .scene-know-highlight-line {
+  animation: know-line-in var(--motion-slow) var(--ease-premium) 280ms both;
+}
+
+@keyframes know-line-in {
+  from { transform: scaleY(0); opacity: 0.2; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+/* Routes path draw (once) */
+.scene-routes.is-in .routes-trail {
+  animation: routes-draw var(--motion-path) var(--ease-premium) forwards;
+}
+.scene-routes.is-in .routes-trail-o {
+  animation-delay: 160ms;
+}
+.scene-routes.is-in .routes-converge {
+  animation: routes-node-in var(--motion-medium) var(--ease-premium) 1.15s forwards;
+}
+
+@keyframes routes-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes routes-node-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Marquee (independent continuous) ---------- */
+@keyframes proto-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.marquee-track {
+  animation: proto-marquee var(--motion-marquee) linear infinite;
+}
+
+/* Dashboard wave (micro ambient) */
+@keyframes proto-wave {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.65; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+.wave span {
+  animation: proto-wave 1.35s ease-in-out infinite;
+}
+.wave span:nth-child(2) { animation-delay: 0.1s; }
+.wave span:nth-child(3) { animation-delay: 0.22s; }
+.wave span:nth-child(4) { animation-delay: 0.06s; }
+.wave span:nth-child(5) { animation-delay: 0.28s; }
+.wave span:nth-child(6) { animation-delay: 0.16s; }
+.wave span:nth-child(7) { animation-delay: 0.3s; }
+.wave span:nth-child(8) { animation-delay: 0.12s; }
+.wave span:nth-child(9) { animation-delay: 0.2s; }
+.wave span:nth-child(10) { animation-delay: 0.08s; }
+
+/* Holo scan — single pass language */
+@keyframes holo-scan-pass {
+  0% { opacity: 0; transform: translateY(0); }
+  12% { opacity: 0.45; }
+  100% { opacity: 0; transform: translateY(1.55em); }
+}
+.holo-scan.is-active {
+  animation: holo-scan-pass 2s var(--ease-premium) forwards;
+}
+
+/* ---------- Level 4 — Ambient (background only) ---------- */
+.scene-know-atmosphere,
+.scene-routes-atmosphere,
+.scene-results-atmosphere,
+.hero-atmosphere::after {
+  animation: ambient-breathe var(--motion-ambient) ease-in-out infinite;
+}
+
+@keyframes ambient-breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* Continuity between chapters — soft shared edge light */
+.scene-know {
+  box-shadow: inset 0 40px 80px -60px rgba(123, 77, 255, 0.12);
+}
+.scene-routes {
+  box-shadow: inset 0 40px 80px -60px rgba(123, 77, 255, 0.08);
+}
+
+/* ---------- Future: Ecosistema (Training Book / Alice / Nexora / Jill / Claire) ---------- */
+[data-ecosystem-card] {
+  /* Level 2 reveal when marked [data-reveal]; hover Level 1 only */
+  transition:
+    border-color var(--motion-micro) var(--ease-premium),
+    box-shadow var(--motion-micro) var(--ease-premium),
+    transform var(--motion-micro) var(--ease-premium);
+}
+[data-ecosystem-card]:hover {
+  transform: translateY(-3px);
+}
+[data-ecosystem-card] [data-eco-media] {
+  transition: opacity var(--motion-micro) var(--ease-premium), filter var(--motion-micro) var(--ease-premium);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-ecosystem-card]:hover {
+    transform: none;
+  }
+}
+
+/* ---------- prefers-reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .wave span,
+  .holo-scan,
+  .scene-know-atmosphere,
+  .scene-routes-atmosphere,
+  .scene-results-atmosphere,
+  .hero-atmosphere::after {
+    animation: none !important;
+  }
+
+  .holo-scan { display: none !important; }
+
+  .holo-live,
+  .holo-live.is-hiding,
+  .holo-live.is-reset,
+  .holo-live.is-entering,
+  .holo-follow,
+  .holo-context {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .holo-headline { text-shadow: none !important; }
+
+  .enter,
+  .enter-person,
+  .enter-dash,
+  .enter-float,
+  .enter-chip,
+  .know-reveal,
+  .routes-reveal,
+  [data-reveal],
+  .scene-know.is-in .know-reveal,
+  .scene-routes.is-in .routes-reveal {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+
+  .kpi-chip.c1.enter-chip.is-in { transform: translateX(0) !important; }
+  .kpi-chip.c2.enter-chip.is-in { transform: translateX(-12px) !important; }
+  .kpi-chip.c3.enter-chip.is-in { transform: translateX(-4px) !important; }
+
+  .scene-know.is-in .scene-know-highlight-line,
+  .scene-routes.is-in .routes-trail,
+  .scene-routes.is-in .routes-converge,
+  .scene-routes.is-in .routes-converge-ring,
+  .scene-routes.is-in .routes-node {
+  .scene-know.is-in .know-story,
+  .scene-know.is-in .know-q,
+  .scene-know.is-in .know-connect,
+  .scene-know.is-in .know-connect-line,
+  .scene-know.is-in .know-connect-dot,
+  .scene-know.is-in .know-a,
+  .scene-know.is-in .know-attempt,
+  .scene-know.is-in .know-attempt-full,
+  .scene-know.is-in .know-attempt-cut,
+  .scene-know.is-in .know-time em,
+  .scene-know.is-in .know-pressure-val,
+  .scene-know.is-in .know-clarity-val,
+  .scene-know.is-in .know-meter-time .know-meter-v,
+  .scene-know.is-in .know-thinking-state,
+  .scene-know.is-in .know-blocked-state,
+  .scene-know.is-in .know-footnote {
+    animation: none !important;
+  }
+
+  .routes-trail {
+    stroke-dashoffset: 0 !important;
+  }
+  .routes-converge,
+  .routes-converge-ring,
+  .routes-node {
+    opacity: 1 !important;
+  }
+
+  .know-q,
+  .know-connect,
+  .know-a,
+  .know-attempt,
+  .know-footnote,
+  .know-blocked-state {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .know-attempt-full { opacity: 0 !important; }
+  .know-attempt-cut { opacity: 1 !important; }
+  .know-thinking-state { opacity: 0 !important; }
+  .know-connect-line { transform: scaleY(1) !important; }
+  .know-connect-dot { opacity: 0.7 !important; }
+  .know-pressure-val { opacity: 1 !important; color: #FFA940 !important; }
+  .know-clarity-val { opacity: 1 !important; color: #c4b5fd !important; }
+  .know-time em { opacity: 0 !important; }
+  .know-time em[data-t="2"] { opacity: 1 !important; color: #FFA940 !important; }
+
+  .btn:hover,
+  .route-cta:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Mobile: quieter motion ---------- */
+@media (max-width: 768px) {
+  :root {
+    --reveal-distance: 10px;
+    --reveal-distance-soft: 8px;
+    --reveal-distance-feature: 11px;
+    --reveal-blur: 3.5px;
+    --reveal-blur-soft: 3px;
+    --reveal-blur-feature: 4px;
+    --motion-medium: 650ms;
+    --motion-slow: 820ms;
+    --motion-cinematic: 980ms;
+    --motion-path: 1300ms;
+  }
+
+  .enter-ctas,
+  .enter-benefits,
+  .enter-audio,
+  .enter-float,
+  .enter-chip {
+    filter: blur(0);
+  }
+
+  .kpi-chip.c1.enter-chip.is-in,
+  .kpi-chip.c2.enter-chip.is-in,
+  .kpi-chip.c3.enter-chip.is-in {
+    transform: translateY(0);
+  }
+
+  .scene-know-atmosphere,
+  .scene-routes-atmosphere,
+  .scene-results-atmosphere,
+  .hero-atmosphere::after {
+    animation: none;
+  }
+}

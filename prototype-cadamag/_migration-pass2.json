@@ -1,0 +1,129 @@
+{
+  "modified": [
+    "Infinity_Nexus_Engine.html",
+    "Infinity_Scheduler.html",
+    "Infinity_Training_Book.html",
+    "Infinity_Training_Book (1).html",
+    "activar.html",
+    "infinity-holdings-crm.html",
+    "nexora.html",
+    "programa-50.html",
+    "js/live-kpi-charts.js"
+  ],
+  "remainingLogoRefs": [],
+  "remainingHex": [
+    "assets/canon/anim/gerundio-pc.svg",
+    "assets/canon/articulos.svg",
+    "assets/canon/comparativos.svg",
+    "assets/canon/gerundio-prep.svg",
+    "assets/canon/gerundio.svg",
+    "assets/canon/have-been-ing.svg",
+    "assets/canon/have-had.svg",
+    "assets/canon/if-was-were.svg",
+    "assets/canon/modal-have-been-ing.svg",
+    "assets/canon/modal-have-pp.svg",
+    "assets/canon/modales.svg",
+    "assets/canon/moneda.svg",
+    "assets/canon/negaciones.svg",
+    "assets/canon/preposiciones-tiempo.svg",
+    "assets/canon/preposiciones.svg",
+    "assets/canon/presente-continuo.svg",
+    "assets/canon/pronombres.svg",
+    "assets/canon/there-existencial.svg",
+    "assets/canon/tiempos-fut.svg",
+    "assets/canon/tiempos-pr.svg",
+    "assets/canon/tiempos-prp.svg",
+    "assets/canon/tiempos-ps.svg",
+    "assets/canon/tiempos.svg",
+    "assets/canon/verbos-irregulares.svg",
+    "assets/canon/verbos-pasado.svg",
+    "assets/canon/verbos-perfecto.svg",
+    "assets/canon/verbos-presente.svg",
+    "backend/assets/canon/articulos.svg",
+    "backend/assets/canon/comparativos.svg",
+    "backend/assets/canon/gerundio-prep.svg",
+    "backend/assets/canon/gerundio.svg",
+    "backend/assets/canon/have-been-ing.svg",
+    "backend/assets/canon/have-had.svg",
+    "backend/assets/canon/if-was-were.svg",
+    "backend/assets/canon/modal-have-been-ing.svg",
+    "backend/assets/canon/modal-have-pp.svg",
+    "backend/assets/canon/modales.svg",
+    "backend/assets/canon/moneda.svg",
+    "backend/assets/canon/negaciones.svg",
+    "backend/assets/canon/preposiciones-tiempo.svg",
+    "backend/assets/canon/preposiciones.svg",
+    "backend/assets/canon/presente-continuo.svg",
+    "backend/assets/canon/pronombres.svg",
+    "backend/assets/canon/there-existencial.svg",
+    "backend/assets/canon/tiempos-fut.svg",
+    "backend/assets/canon/tiempos-pr.svg",
+    "backend/assets/canon/tiempos-prp.svg",
+    "backend/assets/canon/tiempos-ps.svg",
+    "backend/assets/canon/tiempos.svg",
+    "backend/assets/canon/verbos-irregulares.svg",
+    "backend/assets/canon/verbos-pasado.svg",
+    "backend/assets/canon/verbos-perfecto.svg",
+    "backend/assets/canon/verbos-presente.svg",
+    "backend/config/articulos.svg",
+    "backend/config/jill-canon-visual.json",
+    "config/jill-canon-visual.json",
+    "css/daily-inspiration.css",
+    "css/pages.css",
+    "css/program-vignettes.css",
+    "css/pwa-install.css",
+    "css/student-deliverables.css",
+    "js/simulation-corporate-learn.js",
+    "js/simulation-crm-bridge.js",
+    "js/simulation-formato-e.js",
+    "js/simulation-training.js",
+    "nexora-legacy.html",
+    "nexora-next/css/nexora-desk.css",
+    "nexora-next/lab.html",
+    "nexus-unified-ui.js",
+    "preview-lesson-clip.html",
+    "training-book/hospedaje-servicios/hospedaje.css"
+  ],
+  "pendingAssets": [
+    {
+      "path": "assets/logos/infinity-engine.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-logo-improved.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-logo.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-studio-cr-logo.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-studio-cr-nav.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-studio-cr-nav@2x.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-studio-cr-transparent.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    },
+    {
+      "path": "assets/logos/infinity-studio-cr.png",
+      "reason": "Legacy Infinity logo file still on disk; active HTML refs remapped to brand pack",
+      "usedBy": "historically referenced; verify no remaining active refs"
+    }
+  ]
+}
