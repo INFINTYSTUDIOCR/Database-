@@ -9,7 +9,7 @@
   gap:10px;
   padding:12px 14px;
   border-radius:14px;
-  background:linear-gradient(135deg,#5B21B6,#7C3AED);
+  background:linear-gradient(135deg,#7B4DFF,#9B74FF);
   color:#fff;
   box-shadow:0 8px 28px rgba(91,33,182,.35);
   font-size:13px;
@@ -26,7 +26,7 @@
   cursor:pointer;
   white-space:nowrap;
 }
-.pwa-install-bar .pwa-install-btn{background:#fff;color:#5B21B6;}
+.pwa-install-bar .pwa-install-btn{background:#fff;color:#7B4DFF;}
 .pwa-install-bar .pwa-dismiss-btn{background:rgba(255,255,255,.18);color:#fff;padding:8px 10px;}
 
 .pwa-ios-help{
@@ -52,7 +52,7 @@
 .pwa-ios-help-card h3{
   font-size:17px;
   font-weight:800;
-  color:#5B21B6;
+  color:#7B4DFF;
   margin:0 0 12px;
 }
 .pwa-ios-help-card ol{

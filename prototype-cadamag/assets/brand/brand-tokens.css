@@ -1,0 +1,10 @@
+/* Infinity Studio brand tokens */
+:root {
+  --infinity-violet: #7B4DFF;
+  --infinity-orange: #FF8A00;
+  --infinity-black: #080B0F;
+  --infinity-graphite: #171C26;
+  --infinity-smoke: #E8EAF0;
+  --infinity-white: #FFFFFF;
+  --infinity-gradient: linear-gradient(90deg, #7B4DFF 0%, #FF8A00 100%);
+}

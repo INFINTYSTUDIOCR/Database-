@@ -14,7 +14,7 @@
 }
 
 .inf-tb-shell {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   color: var(--inf-tb-text);
   background: var(--inf-tb-white);
   border: 1.5px solid var(--inf-tb-border);

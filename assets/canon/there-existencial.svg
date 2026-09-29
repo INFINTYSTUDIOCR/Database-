@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="There is There are To Have Exist">
   <rect width="320" height="180" rx="12" fill="none"/>
-  <text x="160" y="14" text-anchor="middle" fill="#5B21B6" font-family="Inter,sans-serif" font-size="9" font-weight="bold">THERE IS / THERE ARE / TO HAVE / EXIST</text>
+  <text x="160" y="14" text-anchor="middle" fill="#7B4DFF" font-family="Inter,sans-serif" font-size="9" font-weight="bold">THERE IS / THERE ARE / TO HAVE / EXIST</text>
   <text x="160" y="25" text-anchor="middle" fill="#6d28d9" font-size="7">Existencia vs posesion</text>
 
-  <rect x="4" y="30" width="76" height="118" rx="5" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.1"/>
-  <text x="42" y="44" text-anchor="middle" fill="#5B21B6" font-size="7.5" font-weight="bold">THERE IS</text>
+  <rect x="4" y="30" width="76" height="118" rx="5" fill="rgba(123,77,255,0.16)" stroke="#9B74FF" stroke-width="1.1"/>
+  <text x="42" y="44" text-anchor="middle" fill="#7B4DFF" font-size="7.5" font-weight="bold">THERE IS</text>
   <text x="42" y="56" text-anchor="middle" fill="#312e81" font-size="5.5">1 cosa (singular)</text>
   <text x="42" y="66" text-anchor="middle" fill="#312e81" font-size="5.5">que existe / esta</text>
   <text x="42" y="80" text-anchor="middle" fill="#6d28d9" font-size="5.5" font-weight="bold">ESTRUCTURA</text>
-  <text x="42" y="92" text-anchor="middle" fill="#5B21B6" font-size="5.5">There is + 1</text>
-  <text x="42" y="102" text-anchor="middle" fill="#5B21B6" font-size="5.5">+ lugar</text>
+  <text x="42" y="92" text-anchor="middle" fill="#7B4DFF" font-size="5.5">There is + 1</text>
+  <text x="42" y="102" text-anchor="middle" fill="#7B4DFF" font-size="5.5">+ lugar</text>
   <text x="42" y="118" text-anchor="middle" fill="#312e81" font-size="5">There is a book</text>
   <text x="42" y="128" text-anchor="middle" fill="#312e81" font-size="5">on the table.</text>
   <text x="42" y="140" text-anchor="middle" fill="#312e81" font-size="5">There is a window</text>
@@ -52,6 +52,6 @@
   <text x="280" y="142" text-anchor="middle" fill="#c2410c" font-size="5" font-weight="bold">exists = singular</text>
   <text x="280" y="152" text-anchor="middle" fill="#c2410c" font-size="5">exist = plural</text>
 
-  <text x="160" y="164" text-anchor="middle" fill="#5B21B6" font-size="6.5" font-weight="bold">TIP: there is/are = lugares | to have = posesion | exist = formal</text>
+  <text x="160" y="164" text-anchor="middle" fill="#7B4DFF" font-size="6.5" font-weight="bold">TIP: there is/are = lugares | to have = posesion | exist = formal</text>
   <text x="160" y="175" text-anchor="middle" fill="#6d28d9" font-size="6">Hay un libro = There is a book. | Yo tengo un libro = I have a book.</text>
 </svg>

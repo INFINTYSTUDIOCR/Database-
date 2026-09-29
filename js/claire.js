@@ -149,7 +149,7 @@ function stopMic() {
   if (_mic) { try { _mic.stop(); } catch(e){} }
   _micOn = false;
   var btn = document.getElementById('cmb');
-  if (btn) { btn.style.background='rgba(91,33,182,0.08)'; btn.style.borderColor='rgba(91,33,182,0.2)'; }
+  if (btn) { btn.style.background='rgba(123,77,255,0.08)'; btn.style.borderColor='rgba(123,77,255,0.2)'; }
   var vi = document.getElementById('cvi');
   if (vi) vi.style.display = 'none';
 }
@@ -160,8 +160,8 @@ function addMsg(text, from) {
   var isC = from === 'c';
   var d = document.createElement('div');
   d.style.cssText = 'display:flex;flex-direction:column;align-items:'+(isC?'flex-start':'flex-end')+';margin-bottom:10px;';
-  d.innerHTML = (isC ? '<div style="font-size:10px;font-weight:700;color:#5B21B6;margin-bottom:3px;letter-spacing:0.05em;">CLAIRE</div>' : '')
-    + '<div style="max-width:88%;background:'+(isC?'white':'#5B21B6')+';color:'+(isC?'#1E1E2E':'white')
+  d.innerHTML = (isC ? '<div style="font-size:10px;font-weight:700;color:#7B4DFF;margin-bottom:3px;letter-spacing:0.05em;">CLAIRE</div>' : '')
+    + '<div style="max-width:88%;background:'+(isC?'white':'#7B4DFF')+';color:'+(isC?'#1E1E2E':'white')
     + ';border-radius:'+(isC?'4px 14px 14px 14px':'14px 4px 14px 14px')
     + ';padding:10px 14px;font-size:13px;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,0.06);">'
     + text + '</div>';

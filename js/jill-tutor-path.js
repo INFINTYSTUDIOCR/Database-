@@ -95,7 +95,7 @@
     var chips = list.map(function (st) {
       var done = (s.jillTutorPath.completedSteps || []).indexOf(st.id) >= 0;
       var active = st.id === step.id;
-      var bg = done ? 'rgba(61,220,151,0.35)' : (active ? 'rgba(124,58,237,0.45)' : 'rgba(255,255,255,0.06)');
+      var bg = done ? 'rgba(61,220,151,0.35)' : (active ? 'rgba(155,116,255,0.45)' : 'rgba(255,255,255,0.06)');
       var border = active ? '2px solid #A78BFA' : '1px solid rgba(255,255,255,0.12)';
       var color = done ? '#bbf7d0' : (active ? '#e9d5ff' : 'rgba(255,255,255,0.55)');
       return '<span title="' + esc(st.title) + '" style="font-size:10px;font-weight:700;padding:4px 7px;border-radius:999px;background:' + bg + ';border:' + border + ';color:' + color + ';white-space:nowrap;">'
@@ -107,7 +107,7 @@
       ? '<div style="margin-top:10px;">'
         + '<div style="font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:6px;">Pegá tu anécdota (15 min escrita, mín. 12 líneas):</div>'
         + '<textarea id="jill-path-anecdote" rows="6" placeholder="I worked yesterday because…" style="width:100%;border-radius:10px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.25);color:white;padding:10px;font-size:12px;line-height:1.5;resize:vertical;"></textarea>'
-        + '<button type="button" onclick="jillTutorPathSubmitAnecdote()" style="margin-top:8px;width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#5b21b6,#7c3aed);color:white;font-weight:800;font-size:13px;cursor:pointer;">Enviar anécdota y analizar</button>'
+        + '<button type="button" onclick="jillTutorPathSubmitAnecdote()" style="margin-top:8px;width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#7B4DFF,#9B74FF);color:white;font-weight:800;font-size:13px;cursor:pointer;">Enviar anécdota y analizar</button>'
         + '</div>'
       : '';
 
@@ -125,7 +125,7 @@
       + '<div style="font-size:11px;font-weight:800;color:#86EFAC;">' + pct + '%</div>'
       + '</div>'
       + '<div style="margin-top:8px;height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">'
-      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#7c3aed,#3DDC97);"></div>'
+      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#9B74FF,#3DDC97);"></div>'
       + '</div>'
       + '<div style="font-size:12px;color:rgba(255,255,255,0.82);line-height:1.55;margin-top:10px;">'
       + '<strong style="color:#e9d5ff;">Hoy:</strong> ' + esc(step.studentTask || '')

@@ -105,7 +105,7 @@
   function journeyChartColors() {
     var navy = '';
     try { navy = (getComputedStyle(document.documentElement).getPropertyValue('--navy') || '').trim(); } catch (e) {}
-    if (!navy) navy = '#5B21B6';
+    if (!navy) navy = '#7B4DFF';
     var kamuk = /#2[Bb]7[Ee][Cc]1|#1[Ff]6[Aa][Aa]8/.test(navy);
     return {
       border: navy,

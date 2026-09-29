@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Infinity Studio">
+  <defs>
+    <linearGradient id="infGrad" x1="8" y1="12" x2="56" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7B4DFF"/>
+      <stop offset="0.55" stop-color="#9B74FF"/>
+      <stop offset="1" stop-color="#FF8A00"/>
+    </linearGradient>
+    <linearGradient id="infBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171C26"/>
+      <stop offset="1" stop-color="#080B0F"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#infBg)"/>
+  <rect x="1" y="1" width="62" height="62" rx="15" stroke="rgba(123,77,255,0.45)" stroke-width="1" fill="none"/>
+  <!-- Infinity path -->
+  <path
+    d="M18 32c0-6.075 4.477-11 10-11 3.866 0 7.25 2.015 9.2 5.05C39.15 23.015 42.534 21 46.4 21c5.523 0 10 4.925 10 11s-4.477 11-10 11c-3.866 0-7.25-2.015-9.2-5.05C35.25 40.985 31.866 43 28 43c-5.523 0-10-4.925-10-11z"
+    stroke="url(#infGrad)"
+    stroke-width="3.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Soft trajectory accent -->
+  <path
+    d="M22 32c1.5-4 4.8-7 8.5-7 3.2 0 5.9 1.6 7.5 4.1"
+    stroke="rgba(232,234,240,0.22)"
+    stroke-width="1.25"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

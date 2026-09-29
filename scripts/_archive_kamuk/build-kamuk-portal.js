@@ -31,19 +31,19 @@ html = html
 // Branding + colors
 html = html
   .replace(/<title>Infinity Portal del Estudiante<\/title>/, '<title>Kamuk Portal del Estudiante</title>')
-  .replace(/content="#5B21B6"/, 'content="#2B7EC1"')
+  .replace(/content="#7B4DFF"/, 'content="#2B7EC1"')
   .replace(/content="SI Portal"/, 'content="Kamuk Portal"')
   .replace(
-    /--navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;/,
+    /--navy:#7B4DFF;--nl:rgba(123,77,255,0.16);--nm:#9B74FF;--nd:#5A2FE0;/,
     '--navy:#2B7EC1;--nl:#E8F4FC;--nm:#1F6AA8;--nd:#1A5A8F;'
   )
   .replace(
-    /--purple:#5B21B6;--pb:#EDE9FE;--pm:#7C3AED;/,
+    /--purple:#7B4DFF;--pb:rgba(123,77,255,0.16);--pm:#9B74FF;/,
     '--purple:#2B7EC1;--pb:#E8F4FC;--pm:#1F6AA8;'
   )
-  .replace(/#5B21B6/g, '#2B7EC1')
-  .replace(/#7C3AED/g, '#1F6AA8')
-  .replace(/#3B0E8C/g, '#1A5A8F')
+  .replace(/#7B4DFF/g, '#2B7EC1')
+  .replace(/#9B74FF/g, '#1F6AA8')
+  .replace(/#5A2FE0/g, '#1A5A8F')
   .replace(/#1e1b4b/g, '#0F3A5C')
   .replace(/Bienvenido a Infinity/g, 'Bienvenido a Kamuk')
   .replace(/BIENVENIDO A INFINITY/g, 'BIENVENIDO A KAMUK')

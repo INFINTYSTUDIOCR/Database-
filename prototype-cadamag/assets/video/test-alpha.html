@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#080B0F">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prueba Alpha</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #5227ff, #ff8a00);
+      font-family: Arial, sans-serif;
+    }
+
+    .test-box {
+      width: min(900px, 90vw);
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(255,255,255,.25);
+    }
+
+    video {
+      width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="test-box">
+    <video autoplay muted loop playsinline controls>
+      <source
+        src="assets/video/infinity-welcome-web.webm"
+        type="video/webm"
+      />
+    </video>
+  </div>
+
+</body>
+</html>

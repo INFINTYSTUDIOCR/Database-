@@ -158,7 +158,7 @@
   function render(columnId, fallbackRef) {
     var clip = clipForColumn(columnId, fallbackRef);
     if (!clip) return '';
-    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(91,33,182,0.2);';
+    var frame = 'position:relative;margin-top:4px;width:100%;max-width:320px;margin-left:auto;margin-right:auto;border-radius:12px;overflow:hidden;border:1px solid rgba(123,77,255,0.2);';
     var media = mediaForClip(clip, fallbackRef, 'thumb');
     return '<div class="jill-canon-frame" style="' + frame + 'aspect-ratio:320/180;' + frameStyle() + '">'
       + media.html

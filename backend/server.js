@@ -930,7 +930,7 @@ function oe50MailTextToHtml(text) {
   });
   return (
     '<div style="font-family:Inter,Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">' +
-    `<div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5B21B6;margin-bottom:14px;">${oe50MailEscapeHtml(OE50_MAIL_FROM_NAME)}</div>` +
+    `<div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7B4DFF;margin-bottom:14px;">${oe50MailEscapeHtml(OE50_MAIL_FROM_NAME)}</div>` +
     paragraphs.join('') +
     '<hr style="border:none;border-top:1px solid #e5e7eb;margin:22px 0;">' +
     '<p style="margin:0;font-size:12px;color:#6b7280;line-height:1.5;">Infinity Studio CR · Training gratuito · Convocatoria 50</p>' +

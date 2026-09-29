@@ -188,7 +188,7 @@
   function mount(root, opts) {
     if (!root) return;
     opts = opts || {};
-    var accent = opts.accent || (opts.product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var accent = opts.accent || (opts.product === 'kamuk' ? '#2B7EC1' : '#7B4DFF');
     var done = !!opts.done;
     styles(accent);
     root.innerHTML = '<div class="crmb">'

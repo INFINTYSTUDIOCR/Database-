@@ -1,0 +1,283 @@
+/* ============================================================
+   Infinity Studio — Brand Identity System (source of truth)
+   Palette · type · atmosphere. Loaded early; remaps legacy tokens.
+   ============================================================ */
+
+:root {
+  /* Official palette */
+  --infinity-violet: #7B4DFF;
+  --infinity-orange: #FF8A00;
+  --infinity-black: #080B0F;
+  --infinity-graphite: #171C26;
+  --infinity-smoke: #E8EAF0;
+  --infinity-white: #FFFFFF;
+
+  /* Derived */
+  --infinity-violet-soft: #9B74FF;
+  --infinity-violet-deep: #5A2FE0;
+  --infinity-orange-soft: #FFA940;
+  --infinity-orange-muted: rgba(255, 138, 0, 0.55);
+
+  /* Surfaces */
+  --bg: var(--infinity-black);
+  --bg-deep: var(--infinity-black);
+  --bg-elevated: var(--infinity-graphite);
+  --surface: rgba(23, 28, 38, 0.72);
+  --surface-strong: #12161f;
+  --surface-glass: rgba(23, 28, 38, 0.62);
+
+  /* Brand aliases (legacy names → new identity) */
+  --violet: var(--infinity-violet);
+  --violet-bright: var(--infinity-violet-soft);
+  --electric-purple: var(--infinity-violet);
+  --orange: var(--infinity-orange);
+  --orange-bright: var(--infinity-orange-soft);
+  --orange-deep: #E07700;
+  --blue: #6B7CFF; /* cool accent within brand family, not SaaS blue */
+  --teal: #34d399;
+
+  --text: var(--infinity-white);
+  --text-soft: #E0E3ED;
+  --text-muted: #B4BAC9;
+
+  --border: rgba(232, 234, 240, 0.1);
+  --border-glow: rgba(123, 77, 255, 0.38);
+
+  --glow-violet: rgba(123, 77, 255, 0.35);
+  --glow-orange: rgba(255, 138, 0, 0.22);
+
+  --grad-brand: linear-gradient(135deg, var(--infinity-violet) 0%, #8F5FFF 48%, var(--infinity-orange) 160%);
+  --grad-cta: linear-gradient(135deg, var(--infinity-violet-soft) 0%, var(--infinity-violet) 52%, var(--infinity-violet-deep) 100%);
+  --grad-atmosphere:
+    radial-gradient(ellipse 70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), transparent 60%),
+    linear-gradient(180deg, #080B0F 0%, #0C1018 45%, #080B0F 100%);
+
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+/* Global atmospheric canvas */
+body {
+  font-family: var(--font-body);
+  background-color: var(--infinity-black, #080B0F);
+  background-image: var(--grad-atmosphere);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Official Infinity brand assets — assets/brand/ is source of truth */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  text-decoration: none;
+}
+
+.brand-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+  max-width: min(200px, 48vw);
+  object-fit: contain;
+}
+
+.brand-logo-footer {
+  width: clamp(260px, 22vw, 320px);
+  max-width: min(320px, 86vw);
+  height: auto;
+}
+
+/* Isotipo — espacios pequeños / UI chrome */
+.brand-mark,
+.brand-isotipo,
+.brand-symbol {
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+  object-fit: contain;
+  box-shadow: none;
+}
+
+.brand-word {
+  /* Retained only if needed outside master logo lockup — prefer brand-logo */
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .brand-logo {
+    height: 28px;
+    max-width: min(150px, 46vw);
+  }
+}
+
+/* Primary CTA — violet energy */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.btn-primary,
+.btn-header,
+.btn-hero-primary {
+  background: var(--grad-cta);
+  color: var(--infinity-white);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 24px rgba(123, 77, 255, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.btn-primary:hover,
+.btn-header:hover,
+.btn-hero-primary:hover {
+  box-shadow:
+    0 10px 28px rgba(123, 77, 255, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary,
+.route-cta {
+  border-radius: 12px;
+  border: 1px solid rgba(123, 77, 255, 0.35);
+  background: rgba(23, 28, 38, 0.55);
+  color: var(--infinity-smoke);
+  font-family: var(--font-body);
+}
+
+.btn-secondary:hover,
+.route-cta:hover {
+  border-color: rgba(255, 138, 0, 0.4);
+  background: rgba(123, 77, 255, 0.12);
+}
+
+.btn:focus-visible,
+.route-cta:focus-visible {
+  outline: 2px solid var(--infinity-violet-soft);
+  outline-offset: 3px;
+}
+
+/* Card text CTAs — same brand ink, lighter pattern */
+.eco-mod-cta,
+.results-link {
+  font-family: var(--font-body);
+  color: #C4B5FD;
+  border-bottom-color: rgba(123, 77, 255, 0.35);
+}
+
+.eco-mod-cta:hover,
+.eco-mod-cta:focus-visible,
+.results-link:hover,
+.results-link:focus-visible {
+  color: #E9E0FF;
+  border-bottom-color: rgba(196, 181, 253, 0.7);
+}
+
+/* Accent utility — orange sparingly */
+.accent-orange,
+.is-warn,
+.sig-value.is-warn {
+  color: var(--infinity-orange) !important;
+}
+
+/* Section atmospheres — shared brand language (overrides section sheets) */
+.scene-know,
+.scene-routes,
+.scene-eco,
+.scene-results {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 11, 15, 0.55) 0%,
+      rgba(23, 28, 38, 0.72) 48%,
+      rgba(8, 11, 15, 0.88) 100%
+    ) !important;
+  border-top-color: rgba(123, 77, 255, 0.14) !important;
+}
+
+.scene-know-atmosphere,
+.scene-routes-atmosphere,
+.scene-eco-atmosphere,
+.scene-results-atmosphere {
+  background:
+    radial-gradient(ellipse 55% 48% at 20% 40%, rgba(123, 77, 255, 0.18), transparent 62%),
+    radial-gradient(ellipse 40% 36% at 82% 28%, rgba(255, 138, 0, 0.07), transparent 58%),
+    radial-gradient(ellipse 36% 30% at 60% 90%, rgba(123, 77, 255, 0.06), transparent 60%) !important;
+}
+
+/* Eyebrow accent line → orange strategic */
+.scene-know-eyebrow::before,
+.eco-eyebrow::before,
+.results-eyebrow::before,
+.routes-eyebrow::before {
+  background: linear-gradient(90deg, rgba(255, 138, 0, 0.75), transparent) !important;
+}
+
+/* Soft continuity between chapters — infinity line edge */
+.scene-know,
+.scene-routes,
+.scene-eco,
+.scene-results {
+  position: relative;
+}
+
+.scene-know::before,
+.scene-routes::before,
+.scene-eco::before,
+.scene-results::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(123, 77, 255, 0.35),
+    rgba(255, 138, 0, 0.2),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* —— Etapa 3: contraste editorial sobre shell dark —— */
+:root {
+  --text-soft: #E0E3ED;
+  --text-muted: #B4BAC9;
+}
+
+.page-lead,
+.sp-section-lead,
+.sp-prose p,
+.sp-list li,
+.page-block p,
+.page-block li,
+.subpage-hero .lead,
+.page-hero .page-lead,
+.content-block p,
+.content-block li,
+.case p,
+.audience-card p {
+  color: #E0E3ED !important;
+}
+
+.page-eyebrow,
+.sp-visual-meta,
+.sp-visual-label,
+.section-sub,
+.form-note,
+.breadcrumb {
+  color: #B4BAC9 !important;
+}
+

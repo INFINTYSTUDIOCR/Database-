@@ -1,0 +1,35 @@
+{
+  "report": {
+    "cleaned": [
+      "activar.html",
+      "advanced-path.html",
+      "casos-de-exito.html",
+      "claire.html",
+      "foundations-path.html",
+      "foundations.html",
+      "hablemos.html",
+      "index.html",
+      "Infinity_Nexus_Engine.html",
+      "ingles-operacional-latinoamerica.html",
+      "job-finder.html",
+      "ort-path.html",
+      "ort.html",
+      "para-quien.html",
+      "pricing.html"
+    ],
+    "canonicalWas": {
+      "advanced-path.html": "2→1",
+      "casos-de-exito.html": "2→1",
+      "foundations-path.html": "2→1",
+      "foundations.html": "2→1",
+      "ingles-operacional-latinoamerica.html": "2→1",
+      "ort-path.html": "2→1",
+      "ort.html": "2→1",
+      "para-quien.html": "2→1",
+      "pricing.html": "2→1"
+    },
+    "stillIssues": []
+  },
+  "protoFixed": 0,
+  "hasRootDiag": true
+}

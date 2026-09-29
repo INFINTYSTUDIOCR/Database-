@@ -1,0 +1,804 @@
+/* Section 2 — “Sabés más inglés…” cinematic split
+   Isolated from Hero. Do not alter hero rules here. */
+
+.scene-know {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: min(92vh, 860px);
+  padding: 4.5rem 0 4.75rem;
+  background:
+    linear-gradient(180deg, #080B0F 0%, #0C1018 28%, #0C1018 62%, #080B0F 100%);
+  border-top: 1px solid rgba(123, 77, 255, 0.12);
+}
+
+.scene-know-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 50% at 18% 42%, rgba(123, 77, 255, 0.18), transparent 62%),
+    radial-gradient(ellipse 40% 38% at 78% 30%, rgba(123, 77, 255, 0.1), transparent 58%),
+    radial-gradient(ellipse 36% 30% at 70% 88%, rgba(255, 138, 0, 0.05), transparent 60%);
+}
+
+.scene-know-atmosphere::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 120px;
+  background: linear-gradient(180deg, rgba(4, 7, 17, 0.85), transparent);
+}
+
+.scene-know-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2.5rem, 1760px);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-rows: auto auto auto auto;
+  column-gap: 3.5rem;
+  row-gap: 1.35rem;
+  align-items: start;
+}
+
+.scene-know-visual {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: center;
+  min-width: 0;
+}
+
+.scene-know-lead,
+.scene-know-highlight,
+.scene-know-signals,
+.scene-know-bridge {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.scene-know-lead {
+  padding-top: 0.35rem;
+}
+
+.scene-know-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b8b4d4;
+}
+
+.scene-know-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 138, 0, 0.7), transparent);
+}
+
+.scene-know-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.15rem, 3.2vw, 3.05rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: #f4f5f8;
+  margin: 0 0 1.35rem;
+}
+
+.scene-know-body {
+  max-width: 34rem;
+  font-size: clamp(1.02rem, 1.15vw, 1.12rem);
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 0 0 0.85rem;
+}
+
+.scene-know-body:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Highlight — emphasis, not a SaaS card */
+.scene-know-highlight {
+  position: relative;
+  max-width: 34rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0 0.35rem 1.15rem;
+}
+
+.scene-know-highlight-line {
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(123, 77, 255, 0.95),
+    rgba(123, 77, 255, 0.55),
+    rgba(255, 138, 0, 0.55)
+  );
+  box-shadow: 0 0 18px rgba(123, 77, 255, 0.35);
+  transform-origin: top center;
+}
+
+.scene-know-highlight p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.12rem, 1.35vw, 1.28rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: #ebe4ff;
+  text-shadow: 0 0 28px rgba(123, 77, 255, 0.18);
+}
+
+/* Narrative signals — not real metrics */
+.scene-know-signals {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-width: 22rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.scene-know-signals li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.scene-know-signals li:last-child {
+  border-bottom: 0;
+}
+
+.scene-know-signals .sig-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8d93aa;
+}
+
+.scene-know-signals .sig-value {
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d4d8e8;
+}
+
+.scene-know-signals .sig-value.is-warn {
+  color: #FFA940;
+}
+
+.scene-know-signals .sig-value.is-blocked {
+  color: #c4b5fd;
+}
+
+.scene-know-signals .is-bridge-signal {
+  margin-top: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(123, 77, 255, 0.22);
+  border-bottom: 0;
+}
+
+.scene-know-signals .sig-value.is-solve {
+  color: #a78bfa;
+}
+
+.scene-know-bridge {
+  max-width: 34rem;
+  margin: 0.55rem 0 0;
+  font-size: clamp(1.05rem, 1.2vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: #e8eaf2;
+}
+
+/* ——— Left: editorial conversation story (no humans / no radar) ——— */
+.know-story {
+  --know-cycle: 9.5s;
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+  padding: 1.1rem 0.35rem 0.5rem;
+  isolation: isolate;
+}
+
+.know-story-glow {
+  position: absolute;
+  inset: 8% 5% 12%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 30% 18%, rgba(123, 77, 255, 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 70% 70%, rgba(123, 77, 255, 0.08), transparent 65%);
+  filter: blur(28px);
+}
+
+.know-q,
+.know-connect,
+.know-a,
+.know-footnote {
+  position: relative;
+  z-index: 1;
+}
+
+.know-q-label,
+.know-a-label {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8d93aa;
+}
+
+.know-q {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.know-q-bubble {
+  margin: 0;
+  max-width: 26rem;
+  padding: 0.95rem 1.15rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.55vw, 1.4rem);
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: #f0ecff;
+  background: linear-gradient(
+    135deg,
+    rgba(28, 22, 52, 0.55),
+    rgba(14, 16, 32, 0.35)
+  );
+  border: 1px solid rgba(123, 77, 255, 0.28);
+  border-radius: 4px 18px 18px 18px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 18px 40px rgba(0, 0, 0, 0.22),
+    0 0 36px rgba(123, 77, 255, 0.12);
+}
+
+.know-connect {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.55rem 0 0.55rem 1.35rem;
+  opacity: 0;
+}
+
+.know-connect-line {
+  display: block;
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(
+    180deg,
+    rgba(123, 77, 255, 0.55),
+    rgba(123, 77, 255, 0.08)
+  );
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+.know-connect-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: 2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(196, 181, 253, 0.55);
+  opacity: 0;
+}
+
+.know-a {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.know-a-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.know-a-label {
+  margin-bottom: 0;
+}
+
+.know-meters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.15rem;
+}
+
+.know-meter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.know-meter-k {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6f7690;
+}
+
+.know-meter-v {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: #b8bfd4;
+  font-style: normal;
+}
+
+.know-time {
+  position: relative;
+  display: inline-grid;
+  min-width: 2.6rem;
+}
+
+.know-time em {
+  grid-area: 1 / 1;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+}
+
+.know-pressure-val,
+.know-clarity-val {
+  opacity: 0.35;
+}
+
+.know-attempts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.know-attempt {
+  position: relative;
+  min-height: 2.55rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(10, 12, 24, 0.35);
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.know-attempt-full,
+.know-attempt-cut {
+  display: block;
+  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+.know-attempt-full {
+  color: rgba(232, 234, 242, 0.88);
+}
+
+.know-attempt-cut {
+  position: absolute;
+  left: 0.95rem;
+  right: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(196, 181, 253, 0.55);
+  opacity: 0;
+  letter-spacing: 0.04em;
+}
+
+.know-state {
+  position: relative;
+  min-height: 2.6rem;
+  margin-top: 1rem;
+  display: grid;
+  align-items: center;
+}
+
+.know-thinking-state,
+.know-blocked-state {
+  grid-area: 1 / 1;
+  opacity: 0;
+}
+
+.know-thinking-state {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.7);
+}
+
+.know-blocked-state {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.35vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #FFA940;
+  text-shadow: 0 0 24px rgba(255, 138, 0, 0.22);
+}
+
+.know-footnote {
+  margin: 1.15rem 0 0;
+  max-width: 22rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(141, 147, 170, 0.72);
+  opacity: 0;
+}
+
+/* ——— Narrative loop ~9.5s ———
+   0–12%  question
+   10–18% connector
+   14–32% responses build
+   32–52% fragment
+   48–62% meters / pressure
+   58–70% thinking
+   68–86% blocked
+   88–100% soft reset
+*/
+.scene-know.is-in .know-q {
+  animation: know-q-in var(--know-cycle) var(--ease-premium, ease) infinite;
+}
+.scene-know.is-in .know-connect {
+  animation: know-connect-fade var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-connect-line {
+  animation: know-connect-draw var(--know-cycle) var(--ease-premium, ease) infinite;
+}
+.scene-know.is-in .know-connect-dot {
+  animation: know-connect-dot var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-a {
+  animation: know-a-in var(--know-cycle) var(--ease-premium, ease) infinite;
+}
+.scene-know.is-in .know-attempt[data-line="1"] {
+  animation:
+    know-attempt-in var(--know-cycle) var(--ease-premium, ease) infinite,
+    know-attempt-stress var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-attempt[data-line="2"] {
+  animation:
+    know-attempt-in var(--know-cycle) var(--ease-premium, ease) 0.18s infinite,
+    know-attempt-stress var(--know-cycle) ease-in-out 0.18s infinite;
+}
+.scene-know.is-in .know-attempt[data-line="3"] {
+  animation: know-attempt-in var(--know-cycle) var(--ease-premium, ease) 0.32s infinite;
+}
+.scene-know.is-in .know-attempt[data-line="1"] .know-attempt-full {
+  animation: know-full-fade var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-attempt[data-line="2"] .know-attempt-full {
+  animation: know-full-fade var(--know-cycle) ease-in-out 0.12s infinite;
+}
+.scene-know.is-in .know-attempt[data-line="3"] .know-attempt-full {
+  animation: know-full-fade-soft var(--know-cycle) ease-in-out 0.2s infinite;
+}
+.scene-know.is-in .know-attempt[data-line="1"] .know-attempt-cut {
+  animation: know-cut-in var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-attempt[data-line="2"] .know-attempt-cut {
+  animation: know-cut-in var(--know-cycle) ease-in-out 0.12s infinite;
+}
+.scene-know.is-in .know-attempt[data-line="3"] .know-attempt-cut {
+  animation: know-cut-in-soft var(--know-cycle) ease-in-out 0.2s infinite;
+}
+.scene-know.is-in .know-time em[data-t="0"] {
+  animation: know-t0 var(--know-cycle) steps(1, end) infinite;
+}
+.scene-know.is-in .know-time em[data-t="1"] {
+  animation: know-t1 var(--know-cycle) steps(1, end) infinite;
+}
+.scene-know.is-in .know-time em[data-t="2"] {
+  animation: know-t2 var(--know-cycle) steps(1, end) infinite;
+}
+.scene-know.is-in .know-pressure-val {
+  animation: know-pressure-up var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-clarity-val {
+  animation: know-clarity-down var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-meter-time .know-meter-v {
+  animation: know-time-tint var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-thinking-state {
+  animation: know-thinking-show var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-blocked-state {
+  animation: know-blocked-show var(--know-cycle) ease-in-out infinite;
+}
+.scene-know.is-in .know-footnote {
+  animation: know-footnote-show var(--know-cycle) ease-in-out infinite;
+}
+
+@keyframes know-q-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  8%, 86% { opacity: 1; transform: translateY(0); }
+  94%, 100% { opacity: 0; transform: translateY(4px); }
+}
+
+@keyframes know-connect-fade {
+  0%, 8% { opacity: 0; }
+  14%, 86% { opacity: 1; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes know-connect-draw {
+  0%, 8% { transform: scaleY(0); }
+  16%, 86% { transform: scaleY(1); }
+  94%, 100% { transform: scaleY(0); }
+}
+
+@keyframes know-connect-dot {
+  0%, 12% { opacity: 0; }
+  18%, 86% { opacity: 0.8; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes know-a-in {
+  0%, 10% { opacity: 0; transform: translateY(8px); }
+  18%, 86% { opacity: 1; transform: translateY(0); }
+  94%, 100% { opacity: 0; transform: translateY(4px); }
+}
+
+@keyframes know-attempt-in {
+  0%, 12% { opacity: 0; transform: translateY(8px); }
+  22%, 86% { opacity: 1; transform: translateY(0); }
+  94%, 100% { opacity: 0; transform: translateY(4px); }
+}
+
+@keyframes know-attempt-stress {
+  0%, 45% { border-color: rgba(255, 255, 255, 0.07); }
+  55%, 78% { border-color: rgba(255, 138, 0, 0.22); }
+  88%, 100% { border-color: rgba(255, 255, 255, 0.07); }
+}
+
+@keyframes know-full-fade {
+  0%, 30% { opacity: 1; }
+  42%, 78% { opacity: 0; }
+  90%, 100% { opacity: 1; }
+}
+
+@keyframes know-full-fade-soft {
+  0%, 36% { opacity: 1; }
+  48%, 78% { opacity: 0.15; }
+  90%, 100% { opacity: 1; }
+}
+
+@keyframes know-cut-in {
+  0%, 32% { opacity: 0; }
+  42%, 78% { opacity: 1; }
+  88%, 100% { opacity: 0; }
+}
+
+@keyframes know-cut-in-soft {
+  0%, 38% { opacity: 0; }
+  48%, 78% { opacity: 0.85; }
+  88%, 100% { opacity: 0; }
+}
+
+@keyframes know-t0 {
+  0%, 48% { opacity: 1; }
+  48.01%, 100% { opacity: 0; }
+}
+
+@keyframes know-t1 {
+  0%, 48% { opacity: 0; }
+  48.01%, 58% { opacity: 1; }
+  58.01%, 100% { opacity: 0; }
+}
+
+@keyframes know-t2 {
+  0%, 58% { opacity: 0; }
+  58.01%, 88% { opacity: 1; }
+  88.01%, 100% { opacity: 0; }
+}
+
+@keyframes know-time-tint {
+  0%, 48% { color: #b8bfd4; }
+  58%, 82% { color: #FFA940; }
+  92%, 100% { color: #b8bfd4; }
+}
+
+@keyframes know-pressure-up {
+  0%, 45% { opacity: 0.3; color: #b8bfd4; }
+  55%, 82% { opacity: 1; color: #FFA940; }
+  92%, 100% { opacity: 0.3; color: #b8bfd4; }
+}
+
+@keyframes know-clarity-down {
+  0%, 45% { opacity: 0.3; color: #b8bfd4; }
+  55%, 82% { opacity: 1; color: #c4b5fd; }
+  92%, 100% { opacity: 0.3; color: #b8bfd4; }
+}
+
+@keyframes know-thinking-show {
+  0%, 58% { opacity: 0; transform: translateY(4px); }
+  62%, 68% { opacity: 1; transform: translateY(0); }
+  72%, 100% { opacity: 0; transform: translateY(-2px); }
+}
+
+@keyframes know-blocked-show {
+  0%, 68% { opacity: 0; transform: translateY(6px); }
+  74%, 86% { opacity: 1; transform: translateY(0); }
+  92%, 100% { opacity: 0; transform: translateY(-2px); }
+}
+
+@keyframes know-footnote-show {
+  0%, 72% { opacity: 0; }
+  78%, 88% { opacity: 0.85; }
+  95%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .know-q,
+  .know-connect,
+  .know-a,
+  .know-attempt,
+  .know-thinking-state,
+  .know-blocked-state,
+  .know-footnote,
+  .know-pressure-val,
+  .know-clarity-val,
+  .know-attempt-full,
+  .know-attempt-cut,
+  .know-connect-line,
+  .know-connect-dot,
+  .know-time em {
+    animation: none !important;
+  }
+
+  .know-q,
+  .know-connect,
+  .know-a,
+  .know-attempt,
+  .know-footnote {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .know-connect-line { transform: scaleY(1) !important; }
+  .know-connect-dot { opacity: 0.7 !important; }
+  .know-attempt-full { opacity: 0 !important; }
+  .know-attempt-cut { opacity: 1 !important; }
+  .know-thinking-state { opacity: 0 !important; }
+  .know-blocked-state { opacity: 1 !important; transform: none !important; }
+  .know-pressure-val,
+  .know-clarity-val { opacity: 1 !important; color: #FFA940 !important; }
+  .know-clarity-val { color: #c4b5fd !important; }
+  .know-time em { opacity: 0 !important; }
+  .know-time em[data-t="2"] { opacity: 1 !important; color: #FFA940 !important; }
+  .know-footnote { opacity: 0.8 !important; }
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .scene-know {
+    min-height: 0;
+    padding: 3.5rem 0 3.75rem;
+  }
+
+  .scene-know-shell {
+    column-gap: 2rem;
+    width: min(100% - 2rem, 1120px);
+  }
+
+  .know-story {
+    max-width: 460px;
+  }
+
+  .scene-know-title {
+    font-size: clamp(2rem, 3.4vw, 2.65rem);
+  }
+}
+
+/* Mobile — question, 2 replies, timer, blocked */
+@media (max-width: 768px) {
+  .scene-know {
+    padding: 2.75rem 0 3rem;
+  }
+
+  .scene-know-shell {
+    display: flex;
+    flex-direction: column;
+    width: min(100% - 2.5rem, var(--max, 1360px));
+    gap: 1.35rem;
+  }
+
+  .scene-know-lead { order: 1; }
+  .scene-know-visual { order: 2; }
+  .scene-know-highlight { order: 3; }
+  .scene-know-signals { order: 4; }
+  .scene-know-bridge { order: 5; }
+
+  .scene-know-visual,
+  .scene-know-lead,
+  .scene-know-highlight,
+  .scene-know-signals,
+  .scene-know-bridge {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .know-story {
+    max-width: 100%;
+    padding: 0.35rem 0;
+  }
+
+  .know-attempt[data-line="3"],
+  .know-meter-clarity,
+  .know-footnote {
+    display: none;
+  }
+
+  .know-q-bubble {
+    font-size: 1.12rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .know-a-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  .know-meters {
+    gap: 0.75rem 1rem;
+  }
+
+  .scene-know-title {
+    font-size: clamp(1.95rem, 8.5vw, 2.45rem);
+  }
+
+  .scene-know-body,
+  .scene-know-highlight,
+  .scene-know-bridge {
+    max-width: none;
+  }
+
+  .scene-know-signals {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .scene-know-shell {
+    width: min(100% - 2.5rem, 100%);
+    gap: 1.2rem;
+  }
+}

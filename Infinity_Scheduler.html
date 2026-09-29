@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="prototype-cadamag/assets/brand/favicon/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
+
+<meta name="theme-color" content="#080B0F">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Infinity CR — Scheduler</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 
 <!--
@@ -83,9 +92,9 @@
   --text: #1a1a18;
   --text2: #5f5e5a;
   --text3: #888780;
-  --accent: #185fa5;
-  --accent-bg: #e6f1fb;
-  --accent-border: #b5d4f4;
+  --accent: #7B4DFF;
+  --accent-bg: rgba(123,77,255,0.16);
+  --accent-border: rgba(123,77,255,0.35);
   --success: #3b6d11;
   --success-bg: #eaf3de;
   --success-border: #c0dd97;
@@ -99,7 +108,7 @@
   --pro-bg: #eeedfe;
   --pro-border: #cecbf6;
   --radius: 6px;
-  --purple: #7C3AED;
+  --purple: #9B74FF;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -107,7 +116,7 @@ body { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); ba
 
 /* ── LAYOUT ── */
 .shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-.topbar { background: #1e3a5f; color: #fff; padding: 0 16px; height: 50px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 12px; }
+.topbar { background: #7B4DFF; color: #fff; padding: 0 16px; height: 50px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 12px; }
 .logo { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 .logo-sym { color: #a78bfa; font-size: 20px; }
 .view-tabs { display: flex; gap: 4px; }
@@ -225,6 +234,7 @@ body { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); ba
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 </style>
+<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
 </head>
 <body>
 <div class="shell">
@@ -452,7 +462,7 @@ const TYPE_CLS = {
 const TRAINERS = [
   {
     id: 1, name: 'Ana Rodríguez', initials: 'AR', role: 'Senior Trainer',
-    bg: '#e6f1fb', fg: '#185fa5',
+    bg: 'rgba(123,77,255,0.16)', fg: '#9B74FF',
     email: 'ana@studioinfinitycr.com', phone: '+506 8821 4410',
     meet: 'https://meet.google.com/ana-infinity',
     chips: ['Corporate','BPO','VIP'],
@@ -897,5 +907,16 @@ renderCal();
 updatePreview();
 updateBlockPreview();
 </script>
+
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+
 </body>
 </html>

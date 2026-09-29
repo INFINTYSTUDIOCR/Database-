@@ -8,18 +8,18 @@
   var pool = {};
   var theme = {
     name: 'infinity',
-    accent: '#5B21B6',
-    accentSoft: 'rgba(91,33,182,0.18)',
-    line: ['#5B21B6', '#0F6E56', '#D97706', '#A32D2D', '#7C3AED']
+    accent: '#7B4DFF',
+    accentSoft: 'rgba(123,77,255,0.18)',
+    line: ['#7B4DFF', '#0F6E56', '#D97706', '#A32D2D', '#9B74FF']
   };
   var onSelectCbs = [];
 
   var THEMES = {
     infinity: {
       name: 'infinity',
-      accent: '#5B21B6',
-      accentSoft: 'rgba(91,33,182,0.18)',
-      line: ['#5B21B6', '#0F6E56', '#D97706', '#A32D2D', '#7C3AED']
+      accent: '#7B4DFF',
+      accentSoft: 'rgba(123,77,255,0.18)',
+      line: ['#7B4DFF', '#0F6E56', '#D97706', '#A32D2D', '#9B74FF']
     },
     kamuk: {
       name: 'kamuk',
@@ -286,7 +286,7 @@
   function areaBarColors(data) {
     return data.map(function (p) {
       if (p >= 80) return '#3DDC97';
-      if (p >= 60) return '#F5A623';
+      if (p >= 60) return '#FF8A00';
       return '#FF5C5C';
     });
   }
@@ -358,9 +358,9 @@
         datasets: [{
           label: 'Área %',
           data: data,
-          borderColor: '#F5A623',
+          borderColor: '#FF8A00',
           backgroundColor: 'rgba(245,166,35,0.35)',
-          pointBackgroundColor: '#F5A623',
+          pointBackgroundColor: '#FF8A00',
           pointRadius: 5,
           pointHoverRadius: 8,
           borderWidth: 2

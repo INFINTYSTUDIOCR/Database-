@@ -804,7 +804,7 @@
       return;
     }
     var product = opts.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#7B4DFF');
     var studentId = String(opts.studentId || '').trim();
     var state = read('mod', product, studentId, mod.id) || {
       phase: 'learn',
@@ -972,7 +972,7 @@
     if (!root) return;
     opts = opts || {};
     var product = opts.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#7B4DFF');
     var studentId = String(opts.studentId || '').trim();
     var state = read('final', product, studentId, 'final') || {
       answers: {},
@@ -1071,7 +1071,7 @@
     if (!root) return;
     opts = opts || {};
     var product = opts.product === 'kamuk' ? 'kamuk' : 'infinity';
-    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#5B21B6');
+    var accent = opts.accent || (product === 'kamuk' ? '#2B7EC1' : '#7B4DFF');
     var studentId = String(opts.studentId || '').trim();
     var desk = product === 'kamuk' ? 'Kamuk Holdings' : 'Infinity Holdings Inc';
     styles(accent);

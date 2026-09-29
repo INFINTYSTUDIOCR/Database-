@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="prototype-cadamag/assets/brand/favicon/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#080B0F">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="js/site-urls.js"></script>
@@ -11,23 +21,26 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;
-  --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
-  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
-  --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
-  --purple:#5B21B6;--pb:#EDE9FE;--pm:#7C3AED;
-  --gray:#F8F8FF;--border:#E2E8F0;
-  --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;
-  --r:8px;--rl:12px;
+  --navy:#7B4DFF;--nl:rgba(123,77,255,0.16);--nm:#9B74FF;--nd:#C4B5FD;
+  --accent:#7B4DFF;--accent-bg:rgba(123,77,255,0.14);--accent-border:rgba(123,77,255,0.35);
+  --green:#34d399;--gb:rgba(52,211,153,0.12);--gm:#6ee7b7;
+  --amber:#FFA940;--ab:rgba(255,138,0,0.12);--ad:#FFD08A;
+  --red:#f87171;--rb:rgba(248,113,113,0.12);--rm:#fca5a5;
+  --purple:#7B4DFF;--pb:rgba(123,77,255,0.14);--pm:#9B74FF;
+  --purple-light:#9B74FF;--purple-glow:rgba(123,77,255,0.12);
+  --gold:#FF8A00;--gray:#12161f;--border:rgba(232,234,240,0.12);
+  --text:#E8EAF0;--t2:#C5C9D6;--t3:#8B92A8;
+  --r:10px;--rl:14px;
+  --bg:#080B0F;--surface:#171C26;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F8F8FF;color:var(--text);min-height:100vh;}
+body{font-family:'Inter',system-ui,sans-serif;background:#080B0F;color:var(--text);min-height:100vh;}
 .topbar{background:var(--navy);color:white;padding:0.875rem 1.5rem;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
 .tb-logo{background:rgba(255,255,255,0.15);border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;letter-spacing:0.06em;}
 .tb-name{font-size:14px;font-weight:700;}.tb-sub{font-size:11px;opacity:0.6;margin-top:1px;}
 .tb-right{margin-left:auto;display:flex;gap:8px;}
 
 .main{max-width:900px;margin:0 auto;padding:1.5rem;}
-.card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
+.card{background:rgba(23,28,38,0.94);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
 .card-title{font-size:15px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px;color:var(--navy);}
 .sect-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);font-weight:700;}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
@@ -44,7 +57,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kpi-block-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
 .kpi-block-desc{font-size:12px;color:var(--t2);margin-bottom:1rem;line-height:1.5;}
 .kpi-scale{display:flex;gap:8px;margin-bottom:0.75rem;flex-wrap:wrap;}
-.kpi-btn{width:52px;height:52px;border-radius:var(--r);border:2px solid var(--border);background:white;font-size:18px;font-weight:800;cursor:pointer;color:var(--t3);transition:all 0.15s;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:inherit;}
+.kpi-btn{width:52px;height:52px;border-radius:var(--r);border:2px solid var(--border);background:rgba(8,11,15,0.7);font-size:18px;font-weight:800;cursor:pointer;color:var(--t3);transition:all 0.15s;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:inherit;}
 .kpi-btn:hover{border-color:var(--nm);color:var(--navy);}
 .kpi-btn.sel-1{border-color:var(--rm);background:var(--rb);color:var(--red);}
 .kpi-btn.sel-2{border-color:#E05D44;background:#FEF0ED;color:#7A2E1B;}
@@ -157,6 +170,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-navy{background:var(--navy);color:white;}
 .btn-outline{background:white;color:var(--t2);border:1px solid var(--border);}
 </style>
+<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
+<link rel="stylesheet" href="css/infinity-apps-dark.css?v=20260929apps1">
 </head>
 <body>
 
@@ -901,7 +916,7 @@ function buildExercises(r, level, context, params){
 // ── EXERCISE RENDERER ─────────────────────────────────────────────────
 function renderExercise(ex){
   var typeColors = {
-    writing:['#EDE9FE','#3B0E8C'],
+    writing:['rgba(123,77,255,0.16)','#5A2FE0'],
     debate:['#EEEDFE','#3C3489'],
     simulation:['#E1F5EE','#085041'],
     roleplay:['#FAEEDA','#633806'],
@@ -911,7 +926,7 @@ function renderExercise(ex){
     CRITICAL:['#FCEBEB','#A32D2D'],
     HIGH:['#FAEEDA','#633806'],
     ADVANCED:['#EEEDFE','#3C3489'],
-    MEDIUM:['#EDE9FE','#3B0E8C'],
+    MEDIUM:['rgba(123,77,255,0.16)','#5A2FE0'],
     DEVELOPMENT:['#E1F5EE','#085041']
   };
   var tc = typeColors[ex.type]||['#F4F6FB','#64748B'];
@@ -932,7 +947,7 @@ function renderExercise(ex){
   }
 
   var trainerScriptHtml = ex.trainer_script
-    ?'<div style="background:#FFF8F0;border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:0.875rem;margin-bottom:10px;">'
+    ?'<div style="background:rgba(255,138,0,0.12);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:0.875rem;margin-bottom:10px;">'
       +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin-bottom:6px;"><i class="ti ti-microphone" style="margin-right:4px;"></i>Trainer script</div>'
       +'<div style="font-size:12px;color:var(--ad);line-height:1.7;white-space:pre-line;">'+ex.trainer_script+'</div>'
       +'</div>'
@@ -1143,7 +1158,7 @@ function generateDiagnostic(){
     +'<div style="background:var(--rb);border-radius:var(--r);padding:1rem;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--rm);margin-bottom:4px;">Primary focus</div><div style="font-size:13px;font-weight:700;color:var(--red);">'+weakest.name+'</div><div style="font-size:12px;color:var(--rm);">Score '+ratings[weakest.id]+'/5 — Address first</div></div>'
     +'<div style="background:var(--ab);border-radius:var(--r);padding:1rem;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ad);margin-bottom:4px;">Secondary focus</div><div style="font-size:13px;font-weight:700;color:var(--ad);">'+secondWeakest.name+'</div><div style="font-size:12px;color:var(--ad);">Score '+ratings[secondWeakest.id]+'/5 — Address after week 2</div></div>'
     +'</div>'
-    +'<div style="background:var(--nl);border:1px solid #B5D4F4;border-radius:var(--r);padding:1rem;">'
+    +'<div style="background:var(--nl);border:1px solid rgba(123,77,255,0.35);border-radius:var(--r);padding:1rem;">'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--nd);margin-bottom:6px;">4-week milestone</div>'
     +'<div style="font-size:13px;color:var(--nd);line-height:1.7;">'+milestone+'</div>'
     +'</div>';
@@ -1189,5 +1204,16 @@ function resetAll(){
   location.reload();
 }
 </script>
+
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+
 </body>
 </html>

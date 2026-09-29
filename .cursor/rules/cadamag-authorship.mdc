@@ -1,0 +1,32 @@
+---
+description: Firma de autoría Cadamag obligatoria al final de toda página web del proyecto
+alwaysApply: true
+---
+
+# Autoría Cadamag — firma final
+
+Al crear o entregar cualquier página web en este proyecto, incluir al **final absoluto** del documento (después de todo el contenido y footer principal del cliente) una firma discreta:
+
+```html
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+```
+
+## Requisitos
+
+- Último bloque visible de la página
+- Discreto, elegante, menor jerarquía que el footer del cliente
+- Una línea en desktop si cabe; 2–3 líneas en mobile
+- Email: `mailto:cadamag.automacao@gmail.com`
+- Teléfono WhatsApp: `https://wa.me/5592984168201` + `target="_blank"` + `rel="noopener noreferrer"`
+- No competir con la marca del cliente; no bloque grande ni sección llamativa
+- Contraste suficiente pero tipografía pequeña / tono muted
+
+Reutilizar estilos `.cadamag-credit*` del prototipo (`prototype-cadamag/css/prototype.css`) o equivalentes al adaptar a otra página.

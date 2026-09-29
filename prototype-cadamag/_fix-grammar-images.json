@@ -1,0 +1,38 @@
+{
+  "files": [
+    "alice.html",
+    "claire.html",
+    "conversatorio.html",
+    "foundations-path.html",
+    "foundations.html",
+    "hablemos.html",
+    "index.html",
+    "ingles-operacional-latinoamerica.html",
+    "jill.html",
+    "job-finder.html",
+    "nexora.html",
+    "ort-path.html",
+    "ort.html",
+    "prototype-cadamag/alice.html",
+    "prototype-cadamag/claire.html",
+    "prototype-cadamag/conversatorio.html",
+    "prototype-cadamag/foundations-path.html",
+    "prototype-cadamag/foundations.html",
+    "prototype-cadamag/hablemos.html",
+    "prototype-cadamag/index.html",
+    "prototype-cadamag/ingles-operacional-latinoamerica.html",
+    "prototype-cadamag/jill.html",
+    "prototype-cadamag/job-finder.html",
+    "prototype-cadamag/js/persona-avatar.js",
+    "prototype-cadamag/nexora.html",
+    "prototype-cadamag/ort-path.html",
+    "prototype-cadamag/ort.html",
+    "prototype-cadamag/training-book.html",
+    "scripts/fix-grammar-and-broken-images.js",
+    "training-book.html",
+    "prototype-cadamag/scripts/generate-commercial-pages.js"
+  ],
+  "leftovers": [
+    "scripts/fix-grammar-and-broken-images.js"
+  ]
+}

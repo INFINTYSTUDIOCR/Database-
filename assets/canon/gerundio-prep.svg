@@ -3,15 +3,15 @@
   <defs>
     <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#f3ebff"/>
-      <stop offset="100%" stop-color="#ede9fe"/>
+      <stop offset="100%" stop-color="rgba(123,77,255,0.16)"/>
     </linearGradient>
   </defs>
   <rect width="960" height="540" fill="url(#bg2)" rx="16"/>
-  <text x="480" y="42" text-anchor="middle" fill="#5B21B6" font-family="Inter,Segoe UI,sans-serif" font-size="26" font-weight="800">GERUNDIO despues de PREPOSICION</text>
+  <text x="480" y="42" text-anchor="middle" fill="#7B4DFF" font-family="Inter,Segoe UI,sans-serif" font-size="26" font-weight="800">GERUNDIO despues de PREPOSICION</text>
   <text x="480" y="72" text-anchor="middle" fill="#6d28d9" font-family="Inter,Segoe UI,sans-serif" font-size="15">NO es Presente Continuo — aca el -ING es complemento de la prep</text>
 
-  <rect x="70" y="95" width="230" height="100" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="185" y="135" text-anchor="middle" fill="#5B21B6" font-size="20" font-weight="700" font-family="Inter,sans-serif">PREP</text>
+  <rect x="70" y="95" width="230" height="100" rx="14" fill="rgba(123,77,255,0.16)" stroke="#9B74FF" stroke-width="2"/>
+  <text x="185" y="135" text-anchor="middle" fill="#7B4DFF" font-size="20" font-weight="700" font-family="Inter,sans-serif">PREP</text>
   <text x="185" y="165" text-anchor="middle" fill="#312e81" font-size="14" font-family="Inter,sans-serif">before | after | without</text>
   <text x="185" y="185" text-anchor="middle" fill="#312e81" font-size="13" font-family="Inter,sans-serif">by | instead of | good at</text>
 
@@ -24,12 +24,12 @@
 
   <text x="700" y="155" text-anchor="middle" fill="#6d28d9" font-size="32" font-weight="800">+</text>
 
-  <rect x="740" y="95" width="150" height="100" rx="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
-  <text x="815" y="145" text-anchor="middle" fill="#5B21B6" font-size="20" font-weight="700" font-family="Inter,sans-serif">C</text>
+  <rect x="740" y="95" width="150" height="100" rx="14" fill="rgba(123,77,255,0.16)" stroke="#9B74FF" stroke-width="2"/>
+  <text x="815" y="145" text-anchor="middle" fill="#7B4DFF" font-size="20" font-weight="700" font-family="Inter,sans-serif">C</text>
   <text x="815" y="172" text-anchor="middle" fill="#312e81" font-size="13" font-family="Inter,sans-serif">resto</text>
 
   <rect x="100" y="215" width="760" height="44" rx="10" fill="rgba(91,33,182,0.1)" stroke="rgba(91,33,182,0.3)"/>
-  <text x="480" y="245" text-anchor="middle" fill="#5B21B6" font-family="ui-monospace,Consolas,monospace" font-size="20" font-weight="700">PREP + VERBO + ING (+ C)</text>
+  <text x="480" y="245" text-anchor="middle" fill="#7B4DFF" font-family="ui-monospace,Consolas,monospace" font-size="20" font-weight="700">PREP + VERBO + ING (+ C)</text>
 
   <text x="480" y="290" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="14" font-weight="700">Puente: saliendo = leaving · trabajando = working · diciendo = saying</text>
 
@@ -38,8 +38,8 @@
   <text x="480" y="385" text-anchor="middle" fill="#312e81" font-family="ui-monospace,Consolas,monospace" font-size="20" font-weight="700">She left without saying goodbye.</text>
 
   <!-- Practica visual en el tablero (no texto aparte) -->
-  <rect x="80" y="415" width="800" height="100" rx="14" fill="#fff" stroke="#7c3aed" stroke-width="2.5"/>
-  <text x="480" y="445" text-anchor="middle" fill="#7c3aed" font-size="13" font-weight="800" font-family="Inter,sans-serif" letter-spacing="0.12em">PRACTICA — completa en voz (mic)</text>
+  <rect x="80" y="415" width="800" height="100" rx="14" fill="#fff" stroke="#9B74FF" stroke-width="2.5"/>
+  <text x="480" y="445" text-anchor="middle" fill="#9B74FF" font-size="13" font-weight="800" font-family="Inter,sans-serif" letter-spacing="0.12em">PRACTICA — completa en voz (mic)</text>
   <text x="480" y="480" text-anchor="middle" fill="#312e81" font-family="ui-monospace,Consolas,monospace" font-size="22" font-weight="700">Before ________ , call me.</text>
   <text x="480" y="508" text-anchor="middle" fill="#6d28d9" font-size="14" font-family="Inter,sans-serif">Deci: leaving  ·  (saliendo → leaving)</text>
 </svg>

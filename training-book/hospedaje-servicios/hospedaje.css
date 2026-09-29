@@ -34,7 +34,7 @@ h1 {
 }
 .progress > span {
   display: block; height: 100%;
-  background: linear-gradient(90deg, var(--blue), #5B21B6);
+  background: linear-gradient(90deg, var(--blue), #7B4DFF);
   width: 0%; transition: width .25s;
 }
 .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; font-weight: 700; color: var(--blue-deep); }
@@ -148,10 +148,10 @@ h1 {
 .ap-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
-  font-size: 12px; font-weight: 800; color: #5B21B6;
+  font-size: 12px; font-weight: 800; color: #7B4DFF;
 }
 .ap-badge {
-  background: #5B21B6; color: #fff; border-radius: 999px;
+  background: #7B4DFF; color: #fff; border-radius: 999px;
   padding: 4px 10px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
 }
 .ap-alice-box {
@@ -172,7 +172,7 @@ h1 {
 }
 .ap-feedback.ok { display: block; background: #e8f7ef; color: var(--ok); }
 .ap-feedback.fix { display: block; background: #FFF8E7; color: #8a6d1d; }
-.ap-status { font-size: 12px; font-weight: 700; color: #5B21B6; min-height: 1.2em; margin: 4px 0 8px; }
+.ap-status { font-size: 12px; font-weight: 700; color: #7B4DFF; min-height: 1.2em; margin: 4px 0 8px; }
 .ap-eval {
   display: none; margin-top: 12px; padding: 12px 14px; border-radius: 12px;
   font-size: 13px; line-height: 1.55;
@@ -180,7 +180,7 @@ h1 {
 .ap-eval.ok { display: block; background: #e8f7ef; color: var(--ok); border: 1px solid #b7e4c7; }
 .ap-eval.bad { display: block; background: #fdecec; color: var(--bad); border: 1px solid #f5c2c0; }
 .btn-mic {
-  background: #5B21B6; color: #fff;
+  background: #7B4DFF; color: #fff;
 }
 .btn-mic.listening {
   background: #b42318;

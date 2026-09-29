@@ -1,18 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="prototype-cadamag/assets/brand/favicon/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
+
+<meta name="theme-color" content="#080B0F">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GOSpanol — Spanish for foreigners | Infinity Studio CR</title>
 <meta name="description" content="GOSpanol: Spanish for anglophones who freeze when speaking. Trainer online + Vale + Training Book. Stop studying. Start speaking.">
 <link rel="canonical" href="https://studioinfinitycr.com/gospanol.html">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link rel="stylesheet" href="css/pages.css?v=20260703b">
+<link rel="stylesheet" href="css/pages.css?v=20260929contrast1">
+<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
+  <link rel="stylesheet" href="prototype-cadamag/css/motion.css?v=20260929tech1">
+  <script src="prototype-cadamag/js/motion.js?v=20260929tech1" defer></script>
+<link rel="stylesheet" href="css/infinity-apps-dark.css?v=20260929hyb1">
+<style>
+.gospanol-hero-logo{
+  display:block;
+  width:min(220px, 72vw);
+  height:auto;
+  max-height:none;
+  aspect-ratio:1024 / 682;
+  object-fit:contain;
+  object-position:center;
+  border-radius:18px;
+  background:#111;
+  margin:0 auto 1rem;
+}
+</style>
 </head>
 <body>
 <nav>
-  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR" class="nav-logo-page"></a>
+  <a href="index.html" class="nav-brand nav-brand-logo" aria-label="Infinity Studio CR home"><img src="prototype-cadamag/assets/brand/png/infinity-logo-horizontal-light.png" alt="Infinity Studio CR" class="nav-logo-page"></a>
   <div class="nav-links">
     <a href="index.html#programs">Programs</a>
     <a href="gospanol.html">GOSpanol</a>
@@ -22,9 +49,9 @@
 
 <header class="subpage-hero">
   <div class="subpage-hero-inner" style="max-width:720px;margin:0 auto;text-align:center;">
-    <img src="assets/logos/gospanol.png" alt="GOSpanol" width="88" height="88" style="border-radius:18px;background:#111;margin-bottom:1rem;">
+    <img src="assets/logos/gospanol.png" alt="GOSpanol" class="gospanol-hero-logo" width="1024" height="682">
     <div class="section-tag">Spanish for foreigners</div>
-    <h1>GOSpanol</h1>
+    <h1 data-reveal="top" data-delay="1">GOSpanol</h1>
     <p class="lead" style="text-transform:uppercase;letter-spacing:.08em;font-size:12px;font-weight:700;color:#888;">Stop studying. Start speaking.</p>
     <p class="lead">For anglophones who understand Spanish but freeze under pressure. Live trainer + Vale (oral companion) + Training Book Engine — sister track to English ORT, not a translation of it.</p>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:1.5rem;">
@@ -35,8 +62,8 @@
 </header>
 
 <main class="subpage-body" style="max-width:800px;margin:0 auto;">
-  <article class="case">
-    <h2>What you get</h2>
+  <article class="case" data-reveal="left" data-delay="2">
+    <h2 data-reveal="top" data-delay="1">What you get</h2>
     <ul class="features">
       <li>✓ Online trainer — installs structure (verb-first, ser/estar, connectors…)</li>
       <li>✓ Vale — practice companion when the trainer isn’t there (enabled per student)</li>
@@ -48,5 +75,16 @@
 </main>
 
 <footer class="page-footer">Infinity Studio CR · Sister product <strong>GOSpanol</strong> · <a href="index.html">Home</a></footer>
+
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+
 </body>
 </html>

@@ -1,0 +1,295 @@
+/**
+ * Infinity Studio — Brand System v2 (global)
+ * Source of truth: prototype-cadamag/assets/brand/
+ * Load AFTER page CSS to remap legacy tokens without changing app logic.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap");
+
+:root {
+  --infinity-violet: #7B4DFF;
+  --infinity-orange: #FF8A00;
+  --infinity-black: #080B0F;
+  --infinity-graphite: #171C26;
+  --infinity-smoke: #E8EAF0;
+  --infinity-white: #FFFFFF;
+
+  /* Legacy token remaps (apps that still use --navy/--purple/--gold) */
+  --navy: #7B4DFF;
+  --nl: rgba(123, 77, 255, 0.16);
+  --nm: #9B74FF;
+  --nd: #C4B5FD;
+  --purple: #7B4DFF;
+  --pb: rgba(123, 77, 255, 0.14);
+  --pm: #9B74FF;
+  --gold: #FF8A00;
+  --gray: #12161f;
+  --border: rgba(232, 234, 240, 0.12);
+  --text: #E8EAF0;
+  --t2: #E0E3ED;
+  --t3: #B4BAC9;
+  --r: 10px;
+  --rl: 14px;
+  --green: #34d399;
+  --gb: rgba(52, 211, 153, 0.12);
+  --gm: #6ee7b7;
+  --amber: #FFA940;
+  --ab: rgba(255, 138, 0, 0.12);
+  --ad: #FFD08A;
+  --red: #f87171;
+  --rb: rgba(248, 113, 113, 0.12);
+  --rm: #fca5a5;
+
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body) !important;
+  background-color: var(--infinity-black) !important;
+  background-image:
+    radial-gradient(ellipse 55% 40% at 12% 0%, rgba(123, 77, 255, 0.18), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 92% 8%, rgba(255, 138, 0, 0.08), transparent 50%),
+    linear-gradient(180deg, #080B0F 0%, #0C1018 50%, #080B0F 100%) !important;
+  background-attachment: fixed;
+  color: var(--text) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .page-title, .hero-title, .tb-title, .brand-name {
+  font-family: var(--font-display);
+}
+
+/* Chrome: topbars / navs */
+.topbar,
+nav.topbar,
+.site-header,
+header.nav,
+.page-nav,
+nav:not(.kamuk-nav):not(.gospanol-nav) {
+  background: rgba(8, 11, 15, 0.92) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(123, 77, 255, 0.18);
+}
+
+.tb-logo,
+.nav-logo,
+.nav-logo-page,
+.login-logo,
+.brand img,
+img[alt*="Infinity Studio" i] {
+  object-fit: contain !important;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-navy,
+button.primary,
+.portal-gate-btn:not(.portal-gate-btn--gold):not([style*="#0E7490"]) {
+  background: linear-gradient(135deg, #7B4DFF, #5A2FE0) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+.btn-gold,
+.btn-orange,
+.portal-gate-btn--gold {
+  background: linear-gradient(135deg, #FF8A00, #E67700) !important;
+  color: #080B0F !important;
+}
+
+.btn-outline,
+.btn-ghost {
+  border: 1px solid rgba(232, 234, 240, 0.18) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--infinity-smoke) !important;
+}
+
+/* Cards / panels */
+.card,
+.panel,
+.modal-card,
+.login-card,
+.gate-card {
+  background: rgba(23, 28, 38, 0.92) !important;
+  border: 1px solid rgba(123, 77, 255, 0.16) !important;
+  color: var(--text) !important;
+}
+
+input, select, textarea {
+  background: rgba(8, 11, 15, 0.75) !important;
+  border: 1px solid rgba(232, 234, 240, 0.14) !important;
+  color: var(--infinity-smoke) !important;
+  font-family: var(--font-body) !important;
+}
+
+/* Kill light legacy page shells */
+.page-hero,
+.page-main,
+main {
+  color: var(--text);
+}
+
+.page-footer,
+footer.page-footer {
+  background: transparent !important;
+  border-top: 1px solid rgba(232, 234, 240, 0.08);
+  color: var(--t3) !important;
+}
+
+/* Cadamag credit (shared) */
+.cadamag-credit {
+  margin-top: 2rem;
+  padding: 1.25rem 1rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid rgba(232, 234, 240, 0.06);
+}
+
+.cadamag-credit-line {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: rgba(232, 234, 240, 0.38);
+  font-family: var(--font-body);
+}
+
+.cadamag-credit-sep {
+  margin: 0 0.35rem;
+  opacity: 0.55;
+}
+
+.cadamag-credit-link {
+  color: rgba(196, 181, 253, 0.75);
+  text-decoration: none;
+}
+
+.cadamag-credit-link:hover {
+  color: #FF8A00;
+}
+
+/* —— Contrast: legacy white chips / panels on dark shell ——
+   Body text is light (#E8EAF0). White surfaces without a dark
+   color rule become invisible. Convert to dark premium chips. */
+.goal-btn,
+.demo-scenario-btn,
+.sel-card,
+.path-reason-card {
+  background: rgba(23, 28, 38, 0.95) !important;
+  border: 1px solid rgba(232, 234, 240, 0.16) !important;
+  color: #E8EAF0 !important;
+}
+
+.goal-btn:hover,
+.goal-btn.selected,
+.demo-scenario-btn:hover,
+.demo-scenario-btn.active {
+  background: rgba(123, 77, 255, 0.2) !important;
+  border-color: rgba(155, 116, 255, 0.55) !important;
+  color: #C4B5FD !important;
+}
+
+.demo-gate {
+  background: rgba(23, 28, 38, 0.95) !important;
+  border-color: rgba(123, 77, 255, 0.22) !important;
+  color: #E8EAF0 !important;
+}
+
+.demo-gate h2 {
+  color: #F0ECFF !important;
+}
+
+.demo-gate p,
+.demo-gate .demo-gate-cta {
+  color: #C5C9D6 !important;
+}
+
+.demo-gate-art {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.demo-panel {
+  background: rgba(23, 28, 38, 0.95) !important;
+  border-color: rgba(123, 77, 255, 0.2) !important;
+  color: #E8EAF0 !important;
+}
+
+.demo-msgs,
+.demo-msgs-dark {
+  background: rgba(8, 11, 15, 0.55) !important;
+}
+
+.demo-msg.assistant .demo-bubble {
+  background: rgba(23, 28, 38, 0.98) !important;
+  border: 1px solid rgba(232, 234, 240, 0.12) !important;
+  color: #E8EAF0 !important;
+}
+
+.demo-input-row {
+  background: rgba(8, 11, 15, 0.85) !important;
+  border-top-color: rgba(232, 234, 240, 0.1) !important;
+}
+
+.demo-input {
+  background: rgba(8, 11, 15, 0.75) !important;
+  border-color: rgba(232, 234, 240, 0.16) !important;
+  color: #E8EAF0 !important;
+}
+
+.demo-input::placeholder {
+  color: rgba(232, 234, 240, 0.4) !important;
+}
+
+.onboard-step p,
+.trial-hero-legend,
+.demo-consent-band .demo-note,
+.demo-consent-band .consent-label {
+  color: #C5C9D6 !important;
+}
+
+.onboard-inp {
+  background: rgba(8, 11, 15, 0.75) !important;
+  border-color: rgba(232, 234, 240, 0.16) !important;
+  color: #E8EAF0 !important;
+}
+
+.lang-toggle {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(232, 234, 240, 0.14) !important;
+}
+
+.lang-btn.active {
+  background: rgba(123, 77, 255, 0.25) !important;
+  box-shadow: none !important;
+}
+
+/* If a white surface remains, force dark readable text */
+[style*="background:white"] ,
+[style*="background: white"],
+[style*="background:#fff"],
+[style*="background: #fff"],
+[style*="background:#FFF"],
+[style*="background:#ffffff"],
+[style*="background: #ffffff"] {
+  color: #171C26 !important;
+}
+
+[style*="background:white"] a,
+[style*="background: white"] a,
+[style*="background:#fff"] a,
+[style*="background: #fff"] a {
+  color: #5A2FE0 !important;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .topbar, .site-header, nav, .cadamag-credit, .no-print {
+    display: none !important;
+  }
+}

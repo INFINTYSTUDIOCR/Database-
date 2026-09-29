@@ -12,10 +12,10 @@
     "minHeightVh": 52
   },
   "palette": {
-    "title": "#5B21B6",
+    "title": "#7B4DFF",
     "label": "#6d28d9",
     "body": "#312e81",
-    "accent": "#7c3aed",
+    "accent": "#9B74FF",
     "example": "#D97706"
   },
   "clips": [

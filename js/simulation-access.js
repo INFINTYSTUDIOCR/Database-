@@ -28,7 +28,7 @@
       '.sim-access{max-width:760px;margin:0 auto;}',
       '.sim-access-card{background:#fff;border:1px solid var(--border,#dce3ea);border-radius:16px;padding:22px;box-shadow:0 8px 28px rgba(15,23,42,.07);}',
       '.sim-access-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;}',
-      '.sim-access-icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#ede9fe;color:#5b21b6;font-size:23px;flex:0 0 auto;}',
+      '.sim-access-icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:rgba(123,77,255,0.16);color:#7B4DFF;font-size:23px;flex:0 0 auto;}',
       '.sim-access h2{margin:0 0 5px;font-size:20px;color:#102033;}',
       '.sim-access p{margin:0;color:#64748b;line-height:1.55;font-size:13px;}',
       '.sim-access-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}',
@@ -36,14 +36,14 @@
       '.sim-field.full{grid-column:1/-1;}',
       '.sim-field label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;}',
       '.sim-field input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;padding:11px 12px;font:600 14px Inter,Arial,sans-serif;color:#0f172a;}',
-      '.sim-field input:focus{outline:2px solid rgba(91,33,182,.2);border-color:#7c3aed;}',
+      '.sim-field input:focus{outline:2px solid rgba(123,77,255,.2);border-color:#9B74FF;}',
       '.sim-pin{letter-spacing:.28em;font-family:monospace!important;}',
       '.sim-actions{display:flex;gap:9px;align-items:center;margin-top:16px;flex-wrap:wrap;}',
-      '.sim-primary{border:0;border-radius:9px;padding:11px 16px;background:#5b21b6;color:#fff;font-weight:800;cursor:pointer;}',
+      '.sim-primary{border:0;border-radius:9px;padding:11px 16px;background:#7B4DFF;color:#fff;font-weight:800;cursor:pointer;}',
       '.sim-primary:disabled{opacity:.55;cursor:wait;}',
       '.sim-msg{font-size:12px;min-height:18px;color:#64748b;}',
       '.sim-msg.err{color:#b42318;}',
-      '.sim-notice{margin-top:16px;padding:11px 13px;border-radius:10px;background:#f8fafc;border-left:4px solid #7c3aed;font-size:12px;color:#475569;}',
+      '.sim-notice{margin-top:16px;padding:11px 13px;border-radius:10px;background:#f8fafc;border-left:4px solid #9B74FF;font-size:12px;color:#475569;}',
       '@media(max-width:620px){.sim-access-grid{grid-template-columns:1fr}.sim-field.full{grid-column:auto}}'
     ].join('');
     document.head.appendChild(style);

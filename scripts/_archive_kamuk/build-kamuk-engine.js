@@ -32,7 +32,7 @@ html = html
 // Branding
 html = html
   .replace(/<title>Infinity Nexus Engine<\/title>/, '<title>Kamuk School — Operational Engine</title>')
-  .replace(/content="#5B21B6"/, 'content="#2B7EC1"')
+  .replace(/content="#7B4DFF"/, 'content="#2B7EC1"')
   .replace(/content="Nexus Engine"/, 'content="Kamuk Engine"')
   .replace(/Infinity Nexus Engine/g, 'Kamuk Operational Engine')
   .replace(/Infinity Studio CR/g, 'Kamuk School')
@@ -43,21 +43,21 @@ html = html
 // Colors — Kamuk palette (never Infinity purple)
 html = html
   .replace(
-    /--navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;/,
+    /--navy:#7B4DFF;--nl:rgba(123,77,255,0.16);--nm:#9B74FF;--nd:#5A2FE0;/,
     '--navy:#2B7EC1;--nl:#E8F4FC;--nm:#1F6AA8;--nd:#1A5A8F;'
   )
   .replace(
-    /--purple:#5B21B6;--pb:#EDE9FE;--pm:#7C3AED;/,
+    /--purple:#7B4DFF;--pb:rgba(123,77,255,0.16);--pm:#9B74FF;/,
     '--purple:#2B7EC1;--pb:#E8F4FC;--pm:#1F6AA8;'
   )
   .replace(/--gold:#F5A623;/, '--gold:#F7941D;')
-  .replace(/--gray:#F8F8FF;--border:#E2E8F0;/, '--gray:#F4F8FC;--border:#C5DDEF;')
+  .replace(/--gray:#12161f;--border:#E2E8F0;/, '--gray:#F4F8FC;--border:#C5DDEF;')
   .replace(/--text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;/, '--text:#1E2D3D;--t2:#4A6080;--t3:#8FA4B8;')
-  .replace(/background:#F8F8FF;/g, 'background:#F4F8FC;')
-  .replace(/#5B21B6/g, '#2B7EC1')
-  .replace(/#7C3AED/g, '#1F6AA8')
-  .replace(/#3B0E8C/g, '#1A5A8F')
-  .replace(/#EDE9FE/g, '#E8F4FC')
+  .replace(/background:#12161f;/g, 'background:#F4F8FC;')
+  .replace(/#7B4DFF/g, '#2B7EC1')
+  .replace(/#9B74FF/g, '#1F6AA8')
+  .replace(/#5A2FE0/g, '#1A5A8F')
+  .replace(/rgba(123,77,255,0.16)/g, '#E8F4FC')
   .replace(/rgba\(91,33,182/g, 'rgba(43,126,193')
   .replace(/#C4B5FD/g, '#A8D4F5')
   .replace(/#F3F0FF/g, '#E8F4FC');

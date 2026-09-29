@@ -1,0 +1,687 @@
+{
+  "generatedAt": "2026-09-29T11:48:22.190Z",
+  "root": "D:\\Users\\carlo\\Desktop\\Database-",
+  "audited": 1406,
+  "hitCount": 78,
+  "byHit": {
+    "asset_path_or_filename": 26,
+    "assets_logos_infinity": 19,
+    "legacy_hex": 24,
+    "Space_Grotesk": 6,
+    "og": 8,
+    "Segoe_UI_branding": 5,
+    "favicon_non_brandpack": 4,
+    "theme-color_legacy": 6,
+    "logo_refs": 10,
+    "apple-touch_non_brandpack": 3,
+    "twitter": 3
+  },
+  "counts": {
+    "html": 29,
+    "css": 2,
+    "js": 19,
+    "other": 28
+  },
+  "rows": [
+    {
+      "file": "assets/logos/alice.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/conversatorio.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/foundations.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/gospanol.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-engine.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-logo-improved.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-logo.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-studio-cr-logo.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-studio-cr-nav.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-studio-cr-nav@2x.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-studio-cr-transparent.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/infinity-studio-cr.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/jill.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/job-finder.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/kamuk-school.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/nexora.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/off-the-clock.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/ort.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "assets/logos/training-book.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "gospanol.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "gospanol/css/tb-engine.css",
+      "type": "css",
+      "legacy": [
+        "legacy_hex:#5B21B6,#EDE9FE,#7C3AED,#3B0E8C,#F8F8FF"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "gospanol/trainer.html",
+      "type": "html",
+      "legacy": [
+        "Space_Grotesk"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "gospanol/vale.html",
+      "type": "html",
+      "legacy": [
+        "Space_Grotesk"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "index.html",
+      "type": "html",
+      "legacy": [
+        "og:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "index.legacy-light.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity",
+        "og:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "Infinity_Nexus_Engine.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "Infinity_Student_Portal.html",
+      "type": "html",
+      "legacy": [
+        "Segoe_UI_branding"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "ingles-operacional-latinoamerica.html",
+      "type": "html",
+      "legacy": [
+        "og:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/css/kamuk-holdings-crm.css",
+      "type": "css",
+      "legacy": [
+        "legacy_hex:#5B21B6,#EDE9FE"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/games/dark-thief/index.html",
+      "type": "html",
+      "legacy": [
+        "favicon_non_brandpack"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/games/knights-quest/index.html",
+      "type": "html",
+      "legacy": [
+        "favicon_non_brandpack"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/games/modal-battle/index.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#7c3aed",
+        "theme-color_legacy"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/games/topic-duel/index.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#7c3aed",
+        "theme-color_legacy"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/index.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#5b21b6,#7c3aed,#ede9fe,#F8F8FF",
+        "logo_refs:assets/logos/infinity-",
+        "assets_logos_infinity",
+        "apple-touch_non_brandpack",
+        "favicon_non_brandpack",
+        "theme-color_legacy",
+        "Segoe_UI_branding"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/infinity-casino-floor.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#3B0E8C,#7C3AED"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/jill-quiz.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#7C3AED,#5b21b6,#7c3aed"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/live-kpi-charts.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#7C3AED"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-access.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#ede9fe,#5b21b6,#7c3aed"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-corporate-learn.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-crm-bridge.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-formato-e.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-onboarding.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-prep.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/js/simulation-training.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/Kamuk_Engine.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#7C3AED",
+        "assets_logos_infinity",
+        "apple-touch_non_brandpack",
+        "favicon_non_brandpack",
+        "theme-color_legacy"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/kamuk-holdings-crm.html",
+      "type": "html",
+      "legacy": [
+        "theme-color_legacy"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/nexora-legacy.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#5B21B6,#7C3AED,#EDE9FE,#F8F8FF",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/nexora.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#5B21B6,#7C3AED,#EDE9FE,#F8F8FF",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "kamuk/training-book/como-usar/index.html",
+      "type": "html",
+      "legacy": [
+        "legacy_hex:#7c3aed,#5b21b6"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "nexora-legacy.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "nexora-next/lab.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "nexora.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "portal-access.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "preview-lesson-clip.html",
+      "type": "html",
+      "legacy": [
+        "Segoe_UI_branding"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "programa-50.html",
+      "type": "html",
+      "legacy": [
+        "og:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/_inventory-raw.json",
+      "type": "json",
+      "legacy": [
+        "legacy_hex:#5B21B6,#EDE9FE,#7C3AED,#3B0E8C,#F8F8FF,#7c3aed",
+        "logo_refs:assets/logos/infinity-engine.png|assets/logos/infinity-logo-improved.png|assets/logos/infinity-logo.png|assets/logos/infinity-",
+        "assets_logos_infinity",
+        "og:image",
+        "twitter:image",
+        "theme-color_legacy"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/_migration-pass2.json",
+      "type": "json",
+      "legacy": [
+        "logo_refs:assets/logos/infinity-engine.png|assets/logos/infinity-logo-improved.png|assets/logos/infinity-logo.png|assets/logos/infinity-",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/favicon/apple-touch-icon.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/png/infinity-logo-horizontal-dark.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/png/infinity-logo-horizontal-light.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/png/infinity-logo-monochrome-dark.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/png/infinity-logo-monochrome-light.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/assets/brand/png/infinity-logo-stacked-dark.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/portal-access.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/public/brand/apple-touch-icon.png",
+      "type": "png",
+      "legacy": [
+        "asset_path_or_filename"
+      ],
+      "action": "inspect; replace active refs; keep file until unused"
+    },
+    {
+      "file": "prototype-cadamag/scripts/fix-inventory-and-logos.js",
+      "type": "js",
+      "legacy": [
+        "Space_Grotesk",
+        "logo_refs:assets/logos/infinity ref|infinity-studio-cr-nav|infinity-studio-cr-logo|infinity-studio-cr|infinity-engine\\.png|training-book\\.png",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/fix-mangled-srcset.js",
+      "type": "js",
+      "legacy": [
+        "logo_refs:infinity-studio-cr-nav@2x/i.te|infinity-studio-cr-nav@2x"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/inventory-brand-legacy.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#7C3AED,#3B0E8C,#EDE9FE,#F8F8FF,#5b21b6,#7c3aed,#3b0e8c",
+        "Space_Grotesk",
+        "logo_refs:infinity-studio-cr[^|infinity-studio-cr|infinity-engine|infinity-logo|og-|",
+        "og:image",
+        "twitter:image",
+        "apple-touch_non_brandpack"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/migrate-infinity-brand-pass2.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#5b21b6,#7C3AED,#7c3aed,#3B0E8C,#3b0e8c,#EDE9FE,#ede9fe",
+        "Space_Grotesk",
+        "logo_refs:infinity-studio-cr[^|infinity-engine\\.png|assets/logos/infinity*",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/migrate-infinity-brand-pass3.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#5b21b6,#7C3AED,#7c3aed,#3B0E8C,#3b0e8c,#EDE9FE,#ede9fe",
+        "Space_Grotesk"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/migrate-infinity-brand.js",
+      "type": "js",
+      "legacy": [
+        "legacy_hex:#5B21B6,#5b21b6,#7C3AED,#7c3aed,#3B0E8C,#3b0e8c,#EDE9FE,#ede9fe",
+        "logo_refs:infinity-studio-cr-nav|infinity-studio-cr-logo|infinity-studio-cr|infinity-engine\\.png|training-book\\.png",
+        "og:image",
+        "twitter:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "prototype-cadamag/scripts/validate-brand-pack.js",
+      "type": "js",
+      "legacy": [
+        "logo_refs:infinity-studio-cr-nav.png"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "scripts/_archive_kamuk/build-kamuk-engine.js",
+      "type": "js",
+      "legacy": [
+        "logo_refs:infinity-studio-cr-nav|infinity-studio-cr",
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "sw.js",
+      "type": "js",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "training-book/glosario/index.html",
+      "type": "html",
+      "legacy": [
+        "Segoe_UI_branding"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "training-book/mac/index.html",
+      "type": "html",
+      "legacy": [
+        "Segoe_UI_branding"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "try-alice.html",
+      "type": "html",
+      "legacy": [
+        "og:image"
+      ],
+      "action": "migrate_visual"
+    },
+    {
+      "file": "try-demo.html",
+      "type": "html",
+      "legacy": [
+        "assets_logos_infinity"
+      ],
+      "action": "migrate_visual"
+    }
+  ]
+}

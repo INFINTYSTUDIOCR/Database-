@@ -1,0 +1,594 @@
+/* Infinity Studio — Subpage motifs & special layouts */
+
+/* Motif: Foundations — structure / checkpoints */
+.motif-foundations .sp-visual-diagram {
+  display: grid;
+  gap: 0.55rem;
+}
+.motif-foundations .checkpoint {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.45rem 0.35rem;
+  border-radius: 10px;
+  background: rgba(8, 11, 15, 0.45);
+  border: 1px solid rgba(123, 77, 255, 0.15);
+}
+.motif-foundations .checkpoint-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-inline: auto;
+  background: linear-gradient(135deg, #7B4DFF, #FF8A00);
+  box-shadow: 0 0 12px rgba(123, 77, 255, 0.45);
+}
+.motif-foundations .checkpoint span {
+  font-size: 0.82rem;
+  color: #C5C9D6;
+}
+
+/* Motif: ORT — pressure / waveform */
+.motif-ort .wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 72px;
+  margin: 0.5rem 0 1rem;
+}
+.motif-ort .wave i {
+  display: block;
+  width: 6px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #9B74FF, #7B4DFF 55%, rgba(255, 138, 0, 0.7));
+  animation: wavePulse 1.8s ease-in-out infinite;
+}
+.motif-ort .wave i:nth-child(1) { height: 28%; animation-delay: 0ms; }
+.motif-ort .wave i:nth-child(2) { height: 62%; animation-delay: 80ms; }
+.motif-ort .wave i:nth-child(3) { height: 44%; animation-delay: 160ms; }
+.motif-ort .wave i:nth-child(4) { height: 88%; animation-delay: 240ms; }
+.motif-ort .wave i:nth-child(5) { height: 52%; animation-delay: 320ms; }
+.motif-ort .wave i:nth-child(6) { height: 70%; animation-delay: 400ms; }
+.motif-ort .wave i:nth-child(7) { height: 36%; animation-delay: 480ms; }
+.motif-ort .wave i:nth-child(8) { height: 78%; animation-delay: 560ms; }
+.motif-ort .pressure-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #8B92A8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.motif-ort .pressure-row strong {
+  color: #FFA940;
+  font-weight: 700;
+}
+
+@keyframes wavePulse {
+  0%, 100% { opacity: 0.55; transform: scaleY(0.85); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motif-ort .wave i { animation: none; }
+}
+
+/* Motif: Alice — mic + waveform */
+.motif-alice .mic-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0.5rem auto 1rem;
+  border: 1px solid rgba(123, 77, 255, 0.45);
+  box-shadow: 0 0 28px rgba(123, 77, 255, 0.25);
+  display: grid;
+  place-items: center;
+  background: rgba(123, 77, 255, 0.12);
+}
+.motif-alice .mic-ring svg {
+  width: 26px;
+  height: 26px;
+  stroke: #E8EAF0;
+  fill: none;
+  stroke-width: 1.7;
+}
+
+/* Motif: Jill — timer / drills */
+.motif-jill .drill-meter {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+.motif-jill .drill-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.motif-jill .drill-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7B4DFF, #FF8A00);
+}
+.motif-jill .drill-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #8B92A8;
+}
+
+/* Motif: Claire — question / correction */
+.motif-claire .q-card {
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: rgba(8, 11, 15, 0.55);
+  border: 1px solid rgba(123, 77, 255, 0.2);
+  margin-bottom: 0.65rem;
+}
+.motif-claire .q-card .q {
+  font-size: 0.82rem;
+  color: #C5C9D6;
+  margin-bottom: 0.45rem;
+}
+.motif-claire .q-card .ok {
+  font-size: 0.75rem;
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Motif: Training Book — progress */
+.motif-book .progress-stack {
+  display: grid;
+  gap: 0.7rem;
+}
+.motif-book .progress-item {
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 11, 15, 0.4);
+  font-size: 0.82rem;
+  color: #C5C9D6;
+}
+.motif-book .progress-item em {
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8B92A8;
+  margin-bottom: 0.25rem;
+}
+
+/* Motif: Nexora — scenario chips */
+.motif-nexora .scenario-list {
+  display: grid;
+  gap: 0.5rem;
+}
+.motif-nexora .scenario {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border-left: 2px solid #FF8A00;
+  background: rgba(8, 11, 15, 0.45);
+  font-size: 0.84rem;
+  color: #C5C9D6;
+}
+
+/* Pricing */
+.price-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem;
+  margin-bottom: 1.5rem;
+}
+
+.price-card {
+  position: relative;
+  padding: 1.4rem 1.25rem 1.3rem;
+  border-radius: 16px;
+  border: 1px solid rgba(123, 77, 255, 0.22);
+  background: rgba(23, 28, 38, 0.82);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.price-card.is-featured {
+  border-color: rgba(123, 77, 255, 0.5);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.35),
+    0 0 40px rgba(123, 77, 255, 0.12);
+}
+
+.price-badge {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--grad-cta, #7B4DFF);
+  color: #fff;
+}
+
+.price-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #C4B5FD;
+}
+
+.price-card h3 {
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: 1.35rem;
+  margin: 0.15rem 0;
+  color: #fff;
+}
+
+.price-was {
+  font-size: 0.78rem;
+  color: #8B92A8;
+  text-decoration: line-through;
+}
+
+.price-amount {
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #E8EAF0;
+  letter-spacing: -0.02em;
+}
+
+.price-amount small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8B92A8;
+}
+
+.price-note {
+  font-size: 0.78rem;
+  color: #8B92A8;
+  margin-bottom: 0.5rem;
+}
+
+.price-card p {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #C5C9D6;
+  margin: 0 0 0.5rem;
+  flex: 1;
+}
+
+.price-card ul {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.price-card ul li {
+  font-size: 0.84rem;
+  color: #A8AEC4;
+  padding-left: 0.9rem;
+  position: relative;
+}
+
+.price-card ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7B4DFF;
+}
+
+.ia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.ia-card {
+  padding: 1.1rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(23, 28, 38, 0.65);
+}
+
+.ia-card h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: 1rem;
+  color: #F4F5F8;
+}
+
+.ia-card .ia-who {
+  font-size: 0.78rem;
+  color: #8B92A8;
+  margin-bottom: 0.55rem;
+}
+
+.ia-card .ia-price {
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #C4B5FD;
+  margin-bottom: 0.75rem;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.market-card {
+  padding: 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 11, 15, 0.45);
+}
+
+.market-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  color: #E8EAF0;
+}
+
+.market-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #8B92A8;
+  line-height: 1.5;
+}
+
+/* Case study */
+.case-study {
+  padding: 1.75rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(123, 77, 255, 0.2);
+  background: rgba(23, 28, 38, 0.75);
+}
+
+.case-badge {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #C4B5FD;
+  border: 1px solid rgba(123, 77, 255, 0.35);
+  background: rgba(123, 77, 255, 0.1);
+}
+
+.case-study h2 {
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+  margin: 0 0 0.85rem;
+  color: #F4F5F8;
+  letter-spacing: -0.02em;
+}
+
+.case-study p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #C5C9D6;
+  margin: 0 0 1rem;
+}
+
+.case-study blockquote {
+  margin: 1.25rem 0;
+  padding: 1.15rem 1.2rem;
+  border-left: 2px solid #FF8A00;
+  background: rgba(8, 11, 15, 0.5);
+  border-radius: 0 12px 12px 0;
+}
+
+.case-study blockquote p {
+  font-size: 0.88rem;
+  color: #A8AEC4;
+}
+
+.case-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case-metrics li {
+  padding: 0.9rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(8, 11, 15, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.case-metrics strong {
+  display: block;
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: 1.55rem;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.case-metrics span {
+  font-size: 0.72rem;
+  color: #8B92A8;
+  line-height: 1.35;
+}
+
+.case-sources a {
+  display: inline-block;
+  margin: 0.35rem 0.75rem 0.35rem 0;
+  color: #C4B5FD;
+  font-size: 0.88rem;
+}
+
+/* Contact options */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.contact-card {
+  padding: 1.25rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(123, 77, 255, 0.2);
+  background: rgba(23, 28, 38, 0.75);
+  text-decoration: none;
+  color: inherit;
+  min-height: 140px;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.contact-card:hover {
+  border-color: rgba(123, 77, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.contact-card h3 {
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+  color: #F4F5F8;
+}
+
+.contact-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #8B92A8;
+  line-height: 1.45;
+}
+
+/* Path timeline */
+.path-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.85rem;
+  counter-reset: pathstep;
+}
+
+.path-timeline li {
+  counter-increment: pathstep;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(23, 28, 38, 0.65);
+}
+
+.path-timeline li::before {
+  content: counter(pathstep);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--grad-cta, #7B4DFF);
+  margin-top: 0.1rem;
+}
+
+.path-timeline strong {
+  display: block;
+  color: #F4F5F8;
+  margin-bottom: 0.2rem;
+  font-family: var(--font-display, Sora, system-ui, sans-serif);
+}
+
+.path-timeline span {
+  font-size: 0.88rem;
+  color: #8B92A8;
+  line-height: 1.45;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #C5C9D6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 11, 15, 0.4);
+}
+
+.notice-satellite {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 138, 0, 0.25);
+  background: rgba(255, 138, 0, 0.06);
+  font-size: 0.88rem;
+  color: #C5C9D6;
+  line-height: 1.5;
+}
+
+.notice-satellite strong {
+  color: #FFA940;
+}
+
+@media (max-width: 860px) {
+  .price-grid,
+  .market-grid,
+  .case-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .price-grid,
+  .market-grid,
+  .case-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Etapa 3 — contraste body/meta en subpáginas */
+.price-note,
+.market-card p,
+.case-body,
+.tool-card p,
+.path-card p,
+.faq-a,
+.notice-satellite {
+  color: #E0E3ED !important;
+}
+
+.price-meta,
+.tool-meta,
+.path-meta,
+.faq-q small,
+.eyebrow,
+.chip-muted {
+  color: #B4BAC9 !important;
+}
+
