@@ -1902,18 +1902,7 @@ function generateReport(id){
     +(cals.length?'<h3>Historial de Calibraciones</h3><table><tr><th>Fecha</th><th>IG</th><th>ST</th><th>RA</th><th>PS</th><th>R</th><th>Score</th></tr>'
       +cals.map(function(c){ var t=Object.values(c.kpis||{}).reduce(function(a,v){return a+(parseInt(v)||0);},0); return '<tr><td>'+fmtDate(c.date)+'</td>'+Object.keys(KPI_NAMES).map(function(k){return '<td>'+((c.kpis||{})[k]||'—')+'</td>';}).join('')+'<td><strong>'+t+'</strong></td></tr>'; }).join('')+'</table>':'')
     +'<p style="margin-top:2rem;font-size:12px;color:#64748B;">Generado por Infinity Studio CR — Nexus Engine · '+new Date().toLocaleDateString('es-CR')+'</p>'
-    +'
-<footer class="cadamag-credit" aria-label="Autoría">
-  <p class="cadamag-credit-line">
-    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
-    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
-    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
-    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
-    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
-  </p>
-</footer>
-
-</body></html>';
+    +'</body></html>';
   var blob=new Blob([html],{type:'text/html'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Reporte_'+(s.info&&s.info.name).replace(/ /g,'_')+'.html'; a.click();
   showToast('Reporte generado');

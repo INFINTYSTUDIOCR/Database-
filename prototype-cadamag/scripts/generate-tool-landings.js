@@ -36,7 +36,7 @@ function page(cfg) {
   <link rel="icon" type="image/png" sizes="512x512" href="assets/brand/favicon/icon-512.png">
   <link rel="stylesheet" href="css/prototype.css?v=20260928nav1">
   <link rel="stylesheet" href="css/brand.css?v=20260928nav1">
-  <link rel="stylesheet" href="css/site-nav.css?v=20260928nav1">
+  <link rel="stylesheet" href="css/site-nav.css?v=20260929navfix1">
   <link rel="stylesheet" href="css/site-page.css?v=20260928nav1">
   <script src="js/site-nav.js?v=20260928nav1" defer></script>
 </head>
