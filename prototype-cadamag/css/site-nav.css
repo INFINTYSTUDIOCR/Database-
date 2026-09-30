@@ -231,10 +231,8 @@
 
   .nav-center {
     position: fixed;
-    inset: var(--nav-h, 70px) 0 auto auto;
+    inset: var(--nav-h, 70px) 0 0 auto;
     width: min(100%, 380px);
-    height: calc(100vh - var(--nav-h, 70px));
-    height: calc(100dvh - var(--nav-h, 70px));
     max-height: calc(100vh - var(--nav-h, 70px));
     overflow-y: auto;
     flex-direction: column;
@@ -255,9 +253,7 @@
   .nav-drawer-backdrop.is-open {
     display: block;
     position: fixed;
-    inset: var(--nav-h, 70px) 0 auto 0;
-    height: calc(100vh - var(--nav-h, 70px));
-    height: calc(100dvh - var(--nav-h, 70px));
+    inset: var(--nav-h, 70px) 0 0 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 1090;
   }
@@ -332,26 +328,6 @@
     justify-content: center;
     width: 100%;
     min-height: 48px;
-  }
-}
-
-@media (max-width: 768px) {
-  .site-header .header-inner {
-    width: min(100% - 1.25rem, var(--max));
-  }
-  .brand-word {
-    font-size: 0.82rem;
-  }
-  .site-header .btn-header {
-    padding: 0 0.85rem;
-    font-size: 0.78rem;
-    min-height: 40px;
-  }
-}
-
-@media (max-width: 390px) {
-  .lang-pill span {
-    display: none;
   }
 }
 
