@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Infinity Nexus Engine</title>
-<meta name="theme-color" content="#080B0F">
+<meta name="theme-color" content="#1e3a5f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nexus Engine">
 <link rel="manifest" href="manifest-engine.json">
-<link rel="icon" href="prototype-cadamag/assets/brand/favicon/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
+<link rel="icon" href="icon-192.png?v=20260703" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png?v=20260703">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/pwa-install.css?v=2">
 <script src="js/pwa-register.js?v=20260814refresh" defer></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -36,17 +36,16 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#7B4DFF;--nl:rgba(123,77,255,0.16);--nm:#9B74FF;--nd:#C4B5FD;
-  --accent:#7B4DFF;--accent-bg:rgba(123,77,255,0.14);--accent-border:rgba(123,77,255,0.35);
-  --green:#34d399;--gb:rgba(52,211,153,0.12);--gm:#6ee7b7;
-  --amber:#FFA940;--ab:rgba(255,138,0,0.12);--ad:#FFD08A;
-  --red:#f87171;--rb:rgba(248,113,113,0.12);--rm:#fca5a5;
-  --purple:#7B4DFF;--pb:rgba(123,77,255,0.14);--pm:#9B74FF;
-  --purple-light:#9B74FF;--purple-glow:rgba(123,77,255,0.12);
-  --gold:#FF8A00;--gray:#12161f;--border:rgba(232,234,240,0.12);
-  --text:#E8EAF0;--t2:#C5C9D6;--t3:#8B92A8;
-  --r:10px;--rl:14px;
-  --bg:#080B0F;--surface:#171C26;
+  --navy:#1e3a5f;--nl:#e6f1fb;--nm:#185fa5;--nd:#0f2744;
+  --accent:#185fa5;--accent-bg:#e6f1fb;--accent-border:#b5d4f4;
+  --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
+  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
+  --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
+  --purple:#3c3489;--pb:#eeedfe;--pm:#3c3489;
+  --gold:#F5A623;--gray:#f1efe8;--border:rgba(0,0,0,0.10);
+  --text:#1a1a18;--t2:#5f5e5a;--t3:#888780;
+  --r:6px;--rl:10px;
+  --bg:#f8f7f4;--surface:#ffffff;
 }
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -73,7 +72,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .login-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
 .login-tabs{display:flex;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem;}
-.ltab{flex:1;padding:10px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;border:none;background:rgba(8,11,15,0.65);font-family:inherit;transition:all 0.15s;}
+.ltab{flex:1;padding:10px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;border:none;background:white;font-family:inherit;transition:all 0.15s;}
 .ltab.active{background:var(--navy);color:white;}
 .login-track-es{display:none;text-align:left;margin-top:0.25rem;}
 .login-track-es.show{display:block;}
@@ -89,7 +88,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .btn-navy{background:var(--navy);color:white;}
 .btn-green{background:var(--gm);color:white;}
 .btn-red{background:var(--rm);color:white;}
-.btn-outline{background:rgba(255,255,255,0.04);color:var(--t2);border:1px solid var(--border);}
+.btn-outline{background:white;color:var(--t2);border:1px solid var(--border);}
 .btn-gold{background:var(--gold);color:white;}
 .btn-block{width:100%;justify-content:center;}
 .btn-sm{padding:6px 12px;font-size:11px;}
@@ -191,7 +190,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .ex-title{font-size:13px;font-weight:700;color:white;}
 .ex-body{padding:1rem;}
 .ex-obj{background:var(--gray);border-radius:var(--r);padding:0.75rem;font-size:12px;color:var(--text);line-height:1.6;margin-bottom:0.75rem;}
-.ex-script{background:rgba(255,138,0,0.12);border-left:3px solid var(--amber);padding:0.75rem;border-radius:0 var(--r) var(--r) 0;margin-bottom:0.75rem;}
+.ex-script{background:#FFF8F0;border-left:3px solid var(--amber);padding:0.75rem;border-radius:0 var(--r) var(--r) 0;margin-bottom:0.75rem;}
 .ex-script-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin-bottom:4px;}
 .ex-script-text{font-size:12px;color:var(--ad);line-height:1.6;}
 
@@ -247,14 +246,12 @@ textarea.inp{resize:vertical;min-height:80px;}
 .divider{height:1px;background:var(--border);margin:1rem 0;}
 .pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
 </style>
-<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
-<link rel="stylesheet" href="css/infinity-apps-dark.css?v=20260929apps1">
 </head>
 <body>
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <img class="tb-logo" id="tb-logo" src="prototype-cadamag/assets/brand/png/infinity-logo-horizontal-light.png" alt="Infinity Studio CR">
+  <img class="tb-logo" id="tb-logo" src="assets/logos/infinity-studio-cr-nav.png?v=20260703" alt="Infinity Studio CR">
   <div class="tb-div"></div>
   <div>
     <div class="tb-title">Infinity Nexus Engine</div>
@@ -273,7 +270,7 @@ textarea.inp{resize:vertical;min-height:80px;}
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <img class="login-logo" id="login-logo" src="prototype-cadamag/assets/brand/png/infinity-symbol.png" alt="Infinity Studio CR">
+      <img class="login-logo" id="login-logo" src="assets/logos/infinity-studio-cr.png?v=20260703" alt="Infinity Studio CR">
       <div class="login-title">Infinity Nexus Engine</div>
       <div class="login-sub">Sistema integrado de calibración, análisis y entrega · Powered by Nexus Method</div>
       <div class="login-tabs" role="tablist" aria-label="Track">
@@ -695,7 +692,7 @@ textarea.inp{resize:vertical;min-height:80px;}
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-nexora-justify')">Cancelar</button>
-      <button class="btn btn-navy" style="background:#9B74FF;" onclick="confirmStudentNexora()"><i class="ti ti-sparkles"></i>Activar Nexora</button>
+      <button class="btn btn-navy" style="background:#7C3AED;" onclick="confirmStudentNexora()"><i class="ti ti-sparkles"></i>Activar Nexora</button>
     </div>
   </div>
 </div>
@@ -1568,7 +1565,7 @@ function openStudent(id){
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="generateStudentVisualReport(this.dataset.sid)"><i class="ti ti-report"></i>Generar reporte</button>'
     +'<button data-sid="'+id+'" class="btn btn-outline btn-sm" onclick="rotateAndCombineExercises(this.dataset.sid)"><i class="ti ti-repeat"></i>Rotar y combinar</button>'
     +(isMaster?('<button data-sid="'+id+'" data-tutor="jill" class="btn btn-sm" style="background:'+(studentJillOn(s)?'rgba(61,220,151,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillOn(s)?'#3DDC97':'rgba(255,255,255,0.3)')+';color:'+(studentJillOn(s)?'#3DDC97':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-left"></i> Jill '+(studentJillOn(s)?'✓ ON':'OFF')+'</button>'):'')
-    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentJillProOn(s)?'rgba(155,116,255,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillProOn(s)?'#A78BFA':'rgba(255,255,255,0.3)')+';color:'+(studentJillProOn(s)?'#C4B5FD':'var(--t2)')+';font-weight:700;" onclick="toggleStudentJillPro(this.dataset.sid)"><i class="ti ti-messages"></i> Jill Libre '+(studentJillProOn(s)?'✓ ON':'OFF')+'</button>'):'')
+    +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentJillProOn(s)?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentJillProOn(s)?'#A78BFA':'rgba(255,255,255,0.3)')+';color:'+(studentJillProOn(s)?'#C4B5FD':'var(--t2)')+';font-weight:700;" onclick="toggleStudentJillPro(this.dataset.sid)"><i class="ti ti-messages"></i> Jill Libre '+(studentJillProOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" data-tutor="alice" class="btn btn-sm" style="background:'+(studentAliceOn(s)?'rgba(192,132,252,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentAliceOn(s)?'#C084FC':'rgba(255,255,255,0.3)')+';color:'+(studentAliceOn(s)?'#C084FC':'var(--t2)')+';font-weight:700;" onclick="toggleStudentTutor(this.dataset.sid,this.dataset.tutor)"><i class="ti ti-toggle-right"></i> Alice '+(studentAliceOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(studentClaireOn(s)?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.05)')+';border:1px solid '+(studentClaireOn(s)?'#C4B5FD':'rgba(255,255,255,0.3)')+';color:'+(studentClaireOn(s)?'#DDD6FE':'var(--t2)')+';font-weight:700;" onclick="toggleStudentClaire(this.dataset.sid)"><i class="ti ti-headphones"></i> Claire TOEIC '+(studentClaireOn(s)?'✓ ON':'OFF')+'</button>'):'')
     +(isMaster?('<button data-sid="'+id+'" class="btn btn-sm" style="background:'+(s.nexoraEnabled?'rgba(245,166,35,0.18)':'rgba(255,255,255,0.05)')+';border:1px solid '+(s.nexoraEnabled?'#F5A623':'rgba(255,255,255,0.3)')+';color:'+(s.nexoraEnabled?'#F5A623':'var(--t2)')+';font-weight:700;" onclick="toggleStudentNexora(this.dataset.sid)"><i class="ti ti-sparkles"></i> Nexora '+(s.nexoraEnabled?'✓ ON':'OFF')+'</button>'):'')
@@ -1695,7 +1692,7 @@ function mountEngineProgressCharts(s, kpis, history){
       var yMax=kpiMax(s);
       LiveKpiCharts.updateLine('chart-progress-line','chart-progress',
         history.map(function(c){ return fmtDate(c.date); }),
-        Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#7B4DFF','#0F6E56','#D97706','#A32D2D','#9B74FF'];
+        Object.keys(KPI_NAMES).map(function(k,i){ var colors=['#5B21B6','#0F6E56','#D97706','#A32D2D','#7C3AED'];
           return { label:k, data:history.map(function(c){ return parseInt((c.kpis||{})[k])||0; }), borderColor:colors[i], backgroundColor:'transparent', tension:0.3, pointRadius:4 };
         }), yMax);
     }
@@ -1859,7 +1856,7 @@ function renderAnalytics(m){
   setTimeout(function(){
     // Radar chart
     var r=document.getElementById('chart-kpi-avg');
-    if(r) new Chart(r,{ type:'radar', data:{ labels:Object.values(KPI_NAMES), datasets:[{label:'Promedio grupo',data:Object.keys(KPI_NAMES).map(function(k){return avgByKPI[k];}),borderColor:'#7B4DFF',backgroundColor:'rgba(123,77,255,0.15)',pointBackgroundColor:'#7B4DFF'}] }, options:{ responsive:true,maintainAspectRatio:false, scales:{ r:{ min:0,max:5,ticks:{stepSize:1} } }, plugins:{legend:{display:false}} } });
+    if(r) new Chart(r,{ type:'radar', data:{ labels:Object.values(KPI_NAMES), datasets:[{label:'Promedio grupo',data:Object.keys(KPI_NAMES).map(function(k){return avgByKPI[k];}),borderColor:'#5B21B6',backgroundColor:'rgba(91,33,182,0.15)',pointBackgroundColor:'#5B21B6'}] }, options:{ responsive:true,maintainAspectRatio:false, scales:{ r:{ min:0,max:5,ticks:{stepSize:1} } }, plugins:{legend:{display:false}} } });
 
     // Score distribution
     var buckets={Advanced:0,Functional:0,Emerging:0,Survival:0};
@@ -1890,8 +1887,8 @@ function generateReport(id){
   var kpis=(s.kpis||{}).phase1||{};
   var score=getScore(s); var level=getLevelForStudent(score,s); var scoreMax=getScoreMax(s); var kMax=kpiMax(s);
   var cals=(s.calibrations||[]);
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;color:#1E293B;} h1{color:#7B4DFF;} table{width:100%;border-collapse:collapse;} th{background:#7B4DFF;color:white;padding:8px;} td{padding:8px;border-bottom:1px solid #E2E8F0;} .badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}</style>'
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte — '+(s.info&&s.info.name)+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;color:#1E293B;} h1{color:#5B21B6;} table{width:100%;border-collapse:collapse;} th{background:#5B21B6;color:white;padding:8px;} td{padding:8px;border-bottom:1px solid #E2E8F0;} .badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}</style>'
     +'</head><body>'
     +'<h1>Infinity Studio CR — Reporte de Progreso</h1>'
     +'<h2>'+(s.info&&s.info.name)+'</h2>'
@@ -6182,7 +6179,7 @@ function renderSuperBrain(m){
     +'<div style="display:flex;gap:8px;align-items:center;">'
     +'<input id="sb-input" class="inp" placeholder="Orden… o pegá un link de TikTok para importarlo" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(192,132,252,0.3);color:white;border-radius:12px;" onkeydown="if(event.key===\'Enter\')superBrainTalk();">'
     +'<button id="sb-mic-btn" title="Mantené presionado para hablar (PTT)" style="width:44px;height:44px;background:rgba(107,114,128,0.4);border:1px solid rgba(192,132,252,0.35);color:#9CA3AF;border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
-    +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#7B4DFF,#9B74FF);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
+    +'<button onclick="superBrainTalk()" style="width:44px;height:44px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;"><i class="ti ti-send"></i></button>'
     +'</div></div>'
     +'<div style="max-height:calc(100vh - 200px);overflow-y:auto;padding-right:4px;">'
     +'<div class="card"><div class="card-title"><i class="ti ti-cloud-upload"></i>Subir conocimiento (texto)</div>'
@@ -7229,7 +7226,7 @@ function renderOpsWaFaqEditor(note){
   el.innerHTML = '<div style="font-size:11px;margin-bottom:8px;color:var(--t3);">'+(note||('Entradas: '+entries.length))+'</div>'
     +'<div style="max-height:360px;overflow:auto;">'
     + entries.map(function(e, i){
-        return '<div class="ops-wa-faq-row" data-i="'+i+'" style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:#171C26;">'
+        return '<div class="ops-wa-faq-row" data-i="'+i+'" style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff;">'
           +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
           +'<label style="font-size:11px;font-weight:700;">ID<br><input class="form-input owf-id" value="'+escOwAttr(e.id)+'" style="font-size:12px;padding:6px;"></label>'
           +'<label style="font-size:11px;font-weight:700;">Categoría<br><input class="form-input owf-cat" value="'+escOwAttr(e.category||'ops')+'" style="font-size:12px;padding:6px;"></label>'

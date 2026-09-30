@@ -1,40 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
-  <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
-  <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="prototype-cadamag/assets/brand/favicon/favicon-32x32.png">
-  <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
-
-<meta name="theme-color" content="#080B0F">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="js/site-urls.js"></script>
 <title>Infinity Studio — Training Book</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --navy:#7B4DFF;--nl:rgba(123,77,255,0.16);--nm:#9B74FF;--nd:#C4B5FD;
-  --accent:#7B4DFF;--accent-bg:rgba(123,77,255,0.14);--accent-border:rgba(123,77,255,0.35);
-  --green:#34d399;--gb:rgba(52,211,153,0.12);--gm:#6ee7b7;
-  --amber:#FFA940;--ab:rgba(255,138,0,0.12);--ad:#FFD08A;
-  --red:#f87171;--rb:rgba(248,113,113,0.12);--rm:#fca5a5;
-  --purple:#7B4DFF;--pb:rgba(123,77,255,0.14);--pm:#9B74FF;
-  --purple-light:#9B74FF;--purple-glow:rgba(123,77,255,0.12);
-  --gold:#FF8A00;--gray:#12161f;--border:rgba(232,234,240,0.12);
-  --text:#E8EAF0;--t2:#C5C9D6;--t3:#8B92A8;
-  --r:10px;--rl:14px;
-  --bg:#080B0F;--surface:#171C26;
+  --navy:#5B21B6;--nl:#EDE9FE;--nm:#7C3AED;--nd:#3B0E8C;
+  --green:#085041;--gb:#E1F5EE;--gm:#0F6E56;
+  --amber:#D97706;--ab:#FAEEDA;--ad:#633806;
+  --red:#791F1F;--rb:#FCEBEB;--rm:#A32D2D;
+  --purple:#5B21B6;--purple-light:#7C3AED;--purple-glow:rgba(91,33,182,0.12);
+  --pb:#EDE9FE;--pm:#7C3AED;
+  --gold:#F5A623;
+  --gray:#F8F8FF;--border:#E2E8F0;
+  --text:#1E1E2E;--t2:#4A4A6A;--t3:#8888AA;
+  --r:8px;--rl:12px;
 }
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080B0F;color:var(--text);min-height:100vh;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F8F8FF;color:var(--text);min-height:100vh;}
 
 /* TOPBAR */
-.topbar{background:var(--navy);padding:0 1.25rem;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(123,77,255,0.22);}
+.topbar{background:var(--navy);padding:0 1.25rem;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(91,33,182,0.22);}
 .tb-logo{height:34px;object-fit:contain;display:none;}
 .tb-brand{font-size:13px;font-weight:800;color:white;letter-spacing:0.01em;}
 .tb-divider{width:1px;height:26px;background:rgba(255,255,255,0.2);}
@@ -45,7 +35,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 /* STUDENT SELECTOR */
 .selector-screen{max-width:560px;margin:4rem auto;padding:1.5rem;}
-.sel-card{background:rgba(23,28,38,0.95);border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
+.sel-card{background:white;border:1px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center;}
 .sel-logo{height:64px;object-fit:contain;margin-bottom:1.25rem;}
 .sel-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px;}
 .sel-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6;}
@@ -57,12 +47,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 /* MAIN LAYOUT */
 .main-wrap{display:none;height:calc(100vh - 56px);}
 .main-wrap.show{display:flex;}
-.sidebar{width:260px;flex-shrink:0;background:rgba(23,28,38,0.96);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
-.content{flex:1;overflow-y:auto;padding:16px;background:#12161f;}
+.sidebar{width:260px;flex-shrink:0;background:white;border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.content{flex:1;overflow-y:auto;padding:16px;background:#F8F8FF;}
 .tab-view{display:block;}
 
 /* SIDEBAR */
-.student-card{padding:1rem 1rem 0.875rem;border-bottom:1px solid var(--border);background:rgba(23,28,38,0.96);}
+.student-card{padding:1rem 1rem 0.875rem;border-bottom:1px solid var(--border);background:white;}
 .sc-name{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:3px;}
 .sc-meta{font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.4;}
 .sc-kpi-row{display:flex;gap:5px;flex-wrap:wrap;}
@@ -85,7 +75,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .nb-blue{background:var(--nl);color:var(--nd);}
 
 /* PORTAL SECTIONS (mock design) */
-.portal-section{background:rgba(23,28,38,0.94);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+.portal-section{background:white;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
 .portal-section:last-child{margin-bottom:0;}
 .section-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
 .section-sub{font-size:11px;color:var(--t3);margin-bottom:12px;}
@@ -101,7 +91,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .phase-banner-sm small{font-size:9px;opacity:0.7;text-transform:uppercase;letter-spacing:0.08em;}
 .phase-banner-sm strong{display:block;font-size:13px;margin-top:2px;}
 .ex-card-v2{border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;background:white;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;}
-.ex-card-v2:hover{border-color:rgba(123,77,255,0.35);box-shadow:0 4px 16px rgba(123,77,255,0.08);}
+.ex-card-v2:hover{border-color:rgba(91,33,182,0.35);box-shadow:0 4px 16px rgba(91,33,182,0.08);}
 .ex-card-v2:last-child{margin-bottom:0;}
 .ex-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
 .ex-type{font-size:10px;font-weight:700;color:var(--nm);text-transform:uppercase;letter-spacing:0.06em;}
@@ -113,7 +103,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .status-done{background:var(--gb);color:var(--gm);}
 .tool-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
 .tool-card{display:flex;gap:12px;align-items:flex-start;padding:14px;background:white;border:2px solid var(--border);border-radius:12px;text-decoration:none;color:inherit;transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
-.tool-card:hover{border-color:rgba(123,77,255,0.45);box-shadow:0 8px 24px rgba(123,77,255,0.12);transform:translateY(-2px);}
+.tool-card:hover{border-color:rgba(91,33,182,0.45);box-shadow:0 8px 24px rgba(91,33,182,0.12);transform:translateY(-2px);}
 .tool-logo{width:52px;height:52px;object-fit:contain;flex-shrink:0;}
 .tool-name{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .tool-desc{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:6px;}
@@ -153,7 +143,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .ex-title{font-size:13px;font-weight:700;color:white;margin-bottom:4px;}
 .ex-tags{display:flex;gap:5px;flex-wrap:wrap;}
 .ex-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;}
-.tag-w{background:rgba(123,77,255,0.16);color:#7B4DFF;}
+.tag-w{background:#EDE9FE;color:#5B21B6;}
 .tag-d{background:#EEEDFE;color:#3C3489;}
 .tag-s{background:#E1F5EE;color:#085041;}
 .tag-r{background:#FAEEDA;color:#633806;}
@@ -162,10 +152,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .prio-c{background:#FCEBEB;color:#A32D2D;}
 .prio-h{background:#FAEEDA;color:#633806;}
 .prio-a{background:#EEEDFE;color:#3C3489;}
-.prio-m{background:rgba(123,77,255,0.16);color:#7B4DFF;}
+.prio-m{background:#EDE9FE;color:#5B21B6;}
 .ex-body{padding:1.25rem;}
 .ex-objective{background:var(--gray);border-radius:var(--r);padding:0.875rem;margin-bottom:0.875rem;font-size:13px;color:var(--text);line-height:1.6;}
-.ex-trainer-script{background:rgba(255,138,0,0.12);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:0.875rem;margin-bottom:0.875rem;}
+.ex-trainer-script{background:#FFF8F0;border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:0.875rem;margin-bottom:0.875rem;}
 .ets-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin-bottom:6px;}
 .ets-text{font-size:12px;color:var(--ad);line-height:1.7;white-space:pre-line;}
 .ex-steps{margin-bottom:0.875rem;}
@@ -261,8 +251,6 @@ body.embed-mode .main-wrap{height:calc(100vh - 52px);}
 .embed-back{color:rgba(255,255,255,0.9);font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:12px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);}
 .embed-back:hover{background:rgba(255,255,255,0.1);}
 </style>
-<link rel="stylesheet" href="css/infinity-brand-system.css?v=20260929contrast1">
-<link rel="stylesheet" href="css/infinity-apps-dark.css?v=20260929apps1">
 </head>
 <body>
 
@@ -279,7 +267,7 @@ body.embed-mode .main-wrap{height:calc(100vh - 52px);}
 <!-- ACCESS GATE (no public dropdown — login via Portal only) -->
 <div class="selector-screen" id="selector-screen" style="display:none;">
   <div class="sel-card" id="sel-card">
-    <img class="sel-logo" src="prototype-cadamag/assets/brand/png/infinity-symbol.png" alt="Training Book" onerror="this.style.display='none'">
+    <img class="sel-logo" src="assets/logos/training-book.png" alt="Training Book" onerror="this.style.display='none'">
     <div class="sel-title">Acceso requerido</div>
     <div class="sel-sub" id="sel-sub">Ingresá al Portal del Estudiante con tu usuario y contraseña para ver tu Training Book.</div>
     <a class="sel-btn" id="sel-portal-btn" href="Infinity_Student_Portal.html" style="text-decoration:none;"><i class="ti ti-login"></i> Ir al Portal del Estudiante</a>
@@ -687,9 +675,9 @@ function buildRadarChart(kpis){
     +'<line x1="160" y1="130" x2="160" y2="55" stroke="#e2e8f0"/><line x1="160" y1="130" x2="248" y2="108" stroke="#e2e8f0"/>'
     +'<line x1="160" y1="130" x2="215" y2="205" stroke="#e2e8f0"/><line x1="160" y1="130" x2="105" y2="205" stroke="#e2e8f0"/>'
     +'<line x1="160" y1="130" x2="72" y2="108" stroke="#e2e8f0"/>'
-    +'<polygon points="'+pts+'" fill="rgba(123,77,255,0.25)" stroke="#7B4DFF" stroke-width="2"/>'
+    +'<polygon points="'+pts+'" fill="rgba(91,33,182,0.25)" stroke="#5B21B6" stroke-width="2"/>'
     +labels
-    +'<text x="160" y="145" text-anchor="middle" font-size="11" fill="#7B4DFF" font-weight="800">Score '+avg+'</text>'
+    +'<text x="160" y="145" text-anchor="middle" font-size="11" fill="#5B21B6" font-weight="800">Score '+avg+'</text>'
     +'</svg>'
     +'<div class="radar-legend"><div><span class="legend-dot strong"></span> Strong (4-5)</div>'
     +'<div><span class="legend-dot dev"></span> Developing (3)</div>'
@@ -995,6 +983,12 @@ function showToast(msg,type){
 }
 </script>
 
+<style>
+.cadamag-credit{padding:14px 16px 18px;text-align:center;}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:11px;line-height:1.6;color:#8888AA;}
+.cadamag-credit-link{color:#6B6B8A;text-decoration:none;}
+.cadamag-credit-link:hover{text-decoration:underline;}
+</style>
 <footer class="cadamag-credit" aria-label="Autoría">
   <p class="cadamag-credit-line">
     <span class="cadamag-credit-by">Created by Cadamag Automação</span>
@@ -1004,6 +998,5 @@ function showToast(msg,type){
     <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
   </p>
 </footer>
-
 </body>
 </html>
