@@ -1,0 +1,163 @@
+{
+  "referenceCommit": "48e0833",
+  "restored": {
+    "file": "prototype-cadamag/css/brand.css",
+    "properties": [
+      "--grad-atmosphere",
+      "body.background-attachment"
+    ]
+  },
+  "outDir": "D:\\Users\\carlo\\Desktop\\Database-\\reports\\bg-continuity-20261004",
+  "notes": [
+    {
+      "width": 390,
+      "styles": {
+        "body": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "radial-gradient(70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), rgba(0, 0, 0, 0) 58%), radial-gradient(55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), rgba(0, 0, 0, 0) 55%), radial-gradient(50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), rgba(0, 0, 0, 0) 60%), linear-gradient(rgb(8, 11, 15) 0%, rgb(12, 16, 24) 45%, rgb(8, 11, ",
+          "backgroundAttachment": "fixed, fixed, fixed, fixed"
+        },
+        "trust": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        },
+        "know": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(8, 11, 15, 0.55) 0%, rgba(23, 28, 38, 0.72) 48%, rgba(8, 11, 15, 0.88) 100%)",
+          "backgroundAttachment": "scroll"
+        },
+        "hero": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        }
+      },
+      "probe": {
+        "attachment": "fixed, fixed, fixed, fixed",
+        "hasDeepRadials": true,
+        "softWashOnly": false
+      }
+    },
+    {
+      "width": 768,
+      "styles": {
+        "body": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "radial-gradient(70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), rgba(0, 0, 0, 0) 58%), radial-gradient(55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), rgba(0, 0, 0, 0) 55%), radial-gradient(50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), rgba(0, 0, 0, 0) 60%), linear-gradient(rgb(8, 11, 15) 0%, rgb(12, 16, 24) 45%, rgb(8, 11, ",
+          "backgroundAttachment": "fixed, fixed, fixed, fixed"
+        },
+        "trust": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        },
+        "know": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(8, 11, 15, 0.55) 0%, rgba(23, 28, 38, 0.72) 48%, rgba(8, 11, 15, 0.88) 100%)",
+          "backgroundAttachment": "scroll"
+        },
+        "hero": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        }
+      },
+      "probe": {
+        "attachment": "fixed, fixed, fixed, fixed",
+        "hasDeepRadials": true,
+        "softWashOnly": false
+      }
+    },
+    {
+      "width": 1024,
+      "styles": {
+        "body": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "radial-gradient(70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), rgba(0, 0, 0, 0) 58%), radial-gradient(55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), rgba(0, 0, 0, 0) 55%), radial-gradient(50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), rgba(0, 0, 0, 0) 60%), linear-gradient(rgb(8, 11, 15) 0%, rgb(12, 16, 24) 45%, rgb(8, 11, ",
+          "backgroundAttachment": "fixed, fixed, fixed, fixed"
+        },
+        "trust": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        },
+        "know": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(8, 11, 15, 0.55) 0%, rgba(23, 28, 38, 0.72) 48%, rgba(8, 11, 15, 0.88) 100%)",
+          "backgroundAttachment": "scroll"
+        },
+        "hero": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        }
+      },
+      "probe": {
+        "attachment": "fixed, fixed, fixed, fixed",
+        "hasDeepRadials": true,
+        "softWashOnly": false
+      }
+    },
+    {
+      "width": 1440,
+      "styles": {
+        "body": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "radial-gradient(70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), rgba(0, 0, 0, 0) 58%), radial-gradient(55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), rgba(0, 0, 0, 0) 55%), radial-gradient(50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), rgba(0, 0, 0, 0) 60%), linear-gradient(rgb(8, 11, 15) 0%, rgb(12, 16, 24) 45%, rgb(8, 11, ",
+          "backgroundAttachment": "fixed, fixed, fixed, fixed"
+        },
+        "trust": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        },
+        "know": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(8, 11, 15, 0.55) 0%, rgba(23, 28, 38, 0.72) 48%, rgba(8, 11, 15, 0.88) 100%)",
+          "backgroundAttachment": "scroll"
+        },
+        "hero": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        }
+      },
+      "probe": {
+        "attachment": "fixed, fixed, fixed, fixed",
+        "hasDeepRadials": true,
+        "softWashOnly": false
+      }
+    },
+    {
+      "width": 1920,
+      "styles": {
+        "body": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "radial-gradient(70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), rgba(0, 0, 0, 0) 58%), radial-gradient(55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), rgba(0, 0, 0, 0) 55%), radial-gradient(50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), rgba(0, 0, 0, 0) 60%), linear-gradient(rgb(8, 11, 15) 0%, rgb(12, 16, 24) 45%, rgb(8, 11, ",
+          "backgroundAttachment": "fixed, fixed, fixed, fixed"
+        },
+        "trust": {
+          "backgroundColor": "rgb(8, 11, 15)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        },
+        "know": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(8, 11, 15, 0.55) 0%, rgba(23, 28, 38, 0.72) 48%, rgba(8, 11, 15, 0.88) 100%)",
+          "backgroundAttachment": "scroll"
+        },
+        "hero": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "backgroundAttachment": "scroll"
+        }
+      },
+      "probe": {
+        "attachment": "fixed, fixed, fixed, fixed",
+        "hasDeepRadials": true,
+        "softWashOnly": false
+      }
+    }
+  ]
+}

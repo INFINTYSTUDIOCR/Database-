@@ -56,9 +56,62 @@
 
   --font-display: "Sora", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
+
+  /* ——— Layout system (8px scale + shared containers) ——— */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-7: 56px;
+  --space-8: 64px;
+  --space-9: 72px;
+  --space-10: 80px;
+
+  /* Gutters 20–64px by viewport */
+  --gutter: clamp(20px, 4vw, 64px);
+
+  /* 1280 content grid; 1760 cinematic home (intentional wide composition) */
+  --container-max: 1280px;
+  --container-max-wide: 1760px;
+  --container: min(100% - (var(--gutter) * 2), var(--container-max));
+  --container-wide: min(100% - (var(--gutter) * 2), var(--container-max-wide));
+
+  /* Legacy alias used by older sheets */
+  --max: var(--container-max);
+
+  --section-pad-y: clamp(48px, 6vw, 72px);
+  --section-gap: clamp(24px, 3vw, 40px);
+  --measure: 38rem;
+  --measure-narrow: 34rem;
+}
+
+/* Shared container utilities */
+.is-container {
+  width: var(--container);
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.is-container-wide {
+  width: var(--container-wide);
+  max-width: var(--container-max-wide);
+  margin-inline: auto;
+}
+
+/* Cinematic home: header/footer share the wide axis with hero + scenes */
+[data-layout="cinematic"] .header-inner,
+[data-layout="cinematic"] .site-footer-inner {
+  width: var(--container-wide);
+  max-width: var(--container-max-wide);
 }
 
 /* Global atmospheric canvas */
+html {
+  overflow-x: clip;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--infinity-black, #080B0F);

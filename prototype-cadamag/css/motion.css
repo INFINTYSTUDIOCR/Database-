@@ -104,8 +104,10 @@
 .scene-results.is-in .results-reveal,
 [data-reveal].is-in {
   opacity: 1;
-  filter: blur(0);
+  /* none (not blur(0)): blur(0) still creates a filter layer / rectangular composite */
+  filter: none;
   transform: translateX(0) translateY(0) scale(1);
+  will-change: auto;
 }
 
 /* Level 2 — soft content (left / top emphatic) */
@@ -163,8 +165,21 @@
 .scene-routes.is-in .routes-reveal,
 .scene-results.is-in .results-reveal {
   opacity: 1;
-  filter: blur(0);
+  filter: none;
   transform: translateX(0) translateY(0) scale(1);
+  will-change: auto;
+}
+
+/* Keyword titles: kill parent-block blur (keep opacity/transform reveal) */
+.know-reveal.has-holo-title,
+.know-reveal[data-know].has-holo-title,
+.routes-reveal.has-holo-title,
+.routes-reveal[data-routes].has-holo-title,
+.results-reveal.has-holo-title,
+.results-reveal[data-results].has-holo-title,
+.eco-reveal.has-holo-title,
+[data-reveal].has-holo-title {
+  filter: none;
 }
 
 [data-reveal="left"] {
@@ -204,11 +219,15 @@
   transition-delay: var(--stagger-0);
 }
 
+/* Title entrance: no parent blur/fade — keyword holo owns the only blur accent.
+   Rest of the heading stays sharp and visible from the first paint. */
+.enter.enter-title,
 .enter-title {
-  filter: blur(var(--reveal-blur-feature));
-  transform: translateY(12px);
-  transition-duration: var(--motion-slow);
-  transition-delay: var(--stagger-1);
+  opacity: 1;
+  filter: none;
+  transform: none;
+  transition: none;
+  will-change: auto;
 }
 
 .enter-sub {
@@ -408,7 +427,15 @@
   .holo-live.is-reset,
   .holo-live.is-entering,
   .holo-follow,
-  .holo-context {
+  .holo-context,
+  .holo-keyword,
+  .holo-keyword-sizer,
+  .holo-keyword-live,
+  html.holo-ready .holo-keyword.is-blur,
+  html.holo-ready .holo-keyword.is-sharp,
+  html.holo-ready .holo-keyword.is-entering,
+  html.holo-ready .holo-keyword.is-hiding,
+  html.holo-ready .holo-keyword.is-decoding {
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;

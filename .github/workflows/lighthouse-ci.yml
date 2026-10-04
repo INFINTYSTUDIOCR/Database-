@@ -1,0 +1,42 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'prototype-cadamag/**'
+      - '.lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  push:
+    branches: [main, redesign-cadamag, 'perf/**']
+    paths:
+      - 'index.html'
+      - 'prototype-cadamag/**'
+      - '.lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lhci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI (lab)
+        run: lhci autorun --config=.lighthouserc.cjs
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}

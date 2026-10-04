@@ -28,7 +28,13 @@
 
   --nav-h: 70px;
   --marquee-h: 100px;
-  --max: 1360px;
+  /* Fallback if brand.css not loaded; brand.css overrides with layout system */
+  --gutter: clamp(20px, 4vw, 64px);
+  --container-max: 1280px;
+  --container-max-wide: 1760px;
+  --container: min(100% - (var(--gutter) * 2), var(--container-max));
+  --container-wide: min(100% - (var(--gutter) * 2), var(--container-max-wide));
+  --max: var(--container-max);
   --font-display: "Sora", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1); /* aliased by motion.css → --ease-premium */
@@ -42,7 +48,9 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background: transparent; /* atmosphere from brand.css */
+  /* Do not set background here — brand.css owns atmosphere.
+     Shorthand `background: transparent` was wiping brand when
+     brand.css loads before prototype.css (pagespeed critical path). */
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
@@ -90,12 +98,14 @@ ul { list-style: none; }
 }
 
 .header-inner {
-  width: min(100% - 3rem, var(--max));
+  width: var(--container);
+  max-width: var(--container-max);
   margin-inline: auto;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1.75rem;
+  gap: var(--space-4, 1.75rem);
+  min-width: 0;
 }
 
 .brand {
@@ -262,7 +272,7 @@ ul { list-style: none; }
   max-height: none;
   padding: calc(var(--nav-h) + 1.15rem) 0 0.5rem;
   overflow: hidden;
-  isolation: isolate;
+  isolation: auto;
   display: flex;
   flex-direction: column;
 }
@@ -272,12 +282,9 @@ ul { list-style: none; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 65% 60% at 78% 48%, rgba(123, 77, 255, 0.3), transparent 58%),
-    radial-gradient(ellipse 38% 42% at 94% 14%, rgba(255, 138, 0, 0.12), transparent 55%),
-    radial-gradient(ellipse 36% 40% at 62% 88%, rgba(123, 77, 255, 0.12), transparent 60%),
-    radial-gradient(ellipse 30% 35% at 8% 65%, rgba(90, 47, 224, 0.12), transparent 60%),
-    linear-gradient(165deg, #0A0E16 0%, #080B0F 42%, #080B0F 72%, #080B0F 100%);
+  overflow: hidden;
+  /* Flat hero field — no orb/circle/plate behind woman + dash */
+  background: linear-gradient(165deg, #0A0E16 0%, #080B0F 42%, #080B0F 72%, #080B0F 100%);
 }
 .hero-atmosphere::before {
   content: "";
@@ -290,21 +297,12 @@ ul { list-style: none; }
       rgba(255, 255, 255, 0.01) 52px 53px
     );
   mask-image: linear-gradient(90deg, transparent, #000 28%, #000 72%, transparent);
-  opacity: 0.35;
+  opacity: 0.22;
 }
 .hero-atmosphere::after {
-  content: "";
-  position: absolute;
-  width: min(680px, 52vw);
-  height: min(680px, 52vw);
-  right: -2%;
-  top: 8%;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, rgba(123, 77, 255, 0.24), transparent 62%),
-    radial-gradient(circle at 72% 68%, rgba(255, 138, 0, 0.1), transparent 55%);
-  filter: blur(52px);
-  opacity: 0.7;
+  /* Kill circular blob — was reading as a visible circle/cut */
+  content: none !important;
+  display: none !important;
 }
 
 .hero-haze {
@@ -313,19 +311,20 @@ ul { list-style: none; }
   height: 42%;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(90, 47, 224, 0.12) 40%, rgba(8, 11, 15, 0.55));
+  /* Soft fade only — no purple band that reads as a plate */
+  background: linear-gradient(180deg, transparent, rgba(8, 11, 15, 0.35));
 }
 
 .hero-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1760px);
-  max-width: 1760px;
+  width: var(--container-wide);
+  max-width: var(--container-max-wide);
   margin-inline: auto;
   display: grid;
   grid-template-columns: minmax(0, 42%) minmax(0, 58%);
   grid-template-rows: auto auto;
-  gap: 0.5rem 1.5rem;
+  gap: var(--space-1, 8px) var(--space-3, 24px);
   align-items: start;
   flex: 1 1 auto;
   min-height: 0;
@@ -335,9 +334,9 @@ ul { list-style: none; }
 
 /* LEFT */
 .hero-copy {
-  max-width: 40rem;
-  margin-top: 3.5rem;
-  padding-top: 0.35rem;
+  max-width: var(--measure, 38rem);
+  margin-top: var(--space-7, 56px);
+  padding-top: var(--space-1, 8px);
   position: relative;
   z-index: 2;
   grid-column: 1;
@@ -384,58 +383,105 @@ ul { list-style: none; }
   border: 0;
 }
 
-/* AI / holographic text reveal */
-.hero-holo {
+/* Keyword holo — single-run scramble on ONE word; rest of title always sharp.
+   Geometry: invisible sizer (final word) + absolute overlay (scramble).
+   Overlay never participates in layout — title line breaks stay fixed. */
+.has-holo-keyword {
   position: relative;
-  display: block;
 }
 
-.holo-sizer {
-  visibility: hidden;
-  display: block;
+.holo-keyword {
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: max-content;
+  align-items: baseline;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  white-space: nowrap;
+  overflow: hidden; /* clip scramble glyphs inside the keyword box only */
+  text-align: inherit;
+  filter: none;
+  opacity: 1;
+  isolation: isolate;
+}
+
+/* Reserves natural word geometry — transparent (not visibility:hidden)
+   so screen readers still get the real word once from the sizer text. */
+.holo-keyword-sizer {
+  grid-area: 1 / 1;
+  color: transparent;
+  white-space: nowrap;
   pointer-events: none;
+  user-select: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
 }
 
-/* Reduced-motion / static fallback — sizer visible, live hidden */
-.holo-static .holo-sizer {
-  visibility: visible;
-}
-.holo-static .holo-live {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.holo-live {
+/* Scramble glyphs — out of flow; width locked by sizer */
+.holo-keyword-live {
   position: absolute;
   left: 0;
-  right: 0;
   top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
+/* Soft phases only on the keyword span — no hard blink / no heavy blur */
+html.holo-ready .holo-keyword.is-entering {
+  opacity: 0.78;
+  filter: none;
+  transition: opacity 180ms var(--ease-premium, var(--ease));
+}
+
+html.holo-ready .holo-keyword.is-hiding {
+  opacity: 0.72;
+  filter: none;
+  transition: opacity 320ms var(--ease-premium, var(--ease));
+}
+
+/* Legacy class kept for safety; blur removed (was flashing whole line boxes) */
+html.holo-ready .holo-keyword.is-blur {
+  opacity: 0.85;
+  filter: none;
+}
+
+html.holo-ready .holo-keyword.is-sharp,
+html.holo-ready .holo-keyword.is-decoding {
   opacity: 1;
-  filter: blur(0);
-  transform: translateY(0);
-  will-change: opacity, filter, transform;
+  filter: none;
+  transition: opacity 200ms var(--ease-premium, var(--ease));
 }
 
-/* Soft dim only — never full disappear */
-.holo-live.is-hiding {
-  opacity: 0.4;
-  filter: blur(2.5px);
-  transform: translateY(5px);
-  transition:
-    opacity var(--motion-slow, 950ms) var(--ease-premium, var(--ease)),
-    filter var(--motion-slow, 950ms) var(--ease-premium, var(--ease)),
-    transform var(--motion-slow, 950ms) var(--ease-premium, var(--ease));
+/* Guard: never let follow/context inherit keyword phase styles */
+.has-holo-keyword > .holo-follow,
+.has-holo-keyword > .holo-context {
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
-.holo-headline {
-  display: block;
-  color: #f4f5f8;
-  text-shadow: none;
-  transition: text-shadow var(--motion-fast, 300ms) var(--ease-premium, var(--ease));
-}
-
-.holo-headline.is-decoding {
-  text-shadow: 0 0 18px rgba(123, 77, 255, 0.18);
+/* Parent reveal blocks that host a keyword title: no full-block blur */
+.know-reveal.has-holo-title,
+.routes-reveal.has-holo-title,
+.results-reveal.has-holo-title,
+.eco-reveal.has-holo-title,
+[data-reveal].has-holo-title {
+  filter: none;
 }
 
 .holo-follow,
@@ -457,65 +503,6 @@ ul { list-style: none; }
   font-weight: 500;
   color: #c5c9d8;
   font-size: clamp(0.98rem, 1.1vw, 1.08rem);
-}
-
-.holo-scan {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0.35em;
-  height: 1px;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(123, 77, 255, 0.55),
-    rgba(255, 138, 0, 0.35),
-    transparent
-  );
-  box-shadow: 0 0 8px rgba(123, 77, 255, 0.18);
-}
-
-/* scan keyframes live in motion.css */
-.holo-scan.is-active {
-  animation: holo-scan-pass 2s var(--ease-premium, var(--ease)) forwards;
-}
-
-.holo-live.is-entering {
-  opacity: 0.42;
-  filter: blur(2px);
-  transform: translateY(4px);
-  transition:
-    opacity var(--motion-fast, 300ms) var(--ease-premium, var(--ease)),
-    filter var(--motion-fast, 300ms) var(--ease-premium, var(--ease)),
-    transform var(--motion-fast, 300ms) var(--ease-premium, var(--ease));
-}
-
-/* Section / page titles — same holo loop as hero */
-.has-holo,
-h2.has-holo,
-h1.has-holo,
-.page-hero-title.has-holo,
-.sp-section-title.has-holo,
-.scene-know-title.has-holo,
-.routes-title.has-holo,
-.eco-title.has-holo,
-.results-title.has-holo {
-  position: relative;
-}
-
-.has-holo .title-holo {
-  display: block;
-  width: 100%;
-}
-
-.has-holo .holo-headline {
-  font: inherit;
-  letter-spacing: inherit;
-  color: inherit;
-  line-height: inherit;
 }
 
 .hero-sub {
@@ -598,35 +585,19 @@ h1.has-holo,
   min-height: 700px;
   margin-top: 3.5rem;
   align-self: start;
-  overflow: hidden;
-  isolation: isolate;
+  /* No isolation / no overflow clip — isolation flattens glow into a hard rectangle */
+  overflow: visible;
+  isolation: auto;
+  background: transparent;
 }
 
 .stage-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 28% 52%, rgba(123, 77, 255, 0.26), transparent 44%),
-    radial-gradient(circle at 72% 38%, rgba(123, 77, 255, 0.16), transparent 48%),
-    radial-gradient(circle at 55% 78%, rgba(123, 77, 255, 0.1), transparent 50%);
-  filter: blur(6px);
+  /* Ambient wash moved to .hero-atmosphere — keep node for markup compat, no plate */
+  display: none !important;
 }
 
 .stage-grid {
-  position: absolute;
-  inset: 12% -5% 10% 24%;
-  z-index: 0;
-  opacity: 0.05;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(123, 77, 255, 0.28) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(123, 77, 255, 0.16) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse at 60% 50%, #000 15%, transparent 70%);
-  transform: rotateX(58deg) rotateZ(-8deg);
-  transform-origin: center;
+  display: none !important;
 }
 
 /*
@@ -640,11 +611,12 @@ h1.has-holo,
 .dashboard-wrapper,
 .dash {
   position: absolute;
-  right: 1%;
+  /* Push graphic right so it clears the woman */
+  right: -18%;
   top: 10%;
   left: auto;
   bottom: auto;
-  width: min(560px, 58%);
+  width: min(480px, 50%);
   height: auto;
   aspect-ratio: 16 / 10;
   max-height: none;
@@ -657,8 +629,7 @@ h1.has-holo,
   -webkit-backdrop-filter: blur(20px);
   box-shadow:
     0 28px 64px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(123, 77, 255, 0.12),
-    0 0 64px rgba(123, 77, 255, 0.16);
+    0 0 0 1px rgba(123, 77, 255, 0.1);
   display: grid;
   grid-template-columns: minmax(0, 96px) minmax(0, 1fr);
   overflow: visible;
@@ -669,51 +640,28 @@ h1.has-holo,
 .woman-wrapper,
 .hero-person {
   position: absolute;
-  left: 8%;
+  /* Fallback ≈ know-title column; JS pins exact left to .scene-know-title */
+  left: 0;
   bottom: 0;
   top: auto;
   height: 650px;
   width: auto;
   max-width: 48%;
   aspect-ratio: 768 / 1168;
-  z-index: 3;
+  z-index: 1;
   background: transparent !important;
   pointer-events: none;
   display: block;
+  /* visible so drop-shadow on the video can bloom past the box */
   overflow: visible;
 }
 
 .woman-wrapper::before,
-.hero-person::before {
-  content: "";
-  position: absolute;
-  inset: 10% -16% 0 -18%;
-  z-index: -1;
-  background: radial-gradient(
-    circle at 45% 42%,
-    rgba(123, 77, 255, 0.22),
-    transparent 60%
-  );
-  filter: blur(20px);
-  pointer-events: none;
-}
-
+.hero-person::before,
 .woman-wrapper::after,
 .hero-person::after {
-  content: "";
-  position: absolute;
-  left: -10%;
-  bottom: 0;
-  width: 68%;
-  height: 40%;
-  z-index: -1;
-  background: radial-gradient(
-    circle,
-    rgba(255, 138, 0, 0.1),
-    transparent 68%
-  );
-  filter: blur(24px);
-  pointer-events: none;
+  content: none !important;
+  display: none !important;
 }
 
 .hero-person-video {
@@ -723,13 +671,18 @@ h1.has-holo,
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
-  object-position: center bottom;
+  object-position: left bottom;
   background: transparent !important;
   border: 0;
   outline: none;
   box-shadow: none;
   border-radius: 0;
   pointer-events: none;
+  /* Silhouette-only glow (follows WebM alpha — no plate/circle) */
+  filter:
+    drop-shadow(0 0 14px rgba(123, 77, 255, 0.55))
+    drop-shadow(0 0 32px rgba(123, 77, 255, 0.35))
+    drop-shadow(0 8px 48px rgba(255, 138, 0, 0.16));
 }
 
 .hero-person-img {
@@ -823,7 +776,7 @@ h1.has-holo,
   background: rgba(23, 28, 38, 0.92);
   backdrop-filter: blur(16px);
   padding: 10px 12px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4), 0 0 28px rgba(123, 77, 255, 0.12);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
   transform: none;
 }
 
@@ -929,11 +882,14 @@ h1.has-holo,
   min-width: 0;
 }
 .dash-top { display: flex; justify-content: space-between; align-items: center; }
-.dash-top h3 {
+.dash-top h3,
+.dash-top .dash-title {
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  margin: 0;
+  color: inherit;
 }
 .dash-live {
   display: inline-flex;
@@ -1180,17 +1136,22 @@ h1.has-holo,
   font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.55;
-  color: #6b7289;
+  /* #8b93a8 on #03050c ≈ 5.2:1 (was #6b7289 ≈ 4.26:1) */
+  color: #8b93a8;
 }
 
 .cadamag-credit-sep {
   margin-inline: 0.45em;
-  color: #4b5163;
+  color: #6b7289;
 }
 
 .cadamag-credit-link {
-  color: #7c849c;
+  color: #9aa3bc;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding-block: 4px;
   transition: color var(--motion-micro, 280ms) var(--ease, ease);
 }
 

@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>Prototype Cadamag — Hero · Caminos Infinity | Infinity Studio CR</title>
+  <title>Prototype Cadamag � Hero · Caminos Infinity | Infinity Studio CR</title>
   <meta name="description" content="Prototipo visual aislado: hero, marquee y sección narrativa. No es producción.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap&subset=latin,latin-ext" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@700;800&display=swap&subset=latin,latin-ext">
   <link rel="icon" href="assets/brand/svg/favicon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="assets/brand/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon/favicon-16x16.png">
@@ -17,25 +17,31 @@
   <link rel="apple-touch-icon" href="assets/brand/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/brand/favicon/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/brand/favicon/icon-512.png">
-  <link rel="stylesheet" href="css/prototype.css?v=20260929contrast1">
-  <link rel="stylesheet" href="css/motion.css?v=20260929holo2">
-  <link rel="stylesheet" href="css/responsive.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/section-know.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/section-routes.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/section-eco.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/persona-avatar.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/section-results.css?v=20260929scroll4">
-  <link rel="stylesheet" href="css/brand.css?v=20260929contrast1">
-  <link rel="stylesheet" href="css/site-nav.css?v=20260928brand2">
-  <link rel="stylesheet" href="css/page-shell.css?v=20260929contrast1">
+  <link rel="stylesheet" href="css/brand.css?v=20261004darkbg1">
+  <link rel="stylesheet" href="css/prototype.css?v=20261004darkbg1">
+  <link rel="stylesheet" href="css/motion.css?v=20261004holofix4">
+  <link rel="stylesheet" href="css/responsive.css?v=20261004holofix4">
+  <link rel="stylesheet" href="css/site-nav.css?v=20261004perf1">
+  <link rel="stylesheet" href="css/page-shell.css?v=20261004perf1">
+  <link rel="stylesheet" href="css/section-know.css?v=20261004perf1">
+  <link rel="stylesheet" href="css/section-routes.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/section-eco.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/persona-avatar.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/section-results.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="css/section-routes.css?v=20261004perf1">
+    <link rel="stylesheet" href="css/section-eco.css?v=20261004perf1">
+    <link rel="stylesheet" href="css/persona-avatar.css?v=20261004perf1">
+    <link rel="stylesheet" href="css/section-results.css?v=20261004perf1">
+  </noscript>
   <script src="js/persona-avatar.js?v=20260928brand2" defer></script>
-  <script src="js/site-nav.js?v=20260929qa5" defer></script>
-  <script src="js/site-footer.js?v=20260929qa5" defer></script>
+  <script src="js/site-nav.js?v=20261004perf1" defer></script>
+  <script src="js/site-footer.js?v=20261004perf1" defer></script>
   <script src="js/prototype.js?v=20260928brand2" defer></script>
-  <script src="js/motion.js?v=20260929holo2" defer></script>
+  <script src="js/motion.js?v=20261004holofix4" defer></script>
   <script src="js/ecosystem.js?v=20260928brand2" defer></script>
 </head>
-<body data-nav-root="../" data-nav-home="index.html">
+<body data-layout="cinematic" data-nav-root="../" data-nav-home="index.html">
 
 <a class="skip-link" href="#main">Saltar al contenido</a>
 <div class="prototype-badge" aria-hidden="true">Prototype · Cadamag</div>
@@ -51,20 +57,8 @@
       <div class="hero-copy">
         <p class="eyebrow enter enter-eyebrow">Inglés para cuando más importa</p>
 
-        <h1 class="hero-title enter enter-title" id="hero-title"
-            data-holo-headline="¿Te quedás en blanco cuando más importa?">
-          <span class="sr-only">
-            ¿Te quedás en blanco cuando más importa? Te entrenamos para responder con claridad. En entrevistas, reuniones y trabajo real.
-          </span>
-          <span class="hero-holo" aria-hidden="true">
-            <span class="holo-sizer">
-              <span class="holo-headline">¿Te quedás en blanco<br>cuando más importa?</span>
-            </span>
-            <span class="holo-live" data-holo-live>
-              <span class="holo-scan" data-holo-scan aria-hidden="true"></span>
-              <span class="holo-headline" data-holo-line="headline"></span>
-            </span>
-          </span>
+        <h1 class="hero-title enter enter-title" id="hero-title" data-holo-keyword="blanco">
+          ¿Te quedás en <span class="holo-keyword" data-holo-keyword-target>blanco</span><br>cuando más importa?
           <span class="holo-follow">Te entrenamos para responder con claridad.</span>
           <span class="holo-context">En entrevistas, reuniones y trabajo real.</span>
         </h1>
@@ -93,7 +87,7 @@
         <aside class="dash dashboard-wrapper enter-dash" aria-label="Infinity Dashboard — mockup visual">
           <div class="dash-side">
             <div class="dash-logo">
-              <img src="assets/brand/png/infinity-symbol.png" alt="" width="24" height="24">
+              <img src="assets/brand/webp/infinity-symbol.webp" alt="" width="24" height="24">
               <strong>INFINITY</strong>
             </div>
             <nav class="dash-nav" aria-label="Navegación del dashboard (mock)">
@@ -110,7 +104,7 @@
 
           <div class="dash-main">
             <div class="dash-top">
-              <h3>Dashboard</h3>
+              <p class="dash-title">Dashboard</p>
               <span class="dash-live">Live</span>
             </div>
 
@@ -142,7 +136,7 @@
 
               <div class="panel alice-mini" data-demo="alice">
                 <div class="alice-row">
-                  <img class="alice-avatar" src="public/personas/alice.png" alt="" width="36" height="36">
+                  <img class="alice-avatar" src="public/personas/alice.webp" alt="" width="36" height="36">
                   <div>
                     <strong>Alice</strong>
                     <em>Speaking Coach</em>
@@ -164,7 +158,7 @@
 
           <div class="alice-float enter-float" aria-hidden="true">
             <div class="alice-row" style="margin-bottom:10px;">
-              <img class="alice-avatar" src="public/personas/alice.png" alt="" width="36" height="36">
+              <img class="alice-avatar" src="public/personas/alice.webp" alt="" width="36" height="36">
               <div>
                 <strong>Alice Speaking Coach</strong>
                 <em>Live practice layer</em>
@@ -182,9 +176,9 @@
           </div>
 
           <div class="dash-kpis" aria-hidden="true">
-            <span class="kpi-chip c1 enter-chip" data-demo="kpi">Clarity &#8593;</span>
-            <span class="kpi-chip c2 enter-chip" data-demo="kpi">Response &#8593;</span>
-            <span class="kpi-chip c3 enter-chip" data-demo="kpi">Structure &#8593;</span>
+            <span class="kpi-chip c1 enter-chip" data-demo="kpi">Clarity ↑</span>
+            <span class="kpi-chip c2 enter-chip" data-demo="kpi">Response ↑</span>
+            <span class="kpi-chip c3 enter-chip" data-demo="kpi">Structure ↑</span>
           </div>
         </aside>
 
@@ -253,7 +247,7 @@
     </div>
   </section>
 
-  <!-- Anchors reserved for later sections — intentionally empty in this prototype -->
+  <!-- Anchors reserved for later sections � intentionally empty in this prototype -->
   <div id="programas" hidden></div>
   <div id="herramientas" hidden></div>
   <div id="precios" hidden></div>
@@ -372,7 +366,7 @@
     </div>
   </aside>
 
-  <!-- Section 2 — cinematic identification scene (Hero untouched) -->
+  <!-- Section 2 � cinematic identification scene (Hero untouched) -->
   <section class="scene-know" id="sabes-mas" aria-labelledby="scene-know-title">
     <div class="scene-know-atmosphere" aria-hidden="true"></div>
 
@@ -405,11 +399,11 @@
                 </li>
                 <li class="know-meter know-meter-pressure">
                   <span class="know-meter-k">Pressure</span>
-                  <span class="know-meter-v know-pressure-val">↑</span>
+                  <span class="know-meter-v know-pressure-val">� </span>
                 </li>
                 <li class="know-meter know-meter-clarity">
-                  <span class="know-meter-k">Clarity</span>
-                  <span class="know-meter-v know-clarity-val">↓</span>
+                  <span class="know-meter-k">Clarity ↑>
+                  <span class="know-meter-v know-clarity-val">� </span>
                 </li>
               </ul>
             </div>
@@ -441,8 +435,8 @@
 
       <div class="scene-know-lead know-reveal" data-know="lead">
         <p class="scene-know-eyebrow">No siempre es falta de inglés</p>
-        <h2 class="scene-know-title" id="scene-know-title">
-          Sabés más inglés<br>de lo que creés.
+        <h2 class="scene-know-title" id="scene-know-title" data-holo-keyword="creés">
+          Sabés más inglés<br>de lo que <span class="holo-keyword" data-holo-keyword-target>creés</span>.
         </h2>
         <p class="scene-know-body">
           Podés entender una conversación, seguir una serie
@@ -489,15 +483,15 @@
     </div>
   </section>
 
-  <!-- Section 3 — Foundations + ORT (two equal paths) -->
+  <!-- Section 3 � Foundations + ORT (two equal paths) -->
   <section class="scene-routes" id="caminos" aria-labelledby="routes-title">
     <div class="scene-routes-atmosphere" aria-hidden="true"></div>
 
     <div class="scene-routes-shell">
       <header class="routes-intro routes-reveal" data-routes="intro">
         <p class="routes-eyebrow">Tu camino en Infinity</p>
-        <h2 class="routes-title" id="routes-title">
-          No todos necesitan empezar<br>desde el mismo lugar.
+        <h2 class="routes-title" id="routes-title" data-holo-keyword="lugar">
+          No todos necesitan empezar<br>desde el mismo <span class="holo-keyword" data-holo-keyword-target>lugar</span>.
         </h2>
         <p class="routes-support">
           Tu ruta depende de lo que ya sabés
@@ -564,7 +558,7 @@
             <span class="routes-canvas-tag routes-canvas-tag-o">ORT</span>
             <div class="routes-converge-label routes-reveal" data-routes="converge">
               <span>Confidence</span>
-              <span>Clarity</span>
+              <span>Clarity ↑>
               <span>Real-world English</span>
             </div>
           </div>
@@ -611,7 +605,7 @@
           </ul>
           <div class="route-checks route-checks-o" aria-hidden="true">
             <span>Response</span>
-            <span>Clarity</span>
+            <span>Clarity ↑>
             <span>Fluency</span>
             <span>Performance</span>
           </div>
@@ -626,7 +620,7 @@
     </div>
   </section>
 
-  <!-- Section 4 — Ecosistema Infinity (tools as one system) -->
+  <!-- Section 4 � Ecosistema Infinity (tools as one system) -->
   <section class="scene-eco" id="ecosistema" aria-labelledby="eco-title">
     <div class="scene-eco-atmosphere" aria-hidden="true"></div>
 
@@ -637,8 +631,8 @@
 
       <header class="eco-intro eco-reveal" data-eco="intro">
         <p class="eco-eyebrow">Más que clases</p>
-        <h2 class="eco-title" id="eco-title">
-          Un ecosistema que<br>entrena contigo.
+        <h2 class="eco-title" id="eco-title" data-holo-keyword="entrena">
+          Un ecosistema que<br><span class="holo-keyword" data-holo-keyword-target>entrena</span> contigo.
         </h2>
         <p class="eco-support">
           Cada herramienta cumple una función distinta,
@@ -659,7 +653,7 @@
           <span class="eco-core-sub">Core system</span>
         </div>
 
-        <!-- Alice — speaking / practice coach -->
+        <!-- Alice � speaking / practice coach -->
         <article
           class="eco-module eco-mod-alice eco-mod-persona"
           data-eco-tool="alice"
@@ -669,7 +663,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Alice"
-              src="public/personas/alice.png"
+              src="public/personas/alice.webp"
               accent="violet"
             ></persona-avatar>
           </div>
@@ -678,7 +672,7 @@
           <a class="eco-mod-cta" href="alice.html">Conocer Alice</a>
         </article>
 
-        <!-- Training Book — progress / exercises -->
+        <!-- Training Book � progress / exercises -->
         <article
           class="eco-module eco-mod-book"
           data-eco-tool="book"
@@ -698,7 +692,7 @@
           <a class="eco-mod-cta" href="training-book.html">Ver Training Book</a>
         </article>
 
-        <!-- Nexora — operational simulation -->
+        <!-- Nexora � operational simulation -->
         <article
           class="eco-module eco-mod-nexora eco-mod-persona"
           data-eco-tool="nexora"
@@ -708,7 +702,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Nexora"
-              src="public/personas/nexora.png"
+              src="public/personas/nexora.webp"
               accent="amber"
             ></persona-avatar>
           </div>
@@ -717,7 +711,7 @@
           <a class="eco-mod-cta" href="nexora.html">Ver Nexora</a>
         </article>
 
-        <!-- Jill — Foundations drills -->
+        <!-- Jill � Foundations drills -->
         <article
           class="eco-module eco-mod-jill eco-mod-persona"
           data-eco-tool="jill"
@@ -727,7 +721,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Jill"
-              src="public/personas/jill.png"
+              src="public/personas/jill.webp"
               accent="intense"
             ></persona-avatar>
           </div>
@@ -736,7 +730,7 @@
           <a class="eco-mod-cta" href="jill.html">Probar Jill</a>
         </article>
 
-        <!-- Claire — TOEIC practice -->
+        <!-- Claire � TOEIC practice -->
         <article
           class="eco-module eco-mod-claire eco-mod-persona"
           data-eco-tool="claire"
@@ -746,7 +740,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Claire"
-              src="public/personas/claire.png"
+              src="public/personas/claire.webp"
               accent="cool"
             ></persona-avatar>
           </div>
@@ -770,15 +764,15 @@
     </div>
   </section>
 
-  <!-- Section 5 — Resultados + prueba social (documented evidence only) -->
+  <!-- Section 5 � Resultados + prueba social (documented evidence only) -->
   <section class="scene-results" id="resultados" aria-labelledby="results-title">
     <div class="scene-results-atmosphere" aria-hidden="true"></div>
 
     <div class="scene-results-shell">
       <header class="results-intro results-reveal" data-results="intro">
         <p class="results-eyebrow">Resultados en contexto real</p>
-        <h2 class="results-title" id="results-title">
-          El inglés cambia cuando<br>podés usarlo bajo presión.
+        <h2 class="results-title" id="results-title" data-holo-keyword="presión">
+          El inglés cambia cuando<br>podés usarlo bajo <span class="holo-keyword" data-holo-keyword-target>presión</span>.
         </h2>
         <p class="results-support">
           El objetivo no es completar más lecciones.
@@ -790,7 +784,7 @@
         <div class="results-case-main results-reveal" data-results="case">
           <span class="results-badge">Sector público · Goicoechea · 2021</span>
           <h3 class="results-case-name">
-            Municipalidad de Goicoechea — Piloto de preparación para call center
+            Municipalidad de Goicoechea � Piloto de preparación para call center
           </h3>
 
           <ol class="results-phases">
@@ -807,7 +801,7 @@
               <span class="results-phase-label">Challenge</span>
               <p class="results-phase-body">
                 Preparar a los participantes para la entrevista en call center
-                y acelerar su colocación laboral — no solo enseñar inglés de salón.
+                y acelerar su colocación laboral � no solo enseñar inglés de salón.
               </p>
             </li>
             <li class="results-phase" data-phase="training">
@@ -822,7 +816,7 @@
               <span class="results-phase-label">Result</span>
               <p class="results-phase-body">
                 El Informe de Labores 2022 de la Municipalidad documenta
-                colocaciones confirmadas y un proceso activo de aplicación —
+                colocaciones confirmadas y un proceso activo de aplicación �
                 evidencia pública, no un claim de marketing.
               </p>
             </li>
@@ -852,7 +846,7 @@
           <blockquote class="results-excerpt">
             <span class="results-excerpt-kicker">Informe oficial · p. 34</span>
             <p>
-              «…10 han sido colocados exitosamente en un empleo confirmado,
+              «⬦10 han sido colocados exitosamente en un empleo confirmado,
               a este momento 15 aún están en proceso de aplicación.»
             </p>
             <cite class="results-excerpt-cite">
@@ -867,7 +861,7 @@
               href="https://transparencia.munigoicoechea.go.cr/wp-content/uploads/2023/05/INFORMEDELABORES2022.pdf"
               target="_blank"
               rel="noopener noreferrer"
-            >Fuente oficial — Informe de Labores 2022 (PDF)</a>
+            >Fuente oficial � Informe de Labores 2022 (PDF)</a>
             <a
               class="results-link"
               href="https://www.facebook.com/watch/?v=263792665317206"
@@ -879,8 +873,8 @@
       </div>
 
       <p class="results-legacy results-reveal" data-results="legacy">
-        <strong>TU506 → Infinity Studio CR.</strong>
-        Training United 506 era el nombre cuando corrió esta alianza en 2021 —
+        <strong>TU506 �  Infinity Studio CR.</strong>
+        Training United 506 era el nombre cuando corrió esta alianza en 2021 �
         misma metodología, mismo fundador.
       </p>
 

@@ -1,0 +1,29 @@
+{
+  "name": "database-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "infinity-auth.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "audit:layout": "node scripts/audit-layout.cjs",
+    "audit:holo": "node scripts/audit-holo-layout.cjs",
+    "test": "node scripts/_check-keyword-holo.js",
+    "lh:summarize": "node scripts/summarize-lighthouse.js",
+    "lh:ci": "lhci autorun --config=.lighthouserc.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/INFINTYSTUDIOCR/Database-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/INFINTYSTUDIOCR/Database-/issues"
+  },
+  "homepage": "https://github.com/INFINTYSTUDIOCR/Database-#readme"
+}

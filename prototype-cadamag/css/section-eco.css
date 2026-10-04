@@ -5,7 +5,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 4.5rem 0 5rem;
+  padding: var(--section-pad-y, 4.5rem) 0;
   background:
     linear-gradient(180deg, #0C1018 0%, #0C1018 45%, #080B0F 100%);
   border-top: 1px solid rgba(123, 77, 255, 0.1);
@@ -25,7 +25,8 @@
 .scene-eco-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1760px);
+  width: var(--container-wide, min(100% - 2.5rem, 1760px));
+  max-width: var(--container-max-wide, 1760px);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -475,6 +476,11 @@
     transform var(--motion-medium, 750ms) var(--ease-premium, ease);
 }
 
+/* Keyword title lives in eco-intro — no full-block blur */
+.eco-reveal.has-holo-title {
+  filter: none;
+}
+
 .scene-eco.is-in .eco-reveal {
   opacity: 1;
   filter: blur(0);
@@ -548,7 +554,8 @@
   }
 
   .scene-eco-shell {
-    width: min(100% - 2rem, 1120px);
+    width: var(--container-wide);
+    max-width: var(--container-max-wide);
     gap: 1.85rem;
   }
 
@@ -590,7 +597,8 @@
   }
 
   .scene-eco-shell {
-    width: min(100% - 2.5rem, var(--max, 1360px));
+    width: var(--container);
+    max-width: var(--container-max);
     gap: 1.45rem;
   }
 
@@ -636,6 +644,7 @@
 
 @media (max-width: 480px) {
   .scene-eco-shell {
-    width: min(100% - 2.5rem, 100%);
+    width: var(--container);
+    max-width: var(--container-max);
   }
 }

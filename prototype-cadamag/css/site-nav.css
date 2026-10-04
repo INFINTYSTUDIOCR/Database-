@@ -231,23 +231,40 @@
 
   .nav-center {
     position: fixed;
-    inset: var(--nav-h, 70px) 0 0 auto;
-    width: min(100%, 380px);
+    top: var(--nav-h, 70px);
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: min(380px, 100vw);
+    max-width: 100%;
     max-height: calc(100vh - var(--nav-h, 70px));
     overflow-y: auto;
+    overflow-x: hidden;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
     padding: 0.75rem 0.85rem 1.5rem;
     background: rgba(8, 11, 15, 0.97);
     border-left: 1px solid rgba(123, 77, 255, 0.18);
-    transform: translateX(104%);
-    transition: transform 260ms var(--ease-premium, ease);
+    /* Slide closed via right offset — avoids scrollWidth expansion from translate */
+    right: calc(-1 * min(380px, 100vw));
+    transform: none;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      right 260ms var(--ease-premium, ease),
+      visibility 0s linear 260ms;
     z-index: 1100;
+    contain: paint;
   }
 
   .nav-center.is-open {
-    transform: translateX(0);
+    right: 0;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      right 260ms var(--ease-premium, ease),
+      visibility 0s linear 0s;
   }
 
   .nav-drawer-backdrop.is-open {
