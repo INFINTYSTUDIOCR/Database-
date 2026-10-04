@@ -100,7 +100,7 @@
     return (
       '<div class="header-inner">' +
         '<a class="brand" href="' + h + '#inicio" aria-label="Infinity Studio">' +
-          '<img class="brand-logo" src="' + brandBase() + 'assets/brand/png/infinity-logo-horizontal-light.png" width="168" height="36" alt="Infinity Studio">' +
+          '<img class="brand-logo" src="' + brandBase() + 'assets/brand/webp/infinity-logo-horizontal-light.webp" width="168" height="36" alt="Infinity Studio" decoding="async" fetchpriority="high">' +
         '</a>' +
         '<nav class="nav-center" id="site-nav-center" aria-label="Principal">' +
           '<div class="nav-item"><a class="nav-link" href="' + h + '#inicio">Inicio</a></div>' +

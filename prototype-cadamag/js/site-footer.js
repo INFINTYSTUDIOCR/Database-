@@ -47,7 +47,7 @@
       '<div class="site-footer-inner">' +
         '<div class="site-footer-brand">' +
           '<a class="brand" href="' + h + '" aria-label="Infinity Studio">' +
-            '<img class="brand-logo brand-logo-footer" src="' + brandBase() + 'assets/brand/png/infinity-logo-horizontal-light.png" width="300" height="64" alt="Infinity Studio">' +
+            '<img class="brand-logo brand-logo-footer" src="' + brandBase() + 'assets/brand/webp/infinity-logo-horizontal-light-600.webp" width="300" height="64" alt="Infinity Studio" decoding="async" loading="lazy">' +
           '</a>' +
         '</div>' +
         '<div class="site-footer-grid">' +

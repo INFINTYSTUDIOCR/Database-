@@ -21,7 +21,8 @@
 .page-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1120px);
+  width: var(--container, min(100% - 2.5rem, 1280px));
+  max-width: var(--container-max, 1280px);
   margin-inline: auto;
 }
 
@@ -71,7 +72,7 @@
 
 .page-lead {
   margin: 0 0 1.65rem;
-  max-width: 38rem;
+  max-width: var(--measure, 38rem);
   font-size: clamp(1.02rem, 1.2vw, 1.14rem);
   line-height: 1.55;
   color: var(--text-soft, #E0E3ED);
@@ -182,7 +183,7 @@
 
 /* —— Sections —— */
 .sp-section {
-  padding: 2.75rem 0;
+  padding: var(--space-6, 2.75rem) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -326,11 +327,13 @@ a.sp-card:focus-visible {
   margin-top: 1rem;
   padding: 4.5rem 0 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(8, 11, 15, 0.55);
+  /* Solid base so muted footer text meets 4.5:1 (translucent bg sampled ~#777) */
+  background: #080B0F;
 }
 
 .site-footer-inner {
-  width: min(100% - 2.5rem, 1120px);
+  width: var(--container, min(100% - 2.5rem, 1280px));
+  max-width: var(--container-max, 1280px);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -454,7 +457,8 @@ a.sp-card:focus-visible {
 
 @media (max-width: 560px) {
   .page-shell {
-    width: min(100% - 1.5rem, 1120px);
+    width: var(--container);
+    max-width: var(--container-max);
   }
 
   .site-footer {

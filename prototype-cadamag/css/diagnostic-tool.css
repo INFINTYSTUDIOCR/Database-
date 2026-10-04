@@ -53,9 +53,15 @@ body.diag-page {
 }
 
 .diag-page .main {
-  max-width: 920px;
+  width: var(--container, min(100% - 2.5rem, 1280px));
+  max-width: min(920px, var(--container-max, 1280px));
   margin: 0 auto;
-  padding: calc(var(--nav-h, 70px) + 1.75rem) 1.25rem 3rem;
+  padding: calc(var(--nav-h, 70px) + 1.75rem) 0 3rem;
+  box-sizing: border-box;
+}
+
+.diag-page {
+  overflow-x: hidden;
 }
 
 .diag-page .card {
@@ -65,6 +71,33 @@ body.diag-page {
   padding: 1.35rem 1.25rem;
   margin-bottom: 1rem;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.diag-page .diag-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2, 12px);
+  margin-top: var(--space-2, 1rem);
+  max-width: 100%;
+}
+
+.diag-page .diag-chart-slot {
+  position: relative;
+  height: 200px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.diag-page .diag-chart-slot canvas {
+  max-width: 100% !important;
+}
+
+@media (max-width: 600px) {
+  .diag-page .diag-charts {
+    grid-template-columns: 1fr;
+  }
 }
 
 .diag-page .card-title {
@@ -177,9 +210,10 @@ body.diag-page {
 
 .diag-page .kpi-scale {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 0.75rem;
-  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .diag-page .kpi-btn {

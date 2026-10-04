@@ -6,7 +6,7 @@
   isolation: isolate;
   overflow: hidden;
   min-height: min(92vh, 860px);
-  padding: 4.5rem 0 4.75rem;
+  padding: var(--section-pad-y, 4.5rem) 0;
   background:
     linear-gradient(180deg, #080B0F 0%, #0C1018 28%, #0C1018 62%, #080B0F 100%);
   border-top: 1px solid rgba(123, 77, 255, 0.12);
@@ -36,13 +36,14 @@
 .scene-know-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1760px);
+  width: var(--container-wide, min(100% - 2.5rem, 1760px));
+  max-width: var(--container-max-wide, 1760px);
   margin-inline: auto;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   grid-template-rows: auto auto auto auto;
-  column-gap: 3.5rem;
-  row-gap: 1.35rem;
+  column-gap: var(--space-7, 3.5rem);
+  row-gap: var(--section-gap, 1.35rem);
   align-items: start;
 }
 
@@ -714,8 +715,9 @@
   }
 
   .scene-know-shell {
-    column-gap: 2rem;
-    width: min(100% - 2rem, 1120px);
+    column-gap: var(--space-4, 2rem);
+    width: var(--container-wide);
+    max-width: var(--container-max-wide);
   }
 
   .know-story {
@@ -736,8 +738,9 @@
   .scene-know-shell {
     display: flex;
     flex-direction: column;
-    width: min(100% - 2.5rem, var(--max, 1360px));
-    gap: 1.35rem;
+    width: var(--container);
+    max-width: var(--container-max);
+    gap: var(--section-gap, 1.35rem);
   }
 
   .scene-know-lead { order: 1; }
@@ -798,7 +801,8 @@
 
 @media (max-width: 480px) {
   .scene-know-shell {
-    width: min(100% - 2.5rem, 100%);
-    gap: 1.2rem;
+    width: var(--container);
+    max-width: var(--container-max);
+    gap: var(--space-3, 1.2rem);
   }
 }

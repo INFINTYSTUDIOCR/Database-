@@ -5,7 +5,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 4.5rem 0 5rem;
+  padding: var(--section-pad-y, 4.5rem) 0;
   background:
     linear-gradient(180deg, #080B0F 0%, #0C1018 40%, #0C1018 100%);
   border-top: 1px solid rgba(123, 77, 255, 0.1);
@@ -24,11 +24,12 @@
 .scene-results-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1760px);
+  width: var(--container-wide, min(100% - 2.5rem, 1760px));
+  max-width: var(--container-max-wide, 1760px);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 2.25rem;
+  gap: var(--section-gap, 2.25rem);
 }
 
 .results-eyebrow {
@@ -365,7 +366,8 @@
   }
 
   .scene-results-shell {
-    width: min(100% - 2.5rem, var(--max, 1360px));
+    width: var(--container);
+    max-width: var(--container-max);
     gap: 1.5rem;
   }
 

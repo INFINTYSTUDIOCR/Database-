@@ -78,7 +78,7 @@
   <meta name="description" content="¿Te trabás al hablar inglés? Foundations (desde cero) u ORT (si ya entendés pero te congelás). Profe 1 a 1 + IA 24/7. Desde ₡67.500/mes. Diagnóstico gratis.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap&subset=latin,latin-ext" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@700;800&display=swap&subset=latin,latin-ext">
   <link rel="icon" href="prototype-cadamag/assets/brand/svg/favicon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="prototype-cadamag/assets/brand/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="16x16" href="prototype-cadamag/assets/brand/favicon/favicon-16x16.png">
@@ -86,25 +86,33 @@
   <link rel="apple-touch-icon" href="prototype-cadamag/assets/brand/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="prototype-cadamag/assets/brand/favicon/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="prototype-cadamag/assets/brand/favicon/icon-512.png">
-  <link rel="stylesheet" href="prototype-cadamag/css/prototype.css?v=20260929contrast1">
-  <link rel="stylesheet" href="prototype-cadamag/css/motion.css?v=20260929tech1">
-  <link rel="stylesheet" href="prototype-cadamag/css/responsive.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/section-know.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/section-routes.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/section-eco.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/persona-avatar.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/section-results.css?v=20260929scroll4">
-  <link rel="stylesheet" href="prototype-cadamag/css/brand.css?v=20260929contrast1">
-  <link rel="stylesheet" href="prototype-cadamag/css/site-nav.css?v=20260928brand2">
-  <link rel="stylesheet" href="prototype-cadamag/css/page-shell.css?v=20260929contrast1">
+  <!-- Critical path CSS (hero + shell) -->
+  <link rel="stylesheet" href="prototype-cadamag/css/brand.css?v=20261004perf1">
+  <link rel="stylesheet" href="prototype-cadamag/css/prototype.css?v=20261004perf1">
+  <link rel="stylesheet" href="prototype-cadamag/css/motion.css?v=20261004perf1">
+  <link rel="stylesheet" href="prototype-cadamag/css/responsive.css?v=20261004perf1">
+  <link rel="stylesheet" href="prototype-cadamag/css/site-nav.css?v=20261004perf1">
+  <link rel="stylesheet" href="prototype-cadamag/css/page-shell.css?v=20261004perf2">
+  <link rel="stylesheet" href="prototype-cadamag/css/section-know.css?v=20261004perf1">
+  <!-- Below-fold CSS: non-blocking -->
+  <link rel="stylesheet" href="prototype-cadamag/css/section-routes.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="prototype-cadamag/css/section-eco.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="prototype-cadamag/css/persona-avatar.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="prototype-cadamag/css/section-results.css?v=20261004perf1" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="prototype-cadamag/css/section-routes.css?v=20261004perf1">
+    <link rel="stylesheet" href="prototype-cadamag/css/section-eco.css?v=20261004perf1">
+    <link rel="stylesheet" href="prototype-cadamag/css/persona-avatar.css?v=20261004perf1">
+    <link rel="stylesheet" href="prototype-cadamag/css/section-results.css?v=20261004perf1">
+  </noscript>
   <script src="prototype-cadamag/js/persona-avatar.js?v=20260928brand2" defer></script>
-  <script src="prototype-cadamag/js/site-nav.js?v=20260929qa5" defer></script>
-  <script src="prototype-cadamag/js/site-footer.js?v=20260929qa5" defer></script>
+  <script src="prototype-cadamag/js/site-nav.js?v=20261004perf1" defer></script>
+  <script src="prototype-cadamag/js/site-footer.js?v=20261004perf1" defer></script>
   <script src="prototype-cadamag/js/prototype.js?v=20260928brand2" defer></script>
-  <script src="prototype-cadamag/js/motion.js?v=20260929tech1" defer></script>
+  <script src="prototype-cadamag/js/motion.js?v=20261004perf1" defer></script>
   <script src="prototype-cadamag/js/ecosystem.js?v=20260928brand2" defer></script>
 </head>
-<body data-nav-root="" data-nav-home="index.html" data-brand-base="prototype-cadamag/" data-pages-base="">
+<body data-layout="cinematic" data-nav-root="" data-nav-home="index.html" data-brand-base="prototype-cadamag/" data-pages-base="">
 
 <a class="skip-link" href="#main">Saltar al contenido</a>
 <header class="site-header" data-site-nav></header>
@@ -118,20 +126,8 @@
       <div class="hero-copy">
         <p class="eyebrow enter enter-eyebrow">Inglés para cuando más importa</p>
 
-        <h1 class="hero-title enter enter-title" id="hero-title"
-            data-holo-headline="¿Te quedás en blanco cuando más importa?">
-          <span class="sr-only">
-            ¿Te quedás en blanco cuando más importa? Te entrenamos para responder con claridad. En entrevistas, reuniones y trabajo real.
-          </span>
-          <span class="hero-holo" aria-hidden="true">
-            <span class="holo-sizer">
-              <span class="holo-headline">¿Te quedás en blanco<br>cuando más importa?</span>
-            </span>
-            <span class="holo-live" data-holo-live>
-              <span class="holo-scan" data-holo-scan aria-hidden="true"></span>
-              <span class="holo-headline" data-holo-line="headline"></span>
-            </span>
-          </span>
+        <h1 class="hero-title enter enter-title" id="hero-title" data-holo-keyword="blanco">
+          ¿Te quedás en <span class="holo-keyword" data-holo-keyword-target>blanco</span><br>cuando más importa?
           <span class="holo-follow">Te entrenamos para responder con claridad.</span>
           <span class="holo-context">En entrevistas, reuniones y trabajo real.</span>
         </h1>
@@ -160,7 +156,7 @@
         <aside class="dash dashboard-wrapper enter-dash" aria-label="Infinity Dashboard — mockup visual">
           <div class="dash-side">
             <div class="dash-logo">
-              <img src="prototype-cadamag/assets/brand/png/infinity-symbol.png" alt="" width="24" height="24">
+              <img src="prototype-cadamag/assets/brand/webp/infinity-symbol.webp" alt="" width="24" height="14" decoding="async">
               <strong>INFINITY</strong>
             </div>
             <nav class="dash-nav" aria-label="Navegación del dashboard (mock)">
@@ -177,7 +173,7 @@
 
           <div class="dash-main">
             <div class="dash-top">
-              <h3>Dashboard</h3>
+              <p class="dash-title">Dashboard</p>
               <span class="dash-live">Live</span>
             </div>
 
@@ -209,7 +205,7 @@
 
               <div class="panel alice-mini" data-demo="alice">
                 <div class="alice-row">
-                  <img class="alice-avatar" src="prototype-cadamag/public/personas/alice.png" alt="" width="36" height="36">
+                  <img class="alice-avatar" src="prototype-cadamag/public/personas/alice.webp" alt="" width="36" height="36" decoding="async">
                   <div>
                     <strong>Alice</strong>
                     <em>Speaking Coach</em>
@@ -231,7 +227,7 @@
 
           <div class="alice-float enter-float" aria-hidden="true">
             <div class="alice-row" style="margin-bottom:10px;">
-              <img class="alice-avatar" src="prototype-cadamag/public/personas/alice.png" alt="" width="36" height="36">
+              <img class="alice-avatar" src="prototype-cadamag/public/personas/alice.webp" alt="" width="36" height="36" decoding="async">
               <div>
                 <strong>Alice Speaking Coach</strong>
                 <em>Live practice layer</em>
@@ -268,8 +264,9 @@
             disablepictureinpicture
             controlslist="nodownload noplaybackrate noremoteplayback"
             aria-label="Bienvenida visual de Infinity"
+            poster="prototype-cadamag/assets/video/infinity-welcome-poster.webp"
           >
-            <source src="prototype-cadamag/assets/video/infinity-welcome-final.webm" type="video/webm">
+            <source src="prototype-cadamag/assets/video/infinity-welcome-web.webm" type="video/webm">
           </video>
           <button
             type="button"
@@ -508,8 +505,8 @@
 
       <div class="scene-know-lead know-reveal" data-know="lead">
         <p class="scene-know-eyebrow">No siempre es falta de inglés</p>
-        <h2 class="scene-know-title" id="scene-know-title">
-          Sabés más inglés<br>de lo que creés.
+        <h2 class="scene-know-title" id="scene-know-title" data-holo-keyword="creés">
+          Sabés más inglés<br>de lo que <span class="holo-keyword" data-holo-keyword-target>creés</span>.
         </h2>
         <p class="scene-know-body">
           Podés entender una conversación, seguir una serie
@@ -563,8 +560,8 @@
     <div class="scene-routes-shell">
       <header class="routes-intro routes-reveal" data-routes="intro">
         <p class="routes-eyebrow">Tu camino en Infinity</p>
-        <h2 class="routes-title" id="routes-title">
-          No todos necesitan empezar<br>desde el mismo lugar.
+        <h2 class="routes-title" id="routes-title" data-holo-keyword="lugar">
+          No todos necesitan empezar<br>desde el mismo <span class="holo-keyword" data-holo-keyword-target>lugar</span>.
         </h2>
         <p class="routes-support">
           Tu ruta depende de lo que ya sabés
@@ -704,8 +701,8 @@
 
       <header class="eco-intro eco-reveal" data-eco="intro">
         <p class="eco-eyebrow">Más que clases</p>
-        <h2 class="eco-title" id="eco-title">
-          Un ecosistema que<br>entrena contigo.
+        <h2 class="eco-title" id="eco-title" data-holo-keyword="entrena">
+          Un ecosistema que<br><span class="holo-keyword" data-holo-keyword-target>entrena</span> contigo.
         </h2>
         <p class="eco-support">
           Cada herramienta cumple una función distinta,
@@ -736,7 +733,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Alice"
-              src="prototype-cadamag/public/personas/alice.png"
+              src="prototype-cadamag/public/personas/alice.webp"
               accent="violet"
             ></persona-avatar>
           </div>
@@ -775,7 +772,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Nexora"
-              src="prototype-cadamag/public/personas/nexora.png"
+              src="prototype-cadamag/public/personas/nexora.webp"
               accent="amber"
             ></persona-avatar>
           </div>
@@ -794,7 +791,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Jill"
-              src="prototype-cadamag/public/personas/jill.png"
+              src="prototype-cadamag/public/personas/jill.webp"
               accent="intense"
             ></persona-avatar>
           </div>
@@ -813,7 +810,7 @@
           <div class="eco-mod-visual eco-mod-visual-persona" aria-hidden="true">
             <persona-avatar
               name="Claire"
-              src="prototype-cadamag/public/personas/claire.png"
+              src="prototype-cadamag/public/personas/claire.webp"
               accent="cool"
             ></persona-avatar>
           </div>
@@ -844,8 +841,8 @@
     <div class="scene-results-shell">
       <header class="results-intro results-reveal" data-results="intro">
         <p class="results-eyebrow">Resultados en contexto real</p>
-        <h2 class="results-title" id="results-title">
-          El inglés cambia cuando<br>podés usarlo bajo presión.
+        <h2 class="results-title" id="results-title" data-holo-keyword="presión">
+          El inglés cambia cuando<br>podés usarlo bajo <span class="holo-keyword" data-holo-keyword-target>presión</span>.
         </h2>
         <p class="results-support">
           El objetivo no es completar más lecciones.

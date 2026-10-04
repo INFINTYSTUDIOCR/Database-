@@ -1,0 +1,21 @@
+# Cache hints for hosts that honor _headers (Cloudflare Pages / Netlify).
+# GitHub Pages ignores this file; keep it for CDN frontends.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/prototype-cadamag/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/prototype-cadamag/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/prototype-cadamag/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/prototype-cadamag/public/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: public, max-age=300

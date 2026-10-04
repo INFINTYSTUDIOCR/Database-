@@ -6,7 +6,7 @@
   isolation: isolate;
   overflow: hidden;
   min-height: min(100vh, 980px);
-  padding: 4.75rem 0 4.5rem;
+  padding: var(--section-pad-y, 4.5rem) 0;
   background:
     linear-gradient(180deg, #080B0F 0%, #0C1018 40%, #0C1018 100%);
   border-top: 1px solid rgba(123, 77, 255, 0.1);
@@ -26,11 +26,12 @@
 .scene-routes-shell {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.5rem, 1760px);
+  width: var(--container-wide, min(100% - 2.5rem, 1760px));
+  max-width: var(--container-max-wide, 1760px);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: var(--space-5, 2.5rem);
 }
 
 /* Intro — Level 2 reveal via .routes-reveal */
@@ -436,7 +437,8 @@
   }
 
   .scene-routes-shell {
-    width: min(100% - 2rem, 1120px);
+    width: var(--container-wide);
+    max-width: var(--container-max-wide);
     gap: 2.1rem;
   }
 
@@ -461,7 +463,8 @@
   }
 
   .scene-routes-shell {
-    width: min(100% - 2.5rem, var(--max, 1360px));
+    width: var(--container);
+    max-width: var(--container-max);
     gap: 1.65rem;
   }
 
@@ -523,7 +526,8 @@
 
 @media (max-width: 480px) {
   .scene-routes-shell {
-    width: min(100% - 2.5rem, 100%);
+    width: var(--container);
+    max-width: var(--container-max);
   }
 
   .routes-canvas-tag {
