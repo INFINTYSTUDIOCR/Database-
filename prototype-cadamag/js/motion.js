@@ -3,8 +3,9 @@
  * Tokens live in css/motion.css. This file owns reveal orchestration + keyword holo + welcome video.
  *
  * Reveal: IntersectionObserver — acople al entrar, desacople al salir del viewport.
- * Keyword holo: one semantic word per title — same scramble/blur cycle as the old
- * full-title holo, looping while visible (hero always). Rest of title stays sharp.
+ * Keyword holo: one semantic word per title — single-run scramble/decode when the title
+ * first enters the viewport. Geometry locked via sizer + absolute overlay (no layout shift).
+ * Rest of title stays sharp. Never loop / never restart on resize or IO re-entry.
  */
 (function () {
   'use strict';
@@ -14,21 +15,15 @@
   var REVEAL_ROOT_MARGIN = '0px 0px -12% 0px';
   var REVEAL_OPTS = { threshold: REVEAL_THRESHOLD, rootMargin: REVEAL_ROOT_MARGIN };
 
-  /* Same cycle language as the previous full-title holo */
-  var INTRO_MS = 60;
-  var REVEAL_MS = 2800;
-  var STABLE_MS = 5200;
-  var HIDE_MS = 420;
-  var BRIDGE_MS = 180;
+  /* Single discreet decode — no hide/bridge/loop */
+  var REVEAL_MS = 2400;
   var CHAR_TICK_MS = 55;
   var CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/+-_';
-  var CYCLE_MS = INTRO_MS + REVEAL_MS + STABLE_MS + HIDE_MS + BRIDGE_MS;
+  var HOLO_IO_OPTS = { threshold: 0.05, rootMargin: '12% 0px 8% 0px' };
 
   if (window.matchMedia('(max-width: 768px)').matches) {
     REVEAL_MS = 2600;
-    STABLE_MS = 5600;
     CHAR_TICK_MS = 70;
-    CYCLE_MS = INTRO_MS + REVEAL_MS + STABLE_MS + HIDE_MS + BRIDGE_MS;
   }
 
   function wait(ms) {
@@ -353,7 +348,47 @@
     return ch === ' ' || /[¿?¡!.,;:'"\-–—…]/.test(ch);
   }
 
-  function paintKeyword(el, target, resolvedCount) {
+  /**
+   * Reserve natural word geometry with an invisible sizer; scramble paints on an
+   * absolute overlay that never participates in layout (no magic px widths).
+   */
+  function ensureKeywordLayers(kw, word) {
+    if (!kw || !word) return null;
+
+    var sizer = kw.querySelector('.holo-keyword-sizer');
+    var live = kw.querySelector('.holo-keyword-live');
+
+    if (!sizer || !live) {
+      kw.textContent = '';
+      sizer = document.createElement('span');
+      sizer.className = 'holo-keyword-sizer';
+      live = document.createElement('span');
+      live.className = 'holo-keyword-live';
+      kw.appendChild(sizer);
+      kw.appendChild(live);
+    }
+
+    sizer.textContent = word;
+    live.textContent = word;
+    /* Sizer carries the stable accessible word; scramble overlay is ignored */
+    sizer.removeAttribute('aria-hidden');
+    live.setAttribute('aria-hidden', 'true');
+    kw.setAttribute('data-holo-word', word);
+    kw.removeAttribute('aria-label');
+    kw.classList.add('is-layered');
+    kw.setAttribute('data-holo-locked', '1');
+
+    /* Clear any prior JS width locks from older min-width approach */
+    kw.style.minWidth = '';
+    kw.style.width = '';
+    kw.style.height = '';
+    kw.style.minHeight = '';
+
+    return { sizer: sizer, live: live };
+  }
+
+  function paintKeywordLive(live, target, resolvedCount) {
+    if (!live) return;
     var WINDOW = window.matchMedia('(max-width: 768px)').matches ? 2 : 3;
     var len = target.length;
     var out = '';
@@ -367,34 +402,50 @@
         out += real;
       }
     }
-    el.textContent = out;
+    live.textContent = out;
   }
 
-  function scrambleKeyword(el, target, durationMs) {
+  function scrambleKeywordLive(live, target, durationMs, ctrl) {
     return new Promise(function (resolve) {
+      if (!live) {
+        resolve();
+        return;
+      }
       var len = target.length;
       var start = performance.now();
       var lastTick = -1;
+      var rafId = 0;
+
+      function finish() {
+        if (ctrl) ctrl.rafId = 0;
+        paintKeywordLive(live, target, len);
+        resolve();
+      }
 
       function frame(now) {
+        if (ctrl && ctrl.cancelled) {
+          finish();
+          return;
+        }
         var elapsed = now - start;
         var t = Math.min(1, elapsed / durationMs);
         var resolved = Math.min(len, Math.floor(t * len));
         var tick = Math.floor(elapsed / CHAR_TICK_MS);
         if (tick !== lastTick || t >= 1) {
           lastTick = tick;
-          paintKeyword(el, target, resolved);
+          paintKeywordLive(live, target, resolved);
         }
         if (t < 1) {
-          requestAnimationFrame(frame);
+          rafId = requestAnimationFrame(frame);
+          if (ctrl) ctrl.rafId = rafId;
         } else {
-          paintKeyword(el, target, len);
-          resolve();
+          finish();
         }
       }
 
-      paintKeyword(el, target, 0);
-      requestAnimationFrame(frame);
+      paintKeywordLive(live, target, 0);
+      rafId = requestAnimationFrame(frame);
+      if (ctrl) ctrl.rafId = rafId;
     });
   }
 
@@ -412,105 +463,83 @@
     el.setAttribute('data-holo-keyword', keyword);
     var kw = wrapKeyword(el, keyword);
     if (kw) {
-      kw.setAttribute('data-holo-word', keyword);
-      /* Stable accessible name while letters scramble */
-      kw.setAttribute('aria-label', keyword);
+      ensureKeywordLayers(kw, keyword);
     }
     return kw;
   }
 
   /**
-   * Loop the previous full-title holo cycle on ONE keyword:
-   * enter blur → scramble reveal → stable → soft hide → bridge → repeat.
-   * Pauses when the title leaves the viewport (hero always runs).
+   * Single-run keyword decode when the title first enters the viewport.
+   * Overlay glyphs never change title / subtitle / CTA geometry.
    */
   function startKeywordHolo(root) {
+    if (!root || root.getAttribute('data-holo-started') === '1') return;
+
     var kw = prepareTitleKeyword(root);
     if (!kw) return;
 
-    var word = kw.getAttribute('data-holo-word') || kw.textContent || '';
+    var word = kw.getAttribute('data-holo-word') || '';
     if (!word) return;
 
+    var layers = ensureKeywordLayers(kw, word);
+    if (!layers) return;
+
+    root.setAttribute('data-holo-started', '1');
+
     if (reduce) {
-      kw.textContent = word;
+      layers.live.textContent = word;
       kw.classList.add('is-sharp');
       kw.classList.remove('is-entering', 'is-hiding', 'is-decoding', 'is-blur');
       return;
     }
 
     document.documentElement.classList.add('holo-ready');
-    root.dataset.holoCycleMs = String(CYCLE_MS);
-    kw.textContent = word;
+    root.dataset.holoRevealMs = String(REVEAL_MS);
 
-    var running = false;
-    var loopActive = false;
-    var firstPass = true;
+    var ctrl = { rafId: 0, cancelled: false, ran: false };
+    var io = null;
 
-    async function cycle() {
-      if (loopActive) return;
-      loopActive = true;
-      while (running) {
-        if (firstPass) {
-          firstPass = false;
-          kw.classList.remove('is-hiding', 'is-entering', 'is-blur');
-        } else {
-          kw.classList.remove('is-hiding');
-          kw.classList.add('is-entering', 'is-blur');
-          await wait(INTRO_MS);
-          if (!running) break;
-          kw.classList.remove('is-entering', 'is-blur');
-        }
-
-        kw.classList.add('is-decoding');
-        await scrambleKeyword(kw, word, REVEAL_MS);
-        kw.classList.remove('is-decoding');
-        kw.classList.add('is-sharp');
-        if (!running) break;
-
-        await wait(STABLE_MS);
-        if (!running) break;
-
-        kw.classList.remove('is-sharp');
-        kw.classList.add('is-hiding', 'is-blur');
-        await wait(HIDE_MS);
-        await wait(BRIDGE_MS);
-        kw.classList.remove('is-hiding', 'is-blur');
+    function cleanupIo() {
+      if (io) {
+        io.disconnect();
+        io = null;
       }
-      loopActive = false;
-      kw.textContent = word;
-      kw.classList.remove('is-hiding', 'is-entering', 'is-decoding', 'is-blur');
+    }
+
+    async function runOnce() {
+      if (ctrl.ran) return;
+      ctrl.ran = true;
+      cleanupIo();
+
+      /* Wait for webfonts so the sizer geometry matches the final face */
+      try {
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+      } catch (e) { /* ignore */ }
+      ensureKeywordLayers(kw, word);
+
+      kw.classList.remove('is-hiding', 'is-entering', 'is-blur', 'is-sharp');
+      kw.classList.add('is-decoding');
+      await scrambleKeywordLive(layers.live, word, REVEAL_MS, ctrl);
+      layers.live.textContent = word;
+      kw.classList.remove('is-decoding');
       kw.classList.add('is-sharp');
     }
 
-    function start() {
-      if (running) return;
-      running = true;
-      firstPass = true;
-      cycle();
-    }
-
-    function stop() {
-      running = false;
-    }
-
-    if (root.id === 'hero-title' || root.hasAttribute('data-holo-always')) {
-      start();
-      return;
-    }
-
     if (!('IntersectionObserver' in window)) {
-      start();
+      runOnce();
       return;
     }
 
-    var io = new IntersectionObserver(
+    io = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) start();
-          else stop();
+          if (!entry.isIntersecting || ctrl.ran) return;
+          runOnce();
         });
       },
-      { threshold: 0.05, rootMargin: '12% 0px 8% 0px' }
+      HOLO_IO_OPTS
     );
     io.observe(root);
   }

@@ -1,0 +1,30 @@
+---
+description: Typographic animations must never alter layout geometry of titles, paragraphs, buttons, or neighbors
+alwaysApply: true
+---
+
+# No typography geometry shift
+
+Typographic animations (scramble/decode, holo keywords, letter reveals, text morphs, etc.) **must not** change the geometry of titles, paragraphs, buttons, or neighboring components.
+
+## Required pattern
+
+For any animated word or phrase inside flowing text:
+
+1. **Outer wrapper** — `inline-grid` or `inline-block`, `white-space: nowrap`, inherited font/line-height.
+2. **Invisible sizer** — contains the **final real word**; reserves natural geometry (no magic `px` widths).
+3. **Absolute overlay** — paints scramble/animated glyphs; **does not participate in layout**.
+4. **Overflow** — clipped only on the keyword/wrapper box, never by absolutely positioning the whole title, paragraph, or hero block.
+
+## Hard bans
+
+- Never let animated glyphs resize, reflow, or re-wrap a title (e.g. 3→4 lines).
+- Never `position: absolute` the whole title, subtitle, paragraph, CTA row, or hero content to “hide” a shift.
+- Never loop or re-trigger text animations from resize / scroll / duplicate IntersectionObservers in a way that restarts geometry work.
+- Prefer `transform` / `opacity` for non-geometry effects.
+- Respect `prefers-reduced-motion: reduce` (show final word, skip scramble).
+- Accessibility: announce the real word once (`aria-label` or stable sizer text); `aria-hidden` on the scramble overlay — never announce each scramble character.
+
+## Scope
+
+Applies site-wide to Infinity Studio CR marketing pages (prototype + root). Infinity ≠ Kamuk — do not mix product data or brand systems.

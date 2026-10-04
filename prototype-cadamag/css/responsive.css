@@ -432,14 +432,11 @@
     font-size: 0.84rem;
   }
 
-  /* Softer keyword blur on small screens */
+  /* Keyword phases stay filter-free on small screens (avoid line flicker) */
   html.holo-ready .holo-keyword.is-blur,
-  html.holo-ready .holo-keyword.is-entering {
-    filter: blur(2px);
-  }
-
+  html.holo-ready .holo-keyword.is-entering,
   html.holo-ready .holo-keyword.is-hiding {
-    filter: blur(2px);
+    filter: none;
   }
 }
 

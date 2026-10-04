@@ -9,6 +9,7 @@
   },
   "scripts": {
     "audit:layout": "node scripts/audit-layout.cjs",
+    "audit:holo": "node scripts/audit-holo-layout.cjs",
     "test": "node scripts/_check-keyword-holo.js",
     "lh:summarize": "node scripts/summarize-lighthouse.js",
     "lh:ci": "lhci autorun --config=.lighthouserc.cjs"

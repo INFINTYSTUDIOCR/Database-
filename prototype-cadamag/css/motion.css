@@ -429,6 +429,8 @@
   .holo-follow,
   .holo-context,
   .holo-keyword,
+  .holo-keyword-sizer,
+  .holo-keyword-live,
   html.holo-ready .holo-keyword.is-blur,
   html.holo-ready .holo-keyword.is-sharp,
   html.holo-ready .holo-keyword.is-entering,

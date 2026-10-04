@@ -381,54 +381,96 @@ ul { list-style: none; }
   border: 0;
 }
 
-/* Keyword holo — looped scramble/blur on ONE word; rest of title always sharp */
+/* Keyword holo — single-run scramble on ONE word; rest of title always sharp.
+   Geometry: invisible sizer (final word) + absolute overlay (scramble).
+   Overlay never participates in layout — title line breaks stay fixed. */
 .has-holo-keyword {
   position: relative;
 }
 
 .holo-keyword {
-  display: inline-block;
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: max-content;
+  align-items: baseline;
   font: inherit;
   font-weight: inherit;
   letter-spacing: inherit;
   color: inherit;
   line-height: inherit;
   vertical-align: baseline;
-  /* Sharp by default so no-JS / failed JS stays legible */
+  white-space: nowrap;
+  overflow: hidden; /* clip scramble glyphs inside the keyword box only */
+  text-align: inherit;
   filter: none;
   opacity: 1;
-  min-width: 0.6em;
+  isolation: isolate;
 }
 
-/* Cycle phases (same language as the old full-title holo-live) */
+/* Reserves natural word geometry — transparent (not visibility:hidden)
+   so screen readers still get the real word once from the sizer text. */
+.holo-keyword-sizer {
+  grid-area: 1 / 1;
+  color: transparent;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+}
+
+/* Scramble glyphs — out of flow; width locked by sizer */
+.holo-keyword-live {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
+/* Soft phases only on the keyword span — no hard blink / no heavy blur */
 html.holo-ready .holo-keyword.is-entering {
-  opacity: 0.42;
-  filter: blur(2px);
-  transition:
-    opacity var(--motion-fast, 300ms) var(--ease-premium, var(--ease)),
-    filter var(--motion-fast, 300ms) var(--ease-premium, var(--ease));
+  opacity: 0.78;
+  filter: none;
+  transition: opacity 180ms var(--ease-premium, var(--ease));
 }
 
 html.holo-ready .holo-keyword.is-hiding {
-  opacity: 0.4;
-  filter: blur(2.5px);
-  transition:
-    opacity var(--motion-slow, 950ms) var(--ease-premium, var(--ease)),
-    filter var(--motion-slow, 950ms) var(--ease-premium, var(--ease));
+  opacity: 0.72;
+  filter: none;
+  transition: opacity 320ms var(--ease-premium, var(--ease));
 }
 
+/* Legacy class kept for safety; blur removed (was flashing whole line boxes) */
 html.holo-ready .holo-keyword.is-blur {
-  opacity: 0.92;
-  filter: blur(3px);
+  opacity: 0.85;
+  filter: none;
 }
 
 html.holo-ready .holo-keyword.is-sharp,
 html.holo-ready .holo-keyword.is-decoding {
   opacity: 1;
   filter: none;
-  transition:
-    opacity 280ms var(--ease-premium, var(--ease)),
-    filter 280ms var(--ease-premium, var(--ease));
+  transition: opacity 200ms var(--ease-premium, var(--ease));
+}
+
+/* Guard: never let follow/context inherit keyword phase styles */
+.has-holo-keyword > .holo-follow,
+.has-holo-keyword > .holo-context {
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 /* Parent reveal blocks that host a keyword title: no full-block blur */
