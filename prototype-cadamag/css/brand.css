@@ -49,8 +49,9 @@
   --grad-brand: linear-gradient(135deg, var(--infinity-violet) 0%, #8F5FFF 48%, var(--infinity-orange) 160%);
   --grad-cta: linear-gradient(135deg, var(--infinity-violet-soft) 0%, var(--infinity-violet) 52%, var(--infinity-violet-deep) 100%);
   --grad-atmosphere:
-    /* Very soft, edge-safe wash — fades before viewport edges (no cut/circle) */
-    radial-gradient(160% 120% at 15% -10%, rgba(123, 77, 255, 0.1), transparent 48%),
+    radial-gradient(ellipse 70% 55% at 18% 12%, rgba(123, 77, 255, 0.28), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 88% 18%, rgba(255, 138, 0, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 70% 85%, rgba(123, 77, 255, 0.08), transparent 60%),
     linear-gradient(180deg, #080B0F 0%, #0C1018 45%, #080B0F 100%);
 
   --font-display: "Sora", system-ui, sans-serif;
@@ -115,8 +116,7 @@ body {
   font-family: var(--font-body);
   background-color: var(--infinity-black, #080B0F);
   background-image: var(--grad-atmosphere);
-  /* scroll — fixed + overflow-x:hidden clips gradients into hard rectangles */
-  background-attachment: scroll;
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;

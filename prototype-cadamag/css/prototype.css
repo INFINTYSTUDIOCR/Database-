@@ -48,7 +48,9 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background: transparent; /* atmosphere from brand.css */
+  /* Do not set background here — brand.css owns atmosphere.
+     Shorthand `background: transparent` was wiping brand when
+     brand.css loads before prototype.css (pagespeed critical path). */
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
