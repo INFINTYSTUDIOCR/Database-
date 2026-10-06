@@ -165,6 +165,11 @@ async function infinityFetch(path, options) {
     headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(options.body);
   }
+  // FormData needs the browser-generated multipart boundary; a JSON Content-Type makes the server reject the upload.
+  if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
+    delete headers['Content-Type'];
+    delete headers['content-type'];
+  }
   options.headers = headers;
   var url = path.indexOf('http') === 0 ? path : INFINITY_API + path;
   var r = await fetch(url, options);
