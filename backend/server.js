@@ -14,6 +14,27 @@ const JillBilling = require('./jill-billing');
 const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
 const { registerSimulationAccess } = require('./simulation-access');
 const WaFaq = require('./wa-faq');
+const KamukEnglishLock = require('./kamuk-english-lock');
+const { AsyncLocalStorage } = require('async_hooks');
+
+const requestContext = new AsyncLocalStorage();
+
+/** Kamuk students (JWT role=student, KAM-… id) get English-only tutors. Infinity is never affected. */
+function isKamukEnglishLockRequest(req) {
+  const a = req && req.auth;
+  if (!a || a.role !== 'student') return false;
+  return String(a.studentId || a.sub || '').startsWith('KAM-');
+}
+
+function kamukEnglishLockActive() {
+  const store = requestContext.getStore();
+  return !!(store && isKamukEnglishLockRequest(store.req));
+}
+
+function withKamukEnglishRule(system) {
+  if (!kamukEnglishLockActive()) return system;
+  return (system ? `${system}\n\n` : '') + KamukEnglishLock.KAMUK_ENGLISH_ONLY_RULE;
+}
 
 const app = express();
 app.set('trust proxy', 1);
@@ -30,6 +51,16 @@ app.post('/billing/webhook', express.raw({ type: 'application/json' }), async (r
 });
 
 app.use(express.json({ limit: '2mb' }));
+
+// ── KAMUK ENGLISH LOCK (request context + reply filter on tutor routes) ──
+const KAMUK_ENGLISH_LOCK_ROUTES = /^\/(alice|jill|claire)(\/|$)/;
+app.use((req, res, next) => {
+  if (KAMUK_ENGLISH_LOCK_ROUTES.test(req.path) && !/\/stt$/.test(req.path)) {
+    const origJson = res.json.bind(res);
+    res.json = (body) => origJson(isKamukEnglishLockRequest(req) ? KamukEnglishLock.enforceEnglishOnlyPayload(body) : body);
+  }
+  requestContext.run({ req }, next);
+});
 
 // ── SECURITY HEADERS ─────────────────────────────────────────
 app.use((req, res, next) => {
@@ -156,7 +187,8 @@ const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 // Raw fetch wrapper — bypasses SDK bug with Render's Node environment
 async function claudeCall({ model, max_tokens, system, messages }) {
   const body = { model: model || 'claude-haiku-4-5-20251001', max_tokens: max_tokens || 500, messages };
-  if (system) body.system = system;
+  const lockedSystem = withKamukEnglishRule(system);
+  if (lockedSystem) body.system = lockedSystem;
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -338,6 +370,21 @@ async function sbFindStudentByPortalLogin(portalUser, password, product) {
 }
 
 const Brain = require('./nexus-brain');
+{
+  // Kamuk English lock: separate LLM cache namespace (old bilingual replies are never served)
+  // and English-only filtering of buffered SSE replies.
+  const baseBrainGetLLM = Brain.brainGetLLM;
+  Brain.brainGetLLM = (tutor, intent, userMessage, extra) => baseBrainGetLLM(
+    tutor, intent, userMessage,
+    kamukEnglishLockActive() ? `${extra || ''}|${KamukEnglishLock.KAMUK_ENGLISH_LOCK_VER}` : extra
+  );
+  const baseWriteBrainSSE = Brain.writeBrainSSE;
+  Brain.writeBrainSSE = (res, text, headers) => baseWriteBrainSSE(
+    res,
+    kamukEnglishLockActive() ? KamukEnglishLock.enforceEnglishOnly(String(text || '')) : text,
+    headers
+  );
+}
 Brain.initNexusBrain({ sbGetOne, sbSet });
 
 const SuperBrain = require('./super-brain');
@@ -4514,12 +4561,19 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
   let clean = cleanTtsText(text);
   if (!clean) throw new Error('Empty text');
-  const languageCode = resolveTutorTtsLang(opts.languageCode || 'es-CR');
+  const languageCode = opts.englishOnly ? 'en-US' : resolveTutorTtsLang(opts.languageCode || 'es-CR');
   // Español un poco más natural; inglés puede ir un toque más rápido
   const speed = opts.speed ?? (tutorTtsIsEnglish(languageCode) ? 1.08 : 1.0);
   const isSpanish = !tutorTtsIsEnglish(languageCode);
+  if (opts.englishOnly) {
+    // Kamuk immersion: plain American English — no CR letter names / jota phonetics.
+    clean = clean
+      .replace(/\/[^/\n]{1,48}\//g, ' ')
+      .replace(/[əɪʊæɑɒɔɛɜθðŋʃʒˈˌː]/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  } else if (isSpanish) {
   // Tico CR: scrub AR/PT/ES-Spain. NEVER C/Z→S rewrite (that causes Brazilian drift).
-  if (isSpanish) {
     clean = scrubNonCrSpanish(clean);
     clean = humanizeSpokenForTts(clean);
     // Siempre: letras CR + pausas ES↔EN (anti-americanización R G J I L T)
@@ -4545,7 +4599,7 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 
   // Clips with classroom HAVE phonetics → force Spanish so jota is /x/ not English "yaf"
   let effectiveLang = languageCode;
-  if (/\b(jjáf|jjás|jjád|jáf|jás|jád)\b/i.test(clean)) {
+  if (!opts.englishOnly && /\b(jjáf|jjás|jjád|jáf|jás|jád)\b/i.test(clean)) {
     effectiveLang = 'es-CR';
   }
   const effectiveIsSpanish = !tutorTtsIsEnglish(effectiveLang);
@@ -4606,8 +4660,11 @@ async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
 async function synthesizeSpeech(req, res, { text, voiceId, label, stability, similarityBoost, style, speed, languageCode }) {
   if (!text) return res.status(400).json({ error: 'Missing text' });
   try {
+    const englishOnly = isKamukEnglishLockRequest(req);
     const { buffer, cache } = await getOrCreateTtsAudio(text, voiceId, label, {
-      stability, similarityBoost, style, speed, languageCode
+      stability, similarityBoost, style, speed,
+      languageCode: englishOnly ? 'en-US' : languageCode,
+      englishOnly
     });
     res.set('Content-Type', 'audio/mpeg');
     res.set('X-Cache', cache === 'MISS' ? 'MISS' : 'HIT');
@@ -5991,6 +6048,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
     'Access-Control-Allow-Origin': '*',
     'X-Brain-LLM': brainMeta ? 'MISS' : 'OFF'
   });
+  const englishFilter = kamukEnglishLockActive() ? KamukEnglishLock.createEnglishStreamFilter() : null;
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -5998,7 +6056,7 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json'
     },
-    body: JSON.stringify({ model: model || 'claude-haiku-4-5-20251001', max_tokens: max_tokens || 400, stream: true, system, messages })
+    body: JSON.stringify({ model: model || 'claude-haiku-4-5-20251001', max_tokens: max_tokens || 400, stream: true, system: withKamukEnglishRule(system), messages })
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
@@ -6006,7 +6064,8 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
     if (brainMeta && system && messages) {
       try {
         const resp = await claudeCall({ model: model || 'claude-haiku-4-5-20251001', max_tokens: max_tokens || 400, system, messages });
-        const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+        const rawText = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+        const text = englishFilter ? KamukEnglishLock.enforceEnglishOnly(rawText) : rawText;
         if (text.length > 8) {
           res.write(`data: ${JSON.stringify({ t: text })}\n\n`);
           res.write('data: [DONE]\n\n');
@@ -6039,12 +6098,29 @@ async function streamAnthropicSSE(res, { model, max_tokens, system, messages, br
       try {
         const evt = JSON.parse(raw);
         if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta' && evt.delta.text) {
-          fullText += evt.delta.text;
-          res.write(`data: ${JSON.stringify({ t: evt.delta.text })}\n\n`);
+          const out = englishFilter ? englishFilter.push(evt.delta.text) : evt.delta.text;
+          if (out) {
+            fullText += out;
+            res.write(`data: ${JSON.stringify({ t: out })}\n\n`);
+          }
         } else if (evt.type === 'message_stop') {
+          if (englishFilter) {
+            const tail = englishFilter.flush();
+            if (tail) {
+              fullText += tail;
+              res.write(`data: ${JSON.stringify({ t: tail })}\n\n`);
+            }
+          }
           res.write('data: [DONE]\n\n');
         }
       } catch {}
+    }
+  }
+  if (englishFilter) {
+    const rest = englishFilter.flush();
+    if (rest) {
+      fullText += rest;
+      res.write(`data: ${JSON.stringify({ t: rest })}\n\n`);
     }
   }
   if (brainMeta?.hash && fullText.trim().length > 40 && /[a-zA-Záéíóúñ]{10,}/i.test(fullText)) {
@@ -6653,7 +6729,9 @@ app.post('/claire', optionalAuth, async (req, res) => {
           });
         }
       }
-      const startBuffered = 'Claire TOEIC listo. Empezamos con una práctica Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.';
+      const startBuffered = isKamukEnglishLockRequest(req)
+        ? "Claire TOEIC is ready. Let's start with a Reading Part 5 question.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nAnswer A, B, C, or D."
+        : 'Claire TOEIC listo. Empezamos con una práctica Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.';
       return res.json({ reply: startBuffered, board: CLAIRE_START_BOARD, buffered: true });
     }
 
@@ -6682,7 +6760,8 @@ app.post('/claire', optionalAuth, async (req, res) => {
       const boardHit = claireBuildBoard(brain.reply, message, activeLock);
       return res.json({ reply: brain.reply, board: boardHit, buffered: true, brainCache: true, cacheHit: true });
     }
-    const cacheKey = `claire-toeic-pro-speak-v3:${sharedBrain.revision}:` + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
+    const kamukCacheScope = isKamukEnglishLockRequest(req) ? `${KamukEnglishLock.KAMUK_ENGLISH_LOCK_VER}:` : '';
+    const cacheKey = `claire-toeic-pro-speak-v3:${kamukCacheScope}${sharedBrain.revision}:` + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
     if (demoResponseCache.has(cacheKey)) {
       const cached = demoResponseCache.get(cacheKey);
       return res.json({ reply: cached, board: claireBuildBoard(cached, message, activeLock), buffered: true, cacheHit: true });
@@ -6759,10 +6838,21 @@ function aliceSttUploadMw(req, res, next) {
 app.post('/alice/stt', requireProductAuth, aliceSttUploadMw, async (req, res) => {
   try {
     const sessionType = req.body?.sessionType || null;
-    const ok = await assertStudentTutorAccess(req, res, 'alice', null, {
-      allowCompanionProduct: true,
-      sessionType: sessionType === 'companion' ? 'companion' : sessionType
-    });
+    const sttTutor = String(req.body?.tutor || 'alice').toLowerCase();
+    let ok;
+    if (sttTutor === 'jill') {
+      ok = await assertStudentTutorAccess(req, res, 'jill', null, { allowJillProProduct: true });
+    } else if (sttTutor === 'claire') {
+      ok = await assertStudentTutorAccess(req, res, 'claire', null, {});
+      if (ok && req.auth.role === 'student' && ok.claireEnabled !== true) {
+        return res.status(403).json({ error: 'Tutor access disabled', tutorOff: 'claire' });
+      }
+    } else {
+      ok = await assertStudentTutorAccess(req, res, 'alice', null, {
+        allowCompanionProduct: true,
+        sessionType: sessionType === 'companion' ? 'companion' : sessionType
+      });
+    }
     if (req.auth.role === 'student' && !ok) return;
 
     let buffer = null;
@@ -6813,11 +6903,12 @@ app.post('/alice-tts', requireProductAuth, async (req, res) => {
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
     // Alice speaks English by default — never default to es-CR (that turned every "have" into yaf/jáf)
-    const languageCode = resolveTutorTtsLang(lang || 'en-US');
+    const kamukEnglish = isKamukEnglishLockRequest(req);
+    const languageCode = kamukEnglish ? 'en-US' : resolveTutorTtsLang(lang || 'en-US');
     const isEn = tutorTtsIsEnglish(languageCode);
-    const spoken = isEn
-      ? scrubForeignSpeechArtifacts(text)
-      : scrubNonCrSpanish(text);
+    const spoken = kamukEnglish
+      ? String(text || '')
+      : (isEn ? scrubForeignSpeechArtifacts(text) : scrubNonCrSpanish(text));
     if (!String(spoken || '').trim()) {
       return res.status(400).json({ error: 'Empty TTS text' });
     }
@@ -6843,10 +6934,11 @@ app.post('/jill-tts', requireProductAuth, async (req, res) => {
     const ok = await assertStudentTutorAccess(req, res, 'jill', null, { allowJillProProduct: true });
     if (req.auth.role === 'student' && !ok) return;
     const { text, lang } = req.body || {};
-    const languageCode = resolveTutorTtsLang(lang);
+    const kamukEnglish = isKamukEnglishLockRequest(req);
+    const languageCode = kamukEnglish ? 'en-US' : resolveTutorTtsLang(lang);
     const isEn = tutorTtsIsEnglish(languageCode);
     return await synthesizeSpeech(req, res, {
-      text: scrubNonCrSpanish(text),
+      text: kamukEnglish ? String(text || '') : scrubNonCrSpanish(text),
       voiceId: ALICE_VOICE_ID,
       label: 'Jill',
       languageCode,
@@ -8477,7 +8569,7 @@ app.post('/amanda/chat', async (req, res) => {
       history = history.concat([{ role: 'user', content: message }]);
     }
 
-    val data = await claudeCall({
+    const data = await claudeCall({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 220,
       system: AMANDA_SYSTEM,

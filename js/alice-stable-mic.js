@@ -49,6 +49,7 @@ var AliceStableMic = (function () {
     var pointerId = null;
     var maxHoldTimer = null;
     var sessionId = 0;
+    var statusId = opts.statusId || 'alice-status';
 
     function setUi(listening) {
       try { btn.classList.toggle('ptt-active', !!listening); } catch (e) {}
@@ -162,10 +163,10 @@ var AliceStableMic = (function () {
       if (typeof opts.onUi === 'function') {
         opts.onUi(false, btn);
       }
-      var st = document.getElementById('alice-status');
+      var st = document.getElementById(statusId);
       if (st) st.textContent = fromTimer
         ? 'Tope de tiempo — transcribiendo…'
-        : 'Transcribiendo con Alice STT…';
+        : (opts.busyText || 'Transcribiendo con Alice STT…');
 
       rec.onstop = function () {
         stopTracks();
@@ -195,6 +196,7 @@ var AliceStableMic = (function () {
       var ext = (mime || '').indexOf('mp4') >= 0 ? 'm4a' : 'webm';
       fd.append('audio', blob, 'alice-ptt.' + ext);
       fd.append('lang', 'en');
+      if (opts.tutor) fd.append('tutor', String(opts.tutor));
       var fetchFn = typeof infinityFetch === 'function' ? infinityFetch : fetch;
       var headers = typeof authHeaders === 'function' ? authHeaders() : {};
       // FormData: do not set Content-Type (boundary)
@@ -218,7 +220,7 @@ var AliceStableMic = (function () {
           }
           sending = false;
           try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (e3) {}
-          var st2 = document.getElementById('alice-status');
+          var st2 = document.getElementById(statusId);
           if (st2) st2.textContent = '';
           if (text && typeof opts.onSend === 'function') opts.onSend(text);
           else if (!text && typeof opts.onEmpty === 'function') opts.onEmpty();

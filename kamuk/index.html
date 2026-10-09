@@ -65,7 +65,7 @@
 <script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
-<script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20260904stable"></script>
+<script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20261009en"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -4860,10 +4860,15 @@ function claireTTSFlush(){
 
 function bindClairePttMic(){
   var btn = document.getElementById('claire-mic-btn');
-  if(!btn || btn._pttBound || typeof PttMic === 'undefined') return;
-  PttMic.bind({
+  if(!btn || btn._pttBound) return;
+  var useStable = typeof AliceStableMic !== 'undefined' && AliceStableMic.canUse();
+  if(!useStable && typeof PttMic === 'undefined') return;
+  var claireMicOpts = {
     btn: btn,
     lang: (typeof ALICE_ACCENTS !== 'undefined' && ALICE_ACCENTS[_claireState.accent] && ALICE_ACCENTS[_claireState.accent].lang) || 'en-US',
+    tutor: 'claire',
+    statusId: 'claire-status',
+    busyText: 'Transcribiendo…',
     canStart: function(){
       if(!_claireState.sessionActive) return false;
       if(_claireState.sending){
@@ -4889,11 +4894,25 @@ function bindClairePttMic(){
       if(st) st.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
     },
     onSend: function(text){ if(text) sendClairePortalMessage(text); },
-    onError: function(){
+    onError: function(code){
+      btn.classList.remove('ptt-active','ptt-busy');
       var st = document.getElementById('claire-status');
-      if(st) st.textContent = 'No pude escuchar. Escribí la respuesta o reintentá.';
+      if(!st) return;
+      st.textContent = (code === 'not-allowed' || code === 'service-not-allowed')
+        ? 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.'
+        : 'No pude escuchar. Escribí la respuesta o reintentá.';
+    },
+    onEmpty: function(){
+      var st = document.getElementById('claire-status');
+      if(st) st.textContent = 'No se escuchó audio — mantené más tiempo o hablá más cerca.';
     }
-  });
+  };
+  if(useStable && AliceStableMic.bind(claireMicOpts)){
+    btn._pttBound = true;
+    return;
+  }
+  if(typeof PttMic === 'undefined') return;
+  PttMic.bind(claireMicOpts);
   btn._pttBound = true;
 }
 
@@ -8359,9 +8378,8 @@ function jillShowTtsError(status){
 }
 
 function jillNormalizeTtsLang(lang){
-  var s = String(lang || '').toLowerCase().trim();
-  if(s === 'en' || s === 'en-us' || s.indexOf('en') === 0) return 'en-US';
-  return 'es-CR';
+  // Kamuk: inmersión total en inglés — Jill habla solo inglés americano.
+  return 'en-US';
 }
 
 function jillDetectTtsLang(text){
@@ -8833,19 +8851,19 @@ function scrollJillMessages(){
 
 function bindJillPttMic(){
   var btn = document.getElementById('jill-mic-btn');
-  if(!btn || typeof PttMic === 'undefined') return;
+  if(!btn) return;
   if(btn._pttBound) return;
+  var useStable = typeof AliceStableMic !== 'undefined' && AliceStableMic.canUse();
+  if(!useStable && typeof PttMic === 'undefined') return;
   btn._pttBound = true;
   var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  PttMic.bind({
+  var jillMicOpts = {
     btn: btn,
-    // Duda en español → es-CR; práctica oral en el SVG → en-US (menos basura ASR)
-    lang: function(){
-      if(typeof JillVisualStage !== 'undefined' && JillVisualStage.isActive && JillVisualStage.isActive()){
-        return 'en-US';
-      }
-      return 'es-CR';
-    },
+    // Kamuk: inmersión en inglés — STT del servidor (o Web Speech en-US de respaldo)
+    lang: 'en-US',
+    tutor: 'jill',
+    statusId: 'jill-status',
+    busyText: 'Transcribiendo…',
     normalizeTranscript: function(raw){
       if(typeof JillLearnerIntent === 'undefined' || !JillLearnerIntent.normalizeUtterance) return raw;
       var n = JillLearnerIntent.normalizeUtterance(raw, { fromMic: true });
@@ -8890,15 +8908,34 @@ function bindJillPttMic(){
       btn.classList.remove('ptt-active','ptt-busy');
       var st = document.getElementById('jill-status');
       if(!st) return;
-      if(code === 'no-sr' || code === 'start-failed'){
+      if(code === 'not-allowed' || code === 'service-not-allowed'){
+        st.textContent = 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.';
+      } else if(code === 'audio-capture'){
+        st.textContent = 'No se encontró micrófono (o está ocupado) — revisá el dispositivo o escribí tu respuesta.';
+      } else if(code === 'no-sr' || code === 'start-failed'){
         st.textContent = isMobile
           ? 'Voz no disponible en este navegador — escribí tu respuesta abajo.'
           : 'Usá Chrome o Edge para voz, o escribí tu respuesta.';
       } else {
         st.textContent = 'Micrófono interrumpido — mantené presionado de nuevo o escribí tu respuesta.';
       }
+    },
+    onEmpty: function(){
+      var st = document.getElementById('jill-status');
+      if(st) st.textContent = 'No se escuchó audio — mantené más tiempo o hablá más cerca.';
     }
-  });
+  };
+  if(useStable){
+    btn._jillStableApi = AliceStableMic.bind(jillMicOpts);
+    if(btn._jillStableApi) return;
+  }
+  if(typeof PttMic !== 'undefined') PttMic.bind(jillMicOpts);
+  else btn._pttBound = false;
+}
+
+function jillStopStableMic(){
+  var b = document.getElementById('jill-mic-btn');
+  if(b && b._jillStableApi && b._jillStableApi.stop){ try{ b._jillStableApi.stop(); }catch(eS){} }
 }
 
 function jillStopAll(){
@@ -8906,6 +8943,7 @@ function jillStopAll(){
   jillStopMic();
   _jillSending = false;
   if(typeof PttMic !== 'undefined') PttMic.stop(document.getElementById('jill-mic-btn'));
+  jillStopStableMic();
   if(typeof JillVisualStage !== 'undefined') JillVisualStage.hide();
 }
 
