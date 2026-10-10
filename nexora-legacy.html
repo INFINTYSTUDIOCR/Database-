@@ -9,13 +9,13 @@
 <script src="nexora-profile.js?v=20260702restore"></script>
 <script src="js/nexora-voice-lock.js?v=20260702restore"></script>
 <script src="nexora-characters.js?v=20260702restore"></script>
-<script src="js/tts-chunks.js?v=20260703"></script>
+<script src="js/tts-chunks.js?v=20261010mic"></script>
 <script src="js/nexora-industry-map.js?v=20260702restore"></script>
 <script src="js/nexora-scenario-bank-data.js?v=20260702restore"></script>
 <script src="js/nexora-scenario-bank.js?v=20260702restore"></script>
 <script src="js/nexora-scenario-rotate.js?v=20260702restore"></script>
 <script src="js/nexora-stream-voice.js?v=20260702restore"></script>
-<script src="js/ptt-mic.js?v=20260628b"></script>
+<script src="js/ptt-mic.js?v=20261010mic"></script>
 <script src="js/nexora-procurement.js?v=20261010"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -2263,7 +2263,9 @@ function nexoraPrefetchTTS(text){
   .catch(function(){ delete _nexoraTtsPrefetch[cacheKey]; });
 }
 
+var _nxPauseSeq=0, _nxTtsFails={};
 function nexoraPauseSpeech(){
+  _nxPauseSeq++;
   clearTimeout(_nxResumeTimer);
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
   if(_nxPlayingChunk){
@@ -2317,19 +2319,27 @@ function _nxTTSFlush(){
   var ttsBody=nexoraTtsPayload(clean,_nx.profile||{});
   var cacheKey=ttsBody.voiceId+':'+clean;
   var cached=_nexoraTtsPrefetch[cacheKey];
+  var pauseSeq=_nxPauseSeq;
+  function stale(){ return gen!==_nxSpeakGen || pauseSeq!==_nxPauseSeq; }
+  function chunkEnded(){
+    delete _nxTtsFails[cacheKey];
+    window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush();
+    if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint();
+  }
+  function chunkFailed(){
+    if(stale()) return;
+    window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false;
+    var n=(_nxTtsFails[cacheKey]||0)+1;
+    if(n<=2){ _nxTtsFails[cacheKey]=n; _nxTTSQueue.unshift(chunk); setTimeout(_nxTTSFlush, 300*n); return; }
+    // Two retries failed — skip this line so the conversation never stalls in a fetch loop.
+    delete _nxTtsFails[cacheKey];
+    _nxTTSFlush();
+    if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint();
+  }
   if(cached && cached!=='loading'){
     delete _nexoraTtsPrefetch[cacheKey];
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
-    window._nxAudio=playAudioBlob(cached, {
-      onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
-      onError: function(){
-        window._nxAudio=null;
-        _nxTTSQueue.unshift(chunk);
-        _nxPlayingChunk=null;
-        _nxTTSBusy=false;
-        setTimeout(_nxTTSFlush, 150);
-      }
-    });
+    window._nxAudio=playAudioBlob(cached, { onEnded: chunkEnded, onError: chunkFailed });
     return;
   }
   var ttsPromise;
@@ -2341,24 +2351,15 @@ function _nxTTSFlush(){
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxPlayingChunk=chunk; _nxTTSBusy=false; setTimeout(_nxTTSFlush, 180); return; }
+    if(stale()){
+      // Student pressed the mic (or the turn changed) while this line was loading: keep it for resume, never play it now.
+      if(b && gen===_nxSpeakGen) _nexoraTtsPrefetch[cacheKey]=b;
+      return;
+    }
+    if(!b){ chunkFailed(); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
-    window._nxAudio=playAudioBlob(b, {
-      onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
-      onError: function(){
-        window._nxAudio=null;
-        _nxTTSQueue.unshift(chunk);
-        _nxPlayingChunk=null;
-        _nxTTSBusy=false;
-        setTimeout(_nxTTSFlush, 150);
-      }
-    });
-  }).catch(function(){
-    _nxTTSQueue.unshift(chunk);
-    _nxPlayingChunk=chunk;
-    _nxTTSBusy=false;
-    setTimeout(_nxTTSFlush, 180);
-  });
+    window._nxAudio=playAudioBlob(b, { onEnded: chunkEnded, onError: chunkFailed });
+  }).catch(function(){ chunkFailed(); });
 }
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
 function speak(text){
@@ -2370,6 +2371,13 @@ function speak(text){
 }
 
 // ── MIC (PTT) ───────────────────────────────────────────────────────
+function nexoraMicStatus(btn, msg){
+  var scope=btn.closest('#call-overlay,[id$="-screen"]');
+  var st=scope&&scope.querySelector('#co-status-text,#iv-status-text,#mt-status-text,#corp-status,#sh-status,#proc-status');
+  st=st||nexoraStatusEl();
+  if(st) st.textContent=msg;
+}
+
 function bindAllNexoraPttMics(){
   if(typeof PttMic === 'undefined') return;
   document.querySelectorAll('[data-ptt-mic]').forEach(function(btn){
@@ -2378,6 +2386,19 @@ function bindAllNexoraPttMics(){
       PttMic.bind({
         btn: btn,
         lang: 'en-US',
+        sttTutor: 'nexora',
+        onBusy: function(busy){
+          if(busy) nexoraMicStatus(btn, 'Transcribing...');
+        },
+        onEmpty: function(){
+          nexoraMicStatus(btn, "Didn't catch that — hold the mic and speak, then release.");
+        },
+        onError: function(code){
+          var msg='Mic interrupted — hold the mic button and try again.';
+          if(code==='not-allowed'||code==='service-not-allowed') msg='Microphone blocked — allow mic access for this site in your browser settings, then try again.';
+          else if(code==='audio-capture') msg='No microphone found — check that a mic is connected and not used by another app.';
+          nexoraMicStatus(btn, msg);
+        },
         canStart: function(){
           if(!_nx.active) return false;
           if(!_nxSending) return true;

@@ -651,9 +651,91 @@ function drainTtsPending(pending, onSentence, onPrefetch) {
 var _ttsAudioUnlocked = false;
 var _ttsSharedCtx = null;
 
+/*
+ * iOS (every iOS browser + home-screen app) only lets an <audio> element play with sound if that
+ * element was started inside a user gesture. A single shared element is unlocked on the first tap
+ * and reused for every clip. Other browsers switch to it only if autoplay gets blocked.
+ */
+var _ttsIsIOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/i.test(navigator.userAgent || '') ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+var _ttsUseShared = _ttsIsIOS;
+var _ttsSharedEl = null;
+var _ttsSharedPrimed = false;
+var _ttsSharedActive = 0;
+var _ttsSharedSeq = 0;
+var _ttsSharedUrl = null;
+var _ttsGestureQueue = [];
+var _TTS_SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+function ttsSharedAudioEl() {
+  if (!_ttsSharedEl) {
+    var a = new Audio();
+    a.setAttribute('playsinline', '');
+    a.playsInline = true;
+    a.preload = 'auto';
+    _ttsSharedEl = a;
+  }
+  return _ttsSharedEl;
+}
+
+/** Must run inside a user gesture. Never interrupts a clip that is loaded on the shared element. */
+function primeTtsSharedAudio() {
+  if (_ttsSharedPrimed || _ttsSharedActive) return;
+  var el = ttsSharedAudioEl();
+  try {
+    el.muted = false;
+    el.volume = 1;
+    el.src = _TTS_SILENT_WAV;
+    var p = el.play();
+    if (p && typeof p.then === 'function') {
+      p.then(function () { if (!_ttsSharedActive) _ttsSharedPrimed = true; }).catch(function () {});
+    } else {
+      _ttsSharedPrimed = true;
+    }
+  } catch (e) {}
+}
+
+function ttsShowTapHint(show) {
+  if (typeof document === 'undefined' || !document.body) return;
+  var el = document.getElementById('tts-tap-hint');
+  if (!show) { if (el) el.remove(); return; }
+  if (el) return;
+  el = document.createElement('div');
+  el.id = 'tts-tap-hint';
+  el.setAttribute('role', 'status');
+  el.textContent = '\uD83D\uDD0A Tap to enable sound';
+  el.style.cssText = 'position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;background:#111827;color:#fff;font:600 14px/1 system-ui,sans-serif;padding:12px 18px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.35);pointer-events:none;';
+  document.body.appendChild(el);
+}
+
+function ttsWaitForGesture(fn) {
+  _ttsGestureQueue.push(fn);
+  ttsShowTapHint(true);
+}
+
+(function bindTtsGestureUnlock() {
+  if (typeof document === 'undefined') return;
+  function onGesture() {
+    if (_ttsUseShared && !_ttsSharedPrimed && !_ttsGestureQueue.length) primeTtsSharedAudio();
+    if (_ttsGestureQueue.length) {
+      var q = _ttsGestureQueue.splice(0);
+      ttsShowTapHint(false);
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx && _ttsSharedCtx && _ttsSharedCtx.state === 'suspended') _ttsSharedCtx.resume();
+      } catch (e) {}
+      q.forEach(function (f) { try { f(); } catch (e2) {} });
+    }
+  }
+  ['touchend', 'pointerup', 'click', 'keydown'].forEach(function (t) {
+    document.addEventListener(t, onGesture, { capture: true, passive: true });
+  });
+})();
+
 /** Unlock browser audio after a user gesture. Always re-resume — context often suspends after mic/TTS. */
 function unlockTtsAudio() {
   if (typeof CelebrationSfx !== 'undefined') CelebrationSfx.unlock();
+  if (_ttsUseShared) primeTtsSharedAudio();
   return new Promise(function (resolve) {
     var settled = false;
     function done() {
@@ -688,6 +770,8 @@ function unlockTtsAudio() {
 
 /**
  * Play TTS blob reliably — retries autoplay, never skips queue silently.
+ * Returns an Audio-like handle (pause/play/src/currentTime/paused/ended/duration).
+ * pause() or src = '' stops the clip for good: no callbacks, and no pending autoplay retry resumes it.
  */
 function playAudioBlob(blob, handlers) {
   handlers = handlers || {};
@@ -695,28 +779,85 @@ function playAudioBlob(blob, handlers) {
     if (handlers.onError) handlers.onError();
     return null;
   }
+  var h = {
+    _el: null,
+    _url: '',
+    _stopped: false,
+    _ended: false,
+    _live: function () { return true; },
+    onended: null,
+    onerror: null,
+    pause: function () {
+      h._stopped = true;
+      if (live()) { try { h._el.pause(); } catch (e) {} }
+    },
+    play: function () {
+      if (h._ended || !live()) return Promise.resolve();
+      h._stopped = false;
+      return h._el.play();
+    }
+  };
+  function live() { return !!h._el && h._live(); }
+  Object.defineProperties(h, {
+    src: {
+      get: function () { return h._stopped ? '' : h._url; },
+      set: function (v) { if (!v) h.pause(); }
+    },
+    paused: { get: function () { return live() ? h._el.paused : true; } },
+    ended: { get: function () { return h._ended; } },
+    duration: { get: function () { return live() ? h._el.duration : NaN; } },
+    currentTime: {
+      get: function () { return live() ? h._el.currentTime : 0; },
+      set: function (v) { if (live()) { try { h._el.currentTime = v; } catch (e) {} } }
+    }
+  });
+  if (_ttsUseShared) ttsPlayShared(blob, handlers, h);
+  else ttsPlayOwn(blob, handlers, h);
+  return h;
+}
+
+function ttsPlayOwn(blob, handlers, h) {
   var url = URL.createObjectURL(blob);
-  var audio = new Audio(url);
+  var audio = new Audio();
+  audio.setAttribute('playsinline', '');
   audio.volume = 1;
   audio.muted = false;
   audio.preload = 'auto';
+  audio.src = url;
+  h._el = audio;
+  h._url = url;
   var dead = false;
   var attempts = 0;
 
-  function done(fn) {
+  function done(fn, natural) {
     if (dead) return;
     dead = true;
+    if (natural) h._ended = true;
     try { URL.revokeObjectURL(url); } catch (e) {}
     if (fn) fn();
   }
 
-  audio.onended = function () { done(handlers.onEnded); };
-  audio.onerror = function () { done(handlers.onError); };
+  audio.onended = function () { done(handlers.onEnded, true); };
+  audio.onerror = function () { if (!h._stopped) done(handlers.onError); };
 
   function tryPlay() {
+    if (dead || h._stopped || h._el !== audio) return;
     var p = audio.play();
     if (p && typeof p.then === 'function') {
-      p.then(function () { _ttsAudioUnlocked = true; }).catch(function () {
+      p.then(function () { _ttsAudioUnlocked = true; }).catch(function (err) {
+        if (dead || h._stopped || h._el !== audio) return;
+        var name = err && err.name;
+        if (name === 'NotAllowedError') {
+          // Autoplay blocked (no tap yet on this page): continue on the shared element + tap hint.
+          _ttsUseShared = true;
+          dead = true;
+          audio.onended = null;
+          audio.onerror = null;
+          try { URL.revokeObjectURL(url); } catch (e) {}
+          ttsPlayShared(blob, handlers, h);
+          return;
+        }
+        if (name === 'AbortError') return;
         attempts++;
         if (attempts < 6) {
           unlockTtsAudio().finally(function () {
@@ -729,7 +870,56 @@ function playAudioBlob(blob, handlers) {
     }
   }
   unlockTtsAudio().finally(tryPlay);
-  return audio;
+}
+
+function ttsPlayShared(blob, handlers, h) {
+  var el = ttsSharedAudioEl();
+  var token = ++_ttsSharedSeq;
+  var url = URL.createObjectURL(blob);
+  if (_ttsSharedUrl) { try { URL.revokeObjectURL(_ttsSharedUrl); } catch (e) {} }
+  _ttsSharedUrl = url;
+  _ttsSharedActive = token;
+
+  function current() { return _ttsSharedActive === token; }
+  h._el = el;
+  h._url = url;
+  h._live = current;
+  var dead = false;
+  var attempts = 0;
+
+  function done(fn, natural) {
+    if (dead) return;
+    dead = true;
+    if (natural) h._ended = true;
+    if (current()) _ttsSharedActive = 0;
+    if (fn) fn();
+  }
+
+  el.onended = function () { if (current()) done(handlers.onEnded, true); };
+  el.onerror = function () { if (current() && !h._stopped) done(handlers.onError); };
+  el.muted = false;
+  el.volume = 1;
+  el.src = url;
+
+  function tryPlay() {
+    if (dead || h._stopped || !current()) return;
+    var p = el.play();
+    if (p && typeof p.then === 'function') {
+      p.then(function () {
+        _ttsSharedPrimed = true;
+        _ttsAudioUnlocked = true;
+      }).catch(function (err) {
+        if (dead || h._stopped || !current()) return;
+        var name = err && err.name;
+        if (name === 'NotAllowedError') { ttsWaitForGesture(tryPlay); return; }
+        if (name === 'AbortError') return;
+        attempts++;
+        if (attempts < 4) setTimeout(tryPlay, 160 * attempts);
+        else done(handlers.onError);
+      });
+    }
+  }
+  tryPlay();
 }
 
 /** Unlock stuck send locks after network hang */

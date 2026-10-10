@@ -2,6 +2,11 @@
  * Push-to-Talk mic — hold to speak, release to send.
  * Waits for speech recognition to finish before sending (no half words).
  * Auto-restarts recognition while the button is held so long answers are not lost.
+ *
+ * Server STT (MediaRecorder → /alice/stt) is used instead of the browser recognizer when
+ * the recognizer is missing or unreliable: iPhone/iPad (all iOS browsers + home-screen app),
+ * Firefox, in-app browsers, or after the recognizer fails on this device.
+ * opts.stt: 'auto' (default) | 'browser' | 'server'. opts.sttTutor: access scope for /alice/stt.
  */
 var PttMic = (function () {
   'use strict';
@@ -14,6 +19,35 @@ var PttMic = (function () {
   var MAX_RESTART_FAILS = 4;
   var RECOVERABLE_ERRORS = { 'no-speech': 1, network: 1, aborted: 1 };
   var FATAL_ERRORS = { 'not-allowed': 1, 'service-not-allowed': 1, 'audio-capture': 1 };
+  var SWITCH_TO_SERVER_ERRORS = { 'no-sr': 1, 'service-not-allowed': 1, network: 1, 'restart-failed': 1, 'start-failed': 1, 'language-not-supported': 1 };
+
+  var UA = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  var IS_IOS = /iP(hone|ad|od)/i.test(UA) || (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var serverPreferred = false;
+
+  function serverSttCapable() {
+    return !!(
+      typeof navigator !== 'undefined' &&
+      navigator.mediaDevices && navigator.mediaDevices.getUserMedia &&
+      window.MediaRecorder &&
+      typeof infinityFetch === 'function' &&
+      typeof getAuthToken === 'function' && getAuthToken()
+    );
+  }
+
+  function pickRecorderMime() {
+    var list = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+    if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+    for (var i = 0; i < list.length; i++) {
+      try { if (MediaRecorder.isTypeSupported(list[i])) return list[i]; } catch (e) {}
+    }
+    return '';
+  }
+
+  function sttLang(lang) {
+    var l = String(lang || 'en-US').toLowerCase();
+    return l.indexOf('es') === 0 ? 'es' : 'en';
+  }
 
   function getInst(btn) {
     if (!btn) return null;
@@ -68,6 +102,195 @@ var PttMic = (function () {
       if (typeof opts.onUi === 'function') opts.onUi(listening, btn);
     }
 
+    // ── Server STT path ───────────────────────────────────────
+    var srv = { holding: false, sending: false, rec: null, stream: null, chunks: [], mime: '', sid: 0, timer: null, startedAt: 0 };
+
+    function useServer() {
+      if (opts.stt === 'browser' || !serverSttCapable()) return false;
+      if (opts.stt === 'server') return true;
+      return !srSupported || IS_IOS || serverPreferred;
+    }
+
+    function srvStopTracks() {
+      if (srv.stream) {
+        try { srv.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+      }
+      srv.stream = null;
+    }
+
+    function srvKill() {
+      clearTimeout(srv.timer);
+      srv.timer = null;
+      var r = srv.rec;
+      srv.rec = null;
+      if (r) {
+        try {
+          r.ondataavailable = null;
+          r.onstop = null;
+          r.onerror = null;
+          if (r.state !== 'inactive') r.stop();
+        } catch (e) {}
+      }
+      srvStopTracks();
+      srv.chunks = [];
+      if (srv.holding) {
+        srv.holding = false;
+        ui(false);
+      }
+      try { btn.classList.remove('ptt-active'); } catch (e2) {}
+    }
+
+    function srvDone() {
+      srv.sending = false;
+      try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (e) {}
+      if (typeof opts.onBusy === 'function') opts.onBusy(false);
+    }
+
+    function srvFail(code) {
+      srv.sid++;
+      srvKill();
+      srvDone();
+      ui(false);
+      if (typeof opts.onError === 'function') opts.onError(code);
+    }
+
+    function srvStart() {
+      if (srv.holding || srv.sending) return;
+      srv.holding = true;
+      srv.chunks = [];
+      var sid = ++srv.sid;
+      ui(true);
+      try { btn.classList.add('ptt-active'); } catch (e) {}
+      navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      }).then(function (stream) {
+        if (sid !== srv.sid || !srv.holding) {
+          try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+          return;
+        }
+        srv.stream = stream;
+        var mime = pickRecorderMime();
+        var r;
+        try { r = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); } catch (e2) {
+          srvFail('start-failed');
+          return;
+        }
+        srv.mime = r.mimeType || mime || 'audio/webm';
+        r.ondataavailable = function (ev) { if (ev.data && ev.data.size) srv.chunks.push(ev.data); };
+        r.onerror = function () { if (sid === srv.sid) srvFail('start-failed'); };
+        srv.rec = r;
+        try { r.start(250); } catch (e3) {
+          srvFail('start-failed');
+          return;
+        }
+        srv.startedAt = Date.now();
+        srv.timer = setTimeout(function () {
+          if (sid === srv.sid && srv.holding) srvStop(true);
+        }, MAX_HOLD_MS);
+      }).catch(function (err) {
+        if (sid !== srv.sid) return;
+        var name = err && err.name;
+        srvFail(name === 'NotAllowedError' || name === 'SecurityError' ? 'not-allowed' : 'audio-capture');
+      });
+    }
+
+    function srvStop(send) {
+      if (!srv.holding) return;
+      srv.holding = false;
+      clearTimeout(srv.timer);
+      srv.timer = null;
+      ui(false);
+      try { btn.classList.remove('ptt-active'); } catch (e) {}
+      var r = srv.rec;
+      srv.rec = null;
+      if (!r) {
+        // Released before the mic opened (quick tap or first-time permission prompt).
+        srv.sid++;
+        srvStopTracks();
+        if (send && typeof opts.onEmpty === 'function') opts.onEmpty();
+        return;
+      }
+      var heldMs = Date.now() - srv.startedAt;
+      if (!send || heldMs < 350) {
+        try {
+          r.ondataavailable = null;
+          r.onstop = null;
+          if (r.state !== 'inactive') r.stop();
+        } catch (e2) {}
+        srvStopTracks();
+        srv.chunks = [];
+        if (send && typeof opts.onEmpty === 'function') opts.onEmpty();
+        return;
+      }
+      srv.sending = true;
+      try { btn.classList.add('ptt-busy'); } catch (e3) {}
+      if (typeof opts.onBusy === 'function') opts.onBusy(true);
+      r.onstop = function () {
+        srvStopTracks();
+        var blob = new Blob(srv.chunks, { type: srv.mime || 'audio/webm' });
+        srv.chunks = [];
+        if (!blob.size || blob.size < 600) {
+          srvDone();
+          if (typeof opts.onEmpty === 'function') opts.onEmpty();
+          return;
+        }
+        srvUpload(blob);
+      };
+      try {
+        if (r.state !== 'inactive') r.stop();
+        else r.onstop();
+      } catch (e4) {
+        srvFail('start-failed');
+      }
+    }
+
+    function srvUpload(blob) {
+      var fd = new FormData();
+      var m = srv.mime || '';
+      var ext = m.indexOf('mp4') >= 0 ? 'm4a' : (m.indexOf('ogg') >= 0 ? 'ogg' : 'webm');
+      fd.append('audio', blob, 'ptt.' + ext);
+      fd.append('lang', sttLang(typeof opts.lang === 'function' ? opts.lang() : opts.lang));
+      fd.append('tutor', String(opts.sttTutor || 'any'));
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var to = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
+      infinityFetch('/alice/stt', { method: 'POST', body: fd, signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) {
+          if (!r.ok) {
+            var e = new Error('stt_' + r.status);
+            e.status = r.status;
+            throw e;
+          }
+          return r.json();
+        })
+        .then(function (j) {
+          clearTimeout(to);
+          srvDone();
+          var text = collapseCommittedText(String((j && j.text) || ''));
+          if (text && typeof opts.normalizeTranscript === 'function') {
+            try {
+              var normed = opts.normalizeTranscript(text);
+              text = normed == null ? '' : String(normed).trim();
+            } catch (eNorm) { /* keep raw */ }
+          }
+          if (text && typeof opts.onSend === 'function') opts.onSend(text);
+          else if (!text && typeof opts.onEmpty === 'function') opts.onEmpty();
+        })
+        .catch(function (err) {
+          clearTimeout(to);
+          srvDone();
+          if (err && err.status === 422) {
+            if (typeof opts.onEmpty === 'function') opts.onEmpty();
+            return;
+          }
+          if (typeof opts.onError === 'function') opts.onError('interrupted');
+        });
+    }
+
+    function onVisibility() {
+      if (document.hidden && srv.holding) srvStop(true);
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
     function clearRestartTimer() {
       clearTimeout(restartTimer);
       restartTimer = null;
@@ -105,6 +328,8 @@ var PttMic = (function () {
     }
 
     function failStartPermanent(code) {
+      var wasHolding = holding;
+      var switchToServer = SWITCH_TO_SERVER_ERRORS[code] && opts.stt !== 'browser' && serverSttCapable();
       clearRestartTimer();
       clearSendTimer();
       clearMaxHold();
@@ -117,6 +342,15 @@ var PttMic = (function () {
       clearStopLockTimer();
       ui(false);
       try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (e) {}
+      if (switchToServer) {
+        // The browser recognizer is unusable on this device — keep this same hold going on server STT.
+        serverPreferred = true;
+        committed = [];
+        transcript = '';
+        if (wasHolding) { srvStart(); return; }
+        if (typeof opts.onError === 'function') opts.onError('interrupted');
+        return;
+      }
       if (typeof opts.onError === 'function') opts.onError(code || 'start-failed');
     }
 
@@ -476,19 +710,30 @@ var PttMic = (function () {
     function onPointerDown(e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       try { btn.setPointerCapture(e.pointerId); } catch (e2) {}
+      if (useServer()) {
+        e.preventDefault();
+        if (srv.holding || srv.sending) return;
+        if (typeof opts.canStart === 'function' && !opts.canStart()) return;
+        if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
+        srvStart();
+        return;
+      }
       start(e);
     }
 
     function onPointerUp(e) {
       try { btn.releasePointerCapture(e.pointerId); } catch (e2) {}
+      if (srv.holding) { srvStop(true); return; }
       stop(true);
     }
 
     function onPointerCancel() {
+      if (srv.holding) { srvStop(true); return; }
       stop(true);
     }
 
     function onLostPointerCapture() {
+      if (srv.holding) { srvStop(true); return; }
       if (holding || active || rec) stop(true);
     }
 
@@ -502,19 +747,29 @@ var PttMic = (function () {
     btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     var inst = {
-      stop: function (send) { stop(!!send); },
+      stop: function (send) {
+        if (srv.holding) { srvStop(!!send); return; }
+        stop(!!send);
+      },
       reset: function () {
         sessionId++;
         clearMaxHold();
         resetSession(true);
         unlockStop();
         sent = false;
-        try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (eCls) {}
+        if (srv.holding) { srv.sid++; srvKill(); }
+        try { btn.classList.remove('ptt-active'); } catch (eCls) {}
+        if (!srv.sending) {
+          try { btn.classList.remove('ptt-busy'); } catch (eCls1) {}
+        }
       },
       destroy: function () {
         sessionId++;
         clearMaxHold();
         resetSession(true);
+        srv.sid++;
+        srvKill();
+        document.removeEventListener('visibilitychange', onVisibility);
         btn.removeEventListener('pointerdown', onPointerDown);
         btn.removeEventListener('pointerup', onPointerUp);
         btn.removeEventListener('pointercancel', onPointerCancel);
