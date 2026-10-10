@@ -15,6 +15,7 @@ const { registerKamukHoldingsCrm } = require('./kamuk-holdings-crm');
 const { registerSimulationAccess } = require('./simulation-access');
 const WaFaq = require('./wa-faq');
 const KamukEnglishLock = require('./kamuk-english-lock');
+const NexoraProcurement = require('./nexora-procurement');
 const { AsyncLocalStorage } = require('async_hooks');
 
 const requestContext = new AsyncLocalStorage();
@@ -1696,7 +1697,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20261009-kamuk-en';
+const APP1_BUILD = '20261010-nexora-proc';
 const JILL_BRAIN_VER = 'v43-student-name-fix';
 const ALICE_BRAIN_VER = 'v27-student-name-fix';
 
@@ -7888,6 +7889,38 @@ function nexoraBrainExtra(student, req, suffix) {
   return brainScopeExtra(resolveNexoraStudent(student, req), req, `${suffix}:${NEXORA_BRAIN_VER}`);
 }
 
+// ── NEXORA PROCUREMENT PACK (allowlisted students only) ───────
+function rejectProcurementIfNotAllowed(req, res) {
+  if (NexoraProcurement.isProcurementAllowed(req)) return false;
+  res.status(403).json({ error: 'Scenario not available', code: 'PROCUREMENT_PACK_DISABLED' });
+  return true;
+}
+
+app.get('/nexora/procurement/catalog', requireProductAuth, async (req, res) => {
+  if (rejectProcurementIfNotAllowed(req, res)) return;
+  if (req.auth.role === 'student') {
+    const ok = await assertNexoraStudentAccess(req, res, null);
+    if (!ok) return;
+  }
+  res.json(NexoraProcurement.publicCatalog());
+});
+
+async function buildProcurementReply(body, agentName) {
+  const { message, history, scenario, accountContext } = body || {};
+  const sc = NexoraProcurement.getProcurementScenario(scenario && scenario.id) || NexoraProcurement.SCENARIOS[0];
+  const systemPrompt = NexoraProcurement.buildProcurementSystemPrompt({ scenario: sc, accountContext, agentName });
+  const isOpening = /^START_/.test(String(message || '')) && (!history || history.length === 0);
+  const msgs = buildTutorChatMessages(history, message, 20);
+  const resp = await claudeCall({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: isOpening ? 500 : 600,
+    system: systemPrompt,
+    messages: msgs
+  });
+  const raw = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  return NexoraProcurement.finishProcurementReply(raw, sc) || `${sc.host}: Sorry, could you say that again?`;
+}
+
 // ── NEXORA CALL SIMULATION ────────────────────────────────────
 app.post('/nexora', requireProductAuth, async (req, res) => {
   try {
@@ -7896,6 +7929,8 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
     if (req.auth.role === 'student' && !student) return;
     const scopedStudent = student || resolveNexoraStudent(studentRaw, req);
     const agentName = resolveNexoraAgentName(scopedStudent, agentNameRaw, req);
+    const isProcurement = NexoraProcurement.isProcurementScenario(scenario);
+    if (isProcurement && rejectProcurementIfNotAllowed(req, res)) return;
 
     const limit = await checkTutorLimit(scopedStudent?.id, 'nexora', sessionsTableForId(scopedStudent?.id));
     if (!limit.ok && !/^START_/.test(String(message || ''))) {
@@ -7917,6 +7952,11 @@ app.post('/nexora', requireProductAuth, async (req, res) => {
           nexoraQuota: true
         });
       }
+    }
+
+    if (isProcurement) {
+      const reply = await buildProcurementReply(req.body, agentName);
+      return res.json({ reply, pack: 'procurement' });
     }
 
     const p = profile || {};
@@ -8012,6 +8052,11 @@ app.post('/nexora/stream', requireProductAuth, async (req, res) => {
         return Brain.writeBrainSSE(res, nq.reply || `You've used all your Nexora practice for today. Come back in ${nq.wait}.`);
       }
     }
+    if (NexoraProcurement.isProcurementScenario(req.body?.scenario)) {
+      if (rejectProcurementIfNotAllowed(req, res)) return;
+      const agentName = resolveNexoraAgentName(scoped, req.body?.agentName, req);
+      return Brain.writeBrainSSE(res, await buildProcurementReply(req.body, agentName));
+    }
     const ctx = await prepareNexoraRequest(req.body, req);
     const nexoraExtra = nexoraBrainExtra(ctx.student, req, `${ctx.scType || 'customer_service'}:${ctx.sc?.mood || 'normal'}:sb:${ctx.superBrainRevision}`);
     const brain = await Brain.brainGetLLM('nexora', 'stream', req.body?.message, nexoraExtra);
@@ -8043,24 +8088,39 @@ app.post('/nexora-eval', requireProductAuth, async (req, res) => {
     }
     const { transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred } = req.body || {};
 
-    const isInterview = scenario?.type === 'star_interview';
-    const evalPrompt = isInterview
-      ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
-      : buildNexoraGenericEvaluationPrompt({ transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred });
+    const isProcurement = NexoraProcurement.isProcurementScenario(scenario);
+    if (isProcurement && rejectProcurementIfNotAllowed(req, res)) return;
+    const isInterview = !isProcurement && scenario?.type === 'star_interview';
+    const evalPrompt = isProcurement
+      ? NexoraProcurement.buildProcurementEvaluationPrompt({
+          transcript,
+          scenario,
+          agentName: resolveNexoraAgentName(student, agentName, req),
+          talkTime,
+          jobDescription: req.body?.jobDescription
+        })
+      : isInterview
+        ? buildProfessionalInterviewEvaluationPrompt({ transcript, scenario, agentName, talkTime })
+        : buildNexoraGenericEvaluationPrompt({ transcript, scenario, profile, agentName, talkTime, holdEvents, crmActions, transferred });
 
     const resp = await claudeCall({
       model: 'claude-sonnet-4-6',
-      max_tokens: isInterview ? 1800 : 600,
-      system: isInterview
-        ? 'You are a rigorous senior recruiter. Return valid JSON only. Never soften material hiring concerns.'
-        : 'You evaluate customer service call simulations. Respond ONLY with valid JSON. No markdown. No extra text.',
+      max_tokens: isProcurement ? 2600 : (isInterview ? 1800 : 600),
+      system: isProcurement
+        ? 'You are a senior procurement and project administration assessor and a business English coach. Return valid JSON only. No markdown. No extra text.'
+        : isInterview
+          ? 'You are a rigorous senior recruiter. Return valid JSON only. Never soften material hiring concerns.'
+          : 'You evaluate customer service call simulations. Respond ONLY with valid JSON. No markdown. No extra text.',
       messages: [{ role: 'user', content: evalPrompt }]
     });
 
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    const clean = text.replace(/```json|```/g, '').trim();
+    let clean = text.replace(/```json|```/g, '').trim();
+    if (isProcurement) clean = clean.slice(clean.indexOf('{'), clean.lastIndexOf('}') + 1);
     const parsedEvaluation = JSON.parse(clean);
-    const ev = isInterview ? parsedEvaluation : applyNexoraCrmActionImpact(parsedEvaluation, crmActions);
+    const ev = isProcurement
+      ? NexoraProcurement.normalizeProcurementEvaluation(parsedEvaluation)
+      : isInterview ? parsedEvaluation : applyNexoraCrmActionImpact(parsedEvaluation, crmActions);
 
     if (student?.id && req.auth.role === 'student') {
       InfinityVictory.recordNexoraSession(student, ev, {
@@ -8107,6 +8167,12 @@ app.post('/nexora-eval', requireProductAuth, async (req, res) => {
           score: ev.overall_score != null ? ev.overall_score : null
         }
       });
+      if (isProcurement) {
+        const prev = Array.isArray(student.nexoraProcurementSessions) ? student.nexoraProcurementSessions : [];
+        student.nexoraProcurementSessions = prev
+          .concat([NexoraProcurement.buildProcurementSessionRecord(ev, scenario, talkTime)])
+          .slice(-40);
+      }
       await sbSetStudent(student.id, student);
       ev.aliceVictory = student.aliceVictory;
       ev.sharedLearner = student.sharedLearner;
