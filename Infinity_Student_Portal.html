@@ -1528,8 +1528,15 @@ function showPortal(s){
       +'<a href="training-book/hospedaje-servicios/glosario/index.html?v=20260925alice" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="ti ti-book-2"></i> Glosario</a>'
       +'</div></div>'
     : '';
+  var foundersCard = (s && s.foundersFileEnabled === true)
+    ? '<div class="card" style="border:1.5px solid var(--navy);background:linear-gradient(165deg,#EFE9FF,#fff);">'
+      +'<div class="card-title"><i class="ti ti-building"></i> E-learning — The Founder\'s File</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Diseñá tu propia empresa en inglés: idea, misión y visión, departamentos, producto, políticas, plan y pitch. 7 formularios · 60 minutos · puntaje sobre 100.</p>'
+      +'<a href="training-book/founders-file/index.html?v=20261012&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
+      +'</div>'
+    : '';
 
-  var recursosHtml = hospedajeCard
+  var recursosHtml = foundersCard + hospedajeCard
     +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
     +'<div id="infinity-readings-root"></div>'+vocabCard+'</div>'
 

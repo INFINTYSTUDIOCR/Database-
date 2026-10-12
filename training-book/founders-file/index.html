@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Founder's File · Infinity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a company registration file — left index of numbered forms, right the open form (Learn → Check → Build) */
+:root{
+  --paper:#EEF3F8; --sheet:#FFFFFF; --ink:#15232C; --muted:#56676E; --line:#D3DCE6;
+  --accent:#7B4DFF; --accent-ink:#FFFFFF; --accent-soft:#EFE9FF; --stamp:#B4322A; --good:#1C7A3D; --good-soft:#E1F2E6; --bad-soft:#F7E3E1;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#B49BFF; --accent-ink:#160B33; --accent-soft:#2A1E4D; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#B49BFF; --accent-ink:#160B33; --accent-soft:#2A1E4D; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.wrap{max-width:1120px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--f-display);font-size:20px}
+.brand span{color:var(--muted)}
+.scorebox{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.scorebox strong{font-family:var(--f-display);font-size:28px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:140px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;margin-top:24px;align-items:start}
+nav.index{position:sticky;top:90px;display:flex;flex-direction:column;gap:4px}
+nav.index button{all:unset;cursor:pointer;display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:6px;color:var(--ink)}
+nav.index button:hover{background:var(--sheet)}
+nav.index button:focus-visible{outline:2px solid var(--accent)}
+nav.index button.on{background:var(--sheet);box-shadow:inset 3px 0 0 var(--accent)}
+nav.index .code{color:var(--muted)}
+nav.index .tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--line)}
+nav.index .tick.done{background:var(--good);border-color:var(--good)}
+main.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:clamp(20px,4vw,44px);min-width:0}
+.formhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:24px}
+.formhead h2{font-size:clamp(28px,4vw,40px);font-weight:800}
+.formhead .meta{color:var(--muted);text-align:right}
+section.step{margin-block:32px}
+.steplabel{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.steplabel .pill{background:var(--accent);color:var(--accent-ink);padding:2px 10px;border-radius:99px}
+.steplabel h3{font-size:22px}
+.learn p,.learn li{max-width:68ch}
+.learn h4{font-family:var(--f-display);font-size:18px;margin:22px 0 6px}
+.learn ul,.learn ol{padding-left:22px;margin:6px 0}
+.formula{border:1px dashed var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:6px;font-weight:700;margin:10px 0;max-width:68ch}
+.example{border-left:3px solid var(--muted);padding:6px 16px;margin:12px 0;color:var(--ink);max-width:68ch}
+.example .mono{color:var(--muted);display:block}
+.mistake{color:var(--stamp)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips span{border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:15px}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;min-width:520px;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.q{border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+.q p.qt{font-weight:700;margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--sheet)}
+.opts button:hover:not([disabled]){border-color:var(--accent)}
+.opts button:focus-visible{outline:2px solid var(--accent)}
+.opts button[disabled]{cursor:default}
+.opts button.right{background:var(--good-soft);border-color:var(--good)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--stamp)}
+.why{margin-top:10px;font-size:15px}
+.why b.ok{color:var(--good)} .why b.no{color:var(--stamp)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.field label{font-weight:700}
+.field .help{color:var(--muted);font-size:15px}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;gap:8px}
+.fieldstatus{font-size:13px;color:var(--muted)}
+.fieldstatus.ok{color:var(--good)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:20px;margin-top:28px}
+.btn{all:unset;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:12px 22px;border-radius:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.draft{white-space:pre-wrap;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;max-width:72ch}
+.start{max-width:640px}
+.start h1{font-size:clamp(36px,6vw,56px);font-weight:800;margin:8px 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stamp{display:inline-block;border:3px solid var(--stamp);color:var(--stamp);font-family:var(--f-mono);font-weight:500;letter-spacing:.12em;padding:6px 14px;transform:rotate(-4deg);border-radius:4px}
+.breakdown td:last-child,.breakdown th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:6px;font-weight:700}
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.index{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
+  nav.index button{grid-template-columns:auto;white-space:nowrap}
+  nav.index .name,nav.index .tick{display:none}
+  .grid2{grid-template-columns:1fr}
+  .bar{width:90px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.cadamag-credit{margin:40px auto 0;max-width:1120px;text-align:center;font-size:12px;color:var(--muted)}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+.cadamag-credit-link{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.cadamag-credit-link:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>The Founder's File</b><span class="mono" id="who">Infinity · Build Your Company · e-learning</span></div>
+    <div class="scorebox"><span class="mono">Score</span><strong id="score">0</strong><span>/100</span><div class="bar"><i id="barfill"></i></div></div>
+  </header>
+  <div id="app"></div>
+</div>
+
+<script>
+const MODS = [
+{ id:"idea", code:"Form 01", title:"The Idea", time:"8 min",
+  learn:`
+<p>Every company starts with the same thing: <strong>a problem that real people have</strong>. A company exists to solve that problem better than anyone else. Before you choose a name or a logo, you need to know which problem you solve and for whom.</p>
+<h4>How to design your idea, step by step</h4>
+<ol>
+<li><strong>Choose an industry.</strong> An industry is the area where your company works: sports, health, food, technology, education, tourism, fashion, entertainment.</li>
+<li><strong>Find a problem.</strong> Ask: "What is difficult, slow, expensive or boring for people in this area?"</li>
+<li><strong>Describe your customer.</strong> Your customer is the person who pays for your product or service. Be specific: age, place, situation.</li>
+</ol>
+<div class="formula">Problem + Customer = Business opportunity</div>
+<div class="example"><span class="mono">Example · sports</span>Young players in Liberia have talent but no professional club near them. <br><em>Customer:</em> boys and girls from 8 to 17 years old and their parents.</div>
+<div class="example"><span class="mono">Example · health</span>Families wait 3 or 4 hours to see a doctor at the clinic. <br><em>Customer:</em> working parents with small children in San José.</div>
+<h4>Common mistake</h4>
+<p class="mistake">"Our customer is everybody." If your customer is everybody, you don't know who you are selling to.</p>
+<div class="chips"><span>industry</span><span>problem</span><span>customer</span><span>need</span><span>opportunity</span><span>solve</span></div>`,
+  quiz:[
+   {q:"What is the starting point of a good business idea?", o:["A product you personally like","A real problem that people have","A cool name and logo","A big office"], a:1, why:"Companies exist to solve problems. The name, logo and office come later."},
+   {q:"Which customer description is the most useful?", o:["Everybody","People who like things","University students in San José who don't have time to cook","Customers"], a:2, why:"It tells you age, place and situation. Now you know who to talk to and what they need."}
+  ],
+  build:[
+   {id:"industry", label:"Choose your industry", type:"select", pts:2, options:["","Sports","Health","Food & drinks","Technology","Education","Tourism","Fashion","Entertainment","Other"]},
+   {id:"problem", label:"What problem does your company solve?", help:"Write one or two sentences. Start with: \"People in ... have a problem: ...\"", type:"area", min:8, pts:3},
+   {id:"customer", label:"Who is your customer?", help:"Be specific: age, place, situation.", type:"area", min:6, pts:3}
+  ]},
+{ id:"identity", code:"Form 02", title:"Identity", time:"10 min",
+  learn:`
+<p>Your company's identity has three parts: the <strong>name</strong>, the <strong>mission</strong> and the <strong>vision</strong>. Together they tell the world who you are and where you are going.</p>
+<h4>1. The name</h4>
+<ul><li>Short: one to three words.</li><li>Easy to say and remember.</li><li>Connected to what you do, or to a feeling you want people to have.</li></ul>
+<div class="example"><span class="mono">Good</span>NovaCare · Volcano FC · SnackBox</div>
+<div class="example"><span class="mono">Bad</span>The Best International Global Services Company S.A.</div>
+<h4>2. The mission: what you do today</h4>
+<p>The mission explains what your company does every day, for whom, and how. It is about the present.</p>
+<div class="formula">We help [customer] to [result] by [how you do it].</div>
+<div class="example"><span class="mono">Example</span>We help young players in Guanacaste become professional athletes by giving them free training, coaching and education.</div>
+<h4>3. The vision: where you want to be</h4>
+<p>The vision is your dream for the future, in 5 or 10 years. It is about tomorrow.</p>
+<div class="formula">To become [what you want to be] in [place] by [year].</div>
+<div class="example"><span class="mono">Example</span>To become the most respected youth soccer club in Central America by 2035.</div>
+<h4>Easy trick</h4>
+<p>Mission = <strong>today</strong>, verbs like <em>help, give, provide</em>. Vision = <strong>future</strong>, verbs like <em>become, be, lead</em>.</p>
+<div class="chips"><span>mission</span><span>vision</span><span>purpose</span><span>provide</span><span>become</span><span>lead</span><span>goal</span></div>`,
+  quiz:[
+   {q:"\"We give children in our community a safe place to learn and play soccer every day.\" Is this a mission or a vision?", o:["Mission","Vision"], a:0, why:"It describes what the club does today, every day. That is a mission."},
+   {q:"\"To become the most respected youth soccer club in Central America by 2035.\" Is this a mission or a vision?", o:["Mission","Vision"], a:1, why:"It describes the future and uses \"to become\". That is a vision."},
+   {q:"Which is the best company name for a family clinic?", o:["The Best International Global Medical Company","NovaCare","XQZ-77","Company 1"], a:1, why:"Short, easy to say, and \"Care\" connects with health."}
+  ],
+  build:[
+   {id:"name", label:"Your company name", type:"text", min:1, pts:2},
+   {id:"mission", label:"Your mission", help:"Use the formula: We help [customer] to [result] by [how].", type:"area", min:10, pts:4},
+   {id:"vision", label:"Your vision", help:"Use the formula: To become [what] in [place] by [year].", type:"area", min:8, pts:4}
+  ]},
+{ id:"structure", code:"Form 03", title:"Structure", time:"10 min",
+  learn:`
+<p>A company is a team of teams. Each team is called a <strong>department</strong>, and each department has clear responsibilities. When everybody knows what their department does, the company works without confusion.</p>
+<h4>The main departments</h4>
+<div class="tablewrap"><table>
+<tr><th>Department</th><th>What it does</th><th>How they say it</th></tr>
+<tr><td>Human Resources (HR)</td><td>Hires, trains and takes care of employees</td><td>"I'm in charge of hiring."</td></tr>
+<tr><td>Finance</td><td>Manages money, budget and payments</td><td>"I manage the budget."</td></tr>
+<tr><td>Marketing</td><td>Creates the brand, ads and social media</td><td>"I handle our social media."</td></tr>
+<tr><td>Sales</td><td>Finds customers and closes deals</td><td>"I'm responsible for closing deals."</td></tr>
+<tr><td>Operations</td><td>Makes the product or service happen every day</td><td>"I make sure everything runs smoothly."</td></tr>
+<tr><td>Customer Service</td><td>Answers questions and solves complaints</td><td>"I take care of our customers."</td></tr>
+<tr><td>Legal</td><td>Contracts, permits and rules</td><td>"I review our contracts."</td></tr>
+</table></div>
+<h4>How to design your structure, step by step</h4>
+<ol>
+<li><strong>Think about your daily work.</strong> What must happen every day so your customer is happy?</li>
+<li><strong>Group the tasks.</strong> Tasks that go together become one department.</li>
+<li><strong>Adapt the names to your industry.</strong> A soccer club has <em>Technical Staff</em> (coaches) and <em>Scouting</em> (finding players). A clinic has <em>Medical Staff</em> and <em>Patient Care</em>.</li>
+<li><strong>Keep it small.</strong> A new company needs 3 to 5 departments, not 15.</li>
+</ol>
+<div class="example"><span class="mono">Example · Volcano FC</span>Technical Staff: trains the players · Scouting: finds new talent · Marketing: sells tickets and sponsorships · Finance: pays salaries and controls the budget.</div>
+<div class="chips"><span>department</span><span>in charge of</span><span>responsible for</span><span>manage</span><span>handle</span><span>org chart</span></div>`,
+  quiz:[
+   {q:"A customer wants a refund. Which department handles it first?", o:["Marketing","Customer Service","Legal","Scouting"], a:1, why:"Customer Service talks to customers and solves complaints. Finance may process the money later."},
+   {q:"Your company needs to hire three new employees. Who is in charge?", o:["Human Resources","Sales","Operations","Marketing"], a:0, why:"HR is in charge of hiring and training people."},
+   {q:"A soccer club needs a new goalkeeper. Which department fits best?", o:["Finance","Legal","Scouting","Customer Service"], a:2, why:"Scouting finds new talent. This is an example of a department adapted to the industry."}
+  ],
+  build:[
+   {id:"depts", label:"Design your departments", help:"Write at least 4 departments. For each one, write its main responsibility. Adapt the names to your industry.", type:"rows", cols:["Department","Main responsibility"], rows:5, need:4, pts:10}
+  ]},
+{ id:"product", code:"Form 04", title:"Product or Service", time:"10 min",
+  learn:`
+<p>Now you design what you sell. A <strong>product</strong> is something people can touch (shoes, a juice, an app). A <strong>service</strong> is something you do for people (training, a medical check-up, a tour).</p>
+<h4>The value proposition</h4>
+<p>The value proposition is a short explanation of <strong>why a customer should choose you</strong> and not your competitor. It is the most important sentence in your company.</p>
+<div class="formula">Problem → Solution → Customer → Price → Why us?</div>
+<h4>How to design it, step by step</h4>
+<ol>
+<li><strong>Solution:</strong> what exactly do you offer? Describe it in one sentence.</li>
+<li><strong>Price:</strong> how much does it cost? Think about your customer: can they pay it?</li>
+<li><strong>Why us:</strong> what makes you different? Faster, cheaper, healthier, closer, more personal?</li>
+</ol>
+<div class="example"><span class="mono">Example · SnackBox</span>Busy university students don't have time to cook. SnackBox delivers a healthy lunch in 20 minutes for $6. We are different because we use ingredients from local farms.</div>
+<h4>Common mistake</h4>
+<p class="mistake">"Our product is good." Every company says that. Tell the customer the specific benefit.</p>
+<div class="chips"><span>product</span><span>service</span><span>value proposition</span><span>benefit</span><span>competitor</span><span>affordable</span><span>unique</span></div>`,
+  quiz:[
+   {q:"What is a value proposition?", o:["The price of the product","A short explanation of why a customer should choose you","The company's bank account","A list of employees"], a:1, why:"It answers the customer's question: why you and not the competitor?"},
+   {q:"Which value proposition is the strongest?", o:["Our food is good.","We sell food to people.","Busy students get a healthy lunch delivered in 20 minutes for $6, made with local ingredients."], a:2, why:"It names the customer, the solution, the price and what makes it different."}
+  ],
+  build:[
+   {id:"pname", label:"Name of your product or service", type:"text", min:1, pts:2},
+   {id:"solution", label:"What exactly do you offer?", help:"One or two sentences describing your solution.", type:"area", min:8, pts:3},
+   {id:"price", label:"Price", help:"Example: $6 per lunch, $40 per month, ₡15,000 per visit", type:"text", min:1, pts:2},
+   {id:"whyus", label:"Why us? What makes you different?", type:"area", min:8, pts:3}
+  ]},
+{ id:"policies", code:"Form 05", title:"Policies & Roles", time:"10 min",
+  learn:`
+<p>A company needs <strong>rules</strong> and <strong>responsibilities</strong>. Rules are called <strong>policies</strong>. Responsibilities tell each person what they must deliver. Without them, people argue, work is lost, and customers suffer.</p>
+<h4>What is a policy?</h4>
+<p>A policy is a rule that protects the company, the employees and the customers. Every good policy prevents a specific problem.</p>
+<div class="formula">All employees must [rule]. · Customers can [right] within [time].</div>
+<div class="tablewrap"><table>
+<tr><th>Policy</th><th>Problem it prevents</th></tr>
+<tr><td>All players must arrive 15 minutes before training.</td><td>Training starts late and wastes the coach's time.</td></tr>
+<tr><td>Customers can get a refund within 7 days.</td><td>Angry customers and bad reviews.</td></tr>
+<tr><td>Employees must not share patient information.</td><td>Legal problems and loss of trust.</td></tr>
+</table></div>
+<h4>Roles and responsibilities</h4>
+<p>Your group will divide the departments. Each person <strong>leads</strong> some departments. To lead means: you make decisions, you deliver results, and you answer questions about that area.</p>
+<div class="example"><span class="mono">Example</span>I will lead Marketing and Sales. My teammate will lead Finance and Operations.</div>
+<h4>Competencies</h4>
+<p>A competency is a skill you bring to your role. Examples: <em>leadership, communication, problem-solving, organization, creativity, teamwork, time management</em>.</p>
+<div class="example"><span class="mono">Example</span>I'm good at communication and creativity, so I'm in charge of Marketing.</div>
+<div class="chips"><span>policy</span><span>rule</span><span>must</span><span>responsibility</span><span>role</span><span>lead</span><span>competency</span></div>`,
+  quiz:[
+   {q:"Why does a company need policies?", o:["To make the company look serious","To make rules clear and prevent problems","Because the law says every company needs 10 policies","To punish employees"], a:1, why:"Each policy exists to prevent a specific problem."},
+   {q:"A teammate leads Marketing but didn't post anything this week. What is the most professional response?", o:["I do it myself and say nothing.","\"Marketing is your area. What's blocking you, and can you post by Thursday?\"","\"You're useless.\"","I ignore it."], a:1, why:"It respects their role, asks about the problem and sets a clear deadline."}
+  ],
+  build:[
+   {id:"pols", label:"Write 3 policies for your company", help:"Use: All employees must… / Customers can… within…", type:"rows", cols:["Policy","Problem it prevents"], rows:3, need:3, pts:5},
+   {id:"myrole", label:"Your role and competencies", help:"Which departments do you want to lead, and which competencies do you bring? Example: I want to lead Marketing because I'm creative and good at communication.", type:"area", min:10, pts:3}
+  ]},
+{ id:"implement", code:"Form 06", title:"Implementation", time:"8 min",
+  learn:`
+<p>A plan on paper is not a company. <strong>Implementation</strong> means turning the plan into actions. Investors and bosses always ask: "OK, and how are you going to do it?"</p>
+<h4>1. Action steps</h4>
+<p>A good action step answers three questions: <strong>what</strong>, <strong>who</strong> and <strong>when</strong>.</p>
+<div class="formula">[Who] will [do what] by [date].</div>
+<div class="example"><span class="mono">Bad</span>Do marketing.</div>
+<div class="example"><span class="mono">Good</span>Sofía will post 3 videos on TikTok by Friday, October 16.</div>
+<h4>2. A KPI</h4>
+<p>KPI means <em>Key Performance Indicator</em>. It is a number that shows if you are reaching your goal.</p>
+<div class="example"><span class="mono">Examples</span>50 customers in the first month · 200 tickets sold per game · 90% of patients happy with the service</div>
+<h4>3. A risk and your plan B</h4>
+<p>A risk is something that could go wrong. Smart founders think about it before it happens.</p>
+<div class="example"><span class="mono">Example</span>Risk: our main supplier closes. Plan B: we have a second supplier ready in Heredia.</div>
+<div class="chips"><span>implement</span><span>action step</span><span>deadline</span><span>owner</span><span>KPI</span><span>target</span><span>risk</span><span>plan B</span></div>`,
+  quiz:[
+   {q:"Which action step is well designed?", o:["Do marketing.","Improve sales soon.","Sofía will post 3 videos on TikTok by Friday, October 16."], a:2, why:"It says who, what and when. Anyone can check if it happened."},
+   {q:"What is a KPI?", o:["A type of department","A number that shows if you are reaching your goal","A company policy","A legal document"], a:1, why:"KPI = Key Performance Indicator. Example: 50 customers in the first month."}
+  ],
+  build:[
+   {id:"steps", label:"Your first 3 action steps", help:"Who will do what, and by when?", type:"rows", cols:["Action","Owner","Deadline"], rows:3, need:3, pts:5},
+   {id:"kpi", label:"Your main KPI and target", help:"Example: 50 customers in the first month.", type:"area", min:5, pts:3},
+   {id:"risk", label:"One risk and your plan B", type:"area", min:8, pts:2}
+  ]},
+{ id:"pitch", code:"Form 07", title:"The Pitch", time:"8 min",
+  learn:`
+<p>Tomorrow your group presents your company in <strong>3 to 5 minutes</strong>. Then you answer questions. The goal is not perfect English. The goal is to explain your company clearly and defend your decisions.</p>
+<h4>The structure of your pitch</h4>
+<ol>
+<li><strong>Opening:</strong> who you are and your company name.</li>
+<li><strong>Problem and customer</strong> (Form 01)</li>
+<li><strong>Mission and vision</strong> (Form 02)</li>
+<li><strong>Product or service and why us</strong> (Form 04)</li>
+<li><strong>Team:</strong> departments and who leads what (Forms 03 and 05)</li>
+<li><strong>Plan:</strong> action steps and KPI (Form 06)</li>
+<li><strong>Closing:</strong> one strong sentence.</li>
+</ol>
+<h4>Connect your ideas: Idea + Linker + Idea</h4>
+<div class="tablewrap"><table>
+<tr><th>Linker</th><th>Use it to</th><th>Example</th></tr>
+<tr><td>because</td><td>give a reason</td><td>We created NovaCare <b>because</b> families wait too long.</td></tr>
+<tr><td>so</td><td>show a result</td><td>Our price is low, <b>so</b> students can pay it.</td></tr>
+<tr><td>but</td><td>show a difference</td><td>Other clinics are slow, <b>but</b> we answer in 30 minutes.</td></tr>
+<tr><td>on top of that</td><td>add an idea</td><td><b>On top of that</b>, we use local ingredients.</td></tr>
+<tr><td>that's why</td><td>close an idea</td><td><b>That's why</b> NovaCare is the right choice.</td></tr>
+</table></div>
+<h4>When you get stuck: recovery phrases</h4>
+<p>Everybody forgets a word sometimes. Professionals don't stop. They use a phrase to recover and continue.</p>
+<div class="chips"><span>"Let me put it another way…"</span><span>"What I mean is…"</span><span>"Good question. Let me explain."</span><span>"In other words…"</span></div>
+<p>Getting stuck does not lower your grade. Staying silent does.</p>`,
+  quiz:[
+   {q:"Which sentence uses a linker to connect two ideas?", o:["We are NovaCare.","We created NovaCare because families wait too long for a doctor.","NovaCare. Families. Doctors.","Our company is good."], a:1, why:"Idea + because + idea. The linker shows the reason."},
+   {q:"You forget your next sentence during the pitch. What is the best move?", o:["Say sorry many times","Use a recovery phrase like \"Let me put it another way…\" and continue","Switch to Spanish","Sit down"], a:1, why:"A recovery phrase gives you time to think and shows control."}
+  ],
+  build:[
+   {id:"opening", label:"Write your opening line", help:"Example: Good morning. We are Ana and Luis, and we created Volcano FC.", type:"area", min:8, pts:2},
+   {id:"defense", label:"Answer this question: \"Why should I choose your company and not your competitor?\"", help:"Use at least one linker: because, so, but, on top of that.", type:"area", min:10, pts:2}
+  ]}
+];
+const QPTS = 2.5;
+
+const FF_SID=String(new URLSearchParams(location.search).get("sid")||"").trim();
+const FF_KEY="infinity_founders_file"+(FF_SID?":"+FF_SID:"");
+let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start"};
+try{const s=localStorage.getItem(FF_KEY); if(s){S=Object.assign(S,JSON.parse(s));}}catch(e){}
+function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}}
+const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const words=t=>String(t||"").trim().split(/\s+/).filter(Boolean).length;
+
+function fieldScore(f){
+  const v=S.b[f.id];
+  if(f.type==="rows"){
+    const rows=(v||[]).filter(r=>r && f.cols.every((_,i)=>words(r[i])>=1)).length;
+    return Math.min(rows,f.need)/f.need*f.pts;
+  }
+  if(f.type==="select") return v? f.pts:0;
+  const w=words(v); if(w>=f.min) return f.pts; if(w>0) return f.pts/2; return 0;
+}
+function modScores(m){
+  let q=0; m.quiz.forEach((x,i)=>{if(S.ans[m.id+i]===x.a) q+=QPTS;});
+  let b=0; m.build.forEach(f=>b+=fieldScore(f));
+  return {q, qmax:m.quiz.length*QPTS, b, bmax:m.build.reduce((s,f)=>s+f.pts,0)};
+}
+function total(){let q=0,b=0; MODS.forEach(m=>{const s=modScores(m); q+=s.q; b+=s.b;}); return {q,b,t:q+b};}
+const fmt=n=>Math.round(n*10)/10;
+function updScore(){
+  const t=total();
+  document.getElementById("score").textContent=fmt(t.t);
+  document.getElementById("barfill").style.width=t.t+"%";
+  document.getElementById("who").textContent=S.name?`${S.name}${S.group?" · "+S.group:""}`:"Infinity · Build Your Company · e-learning";
+}
+
+function render(){
+  const app=document.getElementById("app");
+  if(S.cur==="start"){ app.innerHTML=startView(); bindStart(); updScore(); return; }
+  app.innerHTML=`<div class="layout"><nav class="index" aria-label="Forms">${navHTML()}</nav><main class="sheet" id="sheet">${S.cur==="report"?reportView():modView(MODS.find(m=>m.id===S.cur))}</main></div>`;
+  app.querySelectorAll("nav.index button").forEach(b=>b.onclick=()=>{S.cur=b.dataset.go;save();render();window.scrollTo(0,0);});
+  if(S.cur==="report") bindReport(); else bindMod(MODS.find(m=>m.id===S.cur));
+  updScore();
+}
+function navHTML(){
+  return MODS.map(m=>`<button data-go="${m.id}" class="${S.cur===m.id?"on":""}"><span class="mono code">${m.code.replace("Form ","F-")}</span><span class="name">${m.title}</span><span class="tick ${S.done[m.id]?"done":""}" aria-label="${S.done[m.id]?"completed":"not completed"}"></span></button>`).join("")
+   +`<button data-go="report" class="${S.cur==="report"?"on":""}"><span class="mono code">Final</span><span class="name">Founder's Report</span><span></span></button>`;
+}
+function startView(){
+  return `<div class="start" style="margin-top:40px">
+  <span class="mono" style="color:var(--muted)">e-learning · 60 minutes · in English</span>
+  <h1>Build your own company</h1>
+  <p>In this course you will learn how to <strong>design</strong> and <strong>implement</strong> a company, step by step. You don't need to know anything about business. Each form teaches you a part of a company, checks what you learned, and then you build that part for <strong>your own company</strong>.</p>
+  <p>At the end you get your <strong>Founder's Report</strong>: your score and your company blueprint. Tomorrow you join your group, you compare your companies, choose one or combine them, and present it in class.</p>
+  <div class="tablewrap"><table class="breakdown">
+  <tr><th>How you get your score</th><th>Points</th></tr>
+  <tr><td>Check questions (16 questions)</td><td>40</td></tr>
+  <tr><td>Build tasks for your company</td><td>60</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>100</strong></td></tr></table></div>
+  <p class="note">You can answer each check question only once. Read the lesson first. Your progress is saved in this browser.</p>
+  <div class="grid2" style="margin-top:18px">
+   <div class="field"><label for="st-name">Your full name</label><input type="text" id="st-name" value="${esc(S.name)}"></div>
+   <div class="field"><label for="st-group">Group or section</label><input type="text" id="st-group" value="${esc(S.group)}" placeholder="Example: 10-A"></div>
+  </div>
+  <p id="st-err" class="mistake" hidden>Write your full name to start.</p>
+  <button class="btn" id="st-go">Open Form 01</button></div>`;
+}
+function bindStart(){
+  document.getElementById("st-go").onclick=()=>{
+    const n=document.getElementById("st-name").value.trim();
+    if(words(n)<2){document.getElementById("st-err").hidden=false;return;}
+    S.name=n;S.group=document.getElementById("st-group").value.trim();S.cur="idea";save();render();window.scrollTo(0,0);
+  };
+}
+function modView(m){
+  const i=MODS.indexOf(m), s=modScores(m);
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">${m.code} of 07</span><h2>${m.title}</h2></div><div class="meta mono">${m.time}<br>Check ${fmt(s.q)}/${s.qmax} · Build <span id="bscore">${fmt(s.b)}</span>/${s.bmax}</div></div>
+  <section class="step learn"><div class="steplabel"><span class="pill mono">1 · Learn</span><h3>Read and understand</h3></div>${m.learn}</section>
+  <section class="step"><div class="steplabel"><span class="pill mono">2 · Check</span><h3>Show what you learned</h3></div>
+   ${m.quiz.map((x,k)=>`<div class="q" id="q-${m.id}${k}">${qHTML(m,k)}</div>`).join("")}</section>
+  <section class="step"><div class="steplabel"><span class="pill mono">3 · Build</span><h3>Design it for your company</h3></div>
+   ${m.id==="pitch"?`<p>Here is your pitch draft, built from your forms. Read it, practice it, and fix it with your group tonight.</p><div class="draft" id="draft">${esc(pitchDraft())}</div><p></p>`:""}
+   ${m.build.map(f=>fieldHTML(f)).join("")}</section>
+  <div class="actions">${i>0?`<button class="btn ghost" data-nav="${MODS[i-1].id}">Back</button>`:"<span></span>"}
+   <button class="btn" id="complete">${i<MODS.length-1?"Complete form and continue":"Complete form and see my report"}</button></div>`;
+}
+function qHTML(m,k){
+  const x=m.quiz[k], key=m.id+k, ch=S.ans[key], answered=ch!==undefined;
+  return `<p class="qt">${k+1}. ${esc(x.q)}</p><div class="opts">${x.o.map((o,j)=>{
+    let c=""; if(answered){ if(j===x.a) c="right"; else if(j===ch) c="wrong"; }
+    return `<button data-q="${key}" data-j="${j}" class="${c}" ${answered?"disabled":""}>${esc(o)}</button>`;}).join("")}</div>
+   ${answered?`<p class="why">${ch===x.a?'<b class="ok">Correct.</b>':'<b class="no">Not quite.</b>'} ${esc(x.why)}</p>`:""}`;
+}
+function fieldHTML(f){
+  const v=S.b[f.id], id="f-"+f.id;
+  let input="";
+  if(f.type==="text") input=`<input type="text" id="${id}" data-f="${f.id}" value="${esc(v)}">`;
+  else if(f.type==="area") input=`<textarea id="${id}" data-f="${f.id}">${esc(v)}</textarea>`;
+  else if(f.type==="select") input=`<select id="${id}" data-f="${f.id}">${f.options.map(o=>`<option ${o===v?"selected":""} value="${esc(o)}">${o||"Choose one"}</option>`).join("")}</select>`;
+  else if(f.type==="rows"){
+    const rows=v||[];
+    input=`<div class="rows">${Array.from({length:f.rows},(_,r)=>`<div class="row" style="grid-template-columns:repeat(${f.cols.length},minmax(0,1fr))">${f.cols.map((c,ci)=>`<input type="text" id="${id}-${r}-${ci}" data-f="${f.id}" data-r="${r}" data-c="${ci}" placeholder="${esc(c)}" aria-label="${esc(c)} ${r+1}" value="${esc((rows[r]||[])[ci])}">`).join("")}</div>`).join("")}</div>`;
+  }
+  return `<div class="field"><label for="${f.type==="rows"?id+"-0-0":id}">${esc(f.label)}</label>${f.help?`<span class="help">${esc(f.help)}</span>`:""}${input}<span class="fieldstatus" id="st-${f.id}">${statusText(f)}</span></div>`;
+}
+function statusText(f){
+  const sc=fieldScore(f);
+  if(sc>=f.pts) return `✓ Complete · ${f.pts} pts`;
+  if(f.type==="rows") return `${fmt(sc)} of ${f.pts} pts · complete ${f.need} rows`;
+  if(f.type==="select") return `0 of ${f.pts} pts`;
+  return `${fmt(sc)} of ${f.pts} pts · write at least ${f.min} word${f.min>1?"s":""}`;
+}
+function bindMod(m){
+  const sheet=document.getElementById("sheet");
+  sheet.querySelectorAll("button[data-q]").forEach(b=>b.onclick=()=>{
+    const key=b.dataset.q; if(S.ans[key]!==undefined) return;
+    S.ans[key]=+b.dataset.j; save();
+    const k=+key.slice(m.id.length); document.getElementById("q-"+key).innerHTML=qHTML(m,k);
+    render();
+  });
+  sheet.querySelectorAll("[data-f]").forEach(el=>{
+    const h=()=>{
+      const f=m.build.find(x=>x.id===el.dataset.f);
+      if(f.type==="rows"){ const a=S.b[f.id]||[]; const r=+el.dataset.r; a[r]=a[r]||[]; a[r][+el.dataset.c]=el.value; S.b[f.id]=a; }
+      else S.b[f.id]=el.value;
+      save();
+      const st=document.getElementById("st-"+f.id); st.textContent=statusText(f); st.className="fieldstatus"+(fieldScore(f)>=f.pts?" ok":"");
+      document.getElementById("bscore").textContent=fmt(modScores(m).b);
+      const d=document.getElementById("draft"); if(d) d.textContent=pitchDraft();
+      updScore();
+    };
+    el.addEventListener("input",h); el.addEventListener("change",h);
+  });
+  m.build.forEach(f=>{const st=document.getElementById("st-"+f.id); if(fieldScore(f)>=f.pts) st.className="fieldstatus ok";});
+  sheet.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{S.cur=b.dataset.nav;save();render();window.scrollTo(0,0);});
+  document.getElementById("complete").onclick=()=>{
+    S.done[m.id]=true; const i=MODS.indexOf(m); S.cur=i<MODS.length-1?MODS[i+1].id:"report"; save(); render(); window.scrollTo(0,0);
+  };
+}
+const g=k=>(S.b[k]||"").trim();
+function pitchDraft(){
+  const n=g("name")||"[company name]";
+  const depts=(S.b.depts||[]).filter(r=>r&&r[0]).map(r=>r[0].trim()).join(", ")||"[departments]";
+  const step=(S.b.steps||[]).find(r=>r&&r[0]);
+  return `Good morning. We are [your names], and we created ${n}.
+
+We created ${n} because ${g("problem")||"[problem]"}
+Our customers are ${g("customer")||"[customer]"}
+
+Our mission: ${g("mission")||"[mission]"}
+Our vision: ${g("vision")||"[vision]"}
+
+We offer ${g("pname")||"[product or service]"}. ${g("solution")||"[solution]"}
+It costs ${g("price")||"[price]"}. Other companies exist, but ${g("whyus")||"[why us]"}
+
+Our company has these departments: ${depts}. [Say who leads what.]
+
+Our first step: ${step?`${step[1]||"[owner]"} will ${step[0]} by ${step[2]||"[deadline]"}.`:"[action step]"}
+Our main KPI: ${g("kpi")||"[KPI]"}
+
+That's why ${n} is the right choice. Thank you.`;
+}
+function blueprint(){
+  const rows=(k,sep)=>(S.b[k]||[]).filter(r=>r&&r.some(x=>x&&x.trim())).map(r=>"- "+r.map(x=>(x||"").trim()).join(sep)).join("\n")||"- (empty)";
+  return `COMPANY BLUEPRINT — ${g("name")||"(no name)"}
+Founder: ${S.name}${S.group?" ("+S.group+")":""}
+
+INDUSTRY: ${g("industry")}
+PROBLEM: ${g("problem")}
+CUSTOMER: ${g("customer")}
+
+MISSION: ${g("mission")}
+VISION: ${g("vision")}
+
+DEPARTMENTS:
+${rows("depts"," — ")}
+
+PRODUCT/SERVICE: ${g("pname")}
+SOLUTION: ${g("solution")}
+PRICE: ${g("price")}
+WHY US: ${g("whyus")}
+
+POLICIES:
+${rows("pols"," — prevents: ")}
+
+MY ROLE: ${g("myrole")}
+
+ACTION STEPS:
+${rows("steps"," | ")}
+KPI: ${g("kpi")}
+RISK & PLAN B: ${g("risk")}
+
+OPENING LINE: ${g("opening")}`;
+}
+function reportText(){
+  const t=total();
+  return `FOUNDER'S FILE — E-LEARNING RESULT
+Student: ${S.name}${S.group?" | Group: "+S.group:""}
+Company: ${g("name")||"(no name)"}
+TOTAL SCORE: ${fmt(t.t)}/100
+Check questions: ${fmt(t.q)}/40 | Build tasks: ${fmt(t.b)}/60
+Forms completed: ${MODS.filter(m=>S.done[m.id]).length}/7
+`+MODS.map(m=>{const s=modScores(m);return `${m.code} ${m.title}: ${fmt(s.q+s.b)}/${s.qmax+s.bmax}`;}).join("\n");
+}
+function reportView(){
+  const t=total(), all=MODS.every(m=>S.done[m.id]);
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">Final</span><h2>Founder's Report</h2></div><div class="meta">${all?'<span class="stamp">FILE COMPLETE</span>':`<span class="mono">${MODS.filter(m=>S.done[m.id]).length} of 7 forms completed</span>`}</div></div>
+  <p style="font-family:var(--f-display);font-size:56px;font-weight:800;margin:0;font-variant-numeric:tabular-nums">${fmt(t.t)}<span style="font-size:24px;color:var(--muted)"> / 100</span></p>
+  <p>${esc(S.name)}${S.group?" · "+esc(S.group):""} · ${esc(g("name")||"No company name yet")}</p>
+  <div class="tablewrap"><table class="breakdown"><tr><th>Form</th><th>Check</th><th>Build</th><th>Total</th></tr>
+  ${MODS.map(m=>{const s=modScores(m);return `<tr><td>${m.code} · ${m.title}</td><td>${fmt(s.q)}/${s.qmax}</td><td>${fmt(s.b)}/${s.bmax}</td><td>${fmt(s.q+s.b)}/${s.qmax+s.bmax}</td></tr>`;}).join("")}
+  <tr><td><strong>Total</strong></td><td><strong>${fmt(t.q)}/40</strong></td><td><strong>${fmt(t.b)}/60</strong></td><td><strong>${fmt(t.t)}/100</strong></td></tr></table></div>
+  ${all?"":'<p class="mistake">Some forms are not completed. Go back and finish them to raise your score.</p>'}
+  <section class="step"><div class="steplabel"><span class="pill mono">Send</span><h3>Send your result to your trainer</h3></div>
+   <p>Copy your result and send it to your trainer as your teacher indicates.</p>
+   <div class="draft" id="rep">${esc(reportText())}</div><p></p><button class="btn" id="cp-rep">Copy my result</button></section>
+  <section class="step"><div class="steplabel"><span class="pill mono">Next</span><h3>Your company blueprint</h3></div>
+   <p>Copy your blueprint and share it with your group. Together you will compare your companies, choose one or combine them, divide the departments, and practice your pitch for tomorrow.</p>
+   <div class="draft" id="bp">${esc(blueprint())}</div><p></p><button class="btn ghost" id="cp-bp">Copy my blueprint</button></section>`;
+}
+function copy(id){
+  const el=document.getElementById(id), txt=el.textContent;
+  const done=()=>toast("Copied");
+  const fallback=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Text selected. Copy it with Ctrl+C or long press");};
+  try{navigator.clipboard.writeText(txt).then(done,fallback);}catch(e){fallback();}
+}
+function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
+function bindReport(){document.getElementById("cp-rep").onclick=()=>copy("rep");document.getElementById("cp-bp").onclick=()=>copy("bp");}
+render();
+</script>
+
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+</body>
+</html>
