@@ -6774,18 +6774,7 @@ app.post('/claire', optionalAuth, async (req, res) => {
       explicitTeach: false,
       isCompanion: false
     });
-    const claireBrainExtra = `web:sb:${sharedBrain.revision}`;
-    const brain = await Brain.brainGetLLM('claire', 'toeic-pro-speak-v3', message, claireBrainExtra);
-    if (brain.hit) {
-      const boardHit = claireBuildBoard(brain.reply, message, activeLock);
-      return res.json({ reply: brain.reply, board: boardHit, buffered: true, brainCache: true, cacheHit: true });
-    }
-    const kamukCacheScope = isKamukEnglishLockRequest(req) ? `${KamukEnglishLock.KAMUK_ENGLISH_LOCK_VER}:` : '';
-    const cacheKey = `claire-toeic-pro-speak-v3:${kamukCacheScope}${sharedBrain.revision}:` + crypto.createHash('md5').update((message || '').toLowerCase().trim().slice(0, 120)).digest('hex');
-    if (demoResponseCache.has(cacheKey)) {
-      const cached = demoResponseCache.get(cacheKey);
-      return res.json({ reply: cached, board: claireBuildBoard(cached, message, activeLock), buffered: true, cacheHit: true });
-    }
+    // No reply cache here: answers like "B" must be graded against this conversation's own question.
     const systemPrompt = `Eres Claire TOEIC — tutora certificada, SUPER PROFESIONAL (workplace English). Suave, no coercitiva.
 
 ${INSTITUTIONAL_BRAIN_RULE}
@@ -6802,19 +6791,21 @@ FLUJO:
 4. Sin marketing ni perfil personal.
 
 IDIOMA: Español instrucción; inglés americano profesional en prompts.
-LONGITUD: Máximo 4 líneas antes del ejercicio. UNA tarea.${sharedBrain.prompt}`;
+LONGITUD: Máximo 4 líneas antes del ejercicio. UNA tarea.
 
-    const msgs = buildTutorChatMessages(history, message, 12);
+CALIFICACIÓN (obligatorio):
+- Si el estudiante responde una letra (A/B/C/D) o una opción, calificá SOLO contra la última pregunta que vos hiciste en esta conversación. Antes de decir correcto/incorrecto, resolvé esa pregunta vos mismo y verificá la clave.
+- Si su respuesta es la correcta, decí que es correcta. Nunca marques mal una respuesta correcta. Si es incorrecta, decí cuál era la correcta y por qué en una línea.
+- Listening Part 2: la pregunta hablada va escrita en inglés y el portal la lee en voz alta; da 3 respuestas (A, B, C) con UNA sola claramente correcta. Nunca digas que no podés reproducir o procesar audio. Si piden repetir, repetí la misma pregunta y opciones.
+- NO repitas preguntas, oraciones ni escenarios que ya aparecen en esta conversación; cada ítem nuevo debe ser distinto.${sharedBrain.prompt}`;
+
+    const msgs = buildTutorChatMessages(history, message, 30);
 
     const resp = await claudeCall({
-      model: 'claude-sonnet-4-6', max_tokens: 150,
+      model: 'claude-sonnet-4-6', max_tokens: 450,
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    if (reply.length > 20) {
-      cacheDemoResponse(cacheKey, reply);
-      if (brain.hash) await Brain.brainSetLLM(brain.hash, 'claire', 'toeic-direct-v1', message, reply, claireBrainExtra);
-    }
     return res.json({ reply, board: claireBuildBoard(reply, message, activeLock) });
 
   } catch(err) {

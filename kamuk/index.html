@@ -5018,7 +5018,7 @@ async function sendClairePortalMessage(micText){
     var r = await clairePost({
       sessionId: _claireState.sessionId,
       message: text,
-      history: _claireState.history.slice(-12),
+      history: _claireState.history.slice(-30),
       boardLock: _claireState.boardLock || null
     });
     var data = await r.json();
