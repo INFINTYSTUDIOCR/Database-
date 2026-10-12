@@ -1540,6 +1540,12 @@ function isKamukOwnerStudent(s){
   return n === 'johnny ramirez' || String(s.portalUser || '').toLowerCase() === 'johnny.ramirez';
 }
 
+function isDecimoCohort(s){
+  if(!s) return false;
+  var g = String((s.info && s.info.grade) || s.grade || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  return /^10\b/.test(g) || g.indexOf('decimo') === 0;
+}
+
 function applyKamukBookTheme(s){
   var root = document.documentElement;
   var theme = (s && (s.bookTheme || (s.info && s.info.bookTheme))) || '';
@@ -1666,9 +1672,16 @@ function showPortal(s){
       +'<a href="training-book/alice-quiz/index.html?v=20260928" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
       +'</div>'
     : '';
+  var foundersCard = (isDecimoCohort(s) || isKamukOwnerStudent(s))
+    ? '<div class="card" style="border:1.5px solid #2B7EC1;background:linear-gradient(165deg,#E7F1FA,#fff);">'
+      +'<div class="card-title" style="color:#1B5A8F;"><i class="ti ti-building"></i> E-learning — The Founder\'s File</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Diseñá tu propia empresa en inglés: idea, misión y visión, departamentos, producto, políticas, plan y pitch. 7 formularios · 60 minutos · puntaje sobre 100.</p>'
+      +'<a href="training-book/founders-file/index.html?v=20261012&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
+      +'</div>'
+    : '';
   var recursosHtml;
   if(toeicSeniors){
-    recursosHtml = aliceQuizCard
+    recursosHtml = foundersCard + aliceQuizCard
       +'<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
       +'<div class="card-title" style="color:#722F37;"><i class="ti ti-school"></i> E-learning — Cómo usar Claire TOEIC</div>'
       +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Pantallas, dónde clickear, Listening / Reading / Vocabulario / Pronunciación y micrófono PTT.</p>'
@@ -1687,7 +1700,7 @@ function showPortal(s){
       +'<div id="kamuk-toeic-practice-root"></div>'
       +'</div>';
   } else {
-    recursosHtml = aliceQuizCard
+    recursosHtml = foundersCard + aliceQuizCard
       +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
       +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
       +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'
