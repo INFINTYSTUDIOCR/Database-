@@ -43,7 +43,7 @@
   function countEnglishSentences(text) {
     var t = String(text || '').trim();
     if (!t) return 0;
-    var parts = t.split(/(?<=[.!?])\s+/).filter(function (s) { return /[a-zA-Z]/.test(s); });
+    var parts = t.replace(/([.!?])\s+/g, '$1\u0000').split('\u0000').filter(function (s) { return /[a-zA-Z]/.test(s); });
     if (parts.length > 1) return parts.length;
     if (/[.!?]/.test(t)) return 1;
     return /[a-zA-Z]{3,}/.test(t) ? 1 : 0;

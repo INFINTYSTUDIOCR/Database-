@@ -363,7 +363,7 @@ function cloudRestore(){
     }).catch(()=>{});
 }
 addEventListener("pagehide",()=>{ if(_cloudT) cloudSave(true); });
-const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const words=t=>String(t||"").trim().split(/\s+/).filter(Boolean).length;
 
 function fieldScore(f){
