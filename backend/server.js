@@ -6732,11 +6732,12 @@ app.post('/claire', optionalAuth, async (req, res) => {
     if (req.auth?.role === 'student' && req.auth.studentId) {
       const row = await sbGetStudentRow(req.auth.studentId);
       const student = row?.data;
+      const kamukEn = isKamukEnglishLockRequest(req);
       if (!student || isStudentSuspended(student)) {
-        return res.status(403).json({ error: 'Cuenta suspendida o no disponible.' });
+        return res.status(403).json({ error: kamukEn ? 'Account suspended or unavailable.' : 'Cuenta suspendida o no disponible.' });
       }
       if (student.claireEnabled !== true) {
-        return res.status(403).json({ error: 'Claire TOEIC no está activa en esta cuenta.' });
+        return res.status(403).json({ error: kamukEn ? 'Claire TOEIC is not active on this account.' : 'Claire TOEIC no está activa en esta cuenta.' });
       }
       claireStudent = student;
       portalClaireAccess = true;
@@ -6793,7 +6794,9 @@ FLUJO:
 3. En Describe: prompt de escena laboral + pedí 3–5 oraciones o 20–40 s de habla.
 4. Sin marketing ni perfil personal.
 
-IDIOMA: Español instrucción; inglés americano profesional en prompts.
+IDIOMA: ${isKamukEnglishLockRequest(req)
+  ? 'ENGLISH ONLY — instructions, feedback, explanations and exercises 100% in professional American English. Never write Spanish.'
+  : 'Español instrucción; inglés americano profesional en prompts.'}
 LONGITUD: Máximo 4 líneas antes del ejercicio. UNA tarea.
 
 CALIFICACIÓN (obligatorio):
@@ -6814,7 +6817,7 @@ CALIFICACIÓN (obligatorio):
 
   } catch(err) {
     console.error('Claire error:', err.message);
-    return res.status(500).json({ error: 'Claire no está disponible ahora.' });
+    return res.status(500).json({ error: isKamukEnglishLockRequest(req) ? 'Claire is not available right now.' : 'Claire no está disponible ahora.' });
   }
 });
 

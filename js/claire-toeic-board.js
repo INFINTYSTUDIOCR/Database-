@@ -88,7 +88,7 @@
       + (b.passage ? '<div class="claire-toeic-passage">' + esc(b.passage) + '</div>' : '')
       + (b.prompt ? '<div class="claire-toeic-prompt">' + esc(b.prompt) + '</div>' : '')
       + (b.stem ? '<div class="claire-toeic-stem">' + esc(b.stem) + '</div>' : '')
-      + (optsHtml ? '<div class="claire-toeic-opts">' + optsHtml + '</div>' : '<div class="claire-toeic-stem">Respondé según el enunciado de Claire.</div>')
+      + (optsHtml ? '<div class="claire-toeic-opts">' + optsHtml + '</div>' : '<div class="claire-toeic-stem">' + esc(global.ClaireToeicBoardEmptyText || 'Respondé según el enunciado de Claire.') + '</div>')
       + '</div>';
   }
 

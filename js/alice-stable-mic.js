@@ -165,7 +165,7 @@ var AliceStableMic = (function () {
       }
       var st = document.getElementById(statusId);
       if (st) st.textContent = fromTimer
-        ? 'Tope de tiempo — transcribiendo…'
+        ? (opts.timeoutText || 'Tope de tiempo — transcribiendo…')
         : (opts.busyText || 'Transcribiendo con Alice STT…');
 
       rec.onstop = function () {
@@ -224,7 +224,7 @@ var AliceStableMic = (function () {
           if (st2) st2.textContent = '';
           if (text && typeof opts.onSend === 'function') opts.onSend(text);
           else if (!text && typeof opts.onEmpty === 'function') opts.onEmpty();
-          else if (!text && st2) st2.textContent = 'No se entendió — intentá de nuevo o escribí.';
+          else if (!text && st2) st2.textContent = opts.unclearText || 'No se entendió — intentá de nuevo o escribí.';
         })
         .catch(function (err) {
           sending = false;

@@ -45,7 +45,8 @@
 <script src="https://studioinfinitycr.com/js/jill-canon-drill.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-lesson-clip.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-visual-stage.js?v=20260814refresh"></script>
-<script src="https://studioinfinitycr.com/js/claire-toeic-board.js?v=20260814refresh"></script>
+<script>window.ClaireToeicBoardEmptyText = 'Answer based on Claire\'s question.';</script>
+<script src="https://studioinfinitycr.com/js/claire-toeic-board.js?v=20261012en"></script>
 <script src="https://studioinfinitycr.com/js/jill-calibration.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/jill-foundations.js?v=20260814refresh"></script>
 <script src="../js/jill-tutor-path.js?v=20260825path1"></script>
@@ -65,7 +66,7 @@
 <script src="https://studioinfinitycr.com/js/tts-chunks.js?v=20260904stable"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260814refresh"></script>
 <script src="https://studioinfinitycr.com/js/ptt-mic.js?v=20260904stable"></script>
-<script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20261009en"></script>
+<script src="https://studioinfinitycr.com/js/alice-stable-mic.js?v=20261012en"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -4592,7 +4593,7 @@ function claireTheme(){
     btnGrad: 'linear-gradient(135deg,#2B7EC1,#1F6AA8)',
     btnShadow: '0 4px 16px rgba(192,132,252,0.4)',
     headline: 'CLAIRE',
-    subtitle: 'TOEIC Pro — Listening, Reading, hablar y describir (oficina)',
+    subtitle: 'TOEIC Pro — Listening, Reading, speaking and describing (workplace)',
     badgeBg: 'rgba(192,132,252,0.07)',
     msgBg: 'rgba(192,132,252,0.1)'
   };
@@ -4601,16 +4602,16 @@ function claireTheme(){
 function claireFormatMessagesHtml(){
   var th = claireTheme();
   if(!_claireState.history.length){
-    return '<div style="text-align:center;color:rgba(255,255,255,0.55);font-size:13px;padding:18px;">Claire TOEIC lista para práctica directa.</div>';
+    return '<div style="text-align:center;color:rgba(255,255,255,0.55);font-size:13px;padding:18px;">Claire TOEIC is ready to practice.</div>';
   }
   return _claireState.history.map(function(m){
     var isClaire = m.role === 'assistant';
-    var roleLabel = isClaire ? 'CLAIRE' : 'VOS';
+    var roleLabel = isClaire ? 'CLAIRE' : 'YOU';
     var clean = claireEscapeHtml(m.content).replace(/\n/g,'<br>');
     return '<div style="display:flex;flex-direction:column;align-items:'+(isClaire?'flex-start':'flex-end')+';margin-bottom:14px;">'
       +(isClaire
         ?'<div style="font-size:10px;color:'+th.accent+';font-weight:800;margin-bottom:4px;letter-spacing:0.1em;">'+roleLabel+'</div>'
-        :'<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;margin-bottom:4px;">VOS</div>')
+        :'<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;margin-bottom:4px;">YOU</div>')
       +'<div class="claire-bubble" style="max-width:88%;background:'+(isClaire?'rgba(192,132,252,0.16)':'rgba(255,255,255,0.09)')
       +';border:1px solid '+(isClaire?'rgba(192,132,252,0.5)':'rgba(255,255,255,0.18)')
       +';border-radius:'+(isClaire?'4px 14px 14px 14px':'14px 4px 14px 14px')
@@ -4661,7 +4662,7 @@ function renderClaire(){
   if(!root) return;
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
   if(!studentClaireOn(s)){
-    root.innerHTML = '<div class="card" style="text-align:center;font-size:13px;color:var(--t2);">Claire TOEIC no está activa en esta cuenta.</div>';
+    root.innerHTML = '<div class="card" style="text-align:center;font-size:13px;color:var(--t2);">Claire TOEIC is not active on this account.</div>';
     return;
   }
   root.setAttribute('data-claire-ui', 'alice-layout');
@@ -4670,7 +4671,7 @@ function renderClaire(){
     var label = (typeof ALICE_ACCENTS !== 'undefined' && ALICE_ACCENTS[k]) ? ALICE_ACCENTS[k].label : 'American';
     return '<option value="'+k+'"'+(k===_claireState.accent?' selected':'')+'>'+label+'</option>';
   }).join('');
-  var headerRight = '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Acento para practicar</div>'
+  var headerRight = '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,0.75);margin-bottom:4px;">Practice accent</div>'
     +'<select onchange="_claireState.accent=this.value" style="appearance:none;-webkit-appearance:none;background:#24114d;border:1px solid rgba('+th.rgb+',0.45);color:#ffffff;border-radius:8px;padding:5px 22px 5px 9px;font-size:11px;font-weight:700;">'+accentOptions+'</select></div>';
   root.innerHTML =
     '<div id="claire-lesson-shell" style="background:'+th.cardBg+';border-radius:20px;padding:1.5rem;color:white;box-shadow:'+th.cardShadow+';border:1px solid '+th.cardBorder+';">'
@@ -4698,19 +4699,19 @@ function renderClaireStart(){
   var th = claireTheme();
   return '<div style="text-align:center;">'
     +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba('+th.rgb+',0.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.8;">'
-    +'<strong>Claire TOEIC</strong> — práctica profesional: Listening, Reading, vocab, <strong>hablar</strong> y <strong>describir</strong> escenas laborales. Corrección suave, registro de oficina.'
+    +'<strong>Claire TOEIC</strong> — professional practice: Listening, Reading, vocabulary, <strong>speaking</strong> and <strong>describing</strong> workplace scenes. Gentle correction, office English.'
     +'</div>'
     +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
-    +'<button type="button" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:default;background:rgba(192,132,252,0.25);border:2px solid #79B9E8;color:#79B9E8;">Modo TOEIC Pro</button>'
+    +'<button type="button" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:default;background:rgba(192,132,252,0.25);border:2px solid #79B9E8;color:#79B9E8;">TOEIC Pro Mode</button>'
     +'</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#e9d5ff;text-align:left;margin:4px 0 8px;">Práctica TOEIC completa · calificación exacta</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#e9d5ff;text-align:left;margin:4px 0 8px;">Full TOEIC practice · exact scoring</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px;">'
-    +claireSetButton('l2','ti-headphones','Listening Part 2','25 preguntas · audio')
-    +claireSetButton('r5','ti-pencil','Reading Part 5','25 preguntas')
-    +claireSetButton('r7','ti-file-text','Reading Part 7','7 textos · 21 preguntas')
-    +claireSetButton('vocab','ti-vocabulary','Vocabulario','25 preguntas')
+    +claireSetButton('l2','ti-headphones','Listening Part 2','25 questions · audio')
+    +claireSetButton('r5','ti-pencil','Reading Part 5','25 questions')
+    +claireSetButton('r7','ti-file-text','Reading Part 7','7 texts · 21 questions')
+    +claireSetButton('vocab','ti-vocabulary','Vocabulary','25 questions')
     +'</div>'
-    +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
+    +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Start session</button>'
     +'</div>';
 }
 
@@ -4727,11 +4728,11 @@ function claireSetActive(){
 function claireStartSet(part){
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
   if(!studentClaireOn(s)){
-    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    showToast('Claire TOEIC is not active on this account.','err');
     return;
   }
   if(typeof ClaireSets === 'undefined'){
-    showToast('Cargando ejercicios… recargá la página e intentá de nuevo.','err');
+    showToast('Loading exercises… please reload the page and try again.','err');
     return;
   }
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
@@ -4763,10 +4764,10 @@ function renderClaireSession(){
     +'<button type="button" class="claire-mode-chip" style="'+(setPart==='l2'?chipOn:'')+'" onclick="claireStartSet(\'l2\')">Listening</button>'
     +'<button type="button" class="claire-mode-chip" style="'+(setPart==='r5'?chipOn:'')+'" onclick="claireStartSet(\'r5\')">Reading Part 5</button>'
     +'<button type="button" class="claire-mode-chip" style="'+(setPart==='r7'?chipOn:'')+'" onclick="claireStartSet(\'r7\')">Reading Part 7</button>'
-    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='vocab'?chipOn:'')+'" onclick="claireStartSet(\'vocab\')">Vocabulario</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de pronunciación TOEIC: shadowing de una frase corta en inglés americano profesional.\')">Pronunciación</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica Describe / Speaking profesional TOEIC: describe a workplace scene in 3 to 5 clear sentences. Ask me to speak or write. Give one pronunciation tip after.\')">Describe</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance speaking profesional TOEIC: I must explain a process or problem at work in clear American English. Coach me like a certified TOEIC tutor — soft, not forced.\')">Speaking</button>'
+    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='vocab'?chipOn:'')+'" onclick="claireStartSet(\'vocab\')">Vocabulary</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Start a TOEIC pronunciation practice: shadowing with a short professional sentence in American English.\')">Pronunciation</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Start a TOEIC Describe / Speaking practice: describe a workplace scene in 3 to 5 clear sentences. Ask me to speak or write. Give one pronunciation tip after.\')">Describe</button>'
+    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Start a TOEIC speaking practice: I must explain a process or problem at work in clear American English. Coach me like a certified TOEIC tutor — soft, not forced.\')">Speaking</button>'
     +'</div>';
   if(setPart){
     return '<div id="claire-session-main">'
@@ -4777,21 +4778,21 @@ function renderClaireSession(){
   }
   return '<div id="claire-session-main">'
     + chips
-    +'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">🎧 Claire TOEIC · Práctica directa</div>'
+    +'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">🎧 Claire TOEIC · Live practice</div>'
     +'<div id="claire-visual-stage" hidden>'
-    +'<div id="claire-stage-close-wrap" style="display:flex;justify-content:flex-end;margin-bottom:6px;"><button type="button" onclick="claireCloseBoard()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(192,132,252,0.45);color:#e9d5ff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;">Cerrar tablero</button></div>'
+    +'<div id="claire-stage-close-wrap" style="display:flex;justify-content:flex-end;margin-bottom:6px;"><button type="button" onclick="claireCloseBoard()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(192,132,252,0.45);color:#e9d5ff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;">Close board</button></div>'
     +'<div id="claire-stage-media"></div>'
     +'</div>'
     +'<div id="claire-messages" style="max-height:360px;overflow-y:auto;margin-bottom:12px;padding-right:2px;">'+claireFormatMessagesHtml()+'</div>'
     +'<div id="claire-control-dock">'
     +'<div id="claire-status" style="font-size:12px;color:'+th.accent+';text-align:center;min-height:18px;margin-bottom:10px;font-weight:600;"></div>'
     +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-    +'<input id="claire-input" class="inp" placeholder="Respondé A/B/C/D o mantené presionado el micrófono (PTT)..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba('+th.rgb+',0.28);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendClairePortalMessage();">'
-    +'<button type="button" id="claire-mic-btn" title="Mantené presionado para hablar (PTT)" aria-label="Micrófono — mantené presionado" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.35);color:'+th.accent+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
-    +'<button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+th.btnGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendClairePortalMessage()" aria-label="Enviar a Claire"><i class="ti ti-send"></i></button>'
+    +'<input id="claire-input" class="inp" placeholder="Answer A/B/C/D or hold the microphone to speak..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba('+th.rgb+',0.28);color:white;border-radius:12px;padding:10px 14px;" onkeydown="if(event.key===\'Enter\')sendClairePortalMessage();">'
+    +'<button type="button" id="claire-mic-btn" title="Hold to talk" aria-label="Microphone — hold to talk" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:rgba('+th.rgb+',0.12);border:1px solid rgba('+th.rgb+',0.35);color:'+th.accent+';border-radius:12px;cursor:pointer;font-size:18px;user-select:none;-webkit-user-select:none;"><i class="ti ti-microphone"></i></button>'
+    +'<button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:'+th.btnGrad+';border:none;color:white;border-radius:12px;cursor:pointer;font-size:18px;" onclick="sendClairePortalMessage()" aria-label="Send to Claire"><i class="ti ti-send"></i></button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(134,239,172,0.1);border:1px solid rgba(134,239,172,0.25);color:#86EFAC;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endClaireSession()"><i class="ti ti-check"></i>Terminar práctica</button>'
+    +'<button type="button" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:rgba(134,239,172,0.1);border:1px solid rgba(134,239,172,0.25);color:#86EFAC;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;" onclick="endClaireSession()"><i class="ti ti-check"></i>End practice</button>'
     +'</div>'
     +'</div>'
     +'</div>';
@@ -4810,7 +4811,7 @@ function endClaireSession(){
 
 function claireCleanTtsText(text){
   return String(text || '')
-    .replace(/CLAIRE\s*TOEIC\s*listo\.?/gi, 'Claire TOEIC listo.')
+    .replace(/CLAIRE\s*TOEIC\s*listo\.?/gi, 'Claire TOEIC is ready.')
     .replace(/[*_#<>\[\]{}|~`^]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -4886,7 +4887,7 @@ function claireTTSFlush(){
   var finished = false;
   var fallbackStarted = false;
   var statusEl = document.getElementById('claire-status');
-  if(statusEl && !statusEl.textContent) statusEl.textContent = 'Claire habla…';
+  if(statusEl && !statusEl.textContent) statusEl.textContent = 'Claire is speaking…';
   function finishClaireLine(){
     if(finished) return;
     finished = true;
@@ -4895,7 +4896,7 @@ function claireTTSFlush(){
     _claireTTSBusy = false;
     _claireState.speaking = _claireTTSQueue.length > 0;
     var st = document.getElementById('claire-status');
-    if(st && st.textContent === 'Claire habla…') st.textContent = '';
+    if(st && st.textContent === 'Claire is speaking…') st.textContent = '';
     claireTTSFlush();
   }
   claireArmTtsWatchdog(text, finishClaireLine, function(){ fallbackStarted = true; });
@@ -4918,7 +4919,7 @@ function claireTTSFlush(){
     audio.onended = audio.onerror = finishClaireLine;
     audio.play().catch(function(){
       var st = document.getElementById('claire-status');
-      if(st) st.textContent = 'Tocá enviar o micrófono para activar voz.';
+      if(st) st.textContent = 'Tap send or the microphone to turn on the voice.';
       fallbackStarted = true;
       if(clairePlayBrowserTts(text, finishClaireLine, finishClaireLine)) return;
       finishClaireLine();
@@ -4927,7 +4928,7 @@ function claireTTSFlush(){
   .catch(function(){
     if(gen !== _claireSpeakGen || fallbackStarted || finished) return;
     var st = document.getElementById('claire-status');
-    if(st) st.textContent = 'Voz Claire no disponible — reintentá en unos segundos.';
+    if(st) st.textContent = 'Claire\'s voice is unavailable — try again in a few seconds.';
     fallbackStarted = true;
     if(clairePlayBrowserTts(text, finishClaireLine, finishClaireLine)) return;
     finishClaireLine();
@@ -4944,12 +4945,14 @@ function bindClairePttMic(){
     lang: (typeof ALICE_ACCENTS !== 'undefined' && ALICE_ACCENTS[_claireState.accent] && ALICE_ACCENTS[_claireState.accent].lang) || 'en-US',
     tutor: 'claire',
     statusId: 'claire-status',
-    busyText: 'Transcribiendo…',
+    busyText: 'Transcribing…',
+    timeoutText: 'Time limit reached — transcribing…',
+    unclearText: 'I did not understand — try again or type your answer.',
     canStart: function(){
       if(!_claireState.sessionActive) return false;
       if(_claireState.sending){
         var st = document.getElementById('claire-status');
-        if(st) st.textContent = 'Esperá a que Claire responda…';
+        if(st) st.textContent = 'Wait for Claire to answer…';
         return false;
       }
       return true;
@@ -4967,7 +4970,7 @@ function bindClairePttMic(){
         if(listening){ b.style.background='rgba(255,92,92,0.3)'; b.style.borderColor='#FF5C5C'; b.style.color='white'; }
         else { b.style.background='rgba('+th.rgb+',0.12)'; b.style.borderColor='rgba('+th.rgb+',0.35)'; b.style.color=th.accent; }
       }
-      if(st) st.textContent = listening ? '🎤 Escuchando… soltá el botón cuando termines' : '';
+      if(st) st.textContent = listening ? '🎤 Listening… release the button when you finish' : '';
     },
     onSend: function(text){ if(text) sendClairePortalMessage(text); },
     onError: function(code){
@@ -4975,12 +4978,12 @@ function bindClairePttMic(){
       var st = document.getElementById('claire-status');
       if(!st) return;
       st.textContent = (code === 'not-allowed' || code === 'service-not-allowed')
-        ? 'Permiso de micrófono denegado — habilitalo en el navegador o escribí tu respuesta.'
-        : 'No pude escuchar. Escribí la respuesta o reintentá.';
+        ? 'Microphone permission denied — allow it in your browser or type your answer.'
+        : 'I could not hear you. Type your answer or try again.';
     },
     onEmpty: function(){
       var st = document.getElementById('claire-status');
-      if(st) st.textContent = 'No se escuchó audio — mantené más tiempo o hablá más cerca.';
+      if(st) st.textContent = 'No audio detected — hold the button longer or speak closer.';
     }
   };
   if(useStable && AliceStableMic.bind(claireMicOpts)){
@@ -5029,7 +5032,7 @@ function claireQuickPrompt(text){
 async function startClaireSession(){
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
   if(!studentClaireOn(s)){
-    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    showToast('Claire TOEIC is not active on this account.','err');
     return;
   }
   if(typeof unlockTtsAudio === 'function') await unlockTtsAudio();
@@ -5041,17 +5044,17 @@ async function startClaireSession(){
   _claireState.boardLock = 'toeic_r5';
   renderClaire();
   var statusEl = document.getElementById('claire-status');
-  if(statusEl) statusEl.textContent = 'Claire se conecta…';
+  if(statusEl) statusEl.textContent = 'Claire is connecting…';
   try{
     var r = await clairePost({ mode:'start', sessionId:_claireState.sessionId, boardLock: _claireState.boardLock });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_start_'+r.status);
-    _claireState.history = [{ role:'assistant', content: data.reply || 'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
+    _claireState.history = [{ role:'assistant', content: data.reply || 'Claire TOEIC is ready. We start with Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nAnswer A, B, C or D.' }];
     claireResolveBoardLock('', data.board, _claireState.history[0].content);
     renderClaire();
     claireActivateBoard(data.board, _claireState.history[0].content);
   }catch(e){
-    _claireState.history = [{ role:'assistant', content:'Claire TOEIC listo. Empezamos con Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nResponda A, B, C o D.' }];
+    _claireState.history = [{ role:'assistant', content:'Claire TOEIC is ready. We start with Reading Part 5.\n\nThe manager asked the team to submit the report ___ Friday.\n\nA) in\nB) on\nC) by\nD) at\n\nAnswer A, B, C or D.' }];
     renderClaire();
     claireActivateBoard(null, _claireState.history[0].content);
   }
@@ -5063,7 +5066,7 @@ async function sendClairePortalMessage(micText){
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
   if(!studentClaireOn(s)){
-    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    showToast('Claire TOEIC is not active on this account.','err');
     return;
   }
   if(!_claireState.sessionActive){
@@ -5080,7 +5083,7 @@ async function sendClairePortalMessage(micText){
   _claireState.history.push({ role:'user', content:text });
   renderClaire();
   var statusEl = document.getElementById('claire-status');
-  if(statusEl) statusEl.textContent = 'Claire responde…';
+  if(statusEl) statusEl.textContent = 'Claire is answering…';
   try{
     var r = await clairePost({
       sessionId: _claireState.sessionId,
@@ -5090,14 +5093,14 @@ async function sendClairePortalMessage(micText){
     });
     var data = await r.json();
     if(!r.ok) throw new Error(data.error || 'claire_'+r.status);
-    var reply = data.reply || 'Sigamos con TOEIC.\n\nChoose the correct option: The meeting was postponed ___ the manager was unavailable.\n\nA) because\nB) although\nC) despite\nD) unless';
+    var reply = data.reply || 'Let\'s continue with TOEIC.\n\nChoose the correct option: The meeting was postponed ___ the manager was unavailable.\n\nA) because\nB) although\nC) despite\nD) unless';
     claireResolveBoardLock(text, data.board, reply);
     _claireState.history.push({ role:'assistant', content: reply });
     renderClaire();
     claireActivateBoard(data.board, reply);
     setTimeout(function(){ claireSpeak(reply); }, 60);
   }catch(e){
-    var fallback = 'No pude responder ahora. Reintentá en unos segundos o pedí: Listening, Reading o Vocabulario.';
+    var fallback = 'I could not answer right now. Please try again in a few seconds, or choose Listening, Reading or Vocabulary.';
     _claireState.history.push({ role:'assistant', content:fallback });
     renderClaire();
     setTimeout(function(){ claireSpeak(fallback); }, 60);
