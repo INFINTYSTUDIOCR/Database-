@@ -325,6 +325,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" onclick="showView('analytics',this)"><i class="ti ti-chart-bar"></i>Estadísticas</div>
       <div class="sb-item" onclick="showView('reports',this)"><i class="ti ti-file-text"></i>Reportes</div>
       <div class="sb-item" onclick="showView('simulation-supervisor',this)"><i class="ti ti-building-bank"></i>Auditoría Kamuk</div>
+      <div class="sb-item" id="nav-founders" style="display:none;" onclick="showView('founders-file',this)"><i class="ti ti-building"></i>Founder's File · 10.º</div>
       <div class="sb-section" id="nav-master-section">Master</div>
       <div class="sb-item" id="nav-resources" onclick="showView('resources',this)"><i class="ti ti-package"></i>Resource Manager</div>
       <div class="sb-item" id="nav-users" onclick="showView('users',this)"><i class="ti ti-shield"></i>Gestión de usuarios</div>
@@ -1200,6 +1201,7 @@ function startApp(){
   if(SESSION.role!=='superadmin'){
     document.getElementById('nav-transcripts').style.display='none';
   }
+  document.getElementById('nav-founders').style.display = canViewFoundersFile() ? '' : 'none';
   showView('dashboard', document.querySelector('.sb-item'));
   maybeShowEngineTermsGate();
   var termsEl = document.getElementById('modal-infinity-terms');
@@ -1268,6 +1270,7 @@ function showView(view, btn){
   else if(view==='analytics') renderAnalytics(m);
   else if(view==='reports') renderReports(m);
   else if(view==='simulation-supervisor') renderSimulationSupervisor(m);
+  else if(view==='founders-file') renderFoundersFile(m);
   else if(view==='resources') renderResources(m);
   else if(view==='users') renderUsers(m);
   else if(view==='roster') renderRoster(m);
@@ -1288,6 +1291,79 @@ function showView(view, btn){
   else if(view==='crm') renderCRM(m);
   else if(view==='oe50-applications') renderOe50Applications(m);
   else if(view==='finance') renderFinance(m);
+}
+
+// ── FOUNDER'S FILE · 10.º (scores + reports of the e-learning) ──
+function canViewFoundersFile(){
+  if(!SESSION) return false;
+  if(hasMasterAccess()) return true;
+  var t = TRAINERS[String(SESSION.user || '').trim().toLowerCase()] || {};
+  return !!t.kamukAudit;
+}
+
+function isDecimoStudent(s){
+  var g = String((s && s.info && s.info.grade) || (s && s.grade) || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  return /^10\b/.test(g) || g.indexOf('decimo') === 0;
+}
+
+function ffEsc(t){
+  return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
+}
+
+async function renderFoundersFile(m){
+  if(!canViewFoundersFile()){
+    m.innerHTML = '<div class="fade"><div class="ib ib-amber">Acceso restringido.</div></div>';
+    return;
+  }
+  m.innerHTML = '<div class="fade"><div class="ib"><i class="ti ti-loader spin"></i> Cargando resultados…</div></div>';
+  var rows = await dbQuery('kamuk_sessions?id=like.FOUNDERS-*&select=id,data');
+  var results = {};
+  rows.forEach(function(r){ if(r.data && r.data.studentId) results[r.data.studentId] = r.data; });
+  var list = Object.keys(DB).filter(function(id){ return isDecimoStudent(DB[id]); }).map(function(id){
+    return { id: id, s: DB[id], r: results[id] || null };
+  }).sort(function(a,b){
+    return String((a.s.info&&a.s.info.name)||'').localeCompare(String((b.s.info&&b.s.info.name)||''));
+  });
+  var started = list.filter(function(x){ return x.r; });
+  var finished = started.filter(function(x){ return x.r.formsDone >= 7; });
+  var avg = started.length ? Math.round(started.reduce(function(sum,x){ return sum + (Number(x.r.score)||0); }, 0) / started.length * 10) / 10 : 0;
+
+  var body = list.map(function(x, i){
+    var name = ffEsc((x.s.info && x.s.info.name) || x.id);
+    if(!x.r){
+      return '<tr><td>'+name+'</td><td colspan="6" style="color:var(--t3);">Sin iniciar</td><td></td></tr>';
+    }
+    var r = x.r;
+    var when = r.updatedAt ? new Date(r.updatedAt).toLocaleString('es-CR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    var forms = (r.perForm||[]).map(function(f){
+      return '<tr><td>'+ffEsc(f.code)+' · '+ffEsc(f.title)+'</td><td style="text-align:right;">'+ffEsc(f.score)+'/'+ffEsc(f.max)+'</td><td>'+(f.done?'✓':'')+'</td></tr>';
+    }).join('');
+    return '<tr><td>'+name+'</td><td>'+ffEsc(r.company||'—')+'</td>'
+      +'<td style="font-weight:800;color:var(--navy);">'+ffEsc(r.score)+'</td><td>'+ffEsc(r.check)+'/40</td><td>'+ffEsc(r.build)+'/60</td>'
+      +'<td>'+ffEsc(r.formsDone)+'/7</td><td style="font-size:11px;color:var(--t2);">'+when+'</td>'
+      +'<td><button class="btn btn-outline btn-sm" onclick="var d=document.getElementById(\'ff-det-'+i+'\');d.style.display=d.style.display===\'none\'?\'\':\'none\';"><i class="ti ti-file-text"></i>Reporte</button></td></tr>'
+      +'<tr id="ff-det-'+i+'" style="display:none;"><td colspan="8" style="background:var(--gray);">'
+      +'<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;">'
+      +'<div><div style="font-weight:700;margin-bottom:6px;">Puntaje por formulario</div><table style="width:100%;font-size:12px;">'+forms+'</table>'
+      +'<div style="font-weight:700;margin:10px 0 6px;">Reporte del estudiante</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(r.report||'')+'</pre></div>'
+      +'<div><div style="font-weight:700;margin-bottom:6px;">Blueprint de la empresa</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(r.blueprint||'')+'</pre></div>'
+      +'</div></td></tr>';
+  }).join('');
+
+  m.innerHTML = '<div class="fade">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem;">'
+    +'<h2 style="font-size:16px;font-weight:700;color:var(--navy);margin:0;"><i class="ti ti-building"></i> The Founder\'s File · 10.º — puntajes y reportes</h2>'
+    +'<button class="btn btn-navy btn-sm" onclick="renderFoundersFile(document.getElementById(\'main-content\'))"><i class="ti ti-refresh"></i>Actualizar</button></div>'
+    +'<div class="grid4" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1rem;">'
+    +'<div class="card"><div style="font-size:11px;color:var(--t3);">Estudiantes 10.º</div><div style="font-size:22px;font-weight:800;">'+list.length+'</div></div>'
+    +'<div class="card"><div style="font-size:11px;color:var(--t3);">Iniciaron</div><div style="font-size:22px;font-weight:800;">'+started.length+'</div></div>'
+    +'<div class="card"><div style="font-size:11px;color:var(--t3);">Completaron 7/7</div><div style="font-size:22px;font-weight:800;">'+finished.length+'</div></div>'
+    +'<div class="card"><div style="font-size:11px;color:var(--t3);">Promedio</div><div style="font-size:22px;font-weight:800;">'+avg+'<span style="font-size:12px;color:var(--t3);"> /100</span></div></div>'
+    +'</div>'
+    +'<div class="card" style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
+    +'<thead><tr style="text-align:left;color:var(--t3);font-size:11px;"><th>Estudiante</th><th>Empresa</th><th>Puntaje</th><th>Check</th><th>Build</th><th>Formularios</th><th>Actualizado</th><th></th></tr></thead>'
+    +'<tbody>'+(body || '<tr><td colspan="8" style="color:var(--t3);">No hay estudiantes de 10.º.</td></tr>')+'</tbody></table></div>'
+    +'</div>';
 }
 
 function renderSimulationSupervisor(m){

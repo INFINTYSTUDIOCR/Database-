@@ -321,10 +321,48 @@ const MODS = [
 ];
 const QPTS = 2.5;
 
-const FF_KEY="kamuk_founders_file"+(new URLSearchParams(location.search).get("sid")?":"+new URLSearchParams(location.search).get("sid"):"");
+const FF_SID=String(new URLSearchParams(location.search).get("sid")||"").trim();
+const FF_KEY="kamuk_founders_file"+(FF_SID?":"+FF_SID:"");
+// Kamuk Supabase only — results for the trainer app (one row per student in kamuk_sessions).
+const KAMUK_SUPA="https://lbspgbeqtcnjrbhiuucu.supabase.co";
+const KAMUK_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM";
+const FF_CLOUD=/^KAM-[A-Za-z0-9-]+$/.test(FF_SID);
+const FF_ROW="FOUNDERS-"+FF_SID;
 let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start"};
-try{const s=localStorage.getItem(FF_KEY); if(s) S=Object.assign(S,JSON.parse(s));}catch(e){}
-function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}}
+let FF_HAD_LOCAL=false;
+try{const s=localStorage.getItem(FF_KEY); if(s){S=Object.assign(S,JSON.parse(s));FF_HAD_LOCAL=true;}}catch(e){}
+function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){} cloudSave(false);}
+let _cloudT=null;
+function cloudRow(){
+  const t=total();
+  return {studentId:FF_SID,name:S.name,group:S.group,company:g("name"),score:fmt(t.t),check:fmt(t.q),build:fmt(t.b),
+    formsDone:MODS.filter(m=>S.done[m.id]).length,
+    perForm:MODS.map(m=>{const s=modScores(m);return {code:m.code,title:m.title,score:fmt(s.q+s.b),max:s.qmax+s.bmax,done:!!S.done[m.id]};}),
+    report:reportText(),blueprint:blueprint(),state:S,updatedAt:new Date().toISOString()};
+}
+function cloudSave(now){
+  if(!FF_CLOUD) return;
+  clearTimeout(_cloudT);
+  _cloudT=setTimeout(()=>{
+    try{
+      fetch(KAMUK_SUPA+"/rest/v1/kamuk_sessions",{method:"POST",keepalive:true,
+        headers:{apikey:KAMUK_ANON,Authorization:"Bearer "+KAMUK_ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+        body:JSON.stringify({id:FF_ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+    }catch(e){}
+  }, now?0:1500);
+}
+function cloudRestore(){
+  if(!FF_CLOUD||FF_HAD_LOCAL) return;
+  fetch(KAMUK_SUPA+"/rest/v1/kamuk_sessions?id=eq."+encodeURIComponent(FF_ROW)+"&select=data&limit=1",{headers:{apikey:KAMUK_ANON,Authorization:"Bearer "+KAMUK_ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      const st=rows&&rows[0]&&rows[0].data&&rows[0].data.state;
+      if(!st||FF_HAD_LOCAL) return;
+      S=Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start"},st);
+      try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}
+      render();
+    }).catch(()=>{});
+}
+addEventListener("pagehide",()=>{ if(_cloudT) cloudSave(true); });
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const words=t=>String(t||"").trim().split(/\s+/).filter(Boolean).length;
 
@@ -544,6 +582,7 @@ function copy(id){
 function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
 function bindReport(){document.getElementById("cp-rep").onclick=()=>copy("rep");document.getElementById("cp-bp").onclick=()=>copy("bp");}
 render();
+cloudRestore();
 </script>
 
 <footer class="cadamag-credit" aria-label="Autoría">
