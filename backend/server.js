@@ -4087,7 +4087,7 @@ function cacheTTS(key, buffer){
   ttsCache.set(key, buffer);
 }
 
-function cleanTtsText(text) {
+function cleanTtsText(text, opts = {}) {
   let t = (text || '')
     .replace(/ALICE:|CLAIRE:|JILL:/gi, '')
     .replace(/\bGet It Straight(?:\s*ING)?\b[:\s—–\-]*/gi, '')
@@ -4161,10 +4161,13 @@ function cleanTtsText(text) {
   t = t.replace(/\bI\s+N\s+G\b/g, ' í ene je ');
   // Force jota: "ge" → English gee; always speak "je"
   t = t.replace(/\bí\s+ene\s+ge\b/gi, ' í ene je ');
-  t = t.replace(/\bP\b/g, ' pronombre ');
-  t = t.replace(/\bM\b/g, ' modal ');
-  t = t.replace(/\bV\b/g, ' verbo ');
-  t = t.replace(/\bC\b/g, ' complemento ');
+  if (!opts.englishOnly) {
+    // English-only voices keep letters as letters (TOEIC options "A. B. C.").
+    t = t.replace(/\bP\b/g, ' pronombre ');
+    t = t.replace(/\bM\b/g, ' modal ');
+    t = t.replace(/\bV\b/g, ' verbo ');
+    t = t.replace(/\bC\b/g, ' complemento ');
+  }
   t = t.replace(/\bBE\b/g, ' be ');
   t = t.replace(/\bAM\b/g, ' am ');
   t = t.replace(/\bIS\b/g, ' is ');
@@ -4579,7 +4582,7 @@ function tutorElevenLanguageCode(lang) {
 async function getOrCreateTtsAudio(text, voiceId, label, opts = {}) {
   if (!ELEVEN_KEY) throw new Error('ELEVENLABS_KEY not configured');
   if (!voiceId) throw new Error(`${label || 'TTS'} voice ID not configured`);
-  let clean = cleanTtsText(text);
+  let clean = cleanTtsText(text, { englishOnly: !!opts.englishOnly });
   if (!clean) throw new Error('Empty text');
   const languageCode = opts.englishOnly ? 'en-US' : resolveTutorTtsLang(opts.languageCode || 'es-CR');
   // Español un poco más natural; inglés puede ir un toque más rápido
@@ -6797,12 +6800,13 @@ CALIFICACIÓN (obligatorio):
 - Si el estudiante responde una letra (A/B/C/D) o una opción, calificá SOLO contra la última pregunta que vos hiciste en esta conversación. Antes de decir correcto/incorrecto, resolvé esa pregunta vos mismo y verificá la clave.
 - Si su respuesta es la correcta, decí que es correcta. Nunca marques mal una respuesta correcta. Si es incorrecta, decí cuál era la correcta y por qué en una línea.
 - Listening Part 2: la pregunta hablada va escrita en inglés y el portal la lee en voz alta; da 3 respuestas (A, B, C) con UNA sola claramente correcta. Nunca digas que no podés reproducir o procesar audio. Si piden repetir, repetí la misma pregunta y opciones.
-- NO repitas preguntas, oraciones ni escenarios que ya aparecen en esta conversación; cada ítem nuevo debe ser distinto.${sharedBrain.prompt}`;
+- NO repitas preguntas, oraciones ni escenarios que ya aparecen en esta conversación; cada ítem nuevo debe ser distinto.
+- Respuesta COMPLETA siempre: nunca cortes una oración, pregunta u opción. Si el espacio no alcanza, acortá la explicación, nunca el ejercicio.${sharedBrain.prompt}`;
 
     const msgs = buildTutorChatMessages(history, message, 30);
 
     const resp = await claudeCall({
-      model: 'claude-sonnet-4-6', max_tokens: 450,
+      model: 'claude-sonnet-4-6', max_tokens: 1000,
       system: systemPrompt, messages: msgs
     });
     const reply = resp.content.filter(b=>b.type==='text').map(b=>b.text).join('');

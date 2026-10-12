@@ -4684,6 +4684,10 @@ function renderClaire(){
     +'</div>'
     +(!_claireState.sessionActive ? renderClaireStart() : renderClaireSession())
     +'</div>';
+  if(_claireState.sessionActive && claireSetActive()){
+    ClaireSets.render(document.getElementById('claire-set-root'));
+    return;
+  }
   if(_claireState.sessionActive){
     claireScrollMessages();
     bindClairePttMic();
@@ -4699,21 +4703,78 @@ function renderClaireStart(){
     +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">'
     +'<button type="button" style="flex:1;min-width:120px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:default;background:rgba(192,132,252,0.25);border:2px solid #79B9E8;color:#79B9E8;">Modo TOEIC Pro</button>'
     +'</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#e9d5ff;text-align:left;margin:4px 0 8px;">Práctica TOEIC completa · calificación exacta</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px;">'
+    +claireSetButton('l2','ti-headphones','Listening Part 2','25 preguntas · audio')
+    +claireSetButton('r5','ti-pencil','Reading Part 5','25 preguntas')
+    +claireSetButton('r7','ti-file-text','Reading Part 7','7 textos · 21 preguntas')
+    +claireSetButton('vocab','ti-vocabulary','Vocabulario','25 preguntas')
+    +'</div>'
     +'<button style="display:inline-flex;align-items:center;gap:8px;background:'+th.btnGrad+';border:none;color:white;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;cursor:pointer;box-shadow:'+th.btnShadow+';width:100%;justify-content:center;" onclick="startClaireSession()"><i class="ti ti-player-play"></i> Iniciar sesión</button>'
     +'</div>';
 }
 
+function claireSetButton(part, icon, title, sub){
+  return '<button type="button" onclick="claireStartSet(\''+part+'\')" style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:rgba(255,255,255,0.07);border:1.5px solid rgba(192,132,252,0.4);color:#fff;border-radius:12px;padding:12px;cursor:pointer;">'
+    +'<span style="font-size:14px;font-weight:800;"><i class="ti '+icon+'"></i> '+title+'</span>'
+    +'<span style="font-size:11px;color:#e9d5ff;">'+sub+'</span></button>';
+}
+
+function claireSetActive(){
+  return typeof ClaireSets !== 'undefined' && ClaireSets.isActive();
+}
+
+function claireStartSet(part){
+  var s = CURRENT_STUDENT || window._currentStudent || window._portalStudent;
+  if(!studentClaireOn(s)){
+    showToast('Claire TOEIC no está activa en esta cuenta.','err');
+    return;
+  }
+  if(typeof ClaireSets === 'undefined'){
+    showToast('Cargando ejercicios… recargá la página e intentá de nuevo.','err');
+    return;
+  }
+  if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
+  claireStopSpeech();
+  claireCloseBoard();
+  if(!_claireState.sessionActive){
+    _claireState.sessionActive = true;
+    _claireState.sessionId = 'portal-claire-' + (s.id || Date.now());
+    _claireState.history = [];
+    _claireState.boardLock = null;
+  }
+  ClaireSets.start(part, {
+    studentId: (s && s.id) || '',
+    speak: function(text){
+      if(typeof ttsResetRepeatGuard === 'function') ttsResetRepeatGuard(_claireReplyGuard);
+      claireSpeak(text);
+    },
+    stopSpeech: function(){ claireStopSpeech(); },
+    onExit: function(){ renderClaire(); }
+  });
+  renderClaire();
+}
+
 function renderClaireSession(){
   var th = claireTheme();
+  var setPart = claireSetActive() ? ClaireSets.part() : null;
+  var chipOn = 'background:rgba(121,185,232,0.35);border-color:#79B9E8;color:#fff;';
   var chips = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Listening Part 2.\')">Listening</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica TOEIC Reading Part 5.\')">Reading Part 5</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una mini práctica TOEIC Reading Part 7.\')">Reading Part 7</button>'
-    +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de vocabulario TOEIC en contexto laboral.\')">Vocabulario</button>'
+    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='l2'?chipOn:'')+'" onclick="claireStartSet(\'l2\')">Listening</button>'
+    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='r5'?chipOn:'')+'" onclick="claireStartSet(\'r5\')">Reading Part 5</button>'
+    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='r7'?chipOn:'')+'" onclick="claireStartSet(\'r7\')">Reading Part 7</button>'
+    +'<button type="button" class="claire-mode-chip" style="'+(setPart==='vocab'?chipOn:'')+'" onclick="claireStartSet(\'vocab\')">Vocabulario</button>'
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica de pronunciación TOEIC: shadowing de una frase corta en inglés americano profesional.\')">Pronunciación</button>'
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance una práctica Describe / Speaking profesional TOEIC: describe a workplace scene in 3 to 5 clear sentences. Ask me to speak or write. Give one pronunciation tip after.\')">Describe</button>'
     +'<button type="button" class="claire-mode-chip" onclick="claireQuickPrompt(\'Lance speaking profesional TOEIC: I must explain a process or problem at work in clear American English. Coach me like a certified TOEIC tutor — soft, not forced.\')">Speaking</button>'
     +'</div>';
+  if(setPart){
+    return '<div id="claire-session-main">'
+      + chips
+      +'<div id="claire-status" style="font-size:12px;color:'+th.accent+';text-align:center;min-height:18px;margin-bottom:6px;font-weight:600;"></div>'
+      +'<div id="claire-set-root"></div>'
+      +'</div>';
+  }
   return '<div id="claire-session-main">'
     + chips
     +'<div style="background:'+(th.badgeBg||('rgba('+th.rgb+',0.08)'))+';border:1px solid rgba('+th.rgb+',0.4);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:'+th.accent+';font-weight:600;">🎧 Claire TOEIC · Práctica directa</div>'
@@ -4737,6 +4798,7 @@ function renderClaireSession(){
 }
 
 function endClaireSession(){
+  if(claireSetActive()) ClaireSets.stop();
   claireStopSpeech();
   claireCloseBoard();
   _claireState.sessionActive = false;
@@ -4761,7 +4823,8 @@ function claireSpeak(text){
   if(typeof ttsMarkSpoken === 'function') ttsMarkSpoken(_claireReplyGuard, clean);
   if(typeof unlockTtsAudio === 'function') unlockTtsAudio();
   claireStopSpeech();
-  var chunks = (typeof ttsSpeakLines === 'function') ? ttsSpeakLines(clean, 900) : [clean];
+  // Claire speaks English only: the Spanish grammar normalizer (prepareTtsLine) would turn "C." into "complemento" and "It's" into "It'ese".
+  var chunks = (clean.length > 900 && typeof splitTtsChunks === 'function') ? splitTtsChunks(clean, 900) : [clean];
   chunks.forEach(function(chunk){
     if(chunk && chunk.trim().length >= 3) _claireTTSQueue.push(chunk.trim());
   });
@@ -4945,6 +5008,10 @@ async function clairePost(payload){
 }
 
 function claireQuickPrompt(text){
+  if(claireSetActive()){
+    ClaireSets.stop();
+    renderClaire();
+  }
   if(!_claireState.sessionActive){
     startClaireSession().then(function(){
       var inp = document.getElementById('claire-input');
@@ -10075,6 +10142,7 @@ if(document.readyState === 'loading'){
 
 <script src="js/kamuk-desk-english.js?v=20260825nxlive"></script>
 <script src="js/kamuk-recursos-library.js?v=20260924speak"></script>
+<script src="js/claire-toeic-sets.js?v=20261012sets"></script>
 <script src="../js/infinity-word-puzzles.js?v=20260910play"></script>
 <script src="js/simulation-corporate-learn.js?v=20260910email"></script>
 <script src="js/infinity-holdings-config.js?v=20260910email"></script>
