@@ -323,9 +323,47 @@ const QPTS = 2.5;
 
 const FF_SID=String(new URLSearchParams(location.search).get("sid")||"").trim();
 const FF_KEY="infinity_founders_file"+(FF_SID?":"+FF_SID:"");
+// Infinity Supabase only — results for the trainer (one row per student in infinity_sessions).
+const INF_SUPA="https://rxruvpfdpgowmpvydacd.supabase.co";
+const INF_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE";
+const FF_CLOUD=/^IS-[A-Za-z0-9-]+$/.test(FF_SID);
+const FF_ROW="FOUNDERS-"+FF_SID;
 let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start"};
-try{const s=localStorage.getItem(FF_KEY); if(s){S=Object.assign(S,JSON.parse(s));}}catch(e){}
-function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}}
+let FF_HAD_LOCAL=false;
+try{const s=localStorage.getItem(FF_KEY); if(s){S=Object.assign(S,JSON.parse(s));FF_HAD_LOCAL=true;}}catch(e){}
+function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){} cloudSave(false);}
+let _cloudT=null;
+function cloudRow(){
+  const t=total();
+  return {studentId:FF_SID,name:S.name,group:S.group,company:g("name"),score:fmt(t.t),check:fmt(t.q),build:fmt(t.b),
+    formsDone:MODS.filter(m=>S.done[m.id]).length,
+    perForm:MODS.map(m=>{const s=modScores(m);return {code:m.code,title:m.title,score:fmt(s.q+s.b),max:s.qmax+s.bmax,done:!!S.done[m.id]};}),
+    report:reportText(),blueprint:blueprint(),state:S,updatedAt:new Date().toISOString()};
+}
+function cloudSave(now){
+  if(!FF_CLOUD) return;
+  clearTimeout(_cloudT);
+  _cloudT=setTimeout(()=>{
+    try{
+      fetch(INF_SUPA+"/rest/v1/infinity_sessions",{method:"POST",keepalive:true,
+        headers:{apikey:INF_ANON,Authorization:"Bearer "+INF_ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+        body:JSON.stringify({id:FF_ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+    }catch(e){}
+  }, now?0:1500);
+}
+function cloudRestore(){
+  if(!FF_CLOUD) return;
+  if(FF_HAD_LOCAL){ cloudSave(true); return; }
+  fetch(INF_SUPA+"/rest/v1/infinity_sessions?id=eq."+encodeURIComponent(FF_ROW)+"&select=data&limit=1",{headers:{apikey:INF_ANON,Authorization:"Bearer "+INF_ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      const st=rows&&rows[0]&&rows[0].data&&rows[0].data.state;
+      if(!st||FF_HAD_LOCAL) return;
+      S=Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start"},st);
+      try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}
+      render();
+    }).catch(()=>{});
+}
+addEventListener("pagehide",()=>{ if(_cloudT) cloudSave(true); });
 const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const words=t=>String(t||"").trim().split(/\s+/).filter(Boolean).length;
 
@@ -545,6 +583,7 @@ function copy(id){
 function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
 function bindReport(){document.getElementById("cp-rep").onclick=()=>copy("rep");document.getElementById("cp-bp").onclick=()=>copy("bp");}
 render();
+cloudRestore();
 </script>
 
 <footer class="cadamag-credit" aria-label="Autoría">
