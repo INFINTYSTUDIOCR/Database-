@@ -1306,6 +1306,28 @@ function isDecimoStudent(s){
   return /^10\b/.test(g) || g.indexOf('decimo') === 0;
 }
 
+// 10.º students whose account lives in Infinity: read-only fetch of their Founder's File row only (nothing is written to either database).
+var FF_INFINITY_GUESTS = [
+  { id: 'IS-JICA-1791319661440', name: 'Jimena Castillo' }
+];
+var FF_INF_SUPA = 'https://rxruvpfdpgowmpvydacd.supabase.co';
+var FF_INF_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE';
+
+async function ffLoadInfinityGuests(){
+  var byId = {};
+  try{
+    var ids = FF_INFINITY_GUESTS.map(function(g){ return 'FOUNDERS-' + g.id; }).join(',');
+    var r = await fetch(FF_INF_SUPA + '/rest/v1/infinity_sessions?id=in.(' + encodeURIComponent(ids) + ')&select=id,data', {
+      headers: { apikey: FF_INF_ANON, Authorization: 'Bearer ' + FF_INF_ANON }
+    });
+    var rows = r.ok ? await r.json() : [];
+    rows.forEach(function(row){ if(row.data && row.data.studentId) byId[row.data.studentId] = row.data; });
+  }catch(e){}
+  return FF_INFINITY_GUESTS.map(function(g){
+    return { id: g.id, s: { info: { name: g.name } }, r: byId[g.id] || null, guest: true };
+  });
+}
+
 function ffEsc(t){
   return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
 }
@@ -1321,7 +1343,9 @@ async function renderFoundersFile(m){
   rows.forEach(function(r){ if(r.data && r.data.studentId) results[r.data.studentId] = r.data; });
   var list = Object.keys(DB).filter(function(id){ return isDecimoStudent(DB[id]); }).map(function(id){
     return { id: id, s: DB[id], r: results[id] || null };
-  }).sort(function(a,b){
+  });
+  var ext = await ffLoadInfinityGuests();
+  list = list.concat(ext).sort(function(a,b){
     return String((a.s.info&&a.s.info.name)||'').localeCompare(String((b.s.info&&b.s.info.name)||''));
   });
   var started = list.filter(function(x){ return x.r; });
@@ -1329,7 +1353,8 @@ async function renderFoundersFile(m){
   var avg = started.length ? Math.round(started.reduce(function(sum,x){ return sum + (Number(x.r.score)||0); }, 0) / started.length * 10) / 10 : 0;
 
   var body = list.map(function(x, i){
-    var name = ffEsc((x.s.info && x.s.info.name) || x.id);
+    var name = ffEsc((x.s.info && x.s.info.name) || x.id)
+      + (x.guest ? ' <span style="font-size:10px;font-weight:700;color:#7B4DFF;border:1px solid #7B4DFF;border-radius:6px;padding:0 5px;">Infinity</span>' : '');
     if(!x.r){
       return '<tr><td>'+name+'</td><td colspan="6" style="color:var(--t3);">Sin iniciar</td><td></td></tr>';
     }
