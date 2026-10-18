@@ -1,0 +1,5495 @@
+{
+  "base": "http://127.0.0.1:57736",
+  "at": "2026-10-04T14:41:20.423Z",
+  "viewports": {
+    "360x740": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 5.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 73.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 8116,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1843.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2959.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 4551.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 6185.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2332.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2334.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 4346.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1830.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1516.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1693.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1603.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1710,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2487.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2102.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 3.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 5595.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 3145.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 1957.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 360,
+        "docW": 360,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 340,
+          "width": 320,
+          "top": 2995.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "375x812": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 5.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 73.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 8197.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1851.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2993.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 4589.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 6242.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2332.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2289.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 4346.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1830.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1507.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1622.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1578.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1660.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2441.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2077.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 3.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 5372.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2964.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 1936.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 375,
+        "docW": 375,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "top": 2995.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "390x844": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 5.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 73.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 8074.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1850.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2971,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 4571.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 6205,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2332.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2263.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 4244.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1780.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1507.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1622.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1578.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1660.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2420.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2077.2,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 3.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 5234.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2917.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 1911.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 390,
+        "docW": 390,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 20,
+          "right": 370,
+          "width": 350,
+          "top": 2995.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          20
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "768x1024": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 5.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 73.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 7528.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1944.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 2978.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 4517.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 6121.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1987,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1975.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 2634.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1544.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1337.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1442.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1345.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1426.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1869.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1597.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 12.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 3679.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1999.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1568,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 768,
+        "docW": 768,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 30.7,
+          "right": 737.3,
+          "width": 706.5,
+          "top": 1981.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          31
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "1024x768": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 88.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 5340.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 942.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1715.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 2853.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 4018,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": 26.2,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1691.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1659.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 2348.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1339.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1114.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1150.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1121.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1203.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1484.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1217.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 12.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 3671.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1489.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1324.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 1024,
+        "docW": 1024,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 41,
+          "right": 983,
+          "width": 942.1,
+          "top": 1804.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          41
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "1280x800": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 88.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 5496,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1113.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1922.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 3188.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 4358.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": 34.8,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1697.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1689.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 2317.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1340.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1127.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1163.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1134.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1216,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1458.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1230.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 12.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 3675.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1429.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1343.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 1280,
+        "docW": 1280,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 51.2,
+          "right": 1228.8,
+          "width": 1177.6,
+          "top": 1739.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          51
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "1440x900": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 88.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 5538.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 1093.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 1926,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 3218.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 57.6,
+          "right": 1382.4,
+          "width": 1324.8,
+          "top": 4400.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          58
+        ],
+        "leftSpread": 0,
+        "heroGap": 37.2,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1697.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1693.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 2302,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1340.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1127.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1163.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1134.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1216,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1483.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1230.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 12.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 3675.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1434.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1343.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 1440,
+        "docW": 1440,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "top": 1739.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    },
+    "1920x1080": {
+      "/": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": "cinematic",
+        "header": {
+          "sel": ".header-inner",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": {
+          "sel": ".hero-shell",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 88.4,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 5562.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": {
+          "sel": ".scene-know-shell",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 1153,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "routes": {
+          "sel": ".scene-routes-shell",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 2013,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "eco": {
+          "sel": ".scene-eco-shell",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 3317.1,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "results": {
+          "sel": ".scene-results-shell",
+          "left": 80,
+          "right": 1840,
+          "width": 1760,
+          "top": 4510.7,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "uniqueLefts": [
+          80
+        ],
+        "leftSpread": 0,
+        "heroGap": 125.4,
+        "offenders": []
+      },
+      "/foundations.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1697.6,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/ort.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1698.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/pricing.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 2305,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/alice.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1340.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/jill.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1127.3,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/claire.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1163.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/nexora.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1134.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/training-book.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1216,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/para-quien.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1488,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/hablemos.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1230.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/diagnostico.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 12.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": null,
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 3675.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/casos-de-exito.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1438.8,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/job-finder.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1343.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      },
+      "/portal-access.html": {
+        "overflowX": false,
+        "scrollW": 1920,
+        "docW": 1920,
+        "layout": null,
+        "header": {
+          "sel": ".header-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 10.5,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "hero": null,
+        "pageShell": {
+          "sel": ".page-shell",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 114,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "footer": {
+          "sel": ".site-footer-inner",
+          "left": 320,
+          "right": 1600,
+          "width": 1280,
+          "top": 1739.9,
+          "padL": "0px",
+          "padR": "0px"
+        },
+        "know": null,
+        "routes": null,
+        "eco": null,
+        "results": null,
+        "uniqueLefts": [
+          320
+        ],
+        "leftSpread": 0,
+        "heroGap": null,
+        "offenders": []
+      }
+    }
+  },
+  "failures": []
+}
