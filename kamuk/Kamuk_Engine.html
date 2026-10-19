@@ -326,6 +326,7 @@ textarea.inp{resize:vertical;min-height:80px;}
       <div class="sb-item" onclick="showView('reports',this)"><i class="ti ti-file-text"></i>Reportes</div>
       <div class="sb-item" onclick="showView('simulation-supervisor',this)"><i class="ti ti-building-bank"></i>Auditoría Kamuk</div>
       <div class="sb-item" id="nav-founders" style="display:none;" onclick="showView('founders-file',this)"><i class="ti ti-building"></i>Founder's File · 10.º</div>
+      <div class="sb-item" id="nav-founders-audit" style="display:none;" onclick="showView('founders-audit',this)"><i class="ti ti-clipboard-check"></i>Founder's Audit · 4.º</div>
       <div class="sb-section" id="nav-master-section">Master</div>
       <div class="sb-item" id="nav-resources" onclick="showView('resources',this)"><i class="ti ti-package"></i>Resource Manager</div>
       <div class="sb-item" id="nav-users" onclick="showView('users',this)"><i class="ti ti-shield"></i>Gestión de usuarios</div>
@@ -1202,6 +1203,7 @@ function startApp(){
     document.getElementById('nav-transcripts').style.display='none';
   }
   document.getElementById('nav-founders').style.display = canViewFoundersFile() ? '' : 'none';
+  document.getElementById('nav-founders-audit').style.display = canViewFoundersFile() ? '' : 'none';
   showView('dashboard', document.querySelector('.sb-item'));
   maybeShowEngineTermsGate();
   var termsEl = document.getElementById('modal-infinity-terms');
@@ -1271,6 +1273,7 @@ function showView(view, btn){
   else if(view==='reports') renderReports(m);
   else if(view==='simulation-supervisor') renderSimulationSupervisor(m);
   else if(view==='founders-file') renderFoundersFile(m);
+  else if(view==='founders-audit') renderFoundersAudit(m);
   else if(view==='resources') renderResources(m);
   else if(view==='users') renderUsers(m);
   else if(view==='roster') renderRoster(m);
@@ -1389,6 +1392,329 @@ async function renderFoundersFile(m){
     +'<thead><tr style="text-align:left;color:var(--t3);font-size:11px;"><th>Estudiante</th><th>Empresa</th><th>Puntaje</th><th>Check</th><th>Build</th><th>Formularios</th><th>Actualizado</th><th></th></tr></thead>'
     +'<tbody>'+(body || '<tr><td colspan="8" style="color:var(--t3);">No hay estudiantes de 10.º.</td></tr>')+'</tbody></table></div>'
     +'</div>';
+}
+
+// ── FOUNDER'S AUDIT · 4.º (Robert Grego + Master Trainer, misma lista) ──
+var FA_CHECKS=[["orig","Original: no copia Volcano FC, NovaCare ni SnackBox, ni a otro compañero"],["real","Campos con contenido real, no frases mínimas para sacar puntos"],["coh","Coherente: cliente, precio y producto cuentan la misma historia"],["dates","Las acciones del Form 06 tienen responsable y fecha"]];
+var FA_AREAS=[["problem","Problem & Customer",["What problem does your company solve? Who is your customer?","How do you know this problem is real?","I'm your customer and I don't have that problem. Convince me."]],["identity","Mission & Vision",["Tell me your mission and your vision. What's the difference?","How does your mission help you reach your vision?","Your vision is too big. Why should I believe you?"]],["structure","Structure & Departments",["What departments do you have? What does each one do?","Why do you need that department? What if you remove it?","You can only keep two departments. Which ones and why?"]],["product","Product & Value",["What do you sell, and how much does it cost?","Why that price? Can your customer pay it?","Your competitor lowered its price by 30%. What do you do?"]],["policies","Policies",["Tell me one policy and the problem it prevents.","An employee breaks that policy. What happens?","Your best employee breaks it. Same consequence?"]],["roles","Roles & Responsibilities",["What do you lead? Why you?","What does your teammate lead? What's their biggest responsibility?","Your teammate quit this morning. Who covers their area?"]],["plan","Implementation & KPI",["What were your first three action steps? What's your KPI?","Your deadline was ___. Did it happen? Where is your KPI today?","You missed the deadline. Who is responsible and what's the new plan?"]],["coh","Coherence",["Explain your whole company in 30 seconds.","If I give you $1,000 today, where does it go first?","What's the weakest part of your company?"]]];
+var FA_LEVELS=[["0","No responde"],["1","Base"],["2","Presión"],["3","Crisis"]];
+var FA_KPIS=[["pmvc","Estructura P|M|V|C","La oración respeta Pronombre | Modal/aux | Verbo | Complemento."],["tense","Tiempo verbal","Mantiene el tiempo que está usando. No salta sin control."],["idea","Generación de idea","El complemento trae una idea concreta, no un hueco."],["coord","Coordinación","Une ideas con and / but cuando hace falta."],["speed","Tiempo de respuesta","Arranca sin congelarse."],["pron","Pronunciación","Se le entiende y se le puede imitar."],["recover","Recuperabilidad","Si se equivoca, sigue. No se apaga."],["vocab","Vocabulario","Palabras del tema, precisas. No traduce suelto."]];
+var FA_KPI_SCALE=[["0","0"],["1","1"],["2","2"],["3","3"]];
+var FA_IMPL=[["0","No cumplió"],["5","Parcial"],["10","Cumplió con evidencia"]];
+var FA={id:null,F:null,roster:[],evals:{},sortK:"student",sortDir:1,delArmed:false};
+
+function isCuartoStudent(s){
+  if(!s) return false;
+  if(isDecimoStudent(s)) return true;
+  var bits=[s.grade,s.info&&s.info.grade,s.info&&s.info.cohort,s.info&&s.info.section,s.info&&s.info.group,s.path_custom];
+  var tags=s.tags||(s.info&&s.info.tags)||[];
+  if(typeof tags==="string") tags=tags.split(",");
+  bits=bits.concat(tags);
+  return bits.some(function(v){
+    var g=String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace("º","o").replace("°","o").trim();
+    if(!g || /^1[014]/.test(g) || g.indexOf("undecimo")===0) return false;
+    if(g.indexOf("decimo")===0) return true;
+    if(g==="4"||g==="4."||g==="4o"||g==="4to"||g==="4tos"||g==="4ro") return true;
+    if(g.indexOf("cuarto")===0) return true;
+    return /^4\s*(to|tos|ro|o)?(\s+grado)?$/.test(g)||/^4(to|tos|ro)\b/.test(g);
+  });
+}
+function faBlank(){return {studentId:"",student:"",group:"",company:"",evaluator:"",forms:"",score:"",checks:{},levels:{},kpis:{},impl:null,eng:null,notes:"",blueprint:""};}
+function faKpiShown(e){
+  if(!e) return null;
+  if(e.kpi!=null && e.kpi!=="") return e.kpi;
+  var ks=e.kpis||{}, any=false, s=0;
+  FA_KPIS.forEach(function(k){ if(ks[k[0]]!=null && ks[k[0]]!==""){ any=true; s+=Number(ks[k[0]])||0; }});
+  return any?s:null;
+}
+function faCalc(f){
+  f=f||{};
+  var checks=f.checks||{}, levels=f.levels||{};
+  var forms=Math.max(0,Math.min(7,+f.forms||0)), sc=Math.max(0,Math.min(100,+f.score||0));
+  var chk=FA_CHECKS.filter(function(c){return checks[c[0]];}).length*2;
+  var comp=forms*2+sc*0.08+chk;
+  var lv=FA_AREAS.map(function(a){return levels[a[0]];});
+  var rated=lv.filter(function(v){return v!=null;});
+  var sum=rated.reduce(function(s,v){return s+(+v);},0);
+  var und=sum/24*60+(+f.impl||0);
+  var total=comp+und;
+  var ks=(f.kpis||{});
+  var kpiRated=FA_KPIS.filter(function(k){return ks[k[0]]!=null;});
+  var kpiSum=kpiRated.reduce(function(s,k){return s+(+ks[k[0]]||0);},0);
+  var diag="Sin datos", cls="", detail="Completa las áreas para ver el diagnóstico.";
+  if(rated.length){
+    var avg=sum/rated.length;
+    if(avg>=2.5){diag="Gestiona";cls="g";detail="Responde en crisis: domina y gestiona su empresa.";}
+    else if(avg>=1.5){diag="Entiende";cls="w";detail="Defiende sus decisiones, pero se cae en crisis.";}
+    else {diag="Llenó";cls="b";detail="Completó el formulario, pero no domina lo que escribió.";}
+    if(rated.length<FA_AREAS.length) detail+=" ("+rated.length+"/"+FA_AREAS.length+" áreas evaluadas)";
+  }
+  var flag="";
+  if(rated.length&&comp>=24&&und<35) flag="Alerta: completion alto con understanding bajo. Posible llenado por puntos o copia.";
+  else if(rated.length&&f.impl==="0"&&und>=45) flag="Diseña bien pero no ejecuta: necesita seguimiento de acciones.";
+  return {comp:Math.round(comp*10)/10,und:Math.round(und*10)/10,total:Math.round(total*10)/10,kpi:kpiSum,kpiN:kpiRated.length,diag:diag,cls:cls,detail:detail,flag:flag};
+}
+function faDefaultEvaluator(){
+  var n=String((SESSION&&SESSION.name)||"").toLowerCase();
+  if(n.indexOf("robert")>=0) return "Robert";
+  if(n.indexOf("johnny")>=0) return "Johnny";
+  return "";
+}
+function faPick(id){
+  var row=FA.roster.filter(function(r){return r.studentId===id;})[0];
+  if(!row) return;
+  var saved=FA.evals[id];
+  FA.id=id; FA.delArmed=false;
+  if(saved){
+    FA.F=Object.assign(faBlank(), JSON.parse(JSON.stringify(saved)));
+    if(!FA.F.kpis) FA.F.kpis={};
+    if(!FA.F.blueprint) FA.F.blueprint=row.blueprint;
+  }else{
+    FA.F=faBlank();
+    FA.F.studentId=row.studentId; FA.F.student=row.student; FA.F.group=row.group; FA.F.company=row.company;
+    FA.F.forms=row.forms; FA.F.score=row.score; FA.F.blueprint=row.blueprint; FA.F.evaluator=faDefaultEvaluator();
+  }
+  faFillFields();
+  faPaint();
+}
+function faFillFields(){
+  if(!FA.F) return;
+  ["group","company","evaluator","forms","score","notes"].forEach(function(k){
+    var el=document.getElementById("fa-"+k);
+    if(el && document.activeElement!==el) el.value=FA.F[k]||"";
+  });
+  var sel=document.getElementById("fa-student");
+  if(sel && FA.id && document.activeElement!==sel) sel.value=FA.id;
+  FA_CHECKS.forEach(function(c){
+    var el=document.getElementById("fa-c-"+c[0]);
+    if(el) el.checked=!!FA.F.checks[c[0]];
+  });
+  var bp=document.getElementById("fa-blueprint");
+  if(bp){
+    bp.textContent=FA.F.blueprint||"";
+    bp.parentElement.style.display=FA.F.blueprint?"":"none";
+  }
+}
+function faRead(){
+  if(!FA.F) FA.F=faBlank();
+  ["group","company","evaluator","forms","score","notes"].forEach(function(k){
+    var el=document.getElementById("fa-"+k); if(el) FA.F[k]=el.value;
+  });
+  FA_CHECKS.forEach(function(c){
+    var el=document.getElementById("fa-c-"+c[0]); if(el) FA.F.checks[c[0]]=el.checked;
+  });
+}
+function faSetLevel(kind, val){
+  faRead();
+  if(!FA.F.kpis) FA.F.kpis={};
+  if(kind==="impl") FA.F.impl=FA.F.impl===val?null:val;
+  else if(kind==="eng") FA.F.eng=FA.F.eng===val?null:val;
+  else if(kind.indexOf("kpi:")===0){ var kid=kind.slice(4); if(FA.F.kpis[kid]===+val) delete FA.F.kpis[kid]; else FA.F.kpis[kid]=+val; }
+  else { if(FA.F.levels[kind]===+val) delete FA.F.levels[kind]; else FA.F.levels[kind]=+val; }
+  faPaint();
+}
+function faPaint(){
+  if(!FA.F) return;
+  var c=faCalc(FA.F);
+  var pc=document.getElementById("fa-p-comp"), pu=document.getElementById("fa-p-und"), vt=document.getElementById("fa-v-total");
+  if(pc) pc.textContent=c.comp+" / 30";
+  if(pu) pu.textContent=c.und+" / 70";
+  var pk=document.getElementById("fa-p-kpi"); if(pk) pk.textContent=c.kpi+" / 24";
+  if(vt) vt.innerHTML=Math.round(c.total)+'<small style="font-size:16px;color:var(--t3);">/100</small>';
+  var d=document.getElementById("fa-v-diag");
+  if(d){
+    d.textContent=c.diag;
+    d.style.background=c.cls==="g"?"#E1F2E6":c.cls==="w"?"#F8EDD5":c.cls==="b"?"#F7E3E1":"var(--gray)";
+    d.style.color=c.cls==="g"?"#1C7A3D":c.cls==="w"?"#9A6400":c.cls==="b"?"#B4322A":"var(--t2)";
+  }
+  var det=document.getElementById("fa-v-detail"); if(det) det.textContent=c.detail;
+  var fl=document.getElementById("fa-v-flag"); if(fl){ fl.style.display=c.flag?"":"none"; fl.textContent=c.flag; }
+  document.querySelectorAll("[data-fa]").forEach(function(b){
+    var k=b.getAttribute("data-fa"), v=b.getAttribute("data-v");
+    var cur=k==="impl"?FA.F.impl:k==="eng"?FA.F.eng:(k.indexOf("kpi:")===0?(FA.F.kpis&&FA.F.kpis[k.slice(4)]!=null?String(FA.F.kpis[k.slice(4)]):null):(FA.F.levels[k]!=null?String(FA.F.levels[k]):null));
+    var on=cur!=null&&String(cur)===v;
+    b.style.background=on?"var(--navy)":"transparent";
+    b.style.color=on?"#fff":"var(--t1)";
+    b.style.borderColor=on?"var(--navy)":"var(--border)";
+  });
+  var del=document.getElementById("fa-del");
+  if(del){ del.style.display=FA.evals[FA.id]?"inline-flex":"none"; if(!FA.delArmed) del.textContent="Eliminar"; }
+  faFillFields();
+  faRenderRoster();
+}
+function faRenderRoster(){
+  var body=document.getElementById("fa-body"); if(!body) return;
+  var gEl=document.getElementById("fa-filter"), gv=gEl?gEl.value:"";
+  var groups=[];
+  FA.roster.forEach(function(r){ if(r.group&&groups.indexOf(r.group)<0) groups.push(r.group); });
+  groups.sort();
+  if(gEl){
+    var cur=gEl.value;
+    gEl.innerHTML='<option value="">Todos</option>'+groups.map(function(g){return '<option'+(g===cur?' selected':'')+'>'+ffEsc(g)+'</option>';}).join("");
+  }
+  var list=FA.roster.filter(function(r){return !gv||r.group===gv;}).slice().sort(function(a,b){
+    var ae=FA.evals[a.studentId]||{}, be=FA.evals[b.studentId]||{};
+    var x=FA.sortK==="total"?(ae.total||0):FA.sortK==="kpi"?(faKpiShown(ae)||0):FA.sortK==="comp"?(ae.comp||0):FA.sortK==="und"?(ae.und||0):FA.sortK==="diag"?(ae.diag||""):a[FA.sortK];
+    var y=FA.sortK==="total"?(be.total||0):FA.sortK==="kpi"?(faKpiShown(be)||0):FA.sortK==="comp"?(be.comp||0):FA.sortK==="und"?(be.und||0):FA.sortK==="diag"?(be.diag||""):b[FA.sortK];
+    return (typeof x==="number"?x-y:String(x||"").localeCompare(String(y||"")))*FA.sortDir;
+  });
+  var done=list.filter(function(r){return FA.evals[r.studentId];});
+  var avg=function(k){return done.length?Math.round(done.reduce(function(s,r){return s+(+FA.evals[r.studentId][k]||0);},0)/done.length*10)/10:"–";};
+  var sa=document.getElementById("fa-s-avg"), sc=document.getElementById("fa-s-comp"), su=document.getElementById("fa-s-und"), rc=document.getElementById("fa-r-count");
+  if(sa) sa.textContent=avg("total"); if(sc) sc.textContent=avg("comp"); if(su) su.textContent=avg("und");
+  if(rc) rc.textContent=done.length+" de "+list.length+" evaluados";
+  body.innerHTML=list.length?list.map(function(r){
+    var e=FA.evals[r.studentId];
+    var cur=r.studentId===FA.id?' style="background:#E7F1FA;"':'';
+    return '<tr'+cur+' onclick="faPick(\''+r.studentId+'\')" style="cursor:pointer;">'
+      +'<td>'+ffEsc(r.student)+(e&&e.flag?' <b style="color:#B4322A;" title="'+ffEsc(e.flag)+'">!</b>':'')+'<br><span style="color:var(--t3);font-size:11px;">'+ffEsc(r.company||"sin proyecto")+'</span></td>'
+      +'<td>'+ffEsc(r.group||"")+'</td>'
+      +'<td style="text-align:right;">'+(e?e.comp:"–")+'</td><td style="text-align:right;">'+(e?e.und:"–")+'</td>'
+      +'<td style="text-align:right;">'+(e&&faKpiShown(e)!=null?faKpiShown(e):"–")+'</td>'
+      +'<td style="text-align:right;font-weight:800;">'+(e?Math.round(e.total):"—")+'</td>'
+      +'<td>'+(e?ffEsc(e.diag):'<span style="color:var(--t3);">Pendiente</span>')+'</td></tr>';
+  }).join(""):'<tr><td colspan="7" style="color:var(--t3);padding:16px;">No hay estudiantes de 4.º.</td></tr>';
+}
+async function faSave(){
+  faRead();
+  if(!FA.F.studentId){ showToast("Elegí un estudiante de 4.º","err"); return; }
+  if(!FA.F.evaluator){ showToast("Elegí quién evalúa","err"); return; }
+  var c=faCalc(FA.F);
+  if(!FA.F.kpis) FA.F.kpis={};
+  if(!FA.F.checks) FA.F.checks={};
+  if(!FA.F.levels) FA.F.levels={};
+  var doc=Object.assign({},FA.F,{comp:c.comp,und:c.und,total:c.total,kpi:c.kpiN?c.kpi:null,diag:c.diag,flag:c.flag,updatedAt:new Date().toISOString(),cohort:"4"});
+  var ok=await dbSet("kamuk_sessions","FAUDIT-"+FA.F.studentId,doc);
+  if(!ok) return;
+  FA.evals[FA.F.studentId]=doc; FA.delArmed=false;
+  showToast("Evaluación guardada");
+  faPaint();
+}
+async function faDel(){
+  if(!FA.id||!FA.evals[FA.id]) return;
+  if(!FA.delArmed){ FA.delArmed=true; var b=document.getElementById("fa-del"); if(b) b.textContent="Confirmar eliminación"; return; }
+  var ok=await dbDel("kamuk_sessions","FAUDIT-"+FA.id);
+  if(!ok) return;
+  delete FA.evals[FA.id]; FA.delArmed=false;
+  faPick(FA.id);
+  showToast("Evaluación eliminada");
+}
+function faSort(k){ if(FA.sortK===k) FA.sortDir*=-1; else {FA.sortK=k; FA.sortDir=k==="student"||k==="group"||k==="diag"?1:-1;} faRenderRoster(); }
+function faCsv(){
+  var head=["Estudiante","Grupo","Empresa","Evaluador","Forms","Nota e-learning","Completion /30","Understanding /70","KPIs Infinity /24","Total /100","Diagnostico"].concat(FA_AREAS.map(function(a){return a[1];})).concat(FA_KPIS.map(function(k){return k[1];})).concat(["Implementacion","Ingles 1-5","Alerta","Notas"]);
+  var q=function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"';};
+  var gv=(document.getElementById("fa-filter")||{}).value||"";
+  var lines=FA.roster.filter(function(r){return FA.evals[r.studentId]&&(!gv||r.group===gv);}).map(function(r){
+    var e=FA.evals[r.studentId];
+    return [e.student,e.group,e.company,e.evaluator,e.forms,e.score,e.comp,e.und,faKpiShown(e),e.total,e.diag].concat(FA_AREAS.map(function(a){var v=(e.levels||{})[a[0]]; return v==null?"":(FA_LEVELS[v]?FA_LEVELS[v][1]:v);})).concat(FA_KPIS.map(function(k){var v=(e.kpis||{})[k[0]]; return v==null?"":v;})).concat([e.impl==null?"":((FA_IMPL.filter(function(x){return x[0]===String(e.impl);})[0]||[])[1]||""),e.eng||"",e.flag,e.notes]).map(q).join(",");
+  });
+  var t=[head.map(q).join(",")].concat(lines).join("\n");
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){showToast("CSV copiado");},function(){showToast("No se pudo copiar","err");});
+  else showToast("No se pudo copiar","err");
+}
+async function renderFoundersAudit(m){
+  if(!canViewFoundersFile()){
+    m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido.</div></div>';
+    return;
+  }
+  m.innerHTML='<div class="fade"><div class="ib"><i class="ti ti-loader spin"></i> Cargando 4.º…</div></div>';
+  try{
+  var sessions=(await dbQuery("kamuk_sessions?id=like.FOUNDERS-*&select=id,data")).concat(await dbQuery("kamuk_sessions?id=like.FAUDIT-*&select=id,data"));
+  var projects={}, evals={};
+  sessions.forEach(function(row){
+    if(!row.data) return;
+    if(String(row.id).indexOf("FAUDIT-")===0) evals[row.id.slice(7)]=row.data;
+    else {
+      var sid=row.data.studentId||String(row.id).replace(/^FOUNDERS-/,"");
+      if(sid) projects[sid]=row.data;
+    }
+  });
+  var roster=Object.keys(DB).filter(function(id){return isCuartoStudent(DB[id]);}).map(function(id){
+    var s=DB[id], p=projects[id]||{};
+    var info=s.info||{};
+    return {
+      studentId:id,
+      student:info.name||id,
+      group:isDecimoStudent(s)?("4.º"+(info.section?(" "+info.section):"")):(info.section||info.group||info.cohort||"4.º"),
+      company:p.company||info.company||"",
+      forms:p.formsDone!=null?String(p.formsDone):"",
+      score:p.score!=null?String(p.score):"",
+      blueprint:p.blueprint||""
+    };
+  }).sort(function(a,b){return a.student.localeCompare(b.student);});
+  FA.roster=roster; FA.evals=evals; FA.F=faBlank(); FA.id=null; FA.delArmed=false;
+  if(roster.length){
+    FA.id=roster[0].studentId;
+    if(evals[FA.id]){
+      FA.F=Object.assign(faBlank(), JSON.parse(JSON.stringify(evals[FA.id])));
+      if(!FA.F.kpis) FA.F.kpis={};
+      if(!FA.F.checks) FA.F.checks={};
+      if(!FA.F.levels) FA.F.levels={};
+    }
+    else {
+      var r0=roster[0];
+      FA.F.studentId=r0.studentId; FA.F.student=r0.student; FA.F.group=r0.group; FA.F.company=r0.company;
+      FA.F.forms=r0.forms; FA.F.score=r0.score; FA.F.blueprint=r0.blueprint; FA.F.evaluator=faDefaultEvaluator();
+    }
+  }
+  var who=ffEsc((SESSION&&SESSION.name)||"");
+  var seg=function(k, opts){return '<div style="display:flex;flex-wrap:wrap;gap:6px;">'+opts.map(function(o){return '<button type="button" class="btn btn-outline btn-sm" data-fa="'+k+'" data-v="'+o[0]+'" onclick="faSetLevel(\''+k+'\',\''+o[0]+'\')">'+ffEsc(o[1])+'</button>';}).join("")+'</div>';};
+  var areas=FA_AREAS.map(function(a){
+    return '<div class="card" style="margin-top:10px;"><div style="font-weight:800;margin-bottom:6px;">'+ffEsc(a[1])+'</div>'
+      +'<ul style="margin:0 0 8px;padding-left:16px;font-size:13px;color:var(--t2);">'+a[2].map(function(q,i){return '<li><b>'+["Base","Presión","Crisis"][i]+'.</b> '+ffEsc(q)+'</li>';}).join("")+'</ul>'
+      +seg(a[0], FA_LEVELS)+'</div>';
+  }).join("");
+  var checks=FA_CHECKS.map(function(c){return '<label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;"><input type="checkbox" id="fa-c-'+c[0]+'" onchange="faRead();faPaint();"> <span>'+ffEsc(c[1])+'</span></label>';}).join("");
+  var bp=ffEsc((FA.F&&FA.F.blueprint)||"");
+  m.innerHTML='<div class="fade" id="fa-root">'
+    +'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">'
+    +'<div><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);">The Founder\'s File · 4.º</div>'
+    +'<h2 style="font-size:18px;font-weight:800;color:var(--navy);margin:0;">Founder\'s Audit</h2>'
+    +'<div style="font-size:13px;color:var(--t2);">Solo 4.º año (décimo en el registro). Alumnos, empresa, forms y nota salen del Founder\'s File. La misma lista la ve Robert Grego y el Master Trainer. Sesión: '+who+'.</div></div>'
+    +'<button class="btn btn-navy btn-sm" onclick="renderFoundersAudit(document.getElementById(\'main-content\'))"><i class="ti ti-refresh"></i>Actualizar</button></div>'
+    +'<div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.9fr);gap:16px;align-items:start;">'
+    +'<div class="card" id="fa-form">'
+    +'<div class="form-group"><label class="form-label">Estudiante de 4.º</label><select class="inp" id="fa-student" onchange="faPick(this.value)">'+roster.map(function(r){return '<option value="'+r.studentId+'"'+(r.studentId===FA.id?' selected':'')+'>'+ffEsc(r.student)+'</option>';}).join("")+'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+    +'<div class="form-group"><label class="form-label">Grupo</label><input class="inp" id="fa-group" value="'+ffEsc(FA.F.group)+'" oninput="faRead();faPaint();"></div>'
+    +'<div class="form-group"><label class="form-label">Proyecto / empresa</label><input class="inp" id="fa-company" value="'+ffEsc(FA.F.company)+'" oninput="faRead();faPaint();"></div>'
+    +'<div class="form-group"><label class="form-label">Evaluador</label><select class="inp" id="fa-evaluator" onchange="faRead();faPaint();"><option value="">Elegir</option><option'+(FA.F.evaluator==="Johnny"?" selected":"")+'>Johnny</option><option'+(FA.F.evaluator==="Robert"?" selected":"")+'>Robert</option></select></div>'
+    +'<div class="form-group"><label class="form-label">Forms completados (0–7)</label><input class="inp" id="fa-forms" type="number" min="0" max="7" value="'+ffEsc(FA.F.forms)+'" oninput="faRead();faPaint();"><div style="font-size:12px;color:var(--t3);">2 pts por form · máx. 14. Sale del e-learning si ya existe.</div></div>'
+    +'<div class="form-group"><label class="form-label">Nota del e-learning (0–100)</label><input class="inp" id="fa-score" type="number" min="0" max="100" step="0.5" value="'+ffEsc(FA.F.score)+'" oninput="faRead();faPaint();"><div style="font-size:12px;color:var(--t3);">Vale 8 pts.</div></div>'
+    +'</div>'
+    +'<div style="background:var(--gray);border-radius:8px;padding:10px;margin-bottom:10px;'+(bp?'':'display:none;')+'"><div style="font-weight:700;margin-bottom:4px;">Blueprint del proyecto</div><pre id="fa-blueprint" style="white-space:pre-wrap;font-size:12px;margin:0;max-height:160px;overflow:auto;">'+bp+'</pre></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;"><h3 style="margin:8px 0;">A · Completion</h3><b id="fa-p-comp">0 / 30</b></div>'
+    +checks
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;"><h3 style="margin:8px 0;">B · Understanding</h3><b id="fa-p-und">0 / 70</b></div>'
+    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Una pregunta por área. Marca hasta qué nivel respondió. Repregunta "Why?" o "Give me an example."</p>'
+    +areas
+    +'<div class="card" style="margin-top:10px;"><h3 style="margin:0 0 8px;">Implementación real</h3><div style="font-size:13px;color:var(--t2);margin-bottom:8px;">¿Cumplió la acción con fecha del Form 06? Pide evidencia.</div>'+seg("impl",FA_IMPL)+'</div>'
+    +'<div style="margin-top:14px;"><div style="font-weight:700;">English (residual) · no suma</div>'+seg("eng",[["1","1"],["2","2"],["3","3"],["4","4"],["5","5"]])+'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;"><h3 style="margin:8px 0;">C · KPIs Infinity</h3><b id="fa-p-kpi">0 / 24</b></div>'
+    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Los 8 de Foundations, en la exposición. 0 no se vio · 3 fuerte. Quedan guardados junto a la nota de la empresa.</p>'
+    +FA_KPIS.map(function(k){return '<div class="card" style="margin-top:8px;"><div style="font-weight:800;">'+ffEsc(k[1])+'</div><div style="font-size:13px;color:var(--t2);margin:4px 0 8px;">'+ffEsc(k[2])+'</div>'+seg("kpi:"+k[0], FA_KPI_SCALE)+'</div>';}).join("")
+    +'<div class="form-group" style="margin-top:10px;"><label class="form-label">Notas del evaluador</label><textarea class="inp" id="fa-notes" oninput="faRead();">'+ffEsc(FA.F.notes)+'</textarea></div>'
+    +'<div style="display:flex;gap:16px;align-items:center;border:2px solid var(--navy);border-radius:8px;padding:12px;margin-top:12px;">'
+    +'<div id="fa-v-total" style="font-size:42px;font-weight:800;color:var(--navy);">0<small style="font-size:16px;color:var(--t3);">/100</small></div>'
+    +'<div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;">Diagnóstico</div><span id="fa-v-diag" style="display:inline-block;padding:3px 10px;border-radius:99px;font-weight:700;">Sin datos</span><div id="fa-v-detail" style="font-size:13px;color:var(--t2);margin-top:4px;"></div><div id="fa-v-flag" style="display:none;color:#B4322A;font-weight:700;margin-top:4px;"></div></div></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"><button class="btn btn-navy" onclick="faSave()">Guardar evaluación</button><button class="btn btn-red" id="fa-del" style="display:none;" onclick="faDel()">Eliminar</button></div>'
+    +'</div>'
+    +'<div class="card" style="position:sticky;top:12px;">'
+    +'<div style="display:flex;justify-content:space-between;"><h3 style="margin:0;">4.º</h3><span id="fa-r-count" style="color:var(--t3);font-size:12px;"></span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">'
+    +'<div><b id="fa-s-avg" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Promedio</div></div>'
+    +'<div><b id="fa-s-comp" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Completion</div></div>'
+    +'<div><b id="fa-s-und" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Understanding</div></div></div>'
+    +'<div class="form-group"><label class="form-label">Filtrar por grupo</label><select class="inp" id="fa-filter" onchange="faRenderRoster()"><option value="">Todos</option></select></div>'
+    +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;color:var(--t3);font-size:11px;">'
+    +'<th onclick="faSort(\'student\')">Estudiante</th><th onclick="faSort(\'group\')">Grupo</th><th onclick="faSort(\'comp\')">Comp.</th><th onclick="faSort(\'und\')">Und.</th><th onclick="faSort(\'kpi\')">KPI</th><th onclick="faSort(\'total\')">Total</th><th onclick="faSort(\'diag\')">Nivel</th></tr></thead><tbody id="fa-body"></tbody></table></div>'
+    +'<button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="faCsv()">Copiar resultados (CSV)</button>'
+    +'</div></div></div>';
+  faPaint();
+  }catch(err){
+    console.error(err);
+    m.innerHTML='<div class="fade"><div class="ib ib-amber">No se pudo cargar la auditoría.</div><button class="btn btn-navy btn-sm" style="margin-top:10px;" onclick="renderFoundersAudit(document.getElementById(\'main-content\'))">Actualizar</button></div>';
+  }
 }
 
 function renderSimulationSupervisor(m){

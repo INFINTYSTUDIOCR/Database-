@@ -329,9 +329,13 @@ const KAMUK_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const FF_CLOUD=/^KAM-[A-Za-z0-9-]+$/.test(FF_SID);
 const FF_ROW="FOUNDERS-"+FF_SID;
 let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start"};
-let FF_HAD_LOCAL=false;
-try{const s=localStorage.getItem(FF_KEY); if(s){S=Object.assign(S,JSON.parse(s));FF_HAD_LOCAL=true;}}catch(e){}
-function save(){try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){} cloudSave(false);}
+let FF_TOUCHED=false;
+try{const s=localStorage.getItem(FF_KEY); if(s) S=Object.assign(S,JSON.parse(s));}catch(e){}
+function richness(st){
+  st=st||{};
+  return Object.keys(st.ans||{}).length+Object.keys(st.b||{}).length+Object.keys(st.done||{}).length+(st.cur&&st.cur!=="start"?1:0);
+}
+function save(){FF_TOUCHED=true; try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){} cloudSave(false);}
 let _cloudT=null;
 function cloudRow(){
   const t=total();
@@ -340,29 +344,38 @@ function cloudRow(){
     perForm:MODS.map(m=>{const s=modScores(m);return {code:m.code,title:m.title,score:fmt(s.q+s.b),max:s.qmax+s.bmax,done:!!S.done[m.id]};}),
     report:reportText(),blueprint:blueprint(),state:S,updatedAt:new Date().toISOString()};
 }
+function flushCloud(){
+  if(!FF_CLOUD) return;
+  clearTimeout(_cloudT); _cloudT=null;
+  try{
+    fetch(KAMUK_SUPA+"/rest/v1/kamuk_sessions",{method:"POST",keepalive:true,
+      headers:{apikey:KAMUK_ANON,Authorization:"Bearer "+KAMUK_ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify({id:FF_ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+  }catch(e){}
+}
 function cloudSave(now){
   if(!FF_CLOUD) return;
   clearTimeout(_cloudT);
-  _cloudT=setTimeout(()=>{
-    try{
-      fetch(KAMUK_SUPA+"/rest/v1/kamuk_sessions",{method:"POST",keepalive:true,
-        headers:{apikey:KAMUK_ANON,Authorization:"Bearer "+KAMUK_ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
-        body:JSON.stringify({id:FF_ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
-    }catch(e){}
-  }, now?0:1500);
+  if(now){ flushCloud(); return; }
+  _cloudT=setTimeout(flushCloud, 600);
 }
 function cloudRestore(){
-  if(!FF_CLOUD||FF_HAD_LOCAL) return;
+  if(!FF_CLOUD) return;
   fetch(KAMUK_SUPA+"/rest/v1/kamuk_sessions?id=eq."+encodeURIComponent(FF_ROW)+"&select=data&limit=1",{headers:{apikey:KAMUK_ANON,Authorization:"Bearer "+KAMUK_ANON}})
     .then(r=>r.ok?r.json():[]).then(rows=>{
-      const st=rows&&rows[0]&&rows[0].data&&rows[0].data.state;
-      if(!st||FF_HAD_LOCAL) return;
-      S=Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start"},st);
-      try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}
-      render();
+      if(FF_TOUCHED) return;
+      const data=rows&&rows[0]&&rows[0].data;
+      const st=data&&data.state;
+      if(!st) return;
+      if(richness(st)>richness(S)){
+        S=Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start"},st);
+        try{localStorage.setItem(FF_KEY,JSON.stringify(S));}catch(e){}
+        render();
+      }else if(richness(S)>richness(st)) flushCloud();
     }).catch(()=>{});
 }
-addEventListener("pagehide",()=>{ if(_cloudT) cloudSave(true); });
+addEventListener("pagehide", flushCloud);
+addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") flushCloud(); });
 const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const words=t=>String(t||"").trim().split(/\s+/).filter(Boolean).length;
 
@@ -424,7 +437,7 @@ function bindStart(){
   document.getElementById("st-go").onclick=()=>{
     const n=document.getElementById("st-name").value.trim();
     if(words(n)<2){document.getElementById("st-err").hidden=false;return;}
-    S.name=n;S.group=document.getElementById("st-group").value.trim();S.cur="idea";save();render();window.scrollTo(0,0);
+    S.name=n;S.group=document.getElementById("st-group").value.trim();S.cur="idea";save();cloudSave(true);render();window.scrollTo(0,0);
   };
 }
 function modView(m){
@@ -489,7 +502,7 @@ function bindMod(m){
   m.build.forEach(f=>{const st=document.getElementById("st-"+f.id); if(fieldScore(f)>=f.pts) st.className="fieldstatus ok";});
   sheet.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{S.cur=b.dataset.nav;save();render();window.scrollTo(0,0);});
   document.getElementById("complete").onclick=()=>{
-    S.done[m.id]=true; const i=MODS.indexOf(m); S.cur=i<MODS.length-1?MODS[i+1].id:"report"; save(); render(); window.scrollTo(0,0);
+    S.done[m.id]=true; const i=MODS.indexOf(m); S.cur=i<MODS.length-1?MODS[i+1].id:"report"; save(); cloudSave(true); render(); window.scrollTo(0,0);
   };
 }
 const g=k=>(S.b[k]||"").trim();
