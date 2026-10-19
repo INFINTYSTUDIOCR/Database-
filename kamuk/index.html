@@ -1673,7 +1673,7 @@ function showPortal(s){
       +'<a href="training-book/alice-quiz/index.html?v=20260928" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
       +'</div>'
     : '';
-  var foundersCard = (isDecimoCohort(s) || isKamukOwnerStudent(s))
+  var foundersCard = (isDecimoCohort(s) || isKamukOwnerStudent(s) || s.foundersFile === true || (s.info && s.info.foundersFile === true))
     ? '<div class="card" style="border:1.5px solid #2B7EC1;background:linear-gradient(165deg,#E7F1FA,#fff);">'
       +'<div class="card-title" style="color:#1B5A8F;"><i class="ti ti-building"></i> E-learning — The Founder\'s File</div>'
       +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Diseñá tu propia empresa en inglés: idea, misión y visión, departamentos, producto, políticas, plan y pitch. 7 formularios · 60 minutos · puntaje sobre 100.</p>'
