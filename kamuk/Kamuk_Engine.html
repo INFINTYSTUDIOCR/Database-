@@ -1553,12 +1553,12 @@ function faRadar(){
   var sum=vals.reduce(function(s,v){ return s+v; },0);
   var rated=FA_KPIS.filter(function(k){ return ks[k[0]]!=null; }).length;
   if(legend){
-    legend.innerHTML='<div style="font-size:13px;line-height:1.45;margin-bottom:8px;"><b>'+sum+'/24</b> es la exposición. Cada KPI vale <b>0 a 3</b>. Son 8, así que 8 × 3 = <b>24</b>. No es la nota de la empresa: esa sigue sobre 100.</div>'
+    legend.innerHTML='<div style="font-size:12px;line-height:1.4;margin:6px 0 4px;"><b>'+sum+'/24</b> = 8 KPIs × 3. Cada fila es <b>n/3</b>. La empresa sigue sobre 100.</div>'
       +FA_KPIS.map(function(k){
         var v=ks[k[0]];
-        return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);"><span><b>'+ffEsc(k[1])+'</b><br><span style="color:var(--t3);">'+ffEsc(k[2])+'</span></span><b style="white-space:nowrap;">'+(v==null?'—':v)+'/3</b></div>';
+        return '<div title="'+ffEsc(k[2])+'" style="display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:2px 0;"><span>'+ffEsc(k[1])+'</span><b>'+(v==null?'—':v)+'/3</b></div>';
       }).join("")
-      +'<div style="font-size:12px;color:var(--t2);margin-top:8px;">0 no se vio · 1 débil · 2 cumple · 3 fuerte.'+(rated?' '+rated+' de 8 marcados.':' Todavía sin marcas.')+'</div>';
+      +'<div style="font-size:11px;color:var(--t3);margin-top:4px;">0 no se vio · 1 débil · 2 cumple · 3 fuerte.'+(rated?' '+rated+' de 8.':'')+'</div>';
   }
   if(typeof Chart==="undefined") return;
   if(window._faRadar && window._faRadar.canvas===canvas){
@@ -1723,9 +1723,7 @@ async function renderFoundersAudit(m){
     +'<div class="card" style="margin-top:10px;"><h3 style="margin:0 0 8px;">Implementación real</h3><div style="font-size:13px;color:var(--t2);margin-bottom:8px;">¿Cumplió la acción con fecha del Form 06? Pide evidencia.</div>'+seg("impl",FA_IMPL)+'</div>'
     +'<div style="margin-top:14px;"><div style="font-weight:700;">English (residual) · no suma</div>'+seg("eng",[["1","1"],["2","2"],["3","3"],["4","4"],["5","5"]])+'</div>'
     +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;"><h3 style="margin:8px 0;">C · KPIs Infinity</h3><b id="fa-p-kpi">0 / 24</b></div>'
-    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Los 8 de Foundations, en la exposición. 0 no se vio · 3 fuerte. Quedan guardados junto a la nota de la empresa.</p>'
-    +'<div style="height:280px;max-width:520px;margin:8px auto;"><canvas id="fa-radar"></canvas></div>'
-    +'<div id="fa-radar-legend" style="margin:0 0 12px;"></div>'
+    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Los 8 de Foundations, en la exposición. El radar y el n/3 están a la derecha, arriba de la lista.</p>'
     +FA_KPIS.map(function(k){return '<div class="card" style="margin-top:8px;"><div style="font-weight:800;">'+ffEsc(k[1])+'</div><div style="font-size:13px;color:var(--t2);margin:4px 0 8px;">'+ffEsc(k[2])+'</div>'+seg("kpi:"+k[0], FA_KPI_SCALE)+'</div>';}).join("")
     +'<div class="form-group" style="margin-top:10px;"><label class="form-label">Notas del evaluador</label><textarea class="inp" id="fa-notes" oninput="faRead();">'+ffEsc(FA.F.notes)+'</textarea></div>'
     +'<div style="display:flex;gap:16px;align-items:center;border:2px solid var(--navy);border-radius:8px;padding:12px;margin-top:12px;">'
@@ -1734,7 +1732,10 @@ async function renderFoundersAudit(m){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"><button class="btn btn-navy" onclick="faSave()">Guardar evaluación</button><button class="btn btn-red" id="fa-del" style="display:none;" onclick="faDel()">Eliminar</button></div>'
     +'</div>'
     +'<div class="card" style="position:sticky;top:12px;">'
-    +'<div style="display:flex;justify-content:space-between;"><h3 style="margin:0;">4.º</h3><span id="fa-r-count" style="color:var(--t3);font-size:12px;"></span></div>'
+    +'<h3 style="margin:0;">Radar · exposición</h3>'
+    +'<div style="height:220px;"><canvas id="fa-radar"></canvas></div>'
+    +'<div id="fa-radar-legend"></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-top:12px;"><h3 style="margin:0;">4.º</h3><span id="fa-r-count" style="color:var(--t3);font-size:12px;"></span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">'
     +'<div><b id="fa-s-avg" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Promedio</div></div>'
     +'<div><b id="fa-s-comp" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Completion</div></div>'
