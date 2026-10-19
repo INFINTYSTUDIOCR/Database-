@@ -1476,6 +1476,8 @@ function faPick(id){
   }
   faFillFields();
   faPaint();
+  var box=document.getElementById("fa-progress");
+  if(box) box.scrollIntoView({block:"nearest"});
 }
 function faFillFields(){
   if(!FA.F) return;
@@ -1543,11 +1545,16 @@ function faPaint(){
   faRenderRoster();
   faRadar();
 }
+var FA_RADARS={};
 function faRadar(){
-  var canvas=document.getElementById("fa-radar");
-  var legend=document.getElementById("fa-radar-legend");
-  if(!canvas||!FA.F) return;
-  var ks=FA.F.kpis||{};
+  if(!FA.F) return;
+  var title=document.getElementById("fa-progress-title");
+  if(title) title.textContent="Progreso de "+(FA.F.student||"este alumno");
+  faDrawRadar(document.getElementById("fa-radar"), document.getElementById("fa-radar-legend"), FA.F.kpis||{});
+}
+function faDrawRadar(canvas, legend, ks){
+  if(!canvas) return;
+  ks=ks||{};
   var short=["Estructura","Tiempo","Idea","Coord.","Respuesta","Pronunc.","Recuperar","Vocab."];
   var vals=FA_KPIS.map(function(k){ return ks[k[0]]==null?0:Number(ks[k[0]])||0; });
   var sum=vals.reduce(function(s,v){ return s+v; },0);
@@ -1561,16 +1568,17 @@ function faRadar(){
       +'<div style="font-size:11px;color:var(--t3);margin-top:4px;">0 no se vio · 1 débil · 2 cumple · 3 fuerte.'+(rated?' '+rated+' de 8.':'')+'</div>';
   }
   if(typeof Chart==="undefined") return;
-  if(window._faRadar && window._faRadar.canvas===canvas){
-    window._faRadar.data.datasets[0].data=vals;
-    window._faRadar.update();
+  var prev=FA_RADARS[canvas.id];
+  if(prev && prev.canvas===canvas){
+    prev.data.datasets[0].data=vals;
+    prev.update();
     return;
   }
-  if(window._faRadar){ window._faRadar.destroy(); window._faRadar=null; }
-  window._faRadar=new Chart(canvas,{
+  if(prev) prev.destroy();
+  FA_RADARS[canvas.id]=new Chart(canvas,{
     type:"radar",
     data:{labels:short,datasets:[{data:vals,backgroundColor:"rgba(43,126,193,0.28)",borderColor:"#1B5A8F",pointBackgroundColor:"#1B5A8F",borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){ var k=FA_KPIS[ctx.dataIndex]; var raw=(FA.F.kpis||{})[k[0]]; return k[1]+": "+(raw==null?"sin marca":raw+"/3"); }}}},scales:{r:{min:0,max:3,ticks:{stepSize:1,backdropColor:"transparent"},pointLabels:{font:{size:11}}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){ var k=FA_KPIS[ctx.dataIndex]; var raw=ks[k[0]]; return k[1]+": "+(raw==null?"sin marca":raw+"/3"); }}}},scales:{r:{min:0,max:3,ticks:{stepSize:1,backdropColor:"transparent"},pointLabels:{font:{size:11}}}}}
   });
 }
 function faRenderRoster(){
@@ -1648,7 +1656,7 @@ async function renderFoundersAudit(m){
     m.innerHTML='<div class="fade"><div class="ib ib-amber">Acceso restringido.</div></div>';
     return;
   }
-  if(window._faRadar){ window._faRadar.destroy(); window._faRadar=null; }
+  if(FA_RADARS["fa-radar"]){ FA_RADARS["fa-radar"].destroy(); delete FA_RADARS["fa-radar"]; }
   m.innerHTML='<div class="fade"><div class="ib"><i class="ti ti-loader spin"></i> Cargando 4.º…</div></div>';
   try{
   var sessions=(await dbQuery("kamuk_sessions?id=like.FOUNDERS-*&select=id,data")).concat(await dbQuery("kamuk_sessions?id=like.FAUDIT-*&select=id,data"));
@@ -1707,6 +1715,10 @@ async function renderFoundersAudit(m){
     +'<div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.9fr);gap:16px;align-items:start;">'
     +'<div class="card" id="fa-form">'
     +'<div class="form-group"><label class="form-label">Estudiante de 4.º</label><select class="inp" id="fa-student" onchange="faPick(this.value)">'+roster.map(function(r){return '<option value="'+r.studentId+'"'+(r.studentId===FA.id?' selected':'')+'>'+ffEsc(r.student)+'</option>';}).join("")+'</select></div>'
+    +'<div id="fa-progress" style="border:2px solid var(--navy);border-radius:8px;padding:12px;margin:0 0 14px;">'
+    +'<h3 id="fa-progress-title" style="margin:0 0 4px;">Progreso de este alumno</h3>'
+    +'<div style="height:260px;max-width:480px;"><canvas id="fa-radar"></canvas></div>'
+    +'<div id="fa-radar-legend"></div></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
     +'<div class="form-group"><label class="form-label">Grupo</label><input class="inp" id="fa-group" value="'+ffEsc(FA.F.group)+'" oninput="faRead();faPaint();"></div>'
     +'<div class="form-group"><label class="form-label">Proyecto / empresa</label><input class="inp" id="fa-company" value="'+ffEsc(FA.F.company)+'" oninput="faRead();faPaint();"></div>'
@@ -1723,7 +1735,7 @@ async function renderFoundersAudit(m){
     +'<div class="card" style="margin-top:10px;"><h3 style="margin:0 0 8px;">Implementación real</h3><div style="font-size:13px;color:var(--t2);margin-bottom:8px;">¿Cumplió la acción con fecha del Form 06? Pide evidencia.</div>'+seg("impl",FA_IMPL)+'</div>'
     +'<div style="margin-top:14px;"><div style="font-weight:700;">English (residual) · no suma</div>'+seg("eng",[["1","1"],["2","2"],["3","3"],["4","4"],["5","5"]])+'</div>'
     +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;"><h3 style="margin:8px 0;">C · KPIs Infinity</h3><b id="fa-p-kpi">0 / 24</b></div>'
-    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Los 8 de Foundations, en la exposición. El radar y el n/3 están a la derecha, arriba de la lista.</p>'
+    +'<p style="font-size:13px;color:var(--t2);margin-top:0;">Los 8 de Foundations, en la exposición. El gráfico de arriba es este alumno: cada KPI vale 0–3 y los 8 suman 24. La empresa sigue sobre 100.</p>'
     +FA_KPIS.map(function(k){return '<div class="card" style="margin-top:8px;"><div style="font-weight:800;">'+ffEsc(k[1])+'</div><div style="font-size:13px;color:var(--t2);margin:4px 0 8px;">'+ffEsc(k[2])+'</div>'+seg("kpi:"+k[0], FA_KPI_SCALE)+'</div>';}).join("")
     +'<div class="form-group" style="margin-top:10px;"><label class="form-label">Notas del evaluador</label><textarea class="inp" id="fa-notes" oninput="faRead();">'+ffEsc(FA.F.notes)+'</textarea></div>'
     +'<div style="display:flex;gap:16px;align-items:center;border:2px solid var(--navy);border-radius:8px;padding:12px;margin-top:12px;">'
@@ -1732,10 +1744,7 @@ async function renderFoundersAudit(m){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"><button class="btn btn-navy" onclick="faSave()">Guardar evaluación</button><button class="btn btn-red" id="fa-del" style="display:none;" onclick="faDel()">Eliminar</button></div>'
     +'</div>'
     +'<div class="card" style="position:sticky;top:12px;">'
-    +'<h3 style="margin:0;">Radar · exposición</h3>'
-    +'<div style="height:220px;"><canvas id="fa-radar"></canvas></div>'
-    +'<div id="fa-radar-legend"></div>'
-    +'<div style="display:flex;justify-content:space-between;margin-top:12px;"><h3 style="margin:0;">4.º</h3><span id="fa-r-count" style="color:var(--t3);font-size:12px;"></span></div>'
+    +'<div style="display:flex;justify-content:space-between;"><h3 style="margin:0;">4.º</h3><span id="fa-r-count" style="color:var(--t3);font-size:12px;"></span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">'
     +'<div><b id="fa-s-avg" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Promedio</div></div>'
     +'<div><b id="fa-s-comp" style="font-size:22px;">–</b><div style="font-size:12px;color:var(--t3);">Completion</div></div>'
@@ -1994,6 +2003,7 @@ function openStudent(id){
   var score=getScore(s); var level=getLevelForStudent(score,s); var phase=parseInt((s.info||{}).phase)||1;
   var scoreMax=getScoreMax(s);
   var isMaster = hasMasterAccess();
+  var showFaRadar=isCuartoStudent(s)||s.foundersFile===true||(s.info&&s.info.foundersFile===true);
   var kpis=(s.kpis||{}).phase1||{};
   var m=document.getElementById('main-content');
   currentView='student-'+id;
@@ -2034,6 +2044,11 @@ function openStudent(id){
     +'<span class="ph-code">'+((s.code)||'—')+'</span></div></div>'
     +'<div style="text-align:right;"><div class="ph-score">'+score+'</div><div class="ph-score-label">score / '+scoreMax+'</div></div>'
     +'</div>'
+    +(showFaRadar?('<div class="card" id="stu-fa-box" style="border:2px solid var(--navy);">'
+    +'<div class="card-title"><i class="ti ti-chart-radar"></i>Progreso de '+ffEsc((s.info&&s.info.name)||'este alumno')+'</div>'
+    +'<div id="stu-fa-explain" style="font-size:13px;color:var(--t2);margin-bottom:8px;">Cargando progreso…</div>'
+    +'<div style="height:260px;max-width:480px;"><canvas id="stu-fa-radar"></canvas></div>'
+    +'<div id="stu-fa-legend"></div></div>'):'')
 
     +'<div class="tabs" id="profile-tabs">'
     +'<div class="tab active" onclick="switchTab(\'kpis\',this)">KPIs & Ejercicios</div>'
@@ -2129,6 +2144,32 @@ function openStudent(id){
 
   // Live + history charts
   mountEngineProgressCharts(s, kpis, history);
+  mountStudentFoundersRadar(id, s);
+}
+async function mountStudentFoundersRadar(id, s){
+  var box=document.getElementById("stu-fa-box");
+  var explain=document.getElementById("stu-fa-explain");
+  if(!box||!explain) return;
+  var show=isCuartoStudent(s)||s.foundersFile===true||(s.info&&s.info.foundersFile===true);
+  if(!show){ box.style.display="none"; return; }
+  var name=(s.info&&s.info.name)||"Este alumno";
+  try{
+    var auditRows=await dbQuery("kamuk_sessions?id=eq."+encodeURIComponent("FAUDIT-"+id)+"&select=data&limit=1");
+    var projRows=await dbQuery("kamuk_sessions?id=eq."+encodeURIComponent("FOUNDERS-"+id)+"&select=data&limit=1");
+    var audit=(auditRows[0]&&auditRows[0].data)||{};
+    var proj=(projRows[0]&&projRows[0].data)||{};
+    var ks=audit.kpis||{};
+    var kpi=faKpiShown(audit);
+    var forms=proj.formsDone!=null?proj.formsDone:"—";
+    var nota=proj.score!=null?proj.score:"—";
+    var empresa=audit.total!=null?Math.round(audit.total):null;
+    explain.innerHTML='<b>'+ffEsc(name)+'</b> · exposición <b>'+(kpi==null?"0":kpi)+'/24</b> (8 KPIs × 3, cada uno de 0 a 3). '
+      +'E-learning: forms <b>'+ffEsc(forms)+'/7</b>, nota <b>'+ffEsc(nota)+'/100</b>. '
+      +(empresa!=null?'Auditoría de la empresa: <b>'+empresa+'/100</b>. ':'La auditoría de la empresa todavía no está marcada. ');
+    faDrawRadar(document.getElementById("stu-fa-radar"), document.getElementById("stu-fa-legend"), ks);
+  }catch(e){
+    explain.textContent="No se pudo leer el progreso.";
+  }
 }
 
 function mountEngineProgressCharts(s, kpis, history){
