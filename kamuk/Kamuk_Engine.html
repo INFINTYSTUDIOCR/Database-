@@ -1342,8 +1342,20 @@ async function renderFoundersFile(m){
   }
   m.innerHTML = '<div class="fade"><div class="ib"><i class="ti ti-loader spin"></i> Cargando resultados…</div></div>';
   var rows = await dbQuery('kamuk_sessions?id=like.FOUNDERS-*&select=id,data');
+  var posRows = await dbQuery('kamuk_sessions?id=like.POSITION-*&select=id,data');
+  var stratRows = await dbQuery('kamuk_sessions?id=like.STRATEGY-*&select=id,data');
   var results = {};
   rows.forEach(function(r){ if(r.data && r.data.studentId) results[r.data.studentId] = r.data; });
+  var positions = {};
+  posRows.forEach(function(r){ if(r.data && r.data.studentId) positions[r.data.studentId] = r.data; });
+  var strategies = {};
+  stratRows.forEach(function(r){ if(r.data && r.data.studentId) strategies[r.data.studentId] = r.data; });
+  try{
+    var infIds = FF_INFINITY_GUESTS.map(function(g){ return 'STRATEGY-'+g.id; }).join(',');
+    var infRes = await fetch(FF_INF_SUPA+'/rest/v1/infinity_sessions?id=in.('+encodeURIComponent(infIds)+')&select=id,data', {headers:{apikey:FF_INF_ANON, Authorization:'Bearer '+FF_INF_ANON}});
+    var infRows = infRes.ok ? await infRes.json() : [];
+    (Array.isArray(infRows)?infRows:[]).forEach(function(r){ if(r.data && r.data.studentId) strategies[r.data.studentId] = r.data; });
+  }catch(e){}
   var list = Object.keys(DB).filter(function(id){ return isDecimoStudent(DB[id]); }).map(function(id){
     return { id: id, s: DB[id], r: results[id] || null };
   });
@@ -1355,11 +1367,19 @@ async function renderFoundersFile(m){
   var finished = started.filter(function(x){ return x.r.formsDone >= 7; });
   var avg = started.length ? Math.round(started.reduce(function(sum,x){ return sum + (Number(x.r.score)||0); }, 0) / started.length * 10) / 10 : 0;
 
+  function posCell(id){
+    var p = strategies[id] || positions[id];
+    if(!p) return '<td style="color:var(--t3);">—</td>';
+    return '<td style="font-weight:800;color:var(--navy);">'+ffEsc(p.score)+'<div style="font-weight:500;font-size:11px;color:var(--t2);max-width:240px;">'+ffEsc(p.chosen||'')+(p.line?' · '+ffEsc(p.line):'')+'</div></td>';
+  }
   var body = list.map(function(x, i){
     var name = ffEsc((x.s.info && x.s.info.name) || x.id)
       + (x.guest ? ' <span style="font-size:10px;font-weight:700;color:#7B4DFF;border:1px solid #7B4DFF;border-radius:6px;padding:0 5px;">Infinity</span>' : '');
+    var p = strategies[x.id] || positions[x.id];
+    var posReport = p ? '<div style="font-weight:700;margin:10px 0 6px;">Estrategia</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(p.report||'')+'</pre>' : '';
     if(!x.r){
-      return '<tr><td>'+name+'</td><td colspan="6" style="color:var(--t3);">Sin iniciar</td><td></td></tr>';
+      return '<tr><td>'+name+'</td><td colspan="6" style="color:var(--t3);">Sin iniciar</td>'+posCell(x.id)+'<td>'+(p?'<button class="btn btn-outline btn-sm" onclick="var d=document.getElementById(\'ff-det-'+i+'\');d.style.display=d.style.display===\'none\'?\'\':\'none\';">Estrategias</button>':'')+'</td></tr>'
+        +(p?'<tr id="ff-det-'+i+'" style="display:none;"><td colspan="9" style="background:var(--gray);">'+posReport+'</td></tr>':'');
     }
     var r = x.r;
     var when = r.updatedAt ? new Date(r.updatedAt).toLocaleString('es-CR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
@@ -1369,12 +1389,13 @@ async function renderFoundersFile(m){
     return '<tr><td>'+name+'</td><td>'+ffEsc(r.company||'—')+'</td>'
       +'<td style="font-weight:800;color:var(--navy);">'+ffEsc(r.score)+'</td><td>'+ffEsc(r.check)+'/40</td><td>'+ffEsc(r.build)+'/60</td>'
       +'<td>'+ffEsc(r.formsDone)+'/7</td><td style="font-size:11px;color:var(--t2);">'+when+'</td>'
+      +posCell(x.id)
       +'<td><button class="btn btn-outline btn-sm" onclick="var d=document.getElementById(\'ff-det-'+i+'\');d.style.display=d.style.display===\'none\'?\'\':\'none\';"><i class="ti ti-file-text"></i>Reporte</button></td></tr>'
-      +'<tr id="ff-det-'+i+'" style="display:none;"><td colspan="8" style="background:var(--gray);">'
+      +'<tr id="ff-det-'+i+'" style="display:none;"><td colspan="9" style="background:var(--gray);">'
       +'<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;">'
       +'<div><div style="font-weight:700;margin-bottom:6px;">Puntaje por formulario</div><table style="width:100%;font-size:12px;">'+forms+'</table>'
       +'<div style="font-weight:700;margin:10px 0 6px;">Reporte del estudiante</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(r.report||'')+'</pre></div>'
-      +'<div><div style="font-weight:700;margin-bottom:6px;">Blueprint de la empresa</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(r.blueprint||'')+'</pre></div>'
+      +'<div><div style="font-weight:700;margin-bottom:6px;">Blueprint de la empresa</div><pre style="white-space:pre-wrap;font-size:12px;margin:0;">'+ffEsc(r.blueprint||'')+'</pre>'+posReport+'</div>'
       +'</div></td></tr>';
   }).join('');
 
@@ -1389,8 +1410,8 @@ async function renderFoundersFile(m){
     +'<div class="card"><div style="font-size:11px;color:var(--t3);">Promedio</div><div style="font-size:22px;font-weight:800;">'+avg+'<span style="font-size:12px;color:var(--t3);"> /100</span></div></div>'
     +'</div>'
     +'<div class="card" style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
-    +'<thead><tr style="text-align:left;color:var(--t3);font-size:11px;"><th>Estudiante</th><th>Empresa</th><th>Puntaje</th><th>Check</th><th>Build</th><th>Formularios</th><th>Actualizado</th><th></th></tr></thead>'
-    +'<tbody>'+(body || '<tr><td colspan="8" style="color:var(--t3);">No hay estudiantes de 10.º.</td></tr>')+'</tbody></table></div>'
+    +'<thead><tr style="text-align:left;color:var(--t3);font-size:11px;"><th>Estudiante</th><th>Empresa</th><th>Puntaje</th><th>Check</th><th>Build</th><th>Formularios</th><th>Actualizado</th><th>Estrategia</th><th></th></tr></thead>'
+    +'<tbody>'+(body || '<tr><td colspan="9" style="color:var(--t3);">No hay estudiantes de 10.º.</td></tr>')+'</tbody></table></div>'
     +'</div>';
 }
 

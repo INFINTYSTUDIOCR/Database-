@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Company strategy · Kamuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --paper:#EEF3F8; --sheet:#FFFFFF; --ink:#15232C; --muted:#56676E; --line:#D3DCE6;
+  --accent:#2B7EC1; --accent-ink:#FFFFFF; --accent-soft:#E7F1FA; --stamp:#B4322A; --good:#1C7A3D; --good-soft:#E1F2E6; --bad-soft:#F7E3E1;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.wrap{max-width:1120px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--f-display);font-size:20px}
+.brand span{color:var(--muted)}
+.scorebox{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.scorebox strong{font-family:var(--f-display);font-size:28px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:140px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;margin-top:24px;align-items:start}
+nav.index{position:sticky;top:90px;display:flex;flex-direction:column;gap:4px}
+nav.index button{all:unset;cursor:pointer;display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:6px;color:var(--ink)}
+nav.index button:hover{background:var(--sheet)}
+nav.index button:focus-visible{outline:2px solid var(--accent)}
+nav.index button.on{background:var(--sheet);box-shadow:inset 3px 0 0 var(--accent)}
+nav.index .code{color:var(--muted)}
+nav.index .tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--line)}
+nav.index .tick.done{background:var(--good);border-color:var(--good)}
+main.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:clamp(20px,4vw,44px);min-width:0}
+.formhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:24px}
+.formhead h2{font-size:clamp(28px,4vw,40px);font-weight:800}
+.formhead .meta{color:var(--muted);text-align:right}
+section.step{margin-block:32px}
+.steplabel{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.steplabel .pill{background:var(--accent);color:var(--accent-ink);padding:2px 10px;border-radius:99px}
+.steplabel h3{font-size:22px}
+.learn p,.learn li{max-width:68ch}
+.learn h4{font-family:var(--f-display);font-size:18px;margin:22px 0 6px}
+.learn ul,.learn ol{padding-left:22px;margin:6px 0}
+.formula{border:1px dashed var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:6px;font-weight:700;margin:10px 0;max-width:68ch}
+.example{border-left:3px solid var(--muted);padding:6px 16px;margin:12px 0;color:var(--ink);max-width:68ch}
+.example .mono{color:var(--muted);display:block}
+.mistake{color:var(--stamp)}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;min-width:520px;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.filebox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:0 0 18px}
+.filebox b{font-family:var(--f-display)}
+.q{border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+.q p.qt{font-weight:700;margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--sheet)}
+.opts button:hover:not([disabled]){border-color:var(--accent)}
+.opts button:focus-visible{outline:2px solid var(--accent)}
+.opts button[disabled]{cursor:default}
+.opts button.right{background:var(--good-soft);border-color:var(--good)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--stamp)}
+.why{margin-top:10px;font-size:15px}
+.why b.ok{color:var(--good)} .why b.no{color:var(--stamp)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.field label{font-weight:700}
+.field .help{color:var(--muted);font-size:15px}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.fieldstatus{font-size:13px;color:var(--muted)}
+.fieldstatus.ok{color:var(--good)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:20px;margin-top:28px}
+.btn{all:unset;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:12px 22px;border-radius:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.draft{white-space:pre-wrap;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;max-width:72ch}
+.start{max-width:680px;margin-top:40px}
+.start h1{font-size:clamp(36px,6vw,56px);font-weight:800;margin:8px 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stamp{display:inline-block;border:3px solid var(--stamp);color:var(--stamp);font-family:var(--f-mono);font-weight:500;letter-spacing:.12em;padding:6px 14px;transform:rotate(-4deg);border-radius:4px}
+.note{color:var(--muted);font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:6px;font-weight:700}
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.index{position:static;flex-direction:row;overflow-x:auto}
+  nav.index button{grid-template-columns:auto;white-space:nowrap}
+  nav.index .name,nav.index .tick{display:none}
+  .grid2{grid-template-columns:1fr}
+  .bar{width:90px}
+  table{min-width:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.cadamag-credit{margin:40px auto 0;max-width:1120px;text-align:center;font-size:12px;color:var(--muted)}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+.cadamag-credit-link{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.cadamag-credit-link:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Company strategy</b><span class="mono" id="who">The Founder's File</span></div>
+    <div class="scorebox"><span class="mono">Score</span><strong id="score">0</strong><span>/100</span><div class="bar"><i id="barfill"></i></div></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+const STRATS = [
+  ["price","Price","Be the affordable choice. The customer picks you because they can pay."],
+  ["specialist","Specialist","Serve one kind of customer only. You are not for everybody."],
+  ["speed","Speed or closeness","Be faster or nearer than the other option."],
+  ["trust","Trust","Be the safer or higher-quality choice. The customer pays for confidence."]
+];
+const QPTS = 2.5;
+const PARTS = [
+  { id:"position", code:"01", title:"Positioning",
+    learn:`
+<p>Your company already has a name, a customer and an offer. Positioning is the next decision: <strong>how that customer should see you</strong> next to another option.</p>
+<div class="formula">For [customer], [company] is the [category] that [difference].</div>
+<h4>Four strategies. You will write two, then keep one.</h4>
+<div class="tablewrap"><table>
+<tr><th>Strategy</th><th>The customer thinks</th><th>Example</th></tr>
+<tr><td>Price</td><td>I can pay this.</td><td>SnackBox is $6, so a student can buy lunch.</td></tr>
+<tr><td>Specialist</td><td>This is for someone like me.</td><td>Volcano FC trains players from 8 to 17. Not a club for everyone.</td></tr>
+<tr><td>Speed or closeness</td><td>This is faster, or it is near me.</td><td>NovaCare answers in 30 minutes. The other clinic takes hours.</td></tr>
+<tr><td>Trust</td><td>This is safer or better made.</td><td>A clinic that does not share patient information.</td></tr>
+</table></div>
+<p>A clear position also says what you refuse. If you are the fast clinic, you are not the cheapest clinic.</p>
+<p class="mistake">"We are the best for everybody" is not a strategy. The customer cannot see you.</p>`,
+    quiz:[
+      {q:"What is positioning?", o:["The company logo and the colors","The place your company occupies in the customer's mind","The number of employees","The office address"], a:1, why:"Positioning is how the customer sees you, next to the other options."},
+      {q:"Which sentence follows the formula?", o:["SnackBox is good.","For busy students, SnackBox is the lunch that arrives in 20 minutes for $6.","We sell food.","Everybody is our customer."], a:1, why:"For [customer], [company] is the [category] that [difference]."}
+    ],
+    build:[
+      {id:"company", label:"Your company name", help:"The company you already built. Do not invent a new one.", type:"text", min:1, pts:2},
+      {id:"stratA", label:"Strategy 1", help:"Pick one way the customer could see you.", type:"select", pts:3},
+      {id:"whyA", label:"Why strategy 1 fits your company", help:"Use your real customer and your real offer.", type:"area", min:8, pts:6},
+      {id:"stratB", label:"Strategy 2", help:"Pick a different strategy.", type:"select", pts:3},
+      {id:"whyB", label:"Why strategy 2 fits your company", help:"A different reason. Do not copy strategy 1.", type:"area", min:8, pts:6},
+      {id:"chosen", label:"The strategy you will use", help:"Choose one of the two you wrote above.", type:"select", pts:3},
+      {id:"line", label:"Your positioning line", help:"For [customer], [company] is the [category] that [difference].", type:"area", min:10, pts:8},
+      {id:"notThis", label:"What you are not", help:"Example: We are not the cheapest clinic. We are the fast one.", type:"area", min:6, pts:4}
+    ]},
+  { id:"ads", code:"02", title:"Advertising",
+    learn:`
+<p>The advertisement comes from the positioning line you just chose. You speak to the <strong>same customer</strong>. You do not invent a new audience.</p>
+<h4>The promise</h4>
+<p>One line. It is the reason that customer should stop and look.</p>
+<div class="example"><span class="mono">Example</span>Working parents get a doctor in 30 minutes, near home.</div>
+<h4>The video</h4>
+<p>Write the video as a short plan, not as a film. Include all five:</p>
+<ol>
+<li>The first image the viewer sees.</li>
+<li>The problem.</li>
+<li>The product or service.</li>
+<li>The line someone says.</li>
+<li>How long it is, in seconds.</li>
+</ol>
+<div class="example"><span class="mono">Example · 20 seconds</span>First image: a parent looking at a clock in a waiting room. Problem: the visit has already taken two hours. Product: NovaCare on the phone. Line: "For working parents, NovaCare is the clinic that answers in 30 minutes." Length: 20 seconds.</div>
+<h4>How you promote that video</h4>
+<p>Say where it goes, who shares it, the text that goes with the video, and what the viewer must do.</p>
+<div class="example"><span class="mono">Example</span>It goes on Instagram and WhatsApp status. Marketing shares it on Friday. The text says: "30 minutes, not 3 hours. Message us today." The viewer sends a WhatsApp message to book.</div>`,
+    quiz:[
+      {q:"Who is the advertisement for?", o:["A new audience you invent today","The same customer your company already serves","Everybody","Only your teammates"], a:1, why:"The ad speaks to the customer you already chose."},
+      {q:"Which video plan is complete?", o:["A cool video about our logo.","First image: a clock. Problem: the family has waited two hours. Product: the clinic visit. Line: we answer in 30 minutes. Length: 20 seconds.","We will go viral.","A long movie."], a:1, why:"It has the first image, the problem, the product, the spoken line and the length."}
+    ],
+    build:[
+      {id:"promise", label:"The promise, in one line", help:"The same customer. One sentence.", type:"area", min:6, pts:5},
+      {id:"video", label:"The video", help:"Write the first image, the problem, the product, the line someone says, and the length in seconds.", type:"area", min:20, pts:12},
+      {id:"promo", label:"How you promote the video", help:"Where it goes, who shares it, the text next to the video, and what the viewer must do.", type:"area", min:16, pts:8}
+    ]},
+  { id:"alliance", code:"03", title:"Alliance",
+    learn:`
+<p>An alliance is two companies from your group working together. You do not replace your company. You build <strong>one app</strong> that brings customers to both.</p>
+<h4>What you write</h4>
+<ol>
+<li>The other company, and what it does.</li>
+<li>The app, in one sentence.</li>
+<li>What each company puts in. People, customers, a product, a place.</li>
+<li>How your company grows, and how the other company grows.</li>
+</ol>
+<div class="example"><span class="mono">Example</span>NovaCare joins SnackBox. The app lets a parent book a clinic visit and order the child's lunch in the same place. NovaCare puts in the doctors. SnackBox puts in the lunches. NovaCare grows because parents come back every month. SnackBox grows because every visit can become a lunch order.</div>
+<p class="mistake">"We will be partners" is not an alliance. Name the other company, the app, and the growth for both.</p>`,
+    quiz:[
+      {q:"What is an alliance in this course?", o:["Closing your company and joining another","Two companies building one app that helps both grow","A new logo for your company","A video with no product"], a:1, why:"You keep your company. The app brings customers to both."},
+      {q:"Which alliance is specific?", o:["We will work with someone.","NovaCare and SnackBox build one app: book the visit and order lunch. NovaCare grows with monthly visits. SnackBox grows with lunch orders.","We make an app.","Everybody partners with everybody."], a:1, why:"It names both companies, the app, and how each one grows."}
+    ],
+    build:[
+      {id:"partner", label:"The other company and what it does", help:"Name a company from your group. Say what it sells.", type:"area", min:6, pts:4},
+      {id:"app", label:"The app you build together", help:"One sentence. What can the customer do in the app?", type:"area", min:8, pts:8},
+      {id:"puts", label:"What each company puts in", help:"What do you put in, and what does the other company put in?", type:"area", min:8, pts:7},
+      {id:"growth", label:"How both companies grow", help:"How yours grows, and how the other grows.", type:"area", min:8, pts:6}
+    ]}
+];
+
+const SID = String(new URLSearchParams(location.search).get("sid")||"").trim();
+const IS_INFINITY = /^IS-[A-Za-z0-9-]+$/.test(SID);
+const IS_KAMUK = /^KAM-[A-Za-z0-9-]+$/.test(SID);
+const KAMUK_SUPA = "https://lbspgbeqtcnjrbhiuucu.supabase.co";
+const KAMUK_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM";
+const INF_SUPA = "https://rxruvpfdpgowmpvydacd.supabase.co";
+const INF_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cnV2cGZkcGdvd21wdnlkYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ4MjAsImV4cCI6MjA5NjcxMDgyMH0.WzwMUnsuZfzkP2QoQzJnnvvgnG-saWkn1IQVDv-_roE";
+const SUPA = IS_INFINITY ? INF_SUPA : KAMUK_SUPA;
+const ANON = IS_INFINITY ? INF_ANON : KAMUK_ANON;
+const TABLE = IS_INFINITY ? "infinity_sessions" : "kamuk_sessions";
+const CLOUD = IS_INFINITY || IS_KAMUK;
+const ROW = "STRATEGY-"+SID;
+const KEY = "company_strategy"+(SID?":"+SID:"");
+let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start",file:null};
+let TOUCHED = false;
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+
+const esc = t => String(t==null?"":t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const words = t => String(t||"").trim().split(/\s+/).filter(Boolean).length;
+const fmt = n => Math.round(n*10)/10;
+const g = id => String(S.b[id]||"").trim();
+const stratName = id => (STRATS.find(s => s[0]===id)||["",""])[1];
+const partById = id => PARTS.find(p => p.id===id);
+
+function fieldScore(f){
+  const v = S.b[f.id];
+  if(f.type==="select"){
+    if(!v) return 0;
+    if(f.id==="stratB" && v===S.b.stratA) return 0;
+    if(f.id==="chosen" && v!==S.b.stratA && v!==S.b.stratB) return 0;
+    return f.pts;
+  }
+  const w = words(v);
+  if(w>=f.min) return f.pts;
+  if(w>0) return f.pts/2;
+  return 0;
+}
+function partScores(p){
+  let q = 0;
+  p.quiz.forEach((x,i)=>{ if(S.ans[p.id+i]===x.a) q += QPTS; });
+  let b = 0;
+  p.build.forEach(f => b += fieldScore(f));
+  return {q, qmax:p.quiz.length*QPTS, b, bmax:p.build.reduce((s,f)=>s+f.pts,0)};
+}
+function scores(){
+  let q = 0, b = 0, qmax = 0, bmax = 0;
+  PARTS.forEach(p => { const s = partScores(p); q += s.q; b += s.b; qmax += s.qmax; bmax += s.bmax; });
+  return {q, b, qmax, bmax, t:q+b};
+}
+function save(){ TOUCHED = true; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudSave(false); }
+let cloudT = null;
+function reportText(){
+  const t = scores();
+  return `COMPANY STRATEGY
+Student: ${S.name}${S.group?" | Group: "+S.group:""}
+Company: ${g("company")||"(no name)"}
+SCORE: ${fmt(t.t)}/100
+This score is the strategy. It does not change the company score.
+
+1. POSITIONING
+Strategy 1: ${stratName(S.b.stratA)||"—"}
+${g("whyA")||"—"}
+
+Strategy 2: ${stratName(S.b.stratB)||"—"}
+${g("whyB")||"—"}
+
+We will use: ${stratName(S.b.chosen)||"—"}
+Positioning line: ${g("line")||"—"}
+We are not: ${g("notThis")||"—"}
+
+2. ADVERTISING
+Promise: ${g("promise")||"—"}
+Video: ${g("video")||"—"}
+Promotion: ${g("promo")||"—"}
+
+3. ALLIANCE
+Other company: ${g("partner")||"—"}
+App: ${g("app")||"—"}
+Each company puts in: ${g("puts")||"—"}
+How both grow: ${g("growth")||"—"}`;
+}
+function cloudRow(){
+  const t = scores();
+  return {
+    studentId:SID, name:S.name, group:S.group, company:g("company"),
+    score:fmt(t.t), check:fmt(t.q), build:fmt(t.b),
+    chosen:stratName(S.b.chosen), line:g("line"), notThis:g("notThis"),
+    strategyA:stratName(S.b.stratA), strategyB:stratName(S.b.stratB),
+    promise:g("promise"), video:g("video"), promo:g("promo"),
+    partner:g("partner"), app:g("app"), growth:g("growth"),
+    partsDone:PARTS.filter(p=>S.done[p.id]).length,
+    report:reportText(), state:S, updatedAt:new Date().toISOString()
+  };
+}
+function flushCloud(){
+  if(!CLOUD) return;
+  clearTimeout(cloudT); cloudT = null;
+  try{
+    fetch(SUPA+"/rest/v1/"+TABLE,{method:"POST",keepalive:true,
+      headers:{apikey:ANON,Authorization:"Bearer "+ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify({id:ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+  }catch(e){}
+}
+function cloudSave(now){
+  if(!CLOUD) return;
+  clearTimeout(cloudT);
+  if(now){ flushCloud(); return; }
+  cloudT = setTimeout(flushCloud, 600);
+}
+function richness(st){
+  st = st||{};
+  return Object.keys(st.ans||{}).length + Object.keys(st.b||{}).length + Object.keys(st.done||{}).length + (st.cur&&st.cur!=="start"?1:0);
+}
+function cloudRestore(){
+  if(!CLOUD) return;
+  fetch(SUPA+"/rest/v1/"+TABLE+"?id=eq."+encodeURIComponent(ROW)+"&select=data&limit=1",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const st = rows&&rows[0]&&rows[0].data&&rows[0].data.state;
+      if(!st) return;
+      if(richness(st)>richness(S)){
+        S = Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start",file:S.file||null}, st);
+        try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+        render();
+      }else if(richness(S)>richness(st)) flushCloud();
+    }).catch(()=>{});
+}
+function loadFile(){
+  if(!CLOUD) return;
+  fetch(SUPA+"/rest/v1/"+TABLE+"?id=eq."+encodeURIComponent("FOUNDERS-"+SID)+"&select=data&limit=1",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const d = rows&&rows[0]&&rows[0].data;
+      if(!d) return;
+      const b = (d.state&&d.state.b)||{};
+      S.file = {company:d.company||b.name||"", customer:b.customer||"", why:b.whyus||""};
+      if(S.file.company && !S.b.company) S.b.company = S.file.company;
+      if(d.state&&d.state.name && !S.name) S.name = d.state.name;
+      if(d.state&&d.state.group && !S.group) S.group = d.state.group;
+      render();
+    }).catch(()=>{});
+}
+addEventListener("pagehide", flushCloud);
+addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") flushCloud(); });
+
+function upd(){
+  const t = scores();
+  document.getElementById("score").textContent = fmt(t.t);
+  document.getElementById("barfill").style.width = Math.min(100, t.t)+"%";
+  document.getElementById("who").textContent = S.name ? (S.name+(S.group?" · "+S.group:"")) : "The Founder's File";
+}
+function render(){
+  const app = document.getElementById("app");
+  if(S.cur==="start"){ app.innerHTML = startView(); bindStart(); upd(); return; }
+  const part = partById(S.cur);
+  app.innerHTML = `<div class="layout"><nav class="index" aria-label="Parts">${navHTML()}</nav><main class="sheet">${part?partView(part):reportView()}</main></div>`;
+  app.querySelectorAll("nav.index button").forEach(b => b.onclick = ()=>{ S.cur = b.dataset.go; save(); render(); window.scrollTo(0,0); });
+  if(part) bindPart(part); else bindReport();
+  upd();
+}
+function navHTML(){
+  return PARTS.map(p=>`<button data-go="${p.id}" class="${S.cur===p.id?"on":""}"><span class="mono code">${p.code}</span><span class="name">${p.title}</span><span class="tick ${S.done[p.id]?"done":""}"></span></button>`).join("")
+    + `<button data-go="report" class="${S.cur==="report"?"on":""}"><span class="mono code">End</span><span class="name">Strategy</span><span class="tick ${PARTS.every(p=>S.done[p.id])?"done":""}"></span></button>`;
+}
+function fileHTML(){
+  const f = S.file;
+  if(!f || (!f.company && !f.customer && !f.why)) return "";
+  return `<div class="filebox"><span class="mono">From your Founder's File</span>
+    <p style="margin:6px 0 0;"><b>${esc(f.company||"Your company")}</b><br>
+    ${f.customer?esc(f.customer)+"<br>":""}${f.why?esc(f.why):""}</p></div>`;
+}
+function startView(){
+  return `<div class="start">
+    <span class="mono" style="color:var(--muted)">One strategy · three parts · in English</span>
+    <h1>Write the strategy of your company</h1>
+    <p>You already know your company. Here you write the strategy you will present, all of it, one time, live, in English. This page is where you write it.</p>
+    ${fileHTML()}
+    <div class="tablewrap"><table>
+      <tr><th>Part</th><th>You write</th><th>Points</th></tr>
+      <tr><td>01 Positioning</td><td>Two strategies, the one you keep, the line, what you are not</td><td>40</td></tr>
+      <tr><td>02 Advertising</td><td>The promise, the video, how you promote the video</td><td>30</td></tr>
+      <tr><td>03 Alliance</td><td>The other company, the app, what each one puts in, how both grow</td><td>30</td></tr>
+    </table></div>
+    <p class="note">This score is only the strategy. It does not change the score of your company. Each check can be answered once.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="field"><label for="st-name">Your full name</label><input type="text" id="st-name" value="${esc(S.name)}"></div>
+      <div class="field"><label for="st-group">Group or section</label><input type="text" id="st-group" value="${esc(S.group)}" placeholder="Example: 10-A"></div>
+    </div>
+    <p id="st-err" class="mistake" hidden>Write your full name to start.</p>
+    <button class="btn" id="st-go">Open positioning</button>
+  </div>`;
+}
+function bindStart(){
+  document.getElementById("st-go").onclick = ()=>{
+    const n = document.getElementById("st-name").value.trim();
+    if(words(n)<2){ document.getElementById("st-err").hidden = false; return; }
+    S.name = n; S.group = document.getElementById("st-group").value.trim(); S.cur = "position";
+    save(); cloudSave(true); render(); window.scrollTo(0,0);
+  };
+}
+function optHTML(selected){
+  return `<option value="">Choose one</option>`+STRATS.map(s=>`<option value="${s[0]}" ${selected===s[0]?"selected":""}>${esc(s[1])} — ${esc(s[2])}</option>`).join("");
+}
+function statusText(f){
+  const sc = fieldScore(f);
+  if(f.id==="stratB" && S.b.stratB && S.b.stratB===S.b.stratA) return "Choose a different strategy from strategy 1.";
+  if(f.id==="chosen" && S.b.chosen && S.b.chosen!==S.b.stratA && S.b.chosen!==S.b.stratB) return "Choose one of the two strategies you already wrote.";
+  if(sc>=f.pts) return `Complete · ${f.pts} pts`;
+  if(f.type==="select") return `0 of ${f.pts} pts`;
+  return `${fmt(sc)} of ${f.pts} pts · write at least ${f.min} word${f.min>1?"s":""}`;
+}
+function qHTML(p,k){
+  const x = p.quiz[k], key = p.id+k, ch = S.ans[key], answered = ch!==undefined;
+  return `<p class="qt">${k+1}. ${esc(x.q)}</p><div class="opts">${x.o.map((o,j)=>{
+    let c = ""; if(answered){ if(j===x.a) c = "right"; else if(j===ch) c = "wrong"; }
+    return `<button data-q="${key}" data-j="${j}" class="${c}" ${answered?"disabled":""}>${esc(o)}</button>`;
+  }).join("")}</div>${answered?`<p class="why">${ch===x.a?'<b class="ok">Correct.</b>':'<b class="no">Not quite.</b>'} ${esc(x.why)}</p>`:""}`;
+}
+function fieldHTML(f){
+  const v = S.b[f.id]||"";
+  let input = "";
+  if(f.type==="text" || f.type==="area"){
+    const tag = f.type==="area" ? "textarea" : "input";
+    input = f.type==="area"
+      ? `<textarea id="f-${f.id}" data-f="${f.id}">${esc(v)}</textarea>`
+      : `<input type="text" id="f-${f.id}" data-f="${f.id}" value="${esc(v)}">`;
+    void tag;
+  } else input = `<select id="f-${f.id}" data-f="${f.id}">${optHTML(v)}</select>`;
+  return `<div class="field"><label for="f-${f.id}">${esc(f.label)}</label><span class="help">${esc(f.help)}</span>${input}<span class="fieldstatus" id="st-${f.id}">${statusText(f)}</span></div>`;
+}
+function partView(p){
+  const s = partScores(p);
+  const i = PARTS.indexOf(p);
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">${p.code} of 03</span><h2>${esc(p.title)}</h2></div><div class="meta mono">Check ${fmt(s.q)}/${s.qmax} · Write <span id="bscore">${fmt(s.b)}</span>/${s.bmax}</div></div>
+    ${p.id==="position"?fileHTML():""}
+    <section class="step learn"><div class="steplabel"><span class="pill mono">1 · Read</span><h3>The idea</h3></div>${p.learn}</section>
+    <section class="step"><div class="steplabel"><span class="pill mono">2 · Check</span><h3>Show what you understood</h3></div>
+      ${p.quiz.map((_,k)=>`<div class="q" id="q-${p.id}${k}">${qHTML(p,k)}</div>`).join("")}
+    </section>
+    <section class="step"><div class="steplabel"><span class="pill mono">3 · Write</span><h3>For your company</h3></div>
+      ${p.build.map(fieldHTML).join("")}
+    </section>
+    <div class="actions">${i>0?`<button class="btn ghost" data-nav="${PARTS[i-1].id}">Back</button>`:"<span></span>"}
+      <button class="btn" id="complete">${i<PARTS.length-1?"Save and continue":"Save and see my strategy"}</button></div>`;
+}
+function bindPart(p){
+  const sheet = document.querySelector("main.sheet");
+  sheet.querySelectorAll("button[data-q]").forEach(b => b.onclick = ()=>{
+    const key = b.dataset.q;
+    if(S.ans[key]!==undefined) return;
+    S.ans[key] = +b.dataset.j;
+    save();
+    const k = +key.slice(p.id.length);
+    const box = document.getElementById("q-"+key);
+    if(box) box.innerHTML = qHTML(p,k);
+    const again = box && box.querySelector("button[data-q]");
+    if(again) again.onclick = null;
+    upd();
+  });
+  const paint = ()=>{
+    p.build.forEach(f=>{
+      const st = document.getElementById("st-"+f.id);
+      if(!st) return;
+      st.textContent = statusText(f);
+      st.className = "fieldstatus"+(fieldScore(f)>=f.pts?" ok":"");
+    });
+    const bs = document.getElementById("bscore");
+    if(bs) bs.textContent = fmt(partScores(p).b);
+    upd();
+  };
+  sheet.querySelectorAll("[data-f]").forEach(el =>{
+    const h = ()=>{ S.b[el.dataset.f] = el.value; save(); paint(); };
+    el.addEventListener("input", h);
+    el.addEventListener("change", h);
+  });
+  sheet.querySelectorAll("[data-nav]").forEach(b => b.onclick = ()=>{ S.cur = b.dataset.nav; save(); render(); window.scrollTo(0,0); });
+  document.getElementById("complete").onclick = ()=>{
+    S.done[p.id] = true;
+    const i = PARTS.indexOf(p);
+    S.cur = i<PARTS.length-1 ? PARTS[i+1].id : "report";
+    save(); cloudSave(true); render(); window.scrollTo(0,0);
+  };
+  paint();
+}
+function reportView(){
+  const t = scores();
+  const all = PARTS.every(p => S.done[p.id]);
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">For your trainer</span><h2>Your strategy</h2></div>${all?'<span class="stamp">STRATEGY</span>':""}</div>
+    <p style="font-family:var(--f-display);font-size:56px;font-weight:800;margin:0;font-variant-numeric:tabular-nums">${fmt(t.t)}<span style="font-size:24px;color:var(--muted)"> / 100</span></p>
+    <p>${esc(S.name)}${S.group?" · "+esc(S.group):""} · ${esc(g("company")||"No company name yet")}</p>
+    <p>This number is your strategy. It does not change the score of your company. You will present positioning, the video and the alliance together, one time.</p>
+    <div class="draft" id="rep">${esc(reportText())}</div>
+    <div class="actions"><button class="btn ghost" id="back">Edit</button><button class="btn" id="cp">Copy my strategy</button></div>`;
+}
+function bindReport(){
+  document.getElementById("back").onclick = ()=>{ S.cur = "alliance"; save(); render(); window.scrollTo(0,0); };
+  document.getElementById("cp").onclick = ()=>{
+    const el = document.getElementById("rep");
+    const done = ()=>toast("Copied");
+    const fallback = ()=>{ const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Text selected. Copy it with Ctrl+C"); };
+    try{ navigator.clipboard.writeText(el.textContent).then(done, fallback); }catch(e){ fallback(); }
+  };
+}
+function toast(t){ const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(()=>d.remove(), 2200); }
+render();
+cloudRestore();
+loadFile();
+</script>
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+</body>
+</html>

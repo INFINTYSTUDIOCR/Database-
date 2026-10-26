@@ -1680,9 +1680,16 @@ function showPortal(s){
       +'<a href="training-book/founders-file/index.html?v=20261019save&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
       +'</div>'
     : '';
+  var strategyCard = isDecimoCohort(s)
+    ? '<div class="card" style="border:1.5px solid #2B7EC1;background:linear-gradient(165deg,#E7F1FA,#fff);">'
+      +'<div class="card-title" style="color:#1B5A8F;"><i class="ti ti-target"></i> E-learning — Estrategia de la empresa</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Escribí la estrategia completa: posicionamiento, el video y la alianza. Una sola nota, aparte de la empresa. Con eso vas a exponer todo junto, en inglés.</p>'
+      +'<a href="training-book/strategy/index.html?v=20261026strat&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
+      +'</div>'
+    : '';
   var recursosHtml;
   if(toeicSeniors){
-    recursosHtml = foundersCard + aliceQuizCard
+    recursosHtml = foundersCard + strategyCard + aliceQuizCard
       +'<div class="card" style="border:1px solid #D4A5AB;background:linear-gradient(165deg,#F5E6E8,#fff);">'
       +'<div class="card-title" style="color:#722F37;"><i class="ti ti-school"></i> E-learning — Cómo usar Claire TOEIC</div>'
       +'<p style="font-size:13px;color:#5C1F28;line-height:1.55;margin:0 0 12px;">Pantallas, dónde clickear, Listening / Reading / Vocabulario / Pronunciación y micrófono PTT.</p>'
@@ -1701,7 +1708,7 @@ function showPortal(s){
       +'<div id="kamuk-toeic-practice-root"></div>'
       +'</div>';
   } else {
-    recursosHtml = foundersCard + aliceQuizCard
+    recursosHtml = foundersCard + strategyCard + aliceQuizCard
       +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
       +'<div id="kamuk-readings-root"></div>'+vocabCard+'</div>'
       +'<div class="card"><div class="card-title"><i class="ti ti-certificate"></i> E-learning modules</div>'

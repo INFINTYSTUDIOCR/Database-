@@ -1535,8 +1535,15 @@ function showPortal(s){
       +'<a href="training-book/founders-file/index.html?v=20261013cloud&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
       +'</div>'
     : '';
+  var strategyCard = (s && s.foundersFileEnabled === true)
+    ? '<div class="card" style="border:1.5px solid var(--navy);background:linear-gradient(165deg,#EFE9FF,#fff);">'
+      +'<div class="card-title"><i class="ti ti-target"></i> E-learning — Estrategia de la empresa</div>'
+      +'<p style="font-size:13px;color:var(--t2);line-height:1.55;margin:0 0 12px;">Escribí la estrategia completa: posicionamiento, el video y la alianza. La nota no cambia el puntaje de tu empresa.</p>'
+      +'<a href="training-book/strategy/index.html?v=20261026strat&sid='+encodeURIComponent(s.id||'')+'" target="_blank" rel="noopener" class="btn btn-navy" style="text-decoration:none;"><i class="ti ti-player-play"></i> Abrir e-learning</a>'
+      +'</div>'
+    : '';
 
-  var recursosHtml = foundersCard + hospedajeCard
+  var recursosHtml = foundersCard + strategyCard + hospedajeCard
     +'<div class="card"><div class="card-title"><i class="ti ti-book"></i>Lectura — Jill + leer</div>'
     +'<div id="infinity-readings-root"></div>'+vocabCard+'</div>'
 

@@ -572,7 +572,10 @@ function reportView(){
    <div class="draft" id="rep">${esc(reportText())}</div><p></p><button class="btn" id="cp-rep">Copy my result</button></section>
   <section class="step"><div class="steplabel"><span class="pill mono">Next</span><h3>Your company blueprint</h3></div>
    <p>Copy your blueprint and share it with your group. Together you will compare your companies, choose one or combine them, divide the departments, and practice your pitch for tomorrow.</p>
-   <div class="draft" id="bp">${esc(blueprint())}</div><p></p><button class="btn ghost" id="cp-bp">Copy my blueprint</button></section>`;
+   <div class="draft" id="bp">${esc(blueprint())}</div><p></p><button class="btn ghost" id="cp-bp">Copy my blueprint</button></section>
+  <section class="step"><div class="steplabel"><span class="pill mono">Next</span><h3>Write your company strategy</h3></div>
+   <p>Write the positioning, the video and the alliance. You will present all of it together.</p>
+   <a class="btn" href="../strategy/index.html?sid=${encodeURIComponent(FF_SID)}">Open the strategy</a></section>`;
 }
 function copy(id){
   const el=document.getElementById(id), txt=el.textContent;
