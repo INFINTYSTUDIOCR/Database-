@@ -273,7 +273,6 @@
         "módulo 5",
         "clase 009",
         "clase 9",
-        "to be + ing",
         "to vs ing"
       ],
       "bridge": "Puente Módulo 5 / Clase 009: TO BE = llave; ING = puerta; TO = flecha; ING = concepto; después de preposición, siempre ING."
@@ -327,7 +326,11 @@
         "prep de tiempo in on at",
         "since for during by",
         "since vs for",
-        "durante vs for"
+        "durante vs for",
+        "on monday",
+        "on lunes",
+        "in the morning",
+        "at 7pm"
       ],
       "bridge": "Puente Módulo 7 / Clase 011: mismos tres círculos — IN períodos; ON días/fechas; AT horas. SINCE=punto; FOR=duración; DURING=evento; BY=límite."
     },

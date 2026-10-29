@@ -526,7 +526,7 @@ function formatLock(track) {
   const voice = loadVoiceScript(track.id);
   const voiceBlock = voice
     ? [
-        '===== GUION ORAL DE CLASE (HABLA ESTO — no ESL genérico; no leas el tablero) =====',
+        '===== GUION ORAL JOHN — DE CLASE (HABLA ESTO — no ESL genérico; no leas el tablero) =====',
         voice.say,
         Array.isArray(voice.mustSay) && voice.mustSay.length
           ? `PALABRAS OBLIGATORIAS EN VOZ: ${voice.mustSay.join(', ')}.`
