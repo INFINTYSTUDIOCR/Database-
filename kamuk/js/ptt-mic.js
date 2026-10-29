@@ -162,6 +162,11 @@ var PttMic = (function () {
       var sid = ++srv.sid;
       ui(true);
       try { btn.classList.add('ptt-active'); } catch (e) {}
+      srvOpenMic(sid, 0);
+    }
+
+    function srvOpenMic(sid, attempt) {
+      if (sid !== srv.sid || !srv.holding) return;
       navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
       }).then(function (stream) {
@@ -186,9 +191,15 @@ var PttMic = (function () {
         }
         srv.startedAt = Date.now();
       }).catch(function (err) {
-        if (sid !== srv.sid) return;
+        if (sid !== srv.sid || !srv.holding) return;
         var name = err && err.name;
-        srvFail(name === 'NotAllowedError' || name === 'SecurityError' ? 'not-allowed' : 'audio-capture');
+        var denied = name === 'NotAllowedError' || name === 'SecurityError';
+        if (!denied && attempt < 3) {
+          clearTimeout(srv.timer);
+          srv.timer = setTimeout(function () { srvOpenMic(sid, attempt + 1); }, 200);
+          return;
+        }
+        srvFail(denied ? 'not-allowed' : 'audio-capture');
       });
     }
 
