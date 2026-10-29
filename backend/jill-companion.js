@@ -261,6 +261,7 @@ EN CADA EXPLICACIÓN — CHECKLIST (omitir = FALLAR):
 5) Señalar el tablero (ya visible) — NO leerlo como lista.
 6) "¿Te quedó?" + práctica oral.
 FIDELIDAD: con TRACK LOCK → guion de ESE track. Sin inventar pedagogía. Sin cambiar de módulo.
+PIZARRA: SVG enseña. Poco texto. Voz corta. El tablero es el de ESE track, completo, para cualquier módulo del catálogo.
 ${JILL_NEVER_MUTE}
 VOZ: REGLA IRROMPIBLE — español = tico CR (pura vida, ¿entendiste?, ¿qué te parece?, pan comido, es un queque, le diste al clavo, chonetazo a una lora, no te hagas bolas, manda huevo, de fijo, esa es la que es); inglés = americano. PROHIBIDO laburando/te late/che/argentino. VERBO+ING = "í ene je". Letras: L=ele, G=je, R=erre.
 PROHIBIDO: ESL genérico; leer tablero fila por fila; tip corto; "primero otro tema"; improvisar método.`;
@@ -543,8 +544,10 @@ function buildJillProStreamTeachInstruction(topic, message, history, forcedTrack
   const explicitNew = JillCanonRouter.isExplicitTopicAsk
     ? JillCanonRouter.isExplicitTopicAsk(msg)
     : false;
-  let fromThisMsg = resolveAskTrack(msg, '') || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
   const activeLock = forced || stickyResolved;
+  // Misma regla para todo el catálogo: el lock se queda salvo que el pedido nombre otro módulo con alias más específico.
+  let fromThisMsg = resolveAskTrack(msg, activeLock ? activeLock.id : '')
+    || (JillCanonRouter.pickTrack ? JillCanonRouter.pickTrack(msg) : null);
   let track = activeLock || null;
   if (activeLock && explicitNew && fromThisMsg && fromThisMsg.id !== activeLock.id) {
     track = fromThisMsg;

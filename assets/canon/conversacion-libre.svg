@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="440" viewBox="0 0 720 440" role="img" aria-label="Conversacion libre. El tema manda. Una correccion y vuelta al hilo.">
+  <rect width="720" height="440" rx="16" fill="#F7F3FF"/>
+  <text x="360" y="36" text-anchor="middle" fill="#7B4DFF" font-family="Inter,sans-serif" font-size="20" font-weight="bold">CLASE 012 · CONVERSACION LIBRE</text>
+  <text x="360" y="58" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="13">El tema es real. El ingles es el vehiculo. No es una leccion de gramatica.</text>
+
+  <rect x="20" y="80" width="160" height="88" rx="12" fill="#EDE9FE" stroke="#9B74FF" stroke-width="1.5"/>
+  <text x="100" y="112" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="13" font-weight="bold">1 · TEMA REAL</text>
+  <text x="100" y="136" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="12">familia, salud, plata</text>
+
+  <rect x="194" y="80" width="160" height="88" rx="12" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="274" y="112" text-anchor="middle" fill="#1d4ed8" font-family="Inter,sans-serif" font-size="13" font-weight="bold">2 · HABLA EN</text>
+  <text x="274" y="136" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="12">el alumno cuenta</text>
+
+  <rect x="368" y="80" width="160" height="88" rx="12" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="448" y="112" text-anchor="middle" fill="#92400E" font-family="Inter,sans-serif" font-size="13" font-weight="bold">3 · UNA PIEZA</text>
+  <text x="448" y="136" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="12">una correccion</text>
+
+  <rect x="542" y="80" width="158" height="88" rx="12" fill="#D1FAE5" stroke="#059669" stroke-width="1.5"/>
+  <text x="621" y="112" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13" font-weight="bold">4 · AL HILO</text>
+  <text x="621" y="136" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="12">sigue el tema</text>
+
+  <text x="360" y="196" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="14" font-weight="bold">PIEZAS EN COMBATE</text>
+
+  <rect x="24" y="212" width="328" height="64" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+  <text x="188" y="238" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15" font-weight="bold">even = ni siquiera</text>
+  <text x="188" y="258" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">It doesn't even exist here.</text>
+
+  <rect x="368" y="212" width="328" height="64" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+  <text x="532" y="238" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15" font-weight="bold">if she were = hipotetico</text>
+  <text x="532" y="258" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">If she were a younger dog.</text>
+
+  <rect x="24" y="288" width="328" height="64" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+  <text x="188" y="314" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15" font-weight="bold">either way = igual</text>
+  <text x="188" y="334" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">Either way, the answer is the same.</text>
+
+  <rect x="368" y="288" width="328" height="64" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+  <text x="532" y="314" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15" font-weight="bold">besides = ademas</text>
+  <text x="532" y="334" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">Besides, we don't have the money.</text>
+
+  <rect x="24" y="368" width="672" height="48" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="360" y="398" text-anchor="middle" fill="#92400E" font-family="Inter,sans-serif" font-size="15" font-weight="bold">Empatia + precision. Una pieza. Despues, de vuelta al tema.</text>
+</svg>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460" role="img" aria-label="Dos generos de modales. Pedacitos y palabras completas. Espejo pregunta y afirmacion.">
+  <rect width="720" height="460" rx="16" fill="#F7F3FF"/>
+  <text x="360" y="36" text-anchor="middle" fill="#7B4DFF" font-family="Inter,sans-serif" font-size="20" font-weight="bold">CLASE 010-B · DOS GENEROS</text>
+  <text x="360" y="58" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="13">Pedacitos will/would vs palabras completas. Espejo: izquierda pregunta, derecha afirmacion.</text>
+
+  <rect x="24" y="78" width="328" height="168" rx="12" fill="#EDE9FE" stroke="#9B74FF" stroke-width="1.5"/>
+  <text x="188" y="104" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="14" font-weight="bold">PEDACITOS</text>
+  <text x="188" y="128" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15">will = ré</text>
+  <text x="188" y="150" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="15">would = ría</text>
+  <text x="188" y="178" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">I will run.</text>
+  <text x="188" y="198" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">I would run.</text>
+  <text x="188" y="224" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="12">Van delante del verbo. El verbo no cambia.</text>
+
+  <rect x="368" y="78" width="328" height="168" rx="12" fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+  <text x="532" y="104" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="14" font-weight="bold">PALABRAS COMPLETAS</text>
+  <text x="532" y="128" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="14">should debería · could podría</text>
+  <text x="532" y="150" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="14">must deber · may puede que</text>
+  <text x="532" y="172" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="14">might podría remota</text>
+  <text x="532" y="200" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13">I should go. · I must finish.</text>
+  <text x="532" y="222" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="12">Palabra entera + verbo base.</text>
+
+  <rect x="24" y="262" width="672" height="44" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="360" y="290" text-anchor="middle" fill="#92400E" font-family="Inter,sans-serif" font-size="15" font-weight="bold">MODAL + VERBO BASE · sin TO · will go · should go · must go</text>
+
+  <rect x="24" y="320" width="328" height="72" rx="12" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="188" y="346" text-anchor="middle" fill="#1d4ed8" font-family="Inter,sans-serif" font-size="13" font-weight="bold">IZQUIERDA = PREGUNTA</text>
+  <text x="188" y="370" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="16">Should she go?</text>
+
+  <rect x="368" y="320" width="328" height="72" rx="12" fill="#D1FAE5" stroke="#059669" stroke-width="1.5"/>
+  <text x="532" y="346" text-anchor="middle" fill="#047857" font-family="Inter,sans-serif" font-size="13" font-weight="bold">DERECHA = AFIRMACION</text>
+  <text x="532" y="370" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="16">She should go.</text>
+
+  <text x="360" y="418" text-anchor="middle" fill="#6d28d9" font-family="Inter,sans-serif" font-size="14" font-weight="bold">even + NOT = ni siquiera · I shouldn't even go.</text>
+  <text x="360" y="442" text-anchor="middle" fill="#312e81" font-family="Inter,sans-serif" font-size="13">HAVE solo con participio: should have gone. No: should have go.</text>
+</svg>

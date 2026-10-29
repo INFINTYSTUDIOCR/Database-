@@ -6,7 +6,6 @@
 var AliceStableMic = (function () {
   'use strict';
 
-  var MAX_HOLD_MS = 90000;
   var instances = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
 
   function pickMime() {
@@ -106,20 +105,30 @@ var AliceStableMic = (function () {
       setUi(true);
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
+      var micTries = 0;
+      while (!stream && holding && mySession === sessionId && micTries < 4) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+        } catch (eMic) {
+          micTries++;
+          var denied = eMic && (eMic.name === 'NotAllowedError' || eMic.name === 'SecurityError');
+          if (!holding || mySession !== sessionId) return;
+          if (denied || micTries >= 4) {
+            fail(denied ? 'not-allowed' : 'audio-capture');
+            return;
           }
-        });
-      } catch (eMic) {
-        fail((eMic && eMic.name === 'NotAllowedError') ? 'not-allowed' : 'audio-capture');
-        return;
+          await new Promise(function (resume) { setTimeout(resume, 200); });
+        }
       }
-      if (!holding || mySession !== sessionId) {
+      if (!stream || !holding || mySession !== sessionId) {
         stopTracks();
+        if (holding && mySession === sessionId) fail('audio-capture');
         return;
       }
 
@@ -142,9 +151,6 @@ var AliceStableMic = (function () {
         return;
       }
       clearMaxHold();
-      maxHoldTimer = setTimeout(function () {
-        if (holding) endHold(true);
-      }, MAX_HOLD_MS);
     }
 
     function endHold(fromTimer) {
@@ -238,36 +244,48 @@ var AliceStableMic = (function () {
         });
     }
 
-    function onPointerDown(ev) {
-      if (ev.button != null && ev.button !== 0) return;
-      ev.preventDefault();
-      startHold(ev);
-    }
-    function onPointerUp(ev) {
-      if (pointerId != null && ev.pointerId !== pointerId) return;
-      ev.preventDefault();
-      endHold(false);
+    function endPress(ev) {
+      if (pointerId == null) return;
+      if (ev && ev.pointerId != null && ev.type !== 'touchend' && ev.pointerId !== pointerId) return;
+      if (ev && ev.type === 'touchend' && ev.touches && ev.touches.length > 0) return;
       pointerId = null;
-    }
-    function onPointerCancel() {
       endHold(false);
-      pointerId = null;
     }
 
+    function onPointerDown(ev) {
+      if (ev.button != null && ev.button !== 0) return;
+      if (ev.cancelable) ev.preventDefault();
+      startHold(ev);
+    }
+    function onPointerUp(ev) { endPress(ev); }
+    function onWindowPointerUp(ev) { endPress(ev); }
+    function onWindowTouchEnd(ev) { endPress(ev); }
+    function blockBrowserHoldGesture(ev) { ev.preventDefault(); }
+
     btn.style.touchAction = 'none';
+    btn.style.webkitTouchCallout = 'none';
+    btn.style.webkitUserSelect = 'none';
+    btn.style.userSelect = 'none';
+    btn.setAttribute('draggable', 'false');
     btn.addEventListener('pointerdown', onPointerDown);
     btn.addEventListener('pointerup', onPointerUp);
-    btn.addEventListener('pointercancel', onPointerCancel);
-    // Do NOT bind pointerleave — that was cutting speech mid-sentence on desktop
+    btn.addEventListener('contextmenu', blockBrowserHoldGesture);
+    btn.addEventListener('dragstart', blockBrowserHoldGesture);
+    document.addEventListener('pointerup', onWindowPointerUp, true);
+    document.addEventListener('touchend', onWindowTouchEnd, true);
     btn._aliceStableBound = true;
 
     var api = {
       destroy: function () {
         holding = false;
+        pointerId = null;
         killRecorder();
+        document.removeEventListener('pointerup', onWindowPointerUp, true);
+        document.removeEventListener('touchend', onWindowTouchEnd, true);
         btn.removeEventListener('pointerdown', onPointerDown);
         btn.removeEventListener('pointerup', onPointerUp);
-        btn.removeEventListener('pointercancel', onPointerCancel);
+        btn.removeEventListener('contextmenu', blockBrowserHoldGesture);
+        btn.removeEventListener('dragstart', blockBrowserHoldGesture);
         btn._aliceStableBound = false;
         if (instances) instances.delete(btn);
       },

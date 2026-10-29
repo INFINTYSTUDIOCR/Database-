@@ -350,24 +350,25 @@ function detectJillLineLang(line) {
   return en > es * 1.4 ? 'en' : 'es';
 }
 
-/** Jill: ONLY two accents — LatAm Spanish (es-CR) or American English (en-US). */
+/** Jill: Spanish stays Spanish. English grammar words (be, am, is…) keep the English voice. */
 function jillTtsSegments(text, maxLen) {
   maxLen = maxLen || 900;
   var line = prepareTtsLine(text);
   if (!line) return [];
-  var lineLang = detectJillLineLang(line);
-  // Mostly Spanish explanation → ONE LatAm clip (never American islands on Spanish)
-  if (lineLang === 'es' || /[áéíóúñ]/i.test(line)) {
-    if (line.length <= maxLen) return [{ text: line, lang: 'es-CR' }];
-    return splitTtsChunks(line, maxLen).map(function (chunk) {
-      return { text: chunk, lang: 'es-CR' };
+  var segments = mergeShortTtsSegments(splitBilingualTtsSegments(line), 64);
+  if (!segments.length) segments = [{ text: line, lang: detectJillLineLang(line) }];
+  var out = [];
+  segments.forEach(function (seg) {
+    var lang = seg.lang === 'en' ? 'en' : 'es';
+    if (seg.text.length <= maxLen) {
+      out.push({ text: seg.text, lang: lang });
+      return;
+    }
+    splitTtsChunks(seg.text, maxLen).forEach(function (chunk) {
+      out.push({ text: chunk, lang: lang });
     });
-  }
-  // Pure English → American only
-  if (line.length <= maxLen) return [{ text: line, lang: 'en-US' }];
-  return splitTtsChunks(line, maxLen).map(function (chunk) {
-    return { text: chunk, lang: 'en-US' };
   });
+  return out;
 }
 
 /** Debounced TTS warm-up while LLM is still streaming — only complete sentences. */
@@ -388,11 +389,21 @@ function scheduleTtsPrefetch(text, prefetchFn, state) {
   }, ms);
 }
 
-/** Prefer one TTS request; split only when text is very long. */
+/** Prefer one TTS request; split only when text is very long. Drop a sentence said twice in a row. */
 function ttsSpeakLines(text, maxLen) {
   maxLen = maxLen || 1200;
   var line = prepareTtsLine(text);
   if (!line) return [];
+  var sentences = splitTtsSentences(line);
+  var kept = [];
+  var prev = '';
+  sentences.forEach(function (s) {
+    var key = ttsRepeatKey(s);
+    if (!key || key === prev) return;
+    prev = key;
+    kept.push(s);
+  });
+  if (kept.length) line = kept.join(' ');
   if (line.length <= maxLen) return [line];
   return splitTtsChunks(line, maxLen);
 }
@@ -582,16 +593,25 @@ function armTtsPlaybackWatchdog(opts) {
       return;
     }
 
-    // Only abandon if truly stuck (no progress) past budget — never cut live audio
-    var stuck = (Date.now() - lastProgressAt) > 60000;
-    if (elapsed >= ms && stuck) {
-      if (typeof opts.setBusy === 'function') opts.setBusy(false);
-      try { if (a) a.pause(); } catch (e) { /* ignore */ }
-      if (typeof opts.setAudio === 'function') opts.setAudio(null);
-      if (typeof opts.onAdvance === 'function') opts.onAdvance();
+    // A clock must never cut a line that has not finished.
+    // Paused mid-sentence (mic hold) and long files stay until `ended`.
+    var durLeft = Number(a.duration);
+    var curLeft = Number(a.currentTime) || 0;
+    var unknownDur = !(durLeft > 0 && isFinite(durLeft));
+    var hasTimeLeft = !unknownDur && curLeft < durLeft - 0.35;
+    if (hasTimeLeft || unknownDur || curLeft > 0.02) {
+      schedule(tick, 2000);
       return;
     }
-    schedule(tick, 1000);
+
+    // Never started. Give the start budget, then move the queue on. Do not pause a live clip.
+    if (elapsed < ms) {
+      schedule(tick, 1000);
+      return;
+    }
+    if (typeof opts.setBusy === 'function') opts.setBusy(false);
+    if (typeof opts.setAudio === 'function') opts.setAudio(null);
+    if (typeof opts.onAdvance === 'function') opts.onAdvance();
   }
 
   schedule(tick, 3000);

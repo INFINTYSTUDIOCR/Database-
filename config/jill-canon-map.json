@@ -651,7 +651,7 @@
     },
     {
       "id": "modales_espejo",
-      "svg": "assets/canon/moneda.svg",
+      "svg": "assets/canon/modales-espejo.svg",
       "title": "Clase 010-B — Confirmación modales espejo / even",
       "formula": "pedacitos will/would vs palabras completas should/could/must · modal izq=pregunta · der=afirmación · even=siquiera",
       "example": "Should she go? / She should go. / I shouldn't even go.",
@@ -687,7 +687,7 @@
     },
     {
       "id": "conversacion_libre",
-      "svg": "assets/canon/moneda.svg",
+      "svg": "assets/canon/conversacion-libre.svg",
       "title": "Clase 012 — Conversación libre / emoción real",
       "formula": "tema real → habla EN → corrección 1 pieza → vuelve al hilo → check-in conectores",
       "example": "She's bleeding a lot. / It doesn't even exist here. / If she were younger, maybe she could stand the surgery.",

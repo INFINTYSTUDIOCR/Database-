@@ -218,6 +218,24 @@
       "clipId": "modal"
     },
     {
+      "id": "modales-espejo",
+      "columns": ["modales_espejo"],
+      "svg": "assets/canon/modales-espejo.svg",
+      "gif": null,
+      "title": "Confirmación modales espejo",
+      "engine": "svg",
+      "clipId": "modales_espejo"
+    },
+    {
+      "id": "conversacion-libre",
+      "columns": ["conversacion_libre"],
+      "svg": "assets/canon/conversacion-libre.svg",
+      "gif": null,
+      "title": "Conversación libre",
+      "engine": "svg",
+      "clipId": "conversacion_libre"
+    },
+    {
       "id": "have-had",
       "columns": ["have_had"],
       "svg": "assets/canon/have-had.svg",

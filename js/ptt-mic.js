@@ -91,6 +91,7 @@ var PttMic = (function () {
     var lastResults = null;
     var sessionId = 0;
     var restartFails = 0;
+    var downPointerId = null;
     var srSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
     btn.style.touchAction = 'none';
@@ -184,9 +185,6 @@ var PttMic = (function () {
           return;
         }
         srv.startedAt = Date.now();
-        srv.timer = setTimeout(function () {
-          if (sid === srv.sid && srv.holding) srvStop(true);
-        }, MAX_HOLD_MS);
       }).catch(function (err) {
         if (sid !== srv.sid) return;
         var name = err && err.name;
@@ -285,11 +283,6 @@ var PttMic = (function () {
           if (typeof opts.onError === 'function') opts.onError('interrupted');
         });
     }
-
-    function onVisibility() {
-      if (document.hidden && srv.holding) srvStop(true);
-    }
-    document.addEventListener('visibilitychange', onVisibility);
 
     function clearRestartTimer() {
       clearTimeout(restartTimer);
@@ -516,14 +509,15 @@ var PttMic = (function () {
 
     function scheduleRestart(sid) {
       clearRestartTimer();
+      var delay = Math.min(450, 160 + restartFails * 60);
       restartTimer = setTimeout(function () {
         restartTimer = null;
         if (sid !== sessionId || !shouldKeepListening()) return;
-        if (!spawnRec(sid)) {
+        if (!spawnRec(sid) && shouldKeepListening()) {
           restartFails++;
-          if (restartFails >= MAX_RESTART_FAILS) failStartPermanent('restart-failed');
+          scheduleRestart(sid);
         }
-      }, RESTART_MS);
+      }, delay);
     }
 
     function handleRecFinished(sid) {
@@ -570,21 +564,21 @@ var PttMic = (function () {
       r.onerror = function (ev) {
         if (sid !== sessionId) return;
         if (ev && ev.error === 'aborted') return;
-        if (ev && FATAL_ERRORS[ev.error]) {
-          failStartPermanent(ev.error);
+        var code = ev && ev.error;
+        if (code === 'not-allowed') {
+          failStartPermanent('not-allowed');
           return;
         }
-        if (ev && RECOVERABLE_ERRORS[ev.error]) {
+        if (code === 'service-not-allowed') {
+          failStartPermanent('service-not-allowed');
+          return;
+        }
+        // no-speech, network, audio-capture: the finger is still down. Keep the take.
+        if (shouldKeepListening()) {
           handleRecFinished(sid);
           return;
         }
-        if (!shouldKeepListening()) {
-          resetSession(false);
-          return;
-        }
-        restartFails++;
-        if (restartFails >= MAX_RESTART_FAILS) failStartPermanent(ev && ev.error ? ev.error : 'recognition-error');
-        else handleRecFinished(sid);
+        resetSession(false);
       };
       try {
         r.start();
@@ -593,15 +587,7 @@ var PttMic = (function () {
       } catch (err) {
         rec = null;
         active = false;
-        if (shouldKeepListening()) {
-          restartFails++;
-          if (restartFails >= MAX_RESTART_FAILS) {
-            failStartPermanent('start-failed');
-            return false;
-          }
-          scheduleRestart(sid);
-          return false;
-        }
+        if (shouldKeepListening()) return false;
         ui(false);
         if (typeof opts.onError === 'function') opts.onError('start-failed');
         return false;
@@ -609,8 +595,6 @@ var PttMic = (function () {
     }
 
     var maxHoldTimer = null;
-    // Default 90s — students often hold longer than 45s mid-sentence.
-    var MAX_HOLD_MS = Number(opts.maxHoldMs) || 90000;
 
     function clearMaxHold() {
       clearTimeout(maxHoldTimer);
@@ -691,11 +675,6 @@ var PttMic = (function () {
       if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
 
       var sid = sessionId;
-      maxHoldTimer = setTimeout(function () {
-        if (sid !== sessionId) return;
-        if (holding || active || rec) stop(true);
-      }, MAX_HOLD_MS);
-
       var settle = Number(opts.settleMs) || 0;
       if (settle > 0) {
         setTimeout(function () {
@@ -707,44 +686,51 @@ var PttMic = (function () {
       }
     }
 
+    function endPress(e) {
+      if (downPointerId == null) return;
+      if (e && e.pointerId != null && e.type !== 'touchend' && e.pointerId !== downPointerId) return;
+      if (e && e.type === 'touchend' && e.touches && e.touches.length > 0) return;
+      downPointerId = null;
+      if (srv.holding) { srvStop(true); return; }
+      stop(true);
+    }
+
     function onPointerDown(e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.cancelable) e.preventDefault();
+      downPointerId = e.pointerId;
       try { btn.setPointerCapture(e.pointerId); } catch (e2) {}
       if (useServer()) {
-        e.preventDefault();
-        if (srv.holding || srv.sending) return;
-        if (typeof opts.canStart === 'function' && !opts.canStart()) return;
+        if (srv.holding || srv.sending) { downPointerId = null; return; }
+        if (typeof opts.canStart === 'function' && !opts.canStart()) { downPointerId = null; return; }
         if (typeof opts.onBeforeStart === 'function') opts.onBeforeStart();
         srvStart();
         return;
       }
       start(e);
+      if (!holding && !srv.holding) downPointerId = null;
     }
 
     function onPointerUp(e) {
       try { btn.releasePointerCapture(e.pointerId); } catch (e2) {}
-      if (srv.holding) { srvStop(true); return; }
-      stop(true);
+      endPress(e);
     }
 
-    function onPointerCancel() {
-      if (srv.holding) { srvStop(true); return; }
-      stop(true);
-    }
+    function onWindowPointerUp(e) { endPress(e); }
+    function onWindowTouchEnd(e) { endPress(e); }
 
-    function onLostPointerCapture() {
-      if (srv.holding) { srvStop(true); return; }
-      if (holding || active || rec) stop(true);
-    }
+    // Long-press fires pointercancel / lostpointercapture while the finger is still down.
+    // Those must not end PTT. Release is pointerup or touchend only.
 
-    // Do NOT end on pointerleave — mouse slip off the button was cutting mid-sentence.
-    // pointerup / pointercancel / lostpointercapture still finish the take.
+    function blockBrowserHoldGesture(e) { e.preventDefault(); }
 
+    btn.setAttribute('draggable', 'false');
     btn.addEventListener('pointerdown', onPointerDown);
     btn.addEventListener('pointerup', onPointerUp);
-    btn.addEventListener('pointercancel', onPointerCancel);
-    btn.addEventListener('lostpointercapture', onLostPointerCapture);
-    btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    btn.addEventListener('contextmenu', blockBrowserHoldGesture);
+    btn.addEventListener('dragstart', blockBrowserHoldGesture);
+    document.addEventListener('pointerup', onWindowPointerUp, true);
+    document.addEventListener('touchend', onWindowTouchEnd, true);
 
     var inst = {
       stop: function (send) {
@@ -753,6 +739,7 @@ var PttMic = (function () {
       },
       reset: function () {
         sessionId++;
+        downPointerId = null;
         clearMaxHold();
         resetSession(true);
         unlockStop();
@@ -765,15 +752,17 @@ var PttMic = (function () {
       },
       destroy: function () {
         sessionId++;
+        downPointerId = null;
         clearMaxHold();
         resetSession(true);
         srv.sid++;
         srvKill();
-        document.removeEventListener('visibilitychange', onVisibility);
+        document.removeEventListener('pointerup', onWindowPointerUp, true);
+        document.removeEventListener('touchend', onWindowTouchEnd, true);
         btn.removeEventListener('pointerdown', onPointerDown);
         btn.removeEventListener('pointerup', onPointerUp);
-        btn.removeEventListener('pointercancel', onPointerCancel);
-        btn.removeEventListener('lostpointercapture', onLostPointerCapture);
+        btn.removeEventListener('contextmenu', blockBrowserHoldGesture);
+        btn.removeEventListener('dragstart', blockBrowserHoldGesture);
         delInst(btn);
         btn._pttBound = false;
         try { btn.classList.remove('ptt-busy', 'ptt-active'); } catch (eCls2) {}

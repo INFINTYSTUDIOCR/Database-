@@ -104,6 +104,20 @@ function isEnglishPracticeUtterance(text) {
 }
 
 /** Cambio de módulo solo con alias fuerte (no "will"/"can" sueltos). */
+function bestAliasHit(ask, track) {
+  if (!track) return 0;
+  const n = normalize(ask);
+  let best = 0;
+  const aliases = track.aliases || [];
+  for (let i = 0; i < aliases.length; i++) {
+    const a = normalize(aliases[i]);
+    if (!a || a.length < 2) continue;
+    if (!n.includes(a)) continue;
+    if (a.length > best) best = a.length;
+  }
+  return best;
+}
+
 function isStrongTopicSwitch(ask, namedTrack) {
   if (!namedTrack) return false;
   const n = normalize(ask);
@@ -188,14 +202,20 @@ function resolveAsk(userAsk, stickyTopic) {
   // SOLO un pedido EXPLÍCITO de OTRO tema puede cambiar.
   if (stickyTrack) {
     if (isExplicitTopicAsk(ask)) {
-      // Solo cambiar si el alias que ganó es FUERTE (módulo nombrado), no "will"/"can"/"had"
+      // Solo cambiar si el alias que ganó es FUERTE y más específico que el lock.
       const named = pickTrack(ask) || pickTrack(stripAskShell(ask));
-      if (named && named.id !== stickyTrack.id && isStrongTopicSwitch(ask, named)) return named;
+      if (named && named.id !== stickyTrack.id && isStrongTopicSwitch(ask, named)
+        && bestAliasHit(ask, named) >= 16
+        && bestAliasHit(ask, named) > bestAliasHit(ask, stickyTrack)) return named;
     }
     return stickyTrack;
   }
 
+  // Frase concreta del catálogo (cualquier módulo, alias >= 16) gana sobre la pieza genérica
+  // (been -> combined, have -> perfecto). Un alias corto ("presente", "will") no pisa la pieza.
+  const namedOpen = pickTrack(ask) || pickTrack(stripAskShell(ask));
   let hit = resolvePieceTrack(ask, sticky);
+  if (namedOpen && bestAliasHit(ask, namedOpen) >= 16 && (!hit || hit.id !== namedOpen.id)) return namedOpen;
   if (hit) return hit;
   hit = pickTrack(ask);
   if (hit) return hit;
@@ -532,6 +552,7 @@ function formatLock(track) {
     ...soloScope,
     ...antiMix,
     ...voiceBlock,
+    'PIZARRA DE ESTE TRACK: SVG enseña. Poco texto. Voz corta. Cero bloques de texto-ejercicio. El tablero completo de este módulo, sin recortar y sin otro tema.',
     'CHECKLIST ESTE TURNO (si falta 1 = FALLASTE):',
     '1) Hablar el GUION ORAL de arriba (estilo de clase).',
     '2) Incluir fórmula/puente del guion en español TICO correcto (sin acento gringo).',
