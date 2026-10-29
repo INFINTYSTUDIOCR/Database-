@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Present live · Kamuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --paper:#EEF3F8; --sheet:#FFFFFF; --ink:#15232C; --muted:#56676E; --line:#D3DCE6;
+  --accent:#2B7EC1; --accent-ink:#FFFFFF; --accent-soft:#E7F1FA; --stamp:#B4322A; --good:#1C7A3D; --good-soft:#E1F2E6; --bad-soft:#F7E3E1;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.wrap{max-width:1120px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--f-display);font-size:20px}
+.brand span{color:var(--muted)}
+.scorebox{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.scorebox strong{font-family:var(--f-display);font-size:28px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:140px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;margin-top:24px;align-items:start}
+nav.index{position:sticky;top:90px;display:flex;flex-direction:column;gap:4px}
+nav.index button{all:unset;cursor:pointer;display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:6px;color:var(--ink)}
+nav.index button:hover{background:var(--sheet)}
+nav.index button:focus-visible{outline:2px solid var(--accent)}
+nav.index button.on{background:var(--sheet);box-shadow:inset 3px 0 0 var(--accent)}
+nav.index .code{color:var(--muted)}
+nav.index .tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--line)}
+nav.index .tick.done{background:var(--good);border-color:var(--good)}
+main.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:clamp(20px,4vw,40px);min-width:0}
+.formhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px}
+.formhead h2{font-size:clamp(28px,4vw,40px);font-weight:800}
+.formhead .meta{color:var(--muted);text-align:right}
+.steplabel{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.steplabel .pill{background:var(--accent);color:var(--accent-ink);padding:2px 10px;border-radius:99px}
+.steplabel h3{font-size:22px}
+.learn p,.learn li{max-width:68ch}
+.learn h4{font-family:var(--f-display);font-size:18px;margin:18px 0 6px}
+.cue{display:inline-block;background:var(--accent-soft);border-radius:99px;padding:2px 10px;font-size:14px;font-weight:700}
+.formula{border:1px dashed var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:6px;font-weight:700;margin:10px 0;max-width:68ch}
+.mistake{color:var(--stamp)}
+.filebox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:0 0 16px}
+.mock{background:#102033;color:#E7F1FA;border-radius:12px;overflow:hidden;margin:14px 0;max-width:560px}
+.mock-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em}
+.mock-top .live{color:#F3A7A1}
+.mock-slide{background:#17324A;margin:0 12px;border-radius:8px;padding:16px;min-height:108px}
+.mock-slide .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:#8FB4D6}
+.mock-slide p{font-family:var(--f-display);font-size:22px;line-height:1.25;margin:8px 0 0;text-wrap:balance}
+.mock-slide b,.lnk{color:#F3C96B}
+.mock-foot{display:flex;align-items:center;gap:8px;padding:10px 12px 12px;font-size:13px;color:#C5D7E6}
+.avatar{width:28px;height:28px;border-radius:50%;background:#2B7EC1;flex:none}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:720px}
+.pair .mock{margin:0}
+.cap{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px}
+.beats{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px;max-width:560px}
+.beat{display:grid;grid-template-columns:92px 1fr;gap:8px;align-items:baseline;border-bottom:1px solid var(--line);padding:4px 0}
+.beat b{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;font-weight:500;color:var(--muted)}
+.q{border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px}
+.q p.qt{font-weight:700;margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--sheet)}
+.opts button:hover:not([disabled]){border-color:var(--accent)}
+.opts button:focus-visible{outline:2px solid var(--accent)}
+.opts button[disabled]{cursor:default}
+.opts button.right{background:var(--good-soft);border-color:var(--good)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--stamp)}
+.why{margin-top:10px;font-size:15px}
+.why b.ok{color:var(--good)} .why b.no{color:var(--stamp)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-weight:700}
+.field .help{color:var(--muted);font-size:15px}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.fieldstatus{font-size:13px;color:var(--muted)}
+.fieldstatus.ok{color:var(--good)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:18px;margin-top:22px}
+.btn{all:unset;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:12px 22px;border-radius:6px;text-decoration:none;display:inline-block}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.start{max-width:720px;margin-top:36px}
+.start h1{font-size:clamp(34px,5vw,52px);font-weight:800;margin:8px 0 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+table.plan{border-collapse:collapse;width:100%;font-size:15px;margin:12px 0}
+table.plan th,table.plan td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+table.plan th{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+table.plan td:last-child,table.plan th:last-child{text-align:right}
+.note{color:var(--muted);font-size:15px}
+.g-search{margin-bottom:14px}
+.g-group{margin:18px 0 8px;font-family:var(--f-display);font-size:20px}
+.g-card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.g-card .en{font-family:var(--f-display);font-size:20px;font-weight:800}
+.g-card .es{color:var(--muted);font-size:14px}
+.say{font-size:18px;line-height:1.45;margin:0}
+.stamp{display:inline-block;border:3px solid var(--good);color:var(--good);font-family:var(--f-mono);letter-spacing:.12em;padding:6px 12px;border-radius:4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:6px;font-weight:700}
+@media(max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  nav.index{position:static;flex-direction:row;overflow-x:auto}
+  nav.index button{grid-template-columns:auto;white-space:nowrap}
+  nav.index .name,nav.index .tick{display:none}
+  .pair,.grid2{grid-template-columns:1fr}
+  .bar{width:90px}
+  .mock-slide p{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.cadamag-credit{margin:40px auto 0;max-width:1120px;text-align:center;font-size:12px;color:var(--muted)}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+.cadamag-credit-link{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Present live</b><span class="mono" id="who">Kamuk · 60 minutes · connectors</span></div>
+    <div class="scorebox"><span class="mono">Score</span><strong id="score">0</strong><span>/100</span><div class="bar"><i id="barfill"></i></div></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+const RECOVER = [
+  ["another","Let me put it another way…"],
+  ["mean","What I mean is…"],
+  ["other","In other words…"],
+  ["question","Good question. Let me explain."]
+];
+const GLOSS = [
+  {g:"Razón", es:"para decir por qué", en:"because", pattern:"Idea + because + reason.", ex:"We created NovaCare because families wait too long."},
+  {g:"Razón", es:"la razón, cuando te preguntan why", en:"the reason is", pattern:"The reason is + reason.", ex:"The reason is simple: families wait too long."},
+  {g:"Razón", es:"razón al inicio de la frase", en:"since", pattern:"Since + reason, + idea.", ex:"Since our price is low, students can pay it."},
+  {g:"Resultado", es:"para decir qué pasa después", en:"so", pattern:"Idea + so + result.", ex:"Our price is low, so students can pay it."},
+  {g:"Resultado", es:"resultado, más formal", en:"as a result", pattern:"Idea. As a result, + result.", ex:"We answer in 30 minutes. As a result, parents come back."},
+  {g:"Diferencia", es:"para marcar la diferencia, en la misma frase", en:"but", pattern:"Idea + but + difference.", ex:"Other clinics are slow, but we answer in 30 minutes."},
+  {g:"Diferencia", es:"la misma diferencia, con una pausa", en:"however", pattern:"Idea. However, + difference.", ex:"Other clinics are slow. However, we answer in 30 minutes."},
+  {g:"Diferencia", es:"el otro lado", en:"on the other hand", pattern:"Idea. On the other hand, + other side.", ex:"A big clinic has more doctors. On the other hand, we are closer."},
+  {g:"Sumar", es:"para sumar una idea fuerte", en:"on top of that", pattern:"On top of that, + extra idea.", ex:"On top of that, we use ingredients from local farms."},
+  {g:"Sumar", es:"para sumar, más corto", en:"also", pattern:"We also + idea.", ex:"We also train players after school."},
+  {g:"Sumar", es:"para unir dos cosas simples", en:"and", pattern:"Idea + and + idea.", ex:"We train players and we help them at school."},
+  {g:"Ejemplo", es:"para dar un ejemplo", en:"for example", pattern:"Idea. For example, + example.", ex:"We help young people. For example, players from 8 to 17."},
+  {g:"Ejemplo", es:"igual que for example", en:"for instance", pattern:"For instance, + example.", ex:"For instance, a parent can write to us on WhatsApp."},
+  {g:"Ejemplo", es:"para una lista corta", en:"such as", pattern:"people such as + list.", ex:"We help people such as students and working parents."},
+  {g:"Orden", es:"para empezar", en:"first", pattern:"First, + first idea.", ex:"First, families wait too long."},
+  {g:"Orden", es:"para seguir", en:"then", pattern:"Then, + next idea.", ex:"Then, we offer a visit in 30 minutes."},
+  {g:"Orden", es:"para la última idea antes del cierre", en:"finally", pattern:"Finally, + last idea.", ex:"Finally, one team leads patient care."},
+  {g:"Cerrar", es:"para cerrar con la razón", en:"that's why", pattern:"That's why + company + is the right choice.", ex:"That's why NovaCare is the right choice."},
+  {g:"Cerrar", es:"para cerrar, más formal", en:"in conclusion", pattern:"In conclusion, + the point.", ex:"In conclusion, we are the fast clinic for working parents."},
+  {g:"Si se te traba", es:"seguís, con otras palabras", en:"Let me put it another way", pattern:"Let me put it another way… + the idea again.", ex:"Let me put it another way… we are the fast option."},
+  {g:"Si se te traba", es:"decís la idea más simple", en:"What I mean is", pattern:"What I mean is… + simple idea.", ex:"What I mean is… parents do not wait for hours."},
+  {g:"Si se te traba", es:"la misma idea, más clara", en:"In other words", pattern:"In other words, + clear idea.", ex:"In other words, the visit takes 30 minutes."},
+  {g:"Si se te traba", es:"cuando te hacen una pregunta", en:"Good question. Let me explain.", pattern:"Good question. Let me explain. + answer.", ex:"Good question. Let me explain. We chose speed, not the lowest price."}
+];
+const LESSONS = [
+  {id:"room", code:"01", title:"The room", time:"6 min",
+    learn:`<p>You already know your company. This hour shows you <strong>how to say it live</strong>, in English, with connectors. A connector is the word that joins two ideas. Without it, the trainer hears a list. With it, the trainer hears a company.</p>
+      <p><span class="cue">Úsalo cuando unís dos ideas</span></p>
+      <div class="formula">Idea + linker + idea.</div>
+      <div class="pair">
+        <div><p class="cap">Mockup · sin conector</p>${mock("NovaCare","NovaCare. Families. Fast.","You stop between words")}</div>
+        <div><p class="cap">Mockup · con conector</p>${mock("NovaCare","We created NovaCare <b>because</b> families wait too long.","You keep going")}</div>
+      </div>
+      <h4>What you will say, in this order</h4>
+      <div class="beats"><div class="beat"><b>First</b><span>Who you are and the company.</span></div><div class="beat"><b>Because</b><span>The reason.</span></div><div class="beat"><b>So</b><span>The result for the customer.</span></div><div class="beat"><b>But</b><span>The difference.</span></div><div class="beat"><b>On top of that</b><span>One extra idea.</span></div><div class="beat"><b>For example</b><span>One concrete example.</span></div><div class="beat"><b>That's why</b><span>You close.</span></div></div>
+      <p>Say each line out loud before you continue. Getting stuck does not end the presentation. Staying silent does.</p>`,
+    quiz:[{q:"Which line can you say live?", o:["NovaCare. Families. Fast.","We created NovaCare because families wait too long.","Company. Good. Price.","Our logo is blue."], a:1, why:"Idea + because + idea. The other lines are lists. A list is hard to follow when you are standing."}],
+    build:[{id:"open", label:"Your opening line", help:"Start with First, Good morning, or We are. Then say your name and your company.", min:6, pts:6, need:["first","good morning","we are"]}]},
+  {id:"because", code:"02", title:"Because", time:"8 min",
+    learn:`<p><span class="cue">Úsalo cuando das la razón</span></p>
+      <div class="formula">We created [company] because [the problem].</div>
+      ${mock("Because","We created NovaCare <b>because</b> families wait too long.","Reason")}
+      <p>Because answers "why?". If the trainer asks "Why this company?", you already have the word.</p>
+      <p class="mistake">"Because of things" does not give a reason. Name the problem.</p>`,
+    quiz:[
+      {q:"What does because do in a live presentation?", o:["It ends the presentation","It gives the reason","It gives an example","It shows a difference"], a:1, why:"Because joins the company to the reason. The trainer hears why you exist."},
+      {q:"Which sentence gives a real reason?", o:["We created NovaCare because yes.","We created NovaCare because families wait three hours.","Because NovaCare.","We are because."], a:1, why:"The reason is specific: families wait three hours. \"Because yes\" is empty."}
+    ],
+    build:[{id:"because", label:"Your because line", help:"We created [your company] because [the real problem]. The word because must be in the sentence.", min:8, pts:10, need:["because"]}]},
+  {id:"so", code:"03", title:"So", time:"8 min",
+    learn:`<p><span class="cue">Úsalo cuando decís el resultado</span></p>
+      <div class="formula">[Fact], so [what the customer gets].</div>
+      ${mock("So","Our price is low, <b>so</b> students can pay it.","Result")}
+      <p>Say because first, then so. Reason, then result. That is two ideas, and the trainer can follow both.</p>`,
+    quiz:[{q:"Our price is low, ___ students can pay it.", o:["but","so","for example","however"], a:1, why:"So shows the result. But and however show a difference. For example gives an example."}],
+    build:[{id:"so", label:"Your so line", help:"Write a fact about your company, then so, then what the customer gets.", min:8, pts:10, need:["so"]}]},
+  {id:"but", code:"04", title:"But", time:"8 min",
+    learn:`<p><span class="cue">Úsalo cuando marcás la diferencia</span></p>
+      <div class="formula">[The other option], but [you].</div>
+      <div class="pair">
+        <div><p class="cap">Mockup · and no alcanza</p>${mock("And","Other clinics are slow <b>and</b> we are a clinic.","The difference is missing")}</div>
+        <div><p class="cap">Mockup · but la muestra</p>${mock("But","Other clinics are slow, <b>but</b> we answer in 30 minutes.","The difference is clear")}</div>
+      </div>
+      <p>This is your positioning, said out loud. You are not everybody. You are the difference after but.</p>`,
+    quiz:[{q:"Other clinics are slow, ___ we answer in 30 minutes.", o:["because","so","but","for example"], a:2, why:"But marks the difference between them and you. That is the position."}],
+    build:[{id:"but", label:"Your but line", help:"Name the other option, then but, then your difference. Use your positioning.", min:8, pts:10, need:["but"]}]},
+  {id:"add", code:"05", title:"Add an example", time:"8 min",
+    learn:`<p><span class="cue">Úsalo cuando sumás una idea, y cuando das un ejemplo</span></p>
+      <div class="formula">On top of that, [one more idea]. For example, [one real case].</div>
+      ${mock("On top of that","<b>On top of that</b>, we use ingredients from local farms.","One extra idea")}
+      ${mock("For example","We help young people. <b>For example</b>, players from 8 to 17.","One concrete example")}
+      <p>One extra idea is enough. One example is enough. Do not add a list of five.</p>`,
+    quiz:[{q:"Which linker adds a new idea?", o:["but","on top of that","because","Good morning"], a:1, why:"On top of that adds. But contrasts. Because gives the reason."}],
+    build:[
+      {id:"ontop", label:"Your on top of that line", help:"Start with On top of that, then one extra idea about your company.", min:6, pts:10, need:["on top of that"]},
+      {id:"example", label:"Your for example line", help:"Give one real customer, place, price or action. Include for example.", min:6, pts:8, need:["for example","for instance"]}
+    ]},
+  {id:"close", code:"06", title:"Close", time:"8 min",
+    learn:`<p><span class="cue">Úsalo cuando cerrás</span></p>
+      <p>The order of a live minute is <strong>first</strong>, <strong>then</strong>, <strong>finally</strong>. The last sentence uses <strong>that's why</strong>. Then you stop. You do not add a new idea after the close.</p>
+      ${mock("That's why","<b>That's why</b> NovaCare is the right choice. Thank you.","You stop here")}
+      <div class="beats"><div class="beat"><b>First</b><span>the problem.</span></div><div class="beat"><b>Then</b><span>what you offer.</span></div><div class="beat"><b>Finally</b><span>the position.</span></div><div class="beat"><b>That's why</b><span>the company is the right choice.</span></div></div>`,
+    quiz:[{q:"Which sentence closes the presentation?", o:["First, we have a problem.","On top of that, we have a logo.","That's why NovaCare is the right choice.","But."], a:2, why:"That's why lands the reason and stops. First opens. On top of that adds. But is not a close."}],
+    build:[{id:"close", label:"Your closing line", help:"That's why [company] is the right choice. You can add Thank you.", min:6, pts:8, need:["that's why","that is why"]}]},
+  {id:"freeze", code:"07", title:"If you freeze", time:"6 min",
+    learn:`<p><span class="cue">Úsalo cuando se te olvida la palabra</span></p>
+      <p>Everybody loses a word. Professionals do not stop and they do not switch language. They use one recovery phrase and they continue.</p>
+      <div class="pair">
+        <div><p class="cap">Mockup · silencio</p>${mock("0:18","…","The room waits")}</div>
+        <div><p class="cap">Mockup · seguís</p>${mock("0:18","<b>What I mean is…</b> parents do not wait for hours.","You continue")}</div>
+      </div>
+      <p>Pick one phrase now. Say it once, out loud, so it is in your mouth before the presentation.</p>`,
+    quiz:[{q:"You forget the next word. What do you do?", o:["Stay silent","Say sorry many times","Use a recovery phrase and continue","Stop the presentation"], a:2, why:"A recovery phrase gives you a second and shows control. Silence does not."}],
+    build:[{id:"recover", label:"The phrase you will use if you freeze", help:"Choose one. You will see it on your live script.", type:"select", pts:6}]}
+];
+const QPTS = 4;
+const SID = String(new URLSearchParams(location.search).get("sid")||"").trim();
+const KEY = "kamuk_live_pitch"+(SID?":"+SID:"");
+const SUPA = "https://lbspgbeqtcnjrbhiuucu.supabase.co";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM";
+const CLOUD = /^KAM-[A-Za-z0-9-]+$/.test(SID);
+const ROW = "LIVE-"+SID;
+let S = {name:"",group:"",ans:{},b:{},done:{},cur:"start",file:null};
+let TOUCHED = false;
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+const esc = t => String(t==null?"":t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const words = t => String(t||"").trim().split(/\s+/).filter(Boolean).length;
+const fmt = n => Math.round(n*10)/10;
+function mock(kicker, line, foot){
+  return `<div class="mock" aria-hidden="true"><div class="mock-top"><span class="live">● LIVE</span><span>PRESENTATION</span></div><div class="mock-slide"><div class="k">${kicker}</div><p>${line}</p></div><div class="mock-foot"><span class="avatar"></span><span>${foot}</span></div></div>`;
+}
+function hasPhrase(text, phrases){
+  const norm = (" "+String(text||"").toLowerCase().replace(/[’]/g,"'").replace(/[^a-z' ]+/g," ")+" ").replace(/\s+/g," ");
+  return (phrases||[]).some(p => norm.includes(" "+p+" "));
+}
+function allBuild(){ return LESSONS.reduce((a,m)=>a.concat(m.build||[]), []); }
+function fieldScore(f){
+  if(f.type==="select") return S.b[f.id] ? f.pts : 0;
+  const v = S.b[f.id];
+  const w = words(v);
+  const ok = !f.need || hasPhrase(v, f.need);
+  if(w>=f.min && ok) return f.pts;
+  if(w>0) return f.pts/2;
+  return 0;
+}
+function scores(){
+  let q = 0, n = 0;
+  LESSONS.forEach(m => (m.quiz||[]).forEach((x,i)=>{ n++; if(S.ans[m.id+i]===x.a) q += QPTS; }));
+  let b = 0;
+  allBuild().forEach(f => b += fieldScore(f));
+  return {q, qmax:n*QPTS, b, bmax:allBuild().reduce((s,f)=>s+f.pts,0), t:q+b};
+}
+function save(){ TOUCHED = true; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudSave(false); }
+let cloudT = null;
+function lineText(id){ return String(S.b[id]||"").trim(); }
+function recoverText(){ return (RECOVER.find(r=>r[0]===S.b.recover)||["",""])[1]; }
+function scriptText(){
+  const t = scores();
+  return `LIVE PRESENTATION
+Student: ${S.name}${S.group?" | "+S.group:""}
+Company: ${(S.file&&S.file.company)||lineText("open")||""}
+SCORE: ${fmt(t.t)}/100
+
+${lineText("open")||"[opening]"}
+${lineText("because")||"[because]"}
+${lineText("so")||"[so]"}
+${lineText("but")||"[but]"}
+${lineText("ontop")||"[on top of that]"}
+${lineText("example")||"[for example]"}
+${lineText("close")||"[that's why]"}
+
+If I freeze: ${recoverText()||"[recovery phrase]"}`;
+}
+function cloudRow(){
+  const t = scores();
+  return {studentId:SID, name:S.name, group:S.group, company:(S.file&&S.file.company)||"",
+    score:fmt(t.t), check:fmt(t.q), build:fmt(t.b),
+    open:lineText("open"), because:lineText("because"), so:lineText("so"), but:lineText("but"),
+    ontop:lineText("ontop"), example:lineText("example"), close:lineText("close"), recover:recoverText(),
+    script:scriptText(), state:S, updatedAt:new Date().toISOString()};
+}
+function flushCloud(){
+  if(!CLOUD) return;
+  clearTimeout(cloudT); cloudT = null;
+  try{
+    fetch(SUPA+"/rest/v1/kamuk_sessions",{method:"POST",keepalive:true,
+      headers:{apikey:ANON,Authorization:"Bearer "+ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify({id:ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+  }catch(e){}
+}
+function cloudSave(now){ if(!CLOUD) return; clearTimeout(cloudT); if(now){ flushCloud(); return; } cloudT = setTimeout(flushCloud, 600); }
+function richness(st){ st=st||{}; return Object.keys(st.ans||{}).length+Object.keys(st.b||{}).length+Object.keys(st.done||{}).length+(st.cur&&st.cur!=="start"?1:0); }
+function cloudRestore(){
+  if(!CLOUD) return;
+  fetch(SUPA+"/rest/v1/kamuk_sessions?id=eq."+encodeURIComponent(ROW)+"&select=data&limit=1",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const st = rows&&rows[0]&&rows[0].data&&rows[0].data.state;
+      if(!st) return;
+      if(richness(st)>richness(S)){ S = Object.assign({name:"",group:"",ans:{},b:{},done:{},cur:"start",file:S.file||null}, st); try{localStorage.setItem(KEY, JSON.stringify(S));}catch(e){} render(); }
+      else if(richness(S)>richness(st)) flushCloud();
+    }).catch(()=>{});
+}
+function loadContext(){
+  if(!CLOUD) return;
+  const ids = ["FOUNDERS-"+SID,"POSITION-"+SID].map(encodeURIComponent).join(",");
+  fetch(SUPA+"/rest/v1/kamuk_sessions?id=in.("+ids+")&select=id,data",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const by = {}; (rows||[]).forEach(r=>{ if(r&&r.id) by[r.id]=r.data||{}; });
+      const f = by["FOUNDERS-"+SID]||{}, p = by["POSITION-"+SID]||{};
+      const b = (f.state&&f.state.b)||{};
+      S.file = {company:p.company||f.company||b.name||"", customer:b.customer||"", line:p.line||"", chosen:p.chosen||""};
+      if(f.state&&f.state.name && !S.name) S.name = f.state.name;
+      render();
+    }).catch(()=>{});
+}
+addEventListener("pagehide", flushCloud);
+addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") flushCloud(); });
+function upd(){
+  const t = scores();
+  document.getElementById("score").textContent = fmt(t.t);
+  document.getElementById("barfill").style.width = Math.min(100, t.t)+"%";
+  document.getElementById("who").textContent = S.name ? (S.name+(S.group?" · "+S.group:"")) : "Kamuk · 60 minutes · connectors";
+}
+function go(id){ S.cur = id; save(); render(); window.scrollTo(0,0); }
+function render(){
+  const app = document.getElementById("app");
+  if(S.cur==="start"){ app.innerHTML = startView(); bindStart(); upd(); return; }
+  const lesson = LESSONS.find(m=>m.id===S.cur);
+  app.innerHTML = `<div class="layout"><nav class="index" aria-label="Hour">${navHTML()}</nav><main class="sheet">${S.cur==="glossary"?glossaryView():S.cur==="script"?scriptView():lessonView(lesson)}</main></div>`;
+  app.querySelectorAll("nav.index button").forEach(b=>b.onclick=()=>go(b.dataset.go));
+  if(S.cur==="glossary") bindGlossary();
+  else if(S.cur==="script") bindScript();
+  else bindLesson(lesson);
+  upd();
+}
+function navHTML(){
+  return LESSONS.map(m=>`<button data-go="${m.id}" class="${S.cur===m.id?"on":""}"><span class="mono code">${m.code}</span><span class="name">${esc(m.title)}</span><span class="tick ${S.done[m.id]?"done":""}"></span></button>`).join("")
+    +`<button data-go="glossary" class="${S.cur==="glossary"?"on":""}"><span class="mono code">A–Z</span><span class="name">Glossary</span><span></span></button>`
+    +`<button data-go="script" class="${S.cur==="script"?"on":""}"><span class="mono code">Live</span><span class="name">Your script</span><span class="tick ${S.done.script?"done":""}"></span></button>`;
+}
+function fileHTML(){
+  const f = S.file;
+  if(!f || (!f.company && !f.line && !f.chosen)) return "";
+  return `<div class="filebox"><span class="mono">From your company</span><p style="margin:6px 0 0;"><b>${esc(f.company||"Your company")}</b>${f.chosen?" · "+esc(f.chosen):""}${f.line?"<br>"+esc(f.line):""}${f.customer?"<br>"+esc(f.customer):""}</p></div>`;
+}
+function startView(){
+  return `<div class="start"><span class="mono" style="color:var(--muted)">60 minutes · live English · connectors</span>
+    <h1>Say your company live.</h1>
+    <p>Una hora. Vas a ver mockups de la exposición y vas a escribir lo que vas a decir en inglés. Cada conector une dos ideas. Al final tenés el guion de tu posicionamiento.</p>
+    ${fileHTML()}
+    <table class="plan"><tr><th>Part</th><th>You practice</th><th>Time</th></tr>
+      <tr><td>01</td><td>The room and the order</td><td>6 min</td></tr>
+      <tr><td>02</td><td>Because, the reason</td><td>8 min</td></tr>
+      <tr><td>03</td><td>So, the result</td><td>8 min</td></tr>
+      <tr><td>04</td><td>But, the difference</td><td>8 min</td></tr>
+      <tr><td>05</td><td>On top of that, and for example</td><td>8 min</td></tr>
+      <tr><td>06</td><td>That's why, the close</td><td>8 min</td></tr>
+      <tr><td>07</td><td>If you freeze</td><td>6 min</td></tr>
+      <tr><td>Live</td><td>Glossary and your script</td><td>8 min</td></tr>
+      <tr><td></td><td><strong>Total</strong></td><td><strong>60 min</strong></td></tr>
+    </table>
+    <p class="note">Say each line out loud. This score is the live presentation. It does not change your company score. The glossary stays open so you can use the words while you prepare.</p>
+    <div class="grid2"><div class="field"><label for="st-name">Your full name</label><input id="st-name" value="${esc(S.name)}"></div>
+      <div class="field"><label for="st-group">Group or section</label><input id="st-group" value="${esc(S.group)}" placeholder="Example: 10-A"></div></div>
+    <p id="st-err" class="mistake" hidden>Write your full name to start.</p>
+    <button class="btn" id="st-go">Start the hour</button></div>`;
+}
+function bindStart(){
+  document.getElementById("st-go").onclick=()=>{
+    const n = document.getElementById("st-name").value.trim();
+    if(words(n)<2){ document.getElementById("st-err").hidden=false; return; }
+    S.name=n; S.group=document.getElementById("st-group").value.trim(); S.cur="room"; save(); cloudSave(true); render();
+  };
+}
+function statusText(f){
+  const sc = fieldScore(f);
+  if(sc>=f.pts) return `Complete · ${f.pts} pts`;
+  if(f.type==="select") return `Choose one · ${f.pts} pts`;
+  if(f.need && words(S.b[f.id])>=f.min && !hasPhrase(S.b[f.id], f.need)) return `Add the words: ${f.need[0]}`;
+  return `${fmt(sc)} of ${f.pts} pts · at least ${f.min} words`;
+}
+function qHTML(m,i){
+  const x = m.quiz[i], key = m.id+i, ch = S.ans[key], answered = ch!==undefined;
+  return `<p class="qt">${i+1}. ${esc(x.q)}</p><div class="opts">${x.o.map((o,j)=>{
+    let c=""; if(answered){ if(j===x.a) c="right"; else if(j===ch) c="wrong"; }
+    return `<button data-q="${key}" data-j="${j}" class="${c}" ${answered?"disabled":""}>${esc(o)}</button>`;
+  }).join("")}</div>${answered?`<p class="why">${ch===x.a?'<b class="ok">Correct.</b>':'<b class="no">Not quite.</b>'} ${esc(x.why)}</p>`:""}`;
+}
+function fieldHTML(f){
+  const v = S.b[f.id]||"";
+  const input = f.type==="select"
+    ? `<select id="f-${f.id}" data-f="${f.id}"><option value="">Choose one</option>${RECOVER.map(r=>`<option value="${r[0]}" ${v===r[0]?"selected":""}>${esc(r[1])}</option>`).join("")}</select>`
+    : `<textarea id="f-${f.id}" data-f="${f.id}">${esc(v)}</textarea>`;
+  return `<div class="field"><label for="f-${f.id}">${esc(f.label)}</label><span class="help">${esc(f.help)}</span>${input}<span class="fieldstatus" id="st-${f.id}">${statusText(f)}</span></div>`;
+}
+function lessonView(m){
+  const i = LESSONS.indexOf(m);
+  const next = i<LESSONS.length-1 ? LESSONS[i+1].id : "glossary";
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">${m.code} · ${m.time}</span><h2>${esc(m.title)}</h2></div><div class="meta mono">Say it out loud</div></div>
+    ${fileHTML()}
+    <div class="learn">${m.learn}</div>
+    <div class="steplabel"><span class="pill mono">Check</span><h3>Then write your line</h3></div>
+    ${(m.quiz||[]).map((_,k)=>`<div class="q" id="q-${m.id}${k}">${qHTML(m,k)}</div>`).join("")}
+    ${(m.build||[]).map(fieldHTML).join("")}
+    <div class="actions">${i>0?`<button class="btn ghost" data-go="${LESSONS[i-1].id}">Back</button>`:"<span></span>"}<button class="btn" data-go="${next}" id="next">Continue</button></div>`;
+}
+function bindLesson(m){
+  const sheet = document.querySelector("main.sheet");
+  sheet.querySelectorAll("button[data-q]").forEach(b=>b.onclick=()=>{
+    const key=b.dataset.q; if(S.ans[key]!==undefined) return;
+    S.ans[key]=+b.dataset.j; save(); render();
+  });
+  const paint=()=>{
+    (m.build||[]).forEach(f=>{
+      const st=document.getElementById("st-"+f.id); if(!st) return;
+      st.textContent=statusText(f); st.className="fieldstatus"+(fieldScore(f)>=f.pts?" ok":"");
+    });
+    upd();
+  };
+  sheet.querySelectorAll("[data-f]").forEach(el=>{
+    const h=()=>{ S.b[el.dataset.f]=el.value; save(); paint(); };
+    el.addEventListener("input", h); el.addEventListener("change", h);
+  });
+  paint();
+  sheet.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ S.done[m.id]=true; go(b.dataset.go); cloudSave(true); });
+}
+function mark(text){
+  let h = esc(text||"");
+  ["on top of that","for example","for instance","that's why","that is why","let me put it another way","what i mean is","in other words","good question","good morning","because","however","also","first","then","finally","but","so","and"].forEach(w=>{
+    const re = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "ig");
+    h = h.replace(re, m=>`<b class="lnk">${m}</b>`);
+  });
+  return h;
+}
+function shown(id, fallback){ const t = lineText(id); return t ? mark(t) : `<span style="opacity:.55">${fallback}</span>`; }
+function scriptView(){
+  const t = scores();
+  const company = (S.file&&S.file.company)||"Your company";
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">8 min · the live minute</span><h2>Your script</h2></div>${S.done.script?'<span class="stamp">READY</span>':""}</div>
+    <p>This is the mockup of what you will say. Read it out loud once. The yellow words are the connectors.</p>
+    ${mock(esc(company), shown("open","[opening]")+"<br>"+shown("because","[because]")+"<br>"+shown("so","[so]"), esc(S.name||"You"))}
+    ${mock("The difference", shown("but","[but]")+"<br>"+shown("ontop","[on top of that]")+"<br>"+shown("example","[for example]"), "Keep going")}
+    ${mock("Close", shown("close","[that's why]")+"<br><b>If you freeze:</b> "+esc(recoverText()||"[pick a phrase in part 07]"), "Then stop")}
+    <p style="font-family:var(--f-display);font-size:42px;font-weight:800;margin:8px 0;">${fmt(t.t)}<span style="font-size:18px;color:var(--muted)"> / 100</span></p>
+    <p class="note">Check ${fmt(t.q)}/${t.qmax} · Your lines ${fmt(t.b)}/${t.bmax}. This number is the live hour. Your company score stays where it is.</p>
+    <div class="filebox" id="rep" style="white-space:pre-wrap;">${esc(scriptText())}</div>
+    <div class="actions"><button class="btn ghost" data-go="glossary">Open the glossary</button><button class="btn" id="ready">This is what I will say</button></div>`;
+}
+function bindScript(){
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+  document.getElementById("ready").onclick=()=>{ S.done.script=true; save(); cloudSave(true); render(); toast("Saved for your trainer"); };
+}
+function glossaryView(){
+  const groups = [];
+  GLOSS.forEach(item=>{ if(groups.indexOf(item.g)<0) groups.push(item.g); });
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">Keep this open</span><h2>Glossary</h2></div></div>
+    <p>Each card tells you when to use the word, the pattern, and a line you can copy the shape of. The line you say is still about your company.</p>
+    <input class="g-search" id="g-q" placeholder="Search because, so, but, ejemplo…" aria-label="Search the glossary">
+    <div id="g-list">${groups.map(g=>glossGroup(g)).join("")}</div>`;
+}
+function glossGroup(g){
+  const items = GLOSS.filter(x=>x.g===g);
+  return `<h3 class="g-group">${esc(g)}</h3>`+items.map(item=>`<article class="g-card" data-blob="${esc((item.en+" "+item.es+" "+item.ex).toLowerCase())}"><div class="es">${esc(item.es)}</div><div class="en">${esc(item.en)}</div><p class="say">${esc(item.pattern)}</p><p class="say">${mark(item.ex)}</p></article>`).join("");
+}
+function bindGlossary(){
+  const q = document.getElementById("g-q");
+  q.oninput=()=>{
+    const n = q.value.trim().toLowerCase();
+    document.querySelectorAll(".g-card").forEach(card=>{ card.hidden = n && card.dataset.blob.indexOf(n)<0; });
+    document.querySelectorAll(".g-group").forEach(h=>{
+      let n2 = h.nextElementSibling, any=false;
+      while(n2 && !n2.classList.contains("g-group")){ if(n2.classList.contains("g-card") && !n2.hidden) any=true; n2=n2.nextElementSibling; }
+      h.hidden=!any;
+    });
+  };
+}
+function toast(t){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+render();
+cloudRestore();
+loadContext();
+</script>
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+</body>
+</html>

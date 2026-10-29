@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Position your company · Kamuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --paper:#EEF3F8; --sheet:#FFFFFF; --ink:#15232C; --muted:#56676E; --line:#D3DCE6;
+  --accent:#2B7EC1; --accent-ink:#FFFFFF; --accent-soft:#E7F1FA; --stamp:#B4322A; --good:#1C7A3D; --good-soft:#E1F2E6; --bad-soft:#F7E3E1;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --stamp:#E56A5F; --good:#5FCB85; --good-soft:#163323; --bad-soft:#3A1D1B; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.wrap{max-width:880px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--f-display);font-size:20px}
+.brand span{color:var(--muted)}
+.scorebox{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.scorebox strong{font-family:var(--f-display);font-size:28px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:140px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+main.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:clamp(20px,4vw,44px);margin-top:24px;min-width:0}
+.formhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:24px}
+.formhead h2{font-size:clamp(28px,4vw,40px);font-weight:800}
+.formhead .meta{color:var(--muted);text-align:right}
+section.step{margin-block:32px}
+.steplabel{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.steplabel .pill{background:var(--accent);color:var(--accent-ink);padding:2px 10px;border-radius:99px}
+.steplabel h3{font-size:22px}
+.learn p,.learn li{max-width:68ch}
+.learn h4{font-family:var(--f-display);font-size:18px;margin:22px 0 6px}
+.learn ul,.learn ol{padding-left:22px;margin:6px 0}
+.formula{border:1px dashed var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:6px;font-weight:700;margin:10px 0;max-width:68ch}
+.example{border-left:3px solid var(--muted);padding:6px 16px;margin:12px 0;color:var(--ink);max-width:68ch}
+.example .mono{color:var(--muted);display:block}
+.mistake{color:var(--stamp)}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;min-width:520px;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.filebox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:0 0 18px}
+.filebox b{font-family:var(--f-display)}
+.q{border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+.q p.qt{font-weight:700;margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--sheet)}
+.opts button:hover:not([disabled]){border-color:var(--accent)}
+.opts button:focus-visible{outline:2px solid var(--accent)}
+.opts button[disabled]{cursor:default}
+.opts button.right{background:var(--good-soft);border-color:var(--good)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--stamp)}
+.why{margin-top:10px;font-size:15px}
+.why b.ok{color:var(--good)} .why b.no{color:var(--stamp)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.field label{font-weight:700}
+.field .help{color:var(--muted);font-size:15px}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.fieldstatus{font-size:13px;color:var(--muted)}
+.fieldstatus.ok{color:var(--good)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;align-items:center;border-top:1px solid var(--line);padding-top:20px;margin-top:28px}
+.btn{all:unset;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:12px 22px;border-radius:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.draft{white-space:pre-wrap;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;max-width:72ch}
+.start{max-width:680px;margin-top:40px}
+.start h1{font-size:clamp(36px,6vw,56px);font-weight:800;margin:8px 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stamp{display:inline-block;border:3px solid var(--stamp);color:var(--stamp);font-family:var(--f-mono);font-weight:500;letter-spacing:.12em;padding:6px 14px;transform:rotate(-4deg);border-radius:4px}
+.note{color:var(--muted);font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:6px;font-weight:700}
+@media (max-width:820px){
+  .grid2{grid-template-columns:1fr}
+  .bar{width:90px}
+  table{min-width:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.cadamag-credit{margin:40px auto 0;max-width:880px;text-align:center;font-size:12px;color:var(--muted)}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+.cadamag-credit-link{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.cadamag-credit-link:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Position your company</b><span class="mono" id="who">Kamuk · The Founder's File · part 1</span></div>
+    <div class="scorebox"><span class="mono">Score</span><strong id="score">0</strong><span>/100</span><div class="bar"><i id="barfill"></i></div></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+const STRATS = [
+  ["price","Price","Be the affordable choice. The customer picks you because they can pay."],
+  ["specialist","Specialist","Serve one kind of customer only. You are not for everybody."],
+  ["speed","Speed or closeness","Be faster or nearer than the other option."],
+  ["trust","Trust","Be the safer or higher-quality choice. The customer pays for confidence."]
+];
+const QUIZ = [
+  {q:"What is positioning?", o:["The company logo and the colors","The place your company occupies in the customer's mind","The number of employees","The office address"], a:1, why:"Positioning is how the customer sees you, next to the other options. The logo comes later."},
+  {q:"Which line is a positioning strategy?", o:["Our logo is blue.","We are the affordable lunch for busy students.","We have a company.","Everybody is our customer."], a:1, why:"It says who it is for and why that customer picks it. A color and the word everybody do not position a company."},
+  {q:"A founder says: \"Our customer is everybody.\" What is the problem?", o:["The sentence is too short","The company has no position, because it is not for a specific customer","The company needs a video first","The price is missing"], a:1, why:"If you are for everybody, the customer cannot tell you apart from the other option."},
+  {q:"Which sentence follows the positioning formula?", o:["SnackBox is good.","For busy students, SnackBox is the lunch that arrives in 20 minutes for $6.","We sell food.","Our mission is long."], a:1, why:"For [customer], [company] is the [category] that [difference]. The customer, the offer and the difference are all in the sentence."}
+];
+const QPTS = 5;
+const BUILD = [
+  {id:"company", label:"Your company name", help:"The company you already built. Do not invent a new one.", type:"text", min:1, pts:5},
+  {id:"stratA", label:"Strategy 1", help:"Pick one way the customer could see you.", type:"select", pts:5},
+  {id:"whyA", label:"Why strategy 1 could fit your company", help:"Use your real customer and your real offer. One or two sentences.", type:"area", min:8, pts:15},
+  {id:"stratB", label:"Strategy 2", help:"Pick a different strategy. Two options, then you will choose.", type:"select", pts:5},
+  {id:"whyB", label:"Why strategy 2 could fit your company", help:"A different reason. Do not copy strategy 1.", type:"area", min:8, pts:15},
+  {id:"chosen", label:"The strategy you will use", help:"Choose one of the two you wrote above.", type:"select", pts:5},
+  {id:"line", label:"Your positioning line", help:"Use the formula: For [customer], [company] is the [category] that [difference].", type:"area", min:10, pts:20},
+  {id:"notThis", label:"What you are not", help:"Say the position you refuse. Example: We are not the cheapest clinic. We are the fast one.", type:"area", min:6, pts:10}
+];
+
+const SID = String(new URLSearchParams(location.search).get("sid")||"").trim();
+const KEY = "kamuk_position"+(SID?":"+SID:"");
+const SUPA = "https://lbspgbeqtcnjrbhiuucu.supabase.co";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic3BnYmVxdGNuanJiaGl1dWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDgzNzgsImV4cCI6MjA5NjYyNDM3OH0.j1NRrwxmCVipIlHgEPhkdQQfnhMZVK713mFq8LnvufM";
+const CLOUD = /^KAM-[A-Za-z0-9-]+$/.test(SID);
+const ROW = "POSITION-"+SID;
+let S = {name:"",group:"",ans:{},b:{},done:false,cur:"start",file:null};
+let TOUCHED = false;
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+
+const esc = t => String(t==null?"":t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const words = t => String(t||"").trim().split(/\s+/).filter(Boolean).length;
+const fmt = n => Math.round(n*10)/10;
+const stratName = id => (STRATS.find(s => s[0]===id)||["",""])[1];
+
+function fieldScore(f){
+  const v = S.b[f.id];
+  if(f.type==="select"){
+    if(!v) return 0;
+    if(f.id==="stratB" && v===S.b.stratA) return 0;
+    if(f.id==="chosen" && v!==S.b.stratA && v!==S.b.stratB) return 0;
+    return f.pts;
+  }
+  const w = words(v);
+  if(w>=f.min) return f.pts;
+  if(w>0) return f.pts/2;
+  return 0;
+}
+function scores(){
+  let q = 0;
+  QUIZ.forEach((x,i)=>{ if(S.ans[i]===x.a) q += QPTS; });
+  let b = 0;
+  BUILD.forEach(f => b += fieldScore(f));
+  return {q, qmax:QUIZ.length*QPTS, b, bmax:BUILD.reduce((s,f)=>s+f.pts,0), t:q+b};
+}
+function save(){ TOUCHED = true; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudSave(false); }
+let cloudT = null;
+function reportText(){
+  const t = scores();
+  return `POSITIONING — PART 1
+Student: ${S.name}${S.group?" | Group: "+S.group:""}
+Company: ${(S.b.company||"").trim()||"(no name)"}
+SCORE: ${fmt(t.t)}/100
+Check: ${fmt(t.q)}/20 | Strategies: ${fmt(t.b)}/80
+
+Strategy 1: ${stratName(S.b.stratA)||"—"}
+${(S.b.whyA||"").trim()}
+
+Strategy 2: ${stratName(S.b.stratB)||"—"}
+${(S.b.whyB||"").trim()}
+
+We will use: ${stratName(S.b.chosen)||"—"}
+Positioning line: ${(S.b.line||"").trim()}
+We are not: ${(S.b.notThis||"").trim()}`;
+}
+function cloudRow(){
+  const t = scores();
+  return {
+    studentId:SID, name:S.name, group:S.group, company:(S.b.company||"").trim(),
+    score:fmt(t.t), check:fmt(t.q), build:fmt(t.b),
+    strategyA:stratName(S.b.stratA), whyA:(S.b.whyA||"").trim(),
+    strategyB:stratName(S.b.stratB), whyB:(S.b.whyB||"").trim(),
+    chosen:stratName(S.b.chosen), line:(S.b.line||"").trim(), notThis:(S.b.notThis||"").trim(),
+    report:reportText(), state:S, updatedAt:new Date().toISOString()
+  };
+}
+function flushCloud(){
+  if(!CLOUD) return;
+  clearTimeout(cloudT); cloudT = null;
+  try{
+    fetch(SUPA+"/rest/v1/kamuk_sessions",{method:"POST",keepalive:true,
+      headers:{apikey:ANON,Authorization:"Bearer "+ANON,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify({id:ROW,data:cloudRow(),updated_at:new Date().toISOString()})}).catch(()=>{});
+  }catch(e){}
+}
+function cloudSave(now){
+  if(!CLOUD) return;
+  clearTimeout(cloudT);
+  if(now){ flushCloud(); return; }
+  cloudT = setTimeout(flushCloud, 600);
+}
+function richness(st){
+  st = st||{};
+  return Object.keys(st.ans||{}).length + Object.keys(st.b||{}).length + (st.done?2:0) + (st.cur&&st.cur!=="start"?1:0);
+}
+function cloudRestore(){
+  if(!CLOUD) return;
+  fetch(SUPA+"/rest/v1/kamuk_sessions?id=eq."+encodeURIComponent(ROW)+"&select=data&limit=1",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const st = rows&&rows[0]&&rows[0].data&&rows[0].data.state;
+      if(!st) return;
+      if(richness(st)>richness(S)){
+        S = Object.assign({name:"",group:"",ans:{},b:{},done:false,cur:"start",file:S.file||null}, st);
+        try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+        render();
+      }else if(richness(S)>richness(st)) flushCloud();
+    }).catch(()=>{});
+}
+function loadFile(){
+  if(!CLOUD) return;
+  fetch(SUPA+"/rest/v1/kamuk_sessions?id=eq."+encodeURIComponent("FOUNDERS-"+SID)+"&select=data&limit=1",{headers:{apikey:ANON,Authorization:"Bearer "+ANON}})
+    .then(r=>r.ok?r.json():[]).then(rows=>{
+      if(TOUCHED) return;
+      const d = rows&&rows[0]&&rows[0].data;
+      if(!d) return;
+      const b = (d.state&&d.state.b)||{};
+      S.file = {company:d.company||b.name||"", customer:b.customer||"", why:b.whyus||"", problem:b.problem||""};
+      if(S.file.company && !S.b.company) S.b.company = S.file.company;
+      if(d.state&&d.state.name && !S.name) S.name = d.state.name;
+      render();
+    }).catch(()=>{});
+}
+addEventListener("pagehide", flushCloud);
+addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") flushCloud(); });
+
+function upd(){
+  const t = scores();
+  document.getElementById("score").textContent = fmt(t.t);
+  document.getElementById("barfill").style.width = t.t+"%";
+  document.getElementById("who").textContent = S.name ? (S.name+(S.group?" · "+S.group:"")) : "Kamuk · The Founder's File · part 1";
+}
+function render(){
+  const app = document.getElementById("app");
+  if(S.cur==="start"){ app.innerHTML = startView(); bindStart(); upd(); return; }
+  if(S.cur==="report"){ app.innerHTML = `<main class="sheet">${reportView()}</main>`; bindReport(); upd(); return; }
+  app.innerHTML = `<main class="sheet">${workView()}</main>`;
+  bindWork(); upd();
+}
+function fileHTML(){
+  const f = S.file;
+  if(!f || (!f.company && !f.customer && !f.why)) return "";
+  return `<div class="filebox"><span class="mono">From your Founder's File</span>
+    <p style="margin:6px 0 0;"><b>${esc(f.company||"Your company")}</b><br>
+    ${f.customer?esc(f.customer)+"<br>":""}${f.why?esc(f.why):""}</p></div>`;
+}
+function startView(){
+  return `<div class="start">
+    <span class="mono" style="color:var(--muted)">Part 1 · your company · in English</span>
+    <h1>How should the customer see you?</h1>
+    <p>You already know your company. This part does not create a new one. You go deeper: you write <strong>two positioning strategies</strong>, you choose one, and you write the line you will say when you present.</p>
+    ${fileHTML()}
+    <p class="note">You answer each check once. Your strategies are saved for your trainer. This score is only for positioning. Your company score stays where it is.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="field"><label for="st-name">Your full name</label><input type="text" id="st-name" value="${esc(S.name)}"></div>
+      <div class="field"><label for="st-group">Group or section</label><input type="text" id="st-group" value="${esc(S.group)}" placeholder="Example: 10-A"></div>
+    </div>
+    <p id="st-err" class="mistake" hidden>Write your full name to start.</p>
+    <button class="btn" id="st-go">Open positioning</button>
+  </div>`;
+}
+function bindStart(){
+  document.getElementById("st-go").onclick = ()=>{
+    const n = document.getElementById("st-name").value.trim();
+    if(words(n)<2){ document.getElementById("st-err").hidden = false; return; }
+    S.name = n; S.group = document.getElementById("st-group").value.trim(); S.cur = "work";
+    save(); cloudSave(true); render(); window.scrollTo(0,0);
+  };
+}
+function optHTML(selected){
+  return `<option value="">Choose one</option>`+STRATS.map(s=>`<option value="${s[0]}" ${selected===s[0]?"selected":""}>${s[1]} — ${s[2]}</option>`).join("");
+}
+function statusText(f){
+  const sc = fieldScore(f);
+  if(f.id==="stratB" && S.b.stratB && S.b.stratB===S.b.stratA) return "Choose a different strategy from strategy 1.";
+  if(f.id==="chosen" && S.b.chosen && S.b.chosen!==S.b.stratA && S.b.chosen!==S.b.stratB) return "Choose one of the two strategies you already wrote.";
+  if(sc>=f.pts) return `Complete · ${f.pts} pts`;
+  if(f.type==="select") return `0 of ${f.pts} pts`;
+  return `${fmt(sc)} of ${f.pts} pts · write at least ${f.min} word${f.min>1?"s":""}`;
+}
+function qHTML(k){
+  const x = QUIZ[k], ch = S.ans[k], answered = ch!==undefined;
+  return `<p class="qt">${k+1}. ${esc(x.q)}</p><div class="opts">${x.o.map((o,j)=>{
+    let c = ""; if(answered){ if(j===x.a) c = "right"; else if(j===ch) c = "wrong"; }
+    return `<button data-q="${k}" data-j="${j}" class="${c}" ${answered?"disabled":""}>${esc(o)}</button>`;
+  }).join("")}</div>${answered?`<p class="why">${ch===x.a?'<b class="ok">Correct.</b>':'<b class="no">Not quite.</b>'} ${esc(x.why)}</p>`:""}`;
+}
+function fieldHTML(f){
+  const v = S.b[f.id]||"";
+  let input = "";
+  if(f.type==="text") input = `<input type="text" id="f-${f.id}" data-f="${f.id}" value="${esc(v)}">`;
+  else if(f.type==="area") input = `<textarea id="f-${f.id}" data-f="${f.id}">${esc(v)}</textarea>`;
+  else input = `<select id="f-${f.id}" data-f="${f.id}">${optHTML(v)}</select>`;
+  return `<div class="field"><label for="f-${f.id}">${esc(f.label)}</label><span class="help">${esc(f.help)}</span>${input}<span class="fieldstatus" id="st-${f.id}">${statusText(f)}</span></div>`;
+}
+function workView(){
+  const t = scores();
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">Part 1</span><h2>Positioning</h2></div><div class="meta mono">Check ${fmt(t.q)}/20 · Strategies <span id="bscore">${fmt(t.b)}</span>/80</div></div>
+    ${fileHTML()}
+    <section class="step learn"><div class="steplabel"><span class="pill mono">1 · Learn</span><h3>A position is a choice</h3></div>
+      <p>Your company already has a name, a customer and an offer. Positioning is the next decision: <strong>how that customer should see you</strong> when they compare you with another option.</p>
+      <div class="formula">For [customer], [company] is the [category] that [difference].</div>
+      <h4>Four strategies</h4>
+      <p>A strategy is the reason a customer picks you. You will write two. Then you keep one.</p>
+      <div class="tablewrap"><table>
+        <tr><th>Strategy</th><th>The customer thinks</th><th>Example</th></tr>
+        <tr><td>Price</td><td>"I can pay this."</td><td>SnackBox is $6, so a student can buy lunch.</td></tr>
+        <tr><td>Specialist</td><td>"This is for someone like me."</td><td>Volcano FC trains players from 8 to 17. Not a club for everyone.</td></tr>
+        <tr><td>Speed or closeness</td><td>"This is faster, or it is near me."</td><td>NovaCare answers in 30 minutes. The other clinic takes hours.</td></tr>
+        <tr><td>Trust</td><td>"This is safer or better made."</td><td>A clinic that does not share patient information.</td></tr>
+      </table></div>
+      <h4>What you are not</h4>
+      <p>A clear position also says what you refuse. If you are the fast clinic, you are not the cheapest clinic. If you are the specialist, you are not for everybody.</p>
+      <p class="mistake">"We are the best for everybody" is not a strategy. The customer cannot see you.</p>
+    </section>
+    <section class="step"><div class="steplabel"><span class="pill mono">2 · Check</span><h3>Show what you learned</h3></div>
+      ${QUIZ.map((_,k)=>`<div class="q" id="q-${k}">${qHTML(k)}</div>`).join("")}
+    </section>
+    <section class="step"><div class="steplabel"><span class="pill mono">3 · Your strategies</span><h3>Write them for your company</h3></div>
+      ${BUILD.map(fieldHTML).join("")}
+    </section>
+    <div class="actions"><button class="btn" id="complete">Save my strategies</button></div>`;
+}
+function bindWork(){
+  const sheet = document.querySelector("main.sheet");
+  sheet.querySelectorAll("button[data-q]").forEach(b => b.onclick = ()=>{
+    const k = +b.dataset.q;
+    if(S.ans[k]!==undefined) return;
+    S.ans[k] = +b.dataset.j;
+    save();
+    render();
+  });
+  const paint = ()=>{
+    BUILD.forEach(f=>{
+      const st = document.getElementById("st-"+f.id);
+      if(!st) return;
+      st.textContent = statusText(f);
+      st.className = "fieldstatus"+(fieldScore(f)>=f.pts?" ok":"");
+    });
+    document.getElementById("bscore").textContent = fmt(scores().b);
+    upd();
+  };
+  sheet.querySelectorAll("[data-f]").forEach(el =>{
+    const h = ()=>{ S.b[el.dataset.f] = el.value; save(); paint(); };
+    el.addEventListener("input", h);
+    el.addEventListener("change", h);
+  });
+  paint();
+  document.getElementById("complete").onclick = ()=>{
+    S.done = true; S.cur = "report"; save(); cloudSave(true); render(); window.scrollTo(0,0);
+  };
+}
+function reportView(){
+  const t = scores();
+  return `<div class="formhead"><div><span class="mono" style="color:var(--muted)">For your trainer</span><h2>Your two strategies</h2></div>${S.done?'<span class="stamp">SENT</span>':""}</div>
+    <p style="font-family:var(--f-display);font-size:56px;font-weight:800;margin:0;font-variant-numeric:tabular-nums">${fmt(t.t)}<span style="font-size:24px;color:var(--muted)"> / 100</span></p>
+    <p>${esc(S.name)}${S.group?" · "+esc(S.group):""} · ${esc((S.b.company||"").trim()||"No company name yet")}</p>
+    <p>This number is your positioning work. It does not change the score of your company.</p>
+    <div class="draft" id="rep">${esc(reportText())}</div>
+    <div class="actions"><button class="btn ghost" id="back">Edit my strategies</button><button class="btn" id="cp">Copy for my trainer</button></div>`;
+}
+function bindReport(){
+  document.getElementById("back").onclick = ()=>{ S.cur = "work"; save(); render(); window.scrollTo(0,0); };
+  document.getElementById("cp").onclick = ()=>{
+    const el = document.getElementById("rep");
+    const done = ()=>toast("Copied");
+    const fallback = ()=>{ const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Text selected. Copy it with Ctrl+C"); };
+    try{ navigator.clipboard.writeText(el.textContent).then(done, fallback); }catch(e){ fallback(); }
+  };
+}
+function toast(t){ const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+render();
+cloudRestore();
+loadFile();
+</script>
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+</body>
+</html>

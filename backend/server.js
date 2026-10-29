@@ -1716,7 +1716,7 @@ const DEMO_LIMITS = {
 /** Demo products that never reset (one free try forever unless premium). */
 const DEMO_LIFETIME_SERVICES = new Set(['alice', 'alice_companion', 'jill', 'nexora', 'tts']);
 
-const APP1_BUILD = '20261010-mic-tts';
+const APP1_BUILD = '20261029-boards-voice';
 const JILL_BRAIN_VER = 'v43-student-name-fix';
 const ALICE_BRAIN_VER = 'v27-student-name-fix';
 

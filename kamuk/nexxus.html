@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NeXxus · Kamuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
+<style>
+:root{
+  --paper:#EEF3F8; --sheet:#FFFFFF; --ink:#15232C; --muted:#56676E; --line:#D3DCE6;
+  --accent:#2B7EC1; --accent-ink:#FFFFFF; --accent-soft:#E7F1FA; --navy:#16324A;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D151D; --sheet:#14202B; --ink:#E4EBF1; --muted:#97A7B4; --line:#2A3B4A;
+  --accent:#79B9E8; --accent-ink:#0B1A26; --accent-soft:#16304A; --navy:#071018; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;min-height:100%;display:flex;flex-direction:column}
+button,input{font:inherit}
+h1,h2{font-family:var(--f-display);line-height:1.1;margin:0}
+.lobby,.gate{flex:1;display:grid;place-items:center;padding:32px 18px 12px}
+.card{width:min(560px,100%);background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:28px 26px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(40px,7vw,64px);font-weight:800;margin:8px 0 10px}
+.lead{color:var(--muted);margin:0 0 18px;max-width:46ch}
+.who{font-weight:700;margin-bottom:16px}
+.btn{border:0;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:8px;padding:12px 18px}
+.btn:disabled{background:transparent;color:var(--muted);border:1px solid var(--line);opacity:1;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.on{background:#B4322A;color:#fff}
+.floor{flex:1;min-height:0;display:flex;flex-direction:column}
+.floor[hidden],.lobby[hidden],.gate[hidden]{display:none}
+.top{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.top b{font-family:var(--f-display);font-size:22px}
+.top span{color:rgba(255,255,255,.72);font-size:14px}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
+.rail,.stage{min-height:0;overflow:auto}
+.rail{background:var(--sheet);border-right:1px solid var(--line);padding:14px}
+.rail button{width:100%;text-align:left;background:transparent;border:0;border-radius:8px;padding:10px;cursor:pointer;color:var(--ink);display:flex;gap:8px}
+.rail button.on{background:var(--accent-soft)}
+.rail button span{color:var(--muted);width:1.4em}
+.stage{padding:22px 22px 12px;display:flex;flex-direction:column;gap:12px}
+.role{color:var(--accent);font-weight:700}
+.prompt{font-size:22px;font-weight:700;max-width:68ch}
+.goal{color:var(--muted);max-width:68ch}
+.transcript{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-height:140px;max-height:240px;overflow:auto}
+.transcript p{margin:0 0 8px}
+.empty{color:var(--muted);margin:0}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.status{color:var(--muted);font-size:15px}
+.cadamag-credit{margin:0;padding:14px 16px 18px;text-align:center;font-size:12px;color:var(--muted)}
+.cadamag-credit-line{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+.cadamag-credit-link{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+@media (max-width:800px){.layout{grid-template-columns:1fr}.rail{border-right:0;border-bottom:1px solid var(--line);max-height:180px}}
+</style>
+</head>
+<body>
+<section class="gate" id="nxu-gate" hidden>
+  <div class="card">
+    <div class="kicker">Kamuk</div>
+    <h1>NeXxus</h1>
+    <p class="lead">Este lab es solo para un estudiante Kamuk. Abrilo desde el portal de Kamuk.</p>
+  </div>
+</section>
+<section class="lobby" id="nxu-lobby">
+  <div class="card">
+    <div class="kicker">Kamuk</div>
+    <h1>NeXxus</h1>
+    <p class="lead">Piso de práctica. El programa de escenarios entra aparte. Hoy el lab abre vacío.</p>
+    <p class="who" id="nxu-who"></p>
+    <p class="lead" id="nxu-need-portal" hidden>Entrá desde el portal de Kamuk para abrir tu sesión.</p>
+    <button type="button" class="btn" id="nxu-enter">Entrar al lab</button>
+  </div>
+</section>
+<section class="floor" id="nxu-floor" hidden>
+  <header class="top">
+    <b>NeXxus</b>
+    <span id="nxu-count">0 escenas</span>
+  </header>
+  <div class="layout">
+    <aside class="rail" id="nxu-scenes" aria-label="Escenarios"></aside>
+    <main class="stage">
+      <h2 id="nxu-title">Lab listo</h2>
+      <div class="role" id="nxu-role"></div>
+      <p class="prompt" id="nxu-prompt"></p>
+      <p class="goal" id="nxu-goal"></p>
+      <div class="transcript" id="nxu-transcript" aria-live="polite"></div>
+      <div class="controls">
+        <button type="button" class="btn ghost" id="nxu-hear">Escuchar escena</button>
+        <button type="button" class="btn" id="nxu-mic">Hablar</button>
+        <button type="button" class="btn ghost" id="nxu-next">Siguiente</button>
+      </div>
+      <p class="status" id="nxu-status"></p>
+    </main>
+  </div>
+</section>
+<footer class="cadamag-credit" aria-label="Autoría">
+  <p class="cadamag-credit-line">
+    <span class="cadamag-credit-by">Created by Cadamag Automação</span>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="mailto:cadamag.automacao@gmail.com">cadamag.automacao@gmail.com</a>
+    <span class="cadamag-credit-sep" aria-hidden="true">·</span>
+    <a class="cadamag-credit-link" href="https://wa.me/5592984168201" target="_blank" rel="noopener noreferrer">+55 (92) 98416-8201</a>
+  </p>
+</footer>
+<script src="js/nexxus-program.js?v=20261028shell"></script>
+<script src="js/nexxus-lab.js?v=20261028shell"></script>
+</body>
+</html>
