@@ -10,13 +10,13 @@
 <script src="https://studioinfinitycr.com/nexora-profile.js?v=20260702restore"></script>
 <script src="js/nexora-voice-lock.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/nexora-characters.js?v=20260702restore"></script>
-<script src="js/tts-chunks.js?v=20260904stable"></script>
+<script src="js/tts-chunks.js?v=20261029voice"></script>
 <script src="https://studioinfinitycr.com/js/nexora-industry-map.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-scenario-bank-data.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-scenario-bank.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-scenario-rotate.js?v=20260702restore"></script>
 <script src="https://studioinfinitycr.com/js/nexora-stream-voice.js?v=20260702restore"></script>
-<script src="js/ptt-mic.js?v=20260904stable"></script>
+<script src="js/ptt-mic.js?v=20261029ptt"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -2260,18 +2260,34 @@ function nexoraPrefetchTTS(text){
   .catch(function(){ delete _nexoraTtsPrefetch[cacheKey]; });
 }
 
+function nexoraSpeakFallback(text, done){
+  if(!window.speechSynthesis || !text){ if(done) done(); return; }
+  var u = new SpeechSynthesisUtterance(String(text));
+  u.lang = 'en-US';
+  u.rate = 0.96;
+  u.onend = function(){ if(done) done(); };
+  u.onerror = function(){ if(done) done(); };
+  window.speechSynthesis.speak(u);
+}
+function nexoraAdvanceQueue(){
+  window._nxAudio = null;
+  _nxPlayingChunk = null;
+  _nxTTSBusy = false;
+  _nxTTSFlush();
+}
+var _nxHold = false;
 function nexoraPauseSpeech(){
   clearTimeout(_nxResumeTimer);
-  if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
-  if(_nxPlayingChunk){
-    _nxTTSQueue.unshift(_nxPlayingChunk);
-    _nxPlayingChunk=null;
+  _nxHold = true;
+  if(window._nxAudio && !window._nxAudio.ended){
+    try{ window._nxAudio.pause(); }catch(e){}
   }
-  _nxTTSBusy=false;
+  try{ if(window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.pause(); }catch(e2){}
 }
 
 function nexoraHardCancelSpeech(){
   clearTimeout(_nxResumeTimer);
+  _nxHold = false;
   _nxSpeakGen++;
   if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} window._nxAudio=null; }
   _nxTTSQueue=[];
@@ -2285,7 +2301,14 @@ function nexoraHardCancelSpeech(){
 
 function nexoraTryResumeSpeech(){
   if(_nxSending || !_nx.active) return;
-  if(_nxTTSQueue.length || _nxPlayingChunk) _nxTTSFlush();
+  _nxHold = false;
+  if(window._nxAudio && window._nxAudio.paused && !window._nxAudio.ended){
+    var resumeLab = window._nxAudio.play();
+    if(resumeLab && typeof resumeLab.catch === 'function') resumeLab.catch(function(){});
+    return;
+  }
+  try{ if(window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume(); }catch(e){}
+  if(!_nxTTSBusy && _nxTTSQueue.length) _nxTTSFlush();
 }
 
 function nexoraCancelSpeech(){ nexoraHardCancelSpeech(); }
@@ -2319,13 +2342,7 @@ function _nxTTSFlush(){
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(cached, {
       onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
-      onError: function(){
-        window._nxAudio=null;
-        _nxTTSQueue.unshift(chunk);
-        _nxPlayingChunk=null;
-        _nxTTSBusy=false;
-        setTimeout(_nxTTSFlush, 150);
-      }
+      onError: function(){ nexoraSpeakFallback(clean, nexoraAdvanceQueue); }
     });
     return;
   }
@@ -2338,23 +2355,16 @@ function _nxTTSFlush(){
   ttsPromise
   .then(function(r){return r.ok?r.blob():null;})
   .then(function(b){
-    if(!b || gen!==_nxSpeakGen){ _nxTTSQueue.unshift(chunk); _nxPlayingChunk=chunk; _nxTTSBusy=false; setTimeout(_nxTTSFlush, 180); return; }
+    if(gen!==_nxSpeakGen){ _nxPlayingChunk=null; _nxTTSBusy=false; return; }
+    if(!b){ nexoraSpeakFallback(clean, nexoraAdvanceQueue); return; }
     if(window._nxAudio){ try{ window._nxAudio.pause(); }catch(e){} }
     window._nxAudio=playAudioBlob(b, {
       onEnded: function(){ window._nxAudio=null; _nxPlayingChunk=null; _nxTTSBusy=false; _nxTTSFlush(); if(!_nxTTSBusy&&!_nxTTSQueue.length) nexoraReadyHint(); },
-      onError: function(){
-        window._nxAudio=null;
-        _nxTTSQueue.unshift(chunk);
-        _nxPlayingChunk=null;
-        _nxTTSBusy=false;
-        setTimeout(_nxTTSFlush, 150);
-      }
+      onError: function(){ nexoraSpeakFallback(clean, nexoraAdvanceQueue); }
     });
   }).catch(function(){
-    _nxTTSQueue.unshift(chunk);
-    _nxPlayingChunk=chunk;
-    _nxTTSBusy=false;
-    setTimeout(_nxTTSFlush, 180);
+    if(gen!==_nxSpeakGen){ _nxPlayingChunk=null; _nxTTSBusy=false; return; }
+    nexoraSpeakFallback(clean, nexoraAdvanceQueue);
   });
 }
 function queueSpeak(text){ if(!text||text.trim().length<2) return; _nxTTSQueue.push(text); _nxTTSFlush(); }
